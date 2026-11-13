@@ -1,0 +1,90 @@
+[
+  {
+    "name": "empty",
+    "document": ""
+  },
+  {
+    "name": "freeform",
+    "document": "Plain text <strong>and HTML</strong>."
+  },
+  {
+    "name": "paragraph",
+    "document": "<!-- wp:paragraph --><p>Hello WordPress.</p><!-- /wp:paragraph -->"
+  },
+  {
+    "name": "attributes",
+    "document": "<!-- wp:paragraph {\"align\":\"center\",\"dropCap\":true,\"count\":3} --><p>Aligned.</p><!-- /wp:paragraph -->"
+  },
+  {
+    "name": "void",
+    "document": "<!-- wp:separator /-->"
+  },
+  {
+    "name": "void-attributes",
+    "document": "<!-- wp:acme/card {\"title\":\"Elephc\",\"tags\":[\"php\",\"native\"],\"nullable\":null} /-->"
+  },
+  {
+    "name": "nested",
+    "document": "<!-- wp:group {\"layout\":{\"type\":\"constrained\"}} --><div><!-- wp:paragraph --><p>Child.</p><!-- /wp:paragraph --><!-- wp:separator /--></div><!-- /wp:group -->"
+  },
+  {
+    "name": "siblings",
+    "document": "<!-- wp:heading --><h2>Title</h2><!-- /wp:heading -->\n<!-- wp:paragraph --><p>Text</p><!-- /wp:paragraph -->"
+  },
+  {
+    "name": "freeform-around",
+    "document": "Before<!-- wp:paragraph --><p>Inside</p><!-- /wp:paragraph -->After"
+  },
+  {
+    "name": "void-with-leading-html",
+    "document": "Before<!-- wp:separator /-->After"
+  },
+  {
+    "name": "unicode",
+    "document": "Caffè ☕<!-- wp:paragraph {\"label\":\"日本語\"} --><p>Città 🐘</p><!-- /wp:paragraph -->Fine"
+  },
+  {
+    "name": "missing-closer",
+    "document": "<!-- wp:paragraph --><p>Unclosed"
+  },
+  {
+    "name": "nested-missing-closers",
+    "document": "<!-- wp:group --><div><!-- wp:paragraph --><p>Unclosed"
+  },
+  {
+    "name": "unexpected-closer",
+    "document": "Before<!-- /wp:paragraph -->After"
+  },
+  {
+    "name": "mismatched-closer",
+    "document": "<!-- wp:group -->Text<!-- /wp:paragraph -->"
+  },
+  {
+    "name": "invalid-json",
+    "document": "<!-- wp:paragraph {\"broken\":} --><p>Best effort.</p><!-- /wp:paragraph -->"
+  },
+  {
+    "name": "braces-in-json",
+    "document": "<!-- wp:acme/card {\"title\":\"a } brace\",\"data\":{\"x\":1}} /-->"
+  },
+  {
+    "name": "not-a-block",
+    "document": "<!-- ordinary comment --><!-- wp:UPPERCASE --><p>Plain</p>"
+  },
+  {
+    "name": "whitespace",
+    "document": "<!--\nwp:paragraph\t{\"align\":\"left\"}\n--><p>Whitespace</p><!--\n/wp:paragraph\n-->"
+  },
+  {
+    "name": "deep-nesting",
+    "document": "<!-- wp:group --><a><!-- wp:group --><b><!-- wp:group --><c><!-- wp:paragraph --><p>Depth</p><!-- /wp:paragraph --></c><!-- /wp:group --></b><!-- /wp:group --></a><!-- /wp:group -->"
+  },
+  {
+    "name": "empty-block",
+    "document": "<!-- wp:paragraph --><!-- /wp:paragraph -->"
+  },
+  {
+    "name": "multiple-parses",
+    "document": "<!-- wp:separator /--><!-- wp:separator /--><!-- wp:paragraph --><p>Final</p><!-- /wp:paragraph -->"
+  }
+]

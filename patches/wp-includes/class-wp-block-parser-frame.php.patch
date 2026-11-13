@@ -1,0 +1,56 @@
+--- a/wp-includes/class-wp-block-parser-frame.php
++++ b/wp-includes/class-wp-block-parser-frame.php
+@@ -20,7 +20,7 @@
+ 	 * @since 5.0.0
+ 	 * @var WP_Block_Parser_Block
+ 	 */
+-	public $block;
++	public WP_Block_Parser_Block $block;
+ 
+ 	/**
+ 	 * Byte offset into document for start of parse token
+@@ -28,7 +28,7 @@
+ 	 * @since 5.0.0
+ 	 * @var int
+ 	 */
+-	public $token_start;
++	public int $token_start;
+ 
+ 	/**
+ 	 * Byte length of entire parse token string
+@@ -36,7 +36,7 @@
+ 	 * @since 5.0.0
+ 	 * @var int
+ 	 */
+-	public $token_length;
++	public int $token_length;
+ 
+ 	/**
+ 	 * Byte offset into document for after parse token ends
+@@ -45,7 +45,7 @@
+ 	 * @since 5.0.0
+ 	 * @var int
+ 	 */
+-	public $prev_offset;
++	public int $prev_offset;
+ 
+ 	/**
+ 	 * Byte offset into document where leading HTML before token starts
+@@ -53,7 +53,7 @@
+ 	 * @since 5.0.0
+ 	 * @var int
+ 	 */
+-	public $leading_html_start;
++	public ?int $leading_html_start;
+ 
+ 	/**
+ 	 * Constructor
+@@ -69,7 +69,7 @@
+ 	 * @param int|null              $leading_html_start Optional. Byte offset into document where leading HTML before token starts.
+ 	 *                                                  Default null.
+ 	 */
+-	public function __construct( $block, $token_start, $token_length, $prev_offset = null, $leading_html_start = null ) {
++	public function __construct( WP_Block_Parser_Block $block, int $token_start, int $token_length, ?int $prev_offset = null, ?int $leading_html_start = null ) {
+ 		$this->block              = $block;
+ 		$this->token_start        = $token_start;
+ 		$this->token_length       = $token_length;

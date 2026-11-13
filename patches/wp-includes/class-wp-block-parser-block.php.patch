@@ -1,0 +1,56 @@
+--- a/wp-includes/class-wp-block-parser-block.php
++++ b/wp-includes/class-wp-block-parser-block.php
+@@ -21,7 +21,7 @@
+ 	 * @since 5.0.0
+ 	 * @var string
+ 	 */
+-	public $blockName; // phpcs:ignore WordPress.NamingConventions.ValidVariableName
++	public mixed $blockName; // phpcs:ignore WordPress.NamingConventions.ValidVariableName
+ 
+ 	/**
+ 	 * Optional set of attributes from block comment delimiters
+@@ -32,7 +32,7 @@
+ 	 * @since 5.0.0
+ 	 * @var array|null
+ 	 */
+-	public $attrs;
++	public mixed $attrs;
+ 
+ 	/**
+ 	 * List of inner blocks (of this same class)
+@@ -40,7 +40,7 @@
+ 	 * @since 5.0.0
+ 	 * @var WP_Block_Parser_Block[]
+ 	 */
+-	public $innerBlocks; // phpcs:ignore WordPress.NamingConventions.ValidVariableName
++	public array $innerBlocks; // phpcs:ignore WordPress.NamingConventions.ValidVariableName
+ 
+ 	/**
+ 	 * Resultant HTML from inside block comment delimiters
+@@ -51,7 +51,7 @@
+ 	 * @since 5.0.0
+ 	 * @var string
+ 	 */
+-	public $innerHTML; // phpcs:ignore WordPress.NamingConventions.ValidVariableName
++	public string $innerHTML; // phpcs:ignore WordPress.NamingConventions.ValidVariableName
+ 
+ 	/**
+ 	 * List of string fragments and null markers where inner blocks were found
+@@ -65,7 +65,7 @@
+ 	 * @since 5.0.0
+ 	 * @var array
+ 	 */
+-	public $innerContent; // phpcs:ignore WordPress.NamingConventions.ValidVariableName
++	public array $innerContent; // phpcs:ignore WordPress.NamingConventions.ValidVariableName
+ 
+ 	/**
+ 	 * Constructor.
+@@ -80,7 +80,7 @@
+ 	 * @param string $inner_html    Resultant HTML from inside block comment delimiters after removing inner blocks.
+ 	 * @param array  $inner_content List of string fragments and null markers where inner blocks were found.
+ 	 */
+-	public function __construct( $name, $attrs, $inner_blocks, $inner_html, $inner_content ) {
++	public function __construct( mixed $name, mixed $attrs, array $inner_blocks, string $inner_html, array $inner_content ) {
+ 		$this->blockName    = $name;          // phpcs:ignore WordPress.NamingConventions.ValidVariableName
+ 		$this->attrs        = $attrs;
+ 		$this->innerBlocks  = $inner_blocks;  // phpcs:ignore WordPress.NamingConventions.ValidVariableName

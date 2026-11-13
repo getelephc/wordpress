@@ -1,0 +1,146 @@
+--- a/wp-includes/class-wp-block-parser.php
++++ b/wp-includes/class-wp-block-parser.php
+@@ -22,7 +22,7 @@
+ 	 * @since 5.0.0
+ 	 * @var string
+ 	 */
+-	public $document;
++	public string $document;
+ 
+ 	/**
+ 	 * Tracks parsing progress through document
+@@ -30,7 +30,7 @@
+ 	 * @since 5.0.0
+ 	 * @var int
+ 	 */
+-	public $offset;
++	public int $offset;
+ 
+ 	/**
+ 	 * List of parsed blocks
+@@ -38,7 +38,7 @@
+ 	 * @since 5.0.0
+ 	 * @var array[]
+ 	 */
+-	public $output;
++	public array $output;
+ 
+ 	/**
+ 	 * Stack of partially-parsed structures in memory during parse
+@@ -46,7 +46,7 @@
+ 	 * @since 5.0.0
+ 	 * @var WP_Block_Parser_Frame[]
+ 	 */
+-	public $stack;
++	public array $stack;
+ 
+ 	/**
+ 	 * Parses a document and returns a list of block structures
+@@ -60,7 +60,7 @@
+ 	 * @param string $document Input document being parsed.
+ 	 * @return array[]
+ 	 */
+-	public function parse( $document ) {
++	public function parse( string $document ): array {
+ 		$this->document = $document;
+ 		$this->offset   = 0;
+ 		$this->output   = array();
+@@ -160,16 +160,14 @@
+ 
+ 			case 'block-opener':
+ 				// track all newly-opened blocks on the stack.
+-				array_push(
+-					$this->stack,
+-					new WP_Block_Parser_Frame(
+-						new WP_Block_Parser_Block( $block_name, $attrs, array(), '', array() ),
+-						$start_offset,
+-						$token_length,
+-						$start_offset + $token_length,
+-						$leading_html_start
+-					)
++				$frame = new WP_Block_Parser_Frame(
++					new WP_Block_Parser_Block( $block_name, $attrs, array(), '', array() ),
++					$start_offset,
++					$token_length,
++					$start_offset + $token_length,
++					$leading_html_start
+ 				);
++				$this->stack[] = $frame;
+ 				$this->offset = $start_offset + $token_length;
+ 				return true;
+ 
+@@ -201,6 +199,9 @@
+ 				 * block and add it as a new innerBlock to the parent
+ 				 */
+ 				$stack_top                        = array_pop( $this->stack );
++				if ( ! $stack_top instanceof WP_Block_Parser_Frame ) {
++					throw new LogicException( 'Invalid parser frame' );
++				}
+ 				$html                             = substr( $this->document, $stack_top->prev_offset, $start_offset - $stack_top->prev_offset );
+ 				$stack_top->block->innerHTML     .= $html;
+ 				$stack_top->block->innerContent[] = $html;
+@@ -246,10 +247,8 @@
+ 		 */
+ 		$has_match = preg_match(
+ 			'/<!--[ \t\f\r\n]+(?P<closer>\/)?wp:(?P<namespace>[a-z][a-z0-9_-]*\/)?(?P<name>[a-z][a-z0-9_-]*)[ \t\f\r\n]+(?P<attrs>{(?:(?:[^}]+|}+(?=})|(?!}[ \t\f\r\n]+\/?-->).)*+)?}[ \t\f\r\n]+)?(?P<void>\/)?-->/s',
+-			$this->document,
+-			$matches,
+-			PREG_OFFSET_CAPTURE,
+-			$this->offset
++			substr( $this->document, $this->offset ),
++			$matches
+ 		);
+ 
+ 		// if we get here we probably have catastrophic backtracking or out-of-memory in the PCRE.
+@@ -262,22 +261,23 @@
+ 			return array( 'no-more-tokens', null, null, null, null );
+ 		}
+ 
+-		list( $match, $started_at ) = $matches[0];
++		$match = $matches[0];
++		$started_at = $this->offset + strpos( substr( $this->document, $this->offset ), $match );
+ 
+ 		$length    = strlen( $match );
+-		$is_closer = isset( $matches['closer'] ) && -1 !== $matches['closer'][1];
+-		$is_void   = isset( $matches['void'] ) && -1 !== $matches['void'][1];
+-		$namespace = $matches['namespace'];
+-		$namespace = ( isset( $namespace ) && -1 !== $namespace[1] ) ? $namespace[0] : 'core/';
+-		$name      = $namespace . $matches['name'][0];
+-		$has_attrs = isset( $matches['attrs'] ) && -1 !== $matches['attrs'][1];
++		$is_closer = ! empty( $matches[1] );
++		$is_void   = ! empty( $matches[5] );
++		$namespace = $matches[2];
++		$namespace = ! empty( $namespace ) ? $namespace : 'core/';
++		$name      = $namespace . $matches[3];
++		$has_attrs = ! empty( $matches[4] );
+ 
+ 		/*
+ 		 * Fun fact! It's not trivial in PHP to create "an empty associative array" since all arrays
+ 		 * are associative arrays. If we use `array()` we get a JSON `[]`
+ 		 */
+ 		$attrs = $has_attrs
+-			? json_decode( $matches['attrs'][0], /* as-associative */ true )
++			? json_decode( $matches[4], /* as-associative */ true )
+ 			: array();
+ 
+ 		/*
+@@ -343,6 +343,9 @@
+ 	 */
+ 	public function add_inner_block( WP_Block_Parser_Block $block, $token_start, $token_length, $last_offset = null ) {
+ 		$parent                       = $this->stack[ array_key_last( $this->stack ) ];
++		if ( ! $parent instanceof WP_Block_Parser_Frame ) {
++			throw new LogicException( 'Invalid parser frame' );
++		}
+ 		$parent->block->innerBlocks[] = (array) $block;
+ 		$html                         = substr( $this->document, $parent->prev_offset, $token_start - $parent->prev_offset );
+ 
+@@ -364,6 +367,9 @@
+ 	 */
+ 	public function add_block_from_stack( $end_offset = null ) {
+ 		$stack_top   = array_pop( $this->stack );
++		if ( ! $stack_top instanceof WP_Block_Parser_Frame ) {
++			throw new LogicException( 'Invalid parser frame' );
++		}
+ 		$prev_offset = $stack_top->prev_offset;
+ 
+ 		$html = isset( $end_offset )
