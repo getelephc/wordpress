@@ -1,0 +1,449 @@
+--- a/wp-includes/plugin.php
++++ b/wp-includes/plugin.php
+@@ -25,35 +25,10 @@
+ require __DIR__ . '/class-wp-hook.php';
+ require __DIR__ . '/class-wp-filter-sentinel.php';
+ 
+-/** @var WP_Hook[] $wp_filter */
+-global $wp_filter;
+-
+-/** @var int[] $wp_actions */
+-global $wp_actions;
+-
+-/** @var int[] $wp_filters */
+-global $wp_filters;
+-
+-/** @var string[] $wp_current_filter */
+-global $wp_current_filter;
+-
+-if ( $wp_filter ) {
+-	$wp_filter = WP_Hook::build_preinitialized_hooks( $wp_filter );
+-} else {
+-	$wp_filter = array();
+-}
+-
+-if ( ! isset( $wp_actions ) ) {
+-	$wp_actions = array();
+-}
+-
+-if ( ! isset( $wp_filters ) ) {
+-	$wp_filters = array();
+-}
+-
+-if ( ! isset( $wp_current_filter ) ) {
+-	$wp_current_filter = array();
+-}
++$wp_filter = array();
++$wp_actions = array();
++$wp_filters = array();
++$wp_current_filter = array();
+ 
+ /**
+  * Adds a callback function to a filter hook.
+@@ -119,7 +94,7 @@
+  * @param int      $accepted_args Optional. The number of arguments the function accepts. Default 1.
+  * @return true Always returns true.
+  */
+-function add_filter( $hook_name, $callback, $priority = 10, $accepted_args = 1 ) {
++function add_filter( string $hook_name, mixed $callback, int $priority = 10, int $accepted_args = 1 ) {
+ 	global $wp_filter;
+ 
+ 	if ( ! isset( $wp_filter[ $hook_name ] ) ) {
+@@ -171,7 +146,7 @@
+  * @param mixed  ...$args   Optional. Additional parameters to pass to the callback functions.
+  * @return mixed The filtered value after all hooked functions are applied to it.
+  */
+-function apply_filters( $hook_name, $value, ...$args ) {
++function apply_filters( string $hook_name, mixed $value, mixed ...$args ): mixed {
+ 	global $wp_filter, $wp_filters, $wp_current_filter;
+ 
+ 	if ( ! isset( $wp_filters[ $hook_name ] ) ) {
+@@ -201,7 +176,7 @@
+ 	}
+ 
+ 	// Pass the value to WP_Hook.
+-	array_unshift( $args, $value );
++	$args = array_merge( array( $value ), $args );
+ 
+ 	$filtered = $wp_filter[ $hook_name ]->apply_filters( $value, $args );
+ 
+@@ -226,7 +201,7 @@
+  * @param array  $args      The arguments supplied to the functions hooked to `$hook_name`.
+  * @return mixed The filtered value after all hooked functions are applied to it.
+  */
+-function apply_filters_ref_array( $hook_name, $args ) {
++function apply_filters_ref_array( string $hook_name, array $args ): mixed {
+ 	global $wp_filter, $wp_filters, $wp_current_filter;
+ 
+ 	if ( ! isset( $wp_filters[ $hook_name ] ) ) {
+@@ -284,7 +259,7 @@
+  *                  If `$callback` and `$priority` are both provided, a boolean is returned
+  *                  for whether the specific function is registered at that priority.
+  */
+-function has_filter( $hook_name, $callback = false, $priority = false ) {
++function has_filter( string $hook_name, mixed $callback = false, int|false $priority = false ): mixed {
+ 	global $wp_filter;
+ 
+ 	if ( ! isset( $wp_filter[ $hook_name ] ) ) {
+@@ -324,8 +299,10 @@
+ 	if ( isset( $wp_filter[ $hook_name ] ) ) {
+ 		$r = $wp_filter[ $hook_name ]->remove_filter( $hook_name, $callback, $priority );
+ 
+-		if ( ! $wp_filter[ $hook_name ]->callbacks ) {
+-			unset( $wp_filter[ $hook_name ] );
++		if ( ! $wp_filter[ $hook_name ]->has_filters() ) {
++			$remaining_hooks = (array) $wp_filter;
++			unset( $remaining_hooks[ $hook_name ] );
++			$wp_filter = $remaining_hooks;
+ 		}
+ 	}
+ 
+@@ -351,7 +328,9 @@
+ 		$wp_filter[ $hook_name ]->remove_all_filters( $priority );
+ 
+ 		if ( ! $wp_filter[ $hook_name ]->has_filters() ) {
+-			unset( $wp_filter[ $hook_name ] );
++			$remaining_hooks = (array) $wp_filter;
++			unset( $remaining_hooks[ $hook_name ] );
++			$wp_filter = $remaining_hooks;
+ 		}
+ 	}
+ 
+@@ -367,7 +346,7 @@
+  *
+  * @return string|false Hook name of the current filter, false if no filter is running.
+  */
+-function current_filter() {
++function current_filter(): mixed {
+ 	global $wp_current_filter;
+ 
+ 	return end( $wp_current_filter );
+@@ -376,7 +355,7 @@
+ /**
+  * Returns whether or not a filter hook is currently being processed.
+  *
+- * The function current_filter() only returns the most recent filter being executed.
++ * The function current_filter(): mixed only returns the most recent filter being executed.
+  * did_filter() returns the number of times a filter has been applied during
+  * the current request.
+  *
+@@ -394,7 +373,7 @@
+  *                               which checks if any filter is currently being run.
+  * @return bool Whether the filter is currently in the stack.
+  */
+-function doing_filter( $hook_name = null ) {
++function doing_filter( ?string $hook_name = null ): bool {
+ 	global $wp_current_filter;
+ 
+ 	if ( null === $hook_name ) {
+@@ -421,7 +400,7 @@
+ 		return 0;
+ 	}
+ 
+-	return $wp_filters[ $hook_name ];
++	return (int) $wp_filters[ $hook_name ];
+ }
+ 
+ /**
+@@ -444,7 +423,7 @@
+  * @param int      $accepted_args   Optional. The number of arguments the function accepts. Default 1.
+  * @return true Always returns true.
+  */
+-function add_action( $hook_name, $callback, $priority = 10, $accepted_args = 1 ) {
++function add_action( string $hook_name, mixed $callback, int $priority = 10, int $accepted_args = 1 ) {
+ 	return add_filter( $hook_name, $callback, $priority, $accepted_args );
+ }
+ 
+@@ -485,7 +464,7 @@
+  * @param mixed  ...$arg    Optional. Additional arguments which are passed on to the
+  *                          functions hooked to the action. Default empty.
+  */
+-function do_action( $hook_name, ...$arg ) {
++function do_action( string $hook_name, mixed ...$arg ) {
+ 	global $wp_filter, $wp_actions, $wp_current_filter;
+ 
+ 	if ( ! isset( $wp_actions[ $hook_name ] ) ) {
+@@ -515,9 +494,11 @@
+ 
+ 	if ( empty( $arg ) ) {
+ 		$arg[] = '';
+-	} elseif ( is_array( $arg[0] ) && 1 === count( $arg[0] ) && isset( $arg[0][0] ) && is_object( $arg[0][0] ) ) {
+-		// Backward compatibility for PHP4-style passing of `array( &$this )` as action `$arg`.
+-		$arg[0] = $arg[0][0];
++	} elseif ( is_array( $arg[0] ) ) {
++		$legacy_arg = (array) $arg[0];
++		if ( 1 === count( $legacy_arg ) && isset( $legacy_arg[0] ) && is_object( $legacy_arg[0] ) ) {
++			$arg[0] = $legacy_arg[0];
++		}
+ 	}
+ 
+ 	$wp_filter[ $hook_name ]->do_action( $arg );
+@@ -540,7 +521,7 @@
+  * @param string $hook_name The name of the action to be executed.
+  * @param array  $args      The arguments supplied to the functions hooked to `$hook_name`.
+  */
+-function do_action_ref_array( $hook_name, $args ) {
++function do_action_ref_array( string $hook_name, array $args ) {
+ 	global $wp_filter, $wp_actions, $wp_current_filter;
+ 
+ 	if ( ! isset( $wp_actions[ $hook_name ] ) ) {
+@@ -596,7 +577,7 @@
+  *                  If `$callback` and `$priority` are both provided, a boolean is returned
+  *                  for whether the specific function is registered at that priority.
+  */
+-function has_action( $hook_name, $callback = false, $priority = false ) {
++function has_action( string $hook_name, mixed $callback = false, int|false $priority = false ): mixed {
+ 	return has_filter( $hook_name, $callback, $priority );
+ }
+ 
+@@ -645,14 +626,14 @@
+  *
+  * @return string|false Hook name of the current action, false if no action is running.
+  */
+-function current_action() {
++function current_action(): mixed {
+ 	return current_filter();
+ }
+ 
+ /**
+  * Returns whether or not an action hook is currently being processed.
+  *
+- * The function current_action() only returns the most recent action being executed.
++ * The function current_action(): mixed only returns the most recent action being executed.
+  * did_action() returns the number of times an action has been fired during
+  * the current request.
+  *
+@@ -669,7 +650,7 @@
+  *                               which checks if any action is currently being run.
+  * @return bool Whether the action is currently in the stack.
+  */
+-function doing_action( $hook_name = null ) {
++function doing_action( ?string $hook_name = null ): bool {
+ 	return doing_filter( $hook_name );
+ }
+ 
+@@ -690,7 +671,7 @@
+ 		return 0;
+ 	}
+ 
+-	return $wp_actions[ $hook_name ];
++	return (int) $wp_actions[ $hook_name ];
+ }
+ 
+ /**
+@@ -721,14 +702,8 @@
+  * @return mixed The filtered value after all hooked functions are applied to it.
+  */
+ function apply_filters_deprecated( $hook_name, $args, $version, $replacement = '', $message = '' ) {
+-	if ( ! has_filter( $hook_name ) ) {
+-		return $args[0];
+-	}
+-
+-	_deprecated_hook( $hook_name, $version, $replacement, $message );
+-
+-	return apply_filters_ref_array( $hook_name, $args );
+-}
++	throw new LogicException('Unavailable in the native WordPress hooks profile: apply_filters_deprecated');
++	}
+ 
+ /**
+  * Fires functions attached to a deprecated action hook.
+@@ -748,14 +723,8 @@
+  * @param string $message     Optional. A message regarding the change. Default empty.
+  */
+ function do_action_deprecated( $hook_name, $args, $version, $replacement = '', $message = '' ) {
+-	if ( ! has_action( $hook_name ) ) {
+-		return;
+-	}
+-
+-	_deprecated_hook( $hook_name, $version, $replacement, $message );
+-
+-	do_action_ref_array( $hook_name, $args );
+-}
++	throw new LogicException('Unavailable in the native WordPress hooks profile: do_action_deprecated');
++	}
+ 
+ //
+ // Functions for handling plugins.
+@@ -774,27 +743,8 @@
+  * @return string The name of a plugin.
+  */
+ function plugin_basename( $file ) {
+-	global $wp_plugin_paths;
+-
+-	// $wp_plugin_paths contains normalized paths.
+-	$file = wp_normalize_path( $file );
+-
+-	arsort( $wp_plugin_paths );
+-
+-	foreach ( $wp_plugin_paths as $dir => $realdir ) {
+-		if ( str_starts_with( $file, $realdir ) ) {
+-			$file = $dir . substr( $file, strlen( $realdir ) );
+-		}
+-	}
+-
+-	$plugin_dir    = wp_normalize_path( WP_PLUGIN_DIR );
+-	$mu_plugin_dir = wp_normalize_path( WPMU_PLUGIN_DIR );
+-
+-	// Get relative path from plugins directory.
+-	$file = preg_replace( '#^' . preg_quote( $plugin_dir, '#' ) . '/|^' . preg_quote( $mu_plugin_dir, '#' ) . '/#', '', $file );
+-	$file = trim( $file, '/' );
+-	return $file;
+-}
++	throw new LogicException('Unavailable in the native WordPress hooks profile: plugin_basename');
++	}
+ 
+ /**
+  * Register a plugin's real path.
+@@ -811,29 +761,8 @@
+  * @return bool Whether the path was able to be registered.
+  */
+ function wp_register_plugin_realpath( $file ) {
+-	global $wp_plugin_paths;
+-
+-	// Normalize, but store as static to avoid recalculation of a constant value.
+-	static $wp_plugin_path = null, $wpmu_plugin_path = null;
+-
+-	if ( ! isset( $wp_plugin_path ) ) {
+-		$wp_plugin_path   = wp_normalize_path( WP_PLUGIN_DIR );
+-		$wpmu_plugin_path = wp_normalize_path( WPMU_PLUGIN_DIR );
+-	}
+-
+-	$plugin_path     = wp_normalize_path( dirname( $file ) );
+-	$plugin_realpath = wp_normalize_path( dirname( realpath( $file ) ) );
+-
+-	if ( $plugin_path === $wp_plugin_path || $plugin_path === $wpmu_plugin_path ) {
+-		return false;
+-	}
+-
+-	if ( $plugin_path !== $plugin_realpath ) {
+-		$wp_plugin_paths[ $plugin_path ] = $plugin_realpath;
+-	}
+-
+-	return true;
+-}
++	throw new LogicException('Unavailable in the native WordPress hooks profile: wp_register_plugin_realpath');
++	}
+ 
+ /**
+  * Get the filesystem directory path (with trailing slash) for the plugin __FILE__ passed in.
+@@ -844,8 +773,8 @@
+  * @return string the filesystem path of the directory that contains the plugin.
+  */
+ function plugin_dir_path( $file ) {
+-	return trailingslashit( dirname( $file ) );
+-}
++	throw new LogicException('Unavailable in the native WordPress hooks profile: plugin_dir_path');
++	}
+ 
+ /**
+  * Get the URL directory path (with trailing slash) for the plugin __FILE__ passed in.
+@@ -856,8 +785,8 @@
+  * @return string the URL path of the directory that contains the plugin.
+  */
+ function plugin_dir_url( $file ) {
+-	return trailingslashit( plugins_url( '', $file ) );
+-}
++	throw new LogicException('Unavailable in the native WordPress hooks profile: plugin_dir_url');
++	}
+ 
+ /**
+  * Set the activation hook for a plugin.
+@@ -878,9 +807,8 @@
+  * @param callable $callback The function hooked to the 'activate_PLUGIN' action.
+  */
+ function register_activation_hook( $file, $callback ) {
+-	$file = plugin_basename( $file );
+-	add_action( 'activate_' . $file, $callback );
+-}
++	throw new LogicException('Unavailable in the native WordPress hooks profile: register_activation_hook');
++	}
+ 
+ /**
+  * Sets the deactivation hook for a plugin.
+@@ -901,9 +829,8 @@
+  * @param callable $callback The function hooked to the 'deactivate_PLUGIN' action.
+  */
+ function register_deactivation_hook( $file, $callback ) {
+-	$file = plugin_basename( $file );
+-	add_action( 'deactivate_' . $file, $callback );
+-}
++	throw new LogicException('Unavailable in the native WordPress hooks profile: register_deactivation_hook');
++	}
+ 
+ /**
+  * Sets the uninstallation hook for a plugin.
+@@ -932,24 +859,8 @@
+  *                           a static method or function.
+  */
+ function register_uninstall_hook( $file, $callback ) {
+-	if ( is_array( $callback ) && is_object( $callback[0] ) ) {
+-		_doing_it_wrong( __FUNCTION__, __( 'Only a static class method or function can be used in an uninstall hook.' ), '3.1.0' );
+-		return;
+-	}
+-
+-	/*
+-	 * The option should not be autoloaded, because it is not needed in most
+-	 * cases. Emphasis should be put on using the 'uninstall.php' way of
+-	 * uninstalling the plugin.
+-	 */
+-	$uninstallable_plugins = (array) get_option( 'uninstall_plugins' );
+-	$plugin_basename       = plugin_basename( $file );
+-
+-	if ( ! isset( $uninstallable_plugins[ $plugin_basename ] ) || $uninstallable_plugins[ $plugin_basename ] !== $callback ) {
+-		$uninstallable_plugins[ $plugin_basename ] = $callback;
+-		update_option( 'uninstall_plugins', $uninstallable_plugins );
+-	}
+-}
++	throw new LogicException('Unavailable in the native WordPress hooks profile: register_uninstall_hook');
++	}
+ 
+ /**
+  * Calls the 'all' hook, which will process the functions hooked into it.
+@@ -969,7 +880,7 @@
+  *
+  * @param array $args The collected parameters from the hook that was called.
+  */
+-function _wp_call_all_hook( $args ) {
++function _wp_call_all_hook( array $args ) {
+ 	global $wp_filter;
+ 
+ 	$wp_filter['all']->do_all_hook( $args );
+@@ -1002,7 +913,7 @@
+  *
+  * @phpstan-return non-decimal-int-string|null
+  */
+-function _wp_filter_build_unique_id( $hook_name, $callback, $priority ): ?string {
++function _wp_filter_build_unique_id( string $hook_name, mixed $callback, mixed $priority ): ?string {
+ 	if ( is_string( $callback ) ) {
+ 		return $callback;
+ 	}
+@@ -1013,19 +924,20 @@
+ 		 * string to int when it is used as an array key, which would change the type of the keys in
+ 		 * WP_Hook::$callbacks and break consumers that pass them to string functions.
+ 		 */
+-		return 'spl_object_id:' . spl_object_id( $callback );
+-	}
+-
+-	if ( ! isset( $callback[1] ) || ! is_string( $callback[1] ) ) {
++		return 'spl_object_id:' . _elephc_hook_object_id( $callback );
++	}
++
++	$callback_array = (array) $callback;
++	if ( ! isset( $callback_array[1] ) || ! is_string( $callback_array[1] ) ) {
+ 		return null;
+ 	}
+ 
+-	if ( is_object( $callback[0] ) ) {
++	if ( is_object( $callback_array[0] ) ) {
+ 		// Object class calling.
+-		return ( (string) spl_object_id( $callback[0] ) ) . $callback[1];
+-	} elseif ( is_string( $callback[0] ) ) {
++		return ( (string) _elephc_hook_object_id( $callback_array[0] ) ) . $callback_array[1];
++	} elseif ( is_string( $callback_array[0] ) ) {
+ 		// Static calling.
+-		return $callback[0] . '::' . $callback[1];
++		return $callback_array[0] . '::' . $callback_array[1];
+ 	}
+ 
+ 	return null;

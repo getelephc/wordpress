@@ -10,7 +10,7 @@ compiler=$(command -v "${ELEPHC_BIN:-elephc}") || {
 }
 mkdir -p elephc/build
 status=0
-for probe in full-wordpress shortinit blocks; do
+for probe in full-wordpress shortinit blocks hooks-original; do
     printf '\nChecking unmodified WordPress: %s\n' "$probe"
     if ! "$compiler" --php-version 8.4 --check "elephc/probes/$probe.php" > "elephc/build/upstream-$probe.log" 2>&1; then
         status=1

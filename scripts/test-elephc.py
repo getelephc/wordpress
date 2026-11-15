@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Compare the native CLI and HTTP parser with unmodified WordPress under PHP."""
+"""Compare native block and hook behavior with unmodified WordPress under PHP."""
 
 import http.client
 import json
@@ -10,6 +10,7 @@ import socket
 import subprocess
 import tempfile
 import time
+import urllib.parse
 
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -17,6 +18,7 @@ ROOT = Path(__file__).resolve().parent.parent
 
 def run_json(command):
     result = subprocess.run(command, cwd=ROOT, capture_output=True, text=True, check=True, timeout=20)
+    assert not result.stderr, f"Unexpected diagnostics from {command[0]}: {result.stderr}"
     return json.loads(result.stdout)
 
 
@@ -31,6 +33,16 @@ def main():
         actual = run_json([str(ROOT / "elephc/runtime/parse"), fixture["document"]])
         assert actual == reference[fixture["name"]], f"Native CLI differs: {fixture['name']}\n{actual}"
     print(f"PASS: {len(fixtures)} fixtures match upstream PHP in patched PHP and native CLI.")
+
+    hook_input = 'WordPress 🐘'
+    hook_fixtures = json.loads((ROOT / "tests/hooks-fixtures.json").read_text())
+    hook_reference = run_json([php, "tests/hooks-reference.php", "upstream"])
+    hook_patched = run_json([php, "tests/hooks-reference.php", "profile"])
+    assert hook_patched == hook_reference, "Patched hooks differ from original WordPress"
+    for scenario in hook_fixtures:
+        actual = run_json([str(ROOT / "elephc/runtime/hooks"), scenario, hook_input])
+        assert actual == hook_reference[scenario], f"Native hook CLI differs: {scenario}\n{actual}"
+    print(f"PASS: {len(hook_fixtures)} hook scenarios match upstream PHP in patched PHP and native CLI.")
 
     with socket.socket() as listener:
         listener.bind(("127.0.0.1", 0))
@@ -72,6 +84,21 @@ def main():
                     actual = json.loads(body)
                     assert actual == reference[fixture["name"]], f"Native HTTP differs: {fixture['name']}\n{actual}"
                     checks += 1
+                for scenario in hook_fixtures:
+                    query = urllib.parse.urlencode({"case": scenario, "value": hook_input})
+                    status, headers, body = request("GET", "/hooks?" + query)
+                    assert status == 200, (scenario, status, body)
+                    assert json.loads(body) == hook_reference[scenario], f"Native hook HTTP differs: {scenario}"
+                    checks += 1
+                status, _, body = request("POST", "/filter", hook_input.encode())
+                assert status == 200 and json.loads(body) == hook_reference["priority"]
+                status, _, body = request("GET", "/hooks?case=unknown")
+                assert status == 400 and json.loads(body)["error"] == "Unknown hook scenario"
+                status, headers, body = request("GET", "/filter")
+                assert status == 405 and headers["allow"] == "POST"
+                status, _, body = request("HEAD", "/hooks")
+                assert status == 200 and body == b""
+                checks += 4
                 status, headers, body = request("GET", "/")
                 assert status == 200 and b"WordPress blocks." in body
                 assert headers["content-type"].startswith("text/html")
@@ -94,6 +121,10 @@ def main():
                 status, _, body = request("POST", "/parse", b"x" * 65537)
                 assert status == 413
                 checks += 9
+            log.flush()
+            log.seek(0)
+            diagnostics = log.read()
+            assert b"Warning:" not in diagnostics and b"Fatal error:" not in diagnostics, diagnostics.decode(errors="replace")
             print(f"PASS: {checks} HTTP checks, including repeated requests, HEAD, 404, 405 and body limit.")
         finally:
             try:

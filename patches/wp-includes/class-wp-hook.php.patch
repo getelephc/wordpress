@@ -1,0 +1,385 @@
+--- a/wp-includes/class-wp-hook.php
++++ b/wp-includes/class-wp-hook.php
+@@ -26,6 +26,12 @@
+ #[AllowDynamicProperties]
+ final class WP_Hook implements Iterator, ArrayAccess {
+ 
++	public function __construct() {
++		// Select associative storage before sparse integer priorities are inserted.
++		$this->callbacks['native-hook-map'] = array();
++		unset( $this->callbacks['native-hook-map'] );
++	}
++
+ 	/**
+ 	 * Hook callbacks keyed by priority.
+ 	 *
+@@ -33,7 +39,7 @@
+ 	 * @var array
+ 	 * @phpstan-var array<int, array<non-decimal-int-string, Hook_Callback>>
+ 	 */
+-	public $callbacks = array();
++	public array $callbacks = array();
+ 
+ 	/**
+ 	 * Priorities list.
+@@ -41,7 +47,7 @@
+ 	 * @since 6.4.0
+ 	 * @var list<int>
+ 	 */
+-	protected $priorities = array();
++	protected array $priorities = array();
+ 
+ 	/**
+ 	 * The priority keys of actively running iterations of a hook.
+@@ -49,7 +55,7 @@
+ 	 * @since 4.7.0
+ 	 * @var array<int, list<int>>
+ 	 */
+-	private $iterations = array();
++	private array $iterations = array();
+ 
+ 	/**
+ 	 * The current priority of actively running iterations of a hook.
+@@ -57,7 +63,7 @@
+ 	 * @since 4.7.0
+ 	 * @var array<int, int>
+ 	 */
+-	private $current_priority = array();
++	private array $current_priority = array();
+ 
+ 	/**
+ 	 * Number of levels this hook can be recursively called.
+@@ -65,7 +71,9 @@
+ 	 * @since 4.7.0
+ 	 * @var int
+ 	 */
+-	private $nesting_level = 0;
++	private int $nesting_level = 0;
++	private array $iteration_positions = array();
++	private int $callback_position = 0;
+ 
+ 	/**
+ 	 * Flag for if we're currently doing an action, rather than a filter.
+@@ -73,7 +81,7 @@
+ 	 * @since 4.7.0
+ 	 * @var bool
+ 	 */
+-	private $doing_action = false;
++	private bool $doing_action = false;
+ 
+ 	/**
+ 	 * Adds a callback function to a filter hook.
+@@ -88,7 +96,7 @@
+ 	 *                                in which they were added to the filter.
+ 	 * @param int      $accepted_args The number of arguments the function accepts.
+ 	 */
+-	public function add_filter( $hook_name, $callback, $priority, $accepted_args ) {
++	public function add_filter( string $hook_name, mixed $callback, ?int $priority, int $accepted_args ): void {
+ 		if ( null === $priority ) {
+ 			$priority = 0;
+ 		}
+@@ -101,7 +109,7 @@
+ 		$priority_existed = isset( $this->callbacks[ $priority ] );
+ 
+ 		$this->callbacks[ $priority ][ $idx ] = array(
+-			'function'      => $callback,
++			'function'      => WordPressHookCallbacks::resolve( $callback ),
+ 			'accepted_args' => (int) $accepted_args,
+ 		);
+ 
+@@ -141,23 +149,26 @@
+ 
+ 		$min = min( $new_priorities );
+ 
+-		foreach ( $this->iterations as $index => &$iteration ) {
+-			$current = current( $iteration );
++		foreach ( $this->iterations as $index => $iteration ) {
++			$current = $this->iteration_current( (int) $index );
+ 
+ 			// If we're already at the end of this iteration, just leave the array pointer where it is.
+ 			if ( false === $current ) {
+ 				continue;
+ 			}
+ 
+-			$iteration = $new_priorities;
++			$this->iterations[ $index ] = $new_priorities;
++			$this->iteration_positions[ $index ] = 0;
+ 
+ 			if ( $current < $min ) {
+-				array_unshift( $iteration, $current );
++				$prepended = $new_priorities;
++				array_unshift( $prepended, $current );
++				$this->iterations[ $index ] = $prepended;
+ 				continue;
+ 			}
+ 
+-			while ( current( $iteration ) < $current ) {
+-				if ( false === next( $iteration ) ) {
++			while ( $this->iteration_current( (int) $index ) < $current ) {
++				if ( false === $this->iteration_next( (int) $index ) ) {
+ 					break;
+ 				}
+ 			}
+@@ -169,20 +180,20 @@
+ 				 * priority, we need to move back to it.
+ 				 */
+ 
+-				if ( false === current( $iteration ) ) {
++				if ( false === $this->iteration_current( (int) $index ) ) {
+ 					// If we've already moved off the end of the array, go back to the last element.
+-					$prev = end( $iteration );
++					$prev = $this->iteration_end( (int) $index );
+ 				} else {
+ 					// Otherwise, just go back to the previous element.
+-					$prev = prev( $iteration );
++					$prev = $this->iteration_prev( (int) $index );
+ 				}
+ 
+ 				if ( false === $prev ) {
+ 					// Start of the array. Reset, and go about our day.
+-					reset( $iteration );
++					$this->iteration_reset( (int) $index );
+ 				} elseif ( $new_priority !== $prev ) {
+ 					// Previous wasn't the same. Move forward again.
+-					next( $iteration );
++					$this->iteration_next( (int) $index );
+ 				}
+ 			}
+ 		}
+@@ -202,7 +213,7 @@
+ 	 * @param int                   $priority  The exact priority used when adding the original filter callback.
+ 	 * @return bool Whether the callback existed before it was removed.
+ 	 */
+-	public function remove_filter( $hook_name, $callback, $priority ) {
++	public function remove_filter( string $hook_name, mixed $callback, ?int $priority ): bool {
+ 		if ( null === $priority ) {
+ 			$priority = 0;
+ 		}
+@@ -212,7 +223,9 @@
+ 		$exists = isset( $function_key, $this->callbacks[ $priority ][ $function_key ] );
+ 
+ 		if ( $exists ) {
+-			unset( $this->callbacks[ $priority ][ $function_key ] );
++			$remaining_callbacks = (array) $this->callbacks[ $priority ];
++			unset( $remaining_callbacks[ $function_key ] );
++			$this->callbacks[ $priority ] = $remaining_callbacks;
+ 
+ 			if ( ! $this->callbacks[ $priority ] ) {
+ 				unset( $this->callbacks[ $priority ] );
+@@ -249,7 +262,7 @@
+ 	 *                  If `$callback` and `$priority` are both provided, a boolean is returned
+ 	 *                  for whether the specific function is registered at that priority.
+ 	 */
+-	public function has_filter( $hook_name = '', $callback = false, $priority = false ) {
++	public function has_filter( string $hook_name = '', mixed $callback = false, int|false $priority = false ): mixed {
+ 		if ( false === $callback ) {
+ 			return $this->has_filters();
+ 		}
+@@ -325,7 +338,7 @@
+ 	 *                     This array is expected to include $value at index 0.
+ 	 * @return mixed The filtered value after all hooked functions are applied to it.
+ 	 */
+-	public function apply_filters( $value, $args ) {
++	public function apply_filters( mixed $value, array $args ): mixed {
+ 		if ( ! $this->callbacks ) {
+ 			return $value;
+ 		}
+@@ -333,11 +346,12 @@
+ 		$nesting_level = $this->nesting_level++;
+ 
+ 		$this->iterations[ $nesting_level ] = $this->priorities;
++		$this->iteration_positions[ $nesting_level ] = 0;
+ 
+ 		$num_args = count( $args );
+ 
+ 		do {
+-			$this->current_priority[ $nesting_level ] = current( $this->iterations[ $nesting_level ] );
++			$this->current_priority[ $nesting_level ] = $this->iteration_current( $nesting_level );
+ 
+ 			$priority = $this->current_priority[ $nesting_level ];
+ 
+@@ -355,9 +369,10 @@
+ 					$value = call_user_func_array( $the_['function'], array_slice( $args, 0, $the_['accepted_args'] ) );
+ 				}
+ 			}
+-		} while ( false !== next( $this->iterations[ $nesting_level ] ) );
++		} while ( false !== $this->iteration_next( $nesting_level ) );
+ 
+ 		unset( $this->iterations[ $nesting_level ] );
++		unset( $this->iteration_positions[ $nesting_level ] );
+ 		unset( $this->current_priority[ $nesting_level ] );
+ 
+ 		--$this->nesting_level;
+@@ -372,7 +387,7 @@
+ 	 *
+ 	 * @param array $args Parameters to pass to the callback functions.
+ 	 */
+-	public function do_action( $args ) {
++	public function do_action( array $args ): void {
+ 		$this->doing_action = true;
+ 		$this->apply_filters( '', $args );
+ 
+@@ -389,19 +404,21 @@
+ 	 *
+ 	 * @param array $args Arguments to pass to the hook callbacks. Passed by reference.
+ 	 */
+-	public function do_all_hook( &$args ) {
++	public function do_all_hook( array &$args ): void {
+ 		$nesting_level                      = $this->nesting_level++;
+ 		$this->iterations[ $nesting_level ] = $this->priorities;
++		$this->iteration_positions[ $nesting_level ] = 0;
+ 
+ 		do {
+-			$priority = current( $this->iterations[ $nesting_level ] );
++			$priority = $this->iteration_current( $nesting_level );
+ 
+ 			foreach ( $this->callbacks[ $priority ] as $the_ ) {
+ 				call_user_func_array( $the_['function'], $args );
+ 			}
+-		} while ( false !== next( $this->iterations[ $nesting_level ] ) );
++		} while ( false !== $this->iteration_next( $nesting_level ) );
+ 
+ 		unset( $this->iterations[ $nesting_level ] );
++		unset( $this->iteration_positions[ $nesting_level ] );
+ 		--$this->nesting_level;
+ 	}
+ 
+@@ -414,11 +431,8 @@
+ 	 *                   If it isn't running, return false.
+ 	 */
+ 	public function current_priority() {
+-		if ( false === current( $this->iterations ) ) {
+-			return false;
+-		}
+-
+-		return current( current( $this->iterations ) );
++		$keys = array_keys( $this->iterations );
++		return empty( $keys ) ? false : $this->iteration_current( (int) $keys[0] );
+ 	}
+ 
+ 	/**
+@@ -451,7 +465,7 @@
+ 	 * @phpstan-param array<string, WP_Hook|array<int, array<Hook_Callback>>> $filters
+ 	 * @return array<string, WP_Hook> Array of normalized filters keyed by hook name.
+ 	 */
+-	public static function build_preinitialized_hooks( $filters ) {
++	public static function build_preinitialized_hooks( array $filters ): array {
+ 		/** @var array<string, WP_Hook> $normalized */
+ 		$normalized = array();
+ 
+@@ -489,7 +503,7 @@
+ 	 * @return bool True if the offset exists, false otherwise.
+ 	 */
+ 	#[ReturnTypeWillChange]
+-	public function offsetExists( $offset ) {
++	public function offsetExists( mixed $offset ): bool {
+ 		return isset( $this->callbacks[ $offset ] );
+ 	}
+ 
+@@ -505,7 +519,7 @@
+ 	 * @phpstan-return array<non-decimal-int-string, Hook_Callback>|null
+ 	 */
+ 	#[ReturnTypeWillChange]
+-	public function offsetGet( $offset ) {
++	public function offsetGet( mixed $offset ): mixed {
+ 		return $this->callbacks[ $offset ] ?? null;
+ 	}
+ 
+@@ -521,7 +535,7 @@
+ 	 * @phpstan-param array<non-decimal-int-string, Hook_Callback> $value
+ 	 */
+ 	#[ReturnTypeWillChange]
+-	public function offsetSet( $offset, $value ) {
++	public function offsetSet( mixed $offset, mixed $value ): void {
+ 		if ( is_null( $offset ) ) {
+ 			$this->callbacks[] = $value;
+ 		} else {
+@@ -541,7 +555,7 @@
+ 	 * @param int $offset The offset to unset.
+ 	 */
+ 	#[ReturnTypeWillChange]
+-	public function offsetUnset( $offset ) {
++	public function offsetUnset( mixed $offset ): void {
+ 		unset( $this->callbacks[ $offset ] );
+ 		$this->priorities = array_keys( $this->callbacks );
+ 	}
+@@ -557,8 +571,10 @@
+ 	 * @phpstan-return array<non-decimal-int-string, Hook_Callback>|false
+ 	 */
+ 	#[ReturnTypeWillChange]
+-	public function current() {
+-		return current( $this->callbacks );
++	public function current(): mixed {
++		$keys = array_keys( $this->callbacks );
++		$key = $keys[ $this->callback_position ] ?? null;
++		return $key === null ? false : $this->callbacks[ $key ];
+ 	}
+ 
+ 	/**
+@@ -572,8 +588,8 @@
+ 	 * @phpstan-return array<non-decimal-int-string, Hook_Callback>|false
+ 	 */
+ 	#[ReturnTypeWillChange]
+-	public function next() {
+-		return next( $this->callbacks );
++	public function next(): void {
++		++$this->callback_position;
+ 	}
+ 
+ 	/**
+@@ -586,8 +602,9 @@
+ 	 * @return int|null Returns current priority on success, or NULL on failure
+ 	 */
+ 	#[ReturnTypeWillChange]
+-	public function key() {
+-		return key( $this->callbacks );
++	public function key(): mixed {
++		$keys = array_keys( $this->callbacks );
++		return $keys[ $this->callback_position ] ?? null;
+ 	}
+ 
+ 	/**
+@@ -600,8 +617,8 @@
+ 	 * @return bool Whether the current position is valid.
+ 	 */
+ 	#[ReturnTypeWillChange]
+-	public function valid() {
+-		return key( $this->callbacks ) !== null;
++	public function valid(): bool {
++		return $this->callback_position < count( $this->callbacks );
+ 	}
+ 
+ 	/**
+@@ -612,7 +629,29 @@
+ 	 * @link https://www.php.net/manual/en/iterator.rewind.php
+ 	 */
+ 	#[ReturnTypeWillChange]
+-	public function rewind() {
+-		reset( $this->callbacks );
+-	}
++	public function rewind(): void {
++		$this->callback_position = 0;
++	}
++	private function iteration_current( int $index ): int|false {
++		$priorities = (array) $this->iterations[ $index ];
++		$position = (int) ( $this->iteration_positions[ $index ] ?? 0 );
++		return isset( $priorities[ $position ] ) ? (int) $priorities[ $position ] : false;
++	}
++	private function iteration_next( int $index ): int|false {
++		$this->iteration_positions[ $index ] = (int) ( $this->iteration_positions[ $index ] ?? 0 ) + 1;
++		return $this->iteration_current( $index );
++	}
++	private function iteration_prev( int $index ): int|false {
++		$this->iteration_positions[ $index ] = (int) ( $this->iteration_positions[ $index ] ?? 0 ) - 1;
++		return $this->iteration_current( $index );
++	}
++	private function iteration_end( int $index ): int|false {
++		$this->iteration_positions[ $index ] = count( (array) $this->iterations[ $index ] ) - 1;
++		return $this->iteration_current( $index );
++	}
++	private function iteration_reset( int $index ): int|false {
++		$this->iteration_positions[ $index ] = 0;
++		return $this->iteration_current( $index );
++	}
++
+ }

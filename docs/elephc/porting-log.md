@@ -1,4 +1,4 @@
-# WordPress core parser experiment
+# WordPress native core experiment
 
 ## Baseline, 2026-11-13
 
@@ -116,12 +116,75 @@ It reuses the installed compiler SDK and native package cache. Its temporary
 directory is removed on success or failure.
 
 Build logs and diagnostic output are under ignored `elephc/build/`.
-The verified native host executables are 1,757,528 bytes for the CLI and
-3,894,208 bytes for the HTTP server.
+The block-parser-only baseline produced 1,757,528-byte CLI and
+3,894,208-byte HTTP executables on the native host.
+
+## Actions and filters extension, 2026-11-15
+
+The compiled source inventory now contains six core files and five patches.
+The added files are `plugin.php`, `class-wp-hook.php` and the unchanged
+`class-wp-filter-sentinel.php`. There are three executables: the block parser
+CLI, the hooks CLI and the combined HTTP server.
+
+The original hook API first failed to parse the comma-separated static
+declaration in `wp_register_plugin_realpath`. That filesystem helper is outside
+the hooks profile. Nine deprecated-hook, plugin-filesystem and plugin-lifecycle
+functions now fail explicitly rather than pulling unrelated subsystems into
+the compiled graph. Their original bodies remain in the patch diff.
+
+`plugin.php` initializes fresh hook tables. Explicit signatures preserve
+mixed filter values, nullable hook-name defaults and argument arrays.
+Array construction/merge replaces an unsupported mixed-value `array_unshift`
+path. Table removal uses typed local copies before publishing the updated
+table, and the original callback identity algorithm uses a typed object-ID
+adapter after its existing object checks.
+
+`WP_Hook` retains its dispatch and active-priority resorting algorithms.
+Elephc cannot maintain PHP's hidden array pointer on an object property or
+nested array element, so the profile stores each active iteration's position
+explicitly. The same logical current/next/previous/end/reset operations drive
+priority insertion, removal and recursive dispatch. `foreach` over `WP_Hook`
+also uses an explicit cursor with compatible Iterator/ArrayAccess signatures.
+The `next()` adapter returns `void`, following the interface contract.
+Construction and full reset briefly insert and remove a string key to select
+associative callback storage before sparse integer priorities are inserted.
+Without this adaptation the native array exposed empty slots between priorities
+through `array_keys`, which the Iterator comparison caught.
+
+Direct string callback dispatch to application functions in the included demo
+graph failed at runtime on the pinned SDK, while closure and method descriptors
+worked. Application function names are therefore registered explicitly with
+`WordPressHookCallbacks::register(name, function_name(...))`. Resolution stores
+the descriptor in the callback bucket after the original name has supplied
+the WordPress identity key. Duplicate registration, priority matching and
+removal continue to use that original key. This is a finite application
+manifest, not general plugin discovery.
+
+The hook corpus contains 31 scenarios, compared independently with unmodified
+PHP, patched PHP and the native hooks CLI. It includes stable equal-priority
+ordering, zero/negative priorities, accepted arguments, removal, recursion,
+live insertion/removal, `all`, action context/counters, mixed values,
+closure captures, callable forms, Iterator access and sentinel identity.
+Together with the existing 22 block fixtures, repeated request checks total
+132 HTTP checks through one native worker.
+
+`GET /hooks` runs the default priority scenario, with other cases selectable
+by the `case` query parameter. `POST /filter` sends runtime request text through
+real WordPress filters. The default listener remains `127.0.0.1:9000`.
+
+Ordinary argument-array forwarding is tested, including the `_ref_array` APIs.
+Reference-bound argument arrays, preinitialized hook globals, arbitrary plugin
+loading and direct mutation of the public callback table are not claimed.
+Closure captures by reference are covered independently.
+
+The expanded native host executables are 1,761,624 bytes for block parsing,
+3,799,656 bytes for hooks and 21,461,120 bytes for the combined HTTP server.
 
 ## Follow-up direction
 
-A broader CMS experiment should first address the UTF-8 compatibility loader's
+Shortcodes can now build on the verified hook boundary, with HTML parsing and
+formatting helpers as the next source graph to inspect. A broader CMS
+experiment should first address the UTF-8 compatibility loader's
 control flow and repeat the `SHORTINIT` diagnostic to discover the next real
 blocker. A database-backed bootstrap, hooks, filters, plugin discovery, themes
 and arbitrary block rendering require separate verified profiles. The parser

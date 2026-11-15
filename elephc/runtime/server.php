@@ -2,22 +2,33 @@
 
 require __DIR__ . '/bootstrap.php';
 require __DIR__ . '/demo.php';
+require __DIR__ . '/hooks-demo.php';
 
 $path = explode('?', $_SERVER['REQUEST_URI'] ?? '/')[0];
 $method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
 $status = 200;
 $type = 'application/json; charset=utf-8';
 $body = '';
+$post_route = $path === '/parse' || $path === '/filter';
 
-if ($path !== '/' && $path !== '/health' && $path !== '/blocks' && $path !== '/parse') {
+if ($path !== '/' && $path !== '/health' && $path !== '/blocks' && $path !== '/parse' && $path !== '/hooks' && $path !== '/filter') {
     $status = 404;
     $body = '{"error":"Not Found"}' . "\n";
-} elseif (($path === '/parse' && $method !== 'POST') || ($path !== '/parse' && $method !== 'GET' && $method !== 'HEAD')) {
+} elseif (($post_route && $method !== 'POST') || (!$post_route && $method !== 'GET' && $method !== 'HEAD')) {
     $status = 405;
-    header($path === '/parse' ? 'Allow: POST' : 'Allow: GET, HEAD');
+    header($post_route ? 'Allow: POST' : 'Allow: GET, HEAD');
     $body = '{"error":"Method Not Allowed"}' . "\n";
 } elseif ($path === '/health') {
-    $body = '{"status":"ok","wordpress":"7.1.4","profile":"block-parser","database":false}' . "\n";
+    $body = '{"status":"ok","wordpress":"7.1.4","profile":"blocks-and-hooks","database":false}' . "\n";
+} elseif ($path === '/hooks' || $path === '/filter') {
+    $scenario = (string) ($_GET['case'] ?? 'priority');
+    $input = $path === '/filter' ? (string) file_get_contents('php://input') : (string) ($_GET['value'] ?? 'WordPress');
+    try {
+        $body = json_encode(wordpress_hooks_demo($scenario, $input), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) . "\n";
+    } catch (InvalidArgumentException $exception) {
+        $status = 400;
+        $body = '{"error":"Unknown hook scenario"}' . "\n";
+    }
 } else {
     $document = wordpress_demo_document();
     if ($path === '/parse') {
@@ -34,14 +45,16 @@ if ($path !== '/' && $path !== '/health' && $path !== '/blocks' && $path !== '/p
             . '<style>body{max-width:68rem;margin:4rem auto;padding:0 1.5rem;font:18px/1.6 system-ui;color:#17252b;background:#faf8f4}'
             . 'h1{font-size:clamp(2rem,6vw,4rem);line-height:1.1}a{color:#0073aa}pre{padding:1.5rem;background:#17252b;color:#e4eff3;overflow:auto;border-radius:8px}'
             . '.label{font:14px monospace;text-transform:uppercase;color:#52666d}</style>'
-            . '<p class="label">WordPress 7.1.4 / Elephc 0.27.8 / block parser experiment</p>'
+            . '<p class="label">WordPress 7.1.4 / Elephc 0.27.8 / native core experiment</p>'
             . '<h1>WordPress blocks.<br>Native execution.</h1>'
             . '<p>This response runs the WordPress Gutenberg block parser on every request, including nested blocks and JSON attributes.</p>'
-            . '<p><a href="/blocks">Inspect the parsed demo</a> &middot; <a href="/health">Health check</a></p>'
+            . '<p><a href="/blocks">Inspect the parsed demo</a> &middot; <a href="/hooks">Actions and filters</a> &middot; <a href="/health">Health check</a></p>'
             . '<h2>Try your own document</h2>'
             . '<pre>curl -X POST --data-binary @document.html http://127.0.0.1:9000/parse</pre>'
             . '<h2>Parsed demo</h2><pre>' . htmlspecialchars($body, ENT_QUOTES, 'UTF-8') . '</pre>'
-            . '<p>This profile contains three core parser classes and three compatibility patches. The CMS bootstrap, database, themes, plugins and admin are outside this first experiment.</p>'
+            . '<h2>WordPress hooks</h2><p>Real actions and filters, including priorities, callback removal and nested execution.</p>'
+            . '<pre>curl -X POST --data-binary "Hello WordPress" http://127.0.0.1:9000/filter</pre>'
+            . '<p>This profile includes block parsing and the core action/filter API. The CMS bootstrap, database, plugin discovery, themes and admin remain outside the profile.</p>'
             . '</html>';
     }
 }

@@ -1,7 +1,7 @@
 # Project conventions
 
-- This is a bounded WordPress block parser port to Elephc, with native CLI and
-  HTTP profiles. Keep the supported scope explicit.
+- This is a bounded WordPress core port to Elephc, covering block parsing,
+  actions and filters with native CLI and HTTP profiles. Keep the scope explicit.
 - Run application code, Elephc and PHP reference checks directly on the host.
   This project intentionally uses native tools and has no database.
 - Use `127.0.0.1:9000` as the default local HTTP listener.
@@ -15,6 +15,8 @@
   `scripts/prepare-elephc.py` and `scripts/build-elephc.sh`.
 - Validate changes against unmodified PHP with `scripts/test-elephc.py` and
   use source-only reproduction when source preparation or patches change.
+- Keep named application callbacks in the explicit `WordPressHookCallbacks`
+  manifest. Direct closures and method callables use native descriptors.
 - The complete WordPress compile probes intentionally fail on the pinned SDK.
   Keep their diagnostics separate from the verified parser profile.
 - Keep provenance, boundaries and verified results current in the README,
