@@ -564,6 +564,64 @@ fatal errors.
 The sanitizer executable is 4,109,416 bytes and the combined server is
 24,917,120 bytes. These are build observations, without speed claims.
 
+## Error object extension, 2026-11-16
+
+The graph adds the complete original `WP_Error` class and selects the original
+`is_wp_error` helper from `load.php`. It now uses 17 original files and 16
+patches; formatting still selects 24 functions. The new `errors` CLI brings
+native executables to eleven. The class retains message/code ordering, latest
+data and chronological history, protected copying, merge/export and original
+actions. Full-file, selected-function and generated hashes remain verified.
+The broader loader/CMS and REST graphs are excluded.
+
+Typed properties and method boundaries, uniform mixed maps and local bucket
+updates adapt native storage without replacing core algorithms. The history
+array is extracted with an explicit cast/coalesce to avoid reassigning a
+never-inferred empty list. Code emptiness explicitly includes string zero and
+nonempty-data handling excludes it. These preserve PHP behavior on the pinned
+SDK. The native core probe agrees with PHP on numeric key 0 followed by -2,
+null/false history, merge/export and error recognition.
+
+The CLI and POST `/errors` accept request-local JSON operation sequences.
+Operations create, add, add-data, remove, get-codes/get-code/get-messages,
+get-message/get-data/get-all-data, has-errors, is-error, merge/export, snapshot
+and check-value call the original core. Transfers copy `source` into `target`;
+mutations return null. Responses include earlier operation results, final
+snapshots and optional original action events. Hook callbacks observe the
+actual object after insertion. Each invocation resets its object pool, hooks
+and trace, and starts with an empty `main` object.
+
+The profile allows 256 operations and 16 named objects. Codes are integer/string
+PHP keys; names/messages and string codes exclude NUL. Data is associative JSON,
+with 256 fields per level and a depth limit of 16; data keys exclude NUL and
+string data values retain it. Aggregate state (messages, latest-data slots and
+core history results) and hook events are bounded at 1,024 entries. State growth
+is checked after each operation, including self-copying. Invalid input produces
+CLI exit 2 or HTTP 400. PHP object data, subclasses, dynamic properties and
+direct property mutation are outside the profile.
+
+Original empty-code defaults and null history behavior are preserved. Explicit
+add_data accepts false/zero/empty values; original isset guards omit previous or
+current null from history. Orphan data without a message code is readable but
+is not transferred. A zero code after a nonempty first code can copy that first
+code's history again, as the original query/default rules require. Earlier
+snapshots and source/target objects retain independent arrays after mutations.
+The original-PHP oracle loads unmodified error, load and plugin sources without
+a database.
+
+All 62 scenarios agree with original PHP, patched PHP and native CLI, including
+constructor/add empty-data rules, numeric and falsey codes, null history, orphan
+data, self-copying, transfer independence, nested JSON/NUL data and real action
+arguments. All 38 invalid inputs fail explicitly, covering type/encoding,
+operation/object/field/depth limits and excessive state/event growth. The full
+suite retains every previous corpus and passes 1,948 repeated-worker HTTP checks.
+Fresh source-only reproduction rebuilds all eleven executables and repeats the
+same suite, then removes its export. Runtime CLI and worker logs have no PHP
+warnings or fatal errors.
+
+The errors executable is 2,945,160 bytes and the combined server is 25,331,328
+bytes. These are build observations, without speed claims.
+
 ## Follow-up direction
 
 A broader CMS experiment should address the UTF-8 compatibility loader's

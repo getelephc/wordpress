@@ -23,6 +23,8 @@ Repeated preparation starts from the same original sources and is idempotent.
 | `cache.php` | Local class include, typed API, explicit global instance initialization/guards and deprecated reset boundary |
 | `functions.php` | Select/type four original list wrappers, `wp_suspend_cache_addition` and two query builders |
 | `http.php` | Three selected URL parser/component helpers with explicit array/scalar boundaries |
+| `class-wp-error.php` | Typed properties/methods, uniform mixed maps, local bucket updates and explicit string-zero emptiness |
+| `load.php` | Select/type only the original `is_wp_error` helper |
 | `class-wp-list-util.php` | Typed array records, uniform result maps, local sort updates, method callback descriptors and explicit object-record boundaries |
 | `blocks.php` | Five selected serialization functions, typed recursion, explicit string emptiness and a JSON encoder boundary |
 | `formatting.php` | Typed formatting values, concrete regex cache, builtin bridges and closure newline-preservation callback |
@@ -126,3 +128,13 @@ pinned SDK. The separate `sanitize-null-result` diagnostic preserves that
 failure and its direct-core/mixed-encoder controls. Original color functions
 retain their nullable string return types; no invalid/empty result substitution
 is performed in the adapter.
+
+The error profile retains the complete original WP_Error class and selects only
+is_wp_error from load.php. Constructor maps use uniform mixed storage so integer
+code 0 followed by a negative key does not trigger a list-to-map storage change.
+Local bucket updates preserve native ownership; method boundaries and extracted
+message/history arrays have explicit types. Code emptiness explicitly includes
+string zero and nonempty-data handling excludes it, preserving original PHP
+behavior on the pinned SDK. The original isset history rules, message order,
+protected copy method and action calls remain. The JSON adapter bounds operations,
+state and events without replacing the original copying algorithms.

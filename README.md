@@ -1,14 +1,15 @@
 # WordPress on Elephc
 
-A native AOT experiment with WordPress blocks, serialization, hooks, content, attribute KSES, object caching, list utilities, URLs and text sanitization.
+A native AOT experiment with WordPress blocks, serialization, hooks, content, attribute KSES, object caching, list utilities, URLs, text sanitization and error objects.
 WordPress **7.1.4**, Elephc **0.27.8**, PHP profile **8.4**, Linux x86_64.
 
 The experiment builds native CLIs for blocks, serialization, hooks, content,
-attributes, caching, lists, URLs and text sanitization, plus an HTTP server. It uses fifteen original
-core files with fourteen compatibility patches. Selected modules contain 24
+attributes, caching, lists, URLs, text sanitization and error objects, plus an HTTP server. It uses seventeen original
+core files with sixteen compatibility patches. Selected modules contain 24
 formatting functions, five block serializers, 21 KSES functions, seven helpers
-from `functions.php` and three URL parsing helpers from `http.php`.
-Documents, JSON block trees, content, cache/list records and URL inputs are
+from `functions.php`, three URL parsing helpers from `http.php`, and `is_wp_error`
+from `load.php`.
+Documents, JSON block trees, content, cache/list records, URLs and error sequences are
 processed at runtime. The HTTP adapter, callback manifest and demo callbacks
 belong to this experiment.
 
@@ -44,7 +45,7 @@ The script verifies the downloaded sources and patches, installs the locked
 PCRE2 dependency, and produces `elephc/runtime/parse`, `elephc/runtime/hooks`,
 `elephc/runtime/render`, `elephc/runtime/serialize`, `elephc/runtime/kses`,
 `elephc/runtime/cache`, `elephc/runtime/lists`, `elephc/runtime/urls`,
-`elephc/runtime/sanitize` and `elephc/runtime/server`.
+`elephc/runtime/sanitize`, `elephc/runtime/errors` and `elephc/runtime/server`.
 It uses `elephc` from `PATH`; set
 `ELEPHC_BIN=/absolute/path/to/elephc` to select another complete SDK.
 On workstations with the author's build queue installed, the script uses it
@@ -67,6 +68,7 @@ python3 scripts/prepare-elephc.py
   elephc --php-version 8.4 lists.php
   elephc --php-version 8.4 urls.php
   elephc --php-version 8.4 sanitize.php
+  elephc --php-version 8.4 errors.php
   elephc --php-version 8.4 --web server.php
 )
 ```
@@ -91,7 +93,7 @@ You can also run the executable directly and choose a different port:
 ```
 
 The demo, parsed blocks, hooks, rendered content and health endpoints are `/`,
-`/blocks`, `/hooks`, `/render` and `/health`. `/serialize`, `/kses`, `/cache`, `/lists`, `/urls` and `/sanitize`
+`/blocks`, `/hooks`, `/render` and `/health`. `/serialize`, `/kses`, `/cache`, `/lists`, `/urls`, `/sanitize` and `/errors`
 accept POST only.
 No database or background service manager is required.
 
@@ -502,6 +504,60 @@ An unusable class with a fallback invokes the recursive call's filter context.
 The adapter clears these diagnostic hooks between operations. Examples and
 boundaries are in `tests/sanitize-fixtures.json` and `tests/sanitize-errors.json`.
 
+## Error object profile
+
+The original `WP_Error` class collects error codes/messages, stores associated
+data and its history, and copies errors between objects. The original
+`is_wp_error` helper recognizes these objects, including empty ones. The CLI
+reads a JSON object from its first argument or stdin; POST `/errors` accepts
+the same body.
+
+```bash
+./elephc/runtime/errors '{"operations":[{"op":"create","code":"invalid","message":"Invalid input","data":{"status":400}},{"op":"get-message"},{"op":"get-data"}]}'
+curl -sS http://127.0.0.1:9000/errors --data-binary @error-operations.json
+```
+
+The request requires an `operations` list of at most 256 entries. Each request
+starts with an empty object named `main`; optional boolean `hooks` records the
+original `wp_error_added` and `is_wp_error_instance` actions. Responses contain
+operation `results`, final object snapshots in `objects`, and recorded `events`.
+Mutating operations return null. Earlier snapshots retain their original values.
+
+| Operation | Fields and behavior |
+| --- | --- |
+| `create` | Replace/create `target`; optional `code`, `message` and `data` constructor arguments |
+| `add` | Required `code` and `message`, optional `data`; append a core error |
+| `add-data` | Required `data`, optional `code`; replace latest data and retain core history |
+| `remove` | Required `code`; remove messages and all data/history for it |
+| `get-codes`, `get-code` | Return ordered codes or the first code |
+| `get-messages`, `get-message` | Optional `code`; return core message results |
+| `get-data`, `get-all-data` | Optional `code`; return latest data or core chronological history |
+| `has-errors`, `is-error` | Inspect content or recognize the actual error object |
+| `merge`, `export` | Required `source`; copy from that object into `target` using the corresponding original method |
+| `snapshot` | Return core query results, public message/data maps and per-code details |
+| `check-value` | Required JSON `value`; verify that an ordinary JSON value is not a PHP error object |
+
+`target` defaults to `main`; names are nonempty strings. Up to 16 objects can
+share one request. Codes are integer/string PHP keys, messages are strings, and
+names/codes/messages exclude NUL. JSON data is decoded associatively and allows
+256 fields per level with at most 16 nested levels. The adapter also bounds
+aggregate state to 1,024 entries (messages, latest-data slots and core history
+results) and hook capture to 1,024 events,
+rejecting excessive growth after an operation. Input errors return HTTP 400 or
+CLI exit 2 with a stderr diagnostic.
+
+The profile preserves original falsey-code defaults, constructor/add handling
+of empty data, ordered message merging and copy independence. `add_data(null)`
+replaces the latest data, but the original `isset` rules omit null from history.
+`merge`/`export` ignore orphan data without an error code in the message map.
+Self-copying follows core behavior within the growth limits. Hook events observe
+the actual object after insertion, and diagnostic hooks/state reset per request.
+
+PHP object data, subclasses, dynamic properties and direct property mutation
+are outside the JSON profile. This does not load the REST API or CMS bootstrap.
+Examples and invalid inputs are in `tests/errors-fixtures.json` and
+`tests/errors-errors.json`.
+
 ## Verified behavior
 
 ```bash
@@ -523,8 +579,9 @@ Another **56 list scenarios** compare filtering, plucking, sorting and chained
 state with original PHP, with **32 invalid-input cases**. Another **103 URL
 cases** cover escaping, parsing, query building and filters, with **28 invalid
 inputs**. Another **123 sanitization cases** cover text, HTML, identifiers,
-colors and filters, with **17 invalid inputs**. The server checks all nine corpora
-twice through one worker for **1,742 HTTP checks**, including routing, body limits, response MIME types and request isolation.
+colors and filters, with **17 invalid inputs**. Another **62 error-object cases**
+cover messages, data/history, copying, recognition and hooks, with **38 invalid
+inputs**. The server checks all ten corpora twice through one worker for **1,948 HTTP checks**, including routing, body limits, response MIME types and request isolation.
 
 | Request | Result |
 | --- | --- |
@@ -532,6 +589,7 @@ twice through one worker for **1,742 HTTP checks**, including routing, body limi
 | `GET /blocks` | Parsed demo as JSON |
 | `GET /health` | Version/profile information, `database: false` |
 | `POST /parse` | Parse a raw UTF-8 block document as JSON |
+| `POST /errors` | Run a JSON sequence against original core error objects |
 | `POST /sanitize` | Sanitize text, escape HTML and check identifiers/colors from JSON input |
 | `POST /urls` | Escape/parse URLs and build query strings from JSON input |
 | `POST /lists` | Filter, pluck, sort or chain operations on JSON records |
@@ -591,6 +649,7 @@ five selected functions from wp-includes/blocks.php
 21 selected functions and the entity table from wp-includes/kses.php
 WP_Object_Cache and wp-includes/cache.php
 WP_List_Util
+WP_Error and the selected is_wp_error helper from wp-includes/load.php
 four list wrappers, wp_suspend_cache_addition and two query builders from wp-includes/functions.php
 three selected URL parser functions from wp-includes/http.php
 ```
@@ -635,7 +694,7 @@ python3 scripts/test-clean-room.py
 ```
 
 The clean-room check exports maintained source files into a temporary directory,
-downloads a fresh WordPress archive, applies the patches, compiles all ten
+downloads a fresh WordPress archive, applies the patches, compiles all eleven
 executables and repeats the reference/HTTP checks. It reuses the installed SDK
 and native dependency cache, and removes its export when finished.
 PCRE2 10.47 is pinned in the native manifest and lockfile.
