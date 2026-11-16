@@ -30,7 +30,7 @@ Repeated preparation starts from the same original sources and is idempotent.
 `class-wp-filter-sentinel.php` is copied without changes. Its manifest entry
 has no patch; original and generated source hashes must match.
 
-The formatting entry lists thirteen selected functions and the blocks entry lists
+The formatting entry lists 24 selected functions and the blocks entry lists
 five. The KSES entry uses source segments for its global declarations, original
 entity table and 21 functions. Apply each small patch to its complete original file and verify `patched_source_sha256`, then select
 the recorded byte ranges in order. Each range has its own hash; the assembled
@@ -107,3 +107,22 @@ bridge. Empty regex subjects are guarded and protocol selection uses an explicit
 first-value loop. Query separators are explicit; PHP object data and INI lookup
 are outside the profile. Original PHP uses original helpers with the same fixed
 protocol policy and request data. The application rejects NUL before regex calls.
+
+The text profile adds eleven original formatting helpers: sanitize_key,
+sanitize_html_class, esc_html, wp_pre_kses_less_than and its callback,
+wp_strip_all_tags, sanitize_text_field, sanitize_textarea_field,
+_sanitize_text_fields, sanitize_hex_color and sanitize_hex_color_no_hash.
+String signatures and return casts bound the public profile. UTF-8 validation
+and existing entity escaping replace the wider charset/bootstrap graph; regex
+calls reuse the guarded KSES adapters and a typed less-than callback. The
+non-scalar strip-tags warning/translation path is an explicit exception outside
+the string profile. Original tag stripping, whitespace/percent handling, color
+patterns and filter argument ordering remain. The original-PHP oracle uses
+unmodified formatting/charset functions with the same adapter input boundaries.
+
+The JSON sanitizer adapter sends each operation directly to an encoder with a
+`mixed` parameter. A shared switch-result local loses null color values on the
+pinned SDK. The separate `sanitize-null-result` diagnostic preserves that
+failure and its direct-core/mixed-encoder controls. Original color functions
+retain their nullable string return types; no invalid/empty result substitution
+is performed in the adapter.

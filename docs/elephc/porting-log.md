@@ -503,6 +503,67 @@ errors. No URL operation performs network requests, redirects or database access
 The URL executable is 4,469,864 bytes and the combined server is 24,752,000 bytes.
 These are native build observations rather than speed claims.
 
+## Text and identifier sanitization extension, 2026-11-16
+
+Eleven additional original formatting functions extend the profile:
+`sanitize_text_field`, `sanitize_textarea_field`, `_sanitize_text_fields`,
+`wp_strip_all_tags`, `wp_pre_kses_less_than` and its callback, `esc_html`,
+`sanitize_key`, `sanitize_html_class`, `sanitize_hex_color` and
+`sanitize_hex_color_no_hash`. Formatting now selects 24 functions. The graph
+still uses 15 original files and 14 patches; the new `sanitize` CLI brings the
+native executables to ten. Complete source, selected-range and module hashes
+remain verified. Original downloaded sources are unchanged.
+
+The original core keeps tag/script/style removal, whitespace normalization,
+repeated percent removal, incomplete less-than handling, entity normalization,
+class fallback and color patterns. String arguments, explicit result types,
+existing guarded regex adapters and a typed less-than callback bound the graph.
+UTF-8 validation and fixed entity escaping replace the broader charset/bootstrap
+dependencies. Non-scalar warning/translation paths are excluded by the string
+input profile. The original-PHP oracle still loads unmodified formatting and
+charset helpers, using the existing UTF-8 option filter without a database.
+
+The CLI and POST `/sanitize` accept a JSON object with required `text`.
+Operations are field (default), textarea, strip-tags, less-than, html, key,
+class, hex and hex-no-hash. Optional `remove_breaks`, `fallback` and diagnostic
+`filtered` fields expose the relevant core behavior. Diagnostic filters are
+cleared for every operation. Recursive class fallback retains its original
+filter context; colors preserve empty-string versus null results. All text
+must be UTF-8 without NUL. Non-string coercion, charset recovery, full HTML KSES,
+CSS and template-context validation remain outside this profile.
+
+Query mutation was considered first, but the pinned SDK reports
+`Undefined function: parse_str` in both checking and compilation of the separate
+`query-parse` probe. `wp_parse_str`, `add_query_arg`, `remove_query_arg` and the
+string branch of `wp_parse_args` remain deferred. Compiler task `7d0aa07a`
+requests retesting the primitive on current main; WordPress task `1792335e`
+tracks resuming that dependency graph. The negative probe is excluded from
+verified application builds.
+
+The first native verification exposed a dispatcher result-storage difference:
+an invalid color became an empty string after string/nullable results joined
+in one switch local. The maintained `sanitize-null-result` probe compares the
+old dispatcher with direct-core and explicit-mixed-encoder controls. PHP returns
+null for all three; native loses null only through the old dispatcher. A simple
+nullable-string return control matches PHP. Returning each operation directly
+through an encoder with a `mixed` parameter preserves the result; original
+color signatures stay nullable strings. Compiler task `57ac10b4` requests
+retesting current main. The negative runtime diagnostic remains separate from
+verified application builds.
+
+All 123 sanitizer cases agree with unmodified PHP, patched PHP and native CLI,
+including Unicode/whitespace, malformed HTML, script/style content, nested
+percent sequences, entities, class recursion and filter arguments. All 17
+invalid inputs return explicit errors. The complete suite retains every prior
+corpus and passes 1,742 repeated-worker HTTP checks. Fresh source-only
+reproduction rebuilt all ten executables and passed the same suite, then
+removed its export. CLI stdin, UTF-8/NUL boundaries, request isolation, routing,
+MIME types and body limits are covered. Runtime logs have no PHP warnings or
+fatal errors.
+
+The sanitizer executable is 4,109,416 bytes and the combined server is
+24,917,120 bytes. These are build observations, without speed claims.
+
 ## Follow-up direction
 
 A broader CMS experiment should address the UTF-8 compatibility loader's

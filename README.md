@@ -1,11 +1,11 @@
 # WordPress on Elephc
 
-A native AOT experiment with WordPress blocks, serialization, hooks, content, attribute KSES, object caching, list utilities and URLs.
+A native AOT experiment with WordPress blocks, serialization, hooks, content, attribute KSES, object caching, list utilities, URLs and text sanitization.
 WordPress **7.1.4**, Elephc **0.27.8**, PHP profile **8.4**, Linux x86_64.
 
 The experiment builds native CLIs for blocks, serialization, hooks, content,
-attributes, caching, lists and URLs, plus an HTTP server. It uses fifteen original
-core files with fourteen compatibility patches. Selected modules contain thirteen
+attributes, caching, lists, URLs and text sanitization, plus an HTTP server. It uses fifteen original
+core files with fourteen compatibility patches. Selected modules contain 24
 formatting functions, five block serializers, 21 KSES functions, seven helpers
 from `functions.php` and three URL parsing helpers from `http.php`.
 Documents, JSON block trees, content, cache/list records and URL inputs are
@@ -43,8 +43,8 @@ elephc --version
 The script verifies the downloaded sources and patches, installs the locked
 PCRE2 dependency, and produces `elephc/runtime/parse`, `elephc/runtime/hooks`,
 `elephc/runtime/render`, `elephc/runtime/serialize`, `elephc/runtime/kses`,
-`elephc/runtime/cache`, `elephc/runtime/lists`, `elephc/runtime/urls` and
-`elephc/runtime/server`.
+`elephc/runtime/cache`, `elephc/runtime/lists`, `elephc/runtime/urls`,
+`elephc/runtime/sanitize` and `elephc/runtime/server`.
 It uses `elephc` from `PATH`; set
 `ELEPHC_BIN=/absolute/path/to/elephc` to select another complete SDK.
 On workstations with the author's build queue installed, the script uses it
@@ -66,6 +66,7 @@ python3 scripts/prepare-elephc.py
   elephc --php-version 8.4 cache.php
   elephc --php-version 8.4 lists.php
   elephc --php-version 8.4 urls.php
+  elephc --php-version 8.4 sanitize.php
   elephc --php-version 8.4 --web server.php
 )
 ```
@@ -90,7 +91,7 @@ You can also run the executable directly and choose a different port:
 ```
 
 The demo, parsed blocks, hooks, rendered content and health endpoints are `/`,
-`/blocks`, `/hooks`, `/render` and `/health`. `/serialize`, `/kses`, `/cache`, `/lists` and `/urls`
+`/blocks`, `/hooks`, `/render` and `/health`. `/serialize`, `/kses`, `/cache`, `/lists`, `/urls` and `/sanitize`
 accept POST only.
 No database or background service manager is required.
 
@@ -457,6 +458,50 @@ with a stderr diagnostic. The profile performs string operations without HTTP
 transport, DNS resolution, redirect execution or database access. It does not
 import WordPress's remote-request validation/transport graph.
 
+## Text and identifier sanitization
+
+Eleven additional original formatting functions provide text sanitization,
+HTML escaping, identifier filtering and hexadecimal color checks. The CLI
+reads JSON from its first argument or stdin; POST `/sanitize` accepts the same
+object and returns `{"result": ...}`.
+
+```bash
+./elephc/runtime/sanitize '{"text":"  Hello <b>WordPress</b> %20  "}'
+# {"result":"Hello WordPress"}
+curl -sS http://127.0.0.1:9000/sanitize \
+  -H 'Content-Type: application/json' \
+  --data-binary '{"op":"class","text":"!!!","fallback":"valid-class"}'
+# {"result":"valid-class"}
+```
+
+Every operation requires a `text` string:
+
+| Operation | Original core behavior |
+| --- | --- |
+| `field` (default) | `sanitize_text_field`: remove tags/percent sequences and collapse whitespace |
+| `textarea` | `sanitize_textarea_field`: retain line breaks and tabs |
+| `strip-tags` | `wp_strip_all_tags`: remove script/style contents and tags; optional boolean `remove_breaks` |
+| `less-than` | `wp_pre_kses_less_than`: escape incomplete less-than sequences before KSES |
+| `html` | `esc_html`: escape HTML with original entity normalization |
+| `key` | `sanitize_key`: lowercase ASCII letters, digits, underscores and hyphens |
+| `class` | `sanitize_html_class`: retain allowed class characters; optional string `fallback` |
+| `hex` | `sanitize_hex_color`: return the original valid value, empty string or null |
+| `hex-no-hash` | `sanitize_hex_color_no_hash`: remove leading hashes and check the color |
+
+The profile preserves original core normalization, including recursive class
+fallback, repeated percent removal and distinctions between empty and invalid
+colors. It accepts UTF-8 strings without NUL. Non-string values and charset
+recovery are outside the profile. Invalid input returns HTTP 400 or CLI exit 2
+with a stderr diagnostic. Tag stripping does not provide the full HTML KSES,
+CSS or template-context validation graph.
+
+Optional `filtered: true` exposes the original filter arguments for `field`,
+`textarea`, `html`, `key` and `class`: the diagnostic returns original text,
+then sanitized text, separated by `|`; class also includes the fallback argument.
+An unusable class with a fallback invokes the recursive call's filter context.
+The adapter clears these diagnostic hooks between operations. Examples and
+boundaries are in `tests/sanitize-fixtures.json` and `tests/sanitize-errors.json`.
+
 ## Verified behavior
 
 ```bash
@@ -477,8 +522,9 @@ original PHP, with **38 invalid-input cases** and CLI stdin coverage.
 Another **56 list scenarios** compare filtering, plucking, sorting and chained
 state with original PHP, with **32 invalid-input cases**. Another **103 URL
 cases** cover escaping, parsing, query building and filters, with **28 invalid
-inputs**. The server checks all eight corpora twice through one worker for
-**1,456 HTTP checks**, including routing, body limits, response MIME types and request isolation.
+inputs**. Another **123 sanitization cases** cover text, HTML, identifiers,
+colors and filters, with **17 invalid inputs**. The server checks all nine corpora
+twice through one worker for **1,742 HTTP checks**, including routing, body limits, response MIME types and request isolation.
 
 | Request | Result |
 | --- | --- |
@@ -486,6 +532,7 @@ inputs**. The server checks all eight corpora twice through one worker for
 | `GET /blocks` | Parsed demo as JSON |
 | `GET /health` | Version/profile information, `database: false` |
 | `POST /parse` | Parse a raw UTF-8 block document as JSON |
+| `POST /sanitize` | Sanitize text, escape HTML and check identifiers/colors from JSON input |
 | `POST /urls` | Escape/parse URLs and build query strings from JSON input |
 | `POST /lists` | Filter, pluck, sort or chain operations on JSON records |
 | `POST /cache` | Execute a JSON sequence against a fresh core object cache |
@@ -539,7 +586,7 @@ WP_Hook
 WP_Filter_Sentinel
 wp-includes/plugin.php
 wp-includes/shortcodes.php
-thirteen selected functions from wp-includes/formatting.php
+24 selected functions from wp-includes/formatting.php
 five selected functions from wp-includes/blocks.php
 21 selected functions and the entity table from wp-includes/kses.php
 WP_Object_Cache and wp-includes/cache.php
@@ -588,7 +635,7 @@ python3 scripts/test-clean-room.py
 ```
 
 The clean-room check exports maintained source files into a temporary directory,
-downloads a fresh WordPress archive, applies the patches, compiles all nine
+downloads a fresh WordPress archive, applies the patches, compiles all ten
 executables and repeats the reference/HTTP checks. It reuses the installed SDK
 and native dependency cache, and removes its export when finished.
 PCRE2 10.47 is pinned in the native manifest and lockfile.
@@ -629,3 +676,19 @@ inside a 12-byte subject. Original PHP returns zero matches for the anchored
 ASCII-letter pattern; the pinned native matcher returns one. The URL profile
 checks NUL before regex validation and excludes this diagnostic from its verified
 builds. Compile a copy in a native project with the locked PCRE2 dependencies.
+
+The separate `elephc/probes/query-parse.php` diagnostic calls `parse_str` with an
+initialized output array. Elephc 0.27.8 reports `Undefined function: parse_str`.
+Consequently `wp_parse_str`, `add_query_arg`, `remove_query_arg` and the string
+branch of `wp_parse_args` remain outside the verified profile. Run
+`elephc --php-version 8.4 --check elephc/probes/query-parse.php` to reassess that
+primitive after an SDK upgrade. This negative probe is excluded from normal builds.
+
+The separate `elephc/probes/sanitize-null-result.php` diagnostic retains the old
+sanitizer dispatcher. For an invalid color, PHP produces `null` in its dispatcher,
+direct-core and explicit-mixed-encoder controls; native produces an empty string
+only in the old dispatcher. The application returns each operation directly
+through a `mixed` encoder parameter and preserves the original nullable color
+signatures. This probe requires prepared core sources and locked PCRE2; compile
+a copy with the existing native manifest/lockfile. It is excluded from verified
+application builds.
