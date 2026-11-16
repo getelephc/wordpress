@@ -4,7 +4,7 @@ set -euo pipefail
 root=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
 cd "$root"
 if [[ ${1:-} == --help || ${1:-} == -h ]]; then
-    printf 'Usage: ./scripts/build-elephc.sh\nBuild WordPress block parsing, serialization, hooks, content rendering, attribute KSES, object cache and HTTP profiles with native Elephc.\n'
+    printf 'Usage: ./scripts/build-elephc.sh\nBuild WordPress block parsing, serialization, hooks, content rendering, attribute KSES, object cache, list utilities and HTTP profiles with native Elephc.\n'
     exit 0
 fi
 if [[ $# != 0 ]]; then
@@ -33,5 +33,6 @@ cd elephc/runtime
 "$compiler" --php-version 8.4 render.php 2>&1 | tee ../build/compile-render.log
 "$compiler" --php-version 8.4 kses.php 2>&1 | tee ../build/compile-kses.log
 "$compiler" --php-version 8.4 cache.php 2>&1 | tee ../build/compile-cache.log
+"$compiler" --php-version 8.4 lists.php 2>&1 | tee ../build/compile-lists.log
 "$compiler" --php-version 8.4 --web server.php 2>&1 | tee ../build/compile-web.log
-printf 'Built native block parser, serializer, hooks, rendering, KSES, object cache and HTTP core profiles.\n'
+printf 'Built native block parser, serializer, hooks, rendering, KSES, object cache, lists and HTTP core profiles.\n'

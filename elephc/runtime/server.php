@@ -13,10 +13,10 @@ $method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
 $status = 200;
 $type = 'application/json; charset=utf-8';
 $body = '';
-$post_route = $path === '/parse' || $path === '/filter' || $path === '/serialize' || $path === '/kses' || $path === '/cache';
+$post_route = $path === '/parse' || $path === '/filter' || $path === '/serialize' || $path === '/kses' || $path === '/cache' || $path === '/lists';
 $allowed = $path === '/render' ? ['GET', 'HEAD', 'POST'] : ($post_route ? ['POST'] : ['GET', 'HEAD']);
 
-if ($path !== '/' && $path !== '/health' && $path !== '/blocks' && $path !== '/parse' && $path !== '/hooks' && $path !== '/filter' && $path !== '/render' && $path !== '/serialize' && $path !== '/kses' && $path !== '/cache') {
+if ($path !== '/' && $path !== '/health' && $path !== '/blocks' && $path !== '/parse' && $path !== '/hooks' && $path !== '/filter' && $path !== '/render' && $path !== '/serialize' && $path !== '/kses' && $path !== '/cache' && $path !== '/lists') {
     $status = 404;
     $body = '{"error":"Not Found"}' . "\n";
 } elseif (!in_array($method, $allowed, true)) {
@@ -24,7 +24,14 @@ if ($path !== '/' && $path !== '/health' && $path !== '/blocks' && $path !== '/p
     header('Allow: ' . implode(', ', $allowed));
     $body = '{"error":"Method Not Allowed"}' . "\n";
 } elseif ($path === '/health') {
-    $body = '{"status":"ok","wordpress":"7.1.4","profile":"blocks-serialization-hooks-content-attribute-kses-cache","database":false}' . "\n";
+    $body = '{"status":"ok","wordpress":"7.1.4","profile":"blocks-serialization-hooks-content-attribute-kses-cache-lists","database":false}' . "\n";
+} elseif ($path === '/lists') {
+    try {
+        $body = wordpress_lists_text((string) file_get_contents('php://input'));
+    } catch (InvalidArgumentException $exception) {
+        $status = 400;
+        $body = json_encode(['error' => $exception->getMessage()]) . "\n";
+    }
 } elseif ($path === '/cache') {
     try {
         $body = wordpress_cache_text((string) file_get_contents('php://input'));
@@ -108,6 +115,8 @@ if ($path !== '/' && $path !== '/health' && $path !== '/blocks' && $path !== '/p
             . '<pre>curl --data-binary \'title="Ada &amp; Bob"\' http://127.0.0.1:9000/kses</pre>'
             . '<h2>Request-local object cache</h2><p>Send a JSON operation sequence to exercise the WordPress memory cache. Each request starts a fresh cache.</p>'
             . '<pre>curl --data-binary @cache-operations.json http://127.0.0.1:9000/cache</pre>'
+            . '<h2>WordPress list utilities</h2><p>Filter, sort and extract fields from JSON records through the original core list API.</p>'
+            . '<pre>curl --data-binary @list-operation.json http://127.0.0.1:9000/lists</pre>'
             . '<p>This profile includes block parsing and serialization, actions, filters, shortcodes and selected formatting. The CMS bootstrap, database, plugin discovery, themes and admin remain outside the profile.</p>'
             . '</html>';
     }

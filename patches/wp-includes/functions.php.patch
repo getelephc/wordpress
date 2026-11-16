@@ -1,5 +1,59 @@
 --- a/wp-includes/functions.php
 +++ b/wp-includes/functions.php
+@@ -5416,12 +5416,12 @@
+  *                                of the entire object. Default false.
+  * @return array A list of objects or object fields.
+  */
+-function wp_filter_object_list( $input_list, $args = array(), $operator = 'and', $field = false ) {
++function wp_filter_object_list( mixed $input_list, array $args = array(), string $operator = 'and', mixed $field = false ): array {
+ 	if ( ! is_array( $input_list ) ) {
+ 		return array();
+ 	}
+ 
+-	$util = new WP_List_Util( $input_list );
++	$util = new WP_List_Util( (array) $input_list );
+ 
+ 	$util->filter( $args, $operator );
+ 
+@@ -5458,7 +5458,7 @@
+  *                           match. Default 'AND'.
+  * @return array Array of found values.
+  */
+-function wp_list_filter( $input_list, $args = array(), $operator = 'AND' ) {
++function wp_list_filter( mixed $input_list, array $args = array(), string $operator = 'AND' ): array {
+ 	return wp_filter_object_list( $input_list, $args, $operator );
+ }
+ 
+@@ -5480,12 +5480,12 @@
+  *               corresponding to `$index_key`. If `$index_key` is null, array keys from the original
+  *               `$input_list` will be preserved in the results.
+  */
+-function wp_list_pluck( $input_list, $field, $index_key = null ) {
++function wp_list_pluck( mixed $input_list, mixed $field, mixed $index_key = null ): array {
+ 	if ( ! is_array( $input_list ) ) {
+ 		return array();
+ 	}
+ 
+-	$util = new WP_List_Util( $input_list );
++	$util = new WP_List_Util( (array) $input_list );
+ 
+ 	return $util->pluck( $field, $index_key );
+ }
+@@ -5504,12 +5504,12 @@
+  * @param bool         $preserve_keys Optional. Whether to preserve keys. Default false.
+  * @return array The sorted array.
+  */
+-function wp_list_sort( $input_list, $orderby = array(), $order = 'ASC', $preserve_keys = false ) {
++function wp_list_sort( mixed $input_list, mixed $orderby = array(), string $order = 'ASC', bool $preserve_keys = false ): array {
+ 	if ( ! is_array( $input_list ) ) {
+ 		return array();
+ 	}
+ 
+-	$util = new WP_List_Util( $input_list );
++	$util = new WP_List_Util( (array) $input_list );
+ 
+ 	return $util->sort( $orderby, $order, $preserve_keys );
+ }
 @@ -6492,7 +6492,7 @@
   *                      Defaults to not changing the current setting.
   * @return bool The current suspend setting.
