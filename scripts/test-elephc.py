@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Compare native blocks, serialization, hooks, content, KSES, cache, lists and URLs with original PHP."""
+"""Compare native blocks, serialization, hooks, content, KSES, cache, lists, URLs and sanitization with original PHP."""
 
 import http.client
 import base64
@@ -159,6 +159,22 @@ def main():
         assert result.returncode == 2 and not result.stdout, (fixture["name"], result)
         assert result.stderr.startswith(b"URL error: ") and b"Fatal error" not in result.stderr and b"Warning:" not in result.stderr, (fixture["name"], result.stderr)
     print(f"PASS: {len(url_fixtures)} URL cases match original PHP; stdin and {len(url_errors)} CLI boundary checks.")
+
+    sanitize_fixtures = json.loads((ROOT / "tests/sanitize-fixtures.json").read_text())
+    sanitize_errors = json.loads((ROOT / "tests/sanitize-errors.json").read_text())
+    sanitize_reference = run_json([php, "tests/sanitize-reference.php", "upstream"])
+    assert run_json([php, "tests/sanitize-reference.php", "profile"]) == sanitize_reference, "Patched sanitizers differ from original PHP"
+    sanitize = str(ROOT / "elephc/runtime/sanitize")
+    for fixture in sanitize_fixtures:
+        actual = run_json([sanitize, fixture["input"]])
+        assert actual == sanitize_reference[fixture["name"]], (fixture["name"], actual, sanitize_reference[fixture["name"]])
+    assert json.loads(run_output([sanitize], sanitize_fixtures[0]["input"].encode())) == sanitize_reference[sanitize_fixtures[0]["name"]]
+    for fixture in sanitize_errors:
+        data = base64.b64decode(fixture["input_base64"]) if "input_base64" in fixture else fixture["input"].encode()
+        result = subprocess.run([sanitize], input=data, capture_output=True, timeout=20)
+        assert result.returncode == 2 and not result.stdout, (fixture["name"], result)
+        assert result.stderr.startswith(b"Sanitization error: ") and b"Fatal error" not in result.stderr and b"Warning:" not in result.stderr, (fixture["name"], result.stderr)
+    print(f"PASS: {len(sanitize_fixtures)} sanitization cases match original PHP; stdin and {len(sanitize_errors)} CLI boundary checks.")
 
     with socket.socket() as listener:
         listener.bind(("127.0.0.1", 0))
@@ -342,6 +358,28 @@ def main():
                     if method == "HEAD":
                         assert body == b""
                 status, _, body = request("POST", "/urls", b"x" * 65537)
+                assert status == 413
+                checks += 3
+                for fixture in sanitize_fixtures:
+                    try:
+                        status, headers, body = request("POST", "/sanitize", fixture["input"].encode())
+                    except Exception as error:
+                        raise AssertionError(f"Native sanitization request failed: {fixture['name']}") from error
+                    assert status == 200 and headers["content-type"].startswith("application/json"), (fixture["name"], status, body)
+                    assert json.loads(body) == sanitize_reference[fixture["name"]], (fixture["name"], body, sanitize_reference[fixture["name"]])
+                    checks += 1
+                for fixture in sanitize_errors:
+                    data = base64.b64decode(fixture["input_base64"]) if "input_base64" in fixture else fixture["input"].encode()
+                    status, headers, body = request("POST", "/sanitize", data)
+                    assert status == 400 and headers["content-type"].startswith("application/json"), (fixture["name"], status, body)
+                    assert isinstance(json.loads(body)["error"], str), fixture["name"]
+                    checks += 1
+                for method in ("GET", "HEAD"):
+                    status, headers, body = request(method, "/sanitize")
+                    assert status == 405 and headers["allow"] == "POST"
+                    if method == "HEAD":
+                        assert body == b""
+                status, _, body = request("POST", "/sanitize", b"x" * 65537)
                 assert status == 413
                 checks += 3
                 status, _, body = request("POST", "/filter", hook_input.encode())

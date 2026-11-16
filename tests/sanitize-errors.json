@@ -1,0 +1,70 @@
+[
+  {
+    "name": "malformed",
+    "input": "{"
+  },
+  {
+    "name": "root-list",
+    "input": "[]"
+  },
+  {
+    "name": "scalar",
+    "input": "false"
+  },
+  {
+    "name": "missing-text",
+    "input": "{}"
+  },
+  {
+    "name": "null-text",
+    "input": "{\"text\":null}"
+  },
+  {
+    "name": "array-text",
+    "input": "{\"text\":[]}"
+  },
+  {
+    "name": "number-text",
+    "input": "{\"text\":1}"
+  },
+  {
+    "name": "boolean-text",
+    "input": "{\"text\":true}"
+  },
+  {
+    "name": "unknown",
+    "input": "{\"op\":\"other\",\"text\":\"x\"}"
+  },
+  {
+    "name": "bad-op",
+    "input": "{\"op\":false,\"text\":\"x\"}"
+  },
+  {
+    "name": "nul-text",
+    "input": "{\"text\":\"a\\u0000b\"}"
+  },
+  {
+    "name": "bad-fallback",
+    "input": "{\"op\":\"class\",\"text\":\"x\",\"fallback\":[]}"
+  },
+  {
+    "name": "nul-fallback",
+    "input": "{\"op\":\"class\",\"text\":\"x\",\"fallback\":\"a\\u0000b\"}"
+  },
+  {
+    "name": "bad-remove-breaks",
+    "input": "{\"text\":\"x\",\"remove_breaks\":1}"
+  },
+  {
+    "name": "bad-filter",
+    "input": "{\"text\":\"x\",\"filtered\":1}"
+  },
+  {
+    "name": "unsupported-filter",
+    "input": "{\"op\":\"hex\",\"text\":\"#fff\",\"filtered\":true}"
+  },
+  {
+    "name": "invalid-utf8",
+    "input_base64": "eyJ0ZXh0Ijoi/yJ9"
+  }
+]

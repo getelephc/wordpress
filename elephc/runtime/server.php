@@ -8,16 +8,17 @@ require __DIR__ . '/render-demo.php';
 require __DIR__ . '/serialize-bootstrap.php';
 require __DIR__ . '/cache-bootstrap.php';
 require __DIR__ . '/urls-bootstrap.php';
+require __DIR__ . '/sanitize-support.php';
 
 $path = explode('?', $_SERVER['REQUEST_URI'] ?? '/')[0];
 $method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
 $status = 200;
 $type = 'application/json; charset=utf-8';
 $body = '';
-$post_route = $path === '/parse' || $path === '/filter' || $path === '/serialize' || $path === '/kses' || $path === '/cache' || $path === '/lists' || $path === '/urls';
+$post_route = $path === '/parse' || $path === '/filter' || $path === '/serialize' || $path === '/kses' || $path === '/cache' || $path === '/lists' || $path === '/urls' || $path === '/sanitize';
 $allowed = $path === '/render' ? ['GET', 'HEAD', 'POST'] : ($post_route ? ['POST'] : ['GET', 'HEAD']);
 
-if ($path !== '/' && $path !== '/health' && $path !== '/blocks' && $path !== '/parse' && $path !== '/hooks' && $path !== '/filter' && $path !== '/render' && $path !== '/serialize' && $path !== '/kses' && $path !== '/cache' && $path !== '/lists' && $path !== '/urls') {
+if ($path !== '/' && $path !== '/health' && $path !== '/blocks' && $path !== '/parse' && $path !== '/hooks' && $path !== '/filter' && $path !== '/render' && $path !== '/serialize' && $path !== '/kses' && $path !== '/cache' && $path !== '/lists' && $path !== '/urls' && $path !== '/sanitize') {
     $status = 404;
     $body = '{"error":"Not Found"}' . "\n";
 } elseif (!in_array($method, $allowed, true)) {
@@ -25,7 +26,14 @@ if ($path !== '/' && $path !== '/health' && $path !== '/blocks' && $path !== '/p
     header('Allow: ' . implode(', ', $allowed));
     $body = '{"error":"Method Not Allowed"}' . "\n";
 } elseif ($path === '/health') {
-    $body = '{"status":"ok","wordpress":"7.1.4","profile":"blocks-serialization-hooks-content-attribute-kses-cache-lists-urls","database":false}' . "\n";
+    $body = '{"status":"ok","wordpress":"7.1.4","profile":"blocks-serialization-hooks-content-attribute-kses-cache-lists-urls-sanitize","database":false}' . "\n";
+} elseif ($path === '/sanitize') {
+    try {
+        $body = wordpress_sanitize_text((string) file_get_contents('php://input'));
+    } catch (InvalidArgumentException $exception) {
+        $status = 400;
+        $body = json_encode(['error' => $exception->getMessage()]) . "\n";
+    }
 } elseif ($path === '/urls') {
     try {
         $body = wordpress_urls_text((string) file_get_contents('php://input'));
@@ -127,6 +135,8 @@ if ($path !== '/' && $path !== '/health' && $path !== '/blocks' && $path !== '/p
             . '<pre>curl --data-binary @list-operation.json http://127.0.0.1:9000/lists</pre>'
             . '<h2>WordPress URL helpers</h2><p>Parse, escape and build URL query strings with the original selected core functions.</p>'
             . '<pre>curl --data-binary @url-operation.json http://127.0.0.1:9000/urls</pre>'
+            . '<h2>WordPress text sanitization</h2><p>Process fields, multiline text, identifiers, classes and hex colors through selected original core helpers.</p>'
+            . '<pre>curl --data-binary @sanitize-operation.json http://127.0.0.1:9000/sanitize</pre>'
             . '<p>This profile includes block parsing and serialization, actions, filters, shortcodes and selected formatting. The CMS bootstrap, database, plugin discovery, themes and admin remain outside the profile.</p>'
             . '</html>';
     }

@@ -253,6 +253,55 @@
  }
  
  /**
+@@ -2188,12 +2195,12 @@
+  * @return string Sanitized key.
+  * @phpstan-return lowercase-string
+  */
+-function sanitize_key( $key ) {
++function sanitize_key( string $key ): string {
+ 	$sanitized_key = '';
+ 
+ 	if ( is_scalar( $key ) ) {
+ 		$sanitized_key = strtolower( $key );
+-		$sanitized_key = preg_replace( '/[^a-z0-9_\-]/', '', $sanitized_key );
++		$sanitized_key = _elephc_kses_replace( '/[^a-z0-9_\-]/', '', $sanitized_key );
+ 	}
+ 
+ 	/**
+@@ -2204,7 +2211,7 @@
+ 	 * @param string $sanitized_key Sanitized key.
+ 	 * @param string $key           The key prior to sanitization.
+ 	 */
+-	return apply_filters( 'sanitize_key', $sanitized_key, $key );
++	return (string) apply_filters( 'sanitize_key', $sanitized_key, $key );
+ }
+ 
+ /**
+@@ -2435,12 +2442,12 @@
+  *                          Default empty string.
+  * @return string The sanitized value.
+  */
+-function sanitize_html_class( $classname, $fallback = '' ) {
++function sanitize_html_class( string $classname, string $fallback = '' ): string {
+ 	// Strip out any percent-encoded characters.
+-	$sanitized = preg_replace( '|%[a-fA-F0-9][a-fA-F0-9]|', '', $classname );
++	$sanitized = _elephc_kses_replace( '|%[a-fA-F0-9][a-fA-F0-9]|', '', $classname );
+ 
+ 	// Limit to A-Z, a-z, 0-9, '_', '-'.
+-	$sanitized = preg_replace( '/[^A-Za-z0-9_-]/', '', $sanitized );
++	$sanitized = _elephc_kses_replace( '/[^A-Za-z0-9_-]/', '', $sanitized );
+ 
+ 	if ( '' === $sanitized && $fallback ) {
+ 		return sanitize_html_class( $fallback );
+@@ -2454,7 +2461,7 @@
+ 	 * @param string $classname HTML class before sanitization.
+ 	 * @param string $fallback  The fallback string.
+ 	 */
+-	return apply_filters( 'sanitize_html_class', $sanitized, $classname, $fallback );
++	return (string) apply_filters( 'sanitize_html_class', $sanitized, $classname, $fallback );
+ }
+ 
+ /**
 @@ -4494,12 +4501,14 @@
   * @param string       $subject The string being searched and replaced on, otherwise known as the haystack.
   * @return string The string with the replaced values.
@@ -347,6 +396,28 @@
  	return esc_url( $url, $protocols, 'db' );
  }
  
+@@ -4748,9 +4760,9 @@
+  * @param string $text
+  * @return string Escaped text.
+  */
+-function esc_html( $text ) {
+-	$safe_text = wp_check_invalid_utf8( $text );
+-	$safe_text = _wp_specialchars( $safe_text, ENT_QUOTES );
++function esc_html( string $text ): string {
++	$safe_text = wordpress_kses_attribute_input( $text );
++	$safe_text = _elephc_kses_escape( $safe_text );
+ 	/**
+ 	 * Filters a string cleaned and escaped for output in HTML.
+ 	 *
+@@ -4762,7 +4774,7 @@
+ 	 * @param string $safe_text The text after it has been escaped.
+ 	 * @param string $text      The text prior to being escaped.
+ 	 */
+-	return apply_filters( 'esc_html', $safe_text, $text );
++	return (string) apply_filters( 'esc_html', $safe_text, $text );
+ }
+ 
+ /**
 @@ -4773,9 +4785,9 @@
   * @param string $text
   * @return string Escaped text.
@@ -381,7 +452,157 @@
  }
  
  /**
-@@ -5931,7 +5944,7 @@
+@@ -5260,8 +5273,8 @@
+  * @param string $content Text to be converted.
+  * @return string Converted text.
+  */
+-function wp_pre_kses_less_than( $content ) {
+-	return preg_replace_callback( '%<[^>]*?((?=<)|>|$)%', 'wp_pre_kses_less_than_callback', $content );
++function wp_pre_kses_less_than( string $content ): string {
++	return _elephc_kses_callback( '%<[^>]*?((?=<)|>|$)%', static function (array $m): string { return wp_pre_kses_less_than_callback( $m ); }, $content );
+ }
+ 
+ /**
+@@ -5272,11 +5285,11 @@
+  * @param string[] $matches Populated by matches to preg_replace.
+  * @return string The text returned after esc_html if needed.
+  */
+-function wp_pre_kses_less_than_callback( $matches ) {
+-	if ( ! str_contains( $matches[0], '>' ) ) {
+-		return esc_html( $matches[0] );
+-	}
+-	return $matches[0];
++function wp_pre_kses_less_than_callback( array $matches ): string {
++	if ( ! str_contains( (string) $matches[0], '>' ) ) {
++		return esc_html( (string) $matches[0] );
++	}
++	return (string) $matches[0];
+ }
+ 
+ /**
+@@ -5597,39 +5610,18 @@
+  * @param bool   $remove_breaks Optional. Whether to remove left over line breaks and white space chars
+  * @return string The processed string.
+  */
+-function wp_strip_all_tags( $text, $remove_breaks = false ) {
++function wp_strip_all_tags( string $text, bool $remove_breaks = false ): string {
+ 	if ( is_null( $text ) ) {
+ 		return '';
+ 	}
+ 
+-	if ( ! is_scalar( $text ) ) {
+-		/*
+-		 * To maintain consistency with pre-PHP 8 error levels,
+-		 * wp_trigger_error() is used to trigger an E_USER_WARNING,
+-		 * rather than _doing_it_wrong(), which triggers an E_USER_NOTICE.
+-		 */
+-		wp_trigger_error(
+-			'',
+-			sprintf(
+-				/* translators: 1: The function name, 2: The argument number, 3: The argument name, 4: The expected type, 5: The provided type. */
+-				__( 'Warning: %1$s expects parameter %2$s (%3$s) to be a %4$s, %5$s given.' ),
+-				__FUNCTION__,
+-				'#1',
+-				'$text',
+-				'string',
+-				gettype( $text )
+-			),
+-			E_USER_WARNING
+-		);
+-
+-		return '';
+-	}
+-
+-	$text = preg_replace( '@<(script|style)[^>]*?>.*?</\\1>@si', '', $text );
++	if ( ! is_scalar( $text ) ) { throw new InvalidArgumentException('The text profile requires a string.'); }
++
++	$text = _elephc_kses_replace( '@<(script|style)[^>]*?>.*?</\\1>@si', '', $text );
+ 	$text = strip_tags( $text );
+ 
+ 	if ( $remove_breaks ) {
+-		$text = preg_replace( '/[\r\n\t ]+/', ' ', $text );
++		$text = _elephc_kses_replace( '/[\r\n\t ]+/', ' ', $text );
+ 	}
+ 
+ 	return trim( $text );
+@@ -5653,7 +5645,7 @@
+  * @param string $str String to sanitize.
+  * @return string Sanitized string.
+  */
+-function sanitize_text_field( $str ) {
++function sanitize_text_field( string $str ): string {
+ 	$filtered = _sanitize_text_fields( $str, false );
+ 
+ 	/**
+@@ -5664,7 +5656,7 @@
+ 	 * @param string $filtered The sanitized string.
+ 	 * @param string $str      The string prior to being sanitized.
+ 	 */
+-	return apply_filters( 'sanitize_text_field', $filtered, $str );
++	return (string) apply_filters( 'sanitize_text_field', $filtered, $str );
+ }
+ 
+ /**
+@@ -5681,7 +5673,7 @@
+  * @param string $str String to sanitize.
+  * @return string Sanitized string.
+  */
+-function sanitize_textarea_field( $str ) {
++function sanitize_textarea_field( string $str ): string {
+ 	$filtered = _sanitize_text_fields( $str, true );
+ 
+ 	/**
+@@ -5692,7 +5684,7 @@
+ 	 * @param string $filtered The sanitized string.
+ 	 * @param string $str      The string prior to being sanitized.
+ 	 */
+-	return apply_filters( 'sanitize_textarea_field', $filtered, $str );
++	return (string) apply_filters( 'sanitize_textarea_field', $filtered, $str );
+ }
+ 
+ /**
+@@ -5705,14 +5697,14 @@
+  * @param bool   $keep_newlines Optional. Whether to keep newlines. Default: false.
+  * @return string Sanitized string.
+  */
+-function _sanitize_text_fields( $str, $keep_newlines = false ) {
++function _sanitize_text_fields( string $str, bool $keep_newlines = false ): string {
+ 	if ( is_object( $str ) || is_array( $str ) ) {
+ 		return '';
+ 	}
+ 
+ 	$str = (string) $str;
+ 
+-	$filtered = wp_check_invalid_utf8( $str );
++	$filtered = wordpress_kses_attribute_input( $str );
+ 
+ 	if ( str_contains( $filtered, '<' ) ) {
+ 		$filtered = wp_pre_kses_less_than( $filtered );
+@@ -5727,20 +5719,20 @@
+ 	}
+ 
+ 	if ( ! $keep_newlines ) {
+-		$filtered = preg_replace( '/[\r\n\t ]+/', ' ', $filtered );
++		$filtered = _elephc_kses_replace( '/[\r\n\t ]+/', ' ', $filtered );
+ 	}
+ 	$filtered = trim( $filtered );
+ 
+ 	// Remove percent-encoded characters.
+ 	$found = false;
+ 	while ( preg_match( '/%[a-f0-9]{2}/i', $filtered, $match ) ) {
+-		$filtered = str_replace( $match[0], '', $filtered );
++		$filtered = str_replace( (string) $match[0], '', $filtered );
+ 		$found    = true;
+ 	}
+ 
+ 	if ( $found ) {
+ 		// Strip out the whitespace that may now exist after removing percent-encoded characters.
+-		$filtered = trim( preg_replace( '/ +/', ' ', $filtered ) );
++		$filtered = trim( _elephc_kses_replace( '/ +/', ' ', $filtered ) );
+ 	}
+ 
+ 	return $filtered;
+@@ -5931,7 +5923,7 @@
   *
   * @return string The spaces regexp.
   */
@@ -390,7 +611,7 @@
  	static $spaces = '';
  
  	if ( empty( $spaces ) ) {
-@@ -5947,10 +5960,10 @@
+@@ -5947,10 +5939,10 @@
  		 *
  		 * @param string $spaces Regexp pattern for matching common whitespace characters.
  		 */
@@ -405,3 +626,21 @@
  }
  
  /**
+@@ -6336,7 +6328,7 @@
+  * @param string $color
+  * @return string|null The sanitized hex color, or null if invalid.
+  */
+-function sanitize_hex_color( $color ) {
++function sanitize_hex_color( string $color ): ?string {
+ 	if ( '' === $color ) {
+ 		return '';
+ 	}
+@@ -6363,7 +6355,7 @@
+  * @return string|null The sanitized hex color without the hash prefix,
+  *                     empty string if input is empty, or null if invalid.
+  */
+-function sanitize_hex_color_no_hash( $color ) {
++function sanitize_hex_color_no_hash( string $color ): ?string {
+ 	$color = ltrim( $color, '#' );
+ 
+ 	if ( '' === $color ) {
