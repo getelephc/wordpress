@@ -11,16 +11,17 @@ require __DIR__ . '/urls-bootstrap.php';
 require __DIR__ . '/sanitize-support.php';
 require __DIR__ . '/errors-bootstrap.php';
 require __DIR__ . '/responses-bootstrap.php';
+require __DIR__ . '/requests-bootstrap.php';
 
 $path = explode('?', $_SERVER['REQUEST_URI'] ?? '/')[0];
 $method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
 $status = 200;
 $type = 'application/json; charset=utf-8';
 $body = '';
-$post_route = $path === '/parse' || $path === '/filter' || $path === '/serialize' || $path === '/kses' || $path === '/cache' || $path === '/lists' || $path === '/urls' || $path === '/sanitize' || $path === '/errors' || $path === '/responses';
+$post_route = $path === '/parse' || $path === '/filter' || $path === '/serialize' || $path === '/kses' || $path === '/cache' || $path === '/lists' || $path === '/urls' || $path === '/sanitize' || $path === '/errors' || $path === '/responses' || $path === '/requests';
 $allowed = $path === '/render' ? ['GET', 'HEAD', 'POST'] : ($post_route ? ['POST'] : ['GET', 'HEAD']);
 
-if ($path !== '/' && $path !== '/health' && $path !== '/blocks' && $path !== '/parse' && $path !== '/hooks' && $path !== '/filter' && $path !== '/render' && $path !== '/serialize' && $path !== '/kses' && $path !== '/cache' && $path !== '/lists' && $path !== '/urls' && $path !== '/sanitize' && $path !== '/errors' && $path !== '/responses') {
+if ($path !== '/' && $path !== '/health' && $path !== '/blocks' && $path !== '/parse' && $path !== '/hooks' && $path !== '/filter' && $path !== '/render' && $path !== '/serialize' && $path !== '/kses' && $path !== '/cache' && $path !== '/lists' && $path !== '/urls' && $path !== '/sanitize' && $path !== '/errors' && $path !== '/responses' && $path !== '/requests') {
     $status = 404;
     $body = '{"error":"Not Found"}' . "\n";
 } elseif (!in_array($method, $allowed, true)) {
@@ -28,7 +29,14 @@ if ($path !== '/' && $path !== '/health' && $path !== '/blocks' && $path !== '/p
     header('Allow: ' . implode(', ', $allowed));
     $body = '{"error":"Method Not Allowed"}' . "\n";
 } elseif ($path === '/health') {
-    $body = '{"status":"ok","wordpress":"7.1.4","profile":"blocks-serialization-hooks-content-attribute-kses-cache-lists-urls-sanitize-errors-responses","database":false}' . "\n";
+    $body = '{"status":"ok","wordpress":"7.1.4","profile":"blocks-serialization-hooks-content-attribute-kses-cache-lists-urls-sanitize-errors-responses-requests","database":false}' . "\n";
+} elseif ($path === '/requests') {
+    try {
+        $body = wordpress_requests_text((string) file_get_contents('php://input'));
+    } catch (InvalidArgumentException $exception) {
+        $status = 400;
+        $body = json_encode(['error' => $exception->getMessage()]) . "\n";
+    }
 } elseif ($path === '/responses') {
     try {
         $body = wordpress_responses_text((string) file_get_contents('php://input'));
@@ -151,6 +159,8 @@ if ($path !== '/' && $path !== '/health' && $path !== '/blocks' && $path !== '/p
             . '<pre>curl --data-binary @list-operation.json http://127.0.0.1:9000/lists</pre>'
             . '<h2>WordPress URL helpers</h2><p>Parse, escape and build URL query strings with the original selected core functions.</p>'
             . '<pre>curl --data-binary @url-operation.json http://127.0.0.1:9000/urls</pre>'
+            . '<h2>WordPress REST request objects</h2><p>Inspect methods, canonical headers, parameter precedence and JSON bodies through original core methods.</p>'
+            . '<pre>curl --data-binary @request-operations.json http://127.0.0.1:9000/requests</pre>'
             . '<h2>WordPress HTTP and REST responses</h2><p>Inspect response status, headers, data and links, and convert core error objects.</p>'
             . '<pre>curl --data-binary @response-operations.json http://127.0.0.1:9000/responses</pre>'
             . '<h2>WordPress error objects</h2><p>Collect messages and data, inspect history and merge original core error objects.</p>'

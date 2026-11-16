@@ -20,3 +20,20 @@
  	$is_wp_error = ( $thing instanceof WP_Error );
  
  	if ( $is_wp_error ) {
+@@ -1961,14 +1961,8 @@
+  * @param string $media_type A Media Type string to check.
+  * @return bool True if string is a valid JSON Media Type.
+  */
+-function wp_is_json_media_type( $media_type ) {
+-	static $cache = array();
+-
+-	if ( ! isset( $cache[ $media_type ] ) ) {
+-		$cache[ $media_type ] = (bool) preg_match( '/(^|\s|,)application\/([\w!#\$&-\^\.\+]+\+)?json(\+oembed)?($|\s|;|,)/i', $media_type );
+-	}
+-
+-	return $cache[ $media_type ];
++function wp_is_json_media_type( string $media_type ): bool {
++	return (bool) preg_match( '/(^|\s|,)application\/([\w!#\$&-\^\.\+]+\+)?json(\+oembed)?($|\s|;|,)/i', $media_type );
+ }
+ 
+ /**

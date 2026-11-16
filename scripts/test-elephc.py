@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Compare native blocks, serialization, hooks, content, KSES, cache, lists, URLs, sanitization, error and response objects with original PHP."""
+"""Compare native blocks, serialization, hooks, content, KSES, cache, lists, URLs, sanitization, error/response/request objects with original PHP."""
 
 import http.client
 import base64
@@ -207,6 +207,22 @@ def main():
         assert result.returncode == 2 and not result.stdout, (fixture["name"], result)
         assert result.stderr.startswith(b"Response profile: ") and b"Fatal error" not in result.stderr and b"Warning:" not in result.stderr, (fixture["name"], result.stderr)
     print(f"PASS: {len(response_fixtures)} response-object cases match original PHP; stdin and {len(response_errors)} CLI boundary checks.")
+
+    request_fixtures = json.loads((ROOT / "tests/requests-fixtures.json").read_text())
+    request_errors = json.loads((ROOT / "tests/requests-errors.json").read_text())
+    request_reference = run_json([php, "tests/requests-reference.php", "upstream"])
+    assert run_json([php, "tests/requests-reference.php", "profile"]) == request_reference, "Patched request objects differ from original PHP"
+    requests_cli = str(ROOT / "elephc/runtime/requests")
+    for fixture in request_fixtures:
+        actual = run_json([requests_cli, fixture["input"]])
+        assert actual == request_reference[fixture["name"]], (fixture["name"], actual, request_reference[fixture["name"]])
+    assert json.loads(run_output([requests_cli], request_fixtures[0]["input"].encode())) == request_reference[request_fixtures[0]["name"]]
+    for fixture in request_errors:
+        data = base64.b64decode(fixture["input_base64"]) if "input_base64" in fixture else fixture["input"].encode()
+        result = subprocess.run([requests_cli], input=data, capture_output=True, timeout=20)
+        assert result.returncode == 2 and not result.stdout, (fixture["name"], result)
+        assert result.stderr.startswith(b"Request profile: ") and b"Fatal error" not in result.stderr and b"Warning:" not in result.stderr, (fixture["name"], result.stderr)
+    print(f"PASS: {len(request_fixtures)} request-object cases match original PHP; stdin and {len(request_errors)} CLI boundary checks.")
 
     with socket.socket() as listener:
         listener.bind(("127.0.0.1", 0))
@@ -456,6 +472,28 @@ def main():
                     if method == "HEAD":
                         assert body == b""
                 status, _, body = request("POST", "/responses", b"x" * 65537)
+                assert status == 413
+                checks += 3
+                for fixture in request_fixtures:
+                    try:
+                        status, headers, body = request("POST", "/requests", fixture["input"].encode())
+                    except Exception as error:
+                        raise AssertionError(f"Native request-object request failed: {fixture['name']}") from error
+                    assert status == 200 and headers["content-type"].startswith("application/json"), (fixture["name"], status, body)
+                    assert json.loads(body) == request_reference[fixture["name"]], (fixture["name"], body, request_reference[fixture["name"]])
+                    checks += 1
+                for fixture in request_errors:
+                    data = base64.b64decode(fixture["input_base64"]) if "input_base64" in fixture else fixture["input"].encode()
+                    status, headers, body = request("POST", "/requests", data)
+                    assert status == 400 and headers["content-type"].startswith("application/json"), (fixture["name"], status, body)
+                    assert isinstance(json.loads(body)["error"], str), fixture["name"]
+                    checks += 1
+                for method in ("GET", "HEAD"):
+                    status, headers, body = request(method, "/requests")
+                    assert status == 405 and headers["allow"] == "POST"
+                    if method == "HEAD":
+                        assert body == b""
+                status, _, body = request("POST", "/requests", b"x" * 65537)
                 assert status == 413
                 checks += 3
                 status, _, body = request("POST", "/filter", hook_input.encode())

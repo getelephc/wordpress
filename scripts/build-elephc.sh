@@ -4,7 +4,7 @@ set -euo pipefail
 root=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
 cd "$root"
 if [[ ${1:-} == --help || ${1:-} == -h ]]; then
-    printf 'Usage: ./scripts/build-elephc.sh\nBuild WordPress block parsing, serialization, hooks, content rendering, attribute KSES, object cache, list utilities, URL helpers, sanitization, error objects, response objects and HTTP profiles with native Elephc.\n'
+    printf 'Usage: ./scripts/build-elephc.sh\nBuild WordPress block parsing, serialization, hooks, content rendering, attribute KSES, object cache, list utilities, URL helpers, sanitization, error objects, response objects, request objects and HTTP profiles with native Elephc.\n'
     exit 0
 fi
 if [[ $# != 0 ]]; then
@@ -38,5 +38,6 @@ cd elephc/runtime
 "$compiler" --php-version 8.4 sanitize.php 2>&1 | tee ../build/compile-sanitize.log
 "$compiler" --php-version 8.4 errors.php 2>&1 | tee ../build/compile-errors.log
 "$compiler" --php-version 8.4 responses.php 2>&1 | tee ../build/compile-responses.log
+"$compiler" --php-version 8.4 requests.php 2>&1 | tee ../build/compile-requests.log
 "$compiler" --php-version 8.4 --web server.php 2>&1 | tee ../build/compile-web.log
-printf 'Built native block parser, serializer, hooks, rendering, KSES, object cache, lists, URLs, sanitization, error objects, response objects and HTTP core profiles.\n'
+printf 'Built native block parser, serializer, hooks, rendering, KSES, object cache, lists, URLs, sanitization, error objects, response objects, request objects and HTTP core profiles.\n'

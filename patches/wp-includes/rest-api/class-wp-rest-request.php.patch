@@ -1,0 +1,948 @@
+--- a/wp-includes/rest-api/class-wp-rest-request.php
++++ b/wp-includes/rest-api/class-wp-rest-request.php
+@@ -35,7 +35,7 @@
+ 	 * @since 4.4.0
+ 	 * @var string
+ 	 */
+-	protected $method = '';
++	protected string $method = '';
+ 
+ 	/**
+ 	 * Parameters passed to the request.
+@@ -46,7 +46,7 @@
+ 	 * @since 4.4.0
+ 	 * @var array Contains GET, POST and FILES keys mapping to arrays of data.
+ 	 */
+-	protected $params;
++	protected array $params = array();
+ 
+ 	/**
+ 	 * HTTP headers for the request.
+@@ -54,7 +54,7 @@
+ 	 * @since 4.4.0
+ 	 * @var array Map of key to value. Key is always lowercase, as per HTTP specification.
+ 	 */
+-	protected $headers = array();
++	protected array $headers = array();
+ 
+ 	/**
+ 	 * Body data.
+@@ -62,7 +62,7 @@
+ 	 * @since 4.4.0
+ 	 * @var string Binary data from the request.
+ 	 */
+-	protected $body = null;
++	protected ?string $body = null;
+ 
+ 	/**
+ 	 * Route matched for the request.
+@@ -70,7 +70,7 @@
+ 	 * @since 4.4.0
+ 	 * @var string
+ 	 */
+-	protected $route;
++	protected string $route = '';
+ 
+ 	/**
+ 	 * Attributes (options) for the route that was matched.
+@@ -81,7 +81,7 @@
+ 	 * @since 4.4.0
+ 	 * @var array Attributes for the request.
+ 	 */
+-	protected $attributes = array();
++	protected array $attributes = array();
+ 
+ 	/**
+ 	 * Used to determine if the JSON data has been parsed yet.
+@@ -91,7 +91,7 @@
+ 	 * @since 4.4.0
+ 	 * @var bool
+ 	 */
+-	protected $parsed_json = false;
++	protected bool $parsed_json = false;
+ 
+ 	/**
+ 	 * Used to determine if the body data has been parsed yet.
+@@ -99,7 +99,7 @@
+ 	 * @since 4.4.0
+ 	 * @var bool
+ 	 */
+-	protected $parsed_body = false;
++	protected bool $parsed_body = false;
+ 
+ 	/**
+ 	 * Constructor.
+@@ -110,18 +110,9 @@
+ 	 * @param string $route      Optional. Request route. Default empty.
+ 	 * @param array  $attributes Optional. Request attributes. Default empty array.
+ 	 */
+-	public function __construct( $method = '', $route = '', $attributes = array() ) {
+-		$this->params = array(
+-			'URL'      => array(),
+-			'GET'      => array(),
+-			'POST'     => array(),
+-			'FILES'    => array(),
+-
+-			// See parse_json_params.
+-			'JSON'     => null,
+-
+-			'defaults' => array(),
+-		);
++	public function __construct( string $method = '', string $route = '', array $attributes = array() ) {
++		$this->params = wordpress_request_groups();
++		$this->headers = wordpress_request_map();
+ 
+ 		$this->set_method( $method );
+ 		$this->set_route( $route );
+@@ -135,7 +126,7 @@
+ 	 *
+ 	 * @return string HTTP method.
+ 	 */
+-	public function get_method() {
++	public function get_method(): string {
+ 		return $this->method;
+ 	}
+ 
+@@ -146,7 +137,7 @@
+ 	 *
+ 	 * @param string $method HTTP method.
+ 	 */
+-	public function set_method( $method ) {
++	public function set_method( string $method ): void {
+ 		$this->method = strtoupper( $method );
+ 	}
+ 
+@@ -157,7 +148,7 @@
+ 	 *
+ 	 * @return array Map of key to value. Key is always lowercase, as per HTTP specification.
+ 	 */
+-	public function get_headers() {
++	public function get_headers(): array {
+ 		return $this->headers;
+ 	}
+ 
+@@ -169,7 +160,7 @@
+ 	 * @param string $method HTTP method.
+ 	 * @return bool Whether the request is of the given method.
+ 	 */
+-	public function is_method( $method ) {
++	public function is_method( string $method ): bool {
+ 		return $this->get_method() === strtoupper( $method );
+ 	}
+ 
+@@ -191,7 +182,7 @@
+ 	 * @param string $key Header name.
+ 	 * @return string Canonicalized name.
+ 	 */
+-	public static function canonicalize_header_name( $key ) {
++	public static function canonicalize_header_name( string $key ): string {
+ 		$key = strtolower( $key );
+ 		$key = str_replace( '-', '_', $key );
+ 
+@@ -210,14 +201,14 @@
+ 	 * @param string $key Header name, will be canonicalized to lowercase.
+ 	 * @return string|null String value if set, null otherwise.
+ 	 */
+-	public function get_header( $key ) {
+-		$key = $this->canonicalize_header_name( $key );
++	public function get_header( string $key ): ?string {
++		$key = static::canonicalize_header_name( $key );
+ 
+ 		if ( ! isset( $this->headers[ $key ] ) ) {
+ 			return null;
+ 		}
+ 
+-		return implode( ',', $this->headers[ $key ] );
++		return implode( ',', (array) $this->headers[ $key ] );
+ 	}
+ 
+ 	/**
+@@ -228,14 +219,14 @@
+ 	 * @param string $key Header name, will be canonicalized to lowercase.
+ 	 * @return array|null List of string values if set, null otherwise.
+ 	 */
+-	public function get_header_as_array( $key ) {
+-		$key = $this->canonicalize_header_name( $key );
++	public function get_header_as_array( string $key ): ?array {
++		$key = static::canonicalize_header_name( $key );
+ 
+ 		if ( ! isset( $this->headers[ $key ] ) ) {
+ 			return null;
+ 		}
+ 
+-		return $this->headers[ $key ];
++		return (array) $this->headers[ $key ];
+ 	}
+ 
+ 	/**
+@@ -246,11 +237,12 @@
+ 	 * @param string $key   Header name.
+ 	 * @param string $value Header value, or list of values.
+ 	 */
+-	public function set_header( $key, $value ) {
+-		$key   = $this->canonicalize_header_name( $key );
+-		$value = (array) $value;
+-
+-		$this->headers[ $key ] = $value;
++	public function set_header( string $key, mixed $value ): void {
++		$key = static::canonicalize_header_name( $key );
++		$headers = $this->headers;
++		$headers[ $key ] = (array) $value;
++		$this->headers = $headers;
++
+ 	}
+ 
+ 	/**
+@@ -261,15 +253,13 @@
+ 	 * @param string $key   Header name.
+ 	 * @param string $value Header value, or list of values.
+ 	 */
+-	public function add_header( $key, $value ) {
+-		$key   = $this->canonicalize_header_name( $key );
+-		$value = (array) $value;
+-
+-		if ( ! isset( $this->headers[ $key ] ) ) {
+-			$this->headers[ $key ] = array();
+-		}
+-
+-		$this->headers[ $key ] = array_merge( $this->headers[ $key ], $value );
++	public function add_header( string $key, mixed $value ): void {
++		$key = static::canonicalize_header_name( $key );
++		$headers = $this->headers;
++		$values = (array) ( $headers[ $key ] ?? array() );
++		$headers[ $key ] = array_merge( $values, (array) $value );
++		$this->headers = $headers;
++
+ 	}
+ 
+ 	/**
+@@ -279,9 +269,11 @@
+ 	 *
+ 	 * @param string $key Header name.
+ 	 */
+-	public function remove_header( $key ) {
+-		$key = $this->canonicalize_header_name( $key );
+-		unset( $this->headers[ $key ] );
++	public function remove_header( string $key ): void {
++		$key = static::canonicalize_header_name( $key );
++		$headers = $this->headers;
++		unset( $headers[ $key ] );
++		$this->headers = $headers;
+ 	}
+ 
+ 	/**
+@@ -292,13 +284,13 @@
+ 	 * @param array $headers  Map of header name to value.
+ 	 * @param bool  $override If true, replace the request's headers. Otherwise, merge with existing.
+ 	 */
+-	public function set_headers( $headers, $override = true ) {
++	public function set_headers( array $headers, bool $override = true ): void {
+ 		if ( true === $override ) {
+-			$this->headers = array();
++			$this->headers = wordpress_request_map();
+ 		}
+ 
+ 		foreach ( $headers as $key => $value ) {
+-			$this->set_header( $key, $value );
++			$this->set_header( (string) $key, $value );
+ 		}
+ 	}
+ 
+@@ -311,9 +303,9 @@
+ 	 *                    or null when no valid Content-Type header was
+ 	 *                    available.
+ 	 */
+-	public function get_content_type() {
++	public function get_content_type(): ?array {
+ 		$value = $this->get_header( 'Content-Type' );
+-		if ( empty( $value ) ) {
++		if ( $value === null || $value === '' || $value === '0' ) {
+ 			return null;
+ 		}
+ 
+@@ -330,8 +322,8 @@
+ 		// Parse type and subtype out.
+ 		list( $type, $subtype ) = explode( '/', $value, 2 );
+ 
+-		$data = compact( 'value', 'type', 'subtype', 'parameters' );
+-		$data = array_map( 'trim', $data );
++		$data = array( 'value' => $value, 'type' => $type, 'subtype' => $subtype, 'parameters' => $parameters );
++		$data = array_map( static function (string $part): string { return trim( $part ); }, $data );
+ 
+ 		return $data;
+ 	}
+@@ -343,10 +335,10 @@
+ 	 *
+ 	 * @return bool True if the Content-Type header is JSON.
+ 	 */
+-	public function is_json_content_type() {
++	public function is_json_content_type(): bool {
+ 		$content_type = $this->get_content_type();
+ 
+-		return isset( $content_type['value'] ) && wp_is_json_media_type( $content_type['value'] );
++		return isset( $content_type['value'] ) && wp_is_json_media_type( (string) $content_type['value'] );
+ 	}
+ 
+ 	/**
+@@ -358,7 +350,7 @@
+ 	 *
+ 	 * @return string[] Array of types to check, in order of priority.
+ 	 */
+-	protected function get_parameter_order() {
++	protected function get_parameter_order(): array {
+ 		$order = array();
+ 
+ 		if ( $this->is_json_content_type() ) {
+@@ -370,7 +362,7 @@
+ 		// Ensure we parse the body data.
+ 		$body = $this->get_body();
+ 
+-		if ( 'POST' !== $this->method && ! empty( $body ) ) {
++		if ( 'POST' !== $this->method && ! empty( $body ) && $body !== '0' ) {
+ 			$this->parse_body_params();
+ 		}
+ 
+@@ -394,7 +386,7 @@
+ 		 * @param string[]        $order   Array of types to check, in order of priority.
+ 		 * @param WP_REST_Request $request The request object.
+ 		 */
+-		return apply_filters( 'rest_request_parameter_order', $order, $this );
++		return (array) apply_filters( 'rest_request_parameter_order', $order, $this );
+ 	}
+ 
+ 	/**
+@@ -405,17 +397,14 @@
+ 	 * @param string $key Parameter name.
+ 	 * @return mixed|null Value if set, null otherwise.
+ 	 */
+-	public function get_param( $key ) {
++	public function get_param( mixed $key ): mixed {
+ 		$order = $this->get_parameter_order();
+-
+ 		foreach ( $order as $type ) {
+-			// Determine if we have the parameter for this type.
+-			if ( isset( $this->params[ $type ][ $key ] ) ) {
+-				return $this->params[ $type ][ $key ];
+-			}
+-		}
+-
++			$values = (array) ( $this->params[ $type ] ?? array() );
++			if ( isset( $values[ $key ] ) ) { return $values[ $key ]; }
++		}
+ 		return null;
++
+ 	}
+ 
+ 	/**
+@@ -429,11 +418,11 @@
+ 	 * @param string $key Parameter name.
+ 	 * @return bool True if a param exists for the given key.
+ 	 */
+-	public function has_param( $key ) {
++	public function has_param( mixed $key ): bool {
+ 		$order = $this->get_parameter_order();
+ 
+ 		foreach ( $order as $type ) {
+-			if ( is_array( $this->params[ $type ] ) && array_key_exists( $key, $this->params[ $type ] ) ) {
++			if ( is_array( $this->params[ $type ] ) && array_key_exists( $key, (array) $this->params[ $type ] ) ) {
+ 				return true;
+ 			}
+ 		}
+@@ -453,20 +442,27 @@
+ 	 * @param string $key   Parameter name.
+ 	 * @param mixed  $value Parameter value.
+ 	 */
+-	public function set_param( $key, $value ) {
+-		$order     = $this->get_parameter_order();
++	public function set_param( mixed $key, mixed $value ): void {
++		$order = $this->get_parameter_order();
+ 		$found_key = false;
+-
++		$groups = $this->params;
+ 		foreach ( $order as $type ) {
+-			if ( 'defaults' !== $type && is_array( $this->params[ $type ] ) && array_key_exists( $key, $this->params[ $type ] ) ) {
+-				$this->params[ $type ][ $key ] = $value;
+-				$found_key                     = true;
++			$values = $groups[ $type ] ?? null;
++			if ( 'defaults' !== $type && is_array( $values ) && array_key_exists( $key, (array) $values ) ) {
++				$values = (array) $values;
++				$values[ $key ] = $value;
++				$groups[ $type ] = $values;
++				$found_key = true;
+ 			}
+ 		}
+-
+ 		if ( ! $found_key ) {
+-			$this->params[ $order[0] ][ $key ] = $value;
+-		}
++			$type = (string) $order[0];
++			$values = wordpress_request_map( (array) ( $groups[ $type ] ?? array() ) );
++			$values[ $key ] = $value;
++			$groups[ $type ] = $values;
++		}
++		$this->params = $groups;
++
+ 	}
+ 
+ 	/**
+@@ -479,11 +475,11 @@
+ 	 *
+ 	 * @return array Map of key to value.
+ 	 */
+-	public function get_params() {
++	public function get_params(): array {
+ 		$order = $this->get_parameter_order();
+ 		$order = array_reverse( $order, true );
+ 
+-		$params = array();
++		$params = wordpress_request_map();
+ 		foreach ( $order as $type ) {
+ 			/*
+ 			 * array_merge() / the "+" operator will mess up
+@@ -495,7 +491,7 @@
+ 		}
+ 
+ 		// Exclude rest_route if pretty permalinks are not enabled.
+-		if ( ! get_option( 'permalink_structure' ) ) {
++		if ( ! wordpress_request_permalinks() ) {
+ 			unset( $params['rest_route'] );
+ 		}
+ 
+@@ -511,8 +507,8 @@
+ 	 *
+ 	 * @return array Parameter map of key to value.
+ 	 */
+-	public function get_url_params() {
+-		return $this->params['URL'];
++	public function get_url_params(): array {
++		return (array) $this->params['URL'];
+ 	}
+ 
+ 	/**
+@@ -524,8 +520,10 @@
+ 	 *
+ 	 * @param array $params Parameter map of key to value.
+ 	 */
+-	public function set_url_params( $params ) {
+-		$this->params['URL'] = $params;
++	public function set_url_params( array $params ): void {
++		$groups = $this->params;
++		$groups['URL'] = wordpress_request_map( $params );
++		$this->params = $groups;
+ 	}
+ 
+ 	/**
+@@ -537,8 +535,8 @@
+ 	 *
+ 	 * @return array Parameter map of key to value.
+ 	 */
+-	public function get_query_params() {
+-		return $this->params['GET'];
++	public function get_query_params(): array {
++		return (array) $this->params['GET'];
+ 	}
+ 
+ 	/**
+@@ -550,8 +548,10 @@
+ 	 *
+ 	 * @param array $params Parameter map of key to value.
+ 	 */
+-	public function set_query_params( $params ) {
+-		$this->params['GET'] = $params;
++	public function set_query_params( array $params ): void {
++		$groups = $this->params;
++		$groups['GET'] = wordpress_request_map( $params );
++		$this->params = $groups;
+ 	}
+ 
+ 	/**
+@@ -563,8 +563,8 @@
+ 	 *
+ 	 * @return array Parameter map of key to value.
+ 	 */
+-	public function get_body_params() {
+-		return $this->params['POST'];
++	public function get_body_params(): array {
++		return (array) $this->params['POST'];
+ 	}
+ 
+ 	/**
+@@ -576,8 +576,10 @@
+ 	 *
+ 	 * @param array $params Parameter map of key to value.
+ 	 */
+-	public function set_body_params( $params ) {
+-		$this->params['POST'] = $params;
++	public function set_body_params( array $params ): void {
++		$groups = $this->params;
++		$groups['POST'] = wordpress_request_map( $params );
++		$this->params = $groups;
+ 	}
+ 
+ 	/**
+@@ -598,8 +600,8 @@
+ 	 *                                   full_path?: non-empty-string,
+ 	 *                               }>
+ 	 */
+-	public function get_file_params() {
+-		return $this->params['FILES'];
++	public function get_file_params(): array {
++		return (array) $this->params['FILES'];
+ 	}
+ 
+ 	/**
+@@ -620,8 +622,10 @@
+ 	 *                                  full_path?: non-empty-string,
+ 	 *                              }> $params
+ 	 */
+-	public function set_file_params( $params ) {
+-		$this->params['FILES'] = $params;
++	public function set_file_params( array $params ): void {
++		$groups = $this->params;
++		$groups['FILES'] = wordpress_request_map( $params );
++		$this->params = $groups;
+ 	}
+ 
+ 	/**
+@@ -633,8 +637,8 @@
+ 	 *
+ 	 * @return array Parameter map of key to value.
+ 	 */
+-	public function get_default_params() {
+-		return $this->params['defaults'];
++	public function get_default_params(): array {
++		return (array) $this->params['defaults'];
+ 	}
+ 
+ 	/**
+@@ -646,8 +650,10 @@
+ 	 *
+ 	 * @param array $params Parameter map of key to value.
+ 	 */
+-	public function set_default_params( $params ) {
+-		$this->params['defaults'] = $params;
++	public function set_default_params( array $params ): void {
++		$groups = $this->params;
++		$groups['defaults'] = wordpress_request_map( $params );
++		$this->params = $groups;
+ 	}
+ 
+ 	/**
+@@ -657,7 +663,7 @@
+ 	 *
+ 	 * @return string Binary data from the request body.
+ 	 */
+-	public function get_body() {
++	public function get_body(): ?string {
+ 		return $this->body;
+ 	}
+ 
+@@ -668,13 +674,15 @@
+ 	 *
+ 	 * @param string $data Binary data from the request body.
+ 	 */
+-	public function set_body( $data ) {
++	public function set_body( string $data ): void {
+ 		$this->body = $data;
+ 
+ 		// Enable lazy parsing.
+ 		$this->parsed_json    = false;
+ 		$this->parsed_body    = false;
+-		$this->params['JSON'] = null;
++		$groups = $this->params;
++		$groups['JSON'] = null;
++		$this->params = $groups;
+ 	}
+ 
+ 	/**
+@@ -684,7 +692,7 @@
+ 	 *
+ 	 * @return array Parameter map of key to value.
+ 	 */
+-	public function get_json_params() {
++	public function get_json_params(): mixed {
+ 		// Ensure the parameters have been parsed out.
+ 		$this->parse_json_params();
+ 
+@@ -700,7 +708,7 @@
+ 	 * @since 4.7.0 Returns error instance if value cannot be decoded.
+ 	 * @return true|WP_Error True if the JSON data was passed or no JSON data was provided, WP_Error if invalid JSON was passed.
+ 	 */
+-	protected function parse_json_params() {
++	protected function parse_json_params(): mixed {
+ 		if ( $this->parsed_json ) {
+ 			return true;
+ 		}
+@@ -713,11 +721,11 @@
+ 		}
+ 
+ 		$body = $this->get_body();
+-		if ( empty( $body ) ) {
++		if ( $body === null || $body === '' || $body === '0' ) {
+ 			return true;
+ 		}
+ 
+-		$params = json_decode( $body, true );
++		$params = json_decode( (string) $body, true );
+ 
+ 		/*
+ 		 * Check for a parsing error.
+@@ -727,15 +735,17 @@
+ 			$this->parsed_json = false;
+ 
+ 			$error_data = array(
+-				'status'             => WP_Http::BAD_REQUEST,
++				'status'             => 400,
+ 				'json_error_code'    => json_last_error(),
+-				'json_error_message' => json_last_error_msg(),
++				'json_error_message' => wordpress_request_json_error_message(),
+ 			);
+ 
+-			return new WP_Error( 'rest_invalid_json', __( 'Invalid JSON body passed.' ), $error_data );
+-		}
+-
+-		$this->params['JSON'] = $params;
++			return new WP_Error( 'rest_invalid_json', 'Invalid JSON body passed.', $error_data );
++		}
++
++		$groups = $this->params;
++		$groups['JSON'] = is_array( $params ) ? wordpress_request_map( (array) $params ) : $params;
++		$this->params = $groups;
+ 
+ 		return true;
+ 	}
+@@ -748,7 +758,7 @@
+ 	 *
+ 	 * @since 4.4.0
+ 	 */
+-	protected function parse_body_params() {
++	protected function parse_body_params(): void {
+ 		if ( $this->parsed_body ) {
+ 			return;
+ 		}
+@@ -765,13 +775,8 @@
+ 			return;
+ 		}
+ 
+-		parse_str( $this->get_body(), $params );
+-
+-		/*
+-		 * Add to the POST parameters stored internally. If a user has already
+-		 * set these manually (via `set_body_params`), don't override them.
+-		 */
+-		$this->params['POST'] = array_merge( $params, $this->params['POST'] );
++		throw new LogicException('URL-encoded body parsing requires native parse_str support.');
++
+ 	}
+ 
+ 	/**
+@@ -781,7 +786,7 @@
+ 	 *
+ 	 * @return string Route matching regex.
+ 	 */
+-	public function get_route() {
++	public function get_route(): string {
+ 		return $this->route;
+ 	}
+ 
+@@ -792,7 +797,7 @@
+ 	 *
+ 	 * @param string $route Route matching regex.
+ 	 */
+-	public function set_route( $route ) {
++	public function set_route( string $route ): void {
+ 		$this->route = $route;
+ 	}
+ 
+@@ -805,7 +810,7 @@
+ 	 *
+ 	 * @return array Attributes for the request.
+ 	 */
+-	public function get_attributes() {
++	public function get_attributes(): array {
+ 		return $this->attributes;
+ 	}
+ 
+@@ -816,7 +821,7 @@
+ 	 *
+ 	 * @param array $attributes Attributes for the request.
+ 	 */
+-	public function set_attributes( $attributes ) {
++	public function set_attributes( array $attributes ): void {
+ 		$this->attributes = $attributes;
+ 	}
+ 
+@@ -830,66 +835,9 @@
+ 	 *
+ 	 * @return true|WP_Error True if parameters were sanitized, WP_Error if an error occurred during sanitization.
+ 	 */
+-	public function sanitize_params() {
+-		$attributes = $this->get_attributes();
+-
+-		// No arguments set, skip sanitizing.
+-		if ( empty( $attributes['args'] ) ) {
+-			return true;
+-		}
+-
+-		$order = $this->get_parameter_order();
+-
+-		$invalid_params  = array();
+-		$invalid_details = array();
+-
+-		foreach ( $order as $type ) {
+-			if ( empty( $this->params[ $type ] ) ) {
+-				continue;
+-			}
+-
+-			foreach ( $this->params[ $type ] as $key => $value ) {
+-				if ( ! isset( $attributes['args'][ $key ] ) ) {
+-					continue;
+-				}
+-
+-				$param_args = $attributes['args'][ $key ];
+-
+-				// If the arg has a type but no sanitize_callback attribute, default to rest_parse_request_arg.
+-				if ( ! array_key_exists( 'sanitize_callback', $param_args ) && ! empty( $param_args['type'] ) ) {
+-					$param_args['sanitize_callback'] = 'rest_parse_request_arg';
+-				}
+-				// If there's still no sanitize_callback, nothing to do here.
+-				if ( empty( $param_args['sanitize_callback'] ) ) {
+-					continue;
+-				}
+-
+-				/** @var mixed|WP_Error $sanitized_value */
+-				$sanitized_value = call_user_func( $param_args['sanitize_callback'], $value, $this, $key );
+-
+-				if ( is_wp_error( $sanitized_value ) ) {
+-					$invalid_params[ $key ]  = implode( ' ', $sanitized_value->get_error_messages() );
+-					$invalid_details[ $key ] = rest_convert_error_to_response( $sanitized_value )->get_data();
+-				} else {
+-					$this->params[ $type ][ $key ] = $sanitized_value;
+-				}
+-			}
+-		}
+-
+-		if ( $invalid_params ) {
+-			return new WP_Error(
+-				'rest_invalid_param',
+-				/* translators: %s: List of invalid parameters. */
+-				sprintf( __( 'Invalid parameter(s): %s' ), implode( ', ', array_keys( $invalid_params ) ) ),
+-				array(
+-					'status'  => 400,
+-					'params'  => $invalid_params,
+-					'details' => $invalid_details,
+-				)
+-			);
+-		}
+-
+-		return true;
++	public function sanitize_params(): mixed {
++		throw new LogicException('Schema sanitization is outside the request object profile.');
++
+ 	}
+ 
+ 	/**
+@@ -900,91 +848,9 @@
+ 	 * @return true|WP_Error True if there are no parameters to validate or if all pass validation,
+ 	 *                       WP_Error if required parameters are missing.
+ 	 */
+-	public function has_valid_params() {
+-		// If JSON data was passed, check for errors.
+-		$json_error = $this->parse_json_params();
+-		if ( is_wp_error( $json_error ) ) {
+-			return $json_error;
+-		}
+-
+-		$attributes = $this->get_attributes();
+-		$required   = array();
+-
+-		$args = empty( $attributes['args'] ) ? array() : $attributes['args'];
+-
+-		foreach ( $args as $key => $arg ) {
+-			$param = $this->get_param( $key );
+-			if ( isset( $arg['required'] ) && true === $arg['required'] && null === $param ) {
+-				$required[] = $key;
+-			}
+-		}
+-
+-		if ( ! empty( $required ) ) {
+-			return new WP_Error(
+-				'rest_missing_callback_param',
+-				/* translators: %s: List of required parameters. */
+-				sprintf( __( 'Missing parameter(s): %s' ), implode( ', ', $required ) ),
+-				array(
+-					'status' => 400,
+-					'params' => $required,
+-				)
+-			);
+-		}
+-
+-		/*
+-		 * Check the validation callbacks for each registered arg.
+-		 *
+-		 * This is done after required checking as required checking is cheaper.
+-		 */
+-		$invalid_params  = array();
+-		$invalid_details = array();
+-
+-		foreach ( $args as $key => $arg ) {
+-
+-			$param = $this->get_param( $key );
+-
+-			if ( null !== $param && ! empty( $arg['validate_callback'] ) ) {
+-				/** @var bool|\WP_Error $valid_check */
+-				$valid_check = call_user_func( $arg['validate_callback'], $param, $this, $key );
+-
+-				if ( false === $valid_check ) {
+-					$invalid_params[ $key ] = __( 'Invalid parameter.' );
+-				}
+-
+-				if ( is_wp_error( $valid_check ) ) {
+-					$invalid_params[ $key ]  = implode( ' ', $valid_check->get_error_messages() );
+-					$invalid_details[ $key ] = rest_convert_error_to_response( $valid_check )->get_data();
+-				}
+-			}
+-		}
+-
+-		if ( $invalid_params ) {
+-			return new WP_Error(
+-				'rest_invalid_param',
+-				/* translators: %s: List of invalid parameters. */
+-				sprintf( __( 'Invalid parameter(s): %s' ), implode( ', ', array_keys( $invalid_params ) ) ),
+-				array(
+-					'status'  => 400,
+-					'params'  => $invalid_params,
+-					'details' => $invalid_details,
+-				)
+-			);
+-		}
+-
+-		if ( isset( $attributes['validate_callback'] ) ) {
+-			$valid_check = call_user_func( $attributes['validate_callback'], $this );
+-
+-			if ( is_wp_error( $valid_check ) ) {
+-				return $valid_check;
+-			}
+-
+-			if ( false === $valid_check ) {
+-				// A WP_Error instance is preferred, but false is supported for parity with the per-arg validate_callback.
+-				return new WP_Error( 'rest_invalid_params', __( 'Invalid parameters.' ), array( 'status' => 400 ) );
+-			}
+-		}
+-
+-		return true;
++	public function has_valid_params(): mixed {
++		throw new LogicException('Schema validation is outside the request object profile.');
++
+ 	}
+ 
+ 	/**
+@@ -996,16 +862,14 @@
+ 	 * @return bool Whether the parameter is set.
+ 	 */
+ 	#[ReturnTypeWillChange]
+-	public function offsetExists( $offset ) {
++	public function offsetExists( mixed $offset ): bool {
+ 		$order = $this->get_parameter_order();
+-
+ 		foreach ( $order as $type ) {
+-			if ( isset( $this->params[ $type ][ $offset ] ) ) {
+-				return true;
+-			}
+-		}
+-
++			$values = (array) ( $this->params[ $type ] ?? array() );
++			if ( isset( $values[ $offset ] ) ) { return true; }
++		}
+ 		return false;
++
+ 	}
+ 
+ 	/**
+@@ -1017,7 +881,7 @@
+ 	 * @return mixed|null Value if set, null otherwise.
+ 	 */
+ 	#[ReturnTypeWillChange]
+-	public function offsetGet( $offset ) {
++	public function offsetGet( mixed $offset ): mixed {
+ 		return $this->get_param( $offset );
+ 	}
+ 
+@@ -1030,7 +894,7 @@
+ 	 * @param mixed  $value  Parameter value.
+ 	 */
+ 	#[ReturnTypeWillChange]
+-	public function offsetSet( $offset, $value ) {
++	public function offsetSet( mixed $offset, mixed $value ): void {
+ 		$this->set_param( $offset, $value );
+ 	}
+ 
+@@ -1042,13 +906,19 @@
+ 	 * @param string $offset Parameter name.
+ 	 */
+ 	#[ReturnTypeWillChange]
+-	public function offsetUnset( $offset ) {
++	public function offsetUnset( mixed $offset ): void {
+ 		$order = $this->get_parameter_order();
+-
+-		// Remove the offset from every group.
++		$groups = $this->params;
+ 		foreach ( $order as $type ) {
+-			unset( $this->params[ $type ][ $offset ] );
+-		}
++			$values = $groups[ $type ] ?? null;
++			if ( is_array( $values ) ) {
++				$values = (array) $values;
++				unset( $values[ $offset ] );
++				$groups[ $type ] = $values;
++			}
++		}
++		$this->params = $groups;
++
+ 	}
+ 
+ 	/**
+@@ -1059,40 +929,8 @@
+ 	 * @param string $url URL with protocol, domain, path and query args.
+ 	 * @return WP_REST_Request|false WP_REST_Request object on success, false on failure.
+ 	 */
+-	public static function from_url( $url ) {
+-		$bits         = parse_url( $url );
+-		$query_params = array();
+-
+-		if ( ! empty( $bits['query'] ) ) {
+-			wp_parse_str( $bits['query'], $query_params );
+-		}
+-
+-		$api_root = rest_url();
+-		if ( get_option( 'permalink_structure' ) && str_starts_with( $url, $api_root ) ) {
+-			// Pretty permalinks on, and URL is under the API root.
+-			$api_url_part = substr( $url, strlen( untrailingslashit( $api_root ) ) );
+-			$route        = parse_url( $api_url_part, PHP_URL_PATH );
+-		} elseif ( ! empty( $query_params['rest_route'] ) ) {
+-			// ?rest_route=... set directly.
+-			$route = $query_params['rest_route'];
+-			unset( $query_params['rest_route'] );
+-		}
+-
+-		$request = false;
+-		if ( ! empty( $route ) ) {
+-			$request = new WP_REST_Request( 'GET', $route );
+-			$request->set_query_params( $query_params );
+-		}
+-
+-		/**
+-		 * Filters the REST API request generated from a URL.
+-		 *
+-		 * @since 4.5.0
+-		 *
+-		 * @param WP_REST_Request|false $request Generated request object, or false if URL
+-		 *                                       could not be parsed.
+-		 * @param string                $url     URL the request was generated from.
+-		 */
+-		return apply_filters( 'rest_request_from_url', $request, $url );
++	public static function from_url( string $url ): mixed {
++		throw new LogicException('URL routing and option discovery are outside the request object profile.');
++
+ 	}
+ }
