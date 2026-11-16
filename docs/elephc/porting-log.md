@@ -297,10 +297,78 @@ The serializer executable is 1,857,624 bytes and the combined HTTP executable
 is 22,638,976 bytes on the native host. Other profile sizes are unchanged from
 the previous extension. These sizes are observations, not speed claims.
 
+## KSES attribute extension, 2026-11-16
+
+This profile selects 21 functions from `kses.php`, plus the original global
+declaration and HTML entity-name table. `esc_attr` is the eighth selected
+formatting function. Ten original files and nine patches now define the native
+graph, with a sixth executable for KSES primitives. The original entity-table
+initializer is wrapped in a typed getter and restored by setup for every
+operation: the first HTTP request succeeds without this adapter, but later
+requests encounter a cleared ordinary global on the pinned worker.
+The manifest records source
+segments as well as function ranges, checking the full patched file, every
+selected fragment and the final generated module.
+
+WordPress 7.1's whole-document `wp_kses` graph calls `wp_kses_hair`, which uses
+`WP_HTML_Tag_Processor`. This extension instead ports the distinct
+`wp_kses_attr_parse`/`wp_kses_hair_parse` path and `wp_kses_one_attr`, with core
+protocol and entity normalization. It does not replace modern HTML parsing with
+an older regex implementation. The style branch requires `WP_HTML_Decoder`
+and `safecss_filter_attr`; CSS remains an explicit unsupported branch.
+
+The application supplies a fixed policy for `a`, `img`, `div`, `span` and `p`,
+common/data attributes, selected anchor/image attributes, valueless download
+and image widths from 1 to 4096. Protocols are `http`, `https`, `mailto`, `ftp`
+and `feed`. The same policy configures the original PHP oracle. It is decoded
+into uniform mixed-value maps because the pinned SDK cannot merge the original
+boolean-valued policy map with heterogeneous attribute limits.
+
+The UTF-8 escape adapter retains original KSES entity normalization and HTML
+4.01 quote behavior. The pinned `htmlspecialchars` rejects its fourth
+`double_encode` argument. Within the fixed core entity table, the adapter
+retains recognized entities, re-encodes `apos`, and escapes quote/angle syntax
+characters. Core attribute-escape, allowed-HTML and URI-attribute hooks remain
+in the selected graph. The oracle uses unmodified core formatting, compatibility
+and UTF-8 helpers; its normal option filter supplies blog_charset=UTF-8 before
+any database path is reached.
+
+The shortcode HTML attribute branch is restored. Regex callbacks use closure
+adapters; a per-call object counts quoted-attribute matches without depending on
+the unsupported five-argument regex callback form. Explicit `html-shortcodes`
+and `html-pipeline` modes enable this branch; default modes keep ignore_html=true.
+As in original WordPress, quoted expansions are passed through one-attribute
+KSES, unquoted/name-position expansions retain the unfiltered-HTML behavior,
+and rejected expansions may keep the original shortcode text. These modes do
+not sanitize an HTML document.
+
+`elephc/runtime/kses` and POST `/kses` expose attribute parsing, one-attribute
+filtering, protocol cleanup, entity normalization, numeric byte decoding and
+attribute escaping. Parser modes return JSON and decode mode returns raw bytes;
+other modes return text. UTF-8 is required, and NUL is excluded from HTML
+attribute/shortcode inputs. Protocol/entity helpers have explicit binary-slice
+adapters and empty-subject guards for the pinned native regex runtime.
+Whole-document HTML filtering, CSS, XML entity normalization and charset
+recovery remain outside this profile, with explicit API errors.
+
+Verification passed for all 87 KSES fixtures and 19 additional HTML rendering
+fixtures against original PHP, patched PHP and native CLI output. The complete
+corpus covers 22 parser documents, 31 hook scenarios, 89 rendering fixtures and
+58 serialization fixtures, with 22 invalid serialization inputs and 13 new
+KSES/HTML boundary inputs (12 through CLI, all 13 through HTTP). All 812 HTTP
+checks pass across repeated requests in one worker. A fresh source-only export
+rebuilt all six executables and passed the same checks; its temporary tree was
+removed. Native runtime output contains no PHP warnings or fatal errors.
+
+The KSES executable is 3,844,712 bytes, rendering is 5,053,032 bytes and the
+combined HTTP executable is 23,300,480 bytes on the native host. The parser,
+serializer and hooks sizes are unchanged. These are build observations, not
+performance claims.
+
 ## Follow-up direction
 
 A broader CMS experiment should address the UTF-8 compatibility loader's
 control flow and repeat the `SHORTINIT` diagnostic to discover the next real
-blocker. Database-backed bootstrap, plugin discovery, themes, KSES and arbitrary
-block rendering require separate verified profiles. Current subsystem coverage
-does not establish their compatibility.
+blocker. Database-backed bootstrap, plugin discovery, themes, whole-document KSES,
+CSS and arbitrary block rendering require separate verified profiles. Current
+subsystem coverage does not establish their compatibility.

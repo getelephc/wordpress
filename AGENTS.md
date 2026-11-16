@@ -1,8 +1,8 @@
 # Project conventions
 
 - This is a bounded WordPress core port to Elephc, covering block parsing and
-  serialization, hooks, shortcodes and selected formatting with native CLI and
-  HTTP profiles. Keep the scope explicit.
+  serialization, hooks, shortcodes, attribute KSES and selected formatting through
+  native CLI and HTTP profiles. Keep the scope explicit.
 - Run application code, Elephc and PHP reference checks directly on the host.
   This project intentionally uses native tools and has no database.
 - Use `127.0.0.1:9000` as the default local HTTP listener.
@@ -12,8 +12,8 @@
 - Downloaded WordPress sources in `upstream/` are original dependencies.
   Do not edit them. Maintain compatibility rewrites in `patches/`, including
   all original, patch and resulting source checksums.
-- The formatting and blocks modules select verified function ranges after
-  patching the complete source files. Maintain the full-source, range and final-module hashes.
+- Selected modules use verified function ranges or source segments after
+  patching complete original files. Maintain the full-source, range and final-module hashes.
 - Serialization accepts validated block trees with UTF-8 JSON attributes. Keep
   charset recovery and complete block rendering outside the profile explicit.
 - `elephc/runtime/core/` and executables are generated. Rebuild with
@@ -22,8 +22,9 @@
   use source-only reproduction when source preparation or patches change.
 - Keep named application callbacks in the explicit `WordPressHookCallbacks`
   manifest. Direct closures and method callables use native descriptors.
-- The content pipeline keeps HTML-attribute shortcode expansion disabled.
-  Preserve its explicit KSES boundary rather than silently simulating sanitization.
+- The default content pipeline keeps HTML-attribute expansion disabled. Explicit
+  HTML modes use the selected KSES allowlist. Whole-document KSES, CSS, XML
+  entity normalization and charset recovery remain outside this profile.
 - The complete WordPress compile probes intentionally fail on the pinned SDK.
   Keep their diagnostics separate from the verified parser profile.
 - Keep provenance, boundaries and verified results current in the README,

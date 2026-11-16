@@ -1,12 +1,12 @@
 # WordPress on Elephc
 
-A native AOT experiment with WordPress blocks, serialization, hooks and content.
+A native AOT experiment with WordPress blocks, serialization, hooks, content and attribute KSES.
 WordPress **7.1.4**, Elephc **0.27.8**, PHP profile **8.4**, Linux x86_64.
 
-The experiment uses nine original core files, with eight compatibility
-patches, to build block parsing, serialization, hooks and rendering CLIs plus
-an HTTP server. The formatting graph selects seven verified functions from the original
-`formatting.php`; another five come from `blocks.php`. Documents, JSON block
+The experiment uses ten original core files, with nine compatibility
+patches, to build block parsing, serialization, hooks, rendering and attribute
+KSES CLIs plus an HTTP server. The formatting graph selects eight verified functions from the original
+`formatting.php`; another five come from `blocks.php` and 21 from `kses.php`. Documents, JSON block
 trees and content inputs are processed at runtime.
 The HTTP adapter, callback manifest and demo callbacks belong to this experiment.
 
@@ -40,7 +40,8 @@ elephc --version
 
 The script verifies the downloaded sources and patches, installs the locked
 PCRE2 dependency, and produces `elephc/runtime/parse`, `elephc/runtime/hooks`,
-`elephc/runtime/render`, `elephc/runtime/serialize` and `elephc/runtime/server`.
+`elephc/runtime/render`, `elephc/runtime/serialize`, `elephc/runtime/kses` and
+`elephc/runtime/server`.
 It uses `elephc` from `PATH`; set
 `ELEPHC_BIN=/absolute/path/to/elephc` to select another complete SDK.
 On workstations with the author's build queue installed, the script uses it
@@ -58,6 +59,7 @@ python3 scripts/prepare-elephc.py
   elephc --php-version 8.4 serialize.php
   elephc --php-version 8.4 hooks.php
   elephc --php-version 8.4 render.php
+  elephc --php-version 8.4 kses.php
   elephc --php-version 8.4 --web server.php
 )
 ```
@@ -82,7 +84,7 @@ You can also run the executable directly and choose a different port:
 ```
 
 The demo, parsed blocks, hooks, rendered content and health endpoints are `/`,
-`/blocks`, `/hooks`, `/render` and `/health`. `/serialize` accepts POST only.
+`/blocks`, `/hooks`, `/render` and `/health`. `/serialize` and `/kses` accept POST only.
 No database or background service manager is required.
 
 Parse your own document:
@@ -213,7 +215,7 @@ The renderer runs the core shortcode engine and an explicit content-filter
 pipeline: `wpautop` at priority 10, `shortcode_unautop` at priority 10, and
 `do_shortcode` through a wrapper at priority 11. This is the selected pipeline,
 not WordPress's complete default filter stack. It does not run `do_blocks`,
-themes, KSES or installed plugins.
+themes, whole-document KSES or installed plugins.
 
 ```bash
 ./elephc/runtime/render pipeline 'Welcome [greet name="Elephc"]'
@@ -241,15 +243,68 @@ diagnostic modes listed in `tests/render-fixtures.json`. The CLI takes the mode
 first and input second, and writes the exact rendered output. Diagnostic
 `attributes`, `inspect`, `context` and `registration` modes produce JSON.
 
-Shortcode processing uses `ignore_html=true`: shortcode-looking text inside
-HTML attributes, comments and CDATA is not expanded. Attribute expansion with `ignore_html=false`
-requires KSES and fails explicitly in this profile when encountered. Invalid
+The default shortcode modes use `ignore_html=true`: shortcode-looking text
+inside HTML attributes, comments and CDATA is not expanded. The explicit
+`html-shortcodes` and `html-pipeline` modes enable the selected KSES attribute
+path described below. Invalid
 tag registration and invalid callbacks raise an exception instead of using
 WordPress's translation/notice subsystem.
 
 The renderer formats content and expands its registered shortcodes. It is not
 an HTML sanitizer. Same-tag nesting retains WordPress's original regex behavior;
 callbacks that process enclosed content explicitly invoke the core again.
+
+## KSES attribute profile
+
+The selected KSES helpers parse attribute lists, normalize HTML entities and URL
+protocols, escape attribute text, and filter one attribute against an explicit
+allowlist. They do not run `wp_kses` on a whole HTML document. WordPress 7.1 uses
+`WP_HTML_Tag_Processor` for that graph; the full HTML API, CSS filtering and XML
+entity normalization remain outside this profile.
+
+```bash
+./elephc/runtime/kses protocol 'javascript:alert(1)'
+./elephc/runtime/kses attribute 'href="javascript:alert(1)"' a
+./elephc/runtime/kses escape 'Ada & Bob'
+curl -sS 'http://127.0.0.1:9000/kses?mode=attribute&element=a' \
+  --data-binary 'title="Ada & Bob"'
+./elephc/runtime/render html-shortcodes '<a title="[counter]">[counter]</a>'
+```
+
+The last command returns `<a title="1">2</a>`. `html-pipeline` also runs the
+paragraph/content filters. These modes run `do_shortcode(..., false)` and
+filter expanded quoted attributes with the original `wp_kses_one_attr` path.
+Comments and CDATA remain excluded. Unquoted attributes and shortcodes in
+attribute-name positions keep WordPress's original unfiltered-HTML behavior.
+Rejected expansions can leave the original shortcode text in the attribute.
+These modes expand content; they do not sanitize an entire HTML document.
+
+The policy is defined in `wordpress_kses_setup` and shared with the original PHP
+oracle. It allows `a`, `img`, `div`, `span` and `p`, with `title`, `class`, `id`,
+`data-*` and `aria-label`. Anchors additionally allow `href`, `rel`, `target`
+and valueless `download`. Images additionally allow `src`, `alt` and numeric
+`width` from 1 to 4096. Allowed protocols are `http`, `https`, `mailto`, `ftp`
+and `feed`. This is the experiment's policy, not the default WordPress post
+allowlist. Protocol filtering removes disallowed scheme prefixes as core does;
+it is not a complete URL validator.
+
+The CLI takes `MODE [INPUT [ELEMENT]]`, defaulting to `attribute` and element
+`a`; omitted input is read from stdin. POST `/kses` uses the `mode` and `element`
+query parameters. Modes are `attribute`, `attributes`, `tag-attributes`,
+`protocol`, `entities`, `decode` and `escape`. Filter diagnostic modes appear in
+`tests/kses-fixtures.json`. Attribute parsers return JSON, text modes return
+`text/plain`, and `decode` returns raw bytes as `application/octet-stream`.
+The latter preserves core's byte-based numeric-entity primitive, including
+values that are not valid UTF-8 output.
+
+Inputs must be valid UTF-8. NUL is excluded from HTML attribute and HTML
+shortcode inputs; protocol and entity primitives have separate binary-slice
+adapters. Invalid inputs or unsupported HTML/CSS/XML modes return HTTP 400;
+the CLI returns 2 with a stderr diagnostic. The native escaping bridge retains
+the fixed core HTML 4.01 entity table and quote behavior without importing the
+charset-recovery graph. Direct mutation of that entity table is outside the
+profile. The source-defined `raw` shortcode exists for the attribute tests;
+its output is escaped only where the selected core path applies escaping.
 
 ## Verified behavior
 
@@ -261,11 +316,13 @@ The integration check compares **22 fixtures** against the unmodified
 WordPress parser running on the host PHP interpreter. It compares the patched
 PHP implementation and the native CLI with that reference.
 **31 hook scenarios** are independently compared with upstream PHP, patched
-PHP and the hooks CLI. Another **70 rendering fixtures** compare original PHP,
+PHP and the hooks CLI. Another **89 rendering fixtures** compare original PHP,
 patched PHP and the rendering CLI. Another **58 serialization fixtures** compare
 original PHP, patched PHP and native output, reparsed trees and the next
-serialization pass, with **22 invalid-input cases**. The server checks all four
-corpora twice through one worker for **566 HTTP checks**, including routing,
+serialization pass, with **22 invalid-input cases**. Another **87 KSES fixtures**
+compare byte-exact output against original PHP, with **13 additional boundary cases** (12 through the CLI and all 13 through
+HTTP). The server checks all five corpora twice through one worker for
+**812 HTTP checks**, including routing,
 body limits, response MIME types and request isolation.
 
 | Request | Result |
@@ -274,6 +331,7 @@ body limits, response MIME types and request isolation.
 | `GET /blocks` | Parsed demo as JSON |
 | `GET /health` | Version/profile information, `database: false` |
 | `POST /parse` | Parse a raw UTF-8 block document as JSON |
+| `POST /kses?mode=attribute&element=a` | Filter one attribute using the selected KSES policy |
 | `POST /serialize` | Serialize a JSON block tree as a WordPress document |
 | `POST /serialize?mode=roundtrip` | Parse and serialize a raw block document |
 | Invalid serialization input or mode | `400` |
@@ -323,8 +381,9 @@ WP_Hook
 WP_Filter_Sentinel
 wp-includes/plugin.php
 wp-includes/shortcodes.php
-seven selected functions from wp-includes/formatting.php
+eight selected functions from wp-includes/formatting.php
 five selected functions from wp-includes/blocks.php
+21 selected functions and the entity table from wp-includes/kses.php
 ```
 
 The three parser patches add explicit storage types, narrow parser frames,
@@ -342,16 +401,16 @@ bridge the native storage/calling boundary. `WP_Filter_Sentinel` is copied
 byte-for-byte without a patch.
 
 The shortcode patch retains the original parser regex and adds explicit
-types, closure adapters for regex callbacks, callback resolution and an explicit KSES
-boundary. Small adapters cover the pinned SDK's missing `preg_quote` and
+types, closure adapters for regex callbacks, callback resolution and the original
+HTML attribute branch for the selected KSES profile. Small adapters cover the pinned SDK's missing `preg_quote` and
 `stripcslashes`, array-search `str_replace`, typed string replacement maps and string-value
 intersection of shortcode tag lists. Empty-subject guards avoid a pinned
 native regex runtime crash while retaining the reference output.
 They are exercised through the upstream differential corpus.
 
-`formatting.php` and `blocks.php` are first patched as complete original files,
-then reduced to their selected functions using byte ranges and per-function
-hashes recorded in the manifest. Preparation verifies the complete patched source, each selected
+`formatting.php`, `blocks.php` and `kses.php` are patched as complete original
+files, then reduced to selected functions and source segments using byte ranges
+and hashes recorded in the manifest. Preparation verifies the complete patched source, each selected
 fragment and each final generated module. This selection avoids importing the
 unrelated formatting/UTF-8/bootstrap graph. Builds still require no PHP
 interpreter; PHP was used only to identify function ranges during maintenance
@@ -367,7 +426,7 @@ python3 scripts/test-clean-room.py
 ```
 
 The clean-room check exports maintained source files into a temporary directory,
-downloads a fresh WordPress archive, applies the patches, compiles all five
+downloads a fresh WordPress archive, applies the patches, compiles all six
 executables and repeats the reference/HTTP checks. It reuses the installed SDK
 and native dependency cache, and removes its export when finished.
 PCRE2 10.47 is pinned in the native manifest and lockfile.

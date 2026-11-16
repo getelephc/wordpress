@@ -17,18 +17,20 @@ Repeated preparation starts from the same original sources and is idempotent.
 | `class-wp-block-parser.php` | Typed parser storage and input, frame guards, append via a local, three-argument regex capture and byte-offset reconstruction |
 | `class-wp-hook.php` | Typed hook storage, explicit iteration cursors, callback descriptor resolution, safe table updates and Iterator signatures |
 | `plugin.php` | Fresh hook globals, typed values/arguments, object identity adapter, table updates and explicit exceptions for nine APIs outside the hooks profile |
-| `shortcodes.php` | Typed parser values, closure adapters for regex callbacks, builtin bridges and explicit attribute-expansion boundary |
+| `shortcodes.php` | Typed parser values, closure adapters for regex callbacks, builtin bridges and the selected HTML attribute path |
+| `kses.php` | Selected attribute/protocol/entity helpers, original entity table, explicit CSS/XML boundaries and regex adapters |
 | `blocks.php` | Five selected serialization functions, typed recursion, explicit string emptiness and a JSON encoder boundary |
 | `formatting.php` | Typed formatting values, concrete regex cache, builtin bridges and closure newline-preservation callback |
 
 `class-wp-filter-sentinel.php` is copied without changes. Its manifest entry
 has no patch; original and generated source hashes must match.
 
-The formatting entry lists seven selected functions and the blocks entry lists
-five. Apply each small patch to its complete original file and verify `patched_source_sha256`, then select
+The formatting entry lists eight selected functions and the blocks entry lists
+five. The KSES entry uses source segments for its global declarations, original
+entity table and 21 functions. Apply each small patch to its complete original file and verify `patched_source_sha256`, then select
 the recorded byte ranges in order. Each range has its own hash; the assembled
 PHP module must match `patched_sha256`. Source preparation performs these steps
-using Python only. When changing either patch or its selected functions,
+using Python only. When changing a patch or its selected source ranges,
 recompute the ranges and all affected hashes from the resulting full file.
 The original regexes and function bodies remain visible and reviewable.
 
@@ -56,3 +58,16 @@ encoding failures raise an exception instead of importing charset recovery.
 The content emptiness branch explicitly checks both the empty string and `"0"`
 to retain PHP behavior on the pinned native SDK. `serialize_blocks` uses an
 explicit loop to avoid dispatching a function name through generic `array_map`.
+
+The KSES graph deliberately selects the attribute parser rather than replacing
+modern `wp_kses_hair`, which uses the HTML API. The policy has no style attribute;
+a caller that enables style encounters an explicit CSS boundary. UTF-8 escaping
+uses core entity normalization and HTML 4.01 quote behavior because the pinned
+native htmlspecialchars builtin lacks its fourth double_encode argument.
+Original PHP reference checks load original formatting/charset helpers and
+short-circuit the blog_charset option to UTF-8 through its normal filter, without
+a database. Regex adapters preserve supported binary entity/protocol slices
+and avoid the pinned empty-subject replacement crash. A getter retains the original
+entity table and restores it for each operation after native HTTP global resets.
+The existing shortcode
+HTML branch is restored with typed callbacks and a per-call match counter.
