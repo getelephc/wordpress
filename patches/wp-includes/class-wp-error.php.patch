@@ -1,0 +1,243 @@
+--- a/wp-includes/class-wp-error.php
++++ b/wp-includes/class-wp-error.php
+@@ -23,7 +23,7 @@
+ 	 * @since 2.1.0
+ 	 * @var array<int|string, string[]>
+ 	 */
+-	public $errors = array();
++	public array $errors = array();
+ 
+ 	/**
+ 	 * Stores the most recently added data for each error code.
+@@ -31,7 +31,7 @@
+ 	 * @since 2.1.0
+ 	 * @var array<int|string, mixed>
+ 	 */
+-	public $error_data = array();
++	public array $error_data = array();
+ 
+ 	/**
+ 	 * Stores previously added data added for error codes, oldest-to-newest by code.
+@@ -39,7 +39,7 @@
+ 	 * @since 5.6.0
+ 	 * @var array<int|string, mixed[]>
+ 	 */
+-	protected $additional_data = array();
++	protected array $additional_data = array();
+ 
+ 	/**
+ 	 * Initializes the error.
+@@ -58,8 +58,11 @@
+ 	 * @param string     $message Error message.
+ 	 * @param mixed      $data    Optional. Error data. Default empty string.
+ 	 */
+-	public function __construct( $code = '', $message = '', $data = '' ) {
+-		if ( empty( $code ) ) {
++	public function __construct( mixed $code = '', string $message = '', mixed $data = '' ) {
++		$this->errors = wordpress_error_map();
++		$this->error_data = wordpress_error_map();
++		$this->additional_data = wordpress_error_map();
++		if ( ( $code === '' || $code === '0' || $code === 0 ) ) {
+ 			return;
+ 		}
+ 
+@@ -73,7 +76,7 @@
+ 	 *
+ 	 * @return list<int|string> List of error codes, if available.
+ 	 */
+-	public function get_error_codes() {
++	public function get_error_codes(): array {
+ 		if ( ! $this->has_errors() ) {
+ 			return array();
+ 		}
+@@ -88,7 +91,7 @@
+ 	 *
+ 	 * @return string|int Empty string, if no error codes.
+ 	 */
+-	public function get_error_code() {
++	public function get_error_code(): mixed {
+ 		$codes = $this->get_error_codes();
+ 
+ 		if ( empty( $codes ) ) {
+@@ -107,18 +110,18 @@
+ 	 *                         Default empty string.
+ 	 * @return string[] Error strings on success, or empty array if there are none.
+ 	 */
+-	public function get_error_messages( $code = '' ) {
++	public function get_error_messages( mixed $code = '' ): array {
+ 		// Return all messages if no code specified.
+-		if ( empty( $code ) ) {
++		if ( ( $code === '' || $code === '0' || $code === 0 ) ) {
+ 			$all_messages = array();
+ 			foreach ( (array) $this->errors as $messages ) {
+-				$all_messages = array_merge( $all_messages, $messages );
++				$all_messages = array_merge( $all_messages, (array) $messages );
+ 			}
+ 
+ 			return $all_messages;
+ 		}
+ 
+-		return $this->errors[ $code ] ?? array();
++		return (array) ( $this->errors[ $code ] ?? array() );
+ 	}
+ 
+ 	/**
+@@ -133,15 +136,15 @@
+ 	 *                         Default empty string.
+ 	 * @return string The error message.
+ 	 */
+-	public function get_error_message( $code = '' ) {
+-		if ( empty( $code ) ) {
++	public function get_error_message( mixed $code = '' ): string {
++		if ( ( $code === '' || $code === '0' || $code === 0 ) ) {
+ 			$code = $this->get_error_code();
+ 		}
+ 		$messages = $this->get_error_messages( $code );
+ 		if ( empty( $messages ) ) {
+ 			return '';
+ 		}
+-		return $messages[0];
++		return (string) $messages[0];
+ 	}
+ 
+ 	/**
+@@ -152,8 +155,8 @@
+ 	 * @param string|int $code Optional. Error code. Default empty string.
+ 	 * @return mixed Error data, if it exists.
+ 	 */
+-	public function get_error_data( $code = '' ) {
+-		if ( empty( $code ) ) {
++	public function get_error_data( mixed $code = '' ): mixed {
++		if ( ( $code === '' || $code === '0' || $code === 0 ) ) {
+ 			$code = $this->get_error_code();
+ 		}
+ 
+@@ -167,7 +170,7 @@
+ 	 *
+ 	 * @return bool If the instance contains errors.
+ 	 */
+-	public function has_errors() {
++	public function has_errors(): bool {
+ 		return (bool) $this->errors;
+ 	}
+ 
+@@ -181,10 +184,14 @@
+ 	 * @param mixed      $data    Optional. Error data. Default empty string.
+ 	 * @return void
+ 	 */
+-	public function add( $code, $message, $data = '' ) {
+-		$this->errors[ $code ][] = $message;
+-
+-		if ( ! empty( $data ) ) {
++	public function add( mixed $code, string $message, mixed $data = '' ): void {
++		$errors = $this->errors;
++		$messages = (array) ( $errors[ $code ] ?? array() );
++		$messages[] = $message;
++		$errors[ $code ] = $messages;
++		$this->errors = $errors;
++
++		if ( ! empty( $data ) && $data !== '0' ) {
+ 			$this->add_data( $data, $code );
+ 		}
+ 
+@@ -211,16 +218,22 @@
+ 	 * @param string|int $code Error code.
+ 	 * @return void
+ 	 */
+-	public function add_data( $data, $code = '' ) {
+-		if ( empty( $code ) ) {
++	public function add_data( mixed $data, mixed $code = '' ): void {
++		if ( ( $code === '' || $code === '0' || $code === 0 ) ) {
+ 			$code = $this->get_error_code();
+ 		}
+ 
+ 		if ( isset( $this->error_data[ $code ] ) ) {
+-			$this->additional_data[ $code ][] = $this->error_data[ $code ];
+-		}
+-
+-		$this->error_data[ $code ] = $data;
++			$additional_data = $this->additional_data;
++			$history = (array) ( $additional_data[ $code ] ?? array() );
++			$history[] = $this->error_data[ $code ];
++			$additional_data[ $code ] = $history;
++			$this->additional_data = $additional_data;
++		}
++
++		$error_data = $this->error_data;
++		$error_data[ $code ] = $data;
++		$this->error_data = $error_data;
+ 	}
+ 
+ 	/**
+@@ -231,16 +244,12 @@
+ 	 * @param string|int $code Error code.
+ 	 * @return mixed[] Array of error data, if it exists.
+ 	 */
+-	public function get_all_error_data( $code = '' ) {
+-		if ( empty( $code ) ) {
++	public function get_all_error_data( mixed $code = '' ): array {
++		if ( ( $code === '' || $code === '0' || $code === 0 ) ) {
+ 			$code = $this->get_error_code();
+ 		}
+ 
+-		$data = array();
+-
+-		if ( isset( $this->additional_data[ $code ] ) ) {
+-			$data = $this->additional_data[ $code ];
+-		}
++		$data = (array) ( $this->additional_data[ $code ] ?? array() );
+ 
+ 		if ( isset( $this->error_data[ $code ] ) ) {
+ 			$data[] = $this->error_data[ $code ];
+@@ -260,10 +269,16 @@
+ 	 * @param string|int $code Error code.
+ 	 * @return void
+ 	 */
+-	public function remove( $code ) {
+-		unset( $this->errors[ $code ] );
+-		unset( $this->error_data[ $code ] );
+-		unset( $this->additional_data[ $code ] );
++	public function remove( mixed $code ): void {
++		$errors = $this->errors;
++		unset( $errors[ $code ] );
++		$this->errors = $errors;
++		$error_data = $this->error_data;
++		unset( $error_data[ $code ] );
++		$this->error_data = $error_data;
++		$additional_data = $this->additional_data;
++		unset( $additional_data[ $code ] );
++		$this->additional_data = $additional_data;
+ 	}
+ 
+ 	/**
+@@ -274,7 +289,7 @@
+ 	 * @param WP_Error $error Error object to merge.
+ 	 * @return void
+ 	 */
+-	public function merge_from( WP_Error $error ) {
++	public function merge_from( WP_Error $error ): void {
+ 		static::copy_errors( $error, $this );
+ 	}
+ 
+@@ -286,7 +301,7 @@
+ 	 * @param WP_Error $error Error object to export into.
+ 	 * @return void
+ 	 */
+-	public function export_to( WP_Error $error ) {
++	public function export_to( WP_Error $error ): void {
+ 		static::copy_errors( $this, $error );
+ 	}
+ 
+@@ -299,10 +314,10 @@
+ 	 * @param WP_Error $to   The WP_Error to copy to.
+ 	 * @return void
+ 	 */
+-	protected static function copy_errors( WP_Error $from, WP_Error $to ) {
++	protected static function copy_errors( WP_Error $from, WP_Error $to ): void {
+ 		foreach ( $from->get_error_codes() as $code ) {
+ 			foreach ( $from->get_error_messages( $code ) as $error_message ) {
+-				$to->add( $code, $error_message );
++				$to->add( $code, (string) $error_message );
+ 			}
+ 
+ 			foreach ( $from->get_all_error_data( $code ) as $data ) {
