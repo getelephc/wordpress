@@ -411,6 +411,51 @@ The native cache executable is 1,423,232 bytes and the combined server is
 24,094,336 bytes. Existing standalone profiles are unchanged. These measurements
 are build observations rather than performance claims.
 
+## List utility extension, 2026-11-16
+
+The profile adds the original `WP_List_Util` class and four original wrappers:
+`wp_list_filter`, `wp_filter_object_list`, `wp_list_pluck` and `wp_list_sort`.
+The selected `functions.php` module now contains those wrappers and the existing
+cache suspension helper. A shared bootstrap loads the list class dependency for
+both the cache and list entry points. The native graph now has 14 original files,
+13 patches and eight executables. Source/full-module/range hashes are retained.
+
+The class keeps its filter matching, field/index extraction, ordering argument
+normalization and comparator logic for array records. Result maps use uniform
+mixed storage, and the array constructor/properties/call boundaries have explicit
+types. PHP object-record paths and invalid-row translation notices are outside
+the JSON profile and fail explicitly. The application validates selected pluck
+fields before core calls, avoiding undefined-field diagnostics.
+
+The pinned SDK checks the typed source but rejects native `uasort` code generation
+for PHP type Mixed in `WP_List_Util::sort` (instruction 204). A stable merge-sort
+bridge uses the unchanged private core comparator through a first-class method
+descriptor. It preserves stable ties and the requested key policy. This is an
+adaptation of the sorting backend, not a performance-equivalence claim.
+
+The CLI and POST `/lists` accept an object with up to 256 array records. Operations
+filter, filter-pluck, pluck and sort call the original wrappers; chain mode runs
+up to 16 operations through one original utility instance. Responses include
+original input, final output and intermediate chain results. Comparisons accept
+scalars/null and exclude NUL text; field/index keys are integers or strings.
+Nested arrays may be extracted but cannot be compared. PHP object records and
+database/query execution remain outside the profile. Core array filtering uses
+array_key_exists, so present null fields can match whereas absent fields cannot;
+this differs from the original class's isset-based PHP object branch.
+
+All 56 scenarios agree with unmodified PHP, patched PHP and native CLI, including
+AND/OR/NOT and loose scalar matching, false/null, numeric keys, duplicate/missing
+indices, numeric strings, stable ties, multiple fields, key preservation and
+unchanged original/intermediate arrays in chains. All 32 invalid inputs return
+explicit errors. The complete check retains every previous corpus and passes
+1,188 HTTP checks. A fresh source-only export rebuilt all eight executables and
+passed the same suite, then removed its temporary tree. Native CLI and worker
+runtime output has no PHP warnings or fatal errors.
+
+The list executable is 584,576 bytes, cache is 1,426,304 bytes and the combined
+server is 24,521,088 bytes. The cache now shares the selected functions bootstrap.
+These are build observations, without speed claims.
+
 ## Follow-up direction
 
 A broader CMS experiment should address the UTF-8 compatibility loader's

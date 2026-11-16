@@ -1,13 +1,14 @@
 # WordPress on Elephc
 
-A native AOT experiment with WordPress blocks, serialization, hooks, content, attribute KSES and object caching.
+A native AOT experiment with WordPress blocks, serialization, hooks, content, attribute KSES, object caching and list utilities.
 WordPress **7.1.4**, Elephc **0.27.8**, PHP profile **8.4**, Linux x86_64.
 
-The experiment uses thirteen original core files, with twelve compatibility
+The experiment uses fourteen original core files, with thirteen compatibility
 patches, to build block parsing, serialization, hooks, rendering and attribute
-KSES and object cache CLIs plus an HTTP server. The formatting graph selects
+KSES, object cache and list utility CLIs plus an HTTP server. The formatting graph selects
 eight functions from `formatting.php`; another five come from `blocks.php`,
-21 from `kses.php`, and the cache suspension helper from `functions.php`.
+21 from `kses.php`, and four list wrappers plus the cache suspension helper
+from `functions.php`.
 Documents, JSON block trees, content and cache inputs are processed at runtime.
 The HTTP adapter, callback manifest and demo callbacks belong to this experiment.
 
@@ -42,7 +43,7 @@ elephc --version
 The script verifies the downloaded sources and patches, installs the locked
 PCRE2 dependency, and produces `elephc/runtime/parse`, `elephc/runtime/hooks`,
 `elephc/runtime/render`, `elephc/runtime/serialize`, `elephc/runtime/kses`,
-`elephc/runtime/cache` and `elephc/runtime/server`.
+`elephc/runtime/cache`, `elephc/runtime/lists` and `elephc/runtime/server`.
 It uses `elephc` from `PATH`; set
 `ELEPHC_BIN=/absolute/path/to/elephc` to select another complete SDK.
 On workstations with the author's build queue installed, the script uses it
@@ -62,6 +63,7 @@ python3 scripts/prepare-elephc.py
   elephc --php-version 8.4 render.php
   elephc --php-version 8.4 kses.php
   elephc --php-version 8.4 cache.php
+  elephc --php-version 8.4 lists.php
   elephc --php-version 8.4 --web server.php
 )
 ```
@@ -86,7 +88,7 @@ You can also run the executable directly and choose a different port:
 ```
 
 The demo, parsed blocks, hooks, rendered content and health endpoints are `/`,
-`/blocks`, `/hooks`, `/render` and `/health`. `/serialize`, `/kses` and `/cache`
+`/blocks`, `/hooks`, `/render` and `/health`. `/serialize`, `/kses`, `/cache` and `/lists`
 accept POST only.
 No database or background service manager is required.
 
@@ -360,6 +362,55 @@ HTML statistics, deprecated reset and persistent cache drop-ins remain outside
 this profile. The profile supplies the constructor's site context and selects
 the original `wp_suspend_cache_addition` function without loading the CMS.
 
+## List utility profile
+
+`WP_List_Util` and the original `wp_list_filter`, `wp_filter_object_list`,
+`wp_list_pluck` and `wp_list_sort` functions process JSON array records. The CLI
+reads JSON from its first argument or stdin; POST `/lists` accepts the same body.
+
+```bash
+./elephc/runtime/lists '{"items":[{"id":2},{"id":1}],"op":"sort","orderby":"id"}'
+```
+
+The response is:
+
+```json
+{"input":[{"id":2},{"id":1}],"output":[{"id":1},{"id":2}],"steps":[]}
+```
+
+The root object requires `items`, an array or keyed object of at most 256
+records. Each record becomes an associative array. `op` defaults to `filter`:
+
+| Operation | Fields |
+| --- | --- |
+| `filter` | Optional `args` map and `operator` (`AND`, `OR`, `NOT`) |
+| `filter-pluck` | Filter fields plus optional `field`, using `wp_filter_object_list` |
+| `pluck` | Required `field`, optional `index_key` |
+| `sort` | Optional `orderby` field or direction map, `order`, `preserve_keys` |
+| `chain` | An `operations` list of at most 16 operations on one `WP_List_Util` instance |
+
+Filters retain core's loose PHP comparisons and original keys. An unknown
+operator returns an empty result when arguments are nonempty. Array fields
+with null values remain present for matching; missing fields are excluded.
+Plucking preserves keys by default, overwrites duplicate index values, and
+appends values whose index field is absent/null. Falsy index selectors retain
+core behavior. Sorting supports multiple fields, numeric strings, direction
+normalization and optional key preservation. Empty ordering retains the input. A stable
+merge-sort bridge uses the unchanged core comparator because the pinned SDK
+rejects generic `uasort` storage.
+Chained responses include each intermediate result in `steps` and the original
+input in `input`.
+
+Comparisons accept scalars or null. Record/field/index keys are integers or
+strings; keys and comparison strings exclude NUL. Every selected record must
+contain a requested pluck field, and non-null index values must be integer or
+string keys. Nested arrays may be extracted but cannot be compared. After a
+chain step extracts scalar values, another record operation is rejected.
+Invalid input returns HTTP 400 or CLI exit 2 with a stderr diagnostic. PHP
+object records, magic property access and WordPress query/database execution
+remain outside this profile. Examples and boundaries are in
+`tests/lists-fixtures.json` and `tests/lists-errors.json`.
+
 ## Verified behavior
 
 ```bash
@@ -376,9 +427,11 @@ original PHP, patched PHP and native output, reparsed trees and the next
 serialization pass, with **22 invalid-input cases**. Another **87 KSES fixtures**
 compare byte-exact output against original PHP, with **13 additional boundary cases** (12 through the CLI and all 13 through
 HTTP). Another **56 object cache scenarios** compare operation sequences with
-original PHP, with **38 invalid-input cases** and CLI stdin coverage. The server
-checks all six corpora twice through one worker for **1,006 HTTP checks**,
-including routing, body limits, response MIME types and request isolation.
+original PHP, with **38 invalid-input cases** and CLI stdin coverage.
+Another **56 list scenarios** compare filtering, plucking, sorting and chained
+state with original PHP, with **32 invalid-input cases**. The server checks all
+seven corpora twice through one worker for **1,188 HTTP checks**, including
+routing, body limits, response MIME types and request isolation.
 
 | Request | Result |
 | --- | --- |
@@ -386,6 +439,7 @@ including routing, body limits, response MIME types and request isolation.
 | `GET /blocks` | Parsed demo as JSON |
 | `GET /health` | Version/profile information, `database: false` |
 | `POST /parse` | Parse a raw UTF-8 block document as JSON |
+| `POST /lists` | Filter, pluck, sort or chain operations on JSON records |
 | `POST /cache` | Execute a JSON sequence against a fresh core object cache |
 | `POST /kses?mode=attribute&element=a` | Filter one attribute using the selected KSES policy |
 | `POST /serialize` | Serialize a JSON block tree as a WordPress document |
@@ -441,7 +495,8 @@ eight selected functions from wp-includes/formatting.php
 five selected functions from wp-includes/blocks.php
 21 selected functions and the entity table from wp-includes/kses.php
 WP_Object_Cache and wp-includes/cache.php
-wp_suspend_cache_addition from wp-includes/functions.php
+WP_List_Util
+four list wrappers and wp_suspend_cache_addition from wp-includes/functions.php
 ```
 
 The three parser patches add explicit storage types, narrow parser frames,
@@ -484,7 +539,7 @@ python3 scripts/test-clean-room.py
 ```
 
 The clean-room check exports maintained source files into a temporary directory,
-downloads a fresh WordPress archive, applies the patches, compiles all seven
+downloads a fresh WordPress archive, applies the patches, compiles all eight
 executables and repeats the reference/HTTP checks. It reuses the installed SDK
 and native dependency cache, and removes its export when finished.
 PCRE2 10.47 is pinned in the native manifest and lockfile.

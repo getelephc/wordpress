@@ -21,7 +21,8 @@ Repeated preparation starts from the same original sources and is idempotent.
 | `kses.php` | Selected attribute/protocol/entity helpers, original entity table, explicit CSS/XML boundaries and regex adapters |
 | `class-wp-object-cache.php` | Typed cache storage, uniform mixed maps, local bucket updates, explicit site context and JSON-profile boundaries |
 | `cache.php` | Local class include, typed API, explicit global instance initialization/guards and deprecated reset boundary |
-| `functions.php` | Select and type the original `wp_suspend_cache_addition` function |
+| `functions.php` | Select/type four original list wrappers and `wp_suspend_cache_addition` |
+| `class-wp-list-util.php` | Typed array records, uniform result maps, local sort updates, method callback descriptors and explicit object-record boundaries |
 | `blocks.php` | Five selected serialization functions, typed recursion, explicit string emptiness and a JSON encoder boundary |
 | `formatting.php` | Typed formatting values, concrete regex cache, builtin bridges and closure newline-preservation callback |
 
@@ -84,3 +85,14 @@ Original PHP gets the same context through its normal `is_multisite` and
 magic access, HTML statistics and deprecated reset throw explicit exceptions.
 The original cache's ignored expiration/force arguments and non-persistence
 are preserved. Per-request initialization also clears addition suspension.
+
+The list profile retains the original filtering, plucking and comparator logic
+for array records. JSON objects are decoded associatively. Result maps use
+uniform mixed storage. The pinned backend rejects `uasort` for generic record
+arrays, so a stable merge-sort bridge calls the unchanged core comparator
+through a first-class method descriptor and retains the requested key policy. Scalar string zero ordering
+retains PHP empty behavior. Object-record branches and invalid-row translation
+notices become explicit exceptions. The JSON adapter validates required pluck
+fields and scalar comparison domains before core calls. The selected functions
+module is shared with cache setup; `functions-bootstrap.php` loads its list
+class dependency for both entry points.
