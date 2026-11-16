@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Compare native block and hook behavior with unmodified WordPress under PHP."""
+"""Compare native blocks, hooks and rendered content with unmodified WordPress."""
 
 import http.client
 import json
@@ -16,10 +16,14 @@ import urllib.parse
 ROOT = Path(__file__).resolve().parent.parent
 
 
-def run_json(command):
+def run_output(command):
     result = subprocess.run(command, cwd=ROOT, capture_output=True, text=True, check=True, timeout=20)
     assert not result.stderr, f"Unexpected diagnostics from {command[0]}: {result.stderr}"
-    return json.loads(result.stdout)
+    return result.stdout
+
+
+def run_json(command):
+    return json.loads(run_output(command))
 
 
 def main():
@@ -43,6 +47,15 @@ def main():
         actual = run_json([str(ROOT / "elephc/runtime/hooks"), scenario, hook_input])
         assert actual == hook_reference[scenario], f"Native hook CLI differs: {scenario}\n{actual}"
     print(f"PASS: {len(hook_fixtures)} hook scenarios match upstream PHP in patched PHP and native CLI.")
+
+    render_fixtures = json.loads((ROOT / "tests/render-fixtures.json").read_text())
+    render_reference = run_json([php, "tests/render-reference.php", "upstream"])
+    render_patched = run_json([php, "tests/render-reference.php", "profile"])
+    assert render_patched == render_reference, "Patched rendering differs from original WordPress"
+    for fixture in render_fixtures:
+        actual = run_output([str(ROOT / "elephc/runtime/render"), fixture["mode"], fixture["input"]])
+        assert actual == render_reference[fixture["name"]], f"Native rendering CLI differs: {fixture['name']}\n{actual!r}"
+    print(f"PASS: {len(render_fixtures)} render fixtures match upstream PHP in patched PHP and native CLI.")
 
     with socket.socket() as listener:
         listener.bind(("127.0.0.1", 0))
@@ -90,6 +103,26 @@ def main():
                     assert status == 200, (scenario, status, body)
                     assert json.loads(body) == hook_reference[scenario], f"Native hook HTTP differs: {scenario}"
                     checks += 1
+                for fixture in render_fixtures:
+                    query = urllib.parse.urlencode({"mode": fixture["mode"]})
+                    status, headers, body = request("POST", "/render?" + query, fixture["input"].encode())
+                    assert status == 200, (fixture["name"], status, body)
+                    actual = body.decode()
+                    assert actual == render_reference[fixture["name"]], f"Native rendering HTTP differs: {fixture['name']}\n{actual!r}"
+                    expected_type = "application/json" if fixture["mode"] in ("attributes", "inspect", "context", "registration") else "text/html"
+                    assert headers["content-type"].startswith(expected_type), headers
+                    checks += 1
+                status, _, body = request("GET", "/render")
+                assert status == 200 and b'Hello Elephc' in body and b'<div class="box">' in body
+                status, _, body = request("HEAD", "/render")
+                assert status == 200 and body == b""
+                status, headers, body = request("PUT", "/render")
+                assert status == 405 and headers["allow"] == "GET, HEAD, POST"
+                status, _, body = request("POST", "/render?mode=unknown", b"input")
+                assert status == 400 and json.loads(body)["error"] == "Unknown render mode"
+                status, _, body = request("POST", "/render", b"x" * 65537)
+                assert status == 413
+                checks += 5
                 status, _, body = request("POST", "/filter", hook_input.encode())
                 assert status == 200 and json.loads(body) == hook_reference["priority"]
                 status, _, body = request("GET", "/hooks?case=unknown")

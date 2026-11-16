@@ -17,9 +17,19 @@ Repeated preparation starts from the same original sources and is idempotent.
 | `class-wp-block-parser.php` | Typed parser storage and input, frame guards, append via a local, three-argument regex capture and byte-offset reconstruction |
 | `class-wp-hook.php` | Typed hook storage, explicit iteration cursors, callback descriptor resolution, safe table updates and Iterator signatures |
 | `plugin.php` | Fresh hook globals, typed values/arguments, object identity adapter, table updates and explicit exceptions for nine APIs outside the hooks profile |
+| `shortcodes.php` | Typed parser values, closure adapters for regex callbacks, builtin bridges and explicit attribute-expansion boundary |
+| `formatting.php` | Typed formatting values, concrete regex cache, builtin bridges and closure newline-preservation callback |
 
 `class-wp-filter-sentinel.php` is copied without changes. Its manifest entry
 has no patch; original and generated source hashes must match.
+
+The formatting entry also lists seven selected functions. Apply the small patch
+to the complete original file and verify `patched_source_sha256`, then select
+the recorded byte ranges in order. Each range has its own hash; the assembled
+PHP module must match `patched_sha256`. Source preparation performs these steps
+using Python only. When changing the formatting patch or selected functions,
+recompute the ranges and all affected hashes from the resulting full file.
+The original regexes and function bodies remain visible and reviewable.
 
 When changing a patch, regenerate its hash and resulting source hash in the
 manifest, then run the differential fixtures and source-only reproduction.

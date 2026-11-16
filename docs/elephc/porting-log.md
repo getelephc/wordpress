@@ -49,8 +49,9 @@ raw document
 ```
 
 The HTTP router, health response and demonstration HTML are explicit adapters.
-They do not invoke WordPress routing, themes, block rendering, hooks, plugins,
-the REST API or `WP_Query`.
+They do not invoke WordPress routing, themes, block rendering, plugin discovery,
+the REST API or `WP_Query`. Later extensions below add core hooks and content
+formatting without bootstrapping the CMS.
 
 ## Original-source diagnostics
 
@@ -180,12 +181,68 @@ Closure captures by reference are covered independently.
 The expanded native host executables are 1,761,624 bytes for block parsing,
 3,799,656 bytes for hooks and 21,461,120 bytes for the combined HTTP server.
 
+## Shortcodes and content extension, 2026-11-16
+
+The source graph adds the original `shortcodes.php` and seven selected functions
+from `formatting.php`: `wpautop`, `wp_html_split`, `get_html_split_regex`,
+`wp_replace_in_html_tags`, `_autop_newline_preservation_helper`,
+`shortcode_unautop` and `wp_spaces_regexp`. Eight original files and seven
+patches now define the graph. The formatting patch applies to the full original
+file, whose result has a separate hash; ordered byte ranges and per-function
+hashes select the generated module, which also has its own checksum. Build-time
+selection uses Python and does not require PHP.
+
+The content pipeline registers `wpautop` and `shortcode_unautop` at priority 10,
+then a wrapper around `do_shortcode(content, true)` at priority 11. Demo callbacks
+supply greeting, box, upper-case, counter and context behavior. Registration,
+attribute parsing, regex matching, escaped tags, nesting and filter dispatch
+remain core WordPress code. This is an explicit pipeline, not the complete
+WordPress default `the_content` stack; it does not invoke `do_blocks` or themes.
+
+`ignore_html=true` prevents shortcode expansion inside HTML attributes, comments
+and CDATA. The alternate attribute-expansion branch would require KSES; this
+profile raises an explicit exception when that path is reached. It does not
+pretend to sanitize HTML. Invalid registrations and callbacks raise exceptions
+without importing translations or WordPress's notice subsystem.
+
+Compatibility changes make regex results, callback descriptors and the HTML
+split regex cache concrete. Small adapters cover the pinned SDK's missing
+`preg_quote` and `stripcslashes`, array-search string replacement, string-valued
+replacement maps and value-based intersection of tag lists. The original
+shortcode and formatting regexes remain visible and unchanged. Replacement
+backreferences use literal single-quoted strings joined with newlines because
+the pinned compiler incorrectly interpolated numeric `$1` tokens in the original
+double-quoted replacement strings. Content-filter wrappers expose concrete
+application descriptors while retaining the core callback identity names.
+
+The renderer is exposed by `elephc/runtime/render MODE INPUT` and by `GET` or
+`POST /render`, defaulting to the pipeline. CLI output is exact rendered text;
+diagnostic modes return JSON. HTTP accepts a raw body and selects the mode with
+`?mode=...`. The listener remains `127.0.0.1:9000`, without a database.
+
+The empty-input cases exposed a native `preg_replace` crash. A symbolized
+focused run traced it through `__rt_preg_replace_ret_linux_x86_64`,
+`__rt_mixed_from_value_string` and `__rt_str_persist_copy`, with an invalid
+string length. `shortcode_parse_atts` returns its normal empty array before
+normalizing an empty input, and `shortcode_unautop` returns empty text before
+its final replacement. The latter guard stays after regex construction so
+`wp_spaces_regexp` filter initialization is retained.
+
+Verification now compares 22 block fixtures, 31 hook scenarios and 70 rendering
+fixtures against unmodified PHP, patched PHP and the native CLIs. It then
+performs 282 HTTP checks through one worker, including repeated requests,
+response types, HEAD, method errors and request-body limits. The complete
+source-only reproduction also passed with a fresh WordPress download.
+Native CLI stderr and server logs contain no runtime warnings or errors.
+
+The native host executables are 1,761,624 bytes for parsing, 3,799,656 bytes
+for hooks, 4,391,784 bytes for rendering and 22,505,088 bytes for HTTP. These
+sizes are observations of this SDK and source graph, not performance results.
+
 ## Follow-up direction
 
-Shortcodes can now build on the verified hook boundary, with HTML parsing and
-formatting helpers as the next source graph to inspect. A broader CMS
-experiment should first address the UTF-8 compatibility loader's
+A broader CMS experiment should address the UTF-8 compatibility loader's
 control flow and repeat the `SHORTINIT` diagnostic to discover the next real
-blocker. A database-backed bootstrap, hooks, filters, plugin discovery, themes
-and arbitrary block rendering require separate verified profiles. The parser
-experiment does not establish their compatibility.
+blocker. Database-backed bootstrap, plugin discovery, themes, KSES and arbitrary
+block rendering require separate verified profiles. Current subsystem coverage
+does not establish their compatibility.

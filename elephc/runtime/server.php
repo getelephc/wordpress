@@ -3,6 +3,8 @@
 require __DIR__ . '/bootstrap.php';
 require __DIR__ . '/demo.php';
 require __DIR__ . '/hooks-demo.php';
+require __DIR__ . '/render-bootstrap.php';
+require __DIR__ . '/render-demo.php';
 
 $path = explode('?', $_SERVER['REQUEST_URI'] ?? '/')[0];
 $method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
@@ -10,16 +12,28 @@ $status = 200;
 $type = 'application/json; charset=utf-8';
 $body = '';
 $post_route = $path === '/parse' || $path === '/filter';
+$allowed = $path === '/render' ? ['GET', 'HEAD', 'POST'] : ($post_route ? ['POST'] : ['GET', 'HEAD']);
 
-if ($path !== '/' && $path !== '/health' && $path !== '/blocks' && $path !== '/parse' && $path !== '/hooks' && $path !== '/filter') {
+if ($path !== '/' && $path !== '/health' && $path !== '/blocks' && $path !== '/parse' && $path !== '/hooks' && $path !== '/filter' && $path !== '/render') {
     $status = 404;
     $body = '{"error":"Not Found"}' . "\n";
-} elseif (($post_route && $method !== 'POST') || (!$post_route && $method !== 'GET' && $method !== 'HEAD')) {
+} elseif (!in_array($method, $allowed, true)) {
     $status = 405;
-    header($post_route ? 'Allow: POST' : 'Allow: GET, HEAD');
+    header('Allow: ' . implode(', ', $allowed));
     $body = '{"error":"Method Not Allowed"}' . "\n";
 } elseif ($path === '/health') {
-    $body = '{"status":"ok","wordpress":"7.1.4","profile":"blocks-and-hooks","database":false}' . "\n";
+    $body = '{"status":"ok","wordpress":"7.1.4","profile":"blocks-hooks-content","database":false}' . "\n";
+} elseif ($path === '/render') {
+    $mode = (string) ($_GET['mode'] ?? 'pipeline');
+    $input = $method === 'POST' ? (string) file_get_contents('php://input') : wordpress_content_demo_input();
+    try {
+        $body = wordpress_render_text($mode, $input);
+        $type = in_array($mode, ['attributes', 'inspect', 'context', 'registration'], true)
+            ? 'application/json; charset=utf-8' : 'text/html; charset=utf-8';
+    } catch (InvalidArgumentException $exception) {
+        $status = 400;
+        $body = '{"error":"Unknown render mode"}' . "\n";
+    }
 } elseif ($path === '/hooks' || $path === '/filter') {
     $scenario = (string) ($_GET['case'] ?? 'priority');
     $input = $path === '/filter' ? (string) file_get_contents('php://input') : (string) ($_GET['value'] ?? 'WordPress');
@@ -48,13 +62,15 @@ if ($path !== '/' && $path !== '/health' && $path !== '/blocks' && $path !== '/p
             . '<p class="label">WordPress 7.1.4 / Elephc 0.27.8 / native core experiment</p>'
             . '<h1>WordPress blocks.<br>Native execution.</h1>'
             . '<p>This response runs the WordPress Gutenberg block parser on every request, including nested blocks and JSON attributes.</p>'
-            . '<p><a href="/blocks">Inspect the parsed demo</a> &middot; <a href="/hooks">Actions and filters</a> &middot; <a href="/health">Health check</a></p>'
+            . '<p><a href="/blocks">Parsed blocks</a> &middot; <a href="/hooks">Actions and filters</a> &middot; <a href="/render">Rendered content</a> &middot; <a href="/health">Health check</a></p>'
             . '<h2>Try your own document</h2>'
             . '<pre>curl -X POST --data-binary @document.html http://127.0.0.1:9000/parse</pre>'
             . '<h2>Parsed demo</h2><pre>' . htmlspecialchars($body, ENT_QUOTES, 'UTF-8') . '</pre>'
             . '<h2>WordPress hooks</h2><p>Real actions and filters, including priorities, callback removal and nested execution.</p>'
             . '<pre>curl -X POST --data-binary "Hello WordPress" http://127.0.0.1:9000/filter</pre>'
-            . '<p>This profile includes block parsing and the core action/filter API. The CMS bootstrap, database, plugin discovery, themes and admin remain outside the profile.</p>'
+            . '<h2>Shortcodes and paragraphs</h2><p>Core WordPress formatting and shortcodes, running through the content filter pipeline.</p>'
+            . '<pre>curl --data-binary "Welcome [greet name=Elephc]" http://127.0.0.1:9000/render</pre>'
+            . '<p>This profile includes block parsing, actions, filters, shortcodes and selected formatting. The CMS bootstrap, database, plugin discovery, themes and admin remain outside the profile.</p>'
             . '</html>';
     }
 }
