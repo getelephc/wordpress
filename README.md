@@ -1,12 +1,13 @@
 # WordPress on Elephc
 
-A native AOT experiment with WordPress blocks, hooks, shortcodes and formatting.
+A native AOT experiment with WordPress blocks, serialization, hooks and content.
 WordPress **7.1.4**, Elephc **0.27.8**, PHP profile **8.4**, Linux x86_64.
 
-The experiment uses eight original core files, with seven compatibility
-patches, to build block parsing, hooks and rendering CLIs plus an HTTP server.
-The formatting graph selects seven verified functions from the original
-`formatting.php`. Documents and content inputs are processed at runtime.
+The experiment uses nine original core files, with eight compatibility
+patches, to build block parsing, serialization, hooks and rendering CLIs plus
+an HTTP server. The formatting graph selects seven verified functions from the original
+`formatting.php`; another five come from `blocks.php`. Documents, JSON block
+trees and content inputs are processed at runtime.
 The HTTP adapter, callback manifest and demo callbacks belong to this experiment.
 
 This is a core subsystem port. The complete CMS bootstrap, database, plugin
@@ -39,7 +40,8 @@ elephc --version
 
 The script verifies the downloaded sources and patches, installs the locked
 PCRE2 dependency, and produces `elephc/runtime/parse`, `elephc/runtime/hooks`,
-`elephc/runtime/render` and `elephc/runtime/server`. It uses `elephc` from `PATH`; set
+`elephc/runtime/render`, `elephc/runtime/serialize` and `elephc/runtime/server`.
+It uses `elephc` from `PATH`; set
 `ELEPHC_BIN=/absolute/path/to/elephc` to select another complete SDK.
 On workstations with the author's build queue installed, the script uses it
 automatically. The queue is optional on other machines.
@@ -53,6 +55,7 @@ python3 scripts/prepare-elephc.py
   elephc native install --locked
   elephc --php-version 8.4 --check server.php
   elephc --php-version 8.4 parse.php
+  elephc --php-version 8.4 serialize.php
   elephc --php-version 8.4 hooks.php
   elephc --php-version 8.4 render.php
   elephc --php-version 8.4 --web server.php
@@ -79,7 +82,7 @@ You can also run the executable directly and choose a different port:
 ```
 
 The demo, parsed blocks, hooks, rendered content and health endpoints are `/`,
-`/blocks`, `/hooks`, `/render` and `/health`.
+`/blocks`, `/hooks`, `/render` and `/health`. `/serialize` accepts POST only.
 No database or background service manager is required.
 
 Parse your own document:
@@ -101,6 +104,55 @@ Use the native CLI directly:
 ```bash
 ./elephc/runtime/parse '<!-- wp:separator /-->'
 ```
+
+## Gutenberg serialization
+
+The native serializer uses five selected WordPress core functions:
+`serialize_block_attributes`, `strip_core_block_namespace`,
+`get_comment_delimited_block_content`, `serialize_block` and `serialize_blocks`.
+It reconstructs a comment-delimited WordPress document from the block tree.
+
+```bash
+./elephc/runtime/parse '<!-- wp:paragraph {"align":"left"} --><p>Hello</p><!-- /wp:paragraph -->' > blocks.json
+# Edit the JSON tree, for example changing attrs.align to "right".
+./elephc/runtime/serialize < blocks.json
+curl -sS http://127.0.0.1:9000/serialize \
+  -H 'Content-Type: application/json' --data-binary @blocks.json
+```
+
+The CLI defaults to `blocks` mode. It reads its input from stdin, or from its
+second argument when provided. `POST /serialize` also defaults to a JSON block
+list and returns the exact serialized document as `text/plain; charset=utf-8`.
+Both interfaces support `roundtrip` mode to parse and serialize a raw document:
+
+```bash
+./elephc/runtime/serialize roundtrip '<!-- wp:separator /-->'
+curl -sS 'http://127.0.0.1:9000/serialize?mode=roundtrip' \
+  --data-binary '<!-- wp:paragraph --><p>Hello</p><!-- /wp:paragraph -->'
+./elephc/runtime/serialize attributes '{"label":"a--b <tag> & \"quote\""}'
+```
+
+`attributes` mode returns the core's JSON encoding with substitutions for
+characters that could interfere with HTML comments. The JSON list input uses
+the same five fields returned by `/parse`: `blockName`, `attrs`, `innerBlocks`,
+`innerHTML` and `innerContent`. The serializer reads `innerContent`, replacing
+each null marker with the corresponding child from `innerBlocks` in order.
+When editing HTML, update `innerContent`; `innerHTML` is parser metadata and
+is not used to reconstruct the document.
+
+The adapter checks required fields, content types, list layout, matching child
+markers and a maximum of 64 block levels. Invalid input or an unknown mode
+returns HTTP `400`; the CLI writes a diagnostic to stderr and exits with `2`.
+JSON attributes must be encodable UTF-8 data. The native profile uses an
+explicit JSON encoder bridge and raises an error on encoding failure;
+WordPress's charset-recovery path in `wp_json_encode` is outside the profile.
+The PHP oracle loads the unmodified core encoder and serialization functions.
+
+Serialization follows WordPress normalization. Comment whitespace and JSON
+formatting can change, and empty blocks become self-closing. Core considers
+the content string `"0"` empty. Malformed nested documents can also change
+structure across successive parse/serialize passes. Tests compare each stage
+with original WordPress rather than assuming lossless or idempotent output.
 
 ## Actions and filters
 
@@ -210,9 +262,11 @@ WordPress parser running on the host PHP interpreter. It compares the patched
 PHP implementation and the native CLI with that reference.
 **31 hook scenarios** are independently compared with upstream PHP, patched
 PHP and the hooks CLI. Another **70 rendering fixtures** compare original PHP,
-patched PHP and the rendering CLI. The server checks all three corpora twice
-through one native worker, for **282 HTTP checks**, including routing, body
-limits, response MIME types and request isolation.
+patched PHP and the rendering CLI. Another **58 serialization fixtures** compare
+original PHP, patched PHP and native output, reparsed trees and the next
+serialization pass, with **22 invalid-input cases**. The server checks all four
+corpora twice through one worker for **566 HTTP checks**, including routing,
+body limits, response MIME types and request isolation.
 
 | Request | Result |
 | --- | --- |
@@ -220,6 +274,9 @@ limits, response MIME types and request isolation.
 | `GET /blocks` | Parsed demo as JSON |
 | `GET /health` | Version/profile information, `database: false` |
 | `POST /parse` | Parse a raw UTF-8 block document as JSON |
+| `POST /serialize` | Serialize a JSON block tree as a WordPress document |
+| `POST /serialize?mode=roundtrip` | Parse and serialize a raw block document |
+| Invalid serialization input or mode | `400` |
 | `GET /hooks?case=priority&value=Hello` | Run the selected hook scenario as JSON |
 | `POST /filter` | Run a real priority filter pipeline on the raw request body |
 | `GET /render` | HTML demo from the core content pipeline |
@@ -267,6 +324,7 @@ WP_Filter_Sentinel
 wp-includes/plugin.php
 wp-includes/shortcodes.php
 seven selected functions from wp-includes/formatting.php
+five selected functions from wp-includes/blocks.php
 ```
 
 The three parser patches add explicit storage types, narrow parser frames,
@@ -291,10 +349,10 @@ intersection of shortcode tag lists. Empty-subject guards avoid a pinned
 native regex runtime crash while retaining the reference output.
 They are exercised through the upstream differential corpus.
 
-`formatting.php` is first patched as a complete original file, then reduced to
-the seven listed functions using byte ranges and per-function hashes recorded
-in the manifest. Preparation verifies the complete patched source, each selected
-fragment and the final generated module. This selection avoids importing the
+`formatting.php` and `blocks.php` are first patched as complete original files,
+then reduced to their selected functions using byte ranges and per-function
+hashes recorded in the manifest. Preparation verifies the complete patched source, each selected
+fragment and each final generated module. This selection avoids importing the
 unrelated formatting/UTF-8/bootstrap graph. Builds still require no PHP
 interpreter; PHP was used only to identify function ranges during maintenance
 and is needed for reference tests.
@@ -309,7 +367,7 @@ python3 scripts/test-clean-room.py
 ```
 
 The clean-room check exports maintained source files into a temporary directory,
-downloads a fresh WordPress archive, applies the patches, compiles all four
+downloads a fresh WordPress archive, applies the patches, compiles all five
 executables and repeats the reference/HTTP checks. It reuses the installed SDK
 and native dependency cache, and removes its export when finished.
 PCRE2 10.47 is pinned in the native manifest and lockfile.

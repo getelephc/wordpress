@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Compare native blocks, hooks and rendered content with unmodified WordPress."""
+"""Compare native blocks, serialization, hooks and content with original PHP."""
 
 import http.client
 import json
@@ -16,10 +16,10 @@ import urllib.parse
 ROOT = Path(__file__).resolve().parent.parent
 
 
-def run_output(command):
-    result = subprocess.run(command, cwd=ROOT, capture_output=True, text=True, check=True, timeout=20)
+def run_output(command, input=None):
+    result = subprocess.run(command, cwd=ROOT, input=input, capture_output=True, check=True, timeout=20)
     assert not result.stderr, f"Unexpected diagnostics from {command[0]}: {result.stderr}"
-    return result.stdout
+    return result.stdout.decode('utf-8')
 
 
 def run_json(command):
@@ -56,6 +56,30 @@ def main():
         actual = run_output([str(ROOT / "elephc/runtime/render"), fixture["mode"], fixture["input"]])
         assert actual == render_reference[fixture["name"]], f"Native rendering CLI differs: {fixture['name']}\n{actual!r}"
     print(f"PASS: {len(render_fixtures)} render fixtures match upstream PHP in patched PHP and native CLI.")
+
+    serialize_fixtures = json.loads((ROOT / "tests/serialize-fixtures.json").read_text())
+    serialize_errors = json.loads((ROOT / "tests/serialize-errors.json").read_text())
+    serialize_reference = run_json([php, "tests/serialize-reference.php", "upstream"])
+    serialize_patched = run_json([php, "tests/serialize-reference.php", "profile"])
+    assert serialize_patched == serialize_reference, "Patched serialization differs from original WordPress"
+    serializer = str(ROOT / "elephc/runtime/serialize")
+    for fixture in serialize_fixtures:
+        expected = serialize_reference[fixture["name"]]
+        actual = run_output([serializer, fixture["mode"], fixture["input"]])
+        assert actual == expected["text"], f"Native serialization CLI differs: {fixture['name']}\n{actual!r}"
+        parsed = run_json([str(ROOT / "elephc/runtime/parse"), actual])
+        assert parsed == expected["parsed"], f"Native serialization reparse differs: {fixture['name']}"
+        again = run_output([serializer, "blocks"], json.dumps(parsed, ensure_ascii=False).encode())
+        assert again == expected["reserialized"], f"Native serialization normalization differs: {fixture['name']}"
+    for fixture in serialize_errors:
+        result = subprocess.run([serializer, fixture["mode"], fixture["input"]], cwd=ROOT, capture_output=True, timeout=20)
+        assert result.returncode == 2 and not result.stdout, (fixture["name"], result)
+        assert result.stderr.startswith(b"Serialization error: ") and b"Fatal error" not in result.stderr and b"Warning:" not in result.stderr, (fixture["name"], result.stderr)
+    nested_document = next(f["document"] for f in fixtures if f["name"] == "nested")
+    parsed_input = run_output([str(ROOT / "elephc/runtime/parse"), nested_document]).encode()
+    assert run_output([serializer], parsed_input) == serialize_reference["document-nested"]["text"]
+    assert run_output([serializer, "roundtrip"], nested_document.encode()) == serialize_reference["document-nested"]["text"]
+    print(f"PASS: {len(serialize_fixtures)} serialization fixtures, reparsing, stdin and {len(serialize_errors)} invalid-input cases.")
 
     with socket.socket() as listener:
         listener.bind(("127.0.0.1", 0))
@@ -112,6 +136,31 @@ def main():
                     expected_type = "application/json" if fixture["mode"] in ("attributes", "inspect", "context", "registration") else "text/html"
                     assert headers["content-type"].startswith(expected_type), headers
                     checks += 1
+                for fixture in serialize_fixtures:
+                    query = urllib.parse.urlencode({"mode": fixture["mode"]})
+                    status, headers, body = request("POST", "/serialize?" + query, fixture["input"].encode())
+                    expected = serialize_reference[fixture["name"]]
+                    assert status == 200 and body.decode() == expected["text"], (fixture["name"], status, body)
+                    assert headers["content-type"].startswith("text/plain"), headers
+                    status, _, parsed_body = request("POST", "/parse", body)
+                    assert status == 200 and json.loads(parsed_body) == expected["parsed"], fixture["name"]
+                    checks += 2
+                for fixture in serialize_errors:
+                    query = urllib.parse.urlencode({"mode": fixture["mode"]})
+                    status, headers, body = request("POST", "/serialize?" + query, fixture["input"].encode())
+                    assert status == 400 and headers["content-type"].startswith("application/json"), (fixture["name"], status, body)
+                    assert isinstance(json.loads(body)["error"], str) and "allow" not in headers, headers
+                    checks += 1
+                status, _, body = request("POST", "/serialize", parsed_input)
+                assert status == 200 and body.decode() == serialize_reference["document-nested"]["text"]
+                for method in ("GET", "HEAD"):
+                    status, headers, body = request(method, "/serialize")
+                    assert status == 405 and headers["allow"] == "POST", (method, status, headers)
+                    if method == "HEAD":
+                        assert body == b""
+                status, _, body = request("POST", "/serialize", b"x" * 65537)
+                assert status == 413
+                checks += 4
                 status, _, body = request("GET", "/render")
                 assert status == 200 and b'Hello Elephc' in body and b'<div class="box">' in body
                 status, _, body = request("HEAD", "/render")

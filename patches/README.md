@@ -18,16 +18,17 @@ Repeated preparation starts from the same original sources and is idempotent.
 | `class-wp-hook.php` | Typed hook storage, explicit iteration cursors, callback descriptor resolution, safe table updates and Iterator signatures |
 | `plugin.php` | Fresh hook globals, typed values/arguments, object identity adapter, table updates and explicit exceptions for nine APIs outside the hooks profile |
 | `shortcodes.php` | Typed parser values, closure adapters for regex callbacks, builtin bridges and explicit attribute-expansion boundary |
+| `blocks.php` | Five selected serialization functions, typed recursion, explicit string emptiness and a JSON encoder boundary |
 | `formatting.php` | Typed formatting values, concrete regex cache, builtin bridges and closure newline-preservation callback |
 
 `class-wp-filter-sentinel.php` is copied without changes. Its manifest entry
 has no patch; original and generated source hashes must match.
 
-The formatting entry also lists seven selected functions. Apply the small patch
-to the complete original file and verify `patched_source_sha256`, then select
+The formatting entry lists seven selected functions and the blocks entry lists
+five. Apply each small patch to its complete original file and verify `patched_source_sha256`, then select
 the recorded byte ranges in order. Each range has its own hash; the assembled
 PHP module must match `patched_sha256`. Source preparation performs these steps
-using Python only. When changing the formatting patch or selected functions,
+using Python only. When changing either patch or its selected functions,
 recompute the ranges and all affected hashes from the resulting full file.
 The original regexes and function bodies remain visible and reviewable.
 
@@ -48,3 +49,10 @@ which also tracks recursive execution. Named application callbacks use
 while retaining WordPress's original callback identity key.
 Original plugin filesystem, lifecycle and deprecated-hook helper bodies are
 preserved in the patch diff and replaced by explicit exceptions in this profile.
+
+The block serializer retains core comment construction, attribute escaping and
+recursive child/chunk ordering. Its JSON bridge supports encodable UTF-8 values;
+encoding failures raise an exception instead of importing charset recovery.
+The content emptiness branch explicitly checks both the empty string and `"0"`
+to retain PHP behavior on the pinned native SDK. `serialize_blocks` uses an
+explicit loop to avoid dispatching a function name through generic `array_map`.

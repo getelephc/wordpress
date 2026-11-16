@@ -1,8 +1,8 @@
 # Project conventions
 
-- This is a bounded WordPress core port to Elephc, covering blocks, hooks,
-  shortcodes and selected formatting with native CLI and HTTP profiles.
-  Keep the scope explicit.
+- This is a bounded WordPress core port to Elephc, covering block parsing and
+  serialization, hooks, shortcodes and selected formatting with native CLI and
+  HTTP profiles. Keep the scope explicit.
 - Run application code, Elephc and PHP reference checks directly on the host.
   This project intentionally uses native tools and has no database.
 - Use `127.0.0.1:9000` as the default local HTTP listener.
@@ -12,8 +12,10 @@
 - Downloaded WordPress sources in `upstream/` are original dependencies.
   Do not edit them. Maintain compatibility rewrites in `patches/`, including
   all original, patch and resulting source checksums.
-- The formatting module selects verified function ranges after patching the
-  complete source file. Maintain the full-source, range and final-module hashes.
+- The formatting and blocks modules select verified function ranges after
+  patching the complete source files. Maintain the full-source, range and final-module hashes.
+- Serialization accepts validated block trees with UTF-8 JSON attributes. Keep
+  charset recovery and complete block rendering outside the profile explicit.
 - `elephc/runtime/core/` and executables are generated. Rebuild with
   `scripts/prepare-elephc.py` and `scripts/build-elephc.sh`.
 - Validate changes against unmodified PHP with `scripts/test-elephc.py` and

@@ -239,6 +239,64 @@ The native host executables are 1,761,624 bytes for parsing, 3,799,656 bytes
 for hooks, 4,391,784 bytes for rendering and 22,505,088 bytes for HTTP. These
 sizes are observations of this SDK and source graph, not performance results.
 
+## Gutenberg serialization extension, 2026-11-16
+
+The compiled graph adds five selected functions from `wp-includes/blocks.php`:
+`serialize_block_attributes`, `strip_core_block_namespace`,
+`get_comment_delimited_block_content`, `serialize_block` and `serialize_blocks`.
+The inventory is now nine original files with eight patches and five native
+executables. The same full-file, selected-range and final-module checks used for
+formatting also verify the block module. Preparation still uses Python only.
+
+The core algorithms retain recursive child ordering, null placeholders in
+`innerContent`, comment construction, namespace removal and comment-safe JSON
+attribute escaping. Types make array reads and recursive calls concrete;
+`serialize_blocks` loops over the list explicitly rather than dispatching a
+string callback through generic `array_map`. Core's `empty(block_content)` is
+expressed as comparisons with both the empty string and `"0"`, preserving PHP
+behavior where the pinned SDK's native `empty` only recognized string length.
+
+The `wp_json_encode` call is replaced by an explicit JSON encoder bridge for
+encodable UTF-8 attributes. Failed encoding raises an exception; charset repair
+and the related UTF-8 bootstrap graph remain outside this profile. The original
+PHP oracle loads unmodified `functions.php`, its `option.php` dependency and
+`blocks.php`, without executing database or CMS bootstrap operations. Their
+source checksums are pinned alongside the compilation dependencies.
+
+`elephc/runtime/serialize` accepts a mode and optional input argument. Otherwise
+it reads stdin using `stream_get_contents(STDIN)`, with diagnostics through
+`fwrite(STDERR, ...)` and exit status 2. The default `blocks` mode serializes a
+JSON list such as the result of `/parse`. `roundtrip` accepts a raw document,
+and `attributes` exposes the core's comment-safe JSON serialization.
+`POST /serialize` exposes the same modes and returns exact text with a
+`text/plain; charset=utf-8` content type. Input errors return HTTP 400.
+The host listener remains `127.0.0.1:9000`.
+
+The adapter validates the five block fields, list shapes, chunk types and the
+one-to-one correspondence of null markers with children, with a maximum of
+64 block levels. Non-array attributes retain core normalization to an empty
+array. To edit saved HTML, update `innerContent`; `innerHTML` is unused parser
+metadata during serialization. Nested JSON objects are decoded to associative
+arrays consistently with the block parser.
+
+WordPress serialization is a normalization step. In the original core, content
+`"0"` becomes a void block and malformed nested documents can change structure
+across successive parse/serialize passes. The checker compares serialized text,
+reparsed trees and the next serialization independently against original PHP.
+It does not assume preservation of source bytes or idempotence.
+
+Verification passed for 58 serialization fixtures and 22 invalid-input cases,
+including both sides of the 64-level block limit. Every serialized document,
+reparsed tree and subsequent serialization agrees with original PHP. The full
+corpus now covers 22 parser documents, 31 hook scenarios, 70 rendering fixtures
+and 58 serialization fixtures, with 566 HTTP checks through a repeated worker.
+CLI stdin and stderr are tested. A fresh source-only export rebuilt all five
+executables and passed the same checks; its temporary tree was removed.
+
+The serializer executable is 1,857,624 bytes and the combined HTTP executable
+is 22,638,976 bytes on the native host. Other profile sizes are unchanged from
+the previous extension. These sizes are observations, not speed claims.
+
 ## Follow-up direction
 
 A broader CMS experiment should address the UTF-8 compatibility loader's
