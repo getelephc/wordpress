@@ -1,0 +1,414 @@
+[
+  {
+    "name": "display-empty",
+    "input": "{\"url\":\"\"}"
+  },
+  {
+    "name": "display-spaces",
+    "input": "{\"url\":\"   \\t\"}"
+  },
+  {
+    "name": "display-bare",
+    "input": "{\"url\":\"example.org/a b\"}"
+  },
+  {
+    "name": "display-https",
+    "input": "{\"url\":\"https://example.org/a?x=1&y=2\"}"
+  },
+  {
+    "name": "display-quotes",
+    "input": "{\"url\":\"https://example.org/?name=O'Reilly&x=1\"}"
+  },
+  {
+    "name": "display-entities",
+    "input": "{\"url\":\"https://example.org/?a=&copy;&b=&bogus;\"}"
+  },
+  {
+    "name": "display-javascript",
+    "input": "{\"url\":\"javascript:alert(1)\"}"
+  },
+  {
+    "name": "display-encoded-scheme",
+    "input": "{\"url\":\"java&#x73;cript:alert(1)\"}"
+  },
+  {
+    "name": "display-nested-scheme",
+    "input": "{\"url\":\"javascript:javascript:alert(1)\"}"
+  },
+  {
+    "name": "display-mailto",
+    "input": "{\"url\":\"mailto:a@example.org?subject=Hi%0Athere\"}"
+  },
+  {
+    "name": "display-ftp",
+    "input": "{\"url\":\"ftp://example.org/file\"}"
+  },
+  {
+    "name": "display-feed",
+    "input": "{\"url\":\"feed:https://example.org/rss\"}"
+  },
+  {
+    "name": "display-data",
+    "input": "{\"url\":\"data:text/plain;base64,QQ==\"}"
+  },
+  {
+    "name": "display-relative",
+    "input": "{\"url\":\"/a b?q=x&y=z\"}"
+  },
+  {
+    "name": "display-query",
+    "input": "{\"url\":\"?a=1&b=2\"}"
+  },
+  {
+    "name": "display-fragment",
+    "input": "{\"url\":\"#a&b\"}"
+  },
+  {
+    "name": "display-php-file",
+    "input": "{\"url\":\"index.php?x=1&y=2\"}"
+  },
+  {
+    "name": "display-php-prefix",
+    "input": "{\"url\":\"test.phpmore?x=1\"}"
+  },
+  {
+    "name": "display-semicolon",
+    "input": "{\"url\":\"http;//example.org\"}"
+  },
+  {
+    "name": "display-crlf",
+    "input": "{\"url\":\"https://example.org/%0%0%0DDD/path%0a?q=1\"}"
+  },
+  {
+    "name": "display-controls",
+    "input": "{\"url\":\"https://example.org/a\\r\\nb\\tc\"}"
+  },
+  {
+    "name": "display-unicode",
+    "input": "{\"url\":\"https://exämple.org/café?mot=été\"}"
+  },
+  {
+    "name": "display-ipv6",
+    "input": "{\"url\":\"https://[::1]:9000/a[b]?q=[x]\"}"
+  },
+  {
+    "name": "display-credentials",
+    "input": "{\"url\":\"https://alice:secret@[2001:db8::1]:9000/a[b]\"}"
+  },
+  {
+    "name": "display-schemeless-ipv6",
+    "input": "{\"url\":\"//[::1]/a[b]\"}"
+  },
+  {
+    "name": "display-brackets-path",
+    "input": "{\"url\":\"/path[a]?q=[b]\"}"
+  },
+  {
+    "name": "display-bad-brackets",
+    "input": "{\"url\":\"http:///a[b]\"}"
+  },
+  {
+    "name": "display-custom",
+    "input": "{\"url\":\"web+app:open/item\"}"
+  },
+  {
+    "name": "display-colon-query",
+    "input": "{\"url\":\"/relative?a:b\"}"
+  },
+  {
+    "name": "display-zero",
+    "input": "{\"url\":\"0\"}"
+  },
+  {
+    "name": "raw-https",
+    "input": "{\"op\":\"raw\",\"url\":\"https://example.org/a?x=1&y=2\"}"
+  },
+  {
+    "name": "raw-quotes",
+    "input": "{\"op\":\"raw\",\"url\":\"https://example.org/?name=O'Reilly&x=1\"}"
+  },
+  {
+    "name": "raw-entities",
+    "input": "{\"op\":\"raw\",\"url\":\"https://example.org/?a=&copy;&b=&bogus;\"}"
+  },
+  {
+    "name": "raw-javascript",
+    "input": "{\"op\":\"raw\",\"url\":\"javascript:alert(1)\"}"
+  },
+  {
+    "name": "raw-mailto",
+    "input": "{\"op\":\"raw\",\"url\":\"mailto:a@example.org?subject=Hi%0Athere\"}"
+  },
+  {
+    "name": "raw-relative",
+    "input": "{\"op\":\"raw\",\"url\":\"/a b?q=x&y=z\"}"
+  },
+  {
+    "name": "raw-ipv6",
+    "input": "{\"op\":\"raw\",\"url\":\"https://[::1]:9000/a[b]?q=[x]\"}"
+  },
+  {
+    "name": "raw-spaces",
+    "input": "{\"op\":\"raw\",\"url\":\"   \\t\"}"
+  },
+  {
+    "name": "sanitize-alias",
+    "input": "{\"op\":\"sanitize\",\"url\":\"https://example.org/?a=1&name=O'Reilly\"}"
+  },
+  {
+    "name": "first-https",
+    "input": "{\"url\":\"example.org/path\",\"protocols\":[\"https\",\"http\"]}"
+  },
+  {
+    "name": "first-http",
+    "input": "{\"url\":\"example.org/path\",\"protocols\":[\"http\",\"https\"]}"
+  },
+  {
+    "name": "uppercase-first",
+    "input": "{\"url\":\"example.org/path\",\"protocols\":[\"HTTPS\"]}"
+  },
+  {
+    "name": "explicit-custom",
+    "input": "{\"url\":\"web+app:item\",\"protocols\":[\"web+app\"]}"
+  },
+  {
+    "name": "empty-protocols",
+    "input": "{\"url\":\"https://example.org\",\"protocols\":[]}"
+  },
+  {
+    "name": "empty-protocols-relative",
+    "input": "{\"url\":\"/a?x=1&y=2\",\"protocols\":[]}"
+  },
+  {
+    "name": "unsupported-https",
+    "input": "{\"url\":\"https://example.org\",\"protocols\":[\"mailto\"]}"
+  },
+  {
+    "name": "relative-46",
+    "input": "{\"op\":\"relative\",\"url\":\"https://example.org/a?x=1#top\"}"
+  },
+  {
+    "name": "relative-47",
+    "input": "{\"op\":\"relative\",\"url\":\"HTTP://example.org\"}"
+  },
+  {
+    "name": "relative-48",
+    "input": "{\"op\":\"relative\",\"url\":\"//example.org/a\"}"
+  },
+  {
+    "name": "relative-49",
+    "input": "{\"op\":\"relative\",\"url\":\"/local?a=1\"}"
+  },
+  {
+    "name": "relative-50",
+    "input": "{\"op\":\"relative\",\"url\":\"mailto:a@example.org\"}"
+  },
+  {
+    "name": "relative-51",
+    "input": "{\"op\":\"relative\",\"url\":\"\"}"
+  },
+  {
+    "name": "component--1",
+    "input": "{\"op\":\"parse\",\"url\":\"https://alice:secret@example.org:9000/a?x=1#top\",\"component\":-1}"
+  },
+  {
+    "name": "component-0",
+    "input": "{\"op\":\"parse\",\"url\":\"https://alice:secret@example.org:9000/a?x=1#top\",\"component\":0}"
+  },
+  {
+    "name": "component-1",
+    "input": "{\"op\":\"parse\",\"url\":\"https://alice:secret@example.org:9000/a?x=1#top\",\"component\":1}"
+  },
+  {
+    "name": "component-2",
+    "input": "{\"op\":\"parse\",\"url\":\"https://alice:secret@example.org:9000/a?x=1#top\",\"component\":2}"
+  },
+  {
+    "name": "component-3",
+    "input": "{\"op\":\"parse\",\"url\":\"https://alice:secret@example.org:9000/a?x=1#top\",\"component\":3}"
+  },
+  {
+    "name": "component-4",
+    "input": "{\"op\":\"parse\",\"url\":\"https://alice:secret@example.org:9000/a?x=1#top\",\"component\":4}"
+  },
+  {
+    "name": "component-5",
+    "input": "{\"op\":\"parse\",\"url\":\"https://alice:secret@example.org:9000/a?x=1#top\",\"component\":5}"
+  },
+  {
+    "name": "component-6",
+    "input": "{\"op\":\"parse\",\"url\":\"https://alice:secret@example.org:9000/a?x=1#top\",\"component\":6}"
+  },
+  {
+    "name": "component-7",
+    "input": "{\"op\":\"parse\",\"url\":\"https://alice:secret@example.org:9000/a?x=1#top\",\"component\":7}"
+  },
+  {
+    "name": "parse-empty",
+    "input": "{\"op\":\"parse\",\"url\":\"\"}"
+  },
+  {
+    "name": "parse-path",
+    "input": "{\"op\":\"parse\",\"url\":\"/a?x:y#top\"}"
+  },
+  {
+    "name": "parse-network",
+    "input": "{\"op\":\"parse\",\"url\":\"//user:pass@[::1]:9000/a\"}"
+  },
+  {
+    "name": "parse-noscheme",
+    "input": "{\"op\":\"parse\",\"url\":\"example.org/path?x:y\"}"
+  },
+  {
+    "name": "parse-bad-port",
+    "input": "{\"op\":\"parse\",\"url\":\"http://example.org:99999/a\"}"
+  },
+  {
+    "name": "parse-missing-host",
+    "input": "{\"op\":\"parse\",\"url\":\"http://\"}"
+  },
+  {
+    "name": "parse-triple-slash",
+    "input": "{\"op\":\"parse\",\"url\":\"///path\"}"
+  },
+  {
+    "name": "parse-empty-query",
+    "input": "{\"op\":\"parse\",\"url\":\"https://example.org/?\"}"
+  },
+  {
+    "name": "parse-empty-fragment",
+    "input": "{\"op\":\"parse\",\"url\":\"https://example.org/#\"}"
+  },
+  {
+    "name": "parse-control",
+    "input": "{\"op\":\"parse\",\"url\":\"https://example.org/a\\nb\"}"
+  },
+  {
+    "name": "parse-unicode",
+    "input": "{\"op\":\"parse\",\"url\":\"https://exämple.org/café\"}"
+  },
+  {
+    "name": "missing-port",
+    "input": "{\"op\":\"parse\",\"url\":\"https://example.org\",\"component\":2}"
+  },
+  {
+    "name": "missing-query",
+    "input": "{\"op\":\"parse\",\"url\":\"https://example.org\",\"component\":6}"
+  },
+  {
+    "name": "empty-query-component",
+    "input": "{\"op\":\"parse\",\"url\":\"https://example.org/?\",\"component\":6}"
+  },
+  {
+    "name": "bad-port-component",
+    "input": "{\"op\":\"parse\",\"url\":\"http://example.org:99999\",\"component\":2}"
+  },
+  {
+    "name": "query-empty",
+    "input": "{\"op\":\"query\",\"data\":{}}"
+  },
+  {
+    "name": "encoded-query-empty",
+    "input": "{\"op\":\"encoded-query\",\"data\":{}}"
+  },
+  {
+    "name": "query-scalars",
+    "input": "{\"op\":\"query\",\"data\":{\"text\":\"two words\",\"amp\":\"&\",\"quote\":\"a'b\",\"yes\":true,\"no\":false,\"nil\":null,\"zero\":0}}"
+  },
+  {
+    "name": "encoded-query-scalars",
+    "input": "{\"op\":\"encoded-query\",\"data\":{\"text\":\"two words\",\"amp\":\"&\",\"quote\":\"a'b\",\"yes\":true,\"no\":false,\"nil\":null,\"zero\":0}}"
+  },
+  {
+    "name": "query-nested",
+    "input": "{\"op\":\"query\",\"data\":{\"a\":{\"b\":[1,2]},\"empty\":[],\"last\":\"z\"}}"
+  },
+  {
+    "name": "encoded-query-nested",
+    "input": "{\"op\":\"encoded-query\",\"data\":{\"a\":{\"b\":[1,2]},\"empty\":[],\"last\":\"z\"}}"
+  },
+  {
+    "name": "query-unicode",
+    "input": "{\"op\":\"query\",\"data\":{\"café\":\"été 🐘\"}}"
+  },
+  {
+    "name": "encoded-query-unicode",
+    "input": "{\"op\":\"encoded-query\",\"data\":{\"café\":\"été 🐘\"}}"
+  },
+  {
+    "name": "query-numeric",
+    "input": "{\"op\":\"query\",\"data\":{\"0\":\"zero\",\"-2\":\"negative\",\"01\":\"leading\"}}"
+  },
+  {
+    "name": "encoded-query-numeric",
+    "input": "{\"op\":\"encoded-query\",\"data\":{\"0\":\"zero\",\"-2\":\"negative\",\"01\":\"leading\"}}"
+  },
+  {
+    "name": "query-zero-parent",
+    "input": "{\"op\":\"query\",\"data\":{\"0\":{\"x\":\"a\"}}}"
+  },
+  {
+    "name": "encoded-query-zero-parent",
+    "input": "{\"op\":\"encoded-query\",\"data\":{\"0\":{\"x\":\"a\"}}}"
+  },
+  {
+    "name": "query-floats",
+    "input": "{\"op\":\"query\",\"data\":{\"a\":1.5,\"b\":-2.25,\"c\":1e+20,\"d\":1.23456789012345}}"
+  },
+  {
+    "name": "encoded-query-floats",
+    "input": "{\"op\":\"encoded-query\",\"data\":{\"a\":1.5,\"b\":-2.25,\"c\":1e+20,\"d\":1.23456789012345}}"
+  },
+  {
+    "name": "query-encoded",
+    "input": "{\"op\":\"query\",\"data\":{\"a\":\"%20\",\"b\":\"a+b\",\"c\":\"x[y]\"}}"
+  },
+  {
+    "name": "encoded-query-encoded",
+    "input": "{\"op\":\"encoded-query\",\"data\":{\"a\":\"%20\",\"b\":\"a+b\",\"c\":\"x[y]\"}}"
+  },
+  {
+    "name": "query-control",
+    "input": "{\"op\":\"query\",\"data\":{\"a\":\"x\\ny\",\"b\":\"x\\ty\"}}"
+  },
+  {
+    "name": "encoded-query-control",
+    "input": "{\"op\":\"encoded-query\",\"data\":{\"a\":\"x\\ny\",\"b\":\"x\\ty\"}}"
+  },
+  {
+    "name": "custom-separator",
+    "input": "{\"op\":\"encoded-query\",\"data\":{\"a\":1,\"b\":2},\"separator\":\";\"}"
+  },
+  {
+    "name": "empty-separator",
+    "input": "{\"op\":\"encoded-query\",\"data\":{\"a\":1,\"b\":2},\"separator\":\"\"}"
+  },
+  {
+    "name": "query-depth-limit",
+    "input": "{\"op\":\"encoded-query\",\"data\":{\"n\":{\"n\":{\"n\":{\"n\":{\"n\":{\"n\":{\"n\":{\"n\":{\"n\":{\"n\":{\"n\":{\"n\":{\"n\":{\"n\":{\"n\":{\"n\":{\"n\":\"leaf\"}}}}}}}}}}}}}}}}}}"
+  },
+  {
+    "name": "query-field-limit",
+    "input": "{\"op\":\"encoded-query\",\"data\":{\"0\":0,\"1\":1,\"2\":2,\"3\":3,\"4\":4,\"5\":5,\"6\":6,\"7\":7,\"8\":8,\"9\":9,\"10\":10,\"11\":11,\"12\":12,\"13\":13,\"14\":14,\"15\":15,\"16\":16,\"17\":17,\"18\":18,\"19\":19,\"20\":20,\"21\":21,\"22\":22,\"23\":23,\"24\":24,\"25\":25,\"26\":26,\"27\":27,\"28\":28,\"29\":29,\"30\":30,\"31\":31,\"32\":32,\"33\":33,\"34\":34,\"35\":35,\"36\":36,\"37\":37,\"38\":38,\"39\":39,\"40\":40,\"41\":41,\"42\":42,\"43\":43,\"44\":44,\"45\":45,\"46\":46,\"47\":47,\"48\":48,\"49\":49,\"50\":50,\"51\":51,\"52\":52,\"53\":53,\"54\":54,\"55\":55,\"56\":56,\"57\":57,\"58\":58,\"59\":59,\"60\":60,\"61\":61,\"62\":62,\"63\":63,\"64\":64,\"65\":65,\"66\":66,\"67\":67,\"68\":68,\"69\":69,\"70\":70,\"71\":71,\"72\":72,\"73\":73,\"74\":74,\"75\":75,\"76\":76,\"77\":77,\"78\":78,\"79\":79,\"80\":80,\"81\":81,\"82\":82,\"83\":83,\"84\":84,\"85\":85,\"86\":86,\"87\":87,\"88\":88,\"89\":89,\"90\":90,\"91\":91,\"92\":92,\"93\":93,\"94\":94,\"95\":95,\"96\":96,\"97\":97,\"98\":98,\"99\":99,\"100\":100,\"101\":101,\"102\":102,\"103\":103,\"104\":104,\"105\":105,\"106\":106,\"107\":107,\"108\":108,\"109\":109,\"110\":110,\"111\":111,\"112\":112,\"113\":113,\"114\":114,\"115\":115,\"116\":116,\"117\":117,\"118\":118,\"119\":119,\"120\":120,\"121\":121,\"122\":122,\"123\":123,\"124\":124,\"125\":125,\"126\":126,\"127\":127,\"128\":128,\"129\":129,\"130\":130,\"131\":131,\"132\":132,\"133\":133,\"134\":134,\"135\":135,\"136\":136,\"137\":137,\"138\":138,\"139\":139,\"140\":140,\"141\":141,\"142\":142,\"143\":143,\"144\":144,\"145\":145,\"146\":146,\"147\":147,\"148\":148,\"149\":149,\"150\":150,\"151\":151,\"152\":152,\"153\":153,\"154\":154,\"155\":155,\"156\":156,\"157\":157,\"158\":158,\"159\":159,\"160\":160,\"161\":161,\"162\":162,\"163\":163,\"164\":164,\"165\":165,\"166\":166,\"167\":167,\"168\":168,\"169\":169,\"170\":170,\"171\":171,\"172\":172,\"173\":173,\"174\":174,\"175\":175,\"176\":176,\"177\":177,\"178\":178,\"179\":179,\"180\":180,\"181\":181,\"182\":182,\"183\":183,\"184\":184,\"185\":185,\"186\":186,\"187\":187,\"188\":188,\"189\":189,\"190\":190,\"191\":191,\"192\":192,\"193\":193,\"194\":194,\"195\":195,\"196\":196,\"197\":197,\"198\":198,\"199\":199,\"200\":200,\"201\":201,\"202\":202,\"203\":203,\"204\":204,\"205\":205,\"206\":206,\"207\":207,\"208\":208,\"209\":209,\"210\":210,\"211\":211,\"212\":212,\"213\":213,\"214\":214,\"215\":215,\"216\":216,\"217\":217,\"218\":218,\"219\":219,\"220\":220,\"221\":221,\"222\":222,\"223\":223,\"224\":224,\"225\":225,\"226\":226,\"227\":227,\"228\":228,\"229\":229,\"230\":230,\"231\":231,\"232\":232,\"233\":233,\"234\":234,\"235\":235,\"236\":236,\"237\":237,\"238\":238,\"239\":239,\"240\":240,\"241\":241,\"242\":242,\"243\":243,\"244\":244,\"245\":245,\"246\":246,\"247\":247,\"248\":248,\"249\":249,\"250\":250,\"251\":251,\"252\":252,\"253\":253,\"254\":254,\"255\":255}}"
+  },
+  {
+    "name": "filter-display",
+    "input": "{\"op\":\"filtered\",\"url\":\"example.org/?a=1&name=O'Reilly\"}"
+  },
+  {
+    "name": "filter-db",
+    "input": "{\"op\":\"filtered\",\"url\":\"example.org/?a=1&name=O'Reilly\",\"context\":\"db\"}"
+  },
+  {
+    "name": "filter-rejected",
+    "input": "{\"op\":\"filtered\",\"url\":\"javascript:alert(1)\"}"
+  },
+  {
+    "name": "filter-empty",
+    "input": "{\"op\":\"filtered\",\"url\":\"\"}"
+  },
+  {
+    "name": "after-filter",
+    "input": "{\"url\":\"https://example.org/?a=1&b=2\"}"
+  }
+]

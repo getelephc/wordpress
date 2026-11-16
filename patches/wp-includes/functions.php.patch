@@ -1,6 +1,65 @@
 --- a/wp-includes/functions.php
 +++ b/wp-includes/functions.php
-@@ -5416,12 +5416,12 @@
+@@ -1045,7 +1045,7 @@
+  * @param array $data Array of key/value pairs to build the query from.
+  * @return string Query string, without URL encoding applied.
+  */
+-function build_query( $data ) {
++function build_query( array $data ): string {
+ 	return _http_build_query( $data, null, '&', '', false );
+ }
+ 
+@@ -1066,19 +1066,19 @@
+  * @param bool         $urlencode Optional. Whether to use urlencode() in the result. Default true.
+  * @return string The query string.
+  */
+-function _http_build_query( $data, $prefix = null, $sep = null, $key = '', $urlencode = true ) {
++function _http_build_query( array $data, ?string $prefix = null, ?string $sep = null, string $key = '', bool $urlencode = true ): string {
+ 	$ret = array();
+ 
+ 	foreach ( (array) $data as $k => $v ) {
+ 		if ( $urlencode ) {
+-			$k = urlencode( $k );
++			$k = urlencode( (string) $k );
+ 		}
+ 
+ 		if ( is_int( $k ) && null !== $prefix ) {
+-			$k = $prefix . $k;
+-		}
+-
+-		if ( ! empty( $key ) ) {
++			$k = (string) $prefix . (string) $k;
++		}
++
++		if ( '' !== $key && '0' !== $key ) {
+ 			$k = $key . '%5B' . $k . '%5D';
+ 		}
+ 
+@@ -1088,17 +1088,18 @@
+ 			$v = '0';
+ 		}
+ 
+-		if ( is_array( $v ) || is_object( $v ) ) {
+-			array_push( $ret, _http_build_query( $v, '', $sep, $k, $urlencode ) );
++		if ( is_object( $v ) ) { throw new InvalidArgumentException('PHP objects are outside the URL query profile.'); }
++		if ( is_array( $v ) ) {
++			array_push( $ret, _http_build_query( (array) $v, '', $sep, (string) $k, $urlencode ) );
+ 		} elseif ( $urlencode ) {
+-			array_push( $ret, $k . '=' . urlencode( $v ) );
++			array_push( $ret, (string) $k . '=' . urlencode( (string) $v ) );
+ 		} else {
+-			array_push( $ret, $k . '=' . $v );
++			array_push( $ret, (string) $k . '=' . (string) $v );
+ 		}
+ 	}
+ 
+ 	if ( null === $sep ) {
+-		$sep = ini_get( 'arg_separator.output' );
++		throw new InvalidArgumentException('The URL query profile requires an explicit separator.');
+ 	}
+ 
+ 	return implode( $sep, $ret );
+@@ -5416,12 +5417,12 @@
   *                                of the entire object. Default false.
   * @return array A list of objects or object fields.
   */
@@ -15,7 +74,7 @@
  
  	$util->filter( $args, $operator );
  
-@@ -5458,7 +5458,7 @@
+@@ -5458,7 +5459,7 @@
   *                           match. Default 'AND'.
   * @return array Array of found values.
   */
@@ -24,7 +83,7 @@
  	return wp_filter_object_list( $input_list, $args, $operator );
  }
  
-@@ -5480,12 +5480,12 @@
+@@ -5480,12 +5481,12 @@
   *               corresponding to `$index_key`. If `$index_key` is null, array keys from the original
   *               `$input_list` will be preserved in the results.
   */
@@ -39,7 +98,7 @@
  
  	return $util->pluck( $field, $index_key );
  }
-@@ -5504,12 +5504,12 @@
+@@ -5504,12 +5505,12 @@
   * @param bool         $preserve_keys Optional. Whether to preserve keys. Default false.
   * @return array The sorted array.
   */
@@ -54,7 +113,7 @@
  
  	return $util->sort( $orderby, $order, $preserve_keys );
  }
-@@ -6492,7 +6492,7 @@
+@@ -6492,7 +6493,7 @@
   *                      Defaults to not changing the current setting.
   * @return bool The current suspend setting.
   */

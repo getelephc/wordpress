@@ -253,7 +253,101 @@
  }
  
  /**
-@@ -4773,9 +4780,9 @@
+@@ -4494,12 +4501,14 @@
+  * @param string       $subject The string being searched and replaced on, otherwise known as the haystack.
+  * @return string The string with the replaced values.
+  */
+-function _deep_replace( $search, $subject ) {
++function _deep_replace( array $search, string $subject ): string {
+ 	$subject = (string) $subject;
+ 
+ 	$count = 1;
+ 	while ( $count ) {
+-		$subject = str_replace( $search, '', $subject, $count );
++		$previous = $subject;
++		$subject = _elephc_replace_many( $search, '', $subject );
++		$count = $subject !== $previous ? 1 : 0;
+ 	}
+ 
+ 	return $subject;
+@@ -4548,7 +4557,7 @@
+  *                An empty string is returned if `$url` specifies a protocol other than
+  *                those in `$protocols`, or if `$url` contains an empty string.
+  */
+-function esc_url( $url, $protocols = null, $_context = 'display' ) {
++function esc_url( string $url, ?array $protocols = null, string $_context = 'display' ): string {
+ 	$original_url = $url;
+ 
+ 	if ( '' === $url ) {
+@@ -4556,6 +4565,7 @@
+ 	}
+ 
+ 	$url = str_replace( ' ', '%20', ltrim( $url ) );
++	if ( '' === $url ) { return ''; }
+ 	$url = preg_replace( '|[^a-z0-9-~+_.?#=!&;,/:%@$\|*\'()\[\]\\x80-\\xff]|i', '', $url );
+ 
+ 	if ( '' === $url ) {
+@@ -4577,7 +4587,9 @@
+ 	if ( ! str_contains( $url, ':' ) && ! in_array( $url[0], array( '/', '#', '?' ), true ) &&
+ 		! preg_match( '/^[a-z0-9-]+?\.php/i', $url )
+ 	) {
+-		$scheme = ( is_array( $protocols ) && 'https' === array_first( $protocols ) ) ? 'https://' : 'http://';
++		$first_protocol = '';
++		foreach ( (array) $protocols as $protocol ) { $first_protocol = (string) $protocol; break; }
++		$scheme = 'https' === $first_protocol ? 'https://' : 'http://';
+ 		$url    = $scheme . $url;
+ 	}
+ 
+@@ -4620,7 +4632,7 @@
+ 		}
+ 
+ 		$end_dirty = str_replace( $front, '', $url );
+-		$end_clean = str_replace( array( '[', ']' ), array( '%5B', '%5D' ), $end_dirty );
++		$end_clean = _elephc_replace_many( array( '[', ']' ), array( '%5B', '%5D' ), $end_dirty );
+ 		$url       = str_replace( $end_dirty, $end_clean, $url );
+ 
+ 	}
+@@ -4629,9 +4641,9 @@
+ 		$good_protocol_url = $url;
+ 	} else {
+ 		if ( ! is_array( $protocols ) ) {
+-			$protocols = wp_allowed_protocols();
+-		}
+-		$good_protocol_url = wp_kses_bad_protocol( $url, $protocols );
++			$protocols = wordpress_kses_protocols();
++		}
++		$good_protocol_url = wp_kses_bad_protocol( $url, (array) $protocols );
+ 		if ( strtolower( $good_protocol_url ) !== strtolower( $url ) ) {
+ 			return '';
+ 		}
+@@ -4646,7 +4658,7 @@
+ 	 * @param string $original_url      The URL prior to cleaning.
+ 	 * @param string $_context          If 'display', replace ampersands and single quotes only.
+ 	 */
+-	return apply_filters( 'clean_url', $good_protocol_url, $original_url, $_context );
++	return (string) apply_filters( 'clean_url', $good_protocol_url, $original_url, $_context );
+ }
+ 
+ /**
+@@ -4666,7 +4678,7 @@
+  *                            Defaults to return value of wp_allowed_protocols().
+  * @return string The cleaned URL after sanitize_url() is run.
+  */
+-function esc_url_raw( $url, $protocols = null ) {
++function esc_url_raw( string $url, ?array $protocols = null ): string {
+ 	return sanitize_url( $url, $protocols );
+ }
+ 
+@@ -4686,7 +4698,7 @@
+  *                            Defaults to return value of wp_allowed_protocols().
+  * @return string The cleaned URL after esc_url() is run with the 'db' context.
+  */
+-function sanitize_url( $url, $protocols = null ) {
++function sanitize_url( string $url, ?array $protocols = null ): string {
+ 	return esc_url( $url, $protocols, 'db' );
+ }
+ 
+@@ -4773,9 +4785,9 @@
   * @param string $text
   * @return string Escaped text.
   */
@@ -266,7 +360,7 @@
  	/**
  	 * Filters a string cleaned and escaped for output in an HTML attribute.
  	 *
-@@ -4787,7 +4794,7 @@
+@@ -4787,7 +4799,7 @@
  	 * @param string $safe_text The text after it has been escaped.
  	 * @param string $text      The text prior to being escaped.
  	 */
@@ -275,7 +369,19 @@
  }
  
  /**
-@@ -5931,7 +5938,7 @@
+@@ -4902,8 +4914,9 @@
+  * @param string $link Full URL path.
+  * @return string Absolute path.
+  */
+-function wp_make_link_relative( $link ) {
+-	return preg_replace( '|^(https?:)?//[^/]+(/?.*)|i', '$2', $link );
++function wp_make_link_relative( string $link ): string {
++	if ( '' === $link ) { return ''; }
++	return (string) preg_replace( '|^(https?:)?//[^/]+(/?.*)|i', '$2', $link );
+ }
+ 
+ /**
+@@ -5931,7 +5944,7 @@
   *
   * @return string The spaces regexp.
   */
@@ -284,7 +390,7 @@
  	static $spaces = '';
  
  	if ( empty( $spaces ) ) {
-@@ -5947,10 +5954,10 @@
+@@ -5947,10 +5960,10 @@
  		 *
  		 * @param string $spaces Regexp pattern for matching common whitespace characters.
  		 */

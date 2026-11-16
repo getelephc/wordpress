@@ -1,0 +1,49 @@
+--- a/wp-includes/http.php
++++ b/wp-includes/http.php
+@@ -758,7 +758,7 @@
+  *         )
+  * )
+  */
+-function wp_parse_url( $url, $component = -1 ) {
++function wp_parse_url( string $url, int $component = -1 ): mixed {
+ 	$to_unset = array();
+ 	$url      = (string) $url;
+ 
+@@ -779,8 +779,9 @@
+ 	}
+ 
+ 	// Remove the placeholder values.
++	$parts = (array) $parts;
+ 	foreach ( $to_unset as $key ) {
+-		unset( $parts[ $key ] );
++		unset( $parts[ (string) $key ] );
+ 	}
+ 
+ 	return _get_component_from_parsed_url_array( $parts, $component );
+@@ -835,14 +836,14 @@
+  *         )
+  * )
+  */
+-function _get_component_from_parsed_url_array( $url_parts, $component = -1 ) {
++function _get_component_from_parsed_url_array( mixed $url_parts, int $component = -1 ): mixed {
+ 	if ( -1 === $component ) {
+ 		return $url_parts;
+ 	}
+ 
+ 	$key = _wp_translate_php_url_constant_to_key( $component );
+-	if ( false !== $key && is_array( $url_parts ) && isset( $url_parts[ $key ] ) ) {
+-		return $url_parts[ $key ];
++	if ( false !== $key && is_array( $url_parts ) && isset( $url_parts[ (string) $key ] ) ) {
++		return $url_parts[ (string) $key ];
+ 	} else {
+ 		return null;
+ 	}
+@@ -864,7 +865,7 @@
+  * @phpstan-param int<-1, 7> $constant
+  * @phpstan-return 'scheme'|'host'|'port'|'user'|'pass'|'path'|'query'|'fragment'|false
+  */
+-function _wp_translate_php_url_constant_to_key( $constant ) {
++function _wp_translate_php_url_constant_to_key( int $constant ): mixed {
+ 	$translation = array(
+ 		PHP_URL_SCHEME   => 'scheme',
+ 		PHP_URL_HOST     => 'host',

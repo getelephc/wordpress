@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Compare native blocks, serialization, hooks, content, KSES, cache and lists with original PHP."""
+"""Compare native blocks, serialization, hooks, content, KSES, cache, lists and URLs with original PHP."""
 
 import http.client
 import base64
@@ -143,6 +143,22 @@ def main():
         assert result.returncode == 2 and not result.stdout, (fixture["name"], result)
         assert result.stderr.startswith(b"List error: ") and b"Fatal error" not in result.stderr and b"Warning:" not in result.stderr, (fixture["name"], result.stderr)
     print(f"PASS: {len(list_fixtures)} list scenarios match original PHP; stdin and {len(list_errors)} CLI boundary checks.")
+
+    url_fixtures = json.loads((ROOT / "tests/urls-fixtures.json").read_text())
+    url_errors = json.loads((ROOT / "tests/urls-errors.json").read_text())
+    url_reference = run_json([php, "tests/urls-reference.php", "upstream"])
+    assert run_json([php, "tests/urls-reference.php", "profile"]) == url_reference, "Patched URL helpers differ from original PHP"
+    urls = str(ROOT / "elephc/runtime/urls")
+    for fixture in url_fixtures:
+        actual = run_json([urls, fixture["input"]])
+        assert actual == url_reference[fixture["name"]], (fixture["name"], actual, url_reference[fixture["name"]])
+    assert json.loads(run_output([urls], url_fixtures[0]["input"].encode())) == url_reference[url_fixtures[0]["name"]]
+    for fixture in url_errors:
+        data = base64.b64decode(fixture["input_base64"]) if "input_base64" in fixture else fixture["input"].encode()
+        result = subprocess.run([urls], input=data, capture_output=True, timeout=20)
+        assert result.returncode == 2 and not result.stdout, (fixture["name"], result)
+        assert result.stderr.startswith(b"URL error: ") and b"Fatal error" not in result.stderr and b"Warning:" not in result.stderr, (fixture["name"], result.stderr)
+    print(f"PASS: {len(url_fixtures)} URL cases match original PHP; stdin and {len(url_errors)} CLI boundary checks.")
 
     with socket.socket() as listener:
         listener.bind(("127.0.0.1", 0))
@@ -304,6 +320,28 @@ def main():
                     if method == "HEAD":
                         assert body == b""
                 status, _, body = request("POST", "/lists", b"x" * 65537)
+                assert status == 413
+                checks += 3
+                for fixture in url_fixtures:
+                    try:
+                        status, headers, body = request("POST", "/urls", fixture["input"].encode())
+                    except Exception as error:
+                        raise AssertionError(f"Native URL request failed: {fixture['name']}") from error
+                    assert status == 200 and headers["content-type"].startswith("application/json"), (fixture["name"], status, body)
+                    assert json.loads(body) == url_reference[fixture["name"]], (fixture["name"], body, url_reference[fixture["name"]])
+                    checks += 1
+                for fixture in url_errors:
+                    data = base64.b64decode(fixture["input_base64"]) if "input_base64" in fixture else fixture["input"].encode()
+                    status, headers, body = request("POST", "/urls", data)
+                    assert status == 400 and headers["content-type"].startswith("application/json"), (fixture["name"], status, body)
+                    assert isinstance(json.loads(body)["error"], str), fixture["name"]
+                    checks += 1
+                for method in ("GET", "HEAD"):
+                    status, headers, body = request(method, "/urls")
+                    assert status == 405 and headers["allow"] == "POST"
+                    if method == "HEAD":
+                        assert body == b""
+                status, _, body = request("POST", "/urls", b"x" * 65537)
                 assert status == 413
                 checks += 3
                 status, _, body = request("POST", "/filter", hook_input.encode())
