@@ -1,13 +1,14 @@
 # WordPress on Elephc
 
-A native AOT experiment with WordPress blocks, serialization, hooks, content and attribute KSES.
+A native AOT experiment with WordPress blocks, serialization, hooks, content, attribute KSES and object caching.
 WordPress **7.1.4**, Elephc **0.27.8**, PHP profile **8.4**, Linux x86_64.
 
-The experiment uses ten original core files, with nine compatibility
+The experiment uses thirteen original core files, with twelve compatibility
 patches, to build block parsing, serialization, hooks, rendering and attribute
-KSES CLIs plus an HTTP server. The formatting graph selects eight verified functions from the original
-`formatting.php`; another five come from `blocks.php` and 21 from `kses.php`. Documents, JSON block
-trees and content inputs are processed at runtime.
+KSES and object cache CLIs plus an HTTP server. The formatting graph selects
+eight functions from `formatting.php`; another five come from `blocks.php`,
+21 from `kses.php`, and the cache suspension helper from `functions.php`.
+Documents, JSON block trees, content and cache inputs are processed at runtime.
 The HTTP adapter, callback manifest and demo callbacks belong to this experiment.
 
 This is a core subsystem port. The complete CMS bootstrap, database, plugin
@@ -40,8 +41,8 @@ elephc --version
 
 The script verifies the downloaded sources and patches, installs the locked
 PCRE2 dependency, and produces `elephc/runtime/parse`, `elephc/runtime/hooks`,
-`elephc/runtime/render`, `elephc/runtime/serialize`, `elephc/runtime/kses` and
-`elephc/runtime/server`.
+`elephc/runtime/render`, `elephc/runtime/serialize`, `elephc/runtime/kses`,
+`elephc/runtime/cache` and `elephc/runtime/server`.
 It uses `elephc` from `PATH`; set
 `ELEPHC_BIN=/absolute/path/to/elephc` to select another complete SDK.
 On workstations with the author's build queue installed, the script uses it
@@ -60,6 +61,7 @@ python3 scripts/prepare-elephc.py
   elephc --php-version 8.4 hooks.php
   elephc --php-version 8.4 render.php
   elephc --php-version 8.4 kses.php
+  elephc --php-version 8.4 cache.php
   elephc --php-version 8.4 --web server.php
 )
 ```
@@ -84,7 +86,8 @@ You can also run the executable directly and choose a different port:
 ```
 
 The demo, parsed blocks, hooks, rendered content and health endpoints are `/`,
-`/blocks`, `/hooks`, `/render` and `/health`. `/serialize` and `/kses` accept POST only.
+`/blocks`, `/hooks`, `/render` and `/health`. `/serialize`, `/kses` and `/cache`
+accept POST only.
 No database or background service manager is required.
 
 Parse your own document:
@@ -306,6 +309,57 @@ charset-recovery graph. Direct mutation of that entity table is outside the
 profile. The source-defined `raw` shortcode exists for the attribute tests;
 its output is escaped only where the selected core path applies escaping.
 
+## Object cache profile
+
+The original `WP_Object_Cache` and `wp_cache_*` API run as a cache in memory,
+with one fresh instance for each request or CLI invocation. The adapter accepts
+JSON operation sequences and returns their results plus the core hit/miss
+counters. A stored `false` or `null` is distinguishable from a missing entry
+through the `found` flag.
+
+```bash
+./elephc/runtime/cache '{"operations":[{"op":"set","key":"answer","value":false},{"op":"get","key":"answer"},{"op":"get","key":"missing"}]}'
+```
+
+This returns:
+
+```json
+{"results":[true,{"value":false,"found":true},{"value":false,"found":false}],"hits":1,"misses":1}
+```
+
+The CLI reads its first argument or stdin. POST `/cache` accepts the same JSON:
+
+```bash
+curl -sS http://127.0.0.1:9000/cache --data-binary @cache-operations.json
+```
+
+The root object contains `operations`, with at most 256 entries. Optional
+`multisite` (boolean, default false) and `blog_id` (non-negative integer, default
+1) supply the isolated site context. Multisite mode exercises core key prefixes
+and global groups with that context. It does not load site routing or a database.
+
+Operations are `set`, `add`, `replace`, `get`, `delete`, `incr`, `decr`,
+`set_multiple`, `add_multiple`, `get_multiple`, `delete_multiple`, `flush`,
+`flush_runtime`, `flush_group`, `global_groups`, `non_persistent_groups`, `switch_blog`, `suspend`, `supports`, `close` and `init`.
+Single-key operations take `key`; writes also take `value`. Bulk writes take
+`data`; bulk reads/deletes take `keys`. Optional `group`, `expire`, `offset` and
+`force` follow the corresponding core API. Group registration takes `groups`,
+site switching takes `blog_id`, suspension takes boolean/null `value`, and
+feature checks take `feature`. Full examples are in `tests/cache-fixtures.json`.
+
+Values are JSON-encodable scalars and arrays. JSON objects are decoded into
+associative arrays. Keys must be integers or nonblank strings; keys and groups
+exclude NUL bytes. Numeric strings, negative keys, null values and nested arrays
+are covered by the reference checks. Invalid JSON, invalid operation fields or
+unknown operations return HTTP 400 or CLI exit 2 with a stderr diagnostic.
+
+The default core backend ignores `expire` and `force`; `close` and registration
+of non-persistent groups are no-ops. A sequence's cache is discarded at the end
+of its request. PHP object values/cloning, direct access to cache internals,
+HTML statistics, deprecated reset and persistent cache drop-ins remain outside
+this profile. The profile supplies the constructor's site context and selects
+the original `wp_suspend_cache_addition` function without loading the CMS.
+
 ## Verified behavior
 
 ```bash
@@ -321,9 +375,10 @@ patched PHP and the rendering CLI. Another **58 serialization fixtures** compare
 original PHP, patched PHP and native output, reparsed trees and the next
 serialization pass, with **22 invalid-input cases**. Another **87 KSES fixtures**
 compare byte-exact output against original PHP, with **13 additional boundary cases** (12 through the CLI and all 13 through
-HTTP). The server checks all five corpora twice through one worker for
-**812 HTTP checks**, including routing,
-body limits, response MIME types and request isolation.
+HTTP). Another **56 object cache scenarios** compare operation sequences with
+original PHP, with **38 invalid-input cases** and CLI stdin coverage. The server
+checks all six corpora twice through one worker for **1,006 HTTP checks**,
+including routing, body limits, response MIME types and request isolation.
 
 | Request | Result |
 | --- | --- |
@@ -331,6 +386,7 @@ body limits, response MIME types and request isolation.
 | `GET /blocks` | Parsed demo as JSON |
 | `GET /health` | Version/profile information, `database: false` |
 | `POST /parse` | Parse a raw UTF-8 block document as JSON |
+| `POST /cache` | Execute a JSON sequence against a fresh core object cache |
 | `POST /kses?mode=attribute&element=a` | Filter one attribute using the selected KSES policy |
 | `POST /serialize` | Serialize a JSON block tree as a WordPress document |
 | `POST /serialize?mode=roundtrip` | Parse and serialize a raw block document |
@@ -384,6 +440,8 @@ wp-includes/shortcodes.php
 eight selected functions from wp-includes/formatting.php
 five selected functions from wp-includes/blocks.php
 21 selected functions and the entity table from wp-includes/kses.php
+WP_Object_Cache and wp-includes/cache.php
+wp_suspend_cache_addition from wp-includes/functions.php
 ```
 
 The three parser patches add explicit storage types, narrow parser frames,
@@ -408,8 +466,8 @@ intersection of shortcode tag lists. Empty-subject guards avoid a pinned
 native regex runtime crash while retaining the reference output.
 They are exercised through the upstream differential corpus.
 
-`formatting.php`, `blocks.php` and `kses.php` are patched as complete original
-files, then reduced to selected functions and source segments using byte ranges
+`formatting.php`, `blocks.php`, `kses.php` and `functions.php` are patched as
+complete original files, then reduced to selected functions and source segments using byte ranges
 and hashes recorded in the manifest. Preparation verifies the complete patched source, each selected
 fragment and each final generated module. This selection avoids importing the
 unrelated formatting/UTF-8/bootstrap graph. Builds still require no PHP
@@ -426,7 +484,7 @@ python3 scripts/test-clean-room.py
 ```
 
 The clean-room check exports maintained source files into a temporary directory,
-downloads a fresh WordPress archive, applies the patches, compiles all six
+downloads a fresh WordPress archive, applies the patches, compiles all seven
 executables and repeats the reference/HTTP checks. It reuses the installed SDK
 and native dependency cache, and removes its export when finished.
 PCRE2 10.47 is pinned in the native manifest and lockfile.

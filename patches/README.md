@@ -19,6 +19,9 @@ Repeated preparation starts from the same original sources and is idempotent.
 | `plugin.php` | Fresh hook globals, typed values/arguments, object identity adapter, table updates and explicit exceptions for nine APIs outside the hooks profile |
 | `shortcodes.php` | Typed parser values, closure adapters for regex callbacks, builtin bridges and the selected HTML attribute path |
 | `kses.php` | Selected attribute/protocol/entity helpers, original entity table, explicit CSS/XML boundaries and regex adapters |
+| `class-wp-object-cache.php` | Typed cache storage, uniform mixed maps, local bucket updates, explicit site context and JSON-profile boundaries |
+| `cache.php` | Local class include, typed API, explicit global instance initialization/guards and deprecated reset boundary |
+| `functions.php` | Select and type the original `wp_suspend_cache_addition` function |
 | `blocks.php` | Five selected serialization functions, typed recursion, explicit string emptiness and a JSON encoder boundary |
 | `formatting.php` | Typed formatting values, concrete regex cache, builtin bridges and closure newline-preservation callback |
 
@@ -71,3 +74,13 @@ and avoid the pinned empty-subject replacement crash. A getter retains the origi
 entity table and restores it for each operation after native HTTP global resets.
 The existing shortcode
 HTML branch is restored with typed callbacks and a per-call match counter.
+
+The object cache retains core add/replace/get/delete, counter, group, bulk and
+suspension behavior. Uniform mixed maps avoid a pinned native storage-contract
+failure when key 0 is followed by key -2; updates use local buckets before
+assigning class properties. The adapter supplies the constructor site context.
+Original PHP gets the same context through its normal `is_multisite` and
+`get_current_blog_id` dependencies. JSON values avoid PHP object cloning;
+magic access, HTML statistics and deprecated reset throw explicit exceptions.
+The original cache's ignored expiration/force arguments and non-persistence
+are preserved. Per-request initialization also clears addition suspension.

@@ -365,6 +365,52 @@ combined HTTP executable is 23,300,480 bytes on the native host. The parser,
 serializer and hooks sizes are unchanged. These are build observations, not
 performance claims.
 
+## Object cache extension, 2026-11-16
+
+The cache profile adds the original `WP_Object_Cache` class, its 21 `wp_cache_*`
+wrappers and the original `wp_suspend_cache_addition` function selected from
+`functions.php`. The native graph now has 13 original files, 12 compatibility
+patches and seven executables. The original class and API remain visible in
+full-file patches; the suspension helper has full-source and selected-function
+provenance hashes.
+
+The adapter supplies an isolated site context to the constructor. Original PHP
+receives the identical context through `is_multisite` and `get_current_blog_id`.
+The checked algorithms retain add/replace existence tests, null-versus-missing
+handling, the by-reference found flag, hit/miss counters, bulk results, numeric
+increments/decrements, global groups and blog prefixes. This does not bootstrap
+WordPress site management or load a persistent cache drop-in.
+
+Cache buckets and bulk results use uniform mixed maps. The pinned SDK otherwise
+fails its storage contract when setting numeric key 0 and then -2 in the same
+bucket, after a successful read of key "0". Decoding an empty JSON object supplies
+the uniform map contract; updates copy a local bucket before assigning it back
+to the object. Explicit checks for empty string and "0" preserve PHP default
+group behavior. `flush_group` retains core's literal group handling.
+
+The application accepts a JSON object with at most 256 operations and optional
+site configuration. Each invocation initializes a fresh core cache and resets
+addition suspension. JSON objects become associative arrays. Key/group NUL bytes,
+invalid keys, non-encodable numeric values and invalid operation fields raise
+explicit input errors. Object cloning, magic property access, HTML statistics
+and deprecated reset are excluded with explicit native boundaries. The original
+core's unused expire/force arguments and no-op close/non-persistent group methods
+are preserved. Within a sequence the state is shared; the next HTTP request starts
+fresh. The API returns operation results and the actual core hit/miss counters.
+
+All 56 cache scenarios agree with unmodified PHP, patched PHP and native CLI,
+including stored false/null, mixed numeric keys, float/exponent counters, integer
+overflow, suspension, bulk operations, global groups and simulated blog switching.
+All 38 invalid inputs return explicit errors. The full suite retains all previous
+corpora and passes 1,006 HTTP checks, including adjacent requests that verify cache
+and suspension isolation. A source-only export rebuilt all seven executables and
+passed the same checks, then removed its temporary tree. The build and full
+verification ran through the machine-wide queue.
+
+The native cache executable is 1,423,232 bytes and the combined server is
+24,094,336 bytes. Existing standalone profiles are unchanged. These measurements
+are build observations rather than performance claims.
+
 ## Follow-up direction
 
 A broader CMS experiment should address the UTF-8 compatibility loader's
