@@ -1,16 +1,16 @@
 # WordPress on Elephc
 
-A native AOT experiment with WordPress blocks, serialization, hooks, content, attribute KSES, object caching, list utilities, URLs, text sanitization and error objects.
+A native AOT experiment with WordPress blocks, serialization, hooks, content, attribute KSES, object caching, list utilities, URLs, text sanitization, errors and HTTP/REST response objects.
 WordPress **7.1.4**, Elephc **0.27.8**, PHP profile **8.4**, Linux x86_64.
 
 The experiment builds native CLIs for blocks, serialization, hooks, content,
-attributes, caching, lists, URLs, text sanitization and error objects, plus an HTTP server. It uses seventeen original
-core files with sixteen compatibility patches. Selected modules contain 24
-formatting functions, five block serializers, 21 KSES functions, seven helpers
-from `functions.php`, three URL parsing helpers from `http.php`, and `is_wp_error`
-from `load.php`.
-Documents, JSON block trees, content, cache/list records, URLs and error sequences are
-processed at runtime. The HTTP adapter, callback manifest and demo callbacks
+attributes, caching, lists, URLs, text sanitization, errors and HTTP/REST response
+objects, plus an HTTP server. It uses twenty original core files with nineteen
+compatibility patches. Selected modules contain 24 formatting functions, five
+block serializers, 21 KSES functions, seven helpers from `functions.php`, three
+URL parsing helpers from `http.php`, two helpers from `load.php`, and two response
+helpers from `rest-api.php`. Documents, JSON block trees, content, cache/list
+records, URLs and error/response sequences are processed at runtime. The HTTP adapter, callback manifest and demo callbacks
 belong to this experiment.
 
 This is a core subsystem port. The complete CMS bootstrap, database, plugin
@@ -45,7 +45,7 @@ The script verifies the downloaded sources and patches, installs the locked
 PCRE2 dependency, and produces `elephc/runtime/parse`, `elephc/runtime/hooks`,
 `elephc/runtime/render`, `elephc/runtime/serialize`, `elephc/runtime/kses`,
 `elephc/runtime/cache`, `elephc/runtime/lists`, `elephc/runtime/urls`,
-`elephc/runtime/sanitize`, `elephc/runtime/errors` and `elephc/runtime/server`.
+`elephc/runtime/sanitize`, `elephc/runtime/errors`, `elephc/runtime/responses` and `elephc/runtime/server`.
 It uses `elephc` from `PATH`; set
 `ELEPHC_BIN=/absolute/path/to/elephc` to select another complete SDK.
 On workstations with the author's build queue installed, the script uses it
@@ -69,6 +69,7 @@ python3 scripts/prepare-elephc.py
   elephc --php-version 8.4 urls.php
   elephc --php-version 8.4 sanitize.php
   elephc --php-version 8.4 errors.php
+  elephc --php-version 8.4 responses.php
   elephc --php-version 8.4 --web server.php
 )
 ```
@@ -93,7 +94,7 @@ You can also run the executable directly and choose a different port:
 ```
 
 The demo, parsed blocks, hooks, rendered content and health endpoints are `/`,
-`/blocks`, `/hooks`, `/render` and `/health`. `/serialize`, `/kses`, `/cache`, `/lists`, `/urls`, `/sanitize` and `/errors`
+`/blocks`, `/hooks`, `/render` and `/health`. `/serialize`, `/kses`, `/cache`, `/lists`, `/urls`, `/sanitize`, `/errors` and `/responses`
 accept POST only.
 No database or background service manager is required.
 
@@ -558,6 +559,78 @@ are outside the JSON profile. This does not load the REST API or CMS bootstrap.
 Examples and invalid inputs are in `tests/errors-fixtures.json` and
 `tests/errors-errors.json`.
 
+## HTTP and REST response objects
+
+The original `WP_HTTP_Response` and `WP_REST_Response` classes manage response
+data, status, headers, links and matched-route metadata. Selected original
+`rest_ensure_response` and `rest_convert_error_to_response` helpers connect them
+to `WP_Error`. The CLI reads a JSON object from its first argument or stdin;
+POST `/responses` accepts the same input.
+
+```bash
+./elephc/runtime/responses <<'JSON' | python3 -m json.tool
+{
+  "status": 201,
+  "data": {"id": 42},
+  "operations": [
+    {"op": "header", "key": "X-Demo", "value": "Elephc"},
+    {"op": "add-link", "rel": "self", "href": "/demo/42"},
+    {"op": "snapshot"}
+  ]
+}
+JSON
+```
+
+`kind` defaults to `rest`; `http` selects the base class. Optional `data`, `status`
+and `headers` supply constructor arguments. An `operations` list is required,
+with at most 256 entries. Results contain operation `results` and the final
+`response` snapshot. Mutations return null. The HTTP endpoint returns an
+inspection envelope with status 200 for valid operations; `response.status`
+and `response.headers` describe the WordPress object inside that envelope.
+
+| Operation | Input and original behavior |
+| --- | --- |
+| `get-data`, `json`, `get-status`, `get-headers`, `snapshot` | Inspect the object or explicitly call `jsonSerialize` |
+| `set-data`, `set-status`, `set-headers` | Required `value`; replace that field |
+| `header` | Required `key`, string `value`; optional boolean `replace` defaults true |
+| `ensure` | Preserve a REST object's identity or upgrade a base HTTP object |
+| `ensure-json` | Required JSON `value`; wrap it as an original REST response |
+| `ensure-error` | Required `errors` operation list; preserve the actual WP_Error identity |
+| `convert-error` | Required nonempty error state from `errors`; return the REST response and its conversion back to WP_Error/null |
+| `get-links`, `get-curies`, `get-route`, `get-handler`, `is-error`, `as-error` | Inspect REST-specific state or convert it to WP_Error/null |
+| `add-link` | Required `rel`, `href`; optional JSON `attributes` array |
+| `add-links` | Required `value` relation map, with one record or a collection of records containing `href` |
+| `remove-link` | Required `rel`, optional nullable string `href` |
+| `link-header` | Required `rel`, `href`; optional string map `other` |
+| `set-route`, `set-handler` | Required string/array `value`; store metadata |
+
+The `errors` list uses the operations from the error-object profile and starts
+with a fresh `main` object. Conversion requires at least one message. The last
+numeric status in the first code's data history selects the REST response status;
+other codes' statuses do not replace it. Previous data is emitted as
+`additional_data`, which the original reverse conversion does not restore.
+`as-error` on an array body with error status requires `code`, `message` and
+`data`, plus an optional list of complete `additional_errors` records.
+
+Original header case/order, comma appending, link attributes and sparse keys
+after link removal remain. Empty or string-zero href removal clears the relation,
+as in core. `curies` optionally provides up to 256 records through the original
+CURIE filter; each operation sequence resets that filter. Snapshots retain
+independent values. Handler metadata is stored as JSON data.
+
+Status inputs are integers from -9999 to 9999, normalized through original
+`absint`; this includes the core's nonstandard object status values. Numeric
+status candidates in error conversion use the same range. Header names are
+nonempty and header text excludes NUL/CR/LF. Other metadata excludes NUL. JSON
+data uses the existing 256-field/16-level limits; headers allow 256 entries,
+bulk insertion allows 256 links and accumulated link state allows 1,024.
+Invalid inputs return HTTP 400 or CLI exit 2 with a stderr diagnostic.
+
+The profile covers response objects. REST route dispatch, request parsing and
+validation, authentication, handler execution, embedded-link rendering and the
+complete CMS remain outside it. Examples and boundaries are in
+`tests/responses-fixtures.json` and `tests/responses-errors.json`.
+
 ## Verified behavior
 
 ```bash
@@ -581,7 +654,9 @@ cases** cover escaping, parsing, query building and filters, with **28 invalid
 inputs**. Another **123 sanitization cases** cover text, HTML, identifiers,
 colors and filters, with **17 invalid inputs**. Another **62 error-object cases**
 cover messages, data/history, copying, recognition and hooks, with **38 invalid
-inputs**. The server checks all ten corpora twice through one worker for **1,948 HTTP checks**, including routing, body limits, response MIME types and request isolation.
+inputs**. Another **74 response-object cases** cover inheritance, status, headers,
+links, metadata, identity and error conversion, with **48 invalid inputs**. The
+server checks all eleven corpora twice through one worker for **2,198 HTTP checks**, including routing, body limits, response MIME types and request isolation.
 
 | Request | Result |
 | --- | --- |
@@ -589,6 +664,7 @@ inputs**. The server checks all ten corpora twice through one worker for **1,948
 | `GET /blocks` | Parsed demo as JSON |
 | `GET /health` | Version/profile information, `database: false` |
 | `POST /parse` | Parse a raw UTF-8 block document as JSON |
+| `POST /responses` | Inspect native HTTP/REST response objects and convert core errors |
 | `POST /errors` | Run a JSON sequence against original core error objects |
 | `POST /sanitize` | Sanitize text, escape HTML and check identifiers/colors from JSON input |
 | `POST /urls` | Escape/parse URLs and build query strings from JSON input |
@@ -649,7 +725,10 @@ five selected functions from wp-includes/blocks.php
 21 selected functions and the entity table from wp-includes/kses.php
 WP_Object_Cache and wp-includes/cache.php
 WP_List_Util
-WP_Error and the selected is_wp_error helper from wp-includes/load.php
+WP_Error
+WP_HTTP_Response and WP_REST_Response
+absint and is_wp_error from wp-includes/load.php
+rest_ensure_response and rest_convert_error_to_response from wp-includes/rest-api.php
 four list wrappers, wp_suspend_cache_addition and two query builders from wp-includes/functions.php
 three selected URL parser functions from wp-includes/http.php
 ```
@@ -694,7 +773,7 @@ python3 scripts/test-clean-room.py
 ```
 
 The clean-room check exports maintained source files into a temporary directory,
-downloads a fresh WordPress archive, applies the patches, compiles all eleven
+downloads a fresh WordPress archive, applies the patches, compiles all twelve
 executables and repeats the reference/HTTP checks. It reuses the installed SDK
 and native dependency cache, and removes its export when finished.
 PCRE2 10.47 is pinned in the native manifest and lockfile.

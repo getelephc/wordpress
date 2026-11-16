@@ -622,6 +622,66 @@ warnings or fatal errors.
 The errors executable is 2,945,160 bytes and the combined server is 25,331,328
 bytes. These are build observations, without speed claims.
 
+## HTTP and REST response extension, 2026-11-16
+
+The graph adds complete original WP_HTTP_Response and WP_REST_Response classes,
+including their inheritance. The selected load module now contains absint and
+is_wp_error. A new selected rest-api module contains rest_ensure_response and
+rest_convert_error_to_response. The graph has 20 original files, 19 patches and
+twelve executables. Full patched sources, ordered helper ranges and generated
+module checksums remain verified; upstream files are unchanged.
+
+Response properties/methods have explicit storage contracts. Header maps and
+link buckets use uniform mixed storage with local updates. Link sets, record
+messages, nullable metadata and callback captures have explicit casts. The
+original header replacement/comma behavior, link filtering/key policy, CURIE
+filter, status reducer, inheritance and conversion algorithms remain. absint
+uses a bounded integer status contract. The native core probe agrees with PHP
+on inherited methods, sparse links, header formatting, metadata, object identity
+and error conversion. No new compiler failure was identified.
+
+The responses CLI and POST `/responses` accept JSON with kind rest (default)
+or http, optional constructor data/status/headers, and up to 256 operations.
+Operations inspect or mutate data/status/headers, explicitly call jsonSerialize,
+manage links and route/handler metadata, obtain CURIEs, detect errors and convert
+them. ensure retains the actual REST object or upgrades the HTTP base object;
+ensure-json wraps JSON, while ensure-error preserves WP_Error identity. Nested
+error operations reuse the bounded error profile and an isolated main object.
+convert-error records both the converted response and its original reverse
+conversion. Earlier snapshots retain independent values.
+
+The endpoint returns a JSON inspection envelope with transport status 200 for
+valid inputs. The nested WordPress object retains its status and header data.
+Status inputs and numeric error-status candidates are bounded to -9999..9999,
+including original absint normalization and nonstandard object status values.
+Header text excludes NUL/CR/LF; other metadata excludes NUL. JSON data retains
+256-field/16-level bounds. Headers and individual bulk-link insertions allow
+256 entries, accumulated links 1,024, and optional CURIE filter records 256.
+Error-status array bodies passed to as_error require complete code/message/data
+records, and converting an empty error is rejected before original undefined
+index behavior. Invalid input returns CLI exit 2 or HTTP 400.
+
+The original conversion chooses the last numeric status in the first code's
+history; statuses under other codes do not replace it. Previous values appear
+as additional_data, but as_error does not restore that history. Repeated
+messages can duplicate the latest data in reverse conversion. Tests compare
+both original stages separately. Link removal preserves numeric holes; null,
+empty and string-zero href removal clears the relation. Header case and order,
+reserved href attribute behavior and CURIE filter isolation are preserved.
+
+All 74 response scenarios agree with original PHP, patched PHP and native CLI.
+All 48 invalid inputs fail explicitly. The complete suite retains prior corpora
+and passes 2,198 repeated-worker HTTP checks. Fresh source-only reproduction
+rebuilds all twelve executables and repeats the suite, then removes its export.
+Runtime CLI and HTTP logs contain no PHP warnings or fatal errors. The original
+PHP oracle loads unmodified response classes, error/load/plugin sources,
+list utility/functions and REST helpers without a database.
+
+The response executable is 3,976,072 bytes and the combined server is
+25,950,336 bytes. These are build observations, without speed claims. Full REST
+routing, request validation/authentication, handler execution, embedded rendering
+and the complete CMS remain outside this response-object profile.
+
 ## Follow-up direction
 
 A broader CMS experiment should address the UTF-8 compatibility loader's

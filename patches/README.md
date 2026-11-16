@@ -24,7 +24,10 @@ Repeated preparation starts from the same original sources and is idempotent.
 | `functions.php` | Select/type four original list wrappers, `wp_suspend_cache_addition` and two query builders |
 | `http.php` | Three selected URL parser/component helpers with explicit array/scalar boundaries |
 | `class-wp-error.php` | Typed properties/methods, uniform mixed maps, local bucket updates and explicit string-zero emptiness |
-| `load.php` | Select/type only the original `is_wp_error` helper |
+| `load.php` | Select/type original `is_wp_error` and bounded integer `absint` helpers |
+| `class-wp-http-response.php` | Typed data/status/headers, uniform header storage and local updates |
+| `rest-api/class-wp-rest-response.php` | Typed inherited response API, local link updates and explicit array/message casts |
+| `rest-api.php` | Select/type only response ensuring and error conversion |
 | `class-wp-list-util.php` | Typed array records, uniform result maps, local sort updates, method callback descriptors and explicit object-record boundaries |
 | `blocks.php` | Five selected serialization functions, typed recursion, explicit string emptiness and a JSON encoder boundary |
 | `formatting.php` | Typed formatting values, concrete regex cache, builtin bridges and closure newline-preservation callback |
@@ -129,8 +132,8 @@ failure and its direct-core/mixed-encoder controls. Original color functions
 retain their nullable string return types; no invalid/empty result substitution
 is performed in the adapter.
 
-The error profile retains the complete original WP_Error class and selects only
-is_wp_error from load.php. Constructor maps use uniform mixed storage so integer
+The error profile retains the complete original WP_Error class and selects
+is_wp_error from load.php (alongside the response profile's absint helper). Constructor maps use uniform mixed storage so integer
 code 0 followed by a negative key does not trigger a list-to-map storage change.
 Local bucket updates preserve native ownership; method boundaries and extracted
 message/history arrays have explicit types. Code emptiness explicitly includes
@@ -138,3 +141,13 @@ string zero and nonempty-data handling excludes it, preserving original PHP
 behavior on the pinned SDK. The original isset history rules, message order,
 protected copy method and action calls remain. The JSON adapter bounds operations,
 state and events without replacing the original copying algorithms.
+
+The response profile retains the full WP_HTTP_Response and WP_REST_Response
+classes with their inheritance. Header/links use uniform mixed maps and local
+bucket updates; typed casts make link sets, callbacks, metadata and error records
+explicit. The original CURIE filter, header concatenation, link filtering/key
+policy and error algorithms remain. Integer absint is selected from the existing
+load module within the adapter's bounded status domain. Only rest_ensure_response
+and rest_convert_error_to_response enter the new rest-api module; the original
+status reducer, message formatting and reverse-conversion behavior are preserved.
+The adapter validates error-body shape before calling the original as_error API.
