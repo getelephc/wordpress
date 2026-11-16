@@ -1,0 +1,11 @@
+--- a/wp-includes/functions.php
++++ b/wp-includes/functions.php
+@@ -6492,7 +6492,7 @@
+  *                      Defaults to not changing the current setting.
+  * @return bool The current suspend setting.
+  */
+-function wp_suspend_cache_addition( $suspend = null ) {
++function wp_suspend_cache_addition( ?bool $suspend = null ): bool {
+ 	static $_suspend = false;
+ 
+ 	if ( is_bool( $suspend ) ) {

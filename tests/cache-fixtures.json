@@ -1,0 +1,226 @@
+[
+  {
+    "name": "empty",
+    "input": "{\"operations\":[]}"
+  },
+  {
+    "name": "miss",
+    "input": "{\"operations\":[{\"op\":\"get\",\"key\":\"absent\"}]}"
+  },
+  {
+    "name": "value-false",
+    "input": "{\"operations\":[{\"op\":\"set\",\"key\":\"key\",\"value\":false},{\"op\":\"get\",\"key\":\"key\"},{\"op\":\"add\",\"key\":\"key\",\"value\":\"new\"},{\"op\":\"get\",\"key\":\"key\"}]}"
+  },
+  {
+    "name": "value-null",
+    "input": "{\"operations\":[{\"op\":\"set\",\"key\":\"key\",\"value\":null},{\"op\":\"get\",\"key\":\"key\"},{\"op\":\"add\",\"key\":\"key\",\"value\":\"new\"},{\"op\":\"get\",\"key\":\"key\"}]}"
+  },
+  {
+    "name": "value-zero",
+    "input": "{\"operations\":[{\"op\":\"set\",\"key\":\"key\",\"value\":0},{\"op\":\"get\",\"key\":\"key\"},{\"op\":\"add\",\"key\":\"key\",\"value\":\"new\"},{\"op\":\"get\",\"key\":\"key\"}]}"
+  },
+  {
+    "name": "value-empty-string",
+    "input": "{\"operations\":[{\"op\":\"set\",\"key\":\"key\",\"value\":\"\"},{\"op\":\"get\",\"key\":\"key\"},{\"op\":\"add\",\"key\":\"key\",\"value\":\"new\"},{\"op\":\"get\",\"key\":\"key\"}]}"
+  },
+  {
+    "name": "value-zero-string",
+    "input": "{\"operations\":[{\"op\":\"set\",\"key\":\"key\",\"value\":\"0\"},{\"op\":\"get\",\"key\":\"key\"},{\"op\":\"add\",\"key\":\"key\",\"value\":\"new\"},{\"op\":\"get\",\"key\":\"key\"}]}"
+  },
+  {
+    "name": "value-empty-array",
+    "input": "{\"operations\":[{\"op\":\"set\",\"key\":\"key\",\"value\":[]},{\"op\":\"get\",\"key\":\"key\"},{\"op\":\"add\",\"key\":\"key\",\"value\":\"new\"},{\"op\":\"get\",\"key\":\"key\"}]}"
+  },
+  {
+    "name": "value-nested",
+    "input": "{\"operations\":[{\"op\":\"set\",\"key\":\"key\",\"value\":{\"a\":[1,false,null,{\"b\":\"C\"}]}},{\"op\":\"get\",\"key\":\"key\"},{\"op\":\"add\",\"key\":\"key\",\"value\":\"new\"},{\"op\":\"get\",\"key\":\"key\"}]}"
+  },
+  {
+    "name": "value-unicode",
+    "input": "{\"operations\":[{\"op\":\"set\",\"key\":\"key\",\"value\":\"WordPress 🐘 café\"},{\"op\":\"get\",\"key\":\"key\"},{\"op\":\"add\",\"key\":\"key\",\"value\":\"new\"},{\"op\":\"get\",\"key\":\"key\"}]}"
+  },
+  {
+    "name": "value-binary-string",
+    "input": "{\"operations\":[{\"op\":\"set\",\"key\":\"key\",\"value\":\"A\\u0000B\"},{\"op\":\"get\",\"key\":\"key\"},{\"op\":\"add\",\"key\":\"key\",\"value\":\"new\"},{\"op\":\"get\",\"key\":\"key\"}]}"
+  },
+  {
+    "name": "overwrite",
+    "input": "{\"operations\":[{\"op\":\"set\",\"key\":\"key\",\"value\":\"before\"},{\"op\":\"get\",\"key\":\"key\"},{\"op\":\"set\",\"key\":\"key\",\"value\":{\"after\":[1,2]}},{\"op\":\"get\",\"key\":\"key\"}]}"
+  },
+  {
+    "name": "add-existing",
+    "input": "{\"operations\":[{\"op\":\"add\",\"key\":\"x\",\"value\":1},{\"op\":\"add\",\"key\":\"x\",\"value\":2},{\"op\":\"get\",\"key\":\"x\"}]}"
+  },
+  {
+    "name": "replace-existing",
+    "input": "{\"operations\":[{\"op\":\"replace\",\"key\":\"x\",\"value\":1},{\"op\":\"set\",\"key\":\"x\",\"value\":null},{\"op\":\"replace\",\"key\":\"x\",\"value\":false},{\"op\":\"get\",\"key\":\"x\"}]}"
+  },
+  {
+    "name": "delete",
+    "input": "{\"operations\":[{\"op\":\"delete\",\"key\":\"x\"},{\"op\":\"set\",\"key\":\"x\",\"value\":false},{\"op\":\"delete\",\"key\":\"x\"},{\"op\":\"get\",\"key\":\"x\"},{\"op\":\"delete\",\"key\":\"x\"}]}"
+  },
+  {
+    "name": "numeric-keys",
+    "input": "{\"operations\":[{\"op\":\"set\",\"key\":0,\"value\":\"zero\"},{\"op\":\"get\",\"key\":\"0\"},{\"op\":\"set\",\"key\":-2,\"value\":\"negative\"},{\"op\":\"get\",\"key\":\"-2\"},{\"op\":\"set\",\"key\":\"01\",\"value\":\"leading\"},{\"op\":\"get\",\"key\":1},{\"op\":\"get\",\"key\":\"01\"},{\"op\":\"set\",\"key\":\"+1\",\"value\":\"plus\"},{\"op\":\"get\",\"key\":\"+1\"}]}"
+  },
+  {
+    "name": "groups",
+    "input": "{\"operations\":[{\"op\":\"set\",\"key\":\"x\",\"value\":1},{\"op\":\"get\",\"key\":\"x\",\"group\":\"default\"},{\"op\":\"get\",\"key\":\"x\",\"group\":\"0\"},{\"op\":\"set\",\"key\":\"x\",\"value\":2,\"group\":\"other\"},{\"op\":\"get\",\"key\":\"x\"},{\"op\":\"get\",\"key\":\"x\",\"group\":\"other\"}]}"
+  },
+  {
+    "name": "empty-group",
+    "input": "{\"operations\":[{\"op\":\"set\",\"key\":\"x\",\"value\":\"a\",\"group\":\"0\"},{\"op\":\"get\",\"key\":\"x\",\"group\":\"\"},{\"op\":\"get\",\"key\":\"x\",\"group\":\"default\"}]}"
+  },
+  {
+    "name": "bulk",
+    "input": "{\"operations\":[{\"op\":\"set_multiple\",\"data\":{\"a\":1,\"b\":false,\"c\":null}},{\"op\":\"add_multiple\",\"data\":{\"b\":2,\"d\":[1,2]}},{\"op\":\"get_multiple\",\"keys\":[\"c\",\"b\",\"a\",\"d\",\"missing\"]},{\"op\":\"delete_multiple\",\"keys\":[\"a\",\"missing\",\"c\"]},{\"op\":\"get_multiple\",\"keys\":[\"a\",\"b\",\"c\"]}]}"
+  },
+  {
+    "name": "bulk-empty",
+    "input": "{\"operations\":[{\"op\":\"set_multiple\",\"data\":{}},{\"op\":\"add_multiple\",\"data\":[]},{\"op\":\"get_multiple\",\"keys\":[]},{\"op\":\"delete_multiple\",\"keys\":[]}]}"
+  },
+  {
+    "name": "bulk-numeric",
+    "input": "{\"operations\":[{\"op\":\"set_multiple\",\"data\":{\"0\":\"zero\",\"4\":\"four\",\"04\":\"leading\"}},{\"op\":\"get_multiple\",\"keys\":[0,\"4\",\"04\",4]},{\"op\":\"delete_multiple\",\"keys\":[0,\"4\",4]}]}"
+  },
+  {
+    "name": "bulk-duplicates",
+    "input": "{\"operations\":[{\"op\":\"set\",\"key\":\"x\",\"value\":1},{\"op\":\"get_multiple\",\"keys\":[\"x\",\"x\",\"missing\",\"missing\"]},{\"op\":\"delete_multiple\",\"keys\":[\"x\",\"x\"]}]}"
+  },
+  {
+    "name": "counter-int",
+    "input": "{\"operations\":[{\"op\":\"set\",\"key\":\"n\",\"value\":10},{\"op\":\"incr\",\"key\":\"n\",\"offset\":2},{\"op\":\"decr\",\"key\":\"n\",\"offset\":5},{\"op\":\"get\",\"key\":\"n\"}]}"
+  },
+  {
+    "name": "counter-float",
+    "input": "{\"operations\":[{\"op\":\"set\",\"key\":\"n\",\"value\":1.5},{\"op\":\"incr\",\"key\":\"n\",\"offset\":2},{\"op\":\"decr\",\"key\":\"n\",\"offset\":5},{\"op\":\"get\",\"key\":\"n\"}]}"
+  },
+  {
+    "name": "counter-numeric-string",
+    "input": "{\"operations\":[{\"op\":\"set\",\"key\":\"n\",\"value\":\"12\"},{\"op\":\"incr\",\"key\":\"n\",\"offset\":2},{\"op\":\"decr\",\"key\":\"n\",\"offset\":5},{\"op\":\"get\",\"key\":\"n\"}]}"
+  },
+  {
+    "name": "counter-float-string",
+    "input": "{\"operations\":[{\"op\":\"set\",\"key\":\"n\",\"value\":\"1.25\"},{\"op\":\"incr\",\"key\":\"n\",\"offset\":2},{\"op\":\"decr\",\"key\":\"n\",\"offset\":5},{\"op\":\"get\",\"key\":\"n\"}]}"
+  },
+  {
+    "name": "counter-exponent",
+    "input": "{\"operations\":[{\"op\":\"set\",\"key\":\"n\",\"value\":\"1e3\"},{\"op\":\"incr\",\"key\":\"n\",\"offset\":2},{\"op\":\"decr\",\"key\":\"n\",\"offset\":5},{\"op\":\"get\",\"key\":\"n\"}]}"
+  },
+  {
+    "name": "counter-false",
+    "input": "{\"operations\":[{\"op\":\"set\",\"key\":\"n\",\"value\":false},{\"op\":\"incr\",\"key\":\"n\",\"offset\":2},{\"op\":\"decr\",\"key\":\"n\",\"offset\":5},{\"op\":\"get\",\"key\":\"n\"}]}"
+  },
+  {
+    "name": "counter-null",
+    "input": "{\"operations\":[{\"op\":\"set\",\"key\":\"n\",\"value\":null},{\"op\":\"incr\",\"key\":\"n\",\"offset\":2},{\"op\":\"decr\",\"key\":\"n\",\"offset\":5},{\"op\":\"get\",\"key\":\"n\"}]}"
+  },
+  {
+    "name": "counter-text",
+    "input": "{\"operations\":[{\"op\":\"set\",\"key\":\"n\",\"value\":\"abc\"},{\"op\":\"incr\",\"key\":\"n\",\"offset\":2},{\"op\":\"decr\",\"key\":\"n\",\"offset\":5},{\"op\":\"get\",\"key\":\"n\"}]}"
+  },
+  {
+    "name": "counter-array",
+    "input": "{\"operations\":[{\"op\":\"set\",\"key\":\"n\",\"value\":[1]},{\"op\":\"incr\",\"key\":\"n\",\"offset\":2},{\"op\":\"decr\",\"key\":\"n\",\"offset\":5},{\"op\":\"get\",\"key\":\"n\"}]}"
+  },
+  {
+    "name": "counter-negative",
+    "input": "{\"operations\":[{\"op\":\"set\",\"key\":\"n\",\"value\":-2},{\"op\":\"incr\",\"key\":\"n\",\"offset\":2},{\"op\":\"decr\",\"key\":\"n\",\"offset\":5},{\"op\":\"get\",\"key\":\"n\"}]}"
+  },
+  {
+    "name": "counter-missing",
+    "input": "{\"operations\":[{\"op\":\"incr\",\"key\":\"n\"},{\"op\":\"decr\",\"key\":\"n\"}]}"
+  },
+  {
+    "name": "counter-offsets",
+    "input": "{\"operations\":[{\"op\":\"set\",\"key\":\"n\",\"value\":3},{\"op\":\"incr\",\"key\":\"n\",\"offset\":0},{\"op\":\"incr\",\"key\":\"n\",\"offset\":-7},{\"op\":\"decr\",\"key\":\"n\",\"offset\":-4},{\"op\":\"decr\",\"key\":\"n\",\"offset\":99},{\"op\":\"get\",\"key\":\"n\"}]}"
+  },
+  {
+    "name": "counter-overflow",
+    "input": "{\"operations\":[{\"op\":\"set\",\"key\":\"n\",\"value\":9223372036854775807},{\"op\":\"incr\",\"key\":\"n\"},{\"op\":\"get\",\"key\":\"n\"}]}"
+  },
+  {
+    "name": "expiration-unused",
+    "input": "{\"operations\":[{\"op\":\"set\",\"key\":\"x\",\"value\":\"kept\",\"expire\":-1},{\"op\":\"get\",\"key\":\"x\",\"force\":true},{\"op\":\"replace\",\"key\":\"x\",\"value\":\"new\",\"expire\":1},{\"op\":\"get\",\"key\":\"x\"}]}"
+  },
+  {
+    "name": "suspension",
+    "input": "{\"operations\":[{\"op\":\"suspend\"},{\"op\":\"suspend\",\"value\":true},{\"op\":\"add\",\"key\":\"x\",\"value\":1},{\"op\":\"set\",\"key\":\"x\",\"value\":2},{\"op\":\"replace\",\"key\":\"x\",\"value\":3},{\"op\":\"get\",\"key\":\"x\"},{\"op\":\"suspend\",\"value\":null},{\"op\":\"suspend\",\"value\":false},{\"op\":\"add\",\"key\":\"y\",\"value\":4},{\"op\":\"get\",\"key\":\"y\"}]}"
+  },
+  {
+    "name": "suspended-bulk",
+    "input": "{\"operations\":[{\"op\":\"suspend\",\"value\":true},{\"op\":\"add_multiple\",\"data\":{\"a\":1,\"b\":2}},{\"op\":\"set_multiple\",\"data\":{\"a\":3}},{\"op\":\"suspend\",\"value\":false},{\"op\":\"add_multiple\",\"data\":{\"a\":4,\"b\":5}},{\"op\":\"get_multiple\",\"keys\":[\"a\",\"b\"]}]}"
+  },
+  {
+    "name": "flush",
+    "input": "{\"operations\":[{\"op\":\"set\",\"key\":\"x\",\"value\":1},{\"op\":\"get\",\"key\":\"x\"},{\"op\":\"get\",\"key\":\"missing\"},{\"op\":\"flush\"},{\"op\":\"get\",\"key\":\"x\"}]}"
+  },
+  {
+    "name": "flush-runtime",
+    "input": "{\"operations\":[{\"op\":\"set\",\"key\":\"x\",\"value\":1},{\"op\":\"flush_runtime\"},{\"op\":\"get\",\"key\":\"x\"}]}"
+  },
+  {
+    "name": "flush-group",
+    "input": "{\"operations\":[{\"op\":\"set\",\"key\":\"x\",\"value\":1},{\"op\":\"set\",\"key\":\"x\",\"value\":2,\"group\":\"other\"},{\"op\":\"flush_group\",\"group\":\"other\"},{\"op\":\"get\",\"key\":\"x\"},{\"op\":\"get\",\"key\":\"x\",\"group\":\"other\"},{\"op\":\"flush_group\",\"group\":\"missing\"}]}"
+  },
+  {
+    "name": "flush-group-literal",
+    "input": "{\"operations\":[{\"op\":\"set\",\"key\":\"x\",\"value\":1},{\"op\":\"flush_group\",\"group\":\"0\"},{\"op\":\"get\",\"key\":\"x\"},{\"op\":\"flush_group\",\"group\":\"\"},{\"op\":\"get\",\"key\":\"x\"},{\"op\":\"flush_group\",\"group\":\"default\"},{\"op\":\"get\",\"key\":\"x\"}]}"
+  },
+  {
+    "name": "single-site-switch",
+    "input": "{\"operations\":[{\"op\":\"set\",\"key\":\"x\",\"value\":1},{\"op\":\"switch_blog\",\"blog_id\":2},{\"op\":\"get\",\"key\":\"x\"},{\"op\":\"switch_blog\",\"blog_id\":1},{\"op\":\"get\",\"key\":\"x\"}]}"
+  },
+  {
+    "name": "multisite-isolation",
+    "input": "{\"multisite\":true,\"operations\":[{\"op\":\"set\",\"key\":\"x\",\"value\":1},{\"op\":\"switch_blog\",\"blog_id\":2},{\"op\":\"get\",\"key\":\"x\"},{\"op\":\"set\",\"key\":\"x\",\"value\":2},{\"op\":\"get\",\"key\":\"x\"},{\"op\":\"switch_blog\",\"blog_id\":1},{\"op\":\"get\",\"key\":\"x\"}]}"
+  },
+  {
+    "name": "multisite-global",
+    "input": "{\"multisite\":true,\"operations\":[{\"op\":\"global_groups\",\"groups\":[\"shared\"]},{\"op\":\"set\",\"key\":\"x\",\"value\":1,\"group\":\"shared\"},{\"op\":\"set\",\"key\":\"x\",\"value\":2},{\"op\":\"switch_blog\",\"blog_id\":2},{\"op\":\"get\",\"key\":\"x\",\"group\":\"shared\"},{\"op\":\"get\",\"key\":\"x\"},{\"op\":\"set\",\"key\":\"x\",\"value\":3,\"group\":\"shared\"},{\"op\":\"switch_blog\",\"blog_id\":1},{\"op\":\"get\",\"key\":\"x\",\"group\":\"shared\"},{\"op\":\"get\",\"key\":\"x\"}]}"
+  },
+  {
+    "name": "global-groups-merge",
+    "input": "{\"multisite\":true,\"blog_id\":7,\"operations\":[{\"op\":\"global_groups\",\"groups\":\"one\"},{\"op\":\"global_groups\",\"groups\":[\"two\",\"one\"]},{\"op\":\"set\",\"key\":\"x\",\"value\":1,\"group\":\"one\"},{\"op\":\"set\",\"key\":\"x\",\"value\":2,\"group\":\"two\"},{\"op\":\"switch_blog\",\"blog_id\":9},{\"op\":\"get\",\"key\":\"x\",\"group\":\"one\"},{\"op\":\"get\",\"key\":\"x\",\"group\":\"two\"}]}"
+  },
+  {
+    "name": "late-global-group",
+    "input": "{\"multisite\":true,\"operations\":[{\"op\":\"set\",\"key\":\"x\",\"value\":\"local\",\"group\":\"g\"},{\"op\":\"global_groups\",\"groups\":\"g\"},{\"op\":\"get\",\"key\":\"x\",\"group\":\"g\"},{\"op\":\"set\",\"key\":\"x\",\"value\":\"global\",\"group\":\"g\"},{\"op\":\"switch_blog\",\"blog_id\":2},{\"op\":\"get\",\"key\":\"x\",\"group\":\"g\"}]}"
+  },
+  {
+    "name": "global-group-flush",
+    "input": "{\"multisite\":true,\"operations\":[{\"op\":\"global_groups\",\"groups\":\"g\"},{\"op\":\"set\",\"key\":\"x\",\"value\":1,\"group\":\"g\"},{\"op\":\"flush\"},{\"op\":\"set\",\"key\":\"x\",\"value\":2,\"group\":\"g\"},{\"op\":\"switch_blog\",\"blog_id\":2},{\"op\":\"get\",\"key\":\"x\",\"group\":\"g\"}]}"
+  },
+  {
+    "name": "multisite-flush-group",
+    "input": "{\"multisite\":true,\"operations\":[{\"op\":\"set\",\"key\":\"x\",\"value\":1,\"group\":\"g\"},{\"op\":\"switch_blog\",\"blog_id\":2},{\"op\":\"set\",\"key\":\"x\",\"value\":2,\"group\":\"g\"},{\"op\":\"flush_group\",\"group\":\"g\"},{\"op\":\"get\",\"key\":\"x\",\"group\":\"g\"},{\"op\":\"switch_blog\",\"blog_id\":1},{\"op\":\"get\",\"key\":\"x\",\"group\":\"g\"}]}"
+  },
+  {
+    "name": "close-and-nonpersistent",
+    "input": "{\"operations\":[{\"op\":\"set\",\"key\":\"x\",\"value\":1,\"group\":\"g\"},{\"op\":\"non_persistent_groups\",\"groups\":[\"g\"]},{\"op\":\"close\"},{\"op\":\"get\",\"key\":\"x\",\"group\":\"g\"}]}"
+  },
+  {
+    "name": "reinitialize",
+    "input": "{\"operations\":[{\"op\":\"set\",\"key\":\"x\",\"value\":1},{\"op\":\"get\",\"key\":\"x\"},{\"op\":\"init\"},{\"op\":\"get\",\"key\":\"x\"}]}"
+  },
+  {
+    "name": "init-keeps-suspension",
+    "input": "{\"operations\":[{\"op\":\"suspend\",\"value\":true},{\"op\":\"init\"},{\"op\":\"add\",\"key\":\"x\",\"value\":1},{\"op\":\"suspend\"}]}"
+  },
+  {
+    "name": "supported-features",
+    "input": "{\"operations\":[{\"op\":\"supports\",\"feature\":\"add_multiple\"},{\"op\":\"supports\",\"feature\":\"set_multiple\"},{\"op\":\"supports\",\"feature\":\"get_multiple\"},{\"op\":\"supports\",\"feature\":\"delete_multiple\"},{\"op\":\"supports\",\"feature\":\"flush_runtime\"},{\"op\":\"supports\",\"feature\":\"flush_group\"},{\"op\":\"supports\",\"feature\":\"unknown\"},{\"op\":\"supports\",\"feature\":\"GET_MULTIPLE\"}]}"
+  },
+  {
+    "name": "max-operations",
+    "input": "{\"operations\":[{\"op\":\"close\"},{\"op\":\"close\"},{\"op\":\"close\"},{\"op\":\"close\"},{\"op\":\"close\"},{\"op\":\"close\"},{\"op\":\"close\"},{\"op\":\"close\"},{\"op\":\"close\"},{\"op\":\"close\"},{\"op\":\"close\"},{\"op\":\"close\"},{\"op\":\"close\"},{\"op\":\"close\"},{\"op\":\"close\"},{\"op\":\"close\"},{\"op\":\"close\"},{\"op\":\"close\"},{\"op\":\"close\"},{\"op\":\"close\"},{\"op\":\"close\"},{\"op\":\"close\"},{\"op\":\"close\"},{\"op\":\"close\"},{\"op\":\"close\"},{\"op\":\"close\"},{\"op\":\"close\"},{\"op\":\"close\"},{\"op\":\"close\"},{\"op\":\"close\"},{\"op\":\"close\"},{\"op\":\"close\"},{\"op\":\"close\"},{\"op\":\"close\"},{\"op\":\"close\"},{\"op\":\"close\"},{\"op\":\"close\"},{\"op\":\"close\"},{\"op\":\"close\"},{\"op\":\"close\"},{\"op\":\"close\"},{\"op\":\"close\"},{\"op\":\"close\"},{\"op\":\"close\"},{\"op\":\"close\"},{\"op\":\"close\"},{\"op\":\"close\"},{\"op\":\"close\"},{\"op\":\"close\"},{\"op\":\"close\"},{\"op\":\"close\"},{\"op\":\"close\"},{\"op\":\"close\"},{\"op\":\"close\"},{\"op\":\"close\"},{\"op\":\"close\"},{\"op\":\"close\"},{\"op\":\"close\"},{\"op\":\"close\"},{\"op\":\"close\"},{\"op\":\"close\"},{\"op\":\"close\"},{\"op\":\"close\"},{\"op\":\"close\"},{\"op\":\"close\"},{\"op\":\"close\"},{\"op\":\"close\"},{\"op\":\"close\"},{\"op\":\"close\"},{\"op\":\"close\"},{\"op\":\"close\"},{\"op\":\"close\"},{\"op\":\"close\"},{\"op\":\"close\"},{\"op\":\"close\"},{\"op\":\"close\"},{\"op\":\"close\"},{\"op\":\"close\"},{\"op\":\"close\"},{\"op\":\"close\"},{\"op\":\"close\"},{\"op\":\"close\"},{\"op\":\"close\"},{\"op\":\"close\"},{\"op\":\"close\"},{\"op\":\"close\"},{\"op\":\"close\"},{\"op\":\"close\"},{\"op\":\"close\"},{\"op\":\"close\"},{\"op\":\"close\"},{\"op\":\"close\"},{\"op\":\"close\"},{\"op\":\"close\"},{\"op\":\"close\"},{\"op\":\"close\"},{\"op\":\"close\"},{\"op\":\"close\"},{\"op\":\"close\"},{\"op\":\"close\"},{\"op\":\"close\"},{\"op\":\"close\"},{\"op\":\"close\"},{\"op\":\"close\"},{\"op\":\"close\"},{\"op\":\"close\"},{\"op\":\"close\"},{\"op\":\"close\"},{\"op\":\"close\"},{\"op\":\"close\"},{\"op\":\"close\"},{\"op\":\"close\"},{\"op\":\"close\"},{\"op\":\"close\"},{\"op\":\"close\"},{\"op\":\"close\"},{\"op\":\"close\"},{\"op\":\"close\"},{\"op\":\"close\"},{\"op\":\"close\"},{\"op\":\"close\"},{\"op\":\"close\"},{\"op\":\"close\"},{\"op\":\"close\"},{\"op\":\"close\"},{\"op\":\"close\"},{\"op\":\"close\"},{\"op\":\"close\"},{\"op\":\"close\"},{\"op\":\"close\"},{\"op\":\"close\"},{\"op\":\"close\"},{\"op\":\"close\"},{\"op\":\"close\"},{\"op\":\"close\"},{\"op\":\"close\"},{\"op\":\"close\"},{\"op\":\"close\"},{\"op\":\"close\"},{\"op\":\"close\"},{\"op\":\"close\"},{\"op\":\"close\"},{\"op\":\"close\"},{\"op\":\"close\"},{\"op\":\"close\"},{\"op\":\"close\"},{\"op\":\"close\"},{\"op\":\"close\"},{\"op\":\"close\"},{\"op\":\"close\"},{\"op\":\"close\"},{\"op\":\"close\"},{\"op\":\"close\"},{\"op\":\"close\"},{\"op\":\"close\"},{\"op\":\"close\"},{\"op\":\"close\"},{\"op\":\"close\"},{\"op\":\"close\"},{\"op\":\"close\"},{\"op\":\"close\"},{\"op\":\"close\"},{\"op\":\"close\"},{\"op\":\"close\"},{\"op\":\"close\"},{\"op\":\"close\"},{\"op\":\"close\"},{\"op\":\"close\"},{\"op\":\"close\"},{\"op\":\"close\"},{\"op\":\"close\"},{\"op\":\"close\"},{\"op\":\"close\"},{\"op\":\"close\"},{\"op\":\"close\"},{\"op\":\"close\"},{\"op\":\"close\"},{\"op\":\"close\"},{\"op\":\"close\"},{\"op\":\"close\"},{\"op\":\"close\"},{\"op\":\"close\"},{\"op\":\"close\"},{\"op\":\"close\"},{\"op\":\"close\"},{\"op\":\"close\"},{\"op\":\"close\"},{\"op\":\"close\"},{\"op\":\"close\"},{\"op\":\"close\"},{\"op\":\"close\"},{\"op\":\"close\"},{\"op\":\"close\"},{\"op\":\"close\"},{\"op\":\"close\"},{\"op\":\"close\"},{\"op\":\"close\"},{\"op\":\"close\"},{\"op\":\"close\"},{\"op\":\"close\"},{\"op\":\"close\"},{\"op\":\"close\"},{\"op\":\"close\"},{\"op\":\"close\"},{\"op\":\"close\"},{\"op\":\"close\"},{\"op\":\"close\"},{\"op\":\"close\"},{\"op\":\"close\"},{\"op\":\"close\"},{\"op\":\"close\"},{\"op\":\"close\"},{\"op\":\"close\"},{\"op\":\"close\"},{\"op\":\"close\"},{\"op\":\"close\"},{\"op\":\"close\"},{\"op\":\"close\"},{\"op\":\"close\"},{\"op\":\"close\"},{\"op\":\"close\"},{\"op\":\"close\"},{\"op\":\"close\"},{\"op\":\"close\"},{\"op\":\"close\"},{\"op\":\"close\"},{\"op\":\"close\"},{\"op\":\"close\"},{\"op\":\"close\"},{\"op\":\"close\"},{\"op\":\"close\"},{\"op\":\"close\"},{\"op\":\"close\"},{\"op\":\"close\"},{\"op\":\"close\"},{\"op\":\"close\"},{\"op\":\"close\"},{\"op\":\"close\"},{\"op\":\"close\"},{\"op\":\"close\"},{\"op\":\"close\"},{\"op\":\"close\"},{\"op\":\"close\"},{\"op\":\"close\"},{\"op\":\"close\"},{\"op\":\"close\"},{\"op\":\"close\"},{\"op\":\"close\"},{\"op\":\"close\"},{\"op\":\"close\"},{\"op\":\"close\"},{\"op\":\"close\"},{\"op\":\"close\"},{\"op\":\"close\"},{\"op\":\"close\"},{\"op\":\"close\"}]}"
+  },
+  {
+    "name": "request-write",
+    "input": "{\"operations\":[{\"op\":\"set\",\"key\":\"request-secret\",\"value\":42},{\"op\":\"suspend\",\"value\":true}]}"
+  },
+  {
+    "name": "request-read",
+    "input": "{\"operations\":[{\"op\":\"get\",\"key\":\"request-secret\"},{\"op\":\"add\",\"key\":\"fresh\",\"value\":1}]}"
+  }
+]

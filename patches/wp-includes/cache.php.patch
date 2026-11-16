@@ -1,0 +1,253 @@
+--- a/wp-includes/cache.php
++++ b/wp-includes/cache.php
+@@ -9,7 +9,7 @@
+  */
+ 
+ /** WP_Object_Cache class */
+-require_once ABSPATH . WPINC . '/class-wp-object-cache.php';
++require_once __DIR__ . '/class-wp-object-cache.php';
+ 
+ /**
+  * Sets up Object Cache Global and assigns it.
+@@ -18,8 +18,9 @@
+  *
+  * @global WP_Object_Cache $wp_object_cache
+  */
+-function wp_cache_init() {
+-	$GLOBALS['wp_object_cache'] = new WP_Object_Cache();
++function wp_cache_init(  ): void {
++	global $wp_object_cache;
++	$wp_object_cache = new WP_Object_Cache();
+ }
+ 
+ /**
+@@ -38,8 +39,9 @@
+  *                           Default 0 (no expiration).
+  * @return bool True on success, false if cache key and group already exist.
+  */
+-function wp_cache_add( $key, $data, $group = '', $expire = 0 ) {
+-	global $wp_object_cache;
++function wp_cache_add( mixed $key, mixed $data, string $group = '', int $expire = 0 ): bool {
++	global $wp_object_cache;
++	if ( ! $wp_object_cache instanceof WP_Object_Cache ) { throw new LogicException('Cache is not initialized.'); }
+ 
+ 	return $wp_object_cache->add( $key, $data, $group, (int) $expire );
+ }
+@@ -59,8 +61,9 @@
+  * @return bool[] Array of return values, grouped by key. Each value is either
+  *                true on success, or false if cache key and group already exist.
+  */
+-function wp_cache_add_multiple( array $data, $group = '', $expire = 0 ) {
+-	global $wp_object_cache;
++function wp_cache_add_multiple( array $data, string $group = '', int $expire = 0 ): array {
++	global $wp_object_cache;
++	if ( ! $wp_object_cache instanceof WP_Object_Cache ) { throw new LogicException('Cache is not initialized.'); }
+ 
+ 	return $wp_object_cache->add_multiple( $data, $group, (int) $expire );
+ }
+@@ -81,8 +84,9 @@
+  *                           Default 0 (no expiration).
+  * @return bool True if contents were replaced, false if original value does not exist.
+  */
+-function wp_cache_replace( $key, $data, $group = '', $expire = 0 ) {
+-	global $wp_object_cache;
++function wp_cache_replace( mixed $key, mixed $data, string $group = '', int $expire = 0 ): bool {
++	global $wp_object_cache;
++	if ( ! $wp_object_cache instanceof WP_Object_Cache ) { throw new LogicException('Cache is not initialized.'); }
+ 
+ 	return $wp_object_cache->replace( $key, $data, $group, (int) $expire );
+ }
+@@ -105,8 +109,9 @@
+  *                           Default 0 (no expiration).
+  * @return bool True on success, false on failure.
+  */
+-function wp_cache_set( $key, $data, $group = '', $expire = 0 ) {
+-	global $wp_object_cache;
++function wp_cache_set( mixed $key, mixed $data, string $group = '', int $expire = 0 ): bool {
++	global $wp_object_cache;
++	if ( ! $wp_object_cache instanceof WP_Object_Cache ) { throw new LogicException('Cache is not initialized.'); }
+ 
+ 	return $wp_object_cache->set( $key, $data, $group, (int) $expire );
+ }
+@@ -126,8 +131,9 @@
+  * @return bool[] Array of return values, grouped by key. Each value is either
+  *                true on success, or false on failure.
+  */
+-function wp_cache_set_multiple( array $data, $group = '', $expire = 0 ) {
+-	global $wp_object_cache;
++function wp_cache_set_multiple( array $data, string $group = '', int $expire = 0 ): array {
++	global $wp_object_cache;
++	if ( ! $wp_object_cache instanceof WP_Object_Cache ) { throw new LogicException('Cache is not initialized.'); }
+ 
+ 	return $wp_object_cache->set_multiple( $data, $group, (int) $expire );
+ }
+@@ -148,8 +154,9 @@
+  *                          Disambiguates a return of false, a storable value. Default null.
+  * @return mixed|false The cache contents on success, false on failure to retrieve contents.
+  */
+-function wp_cache_get( $key, $group = '', $force = false, &$found = null ) {
+-	global $wp_object_cache;
++function wp_cache_get( mixed $key, string $group = '', bool $force = false, ?bool &$found = null ): mixed {
++	global $wp_object_cache;
++	if ( ! $wp_object_cache instanceof WP_Object_Cache ) { throw new LogicException('Cache is not initialized.'); }
+ 
+ 	return $wp_object_cache->get( $key, $group, $force, $found );
+ }
+@@ -169,8 +176,9 @@
+  * @return array Array of return values, grouped by key. Each value is either
+  *               the cache contents on success, or false on failure.
+  */
+-function wp_cache_get_multiple( $keys, $group = '', $force = false ) {
+-	global $wp_object_cache;
++function wp_cache_get_multiple( array $keys, string $group = '', bool $force = false ): array {
++	global $wp_object_cache;
++	if ( ! $wp_object_cache instanceof WP_Object_Cache ) { throw new LogicException('Cache is not initialized.'); }
+ 
+ 	return $wp_object_cache->get_multiple( $keys, $group, $force );
+ }
+@@ -187,8 +195,9 @@
+  * @param string     $group Optional. Where the cache contents are grouped. Default empty.
+  * @return bool True on successful removal, false on failure.
+  */
+-function wp_cache_delete( $key, $group = '' ) {
+-	global $wp_object_cache;
++function wp_cache_delete( mixed $key, string $group = '' ): bool {
++	global $wp_object_cache;
++	if ( ! $wp_object_cache instanceof WP_Object_Cache ) { throw new LogicException('Cache is not initialized.'); }
+ 
+ 	return $wp_object_cache->delete( $key, $group );
+ }
+@@ -206,8 +215,9 @@
+  * @return bool[] Array of return values, grouped by key. Each value is either
+  *                true on success, or false if the contents were not deleted.
+  */
+-function wp_cache_delete_multiple( array $keys, $group = '' ) {
+-	global $wp_object_cache;
++function wp_cache_delete_multiple( array $keys, string $group = '' ): array {
++	global $wp_object_cache;
++	if ( ! $wp_object_cache instanceof WP_Object_Cache ) { throw new LogicException('Cache is not initialized.'); }
+ 
+ 	return $wp_object_cache->delete_multiple( $keys, $group );
+ }
+@@ -226,8 +236,9 @@
+  * @param string     $group  Optional. The group the key is in. Default empty.
+  * @return int|false The item's new value on success, false on failure.
+  */
+-function wp_cache_incr( $key, $offset = 1, $group = '' ) {
+-	global $wp_object_cache;
++function wp_cache_incr( mixed $key, int $offset = 1, string $group = '' ): mixed {
++	global $wp_object_cache;
++	if ( ! $wp_object_cache instanceof WP_Object_Cache ) { throw new LogicException('Cache is not initialized.'); }
+ 
+ 	return $wp_object_cache->incr( $key, $offset, $group );
+ }
+@@ -246,8 +257,9 @@
+  * @param string     $group  Optional. The group the key is in. Default empty.
+  * @return int|false The item's new value on success, false on failure.
+  */
+-function wp_cache_decr( $key, $offset = 1, $group = '' ) {
+-	global $wp_object_cache;
++function wp_cache_decr( mixed $key, int $offset = 1, string $group = '' ): mixed {
++	global $wp_object_cache;
++	if ( ! $wp_object_cache instanceof WP_Object_Cache ) { throw new LogicException('Cache is not initialized.'); }
+ 
+ 	return $wp_object_cache->decr( $key, $offset, $group );
+ }
+@@ -262,8 +274,9 @@
+  *
+  * @return bool True on success, false on failure.
+  */
+-function wp_cache_flush() {
+-	global $wp_object_cache;
++function wp_cache_flush(  ): bool {
++	global $wp_object_cache;
++	if ( ! $wp_object_cache instanceof WP_Object_Cache ) { throw new LogicException('Cache is not initialized.'); }
+ 
+ 	return $wp_object_cache->flush();
+ }
+@@ -277,7 +290,7 @@
+  *
+  * @return bool True on success, false on failure.
+  */
+-function wp_cache_flush_runtime() {
++function wp_cache_flush_runtime(  ): bool {
+ 	return wp_cache_flush();
+ }
+ 
+@@ -295,8 +308,9 @@
+  * @param string $group Name of group to remove from cache.
+  * @return bool True if group was flushed, false otherwise.
+  */
+-function wp_cache_flush_group( $group ) {
+-	global $wp_object_cache;
++function wp_cache_flush_group( string $group ): bool {
++	global $wp_object_cache;
++	if ( ! $wp_object_cache instanceof WP_Object_Cache ) { throw new LogicException('Cache is not initialized.'); }
+ 
+ 	return $wp_object_cache->flush_group( $group );
+ }
+@@ -311,7 +325,7 @@
+  *                        'flush_runtime', 'flush_group'.
+  * @return bool True if the feature is supported, false otherwise.
+  */
+-function wp_cache_supports( $feature ) {
++function wp_cache_supports( string $feature ): bool {
+ 	switch ( $feature ) {
+ 		case 'add_multiple':
+ 		case 'set_multiple':
+@@ -339,7 +353,7 @@
+  *
+  * @return true Always returns true.
+  */
+-function wp_cache_close() {
++function wp_cache_close(  ): bool {
+ 	return true;
+ }
+ 
+@@ -353,8 +367,9 @@
+  *
+  * @param string|string[] $groups A group or an array of groups to add.
+  */
+-function wp_cache_add_global_groups( $groups ) {
+-	global $wp_object_cache;
++function wp_cache_add_global_groups( mixed $groups ): void {
++	global $wp_object_cache;
++	if ( ! $wp_object_cache instanceof WP_Object_Cache ) { throw new LogicException('Cache is not initialized.'); }
+ 
+ 	$wp_object_cache->add_global_groups( $groups );
+ }
+@@ -366,7 +381,7 @@
+  *
+  * @param string|string[] $groups A group or an array of groups to add.
+  */
+-function wp_cache_add_non_persistent_groups( $groups ) {
++function wp_cache_add_non_persistent_groups( mixed $groups ): void {
+ 	// Default cache doesn't persist so nothing to do here.
+ }
+ 
+@@ -382,8 +397,9 @@
+  *
+  * @param int $blog_id Site ID.
+  */
+-function wp_cache_switch_to_blog( $blog_id ) {
+-	global $wp_object_cache;
++function wp_cache_switch_to_blog( int $blog_id ): void {
++	global $wp_object_cache;
++	if ( ! $wp_object_cache instanceof WP_Object_Cache ) { throw new LogicException('Cache is not initialized.'); }
+ 
+ 	$wp_object_cache->switch_to_blog( $blog_id );
+ }
+@@ -406,10 +422,6 @@
+  *
+  * @global WP_Object_Cache $wp_object_cache Object cache global instance.
+  */
+-function wp_cache_reset() {
+-	_deprecated_function( __FUNCTION__, '3.5.0', 'wp_cache_switch_to_blog()' );
+-
+-	global $wp_object_cache;
+-
+-	$wp_object_cache->reset();
+-}
++function wp_cache_reset(  ): void {
++	throw new LogicException('Deprecated cache reset is outside the JSON cache profile.');
++	}

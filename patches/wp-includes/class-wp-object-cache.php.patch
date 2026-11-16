@@ -1,0 +1,508 @@
+--- a/wp-includes/class-wp-object-cache.php
++++ b/wp-includes/class-wp-object-cache.php
+@@ -30,7 +30,7 @@
+ 	 * @since 2.0.0
+ 	 * @var array
+ 	 */
+-	private $cache = array();
++	private array $cache = array();
+ 
+ 	/**
+ 	 * The amount of times the cache data was already stored in the cache.
+@@ -38,7 +38,7 @@
+ 	 * @since 2.5.0
+ 	 * @var int
+ 	 */
+-	public $cache_hits = 0;
++	public int $cache_hits = 0;
+ 
+ 	/**
+ 	 * Amount of times the cache did not have the request in cache.
+@@ -46,7 +46,7 @@
+ 	 * @since 2.0.0
+ 	 * @var int
+ 	 */
+-	public $cache_misses = 0;
++	public int $cache_misses = 0;
+ 
+ 	/**
+ 	 * List of global cache groups.
+@@ -54,7 +54,7 @@
+ 	 * @since 3.0.0
+ 	 * @var string[]
+ 	 */
+-	protected $global_groups = array();
++	protected array $global_groups = array();
+ 
+ 	/**
+ 	 * The blog prefix to prepend to keys in non-global groups.
+@@ -62,15 +62,15 @@
+ 	 * @since 3.5.0
+ 	 * @var string
+ 	 */
+-	private $blog_prefix;
+-
+-	/**
+-	 * Holds the value of is_multisite().
++	private string $blog_prefix;
++
++	/**
++	 * Holds the value of wordpress_cache_multisite().
+ 	 *
+ 	 * @since 3.5.0
+ 	 * @var bool
+ 	 */
+-	private $multisite;
++	private bool $multisite;
+ 
+ 	/**
+ 	 * Sets up object properties.
+@@ -78,8 +78,10 @@
+ 	 * @since 2.0.8
+ 	 */
+ 	public function __construct() {
+-		$this->multisite   = is_multisite();
+-		$this->blog_prefix = $this->multisite ? get_current_blog_id() . ':' : '';
++		$this->cache = wordpress_cache_map();
++		$this->global_groups = wordpress_cache_map();
++		$this->multisite   = wordpress_cache_multisite();
++		$this->blog_prefix = $this->multisite ? wordpress_cache_blog_id() . ':' : '';
+ 	}
+ 
+ 	/**
+@@ -90,8 +92,8 @@
+ 	 * @param string $name Property to get.
+ 	 * @return mixed Property.
+ 	 */
+-	public function __get( $name ) {
+-		return $this->$name;
++	public function __get( string $name ): mixed {
++		throw new LogicException('Direct cache property access is outside the JSON cache profile.');
+ 	}
+ 
+ 	/**
+@@ -102,8 +104,8 @@
+ 	 * @param string $name  Property to set.
+ 	 * @param mixed  $value Property value.
+ 	 */
+-	public function __set( $name, $value ) {
+-		$this->$name = $value;
++	public function __set( string $name, mixed $value ): void {
++		throw new LogicException('Direct cache property access is outside the JSON cache profile.');
+ 	}
+ 
+ 	/**
+@@ -114,8 +116,8 @@
+ 	 * @param string $name Property to check if set.
+ 	 * @return bool Whether the property is set.
+ 	 */
+-	public function __isset( $name ) {
+-		return isset( $this->$name );
++	public function __isset( string $name ): bool {
++		throw new LogicException('Direct cache property access is outside the JSON cache profile.');
+ 	}
+ 
+ 	/**
+@@ -125,8 +127,8 @@
+ 	 *
+ 	 * @param string $name Property to unset.
+ 	 */
+-	public function __unset( $name ) {
+-		unset( $this->$name );
++	public function __unset( string $name ): void {
++		throw new LogicException('Direct cache property access is outside the JSON cache profile.');
+ 	}
+ 
+ 	/**
+@@ -137,33 +139,9 @@
+ 	 * @param int|string $key Cache key to check for validity.
+ 	 * @return bool Whether the key is valid.
+ 	 */
+-	protected function is_valid_key( $key ) {
+-		if ( is_int( $key ) ) {
+-			return true;
+-		}
+-
+-		if ( is_string( $key ) && trim( $key ) !== '' ) {
+-			return true;
+-		}
+-
+-		$type = gettype( $key );
+-
+-		if ( ! function_exists( '__' ) ) {
+-			wp_load_translations_early();
+-		}
+-
+-		$message = is_string( $key )
+-			? __( 'Cache key must not be an empty string.' )
+-			/* translators: %s: The type of the given cache key. */
+-			: sprintf( __( 'Cache key must be an integer or a non-empty string, %s given.' ), $type );
+-
+-		_doing_it_wrong(
+-			sprintf( '%s::%s', __CLASS__, debug_backtrace( DEBUG_BACKTRACE_IGNORE_ARGS, 2 )[1]['function'] ),
+-			$message,
+-			'6.1.0'
+-		);
+-
+-		return false;
++	protected function is_valid_key( mixed $key ): bool {
++		if ( is_int( $key ) || ( is_string( $key ) && trim( (string) $key ) !== '' ) ) { return true; }
++		throw new InvalidArgumentException('Cache keys must be integers or non-empty strings.');
+ 	}
+ 
+ 	/**
+@@ -175,8 +153,8 @@
+ 	 * @param string     $group Cache group for the key existence check.
+ 	 * @return bool Whether the key exists in the cache for the given group.
+ 	 */
+-	protected function _exists( $key, $group ) {
+-		return isset( $this->cache[ $group ] ) && ( isset( $this->cache[ $group ][ $key ] ) || array_key_exists( $key, $this->cache[ $group ] ) );
++	protected function _exists( mixed $key, string $group ): bool {
++		return isset( $this->cache[ $group ] ) && ( isset( $this->cache[ $group ][ $key ] ) || array_key_exists( $key, (array) $this->cache[ $group ] ) );
+ 	}
+ 
+ 	/**
+@@ -195,7 +173,7 @@
+ 	 *                           Default 0 (no expiration).
+ 	 * @return bool True on success, false if cache key and group already exist.
+ 	 */
+-	public function add( $key, $data, $group = 'default', $expire = 0 ) {
++	public function add( mixed $key, mixed $data, string $group = 'default', int $expire = 0 ): bool {
+ 		if ( wp_suspend_cache_addition() ) {
+ 			return false;
+ 		}
+@@ -204,7 +182,7 @@
+ 			return false;
+ 		}
+ 
+-		if ( empty( $group ) ) {
++		if ( '' === $group || '0' === $group ) {
+ 			$group = 'default';
+ 		}
+ 
+@@ -232,8 +210,8 @@
+ 	 * @return bool[] Array of return values, grouped by key. Each value is either
+ 	 *                true on success, or false if cache key and group already exist.
+ 	 */
+-	public function add_multiple( array $data, $group = '', $expire = 0 ) {
+-		$values = array();
++	public function add_multiple( array $data, string $group = '', int $expire = 0 ): array {
++		$values = wordpress_cache_map();
+ 
+ 		foreach ( $data as $key => $value ) {
+ 			$values[ $key ] = $this->add( $key, $value, $group, $expire );
+@@ -256,12 +234,12 @@
+ 	 *                           Default 0 (no expiration).
+ 	 * @return bool True if contents were replaced, false if original value does not exist.
+ 	 */
+-	public function replace( $key, $data, $group = 'default', $expire = 0 ) {
++	public function replace( mixed $key, mixed $data, string $group = 'default', int $expire = 0 ): bool {
+ 		if ( ! $this->is_valid_key( $key ) ) {
+ 			return false;
+ 		}
+ 
+-		if ( empty( $group ) ) {
++		if ( '' === $group || '0' === $group ) {
+ 			$group = 'default';
+ 		}
+ 
+@@ -298,12 +276,12 @@
+ 	 * @param int        $expire Optional. Not used.
+ 	 * @return bool True if contents were set, false if key is invalid.
+ 	 */
+-	public function set( $key, $data, $group = 'default', $expire = 0 ) {
++	public function set( mixed $key, mixed $data, string $group = 'default', int $expire = 0 ): bool {
+ 		if ( ! $this->is_valid_key( $key ) ) {
+ 			return false;
+ 		}
+ 
+-		if ( empty( $group ) ) {
++		if ( '' === $group || '0' === $group ) {
+ 			$group = 'default';
+ 		}
+ 
+@@ -312,10 +290,14 @@
+ 		}
+ 
+ 		if ( is_object( $data ) ) {
+-			$data = clone $data;
+-		}
+-
+-		$this->cache[ $group ][ $key ] = $data;
++			throw new InvalidArgumentException('Object values are outside the JSON cache profile.');
++		}
++
++		$cache = (array) $this->cache;
++		$bucket = isset( $cache[$group] ) ? (array) $cache[$group] : wordpress_cache_map();
++		$bucket[$key] = $data;
++		$cache[$group] = $bucket;
++		$this->cache = $cache;
+ 		return true;
+ 	}
+ 
+@@ -330,8 +312,8 @@
+ 	 *                       Default 0 (no expiration).
+ 	 * @return bool[] Array of return values, grouped by key. Each value is always true.
+ 	 */
+-	public function set_multiple( array $data, $group = '', $expire = 0 ) {
+-		$values = array();
++	public function set_multiple( array $data, string $group = '', int $expire = 0 ): array {
++		$values = wordpress_cache_map();
+ 
+ 		foreach ( $data as $key => $value ) {
+ 			$values[ $key ] = $this->set( $key, $value, $group, $expire );
+@@ -359,12 +341,12 @@
+ 	 *                          Disambiguates a return of false, a storable value. Default null.
+ 	 * @return mixed|false The cache contents on success, false on failure to retrieve contents.
+ 	 */
+-	public function get( $key, $group = 'default', $force = false, &$found = null ) {
++	public function get( mixed $key, string $group = 'default', bool $force = false, ?bool &$found = null ): mixed {
+ 		if ( ! $this->is_valid_key( $key ) ) {
+ 			return false;
+ 		}
+ 
+-		if ( empty( $group ) ) {
++		if ( '' === $group || '0' === $group ) {
+ 			$group = 'default';
+ 		}
+ 
+@@ -376,7 +358,7 @@
+ 			$found             = true;
+ 			$this->cache_hits += 1;
+ 			if ( is_object( $this->cache[ $group ][ $key ] ) ) {
+-				return clone $this->cache[ $group ][ $key ];
++				throw new InvalidArgumentException('Object values are outside the JSON cache profile.');
+ 			} else {
+ 				return $this->cache[ $group ][ $key ];
+ 			}
+@@ -399,8 +381,8 @@
+ 	 * @return array Array of return values, grouped by key. Each value is either
+ 	 *               the cache contents on success, or false on failure.
+ 	 */
+-	public function get_multiple( $keys, $group = 'default', $force = false ) {
+-		$values = array();
++	public function get_multiple( array $keys, string $group = 'default', bool $force = false ): array {
++		$values = wordpress_cache_map();
+ 
+ 		foreach ( $keys as $key ) {
+ 			$values[ $key ] = $this->get( $key, $group, $force );
+@@ -421,12 +403,12 @@
+ 	 * @param bool       $deprecated Optional. Unused. Default false.
+ 	 * @return bool True on success, false if the contents were not deleted.
+ 	 */
+-	public function delete( $key, $group = 'default', $deprecated = false ) {
++	public function delete( mixed $key, string $group = 'default', bool $deprecated = false ): bool {
+ 		if ( ! $this->is_valid_key( $key ) ) {
+ 			return false;
+ 		}
+ 
+-		if ( empty( $group ) ) {
++		if ( '' === $group || '0' === $group ) {
+ 			$group = 'default';
+ 		}
+ 
+@@ -438,7 +420,11 @@
+ 			return false;
+ 		}
+ 
+-		unset( $this->cache[ $group ][ $key ] );
++		$cache = (array) $this->cache;
++		$bucket = (array) $cache[$group];
++		unset( $bucket[$key] );
++		$cache[$group] = $bucket;
++		$this->cache = $cache;
+ 		return true;
+ 	}
+ 
+@@ -452,8 +438,8 @@
+ 	 * @return bool[] Array of return values, grouped by key. Each value is either
+ 	 *                true on success, or false if the contents were not deleted.
+ 	 */
+-	public function delete_multiple( array $keys, $group = '' ) {
+-		$values = array();
++	public function delete_multiple( array $keys, string $group = '' ): array {
++		$values = wordpress_cache_map();
+ 
+ 		foreach ( $keys as $key ) {
+ 			$values[ $key ] = $this->delete( $key, $group );
+@@ -473,12 +459,12 @@
+ 	 * @param string     $group  Optional. The group the key is in. Default 'default'.
+ 	 * @return int|false The item's new value on success, false on failure.
+ 	 */
+-	public function incr( $key, $offset = 1, $group = 'default' ) {
++	public function incr( mixed $key, int $offset = 1, string $group = 'default' ): mixed {
+ 		if ( ! $this->is_valid_key( $key ) ) {
+ 			return false;
+ 		}
+ 
+-		if ( empty( $group ) ) {
++		if ( '' === $group || '0' === $group ) {
+ 			$group = 'default';
+ 		}
+ 
+@@ -490,19 +476,23 @@
+ 			return false;
+ 		}
+ 
+-		if ( ! is_numeric( $this->cache[ $group ][ $key ] ) ) {
+-			$this->cache[ $group ][ $key ] = 0;
++		$cache = (array) $this->cache;
++		$bucket = (array) $cache[$group];
++		if ( ! is_numeric( $bucket[$key] ) ) {
++			$bucket[$key] = 0;
+ 		}
+ 
+ 		$offset = (int) $offset;
+ 
+-		$this->cache[ $group ][ $key ] += $offset;
+-
+-		if ( $this->cache[ $group ][ $key ] < 0 ) {
+-			$this->cache[ $group ][ $key ] = 0;
+-		}
+-
+-		return $this->cache[ $group ][ $key ];
++		$bucket[$key] += $offset;
++
++		if ( $bucket[$key] < 0 ) {
++			$bucket[$key] = 0;
++		}
++
++		$cache[$group] = $bucket;
++		$this->cache = $cache;
++		return $bucket[$key];
+ 	}
+ 
+ 	/**
+@@ -516,12 +506,12 @@
+ 	 * @param string     $group  Optional. The group the key is in. Default 'default'.
+ 	 * @return int|false The item's new value on success, false on failure.
+ 	 */
+-	public function decr( $key, $offset = 1, $group = 'default' ) {
++	public function decr( mixed $key, int $offset = 1, string $group = 'default' ): mixed {
+ 		if ( ! $this->is_valid_key( $key ) ) {
+ 			return false;
+ 		}
+ 
+-		if ( empty( $group ) ) {
++		if ( '' === $group || '0' === $group ) {
+ 			$group = 'default';
+ 		}
+ 
+@@ -533,19 +523,23 @@
+ 			return false;
+ 		}
+ 
+-		if ( ! is_numeric( $this->cache[ $group ][ $key ] ) ) {
+-			$this->cache[ $group ][ $key ] = 0;
++		$cache = (array) $this->cache;
++		$bucket = (array) $cache[$group];
++		if ( ! is_numeric( $bucket[$key] ) ) {
++			$bucket[$key] = 0;
+ 		}
+ 
+ 		$offset = (int) $offset;
+ 
+-		$this->cache[ $group ][ $key ] -= $offset;
+-
+-		if ( $this->cache[ $group ][ $key ] < 0 ) {
+-			$this->cache[ $group ][ $key ] = 0;
+-		}
+-
+-		return $this->cache[ $group ][ $key ];
++		$bucket[$key] -= $offset;
++
++		if ( $bucket[$key] < 0 ) {
++			$bucket[$key] = 0;
++		}
++
++		$cache[$group] = $bucket;
++		$this->cache = $cache;
++		return $bucket[$key];
+ 	}
+ 
+ 	/**
+@@ -555,8 +549,8 @@
+ 	 *
+ 	 * @return true Always returns true.
+ 	 */
+-	public function flush() {
+-		$this->cache = array();
++	public function flush(  ): bool {
++		$this->cache = wordpress_cache_map();
+ 
+ 		return true;
+ 	}
+@@ -569,8 +563,10 @@
+ 	 * @param string $group Name of group to remove from cache.
+ 	 * @return true Always returns true.
+ 	 */
+-	public function flush_group( $group ) {
+-		unset( $this->cache[ $group ] );
++	public function flush_group( string $group ): bool {
++		$cache = (array) $this->cache;
++		unset( $cache[$group] );
++		$this->cache = $cache;
+ 
+ 		return true;
+ 	}
+@@ -582,11 +578,10 @@
+ 	 *
+ 	 * @param string|string[] $groups List of groups that are global.
+ 	 */
+-	public function add_global_groups( $groups ) {
+-		$groups = (array) $groups;
+-
+-		$groups              = array_fill_keys( $groups, true );
+-		$this->global_groups = array_merge( $this->global_groups, $groups );
++	public function add_global_groups( mixed $groups ): void {
++		$merged = (array) $this->global_groups;
++		foreach ( (array) $groups as $group ) { $merged[(string) $group] = true; }
++		$this->global_groups = $merged;
+ 	}
+ 
+ 	/**
+@@ -598,7 +593,7 @@
+ 	 *
+ 	 * @param int $blog_id Blog ID.
+ 	 */
+-	public function switch_to_blog( $blog_id ) {
++	public function switch_to_blog( int $blog_id ): void {
+ 		$blog_id           = (int) $blog_id;
+ 		$this->blog_prefix = $this->multisite ? $blog_id . ':' : '';
+ 	}
+@@ -611,15 +606,8 @@
+ 	 * @deprecated 3.5.0 Use WP_Object_Cache::switch_to_blog()
+ 	 * @see switch_to_blog()
+ 	 */
+-	public function reset() {
+-		_deprecated_function( __FUNCTION__, '3.5.0', 'WP_Object_Cache::switch_to_blog()' );
+-
+-		// Clear out non-global caches since the blog ID has changed.
+-		foreach ( array_keys( $this->cache ) as $group ) {
+-			if ( ! isset( $this->global_groups[ $group ] ) ) {
+-				unset( $this->cache[ $group ] );
+-			}
+-		}
++	public function reset(  ): void {
++		throw new LogicException('Deprecated cache reset is outside the JSON cache profile.');
+ 	}
+ 
+ 	/**
+@@ -630,15 +618,7 @@
+ 	 *
+ 	 * @since 2.0.0
+ 	 */
+-	public function stats() {
+-		echo '<p>';
+-		echo "<strong>Cache Hits:</strong> {$this->cache_hits}<br />";
+-		echo "<strong>Cache Misses:</strong> {$this->cache_misses}<br />";
+-		echo '</p>';
+-		echo '<ul>';
+-		foreach ( $this->cache as $group => $cache ) {
+-			echo '<li><strong>Group:</strong> ' . esc_html( $group ) . ' - ( ' . number_format( strlen( serialize( $cache ) ) / KB_IN_BYTES, 2 ) . 'k )</li>';
+-		}
+-		echo '</ul>';
++	public function stats(  ): void {
++		throw new LogicException('HTML cache statistics are outside the JSON cache profile.');
+ 	}
+ }

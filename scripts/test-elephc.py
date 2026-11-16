@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Compare native blocks, serialization, hooks, content and KSES with original PHP."""
+"""Compare native blocks, serialization, hooks, content, KSES and cache with original PHP."""
 
 import http.client
 import base64
@@ -111,6 +111,22 @@ def main():
         assert result.stderr.startswith(prefix) and b"Warning:" not in result.stderr and b"Fatal error" not in result.stderr, (fixture["name"], result.stderr)
         error_checks += 1
     print(f"PASS: {len(kses_fixtures)} KSES fixtures match original PHP; {error_checks} CLI boundary checks.")
+
+    cache_fixtures = json.loads((ROOT / "tests/cache-fixtures.json").read_text())
+    cache_errors = json.loads((ROOT / "tests/cache-errors.json").read_text())
+    cache_reference = run_json([php, "tests/cache-reference.php", "upstream"])
+    assert run_json([php, "tests/cache-reference.php", "profile"]) == cache_reference, "Patched cache differs from original PHP"
+    cache = str(ROOT / "elephc/runtime/cache")
+    for fixture in cache_fixtures:
+        actual = run_json([cache, fixture["input"]])
+        assert actual == cache_reference[fixture["name"]], (fixture["name"], actual, cache_reference[fixture["name"]])
+    assert json.loads(run_output([cache], cache_fixtures[0]["input"].encode())) == cache_reference[cache_fixtures[0]["name"]]
+    for fixture in cache_errors:
+        data = base64.b64decode(fixture["input_base64"]) if "input_base64" in fixture else fixture["input"].encode()
+        result = subprocess.run([cache], input=data, capture_output=True, timeout=20)
+        assert result.returncode == 2 and not result.stdout, (fixture["name"], result)
+        assert result.stderr.startswith(b"Cache error: ") and b"Fatal error" not in result.stderr and b"Warning:" not in result.stderr, (fixture["name"], result.stderr)
+    print(f"PASS: {len(cache_fixtures)} object cache scenarios match original PHP; stdin and {len(cache_errors)} CLI boundary checks.")
 
     with socket.socket() as listener:
         listener.bind(("127.0.0.1", 0))
@@ -230,6 +246,28 @@ def main():
                 status, _, body = request("POST", "/kses", b"x" * 65537)
                 assert status == 413
                 checks += 4
+                for fixture in cache_fixtures:
+                    try:
+                        status, headers, body = request("POST", "/cache", fixture["input"].encode())
+                    except Exception as error:
+                        raise AssertionError(f"Native cache request failed: {fixture['name']}") from error
+                    assert status == 200 and headers["content-type"].startswith("application/json"), (fixture["name"], status, body)
+                    assert json.loads(body) == cache_reference[fixture["name"]], (fixture["name"], body, cache_reference[fixture["name"]])
+                    checks += 1
+                for fixture in cache_errors:
+                    data = base64.b64decode(fixture["input_base64"]) if "input_base64" in fixture else fixture["input"].encode()
+                    status, headers, body = request("POST", "/cache", data)
+                    assert status == 400 and headers["content-type"].startswith("application/json"), (fixture["name"], status, body)
+                    assert isinstance(json.loads(body)["error"], str), fixture["name"]
+                    checks += 1
+                for method in ("GET", "HEAD"):
+                    status, headers, body = request(method, "/cache")
+                    assert status == 405 and headers["allow"] == "POST"
+                    if method == "HEAD":
+                        assert body == b""
+                status, _, body = request("POST", "/cache", b"x" * 65537)
+                assert status == 413
+                checks += 3
                 status, _, body = request("POST", "/filter", hook_input.encode())
                 assert status == 200 and json.loads(body) == hook_reference["priority"]
                 status, _, body = request("GET", "/hooks?case=unknown")
