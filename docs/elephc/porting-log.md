@@ -682,6 +682,73 @@ The response executable is 3,976,072 bytes and the combined server is
 routing, request validation/authentication, handler execution, embedded rendering
 and the complete CMS remain outside this response-object profile.
 
+## Bounded REST request extension, 2026-11-17
+
+The graph adds WP_REST_Request with a bounded header/parameter/JSON profile.
+The selected load module gains the original wp_is_json_media_type predicate.
+There are 21 generated core files, 20 patches and thirteen executables. Full
+source, helper-range and generated checksums remain verified. The original
+WP_Http source is additionally checksum-verified for its BAD_REQUEST constant
+used by the PHP oracle; its transport graph is not compiled into native code.
+
+Typed properties, signatures and ArrayAccess methods provide storage contracts.
+Source/header maps use uniform mixed storage and local bucket updates. Content
+metadata uses an explicit four-field map and typed trim callback. Static header
+canonicalization uses late-bound static:: syntax because the pinned checker
+rejects the original instance call to a static method. The JSON media predicate
+retains its exact original regex but elides its pure static memoization: the
+pinned EIR backend rejects initializing Array(Never) in a Mixed static local.
+Both limitations have maintained minimal diagnostics and compiler follow-ups.
+
+The requests CLI and POST `/requests` accept explicit method/route/attributes,
+headers, raw body and URL/GET/POST/FILES/default source maps, plus at most 256
+operations. Methods and canonical headers, source-specific getters/setters,
+merged/individual lookup, presence checks, real ArrayAccess operators and lazy
+JSON parsing call the original core. The source-defined adapter subclass exposes
+protected order, parse result and raw state for inspection. Budget checks and
+peek read state without forcing parsing; snapshots run the normal getters.
+File values remain metadata and no file operations are performed.
+
+The option context is explicit and request-local. Native code reads the adapter's
+permalink policy while original PHP uses the normal pre-option filter, avoiding
+a database. The original class's English JSON error label is supplied by a fixed
+locale fixture; native code retains that verified label and constant 400. The
+SDK decoder adds an intentional near-location suffix to diagnostic text. A
+small request bridge strips only that suffix from WordPress json_error_message,
+retaining the decoder code and the complete original WP_Error data. A standalone
+raw diagnostic preserves the SDK/PHP difference; it is not a claim that the
+intentional diagnostic extension is itself a compiler defect.
+
+The profile preserves header case/hyphen canonicalization, value lists, source
+priority, numeric keys, default handling and null/presence distinctions.
+get_param skips null while merged get_params can retain it; has_param and
+ArrayAccess isset differ for null-only sources. set_param updates active
+non-default sources and otherwise writes into the first ordered source.
+Changing a content header does not invalidate an existing JSON parse attempt;
+set_body resets the flags and JSON slot. Invalid JSON checks return the original
+rest_invalid_json error details while getters can still return null/fallbacks.
+The outer inspection call uses HTTP 200 for valid modeled operations.
+
+Inputs have bounded JSON source/value arguments (256 fields, 16 levels), request
+state has at most 256 fields per source, and header names/value lists allow 256
+entries each. Body text is UTF-8 without NUL; JSON body objects/lists/null and
+original string-zero empty-body behavior are covered. Other scalar JSON bodies
+are excluded. Profile input errors return CLI exit 2 or HTTP 400. Form decoding
+for non-POST raw bodies, schema validation/sanitization, URL discovery, locale
+bootstrap, authentication and handler/route dispatch remain explicit boundaries.
+Their original bodies remain visible in the patch; unsupported APIs throw.
+
+All 70 scenarios agree with unmodified PHP, patched PHP and native CLI. All 45
+input boundaries fail explicitly. The complete suite retains every prior corpus
+and passes 2,434 repeated-worker HTTP checks. Fresh source-only reproduction
+rebuilds thirteen executables and repeats the suite, then removes its export.
+Native CLI and HTTP logs contain no PHP warnings or fatal errors. The request
+executable is 4,265,832 bytes and the combined server is 26,806,656 bytes. These
+are build observations without speed claims.
+
+Compiler tasks `ad219f8e` and `bb834c02` request retesting
+the two hard compilation failures on current main before retiring adapters.
+
 ## Follow-up direction
 
 A broader CMS experiment should address the UTF-8 compatibility loader's

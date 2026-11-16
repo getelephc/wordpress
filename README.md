@@ -1,17 +1,17 @@
 # WordPress on Elephc
 
-A native AOT experiment with WordPress blocks, serialization, hooks, content, attribute KSES, object caching, list utilities, URLs, text sanitization, errors and HTTP/REST response objects.
+A native AOT experiment with WordPress blocks, serialization, hooks, content, attribute KSES, object caching, list utilities, URLs, text sanitization, errors and HTTP/REST request/response objects.
 WordPress **7.1.4**, Elephc **0.27.8**, PHP profile **8.4**, Linux x86_64.
 
 The experiment builds native CLIs for blocks, serialization, hooks, content,
-attributes, caching, lists, URLs, text sanitization, errors and HTTP/REST response
-objects, plus an HTTP server. It uses twenty original core files with nineteen
-compatibility patches. Selected modules contain 24 formatting functions, five
+attributes, caching, lists, URLs, text sanitization, errors and HTTP/REST request/response
+objects, plus an HTTP server. It uses 21 original core files with 20 compatibility
+patches. Selected modules contain 24 formatting functions, five
 block serializers, 21 KSES functions, seven helpers from `functions.php`, three
-URL parsing helpers from `http.php`, two helpers from `load.php`, and two response
+URL parsing helpers from `http.php`, three helpers from `load.php`, and two response
 helpers from `rest-api.php`. Documents, JSON block trees, content, cache/list
-records, URLs and error/response sequences are processed at runtime. The HTTP adapter, callback manifest and demo callbacks
-belong to this experiment.
+records, URLs and request/error/response sequences are processed at runtime.
+The HTTP adapter, callback manifest and demo callbacks belong to this experiment.
 
 This is a core subsystem port. The complete CMS bootstrap, database, plugin
 discovery, themes, block rendering and `wp-admin` are outside the current profile.
@@ -45,7 +45,7 @@ The script verifies the downloaded sources and patches, installs the locked
 PCRE2 dependency, and produces `elephc/runtime/parse`, `elephc/runtime/hooks`,
 `elephc/runtime/render`, `elephc/runtime/serialize`, `elephc/runtime/kses`,
 `elephc/runtime/cache`, `elephc/runtime/lists`, `elephc/runtime/urls`,
-`elephc/runtime/sanitize`, `elephc/runtime/errors`, `elephc/runtime/responses` and `elephc/runtime/server`.
+`elephc/runtime/sanitize`, `elephc/runtime/errors`, `elephc/runtime/responses`, `elephc/runtime/requests` and `elephc/runtime/server`.
 It uses `elephc` from `PATH`; set
 `ELEPHC_BIN=/absolute/path/to/elephc` to select another complete SDK.
 On workstations with the author's build queue installed, the script uses it
@@ -70,6 +70,7 @@ python3 scripts/prepare-elephc.py
   elephc --php-version 8.4 sanitize.php
   elephc --php-version 8.4 errors.php
   elephc --php-version 8.4 responses.php
+  elephc --php-version 8.4 requests.php
   elephc --php-version 8.4 --web server.php
 )
 ```
@@ -94,7 +95,7 @@ You can also run the executable directly and choose a different port:
 ```
 
 The demo, parsed blocks, hooks, rendered content and health endpoints are `/`,
-`/blocks`, `/hooks`, `/render` and `/health`. `/serialize`, `/kses`, `/cache`, `/lists`, `/urls`, `/sanitize`, `/errors` and `/responses`
+`/blocks`, `/hooks`, `/render` and `/health`. `/serialize`, `/kses`, `/cache`, `/lists`, `/urls`, `/sanitize`, `/errors`, `/responses` and `/requests`
 accept POST only.
 No database or background service manager is required.
 
@@ -631,6 +632,92 @@ validation, authentication, handler execution, embedded-link rendering and the
 complete CMS remain outside it. Examples and boundaries are in
 `tests/responses-fixtures.json` and `tests/responses-errors.json`.
 
+## REST request objects
+
+The bounded `WP_REST_Request` profile models methods, canonical headers, route
+metadata, parameter sources, lazy JSON bodies and `ArrayAccess`. The CLI reads
+a JSON description from its first argument or stdin; POST `/requests` accepts
+the same object. Its `method` selects the method of the modeled WordPress request.
+
+```bash
+./elephc/runtime/requests <<'JSON' | python3 -m json.tool
+{
+  "method": "POST",
+  "headers": {"Content-Type": "application/json"},
+  "query": {"id": 1},
+  "body": "{\"id\":2}",
+  "operations": [
+    {"op": "get-param", "key": "id"},
+    {"op": "offset-set", "key": "id", "value": 3},
+    {"op": "get-query"},
+    {"op": "get-json"}
+  ]
+}
+JSON
+```
+
+The example reads JSON `id` first, then updates the existing JSON and query
+sources. The final two results contain `id: 3`. Optional `method` and `route`
+default to empty strings, `attributes` to an empty array and raw `body` to null.
+`headers`, `query`, `url`, `post`, `files` and `defaults` supply explicit source
+maps. File values are metadata; no file uploads or filesystem access are run.
+An `operations` list of at most 256 entries is required.
+
+| Operation | Input and original behavior |
+| --- | --- |
+| `get-method`, `set-method`, `is-method` | Setter/comparison take string `value`; core uppercases method names |
+| `get-route`, `set-route`, `get-attributes`, `set-attributes` | Setter takes string/JSON-array `value`; metadata is stored |
+| `get-headers`, `get-content-type`, `is-json` | Inspect canonical headers and original media-type detection |
+| `canonical-header`, `get-header`, `header-values`, `remove-header` | Required header `key` |
+| `set-header`, `add-header` | Required `key` and string/list `value` |
+| `set-headers` | Required header-map `value`, optional boolean `override` defaults true |
+| `get-body`, `set-body`, `get-json`, `json-check` | Body setter takes string `value`; JSON check exposes true or original WP_Error details |
+| `get-query`, `get-url`, `get-post`, `get-files`, `get-defaults` | Read explicit parameter sources |
+| `set-query`, `set-url`, `set-post`, `set-files`, `set-defaults` | Required JSON-array `value`; replace that source |
+| `order`, `get-params` | Inspect core source priority and merged parameters |
+| `get-param`, `has-param`, `set-param` | Required integer/string `key`; setter also requires JSON `value` |
+| `offset-get`, `offset-exists`, `offset-set`, `offset-unset` | Exercise real ArrayAccess operators; setter requires `value` |
+| `peek`, `snapshot` | Inspect raw sources/parse flags or run the normal merged-parameter getters |
+
+`get-param` skips null values while `has-param` recognizes a present null.
+`get-params` can retain a higher-priority null that differs from individual
+lookup. ArrayAccess `isset` uses the core's non-null existence rules. Setters
+update existing active non-default sources; otherwise they write into the first
+source in the current order. Unset removes the key from every source in the current order.
+Numeric keys retain their original values and insertion order.
+
+JSON parameters take priority when the content type is JSON, followed by POST
+for POST/PUT/PATCH/DELETE, GET, URL and defaults. Optional `order` supplies one to
+six source labels through the original filter. `permalinks` supplies the isolated
+option context: false (default) removes `rest_route` from merged output, while
+individual lookup can still read it. The PHP oracle supplies that same context
+through the original option filter, with no database.
+
+Core lazy-parsing behavior remains: changing headers does not reset a previous
+JSON parse attempt, while `set-body` resets JSON and body parsing flags. `peek`
+and adapter budget checks read state without forcing parsing; `snapshot` uses
+normal getters and can trigger it. Invalid modeled JSON can be inspected through
+`json-check` as original `rest_invalid_json` details; its getter returns null.
+These are successful inspection calls with transport status 200. Invalid profile
+inputs return HTTP 400 or CLI exit 2 with a stderr diagnostic.
+
+Header text excludes NUL/CR/LF and names are nonempty. Raw body text excludes
+NUL; parsed JSON bodies support arrays, objects, null and the core's empty-body
+handling of string zero. Other scalar JSON bodies are outside the profile.
+Each source-map or value input uses the existing 256-field/16-level JSON limits; request
+state allows 256 fields per source, header names and values per name. Each
+invocation resets the order filter and option context. The fixed English JSON
+error label and pinned BAD_REQUEST constant avoid loading locale/transport
+bootstrap in native code.
+
+URL-encoded parsing for non-POST bodies, schema validation/sanitization, URL
+request discovery, authentication and route/handler dispatch remain outside the
+profile. Supply already decoded POST/query maps explicitly. The class retains
+explicit exceptions for unsupported schema/URL APIs and the parse_str-dependent
+branch. The media-type predicate retains its original regex without its static
+memoization, which the pinned backend rejects. Examples and boundaries are in
+`tests/requests-fixtures.json` and `tests/requests-errors.json`.
+
 ## Verified behavior
 
 ```bash
@@ -655,8 +742,10 @@ inputs**. Another **123 sanitization cases** cover text, HTML, identifiers,
 colors and filters, with **17 invalid inputs**. Another **62 error-object cases**
 cover messages, data/history, copying, recognition and hooks, with **38 invalid
 inputs**. Another **74 response-object cases** cover inheritance, status, headers,
-links, metadata, identity and error conversion, with **48 invalid inputs**. The
-server checks all eleven corpora twice through one worker for **2,198 HTTP checks**, including routing, body limits, response MIME types and request isolation.
+links, metadata, identity and error conversion, with **48 invalid inputs**.
+Another **70 request-object cases** cover headers, precedence, lazy JSON,
+ArrayAccess and context, with **45 invalid inputs**. The server checks all twelve
+corpora twice through one worker for **2,434 HTTP checks**, including routing, body limits, response MIME types and request isolation.
 
 | Request | Result |
 | --- | --- |
@@ -664,6 +753,7 @@ server checks all eleven corpora twice through one worker for **2,198 HTTP check
 | `GET /blocks` | Parsed demo as JSON |
 | `GET /health` | Version/profile information, `database: false` |
 | `POST /parse` | Parse a raw UTF-8 block document as JSON |
+| `POST /requests` | Inspect core REST request objects and parameter/JSON behavior |
 | `POST /responses` | Inspect native HTTP/REST response objects and convert core errors |
 | `POST /errors` | Run a JSON sequence against original core error objects |
 | `POST /sanitize` | Sanitize text, escape HTML and check identifiers/colors from JSON input |
@@ -727,7 +817,8 @@ WP_Object_Cache and wp-includes/cache.php
 WP_List_Util
 WP_Error
 WP_HTTP_Response and WP_REST_Response
-absint and is_wp_error from wp-includes/load.php
+WP_REST_Request (bounded parameter/header/JSON profile)
+absint, is_wp_error and wp_is_json_media_type from wp-includes/load.php
 rest_ensure_response and rest_convert_error_to_response from wp-includes/rest-api.php
 four list wrappers, wp_suspend_cache_addition and two query builders from wp-includes/functions.php
 three selected URL parser functions from wp-includes/http.php
@@ -773,7 +864,7 @@ python3 scripts/test-clean-room.py
 ```
 
 The clean-room check exports maintained source files into a temporary directory,
-downloads a fresh WordPress archive, applies the patches, compiles all twelve
+downloads a fresh WordPress archive, applies the patches, compiles all thirteen
 executables and repeats the reference/HTTP checks. It reuses the installed SDK
 and native dependency cache, and removes its export when finished.
 PCRE2 10.47 is pinned in the native manifest and lockfile.
@@ -830,3 +921,16 @@ through a `mixed` encoder parameter and preserves the original nullable color
 signatures. This probe requires prepared core sources and locked PCRE2; compile
 a copy with the existing native manifest/lockfile. It is excluded from verified
 application builds.
+
+`elephc/probes/static-method-instance.php` preserves PHP-valid instance syntax
+for a static method. PHP prints `header`; the pinned checker reports Undefined
+method. The request patch uses a late-bound `static::` call. The separate
+`static-json-cache.php` probe retains the original media cache form, for checking
+the pinned static-array initialization backend failure before retiring its cache
+elision. Compile a copy with the locked native manifest/lockfile. Both diagnostics
+are excluded from verified application builds.
+
+The separate `elephc/probes/json-error-message.php` diagnostic shows the SDK's
+intentional `near location` suffix alongside the original PHP error message.
+The request bridge strips only that suffix in WordPress `json_error_message`
+payloads, retaining the original decoder code and complete WP_Error structure.

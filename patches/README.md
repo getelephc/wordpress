@@ -24,9 +24,10 @@ Repeated preparation starts from the same original sources and is idempotent.
 | `functions.php` | Select/type four original list wrappers, `wp_suspend_cache_addition` and two query builders |
 | `http.php` | Three selected URL parser/component helpers with explicit array/scalar boundaries |
 | `class-wp-error.php` | Typed properties/methods, uniform mixed maps, local bucket updates and explicit string-zero emptiness |
-| `load.php` | Select/type original `is_wp_error` and bounded integer `absint` helpers |
+| `load.php` | Select/type `is_wp_error`, bounded integer `absint` and original JSON media-type predicate |
 | `class-wp-http-response.php` | Typed data/status/headers, uniform header storage and local updates |
 | `rest-api/class-wp-rest-response.php` | Typed inherited response API, local link updates and explicit array/message casts |
+| `rest-api/class-wp-rest-request.php` | Typed request state, local source/header updates, ArrayAccess signatures and explicit form/schema/URL boundaries |
 | `rest-api.php` | Select/type only response ensuring and error conversion |
 | `class-wp-list-util.php` | Typed array records, uniform result maps, local sort updates, method callback descriptors and explicit object-record boundaries |
 | `blocks.php` | Five selected serialization functions, typed recursion, explicit string emptiness and a JSON encoder boundary |
@@ -151,3 +152,22 @@ load module within the adapter's bounded status domain. Only rest_ensure_respons
 and rest_convert_error_to_response enter the new rest-api module; the original
 status reducer, message formatting and reverse-conversion behavior are preserved.
 The adapter validates error-body shape before calling the original as_error API.
+
+The bounded request class preserves its original header normalization, active
+parameter order, null/presence rules, lazy JSON parsing and ArrayAccess methods.
+Uniform mixed maps and local updates adapt source/header storage. Static header
+canonicalization is called with static:: because the pinned checker rejects
+$this-> syntax for static methods. Content-type compact/trim mapping uses explicit
+values and a typed closure. Permalink policy comes from the adapter; original PHP
+uses the normal pre-option filter. Native JSON errors retain the verified 400
+constant and fixed English label. The pure media-type regex loses only its
+memoization to avoid the pinned static-empty-array initialization failure.
+Schema sanitization/validation and from_url become explicit exceptions; the
+original URL-encoded parse_str branch is an explicit boundary after its normal
+guards. These unsupported original bodies remain visible in the patch diff.
+
+The request JSON error-message bridge removes only the SDK's intentional
+near-location diagnostic suffix before placing it into the original WordPress
+error payload. Decoder codes and other error fields remain. The original PHP
+oracle uses normal option filters, a fixed English gettext fixture and the
+original WP_Http constant definition without executing a transport.

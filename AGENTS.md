@@ -2,7 +2,7 @@
 
 - This is a bounded WordPress core port to Elephc, covering block parsing and
   serialization, hooks, shortcodes, attribute KSES, object caching, list utilities,
-  URL helpers, text/identifier sanitization, errors and response objects through native CLI and HTTP profiles. Keep the scope explicit.
+  URL helpers, text/identifier sanitization, errors, responses and bounded REST request objects through native CLI and HTTP profiles. Keep the scope explicit.
 - Run application code, Elephc and PHP reference checks directly on the host.
   This project intentionally uses native tools and has no database.
 - Use `127.0.0.1:9000` as the default local HTTP listener.
@@ -47,6 +47,10 @@
   sparse link keys, metadata, identity and original error conversion. The HTTP
   endpoint returns an inspection envelope; full REST routing/authentication and
   handler execution remain outside the profile.
+- REST requests preserve canonical headers, active-source precedence, null/presence
+  distinctions, lazy JSON flags, ArrayAccess and isolated permalink policy. Budget
+  checks and peek must not force parsing. Form decoding, schema callbacks, URL
+  discovery, authentication and dispatch remain explicit boundaries.
 - The complete WordPress compile probes intentionally fail on the pinned SDK.
   Keep their diagnostics separate from the verified parser profile.
 - Keep provenance, boundaries and verified results current in the README,
