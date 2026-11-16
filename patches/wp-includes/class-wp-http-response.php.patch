@@ -1,0 +1,124 @@
+--- a/wp-includes/class-wp-http-response.php
++++ b/wp-includes/class-wp-http-response.php
+@@ -21,7 +21,7 @@
+ 	 * @since 4.4.0
+ 	 * @var mixed
+ 	 */
+-	public $data;
++	public mixed $data = null;
+ 
+ 	/**
+ 	 * Response headers.
+@@ -29,7 +29,7 @@
+ 	 * @since 4.4.0
+ 	 * @var array
+ 	 */
+-	public $headers;
++	public array $headers = array();
+ 
+ 	/**
+ 	 * Response status.
+@@ -37,7 +37,7 @@
+ 	 * @since 4.4.0
+ 	 * @var int
+ 	 */
+-	public $status;
++	public int $status = 200;
+ 
+ 	/**
+ 	 * Constructor.
+@@ -48,7 +48,7 @@
+ 	 * @param int   $status  Optional. HTTP status code. Default 200.
+ 	 * @param array $headers Optional. HTTP header map. Default empty array.
+ 	 */
+-	public function __construct( $data = null, $status = 200, $headers = array() ) {
++	public function __construct( mixed $data = null, int $status = 200, array $headers = array() ) {
+ 		$this->set_data( $data );
+ 		$this->set_status( $status );
+ 		$this->set_headers( $headers );
+@@ -61,7 +61,7 @@
+ 	 *
+ 	 * @return array Map of header name to header value.
+ 	 */
+-	public function get_headers() {
++	public function get_headers(): array {
+ 		return $this->headers;
+ 	}
+ 
+@@ -72,8 +72,10 @@
+ 	 *
+ 	 * @param array $headers Map of header name to header value.
+ 	 */
+-	public function set_headers( $headers ) {
+-		$this->headers = $headers;
++	public function set_headers( array $headers ): void {
++		$values = wordpress_response_map();
++		foreach ( $headers as $key => $value ) { $values[ $key ] = (string) $value; }
++		$this->headers = $values;
+ 	}
+ 
+ 	/**
+@@ -86,12 +88,14 @@
+ 	 * @param bool   $replace Optional. Whether to replace an existing header of the same name.
+ 	 *                        Default true.
+ 	 */
+-	public function header( $key, $value, $replace = true ) {
+-		if ( $replace || ! isset( $this->headers[ $key ] ) ) {
+-			$this->headers[ $key ] = $value;
++	public function header( string $key, string $value, bool $replace = true ): void {
++		$headers = $this->headers;
++		if ( $replace || ! isset( $headers[ $key ] ) ) {
++			$headers[ $key ] = $value;
+ 		} else {
+-			$this->headers[ $key ] .= ', ' . $value;
++			$headers[ $key ] = (string) $headers[ $key ] . ', ' . $value;
+ 		}
++		$this->headers = $headers;
+ 	}
+ 
+ 	/**
+@@ -101,7 +105,7 @@
+ 	 *
+ 	 * @return int The 3-digit HTTP status code.
+ 	 */
+-	public function get_status() {
++	public function get_status(): int {
+ 		return $this->status;
+ 	}
+ 
+@@ -112,7 +116,7 @@
+ 	 *
+ 	 * @param int $code HTTP status.
+ 	 */
+-	public function set_status( $code ) {
++	public function set_status( int $code ): void {
+ 		$this->status = absint( $code );
+ 	}
+ 
+@@ -123,7 +127,7 @@
+ 	 *
+ 	 * @return mixed Response data.
+ 	 */
+-	public function get_data() {
++	public function get_data(): mixed {
+ 		return $this->data;
+ 	}
+ 
+@@ -134,7 +138,7 @@
+ 	 *
+ 	 * @param mixed $data Response data.
+ 	 */
+-	public function set_data( $data ) {
++	public function set_data( mixed $data ): void {
+ 		$this->data = $data;
+ 	}
+ 
+@@ -148,7 +152,7 @@
+ 	 *
+ 	 * @return mixed Any JSON-serializable value.
+ 	 */
+-	public function jsonSerialize() { // phpcs:ignore WordPress.NamingConventions.ValidFunctionName.MethodNameInvalid
++	public function jsonSerialize(): mixed { // phpcs:ignore WordPress.NamingConventions.ValidFunctionName.MethodNameInvalid
+ 		return $this->get_data();
+ 	}
+ }

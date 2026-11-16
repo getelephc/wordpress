@@ -1,5 +1,16 @@
 --- a/wp-includes/load.php
 +++ b/wp-includes/load.php
+@@ -1465,8 +1465,8 @@
+  * @param mixed $maybeint Data you wish to have converted to a non-negative integer.
+  * @return int A non-negative integer.
+  */
+-function absint( $maybeint ) {
+-	return abs( (int) $maybeint );
++function absint( int $maybeint ): int {
++	return (int) abs( (int) $maybeint );
+ }
+ 
+ /**
 @@ -1801,7 +1801,7 @@
   *
   * @phpstan-assert-if-true WP_Error $thing

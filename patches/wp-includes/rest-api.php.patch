@@ -1,0 +1,46 @@
+--- a/wp-includes/rest-api.php
++++ b/wp-includes/rest-api.php
+@@ -695,7 +695,7 @@
+  *                                   is already an instance, WP_REST_Response, otherwise
+  *                                   returns a new WP_REST_Response instance.
+  */
+-function rest_ensure_response( $response ) {
++function rest_ensure_response( mixed $response ): mixed {
+ 	if ( is_wp_error( $response ) ) {
+ 		return $response;
+ 	}
+@@ -3461,14 +3461,14 @@
+  *
+  * @return WP_REST_Response List of associative arrays with code and message keys.
+  */
+-function rest_convert_error_to_response( $error ) {
++function rest_convert_error_to_response( WP_Error $error ): WP_REST_Response {
+ 	$status = array_reduce(
+ 		$error->get_all_error_data(),
+ 		/**
+ 		 * @param int   $status     Status.
+ 		 * @param mixed $error_data Error data.
+ 		 */
+-		static function ( int $status, $error_data ): int {
++		static function ( int $status, mixed $error_data ): int {
+ 			if ( is_array( $error_data ) && isset( $error_data['status'] ) && is_numeric( $error_data['status'] ) ) {
+ 				$status = (int) $error_data['status'];
+ 			}
+@@ -3486,7 +3486,7 @@
+ 		foreach ( (array) $messages as $message ) {
+ 			$formatted = array(
+ 				'code'    => $code,
+-				'message' => $message,
++				'message' => (string) $message,
+ 				'data'    => $last_data,
+ 			);
+ 
+@@ -3498,7 +3498,7 @@
+ 		}
+ 	}
+ 
+-	$data = $errors[0];
++	$data = (array) $errors[0];
+ 	if ( count( $errors ) > 1 ) {
+ 		// Remove the primary error.
+ 		array_shift( $errors );
