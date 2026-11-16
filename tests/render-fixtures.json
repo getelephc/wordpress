@@ -348,5 +348,100 @@
     "name": "registration",
     "mode": "registration",
     "input": "[greet] [upper]text[/upper]"
+  },
+  {
+    "name": "kses-html-counter",
+    "mode": "html-shortcodes",
+    "input": "<div title=\"[counter]\">[counter]</div>"
+  },
+  {
+    "name": "kses-html-quoted",
+    "mode": "html-shortcodes",
+    "input": "<a title=\"[raw value='Ada & Bob']\">text</a>"
+  },
+  {
+    "name": "kses-html-single",
+    "mode": "html-shortcodes",
+    "input": "<a title='[raw value=\"Ada\"]'>text</a>"
+  },
+  {
+    "name": "kses-html-url-bad",
+    "mode": "html-shortcodes",
+    "input": "<a href=\"[raw value='javascript:alert(1)']\">link</a>"
+  },
+  {
+    "name": "kses-html-url-good",
+    "mode": "html-shortcodes",
+    "input": "<a href=\"[raw value='https://example.org/a?x=1&y=2']\">link</a>"
+  },
+  {
+    "name": "kses-html-unknown-attribute",
+    "mode": "html-shortcodes",
+    "input": "<a onclick=\"[counter]\">[counter]</a>"
+  },
+  {
+    "name": "kses-html-unquoted",
+    "mode": "html-shortcodes",
+    "input": "<a title=[counter]>[counter]</a>"
+  },
+  {
+    "name": "kses-html-raw-name",
+    "mode": "html-shortcodes",
+    "input": "<div [counter]>x</div>"
+  },
+  {
+    "name": "kses-html-comment",
+    "mode": "html-shortcodes",
+    "input": "<!-- [counter] --> [counter]"
+  },
+  {
+    "name": "kses-html-cdata",
+    "mode": "html-shortcodes",
+    "input": "<![CDATA[[counter]]]> [counter]"
+  },
+  {
+    "name": "kses-html-escaped",
+    "mode": "html-shortcodes",
+    "input": "<a title=\"[[counter]]\">[counter]</a>"
+  },
+  {
+    "name": "kses-html-stray",
+    "mode": "html-shortcodes",
+    "input": "<div title=\"[\">[counter]</div>"
+  },
+  {
+    "name": "kses-html-malformed",
+    "mode": "html-shortcodes",
+    "input": "<[counter]> [counter]"
+  },
+  {
+    "name": "kses-html-greet",
+    "mode": "html-shortcodes",
+    "input": "<a title=\"[greet name=Ada]\">text</a>"
+  },
+  {
+    "name": "kses-html-multiple",
+    "mode": "html-shortcodes",
+    "input": "<div title=\"[counter] [counter]\">[counter]</div>"
+  },
+  {
+    "name": "kses-html-entity-output",
+    "mode": "html-shortcodes",
+    "input": "<div title=\"[raw value='&apos;&bogus;&copy;']\">x</div>"
+  },
+  {
+    "name": "kses-html-style",
+    "mode": "html-shortcodes",
+    "input": "<div style=\"[counter]\">[counter]</div>"
+  },
+  {
+    "name": "kses-html-disallowed-tag",
+    "mode": "html-shortcodes",
+    "input": "<script title=\"[counter]\">[counter]</script>"
+  },
+  {
+    "name": "kses-html-pipeline",
+    "mode": "html-pipeline",
+    "input": "<a title=\"[counter]\">Hello [greet name=Ada]</a>\n\nNext"
   }
 ]

@@ -12,10 +12,10 @@ $method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
 $status = 200;
 $type = 'application/json; charset=utf-8';
 $body = '';
-$post_route = $path === '/parse' || $path === '/filter' || $path === '/serialize';
+$post_route = $path === '/parse' || $path === '/filter' || $path === '/serialize' || $path === '/kses';
 $allowed = $path === '/render' ? ['GET', 'HEAD', 'POST'] : ($post_route ? ['POST'] : ['GET', 'HEAD']);
 
-if ($path !== '/' && $path !== '/health' && $path !== '/blocks' && $path !== '/parse' && $path !== '/hooks' && $path !== '/filter' && $path !== '/render' && $path !== '/serialize') {
+if ($path !== '/' && $path !== '/health' && $path !== '/blocks' && $path !== '/parse' && $path !== '/hooks' && $path !== '/filter' && $path !== '/render' && $path !== '/serialize' && $path !== '/kses') {
     $status = 404;
     $body = '{"error":"Not Found"}' . "\n";
 } elseif (!in_array($method, $allowed, true)) {
@@ -23,7 +23,18 @@ if ($path !== '/' && $path !== '/health' && $path !== '/blocks' && $path !== '/p
     header('Allow: ' . implode(', ', $allowed));
     $body = '{"error":"Method Not Allowed"}' . "\n";
 } elseif ($path === '/health') {
-    $body = '{"status":"ok","wordpress":"7.1.4","profile":"blocks-serialization-hooks-content","database":false}' . "\n";
+    $body = '{"status":"ok","wordpress":"7.1.4","profile":"blocks-serialization-hooks-content-attribute-kses","database":false}' . "\n";
+} elseif ($path === '/kses') {
+    $mode = (string) ($_GET['mode'] ?? 'attribute');
+    $input = (string) file_get_contents('php://input');
+    try {
+        $body = wordpress_kses_text($mode, $input, (string) ($_GET['element'] ?? 'a'));
+        $type = $mode === 'decode' ? 'application/octet-stream'
+            : (in_array($mode, ['attributes', 'tag-attributes'], true) ? 'application/json; charset=utf-8' : 'text/plain; charset=utf-8');
+    } catch (InvalidArgumentException $exception) {
+        $status = 400;
+        $body = json_encode(['error' => $exception->getMessage()]) . "\n";
+    }
 } elseif ($path === '/serialize') {
     $mode = (string) ($_GET['mode'] ?? 'blocks');
     $input = (string) file_get_contents('php://input');
@@ -43,7 +54,9 @@ if ($path !== '/' && $path !== '/health' && $path !== '/blocks' && $path !== '/p
             ? 'application/json; charset=utf-8' : 'text/html; charset=utf-8';
     } catch (InvalidArgumentException $exception) {
         $status = 400;
-        $body = '{"error":"Unknown render mode"}' . "\n";
+        $message = str_starts_with($exception->getMessage(), 'Unknown render mode:')
+            ? 'Unknown render mode' : $exception->getMessage();
+        $body = json_encode(['error' => $message]) . "\n";
     }
 } elseif ($path === '/hooks' || $path === '/filter') {
     $scenario = (string) ($_GET['case'] ?? 'priority');
@@ -83,6 +96,8 @@ if ($path !== '/' && $path !== '/health' && $path !== '/blocks' && $path !== '/p
             . '<pre>curl -X POST --data-binary "Hello WordPress" http://127.0.0.1:9000/filter</pre>'
             . '<h2>Shortcodes and paragraphs</h2><p>Core WordPress formatting and shortcodes, running through the content filter pipeline.</p>'
             . '<pre>curl --data-binary "Welcome [greet name=Elephc]" http://127.0.0.1:9000/render</pre>'
+            . '<h2>Filter an HTML attribute</h2><p>The selected KSES policy filters individual attributes and URL protocols. Full HTML and CSS filtering remain outside this profile.</p>'
+            . '<pre>curl --data-binary \'title="Ada &amp; Bob"\' http://127.0.0.1:9000/kses</pre>'
             . '<p>This profile includes block parsing and serialization, actions, filters, shortcodes and selected formatting. The CMS bootstrap, database, plugin discovery, themes and admin remain outside the profile.</p>'
             . '</html>';
     }

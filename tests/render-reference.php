@@ -1,15 +1,11 @@
 <?php
 
-require __DIR__ . '/../elephc/runtime/hooks-support.php';
-if (($argv[1] ?? '') === 'profile') {
-    require __DIR__ . '/../elephc/runtime/core/wp-includes/plugin.php';
-    require __DIR__ . '/../elephc/runtime/shortcodes-support.php';
-    require __DIR__ . '/../elephc/runtime/core/wp-includes/formatting.php';
-    require __DIR__ . '/../elephc/runtime/core/wp-includes/shortcodes.php';
-} else {
-    require __DIR__ . '/../upstream/wordpress/wp-includes/plugin.php';
-    require __DIR__ . '/../upstream/wordpress/wp-includes/formatting.php';
+require __DIR__ . '/kses-source.php';
+if (($argv[1] ?? '') !== 'profile') {
     require __DIR__ . '/../upstream/wordpress/wp-includes/shortcodes.php';
+} else {
+    require_once __DIR__ . '/../elephc/runtime/shortcodes-support.php';
+    require __DIR__ . '/../elephc/runtime/core/wp-includes/shortcodes.php';
 }
 require __DIR__ . '/../elephc/runtime/render-demo.php';
 

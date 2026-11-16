@@ -85,17 +85,18 @@ def main():
                     ["patch", "--batch", "--forward", "--fuzz=0", "-p1", "-d", str(stage)],
                     input=(ROOT / entry["patch"]).read_bytes(), check=True, capture_output=True,
                 )
-            if entry.get("functions"):
+            sections = entry.get("segments", entry.get("functions", []))
+            if sections:
                 expect_hash(target, entry["patched_source_sha256"])
                 source = target.read_bytes()
                 fragments = []
-                for function in entry["functions"]:
+                for function in sections:
                     start, end = function["start"], function["end"]
                     if not 0 <= start < end <= len(source):
                         raise SystemExit(f"Invalid source range for {function['name']}")
                     fragment = source[start:end]
                     if hashlib.sha256(fragment).hexdigest() != function["sha256"]:
-                        raise SystemExit(f"Selected function checksum mismatch: {function['name']}")
+                        raise SystemExit(f"Selected source checksum mismatch: {function['name']}")
                     fragments.append(fragment)
                 target.write_bytes(b"<?php\n\n" + b"\n\n".join(fragments) + b"\n")
             expect_hash(target, entry["patched_sha256"])

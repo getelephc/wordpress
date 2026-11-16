@@ -197,72 +197,58 @@
  	// Normalize entities in unfiltered HTML before adding placeholders.
  	$trans   = array(
  		'&#91;' => '&#091;',
-@@ -499,63 +501,7 @@
+@@ -499,11 +501,11 @@
  			continue;
  		}
  
 -		$attributes = wp_kses_attr_parse( $element );
--		if ( false === $attributes ) {
--			// Some plugins are doing things like [name] <[email]>.
++		$attributes = wp_kses_attr_parse( (string) $element );
+ 		if ( false === $attributes ) {
+ 			// Some plugins are doing things like [name] <[email]>.
 -			if ( 1 === preg_match( '%^<\s*\[\[?[^\[\]]+\]%', $element ) ) {
 -				$element = preg_replace_callback( "/$pattern/", 'do_shortcode_tag', $element );
--			}
--
--			// Looks like we found some unexpected unfiltered HTML. Skipping it for confidence.
--			$element = strtr( $element, $trans );
--			continue;
--		}
--
--		// Get element name.
++			if ( 1 === preg_match( '%^<\s*\[\[?[^\[\]]+\]%', (string) $element ) ) {
++				$element = (string) preg_replace_callback( "/$pattern/", static function (array $m): string { return do_shortcode_tag( $m ); }, (string) $element );
+ 			}
+ 
+ 			// Looks like we found some unexpected unfiltered HTML. Skipping it for confidence.
+@@ -512,11 +514,12 @@
+ 		}
+ 
+ 		// Get element name.
 -		$front   = array_shift( $attributes );
 -		$back    = array_pop( $attributes );
--		$matches = array();
++		$attributes = (array) $attributes;
++		$front   = (string) array_shift( $attributes );
++		$back    = (string) array_pop( $attributes );
+ 		$matches = array();
 -		preg_match( '%[a-zA-Z0-9]+%', $front, $matches );
 -		$elname = $matches[0];
--
--		// Look for shortcodes in each attribute separately.
--		foreach ( $attributes as &$attr ) {
--			$open  = strpos( $attr, '[' );
--			$close = strpos( $attr, ']' );
--			if ( false === $open || false === $close ) {
--				continue; // Go to next attribute. Square braces will be escaped at end of loop.
--			}
--			$double = strpos( $attr, '"' );
--			$single = strpos( $attr, "'" );
--			if ( ( false === $single || $open < $single ) && ( false === $double || $open < $double ) ) {
--				/*
--				 * $attr like '[shortcode]' or 'name = [shortcode]' implies unfiltered_html.
--				 * In this specific situation we assume KSES did not run because the input
--				 * was written by an administrator, so we should avoid changing the output
--				 * and we do not need to run KSES here.
--				 */
++		preg_match( '%[a-zA-Z0-9]+%', (string) $front, $matches );
++		$elname = (string) $matches[0];
+ 
+ 		// Look for shortcodes in each attribute separately.
+ 		foreach ( $attributes as &$attr ) {
+@@ -534,14 +537,15 @@
+ 				 * was written by an administrator, so we should avoid changing the output
+ 				 * and we do not need to run KSES here.
+ 				 */
 -				$attr = preg_replace_callback( "/$pattern/", 'do_shortcode_tag', $attr );
--			} else {
--				/*
--				 * $attr like 'name = "[shortcode]"' or "name = '[shortcode]'".
--				 * We do not know if $content was unfiltered. Assume KSES ran before shortcodes.
--				 */
++				$attr = (string) preg_replace_callback( "/$pattern/", static function (array $m): string { return do_shortcode_tag( $m ); }, (string) $attr );
+ 			} else {
+ 				/*
+ 				 * $attr like 'name = "[shortcode]"' or "name = '[shortcode]'".
+ 				 * We do not know if $content was unfiltered. Assume KSES ran before shortcodes.
+ 				 */
 -				$count    = 0;
 -				$new_attr = preg_replace_callback( "/$pattern/", 'do_shortcode_tag', $attr, -1, $count );
--				if ( $count > 0 ) {
--					// Sanitize the shortcode output using KSES.
--					$new_attr = wp_kses_one_attr( $new_attr, $elname );
--					if ( '' !== trim( $new_attr ) ) {
--						// The shortcode is safe to use now.
--						$attr = $new_attr;
--					}
--				}
--			}
--		}
--		$element = $front . implode( '', $attributes ) . $back;
--
--		// Now encode any remaining '[' or ']' chars.
--		$element = strtr( $element, $trans );
-+		throw new LogicException('Shortcode expansion inside HTML attributes requires the KSES profile.');
- 	}
- 
- 	$content = implode( '', $textarr );
-@@ -571,7 +517,7 @@
++				$counter = new WordPressKsesCounter();
++				$new_attr = (string) preg_replace_callback( "/$pattern/", static function (array $m) use ($counter): string { ++$counter->count; return do_shortcode_tag( $m ); }, (string) $attr );
++				$count = $counter->count;
+ 				if ( $count > 0 ) {
+ 					// Sanitize the shortcode output using KSES.
+ 					$new_attr = wp_kses_one_attr( $new_attr, $elname );
+@@ -571,7 +575,7 @@
   * @param string $content Content to search for placeholders.
   * @return string Content with placeholders removed.
   */
@@ -271,7 +257,7 @@
  	// Clean up entire string, avoids re-parsing HTML.
  	$trans = array(
  		'&#91;' => '[',
-@@ -590,7 +536,7 @@
+@@ -590,7 +594,7 @@
   *
   * @return string The shortcode attribute regular expression.
   */
@@ -280,7 +266,7 @@
  	return '/([\w-]+)\s*=\s*"([^"]*)"(?:\s|$)|([\w-]+)\s*=\s*\'([^\']*)\'(?:\s|$)|([\w-]+)\s*=\s*([^\s\'"]+)(?:\s|$)|"([^"]*)"(?:\s|$)|\'([^\']*)\'(?:\s|$)|(\S+)(?:\s|$)/';
  }
  
-@@ -610,31 +556,34 @@
+@@ -610,31 +614,34 @@
   *               Returns empty array if there are no attributes
   *               or if the original arguments string cannot be parsed.
   */
@@ -324,7 +310,7 @@
  					$value = '';
  				}
  			}
-@@ -661,7 +610,7 @@
+@@ -661,7 +668,7 @@
   * @param string $shortcode Optional. The name of the shortcode, provided for context to enable filtering
   * @return array Combined and filtered attribute list.
   */
@@ -333,7 +319,7 @@
  	$atts = (array) $atts;
  	$out  = array();
  	foreach ( $pairs as $name => $default ) {
-@@ -690,7 +639,7 @@
+@@ -690,7 +697,7 @@
  		$out = apply_filters( "shortcode_atts_{$shortcode}", $out, $pairs, $atts, $shortcode );
  	}
  
@@ -342,7 +328,7 @@
  }
  
  /**
-@@ -703,7 +652,7 @@
+@@ -703,7 +710,7 @@
   * @param string $content Content to remove shortcode tags.
   * @return string Content without shortcode tags.
   */
@@ -351,7 +337,7 @@
  	global $shortcode_tags;
  
  	if ( ! str_contains( $content, '[' ) ) {
-@@ -727,9 +676,12 @@
+@@ -727,9 +734,12 @@
  	 * @param array  $tags_to_remove Array of shortcode tags to remove.
  	 * @param string $content        Content shortcodes are being removed from.
  	 */
@@ -367,7 +353,7 @@
  
  	if ( empty( $tagnames ) ) {
  		return $content;
-@@ -738,7 +690,7 @@
+@@ -738,7 +748,7 @@
  	$content = do_shortcodes_in_html_tags( $content, true, $tagnames );
  
  	$pattern = get_shortcode_regex( $tagnames );
@@ -376,7 +362,7 @@
  
  	// Always restore square braces so we don't break things like <!--[if IE ]>.
  	$content = unescape_invalid_shortcodes( $content );
-@@ -754,7 +706,7 @@
+@@ -754,7 +764,7 @@
   * @param array $m RegEx matches against post content.
   * @return string|false The content stripped of the tag, otherwise false.
   */

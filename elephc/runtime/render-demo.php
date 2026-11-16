@@ -31,6 +31,14 @@ function wordpress_content_shortcodes(string $content): string {
     return do_shortcode($content, true);
 }
 
+function wordpress_content_html_shortcodes(string $content): string {
+    return do_shortcode($content, false);
+}
+
+function wordpress_content_raw(array $attributes, ?string $content = null, string $tag = ''): string {
+    return wordpress_kses_attribute_input((string) ($attributes['value'] ?? 'value'));
+}
+
 function wordpress_content_autop(string $content): string {
     return wpautop($content);
 }
@@ -50,6 +58,7 @@ function wordpress_content_setup(): void {
     $wp_filters = [];
     $wp_current_filter = [];
     WordPressContentState::$calls = 0;
+    wordpress_kses_setup();
     remove_all_shortcodes();
     WordPressHookCallbacks::register('_filter_do_shortcode_context', wordpress_content_shortcode_context(...));
     WordPressHookCallbacks::register('wpautop', wordpress_content_autop(...));
@@ -61,6 +70,7 @@ function wordpress_content_setup(): void {
     add_shortcode('box', wordpress_content_box(...));
     add_shortcode('counter', wordpress_content_counter(...));
     add_shortcode('context', wordpress_content_context(...));
+    add_shortcode('raw', wordpress_content_raw(...));
     foreach (['mark+', 'a.b', 'dash-tag', 'x#y', 'x:y', 'x\\y', 'meta(1)'] as $alias) {
         add_shortcode($alias, wordpress_content_greet(...));
     }
@@ -80,6 +90,14 @@ function wordpress_render_text(string $mode, string $input): string {
             return (string) apply_filters('the_content', $input);
         case 'shortcodes':
             return do_shortcode($input, true);
+        case 'html-shortcodes':
+            wordpress_kses_attribute_input($input);
+            return do_shortcode($input, false);
+        case 'html-pipeline':
+            wordpress_kses_attribute_input($input);
+            remove_filter('the_content', 'wordpress_content_shortcodes', 11);
+            add_filter('the_content', wordpress_content_html_shortcodes(...), 11);
+            return (string) apply_filters('the_content', $input);
         case 'autop':
             return wpautop($input);
         case 'autop-no-br':

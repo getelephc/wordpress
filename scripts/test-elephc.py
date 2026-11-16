@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
-"""Compare native blocks, serialization, hooks and content with original PHP."""
+"""Compare native blocks, serialization, hooks, content and KSES with original PHP."""
 
 import http.client
+import base64
 import json
 import os
 from pathlib import Path
@@ -81,6 +82,36 @@ def main():
     assert run_output([serializer, "roundtrip"], nested_document.encode()) == serialize_reference["document-nested"]["text"]
     print(f"PASS: {len(serialize_fixtures)} serialization fixtures, reparsing, stdin and {len(serialize_errors)} invalid-input cases.")
 
+    kses_fixtures = json.loads((ROOT / "tests/kses-fixtures.json").read_text())
+    kses_errors = json.loads((ROOT / "tests/kses-errors.json").read_text())
+    kses_reference = run_json([php, "tests/kses-reference.php", "upstream"])
+    assert run_json([php, "tests/kses-reference.php", "profile"]) == kses_reference, "Patched KSES differs from original PHP"
+    for fixture in kses_fixtures:
+        command = [str(ROOT / "elephc/runtime/kses"), fixture["mode"]]
+        data = None
+        if "\0" in fixture["input"]:
+            data = fixture["input"].encode()
+        else:
+            command.extend([fixture["input"], fixture.get("element", "a")])
+        result = subprocess.run(command, input=data, capture_output=True, check=True, timeout=20)
+        assert not result.stderr and result.stdout == base64.b64decode(kses_reference[fixture["name"]]), (fixture["name"], result.stdout, result.stderr)
+    error_checks = 0
+    for fixture in kses_errors:
+        data = base64.b64decode(fixture["input_base64"])
+        target = fixture.get("target", "kses")
+        if target == "render" and b"\0" in data:
+            continue  # Native argv cannot contain NUL; HTTP exercises this boundary.
+        command = [os.fsencode(ROOT / "elephc/runtime" / target), fixture["mode"].encode()]
+        stdin = data if target == "kses" else None
+        if target == "render":
+            command.append(data)
+        result = subprocess.run(command, input=stdin, capture_output=True, timeout=20)
+        assert result.returncode == 2 and not result.stdout, (fixture["name"], result)
+        prefix = b"KSES error: " if target == "kses" else b"Rendering error: "
+        assert result.stderr.startswith(prefix) and b"Warning:" not in result.stderr and b"Fatal error" not in result.stderr, (fixture["name"], result.stderr)
+        error_checks += 1
+    print(f"PASS: {len(kses_fixtures)} KSES fixtures match original PHP; {error_checks} CLI boundary checks.")
+
     with socket.socket() as listener:
         listener.bind(("127.0.0.1", 0))
         port = listener.getsockname()[1]
@@ -129,7 +160,10 @@ def main():
                     checks += 1
                 for fixture in render_fixtures:
                     query = urllib.parse.urlencode({"mode": fixture["mode"]})
-                    status, headers, body = request("POST", "/render?" + query, fixture["input"].encode())
+                    try:
+                        status, headers, body = request("POST", "/render?" + query, fixture["input"].encode())
+                    except Exception as error:
+                        raise AssertionError(f"Native render request failed: {fixture['name']}") from error
                     assert status == 200, (fixture["name"], status, body)
                     actual = body.decode()
                     assert actual == render_reference[fixture["name"]], f"Native rendering HTTP differs: {fixture['name']}\n{actual!r}"
@@ -172,6 +206,30 @@ def main():
                 status, _, body = request("POST", "/render", b"x" * 65537)
                 assert status == 413
                 checks += 5
+                for fixture in kses_fixtures:
+                    query = urllib.parse.urlencode({"mode": fixture["mode"], "element": fixture.get("element", "a")})
+                    status, headers, body = request("POST", "/kses?" + query, fixture["input"].encode())
+                    assert status == 200 and body == base64.b64decode(kses_reference[fixture["name"]]), (fixture["name"], status, body)
+                    mime = "application/octet-stream" if fixture["mode"] == "decode" else ("application/json" if fixture["mode"] in ("attributes", "tag-attributes") else "text/plain")
+                    assert headers["content-type"].startswith(mime), headers
+                    checks += 1
+                for fixture in kses_errors:
+                    route = "/render" if fixture.get("target") == "render" else "/kses"
+                    query = urllib.parse.urlencode({"mode": fixture["mode"]})
+                    status, headers, body = request("POST", route + "?" + query, base64.b64decode(fixture["input_base64"]))
+                    assert status == 400 and headers["content-type"].startswith("application/json"), (fixture["name"], status, body)
+                    assert isinstance(json.loads(body)["error"], str), fixture["name"]
+                    checks += 1
+                status, _, body = request("POST", "/kses", b'title="Text"')
+                assert status == 200 and body == b'title="Text"'
+                for method in ("GET", "HEAD"):
+                    status, headers, body = request(method, "/kses")
+                    assert status == 405 and headers["allow"] == "POST"
+                    if method == "HEAD":
+                        assert body == b""
+                status, _, body = request("POST", "/kses", b"x" * 65537)
+                assert status == 413
+                checks += 4
                 status, _, body = request("POST", "/filter", hook_input.encode())
                 assert status == 200 and json.loads(body) == hook_reference["priority"]
                 status, _, body = request("GET", "/hooks?case=unknown")
@@ -208,6 +266,11 @@ def main():
             diagnostics = log.read()
             assert b"Warning:" not in diagnostics and b"Fatal error:" not in diagnostics, diagnostics.decode(errors="replace")
             print(f"PASS: {checks} HTTP checks, including repeated requests, HEAD, 404, 405 and body limit.")
+        except Exception:
+            log.flush()
+            log.seek(0)
+            print(log.read().decode(errors="replace"))
+            raise
         finally:
             try:
                 os.killpg(process.pid, signal.SIGTERM)

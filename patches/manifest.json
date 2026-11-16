@@ -44,17 +44,17 @@
     {
       "path": "wp-includes/shortcodes.php",
       "original_sha256": "8b41aed4d1f2dd9a0b517bf85b941bacf4616ae148bff0a7cdf48286df6e7854",
-      "patched_sha256": "7f5952145ae28629b306701df4f3f80058ab0820776795e6c2989ce4ba79825d",
+      "patched_sha256": "7bdac7e74ded93c5902735f48c2a88f3efbf335370b93a8f88a256fd04c87d2a",
       "patch": "patches/wp-includes/shortcodes.php.patch",
-      "patch_sha256": "09884e26e3ea64595b341abef64f14fd7738a6b654215c3202993e5cfa8ec7df"
+      "patch_sha256": "bbbb88e6d29e52f38ecb5e42c3b32952f4a60d7225537203666859b64e0886f5"
     },
     {
       "path": "wp-includes/formatting.php",
       "original_sha256": "350f6b32303915df970bb0e3ea360fcd54bb0b8a7ecc3d504c3d860ab9468d32",
-      "patched_sha256": "dbf12f1c08b43cdd3a42d52966e031742768adcb61ea68fc827b30f6ac741e9f",
+      "patched_sha256": "e11af35300f1cb926c63567b5d0ed83ec642d2e11691a9ce2012a5556aa4ffd7",
       "patch": "patches/wp-includes/formatting.php.patch",
-      "patch_sha256": "4a28da2e7d257b1a74f1c57b40f94025d9f8c37800b7797b31e7e5b2d3dae215",
-      "patched_source_sha256": "f5b467db991493adb6fd5acac2b6cf29b7cd0b7ba73188d7891f1cec8cc02bce",
+      "patch_sha256": "e39e278d121f5e90fcfc02ff0b158d3008a8fb85fd4b32677091bb8874e646da",
+      "patched_source_sha256": "383fd014fd578da353110fb40c9789cea93c451c1c40a8e94e2c652434778a3e",
       "functions": [
         {
           "name": "wpautop",
@@ -94,9 +94,15 @@
         },
         {
           "name": "wp_spaces_regexp",
-          "start": 204418,
-          "end": 205074,
+          "start": 204408,
+          "end": 205064,
           "sha256": "6625eb5ed577d78ae466abf6721a2cd0a737371d6eeda50631b7119b40819564"
+        },
+        {
+          "name": "esc_attr",
+          "start": 170736,
+          "end": 171258,
+          "sha256": "16b15d2642b8b1726e12355ef56c444abcf8fa6538b68eadc075f6556ca21ca0"
         }
       ]
     },
@@ -137,6 +143,154 @@
           "start": 69808,
           "end": 70011,
           "sha256": "3e19df04ef96ecfee79d35a2e8344ca8fcb7a816cc4232e79555ee604d12a6d8"
+        }
+      ]
+    },
+    {
+      "path": "wp-includes/kses.php",
+      "original_sha256": "3560ff58ef987a313be5b591fa4c8f61899585df9728661e072b1b39d8555a6a",
+      "patched_sha256": "d54531759639bc8cb72c6640eadae7548373edfc8bbedc22d89cc15c849a54c9",
+      "patch": "patches/wp-includes/kses.php.patch",
+      "patch_sha256": "1904ff16beade057f976f9591db0c92e63073024bf59afa3ea30bd435d17aa89",
+      "patched_source_sha256": "ad548ed2f8e48bcf5544af92d28600a27999c91ef8586c524f400314744280e1",
+      "segments": [
+        {
+          "name": "globals",
+          "start": 1950,
+          "end": 2033,
+          "sha256": "cfaa8c663309a8b678ba9f9c058bad11031200eda35a70efec98a1cf2724f171"
+        },
+        {
+          "name": "allowedentitynames",
+          "start": 16205,
+          "end": 18957,
+          "sha256": "3e607ace0d9c6be4cea075fe7db2078048aa45b92e8a02115551b01d493477d9"
+        },
+        {
+          "name": "wp_kses_one_attr",
+          "start": 21966,
+          "end": 23679,
+          "sha256": "28c1cdb7c1dfe6c53d5b500cf835538e256c8a4f4e2d3421c13b2865a9477325"
+        },
+        {
+          "name": "wp_kses_allowed_html",
+          "start": 24327,
+          "end": 26838,
+          "sha256": "b8a590d48032224b1c8f53d25d23627890da0197eb1c53f7af1e4d57f5dfacdc"
+        },
+        {
+          "name": "wp_kses_uri_attributes",
+          "start": 33628,
+          "end": 34320,
+          "sha256": "1b15d14e32368e9b6089603d48767b671499fc72498766a5d890dd3007b5d8e3"
+        },
+        {
+          "name": "wp_kses_attr_check",
+          "start": 43806,
+          "end": 46007,
+          "sha256": "3d284fd8280b6c6fe2e2eaaa93dd4f9ee970c0aaa63c68742ee6819608dd229b"
+        },
+        {
+          "name": "wp_kses_attr_parse",
+          "start": 49338,
+          "end": 50367,
+          "sha256": "d8beeb2ceab1851efac8a07cd524122816ded6967b5bd9271341dd3feb7fbd75"
+        },
+        {
+          "name": "wp_kses_hair_parse",
+          "start": 50841,
+          "end": 52085,
+          "sha256": "503c28cb29b0aff81309aa507370f9d87d6cb57c50ae4321057b04c73cb264d6"
+        },
+        {
+          "name": "wp_kses_check_attr_val",
+          "start": 52567,
+          "end": 55069,
+          "sha256": "c9594a9c12604b0b83654a826e0beadf737996809585403015b925a7bdb3f98a"
+        },
+        {
+          "name": "wp_kses_bad_protocol",
+          "start": 55633,
+          "end": 56355,
+          "sha256": "a54731b18006e5cc098897a1bd6c2c1c34829c68aeb956f3f8737aefb4b60635"
+        },
+        {
+          "name": "wp_kses_no_null",
+          "start": 56697,
+          "end": 57139,
+          "sha256": "5c1a1b5009ff99ab2e1abf1fb82f14379db8c6a4717f425f660f50f8ec8bd8bb"
+        },
+        {
+          "name": "wp_kses_bad_protocol_once",
+          "start": 58991,
+          "end": 59766,
+          "sha256": "e449a961ae5169e483d128a442034071043e20ae993a5fc971a322a609d2a2f7"
+        },
+        {
+          "name": "wp_kses_bad_protocol_once2",
+          "start": 60267,
+          "end": 60753,
+          "sha256": "5eb53f77ea69e59e4d24b04160492156d3e0f6acd36dd20c54e7d6ed81db1eda"
+        },
+        {
+          "name": "wp_kses_normalize_entities",
+          "start": 61436,
+          "end": 64199,
+          "sha256": "1fe3a502f8b0a32fff846ff21c37c9fcaeb218b8374b5ac55faafdbc4963f69b"
+        },
+        {
+          "name": "wp_kses_named_entities",
+          "start": 64598,
+          "end": 64835,
+          "sha256": "42afc4bbe0c16b6b81555813b4c1c8bd8aa93c716a221eb671326c511023a1eb"
+        },
+        {
+          "name": "wp_kses_normalize_entities2",
+          "start": 66082,
+          "end": 66375,
+          "sha256": "3cbbb8f2f5ba25ce32e3f53034dbbc7176d4c7e7a366bee995794f6639650bf7"
+        },
+        {
+          "name": "wp_kses_normalize_entities3",
+          "start": 66737,
+          "end": 66992,
+          "sha256": "78a0298682227f3f96c34978615bd18b1dc8559fb30ac396b5d1982997d902d9"
+        },
+        {
+          "name": "valid_unicode",
+          "start": 67559,
+          "end": 68051,
+          "sha256": "87effabbd688bd9b89a5fccb3bc02fd6eec0310bae5180886b68b0cfb448626a"
+        },
+        {
+          "name": "wp_kses_decode_entities",
+          "start": 68459,
+          "end": 68852,
+          "sha256": "139983a61ad525c0cf746073282c74092dd6421f90cbe0ba0c39cd34bd6f9977"
+        },
+        {
+          "name": "_wp_kses_decode_entities_chr",
+          "start": 69019,
+          "end": 69120,
+          "sha256": "d8b47fbac2ba262c2dbf2b21214f6dbd56b6189378e1dd1b68ed049e4a105ec5"
+        },
+        {
+          "name": "_wp_kses_decode_entities_chr_hexdec",
+          "start": 69287,
+          "end": 69405,
+          "sha256": "ad1913e841e85ee76adf1298f4d4bd4697a868fb744ea4c05e4444903d9f00b2"
+        },
+        {
+          "name": "_wp_kses_directive_binds_value_restricted_attribute",
+          "start": 91315,
+          "end": 92599,
+          "sha256": "a50b4da1c9ccd4f702d50155bb7762c3036ef6fc76a18dceda251249e326148c"
+        },
+        {
+          "name": "_wp_kses_restricts_attribute_values",
+          "start": 90119,
+          "end": 90576,
+          "sha256": "1fca63b0e4e658e29a5ffc7df6c6195029ce02c0e67f7a9d067a8117cdbe4ad6"
         }
       ]
     }
