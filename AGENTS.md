@@ -1,8 +1,8 @@
 # Project conventions
 
 - This is a bounded WordPress core port to Elephc, covering block parsing and
-  serialization, hooks, shortcodes, attribute KSES, object caching, list utilities and formatting
-  through native CLI and HTTP profiles. Keep the scope explicit.
+  serialization, hooks, shortcodes, attribute KSES, object caching, list utilities,
+  URL helpers and formatting through native CLI and HTTP profiles. Keep the scope explicit.
 - Run application code, Elephc and PHP reference checks directly on the host.
   This project intentionally uses native tools and has no database.
 - Use `127.0.0.1:9000` as the default local HTTP listener.
@@ -31,6 +31,10 @@
 - List operations use JSON array records and scalar/null comparisons. Preserve
   PHP comparison, key and sorting behavior; validate selected pluck fields. PHP
   object records and database queries remain outside this profile.
+- URL operations process UTF-8/NUL-free strings and bounded JSON query data.
+  Keep protocol policy/order, display/raw contexts and parser result distinctions.
+  HTTP transport, remote-request validation, PHP object queries and INI defaults
+  remain outside this profile. Keep the NUL regex diagnostic separate.
 - The complete WordPress compile probes intentionally fail on the pinned SDK.
   Keep their diagnostics separate from the verified parser profile.
 - Keep provenance, boundaries and verified results current in the README,

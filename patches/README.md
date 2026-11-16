@@ -21,7 +21,8 @@ Repeated preparation starts from the same original sources and is idempotent.
 | `kses.php` | Selected attribute/protocol/entity helpers, original entity table, explicit CSS/XML boundaries and regex adapters |
 | `class-wp-object-cache.php` | Typed cache storage, uniform mixed maps, local bucket updates, explicit site context and JSON-profile boundaries |
 | `cache.php` | Local class include, typed API, explicit global instance initialization/guards and deprecated reset boundary |
-| `functions.php` | Select/type four original list wrappers and `wp_suspend_cache_addition` |
+| `functions.php` | Select/type four original list wrappers, `wp_suspend_cache_addition` and two query builders |
+| `http.php` | Three selected URL parser/component helpers with explicit array/scalar boundaries |
 | `class-wp-list-util.php` | Typed array records, uniform result maps, local sort updates, method callback descriptors and explicit object-record boundaries |
 | `blocks.php` | Five selected serialization functions, typed recursion, explicit string emptiness and a JSON encoder boundary |
 | `formatting.php` | Typed formatting values, concrete regex cache, builtin bridges and closure newline-preservation callback |
@@ -29,7 +30,7 @@ Repeated preparation starts from the same original sources and is idempotent.
 `class-wp-filter-sentinel.php` is copied without changes. Its manifest entry
 has no patch; original and generated source hashes must match.
 
-The formatting entry lists eight selected functions and the blocks entry lists
+The formatting entry lists thirteen selected functions and the blocks entry lists
 five. The KSES entry uses source segments for its global declarations, original
 entity table and 21 functions. Apply each small patch to its complete original file and verify `patched_source_sha256`, then select
 the recorded byte ranges in order. Each range has its own hash; the assembled
@@ -96,3 +97,13 @@ notices become explicit exceptions. The JSON adapter validates required pluck
 fields and scalar comparison domains before core calls. The selected functions
 module is shared with cache setup; `functions-bootstrap.php` loads its list
 class dependency for both entry points.
+
+The URL profile selects esc_url and its aliases, _deep_replace and relative-link
+conversion from formatting, three URL parsing helpers from http.php, and two
+recursive query builders from functions.php. Entity/protocol processing reuses
+KSES. The deep replacement loop detects convergence instead of using the
+unsupported str_replace count argument; array searches use the existing string
+bridge. Empty regex subjects are guarded and protocol selection uses an explicit
+first-value loop. Query separators are explicit; PHP object data and INI lookup
+are outside the profile. Original PHP uses original helpers with the same fixed
+protocol policy and request data. The application rejects NUL before regex calls.

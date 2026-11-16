@@ -456,6 +456,53 @@ The list executable is 584,576 bytes, cache is 1,426,304 bytes and the combined
 server is 24,521,088 bytes. The cache now shares the selected functions bootstrap.
 These are build observations, without speed claims.
 
+## URL string extension, 2026-11-16
+
+Ten original helpers extend the string profile: esc_url, esc_url_raw,
+sanitize_url, _deep_replace and wp_make_link_relative from formatting.php;
+wp_parse_url and two component helpers from http.php; build_query and
+_http_build_query from functions.php. The native graph now has 15 original
+files, 14 patches and nine executables. Formatting selects 13 functions,
+functions.php selects seven, and the new HTTP module selects only the three
+parser helpers. Complete patched files, source ranges and generated hashes
+remain verified; HTTP request transports are excluded.
+
+The original escape pipeline preserves the existing fixed protocol policy,
+explicit protocol overrides/order, entity normalization, display/raw contexts,
+relative URLs, bracket escaping and clean_url hooks. Scheme selection uses an
+explicit first-value loop. The deep replacement loop detects convergence in
+place of the unsupported str_replace count argument, retaining repeated CR/LF
+percent-sequence removal. Existing array-search replacement adapters are reused.
+Whitespace-only and relative empty inputs bypass the pinned empty-regex hazard.
+
+The parser retains original placeholder handling for relative/schemeless URLs
+and distinguishes false failures, absent null components and empty strings.
+The native parse_url/urlencode primitives were first checked against PHP on
+credentials, IPv6, invalid ports, query colons and empty queries. Query builders
+retain recursive bracket keys, boolean/null conversion and empty child segments.
+Unencoded build_query and encoded _http_build_query remain distinct. Separators
+are explicit, and PHP object data/INI separator lookup are excluded. The JSON
+adapter limits queries to 256 fields per level and 16 nested levels below root.
+
+All URL text, protocol names, query keys/string values and separators require
+UTF-8 without NUL. An initial protocol validator exposed a pinned matcher gap:
+the maintained regex-nul-subject probe reports length 12 in both PHP and native,
+but anchored ASCII-letter matching returns 0 in PHP and 1 natively for a subject
+containing NUL. The URL adapter checks NUL before invoking that regex. The
+standalone diagnostic is kept outside verified application builds and was
+reproduced separately with locked PCRE2 10.47 through the build queue.
+
+All 103 URL cases match unmodified PHP, patched PHP and native CLI; all 28
+invalid inputs return explicit errors. The complete suite retains every prior
+corpus and passes 1,456 repeated-worker HTTP checks. A source-only export rebuilt
+all nine executables and passed the same suite, then removed its temporary tree.
+CLI stdin, protocol filtering, hook isolation, recursion limits, routing, MIME
+types and body limits are covered. Runtime output has no PHP warnings or fatal
+errors. No URL operation performs network requests, redirects or database access.
+
+The URL executable is 4,469,864 bytes and the combined server is 24,752,000 bytes.
+These are native build observations rather than speed claims.
+
 ## Follow-up direction
 
 A broader CMS experiment should address the UTF-8 compatibility loader's

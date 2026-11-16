@@ -1,16 +1,16 @@
 # WordPress on Elephc
 
-A native AOT experiment with WordPress blocks, serialization, hooks, content, attribute KSES, object caching and list utilities.
+A native AOT experiment with WordPress blocks, serialization, hooks, content, attribute KSES, object caching, list utilities and URLs.
 WordPress **7.1.4**, Elephc **0.27.8**, PHP profile **8.4**, Linux x86_64.
 
-The experiment uses fourteen original core files, with thirteen compatibility
-patches, to build block parsing, serialization, hooks, rendering and attribute
-KSES, object cache and list utility CLIs plus an HTTP server. The formatting graph selects
-eight functions from `formatting.php`; another five come from `blocks.php`,
-21 from `kses.php`, and four list wrappers plus the cache suspension helper
-from `functions.php`.
-Documents, JSON block trees, content and cache inputs are processed at runtime.
-The HTTP adapter, callback manifest and demo callbacks belong to this experiment.
+The experiment builds native CLIs for blocks, serialization, hooks, content,
+attributes, caching, lists and URLs, plus an HTTP server. It uses fifteen original
+core files with fourteen compatibility patches. Selected modules contain thirteen
+formatting functions, five block serializers, 21 KSES functions, seven helpers
+from `functions.php` and three URL parsing helpers from `http.php`.
+Documents, JSON block trees, content, cache/list records and URL inputs are
+processed at runtime. The HTTP adapter, callback manifest and demo callbacks
+belong to this experiment.
 
 This is a core subsystem port. The complete CMS bootstrap, database, plugin
 discovery, themes, block rendering and `wp-admin` are outside the current profile.
@@ -43,7 +43,8 @@ elephc --version
 The script verifies the downloaded sources and patches, installs the locked
 PCRE2 dependency, and produces `elephc/runtime/parse`, `elephc/runtime/hooks`,
 `elephc/runtime/render`, `elephc/runtime/serialize`, `elephc/runtime/kses`,
-`elephc/runtime/cache`, `elephc/runtime/lists` and `elephc/runtime/server`.
+`elephc/runtime/cache`, `elephc/runtime/lists`, `elephc/runtime/urls` and
+`elephc/runtime/server`.
 It uses `elephc` from `PATH`; set
 `ELEPHC_BIN=/absolute/path/to/elephc` to select another complete SDK.
 On workstations with the author's build queue installed, the script uses it
@@ -64,6 +65,7 @@ python3 scripts/prepare-elephc.py
   elephc --php-version 8.4 kses.php
   elephc --php-version 8.4 cache.php
   elephc --php-version 8.4 lists.php
+  elephc --php-version 8.4 urls.php
   elephc --php-version 8.4 --web server.php
 )
 ```
@@ -88,7 +90,7 @@ You can also run the executable directly and choose a different port:
 ```
 
 The demo, parsed blocks, hooks, rendered content and health endpoints are `/`,
-`/blocks`, `/hooks`, `/render` and `/health`. `/serialize`, `/kses`, `/cache` and `/lists`
+`/blocks`, `/hooks`, `/render` and `/health`. `/serialize`, `/kses`, `/cache`, `/lists` and `/urls`
 accept POST only.
 No database or background service manager is required.
 
@@ -411,6 +413,50 @@ object records, magic property access and WordPress query/database execution
 remain outside this profile. Examples and boundaries are in
 `tests/lists-fixtures.json` and `tests/lists-errors.json`.
 
+## URL string profile
+
+The original `esc_url`, `esc_url_raw`, `sanitize_url`, `wp_parse_url`,
+`wp_make_link_relative`, `build_query` and their selected helpers process URL
+strings and query arrays. The CLI reads JSON from its first argument or stdin;
+POST `/urls` accepts the same object and returns `{"result": ...}` as JSON.
+
+```bash
+./elephc/runtime/urls '{"url":"example.org/?a=1&b=2"}'
+# {"result":"http://example.org/?a=1&#038;b=2"}
+curl -sS http://127.0.0.1:9000/urls --data-binary @url-operation.json
+```
+
+| Operation | Input and behavior |
+| --- | --- |
+| `display` (default) | `url`; core URL escaping for display |
+| `raw`, `sanitize` | `url`; the original aliases using database/redirect context |
+| `parse` | `url`, optional integer `component` from -1 to 7; returns all parts or a selected PHP_URL_* component |
+| `relative` | `url`; original web-root-relative conversion |
+| `query` | `data`; original unencoded `build_query` output |
+| `encoded-query` | `data`, optional string `separator` (default `&`); original recursive URL encoding |
+| `filtered` | `url`, optional `context` (`display` or `db`); diagnostic for the original clean_url filter |
+
+Escaping uses the existing protocol policy (`http`, `https`, `mailto`, `ftp`,
+`feed`) unless `protocols` supplies an explicit list. The list order/case is
+passed through unchanged. As in core, a first literal `https` changes the scheme
+prepended to a bare hostname. Display mode normalizes entities and escapes
+ampersands/apostrophes; raw mode retains the corresponding original behavior.
+Parsing preserves core's false-on-failure, null-for-absent and empty-component
+results, including schemeless/relative URLs, credentials and IPv6.
+
+Query data accepts JSON scalars and associative arrays, with at most 256 fields
+per level and 16 nested levels below the root. Null values are omitted, false
+becomes `0`, and empty nested arrays can leave empty segments as in WordPress.
+`query` deliberately keeps values unencoded; `encoded-query` applies form URL
+encoding recursively. The adapter supplies the separator explicitly; importing
+PHP INI defaults and PHP object query data remain outside the profile.
+
+All text must be valid UTF-8 and exclude NUL, including protocol names, query
+keys, string values and separators. Invalid input returns HTTP 400 or CLI exit 2
+with a stderr diagnostic. The profile performs string operations without HTTP
+transport, DNS resolution, redirect execution or database access. It does not
+import WordPress's remote-request validation/transport graph.
+
 ## Verified behavior
 
 ```bash
@@ -429,9 +475,10 @@ compare byte-exact output against original PHP, with **13 additional boundary ca
 HTTP). Another **56 object cache scenarios** compare operation sequences with
 original PHP, with **38 invalid-input cases** and CLI stdin coverage.
 Another **56 list scenarios** compare filtering, plucking, sorting and chained
-state with original PHP, with **32 invalid-input cases**. The server checks all
-seven corpora twice through one worker for **1,188 HTTP checks**, including
-routing, body limits, response MIME types and request isolation.
+state with original PHP, with **32 invalid-input cases**. Another **103 URL
+cases** cover escaping, parsing, query building and filters, with **28 invalid
+inputs**. The server checks all eight corpora twice through one worker for
+**1,456 HTTP checks**, including routing, body limits, response MIME types and request isolation.
 
 | Request | Result |
 | --- | --- |
@@ -439,6 +486,7 @@ routing, body limits, response MIME types and request isolation.
 | `GET /blocks` | Parsed demo as JSON |
 | `GET /health` | Version/profile information, `database: false` |
 | `POST /parse` | Parse a raw UTF-8 block document as JSON |
+| `POST /urls` | Escape/parse URLs and build query strings from JSON input |
 | `POST /lists` | Filter, pluck, sort or chain operations on JSON records |
 | `POST /cache` | Execute a JSON sequence against a fresh core object cache |
 | `POST /kses?mode=attribute&element=a` | Filter one attribute using the selected KSES policy |
@@ -491,12 +539,13 @@ WP_Hook
 WP_Filter_Sentinel
 wp-includes/plugin.php
 wp-includes/shortcodes.php
-eight selected functions from wp-includes/formatting.php
+thirteen selected functions from wp-includes/formatting.php
 five selected functions from wp-includes/blocks.php
 21 selected functions and the entity table from wp-includes/kses.php
 WP_Object_Cache and wp-includes/cache.php
 WP_List_Util
-four list wrappers and wp_suspend_cache_addition from wp-includes/functions.php
+four list wrappers, wp_suspend_cache_addition and two query builders from wp-includes/functions.php
+three selected URL parser functions from wp-includes/http.php
 ```
 
 The three parser patches add explicit storage types, narrow parser frames,
@@ -521,7 +570,7 @@ intersection of shortcode tag lists. Empty-subject guards avoid a pinned
 native regex runtime crash while retaining the reference output.
 They are exercised through the upstream differential corpus.
 
-`formatting.php`, `blocks.php`, `kses.php` and `functions.php` are patched as
+`formatting.php`, `blocks.php`, `kses.php`, `http.php` and `functions.php` are patched as
 complete original files, then reduced to selected functions and source segments using byte ranges
 and hashes recorded in the manifest. Preparation verifies the complete patched source, each selected
 fragment and each final generated module. This selection avoids importing the
@@ -539,7 +588,7 @@ python3 scripts/test-clean-room.py
 ```
 
 The clean-room check exports maintained source files into a temporary directory,
-downloads a fresh WordPress archive, applies the patches, compiles all eight
+downloads a fresh WordPress archive, applies the patches, compiles all nine
 executables and repeats the reference/HTTP checks. It reuses the installed SDK
 and native dependency cache, and removes its export when finished.
 PCRE2 10.47 is pinned in the native manifest and lockfile.
@@ -574,3 +623,9 @@ guards and passes the empty-input differential fixtures.
 See the [porting log](docs/elephc/porting-log.md) and
 [patch maintenance notes](patches/README.md). WordPress and this experiment
 are distributed under [GPL-2.0-or-later](LICENSE).
+
+The separate `elephc/probes/regex-nul-subject.php` diagnostic preserves a NUL
+inside a 12-byte subject. Original PHP returns zero matches for the anchored
+ASCII-letter pattern; the pinned native matcher returns one. The URL profile
+checks NUL before regex validation and excludes this diagnostic from its verified
+builds. Compile a copy in a native project with the locked PCRE2 dependencies.
