@@ -886,10 +886,53 @@ is removed after rebuilding all thirteen executables. Automatic schema
 sanitization, scalar list coercion, enum/formats/patterns, combining/multi-type
 schemas and full CMS dispatch remain outside the profile.
 
+## Original bootstrap after goto support, 2026-11-17
+
+Elephc [PR #2370](https://github.com/illegalstudio/elephc/pull/2370) merged as
+`7d49e3b22e14e564cff2830301deb91230f2d028` on 2026-11-16. The Linux x86_64
+development SDK for main `23314d3e1fdb1ec72b5a915a7753dc72473e7591` was downloaded
+from [Actions run 44110722929](https://github.com/illegalstudio/elephc/actions/runs/44110722929),
+artifact `14344105647`. The tarball checksum was verified against its bundled
+checksum file; the SDK manifest revision and compiler/native archive hashes
+were verified before testing. The archive SHA-256 is
+`b418802f05abf1106b1fa0b37e14b0b65ed3f4c800f0baa60d9865d9960a4871`.
+The [frozen report](goto-main-23314d3.json) retains the compiler checksum,
+artifact metadata and both SDKs' diagnostics. The development snapshot and
+pinned release both print `elephc 0.27.8`; the banner alone cannot identify them.
+
+The standalone goto control exercises a jump out of a loop and a forward jump
+within a loop, following the shapes in the original UTF-8 compatibility file.
+The pinned checker rejects its goto/labels. Main checks and compiles it, and its
+native output exactly matches PHP: `[true,false,"AxB"]`. Original compat-utf8.php
+no longer produces goto syntax errors on main. It still reports missing strspn
+and type/reference constraints. Its missing _deprecated_function and
+wp_has_noncharacters are dependencies omitted by the isolated probe, not
+independent compiler defects. Reassess type/reference diagnostics after the
+primitive dependency is available.
+
+Original SHORTINIT now reaches sodium_compat/autoload.php:31 and stops on
+`require_once $file`. That first failure is inside the PHP_VERSION_ID < 70000
+legacy branch. A minimal version-guarded dynamic-include probe is also rejected
+under the PHP 8.4 compiler profile by both SDKs, while PHP 8.5.12 prints guarded
+without running that branch. The active PHP 7+ Sodium loader also has dynamic
+includes, so version pruning alone does not demonstrate bootstrap support.
+The independent strspn probe fails on both SDKs while PHP prints 3. Standard
+wp-blog-header bootstrap retains the conditional ABSPATH resolution failure at
+wp-load.php:50. These are observed blockers, not a complete compatibility audit.
+
+scripts/check-goto.py repeats six compile-only probes per SDK and compiles/runs
+only the standalone goto control through the host build queue. No WordPress
+startup or database access was executed. Preparation checks still verify 21
+core files and 20 patches. No upstream file, application adapter, patch or SDK
+pin changed. The earlier full/native source-only result remains 3,338 HTTP
+checks on the pinned SDK; that suite was not rerun on the main snapshot.
+The downloaded SDK scratch directory was removed after verification.
+
 ## Follow-up direction
 
-A broader CMS experiment should address the UTF-8 compatibility loader's
-control flow and repeat the `SHORTINIT` diagnostic to discover the next real
-blocker. Database-backed bootstrap, plugin discovery, themes, whole-document KSES,
+A broader CMS experiment can now address the missing strspn primitive and
+version-aware include resolution/Sodium loader strategy, then repeat the original
+UTF-8 and SHORTINIT diagnostics. The ordinary bootstrap also needs conditional
+ABSPATH resolution. Database-backed bootstrap, plugin discovery, themes, whole-document KSES,
 CSS and arbitrary block rendering require separate verified profiles. Current
 subsystem coverage does not establish their compatibility.

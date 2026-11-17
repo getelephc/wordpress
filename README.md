@@ -1077,6 +1077,48 @@ unmodified source paths without executing them:
 These are observed first blockers, not an exhaustive compatibility audit.
 No diagnostic starts an installation or connects to a database.
 
+### Main SDK after goto support, 2026-11-17
+
+[Elephc PR #2370](https://github.com/illegalstudio/elephc/pull/2370) added
+compiled `goto` support. An isolated Linux SDK from main commit
+`23314d3e1fdb1ec72b5a915a7753dc72473e7591` was compared with the pinned release:
+
+| Diagnostic | Pinned release | Tested main SDK |
+| --- | --- | --- |
+| Standalone goto control | Unsupported goto/labels | Native output matches PHP: `[true,false,"AxB"]` |
+| Original `compat-utf8.php` | Goto syntax errors | No goto errors; semantic/dependency errors remain |
+| Original `SHORTINIT` | Goto syntax errors | Dynamic `require_once $file` in `sodium_compat/autoload.php:31` |
+| Standard bootstrap | Conditional `ABSPATH` resolution | Same first blocker |
+
+The UTF-8 probe also exposes missing `strspn`, independently reproduced by
+`elephc/probes/string-span.php`. Its missing WordPress helper functions are
+expected when loading that file alone; remaining type/reference diagnostics need
+reassessment after its primitive dependencies are available.
+
+The first Sodium include failure is inside a `PHP_VERSION_ID < 70000` branch.
+`elephc/probes/versioned-include.php` reproduces rejection of that inactive branch
+under `--php-version 8.4`. The active PHP 7+ loader also has dynamic includes, so
+discarding the legacy branch alone does not establish bootstrap compatibility.
+
+To repeat the comparison, unpack the complete candidate SDK, keeping its native
+archives beside the compiler, then run:
+
+```bash
+python3 scripts/check-goto.py \
+  --compiler /path/to/unpacked-sdk/elephc \
+  --revision 23314d3e1fdb1ec72b5a915a7753dc72473e7591 \
+  --sdk-sha256 b418802f05abf1106b1fa0b37e14b0b65ed3f4c800f0baa60d9865d9960a4871 \
+  --output elephc/build/goto-main-23314d3
+```
+
+The script uses the host build queue when available. WordPress probes are
+compile-only; only the standalone control is compiled and executed. Its success
+does not mean WordPress boots. The [frozen report](docs/elephc/goto-main-23314d3.json)
+records artifact provenance, checksums and diagnostics. Both SDKs report
+`elephc 0.27.8`, so identify the development SDK by its source revision and checksum.
+The project pin and application profile remain unchanged; their previously
+verified 3,338 HTTP checks were not rerun against this development SDK.
+
 `elephc/probes/regex-empty-subject.php` separately reproduces a native runtime
 crash on an empty `preg_replace` subject. It is excluded from normal builds and
 verified application tests. Compile a copy inside a native project with the
