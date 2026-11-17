@@ -108,6 +108,13 @@ function wordpress_requests_operation(WordPressRequestAdapter $request, array $o
     $op = (string) $operation['op'];
     $value = array_key_exists('value', $operation) ? $operation['value'] : null;
     switch ($op) {
+        case 'validate':
+            wordpress_request_validation_ready($request);
+            return wordpress_request_validation_result($request->has_valid_params());
+        case 'sanitize':
+            wordpress_request_validation_ready($request);
+            return wordpress_request_validation_result($request->sanitize_params());
+        case 'callback-events': return WordPressRequestValidationTrace::$events;
         case 'get-method': return $request->get_method();
         case 'set-method': $request->set_method(wordpress_request_line($value)); return null;
         case 'is-method': return $request->is_method(wordpress_request_line($value));
@@ -173,6 +180,7 @@ function wordpress_requests_text(string $input): string {
     $spec = (array) $spec;
     if (!isset($spec['operations']) || !is_array($spec['operations']) || !array_is_list((array) $spec['operations']) || count((array) $spec['operations']) > 256) { throw new InvalidArgumentException('Request operations must be a list with at most 256 entries.'); }
     if (array_key_exists('permalinks', $spec) && !is_bool($spec['permalinks'])) { throw new InvalidArgumentException('permalinks must be boolean.'); }
+    wordpress_request_validation_setup();
     WordPressRequestContext::$permalinks = (bool) ($spec['permalinks'] ?? false);
     remove_all_filters('rest_request_parameter_order');
     remove_all_filters('wp_error_added');
@@ -200,6 +208,7 @@ function wordpress_requests_text(string $input): string {
         }
     }
     if (array_key_exists('body', $spec)) { $request->set_body(wordpress_error_string($spec['body'])); }
+    wordpress_request_rules($request, (array) $spec);
     wordpress_requests_supported($request);
     $results = [];
     foreach ((array) $spec['operations'] as $operation) {

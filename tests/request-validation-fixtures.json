@@ -1,0 +1,410 @@
+[
+  {
+    "name": "empty-lifecycle",
+    "input": "{\"operations\":[{\"op\":\"peek\"},{\"op\":\"validate\"},{\"op\":\"peek\"},{\"op\":\"sanitize\"},{\"op\":\"peek\"},{\"op\":\"callback-events\"}]}"
+  },
+  {
+    "name": "trim-boolean-integer",
+    "input": "{\"method\":\"POST\",\"route\":\"/demo\",\"query\":{\"age\":\"12\",\"name\":\" ada \",\"enabled\":\"false\"},\"rules\":{\"age\":{\"required\":true,\"validate\":\"integer\"},\"name\":{\"required\":true,\"validate\":\"string\",\"sanitize\":\"trim\"},\"enabled\":{\"validate\":\"boolean\",\"sanitize\":\"boolean\"}},\"route_validate\":\"pass\",\"operations\":[{\"op\":\"validate\"},{\"op\":\"sanitize\"},{\"op\":\"callback-events\"}]}"
+  },
+  {
+    "name": "required-missing",
+    "input": "{\"query\":{},\"rules\":{\"id\":{\"required\":true,\"validate\":\"pass\"}},\"route_validate\":\"pass\",\"operations\":[{\"op\":\"validate\"},{\"op\":\"sanitize\"},{\"op\":\"callback-events\"}]}"
+  },
+  {
+    "name": "required-null",
+    "input": "{\"query\":{\"id\":null},\"rules\":{\"id\":{\"required\":true,\"validate\":\"pass\"}},\"route_validate\":\"pass\",\"operations\":[{\"op\":\"validate\"},{\"op\":\"sanitize\"},{\"op\":\"callback-events\"}]}"
+  },
+  {
+    "name": "required-false",
+    "input": "{\"query\":{\"id\":false},\"rules\":{\"id\":{\"required\":true,\"validate\":\"pass\"}},\"route_validate\":\"pass\",\"operations\":[{\"op\":\"validate\"},{\"op\":\"sanitize\"},{\"op\":\"callback-events\"}]}"
+  },
+  {
+    "name": "required-zero",
+    "input": "{\"query\":{\"id\":0},\"rules\":{\"id\":{\"required\":true,\"validate\":\"pass\"}},\"route_validate\":\"pass\",\"operations\":[{\"op\":\"validate\"},{\"op\":\"sanitize\"},{\"op\":\"callback-events\"}]}"
+  },
+  {
+    "name": "required-empty-string",
+    "input": "{\"query\":{\"id\":\"\"},\"rules\":{\"id\":{\"required\":true,\"validate\":\"pass\"}},\"route_validate\":\"pass\",\"operations\":[{\"op\":\"validate\"},{\"op\":\"sanitize\"},{\"op\":\"callback-events\"}]}"
+  },
+  {
+    "name": "required-empty-list",
+    "input": "{\"query\":{\"id\":[]},\"rules\":{\"id\":{\"required\":true,\"validate\":\"pass\"}},\"route_validate\":\"pass\",\"operations\":[{\"op\":\"validate\"},{\"op\":\"sanitize\"},{\"op\":\"callback-events\"}]}"
+  },
+  {
+    "name": "multiple-missing-before-callbacks",
+    "input": "{\"query\":{\"present\":\"value\"},\"rules\":{\"present\":{\"validate\":\"fail\"},\"a\":{\"required\":true},\"b\":{\"required\":true}},\"route_validate\":\"error\",\"operations\":[{\"op\":\"validate\"},{\"op\":\"sanitize\"},{\"op\":\"callback-events\"}]}"
+  },
+  {
+    "name": "required-uses-default-after-null",
+    "input": "{\"query\":{\"id\":null},\"defaults\":{\"id\":8},\"rules\":{\"id\":{\"required\":true,\"validate\":\"integer\"}},\"operations\":[{\"op\":\"validate\"},{\"op\":\"sanitize\"},{\"op\":\"callback-events\"}]}"
+  },
+  {
+    "name": "optional-null-skips-validation",
+    "input": "{\"query\":{\"id\":null},\"rules\":{\"id\":{\"validate\":\"error\",\"sanitize\":\"keep\"}},\"route_validate\":\"pass\",\"operations\":[{\"op\":\"validate\"},{\"op\":\"sanitize\"},{\"op\":\"callback-events\"}]}"
+  },
+  {
+    "name": "validator-pass",
+    "input": "{\"method\":\"GET\",\"route\":\"/validate\",\"query\":{\"x\":\"v\"},\"rules\":{\"x\":{\"validate\":\"pass\"}},\"route_validate\":\"error\",\"operations\":[{\"op\":\"validate\"},{\"op\":\"sanitize\"},{\"op\":\"callback-events\"}]}"
+  },
+  {
+    "name": "validator-fail",
+    "input": "{\"method\":\"GET\",\"route\":\"/validate\",\"query\":{\"x\":\"v\"},\"rules\":{\"x\":{\"validate\":\"fail\"}},\"route_validate\":\"error\",\"operations\":[{\"op\":\"validate\"},{\"op\":\"sanitize\"},{\"op\":\"callback-events\"}]}"
+  },
+  {
+    "name": "validator-error",
+    "input": "{\"method\":\"GET\",\"route\":\"/validate\",\"query\":{\"x\":\"v\"},\"rules\":{\"x\":{\"validate\":\"error\"}},\"route_validate\":\"error\",\"operations\":[{\"op\":\"validate\"},{\"op\":\"sanitize\"},{\"op\":\"callback-events\"}]}"
+  },
+  {
+    "name": "validator-return-null",
+    "input": "{\"method\":\"GET\",\"route\":\"/validate\",\"query\":{\"x\":\"v\"},\"rules\":{\"x\":{\"validate\":\"return-null\"}},\"route_validate\":\"error\",\"operations\":[{\"op\":\"validate\"},{\"op\":\"sanitize\"},{\"op\":\"callback-events\"}]}"
+  },
+  {
+    "name": "validator-return-zero",
+    "input": "{\"method\":\"GET\",\"route\":\"/validate\",\"query\":{\"x\":\"v\"},\"rules\":{\"x\":{\"validate\":\"return-zero\"}},\"route_validate\":\"error\",\"operations\":[{\"op\":\"validate\"},{\"op\":\"sanitize\"},{\"op\":\"callback-events\"}]}"
+  },
+  {
+    "name": "validator-string",
+    "input": "{\"method\":\"GET\",\"route\":\"/validate\",\"query\":{\"x\":\"v\"},\"rules\":{\"x\":{\"validate\":\"string\"}},\"route_validate\":\"error\",\"operations\":[{\"op\":\"validate\"},{\"op\":\"sanitize\"},{\"op\":\"callback-events\"}]}"
+  },
+  {
+    "name": "aggregate-error-and-false",
+    "input": "{\"query\":{\"one\":1,\"two\":2,\"three\":3},\"rules\":{\"one\":{\"validate\":\"fail\"},\"two\":{\"validate\":\"error\"},\"three\":{\"validate\":\"pass\"}},\"route_validate\":\"pass\",\"operations\":[{\"op\":\"validate\"},{\"op\":\"sanitize\"},{\"op\":\"callback-events\"}]}"
+  },
+  {
+    "name": "numeric-error-keys",
+    "input": "{\"query\":{\"0\":1,\"-2\":2},\"rules\":{\"0\":{\"validate\":\"fail\"},\"-2\":{\"validate\":\"error\"}},\"operations\":[{\"op\":\"validate\"},{\"op\":\"sanitize\"},{\"op\":\"callback-events\"}]}"
+  },
+  {
+    "name": "numeric-required-keys",
+    "input": "{\"rules\":{\"0\":{\"required\":true},\"-2\":{\"required\":true}},\"operations\":[{\"op\":\"validate\"},{\"op\":\"sanitize\"},{\"op\":\"callback-events\"}]}"
+  },
+  {
+    "name": "route-pass-true",
+    "input": "{\"method\":\"PATCH\",\"route\":\"/route/demo\",\"query\":{\"blocked\":true},\"route_validate\":\"pass\",\"operations\":[{\"op\":\"validate\"},{\"op\":\"sanitize\"},{\"op\":\"callback-events\"}]}"
+  },
+  {
+    "name": "route-pass-false",
+    "input": "{\"method\":\"PATCH\",\"route\":\"/route/demo\",\"query\":{\"blocked\":false},\"route_validate\":\"pass\",\"operations\":[{\"op\":\"validate\"},{\"op\":\"sanitize\"},{\"op\":\"callback-events\"}]}"
+  },
+  {
+    "name": "route-fail-true",
+    "input": "{\"method\":\"PATCH\",\"route\":\"/route/demo\",\"query\":{\"blocked\":true},\"route_validate\":\"fail\",\"operations\":[{\"op\":\"validate\"},{\"op\":\"sanitize\"},{\"op\":\"callback-events\"}]}"
+  },
+  {
+    "name": "route-fail-false",
+    "input": "{\"method\":\"PATCH\",\"route\":\"/route/demo\",\"query\":{\"blocked\":false},\"route_validate\":\"fail\",\"operations\":[{\"op\":\"validate\"},{\"op\":\"sanitize\"},{\"op\":\"callback-events\"}]}"
+  },
+  {
+    "name": "route-error-true",
+    "input": "{\"method\":\"PATCH\",\"route\":\"/route/demo\",\"query\":{\"blocked\":true},\"route_validate\":\"error\",\"operations\":[{\"op\":\"validate\"},{\"op\":\"sanitize\"},{\"op\":\"callback-events\"}]}"
+  },
+  {
+    "name": "route-error-false",
+    "input": "{\"method\":\"PATCH\",\"route\":\"/route/demo\",\"query\":{\"blocked\":false},\"route_validate\":\"error\",\"operations\":[{\"op\":\"validate\"},{\"op\":\"sanitize\"},{\"op\":\"callback-events\"}]}"
+  },
+  {
+    "name": "route-check-blocked-true",
+    "input": "{\"method\":\"PATCH\",\"route\":\"/route/demo\",\"query\":{\"blocked\":true},\"route_validate\":\"check-blocked\",\"operations\":[{\"op\":\"validate\"},{\"op\":\"sanitize\"},{\"op\":\"callback-events\"}]}"
+  },
+  {
+    "name": "route-check-blocked-false",
+    "input": "{\"method\":\"PATCH\",\"route\":\"/route/demo\",\"query\":{\"blocked\":false},\"route_validate\":\"check-blocked\",\"operations\":[{\"op\":\"validate\"},{\"op\":\"sanitize\"},{\"op\":\"callback-events\"}]}"
+  },
+  {
+    "name": "route-after-parameter-failure",
+    "input": "{\"query\":{\"x\":1},\"rules\":{\"x\":{\"validate\":\"fail\"}},\"route_validate\":\"error\",\"operations\":[{\"op\":\"validate\"},{\"op\":\"sanitize\"},{\"op\":\"callback-events\"}]}"
+  },
+  {
+    "name": "route-cleared",
+    "input": "{\"route_validate\":null,\"operations\":[{\"op\":\"validate\"},{\"op\":\"sanitize\"},{\"op\":\"callback-events\"}]}"
+  },
+  {
+    "name": "disabled-arg-callbacks",
+    "input": "{\"query\":{\"x\":\" x \"},\"rules\":{\"x\":{\"validate\":false,\"sanitize\":null}},\"operations\":[{\"op\":\"validate\"},{\"op\":\"sanitize\"},{\"op\":\"callback-events\"},{\"op\":\"set-attributes\",\"value\":{\"args\":{\"x\":{\"validate_callback\":false,\"sanitize_callback\":null}}}},{\"op\":\"validate\"},{\"op\":\"sanitize\"},{\"op\":\"callback-events\"}]}"
+  },
+  {
+    "name": "integer-0",
+    "input": "{\"query\":{\"x\":0},\"rules\":{\"x\":{\"validate\":\"integer\"}},\"operations\":[{\"op\":\"validate\"},{\"op\":\"sanitize\"},{\"op\":\"callback-events\"}]}"
+  },
+  {
+    "name": "integer-1",
+    "input": "{\"query\":{\"x\":1},\"rules\":{\"x\":{\"validate\":\"integer\"}},\"operations\":[{\"op\":\"validate\"},{\"op\":\"sanitize\"},{\"op\":\"callback-events\"}]}"
+  },
+  {
+    "name": "integer-2",
+    "input": "{\"query\":{\"x\":-1},\"rules\":{\"x\":{\"validate\":\"integer\"}},\"operations\":[{\"op\":\"validate\"},{\"op\":\"sanitize\"},{\"op\":\"callback-events\"}]}"
+  },
+  {
+    "name": "integer-3",
+    "input": "{\"query\":{\"x\":1.0},\"rules\":{\"x\":{\"validate\":\"integer\"}},\"operations\":[{\"op\":\"validate\"},{\"op\":\"sanitize\"},{\"op\":\"callback-events\"}]}"
+  },
+  {
+    "name": "integer-4",
+    "input": "{\"query\":{\"x\":1.5},\"rules\":{\"x\":{\"validate\":\"integer\"}},\"operations\":[{\"op\":\"validate\"},{\"op\":\"sanitize\"},{\"op\":\"callback-events\"}]}"
+  },
+  {
+    "name": "integer-5",
+    "input": "{\"query\":{\"x\":true},\"rules\":{\"x\":{\"validate\":\"integer\"}},\"operations\":[{\"op\":\"validate\"},{\"op\":\"sanitize\"},{\"op\":\"callback-events\"}]}"
+  },
+  {
+    "name": "integer-6",
+    "input": "{\"query\":{\"x\":false},\"rules\":{\"x\":{\"validate\":\"integer\"}},\"operations\":[{\"op\":\"validate\"},{\"op\":\"sanitize\"},{\"op\":\"callback-events\"}]}"
+  },
+  {
+    "name": "integer-7",
+    "input": "{\"query\":{\"x\":null},\"rules\":{\"x\":{\"validate\":\"integer\"}},\"operations\":[{\"op\":\"validate\"},{\"op\":\"sanitize\"},{\"op\":\"callback-events\"}]}"
+  },
+  {
+    "name": "integer-8",
+    "input": "{\"query\":{\"x\":\"0\"},\"rules\":{\"x\":{\"validate\":\"integer\"}},\"operations\":[{\"op\":\"validate\"},{\"op\":\"sanitize\"},{\"op\":\"callback-events\"}]}"
+  },
+  {
+    "name": "integer-9",
+    "input": "{\"query\":{\"x\":\"-0\"},\"rules\":{\"x\":{\"validate\":\"integer\"}},\"operations\":[{\"op\":\"validate\"},{\"op\":\"sanitize\"},{\"op\":\"callback-events\"}]}"
+  },
+  {
+    "name": "integer-10",
+    "input": "{\"query\":{\"x\":\"1\"},\"rules\":{\"x\":{\"validate\":\"integer\"}},\"operations\":[{\"op\":\"validate\"},{\"op\":\"sanitize\"},{\"op\":\"callback-events\"}]}"
+  },
+  {
+    "name": "integer-11",
+    "input": "{\"query\":{\"x\":\"-1\"},\"rules\":{\"x\":{\"validate\":\"integer\"}},\"operations\":[{\"op\":\"validate\"},{\"op\":\"sanitize\"},{\"op\":\"callback-events\"}]}"
+  },
+  {
+    "name": "integer-12",
+    "input": "{\"query\":{\"x\":\"01\"},\"rules\":{\"x\":{\"validate\":\"integer\"}},\"operations\":[{\"op\":\"validate\"},{\"op\":\"sanitize\"},{\"op\":\"callback-events\"}]}"
+  },
+  {
+    "name": "integer-13",
+    "input": "{\"query\":{\"x\":\"+1\"},\"rules\":{\"x\":{\"validate\":\"integer\"}},\"operations\":[{\"op\":\"validate\"},{\"op\":\"sanitize\"},{\"op\":\"callback-events\"}]}"
+  },
+  {
+    "name": "integer-14",
+    "input": "{\"query\":{\"x\":\" 1\"},\"rules\":{\"x\":{\"validate\":\"integer\"}},\"operations\":[{\"op\":\"validate\"},{\"op\":\"sanitize\"},{\"op\":\"callback-events\"}]}"
+  },
+  {
+    "name": "integer-15",
+    "input": "{\"query\":{\"x\":\"1 \"},\"rules\":{\"x\":{\"validate\":\"integer\"}},\"operations\":[{\"op\":\"validate\"},{\"op\":\"sanitize\"},{\"op\":\"callback-events\"}]}"
+  },
+  {
+    "name": "integer-16",
+    "input": "{\"query\":{\"x\":\"1.0\"},\"rules\":{\"x\":{\"validate\":\"integer\"}},\"operations\":[{\"op\":\"validate\"},{\"op\":\"sanitize\"},{\"op\":\"callback-events\"}]}"
+  },
+  {
+    "name": "integer-17",
+    "input": "{\"query\":{\"x\":\"1e2\"},\"rules\":{\"x\":{\"validate\":\"integer\"}},\"operations\":[{\"op\":\"validate\"},{\"op\":\"sanitize\"},{\"op\":\"callback-events\"}]}"
+  },
+  {
+    "name": "integer-18",
+    "input": "{\"query\":{\"x\":\"0x10\"},\"rules\":{\"x\":{\"validate\":\"integer\"}},\"operations\":[{\"op\":\"validate\"},{\"op\":\"sanitize\"},{\"op\":\"callback-events\"}]}"
+  },
+  {
+    "name": "integer-19",
+    "input": "{\"query\":{\"x\":\"999999999999999999999999999999\"},\"rules\":{\"x\":{\"validate\":\"integer\"}},\"operations\":[{\"op\":\"validate\"},{\"op\":\"sanitize\"},{\"op\":\"callback-events\"}]}"
+  },
+  {
+    "name": "integer-20",
+    "input": "{\"query\":{\"x\":\"\"},\"rules\":{\"x\":{\"validate\":\"integer\"}},\"operations\":[{\"op\":\"validate\"},{\"op\":\"sanitize\"},{\"op\":\"callback-events\"}]}"
+  },
+  {
+    "name": "integer-21",
+    "input": "{\"query\":{\"x\":[]},\"rules\":{\"x\":{\"validate\":\"integer\"}},\"operations\":[{\"op\":\"validate\"},{\"op\":\"sanitize\"},{\"op\":\"callback-events\"}]}"
+  },
+  {
+    "name": "integer-22",
+    "input": "{\"query\":{\"x\":{}},\"rules\":{\"x\":{\"validate\":\"integer\"}},\"operations\":[{\"op\":\"validate\"},{\"op\":\"sanitize\"},{\"op\":\"callback-events\"}]}"
+  },
+  {
+    "name": "integer-23",
+    "input": "{\"query\":{\"x\":\"1\\u0000\"},\"rules\":{\"x\":{\"validate\":\"integer\"}},\"operations\":[{\"op\":\"validate\"},{\"op\":\"sanitize\"},{\"op\":\"callback-events\"}]}"
+  },
+  {
+    "name": "integer-24",
+    "input": "{\"query\":{\"x\":\"1\\n\"},\"rules\":{\"x\":{\"validate\":\"integer\"}},\"operations\":[{\"op\":\"validate\"},{\"op\":\"sanitize\"},{\"op\":\"callback-events\"}]}"
+  },
+  {
+    "name": "integer-25",
+    "input": "{\"query\":{\"x\":\"-.1\"},\"rules\":{\"x\":{\"validate\":\"integer\"}},\"operations\":[{\"op\":\"validate\"},{\"op\":\"sanitize\"},{\"op\":\"callback-events\"}]}"
+  },
+  {
+    "name": "integer-26",
+    "input": "{\"query\":{\"x\":\"-01\"},\"rules\":{\"x\":{\"validate\":\"integer\"}},\"operations\":[{\"op\":\"validate\"},{\"op\":\"sanitize\"},{\"op\":\"callback-events\"}]}"
+  },
+  {
+    "name": "boolean-0",
+    "input": "{\"query\":{\"x\":true},\"rules\":{\"x\":{\"validate\":\"boolean\",\"sanitize\":\"boolean\"}},\"operations\":[{\"op\":\"validate\"},{\"op\":\"sanitize\"},{\"op\":\"validate\"},{\"op\":\"callback-events\"}]}"
+  },
+  {
+    "name": "boolean-1",
+    "input": "{\"query\":{\"x\":false},\"rules\":{\"x\":{\"validate\":\"boolean\",\"sanitize\":\"boolean\"}},\"operations\":[{\"op\":\"validate\"},{\"op\":\"sanitize\"},{\"op\":\"validate\"},{\"op\":\"callback-events\"}]}"
+  },
+  {
+    "name": "boolean-2",
+    "input": "{\"query\":{\"x\":0},\"rules\":{\"x\":{\"validate\":\"boolean\",\"sanitize\":\"boolean\"}},\"operations\":[{\"op\":\"validate\"},{\"op\":\"sanitize\"},{\"op\":\"validate\"},{\"op\":\"callback-events\"}]}"
+  },
+  {
+    "name": "boolean-3",
+    "input": "{\"query\":{\"x\":1},\"rules\":{\"x\":{\"validate\":\"boolean\",\"sanitize\":\"boolean\"}},\"operations\":[{\"op\":\"validate\"},{\"op\":\"sanitize\"},{\"op\":\"validate\"},{\"op\":\"callback-events\"}]}"
+  },
+  {
+    "name": "boolean-4",
+    "input": "{\"query\":{\"x\":-1},\"rules\":{\"x\":{\"validate\":\"boolean\",\"sanitize\":\"boolean\"}},\"operations\":[{\"op\":\"validate\"},{\"op\":\"sanitize\"},{\"op\":\"validate\"},{\"op\":\"callback-events\"}]}"
+  },
+  {
+    "name": "boolean-5",
+    "input": "{\"query\":{\"x\":2},\"rules\":{\"x\":{\"validate\":\"boolean\",\"sanitize\":\"boolean\"}},\"operations\":[{\"op\":\"validate\"},{\"op\":\"sanitize\"},{\"op\":\"validate\"},{\"op\":\"callback-events\"}]}"
+  },
+  {
+    "name": "boolean-6",
+    "input": "{\"query\":{\"x\":null},\"rules\":{\"x\":{\"validate\":\"boolean\",\"sanitize\":\"boolean\"}},\"operations\":[{\"op\":\"validate\"},{\"op\":\"sanitize\"},{\"op\":\"validate\"},{\"op\":\"callback-events\"}]}"
+  },
+  {
+    "name": "boolean-7",
+    "input": "{\"query\":{\"x\":\"true\"},\"rules\":{\"x\":{\"validate\":\"boolean\",\"sanitize\":\"boolean\"}},\"operations\":[{\"op\":\"validate\"},{\"op\":\"sanitize\"},{\"op\":\"validate\"},{\"op\":\"callback-events\"}]}"
+  },
+  {
+    "name": "boolean-8",
+    "input": "{\"query\":{\"x\":\"TRUE\"},\"rules\":{\"x\":{\"validate\":\"boolean\",\"sanitize\":\"boolean\"}},\"operations\":[{\"op\":\"validate\"},{\"op\":\"sanitize\"},{\"op\":\"validate\"},{\"op\":\"callback-events\"}]}"
+  },
+  {
+    "name": "boolean-9",
+    "input": "{\"query\":{\"x\":\"TrUe\"},\"rules\":{\"x\":{\"validate\":\"boolean\",\"sanitize\":\"boolean\"}},\"operations\":[{\"op\":\"validate\"},{\"op\":\"sanitize\"},{\"op\":\"validate\"},{\"op\":\"callback-events\"}]}"
+  },
+  {
+    "name": "boolean-10",
+    "input": "{\"query\":{\"x\":\"false\"},\"rules\":{\"x\":{\"validate\":\"boolean\",\"sanitize\":\"boolean\"}},\"operations\":[{\"op\":\"validate\"},{\"op\":\"sanitize\"},{\"op\":\"validate\"},{\"op\":\"callback-events\"}]}"
+  },
+  {
+    "name": "boolean-11",
+    "input": "{\"query\":{\"x\":\"FALSE\"},\"rules\":{\"x\":{\"validate\":\"boolean\",\"sanitize\":\"boolean\"}},\"operations\":[{\"op\":\"validate\"},{\"op\":\"sanitize\"},{\"op\":\"validate\"},{\"op\":\"callback-events\"}]}"
+  },
+  {
+    "name": "boolean-12",
+    "input": "{\"query\":{\"x\":\"0\"},\"rules\":{\"x\":{\"validate\":\"boolean\",\"sanitize\":\"boolean\"}},\"operations\":[{\"op\":\"validate\"},{\"op\":\"sanitize\"},{\"op\":\"validate\"},{\"op\":\"callback-events\"}]}"
+  },
+  {
+    "name": "boolean-13",
+    "input": "{\"query\":{\"x\":\"1\"},\"rules\":{\"x\":{\"validate\":\"boolean\",\"sanitize\":\"boolean\"}},\"operations\":[{\"op\":\"validate\"},{\"op\":\"sanitize\"},{\"op\":\"validate\"},{\"op\":\"callback-events\"}]}"
+  },
+  {
+    "name": "boolean-14",
+    "input": "{\"query\":{\"x\":\"\"},\"rules\":{\"x\":{\"validate\":\"boolean\",\"sanitize\":\"boolean\"}},\"operations\":[{\"op\":\"validate\"},{\"op\":\"sanitize\"},{\"op\":\"validate\"},{\"op\":\"callback-events\"}]}"
+  },
+  {
+    "name": "boolean-15",
+    "input": "{\"query\":{\"x\":\"yes\"},\"rules\":{\"x\":{\"validate\":\"boolean\",\"sanitize\":\"boolean\"}},\"operations\":[{\"op\":\"validate\"},{\"op\":\"sanitize\"},{\"op\":\"validate\"},{\"op\":\"callback-events\"}]}"
+  },
+  {
+    "name": "boolean-16",
+    "input": "{\"query\":{\"x\":\" false\"},\"rules\":{\"x\":{\"validate\":\"boolean\",\"sanitize\":\"boolean\"}},\"operations\":[{\"op\":\"validate\"},{\"op\":\"sanitize\"},{\"op\":\"validate\"},{\"op\":\"callback-events\"}]}"
+  },
+  {
+    "name": "boolean-17",
+    "input": "{\"query\":{\"x\":\"false \"},\"rules\":{\"x\":{\"validate\":\"boolean\",\"sanitize\":\"boolean\"}},\"operations\":[{\"op\":\"validate\"},{\"op\":\"sanitize\"},{\"op\":\"validate\"},{\"op\":\"callback-events\"}]}"
+  },
+  {
+    "name": "boolean-18",
+    "input": "{\"query\":{\"x\":\"false\\u0000\"},\"rules\":{\"x\":{\"validate\":\"boolean\",\"sanitize\":\"boolean\"}},\"operations\":[{\"op\":\"validate\"},{\"op\":\"sanitize\"},{\"op\":\"validate\"},{\"op\":\"callback-events\"}]}"
+  },
+  {
+    "name": "boolean-19",
+    "input": "{\"query\":{\"x\":[]},\"rules\":{\"x\":{\"validate\":\"boolean\",\"sanitize\":\"boolean\"}},\"operations\":[{\"op\":\"validate\"},{\"op\":\"sanitize\"},{\"op\":\"validate\"},{\"op\":\"callback-events\"}]}"
+  },
+  {
+    "name": "boolean-20",
+    "input": "{\"query\":{\"x\":{}},\"rules\":{\"x\":{\"validate\":\"boolean\",\"sanitize\":\"boolean\"}},\"operations\":[{\"op\":\"validate\"},{\"op\":\"sanitize\"},{\"op\":\"validate\"},{\"op\":\"callback-events\"}]}"
+  },
+  {
+    "name": "boolean-21",
+    "input": "{\"query\":{\"x\":[0]},\"rules\":{\"x\":{\"validate\":\"boolean\",\"sanitize\":\"boolean\"}},\"operations\":[{\"op\":\"validate\"},{\"op\":\"sanitize\"},{\"op\":\"validate\"},{\"op\":\"callback-events\"}]}"
+  },
+  {
+    "name": "sanitize-keep",
+    "input": "{\"query\":{\"x\":{\"mixed\":[null,false,0,\"0\",\"a\\u0000b\"],\"nested\":{\"n\":3}}},\"defaults\":{\"x\":[1,{\"other\":false}]},\"rules\":{\"x\":{\"sanitize\":\"keep\"}},\"operations\":[{\"op\":\"validate\"},{\"op\":\"sanitize\"},{\"op\":\"callback-events\"}]}"
+  },
+  {
+    "name": "sanitize-trim",
+    "input": "{\"query\":{\"x\":\" zero \"},\"defaults\":{\"x\":\" fallback \"},\"rules\":{\"x\":{\"sanitize\":\"trim\"}},\"operations\":[{\"op\":\"validate\"},{\"op\":\"sanitize\"},{\"op\":\"callback-events\"}]}"
+  },
+  {
+    "name": "sanitize-upper",
+    "input": "{\"query\":{\"x\":\" zero \"},\"defaults\":{\"x\":\" fallback \"},\"rules\":{\"x\":{\"sanitize\":\"upper\"}},\"operations\":[{\"op\":\"validate\"},{\"op\":\"sanitize\"},{\"op\":\"callback-events\"}]}"
+  },
+  {
+    "name": "sanitize-null",
+    "input": "{\"query\":{\"x\":\" zero \"},\"defaults\":{\"x\":\" fallback \"},\"rules\":{\"x\":{\"sanitize\":\"null\"}},\"operations\":[{\"op\":\"validate\"},{\"op\":\"sanitize\"},{\"op\":\"callback-events\"}]}"
+  },
+  {
+    "name": "sanitize-error",
+    "input": "{\"query\":{\"x\":\" zero \"},\"defaults\":{\"x\":\" fallback \"},\"rules\":{\"x\":{\"sanitize\":\"error\"}},\"operations\":[{\"op\":\"validate\"},{\"op\":\"sanitize\"},{\"op\":\"callback-events\"}]}"
+  },
+  {
+    "name": "sanitize-string-errors",
+    "input": "{\"query\":{\"x\":4,\"y\":\"a\\u0000b\",\"z\":[\"x\"],\"good\":\" ok \"},\"rules\":{\"x\":{\"sanitize\":\"trim\"},\"y\":{\"sanitize\":\"upper\"},\"z\":{\"sanitize\":\"trim\"},\"good\":{\"sanitize\":\"trim\"}},\"operations\":[{\"op\":\"validate\"},{\"op\":\"sanitize\"},{\"op\":\"callback-events\"}]}"
+  },
+  {
+    "name": "sanitize-every-active-source",
+    "input": "{\"method\":\"POST\",\"query\":{\"x\":\" get \"},\"url\":{\"x\":\" url \"},\"post\":{\"x\":\" post \"},\"files\":{\"x\":\" file \"},\"defaults\":{\"x\":\" default \"},\"headers\":{\"Content-Type\":\"application/json\"},\"body\":\"{\\\"x\\\":\\\" json \\\"}\",\"rules\":{\"x\":{\"sanitize\":\"trim\"}},\"operations\":[{\"op\":\"sanitize\"},{\"op\":\"peek\"},{\"op\":\"callback-events\"}]}"
+  },
+  {
+    "name": "sanitize-filtered-source-order",
+    "input": "{\"method\":\"GET\",\"query\":{\"x\":\" get \"},\"url\":{\"x\":\" url \"},\"post\":{\"x\":\" post \"},\"files\":{\"x\":\" file \"},\"defaults\":{\"x\":\" default \"},\"order\":[\"FILES\",\"URL\",\"GET\",\"FILES\"],\"rules\":{\"x\":{\"sanitize\":\"upper\"}},\"operations\":[{\"op\":\"sanitize\"},{\"op\":\"callback-events\"}]}"
+  },
+  {
+    "name": "sanitize-all-errors-and-success",
+    "input": "{\"method\":\"POST\",\"query\":{\"x\":7,\"y\":\" get \"},\"post\":{\"x\":\" ok \",\"y\":\" post \"},\"defaults\":{\"x\":false,\"y\":\" default \"},\"rules\":{\"x\":{\"sanitize\":\"trim\"},\"y\":{\"sanitize\":\"upper\"}},\"operations\":[{\"op\":\"sanitize\"},{\"op\":\"peek\"},{\"op\":\"callback-events\"}]}"
+  },
+  {
+    "name": "validate-winning-source-only",
+    "input": "{\"method\":\"POST\",\"post\":{\"x\":2},\"query\":{\"x\":\"invalid\"},\"defaults\":{\"x\":false},\"rules\":{\"x\":{\"validate\":\"integer\"}},\"operations\":[{\"op\":\"validate\"},{\"op\":\"sanitize\"},{\"op\":\"callback-events\"}]}"
+  },
+  {
+    "name": "validate-before-and-after-trim",
+    "input": "{\"query\":{\"x\":\" 3 \"},\"rules\":{\"x\":{\"validate\":\"integer\",\"sanitize\":\"trim\"}},\"operations\":[{\"op\":\"validate\"},{\"op\":\"sanitize\"},{\"op\":\"validate\"},{\"op\":\"callback-events\"}]}"
+  },
+  {
+    "name": "null-sanitizer-required-recheck",
+    "input": "{\"query\":{\"x\":\"v\"},\"defaults\":{\"x\":\"fallback\"},\"rules\":{\"x\":{\"required\":true,\"sanitize\":\"null\"}},\"operations\":[{\"op\":\"validate\"},{\"op\":\"sanitize\"},{\"op\":\"validate\"},{\"op\":\"has-param\",\"key\":\"x\"},{\"op\":\"callback-events\"}]}"
+  },
+  {
+    "name": "json-error-validate",
+    "input": "{\"headers\":{\"Content-Type\":\"application/json\"},\"body\":\"{\",\"rules\":{\"x\":{\"required\":true,\"validate\":\"fail\",\"sanitize\":\"error\"}},\"operations\":[{\"op\":\"peek\"},{\"op\":\"validate\"},{\"op\":\"peek\"},{\"op\":\"callback-events\"}]}"
+  },
+  {
+    "name": "json-error-sanitize",
+    "input": "{\"headers\":{\"Content-Type\":\"application/json\"},\"body\":\"{\",\"rules\":{\"x\":{\"required\":true,\"validate\":\"fail\",\"sanitize\":\"error\"}},\"operations\":[{\"op\":\"peek\"},{\"op\":\"sanitize\"},{\"op\":\"peek\"},{\"op\":\"callback-events\"}]}"
+  },
+  {
+    "name": "sanitize-no-args-keeps-json-lazy",
+    "input": "{\"headers\":{\"Content-Type\":\"application/json\"},\"body\":\"{\",\"operations\":[{\"op\":\"peek\"},{\"op\":\"sanitize\"},{\"op\":\"peek\"},{\"op\":\"callback-events\"}]}"
+  },
+  {
+    "name": "json-error-retry-original",
+    "input": "{\"headers\":{\"Content-Type\":\"application/json\"},\"body\":\"{\",\"rules\":{\"x\":{\"required\":true,\"validate\":\"pass\"}},\"operations\":[{\"op\":\"validate\"},{\"op\":\"validate\"},{\"op\":\"callback-events\"}]}"
+  },
+  {
+    "name": "json-body-integer-and-bool",
+    "input": "{\"method\":\"PUT\",\"headers\":{\"Content-Type\":\"application/json\"},\"body\":\"{\\\"id\\\":\\\"2\\\",\\\"enabled\\\":\\\"FALSE\\\"}\",\"rules\":{\"id\":{\"required\":true,\"validate\":\"integer\"},\"enabled\":{\"validate\":\"boolean\",\"sanitize\":\"boolean\"}},\"route_validate\":\"pass\",\"operations\":[{\"op\":\"validate\"},{\"op\":\"sanitize\"},{\"op\":\"callback-events\"}]}"
+  },
+  {
+    "name": "attributes-callback-manifest",
+    "input": "{\"attributes\":{\"args\":{\"x\":{\"validate_callback\":\"wordpress_request_validate_integer\",\"sanitize_callback\":\"wordpress_request_sanitize_keep\"}},\"validate_callback\":\"wordpress_request_route_pass\"},\"query\":{\"x\":\"5\"},\"operations\":[{\"op\":\"validate\"},{\"op\":\"sanitize\"},{\"op\":\"callback-events\"}]}"
+  },
+  {
+    "name": "rules-replace-attributes-args",
+    "input": "{\"attributes\":{\"args\":{\"old\":{\"required\":true}}},\"query\":{\"x\":\"2\"},\"rules\":{\"x\":{\"validate\":\"integer\"}},\"operations\":[{\"op\":\"validate\"},{\"op\":\"sanitize\"},{\"op\":\"callback-events\"}]}"
+  },
+  {
+    "name": "attributes-reconfigured",
+    "input": "{\"query\":{\"x\":2},\"rules\":{\"x\":{\"validate\":\"integer\"}},\"operations\":[{\"op\":\"validate\"},{\"op\":\"set-attributes\",\"value\":{\"args\":{\"x\":{\"validate_callback\":\"wordpress_request_validate_fail\"}}}},{\"op\":\"validate\"},{\"op\":\"set-attributes\",\"value\":{}},{\"op\":\"validate\"},{\"op\":\"callback-events\"}]}"
+  },
+  {
+    "name": "state-reset-after-trace",
+    "input": "{\"operations\":[{\"op\":\"callback-events\"},{\"op\":\"validate\"},{\"op\":\"callback-events\"}]}"
+  },
+  {
+    "name": "callback-event-limit-exact",
+    "input": "{\"query\":{\"0\":0,\"1\":1,\"2\":2,\"3\":3,\"4\":4,\"5\":5,\"6\":6,\"7\":7,\"8\":8,\"9\":9,\"10\":10,\"11\":11,\"12\":12,\"13\":13,\"14\":14,\"15\":15,\"16\":16,\"17\":17,\"18\":18,\"19\":19,\"20\":20,\"21\":21,\"22\":22,\"23\":23,\"24\":24,\"25\":25,\"26\":26,\"27\":27,\"28\":28,\"29\":29,\"30\":30,\"31\":31,\"32\":32,\"33\":33,\"34\":34,\"35\":35,\"36\":36,\"37\":37,\"38\":38,\"39\":39,\"40\":40,\"41\":41,\"42\":42,\"43\":43,\"44\":44,\"45\":45,\"46\":46,\"47\":47,\"48\":48,\"49\":49,\"50\":50,\"51\":51,\"52\":52,\"53\":53,\"54\":54,\"55\":55,\"56\":56,\"57\":57,\"58\":58,\"59\":59,\"60\":60,\"61\":61,\"62\":62,\"63\":63},\"rules\":{\"0\":{\"validate\":\"pass\"},\"1\":{\"validate\":\"pass\"},\"2\":{\"validate\":\"pass\"},\"3\":{\"validate\":\"pass\"},\"4\":{\"validate\":\"pass\"},\"5\":{\"validate\":\"pass\"},\"6\":{\"validate\":\"pass\"},\"7\":{\"validate\":\"pass\"},\"8\":{\"validate\":\"pass\"},\"9\":{\"validate\":\"pass\"},\"10\":{\"validate\":\"pass\"},\"11\":{\"validate\":\"pass\"},\"12\":{\"validate\":\"pass\"},\"13\":{\"validate\":\"pass\"},\"14\":{\"validate\":\"pass\"},\"15\":{\"validate\":\"pass\"},\"16\":{\"validate\":\"pass\"},\"17\":{\"validate\":\"pass\"},\"18\":{\"validate\":\"pass\"},\"19\":{\"validate\":\"pass\"},\"20\":{\"validate\":\"pass\"},\"21\":{\"validate\":\"pass\"},\"22\":{\"validate\":\"pass\"},\"23\":{\"validate\":\"pass\"},\"24\":{\"validate\":\"pass\"},\"25\":{\"validate\":\"pass\"},\"26\":{\"validate\":\"pass\"},\"27\":{\"validate\":\"pass\"},\"28\":{\"validate\":\"pass\"},\"29\":{\"validate\":\"pass\"},\"30\":{\"validate\":\"pass\"},\"31\":{\"validate\":\"pass\"},\"32\":{\"validate\":\"pass\"},\"33\":{\"validate\":\"pass\"},\"34\":{\"validate\":\"pass\"},\"35\":{\"validate\":\"pass\"},\"36\":{\"validate\":\"pass\"},\"37\":{\"validate\":\"pass\"},\"38\":{\"validate\":\"pass\"},\"39\":{\"validate\":\"pass\"},\"40\":{\"validate\":\"pass\"},\"41\":{\"validate\":\"pass\"},\"42\":{\"validate\":\"pass\"},\"43\":{\"validate\":\"pass\"},\"44\":{\"validate\":\"pass\"},\"45\":{\"validate\":\"pass\"},\"46\":{\"validate\":\"pass\"},\"47\":{\"validate\":\"pass\"},\"48\":{\"validate\":\"pass\"},\"49\":{\"validate\":\"pass\"},\"50\":{\"validate\":\"pass\"},\"51\":{\"validate\":\"pass\"},\"52\":{\"validate\":\"pass\"},\"53\":{\"validate\":\"pass\"},\"54\":{\"validate\":\"pass\"},\"55\":{\"validate\":\"pass\"},\"56\":{\"validate\":\"pass\"},\"57\":{\"validate\":\"pass\"},\"58\":{\"validate\":\"pass\"},\"59\":{\"validate\":\"pass\"},\"60\":{\"validate\":\"pass\"},\"61\":{\"validate\":\"pass\"},\"62\":{\"validate\":\"pass\"},\"63\":{\"validate\":\"pass\"}},\"operations\":[{\"op\":\"validate\"},{\"op\":\"validate\"},{\"op\":\"validate\"},{\"op\":\"validate\"},{\"op\":\"validate\"},{\"op\":\"validate\"},{\"op\":\"validate\"},{\"op\":\"validate\"},{\"op\":\"validate\"},{\"op\":\"validate\"},{\"op\":\"validate\"},{\"op\":\"validate\"},{\"op\":\"validate\"},{\"op\":\"validate\"},{\"op\":\"validate\"},{\"op\":\"validate\"},{\"op\":\"callback-events\"}]}"
+  }
+]

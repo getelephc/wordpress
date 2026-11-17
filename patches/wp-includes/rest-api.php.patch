@@ -9,7 +9,53 @@
  	if ( is_wp_error( $response ) ) {
  		return $response;
  	}
-@@ -3461,14 +3461,14 @@
+@@ -1532,10 +1532,10 @@
+  * @param bool|string|int $value The value being evaluated.
+  * @return bool Returns the proper associated boolean value.
+  */
+-function rest_sanitize_boolean( $value ) {
++function rest_sanitize_boolean( mixed $value ): bool {
+ 	// String values are translated to `true`; make sure 'false' is false.
+ 	if ( is_string( $value ) ) {
+-		$value = strtolower( $value );
++		$value = strtolower( (string) $value );
+ 		if ( in_array( $value, array( 'false', '0' ), true ) ) {
+ 			$value = false;
+ 		}
+@@ -1553,13 +1553,13 @@
+  * @param bool|string $maybe_bool The value being evaluated.
+  * @return bool True if a boolean, otherwise false.
+  */
+-function rest_is_boolean( $maybe_bool ) {
++function rest_is_boolean( mixed $maybe_bool ): bool {
+ 	if ( is_bool( $maybe_bool ) ) {
+ 		return true;
+ 	}
+ 
+ 	if ( is_string( $maybe_bool ) ) {
+-		$maybe_bool = strtolower( $maybe_bool );
++		$maybe_bool = strtolower( (string) $maybe_bool );
+ 
+ 		$valid_boolean_values = array(
+ 			'false',
+@@ -1595,13 +1595,14 @@
+  * @param mixed $maybe_integer The value being evaluated.
+  * @return bool True if an integer, otherwise false.
+  */
+-function rest_is_integer( $maybe_integer ): bool {
++function rest_is_integer( mixed $maybe_integer ): bool {
++	if ( is_string( $maybe_integer ) && str_contains( (string) $maybe_integer, "\0" ) ) { return false; }
+ 	if ( is_int( $maybe_integer ) ) {
+ 		return true;
+ 	}
+ 
+ 	// A canonical integer string of any magnitude — verified without float conversion.
+-	if ( is_string( $maybe_integer ) && preg_match( '/^\s*[+-]?[0-9]+\s*$/', $maybe_integer ) ) {
++	if ( is_string( $maybe_integer ) && preg_match( '/^\s*[+-]?[0-9]+\s*$/', (string) $maybe_integer ) ) {
+ 		return true;
+ 	}
+ 
+@@ -3461,14 +3462,14 @@
   *
   * @return WP_REST_Response List of associative arrays with code and message keys.
   */
@@ -26,7 +72,7 @@
  			if ( is_array( $error_data ) && isset( $error_data['status'] ) && is_numeric( $error_data['status'] ) ) {
  				$status = (int) $error_data['status'];
  			}
-@@ -3486,7 +3486,7 @@
+@@ -3486,7 +3487,7 @@
  		foreach ( (array) $messages as $message ) {
  			$formatted = array(
  				'code'    => $code,
@@ -35,7 +81,7 @@
  				'data'    => $last_data,
  			);
  
-@@ -3498,7 +3498,7 @@
+@@ -3498,7 +3499,7 @@
  		}
  	}
  

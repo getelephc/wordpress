@@ -224,6 +224,24 @@ def main():
         assert result.stderr.startswith(b"Request profile: ") and b"Fatal error" not in result.stderr and b"Warning:" not in result.stderr, (fixture["name"], result.stderr)
     print(f"PASS: {len(request_fixtures)} request-object cases match original PHP; stdin and {len(request_errors)} CLI boundary checks.")
 
+    validation_fixtures = json.loads((ROOT / "tests/request-validation-fixtures.json").read_text())
+    validation_errors = json.loads((ROOT / "tests/request-validation-errors.json").read_text())
+    validation_reference = run_json([php, "tests/request-validation-reference.php", "upstream"])
+    assert run_json([php, "tests/request-validation-reference.php", "profile"]) == validation_reference, "Patched request callbacks differ from original PHP"
+    for fixture in validation_fixtures:
+        actual = run_json([requests_cli, fixture["input"]])
+        assert actual == validation_reference[fixture["name"]], (fixture["name"], actual, validation_reference[fixture["name"]])
+    assert json.loads(run_output([requests_cli], validation_fixtures[1]["input"].encode())) == validation_reference[validation_fixtures[1]["name"]]
+    for fixture in validation_errors:
+        result = subprocess.run([requests_cli], input=fixture["input"].encode(), capture_output=True, timeout=20)
+        assert result.returncode == 2 and not result.stdout, (fixture["name"], result)
+        assert result.stderr.startswith(b"Request profile: ") and b"Fatal error" not in result.stderr and b"Warning:" not in result.stderr, (fixture["name"], result.stderr)
+    assert validation_reference["validator-return-null"]["results"][0]["error"]["first_code"] == "profile_route_invalid"
+    assert validation_reference["validator-return-zero"]["results"][0]["error"]["first_code"] == "profile_route_invalid"
+    assert validation_reference["multiple-missing-before-callbacks"]["results"][-1] == []
+    assert validation_reference["sanitize-all-errors-and-success"]["request"]["sources"]["POST"]["y"] == " POST "
+    print(f"PASS: {len(validation_fixtures)} request-validation cases match original PHP; {len(validation_errors)} CLI boundary checks.")
+
     with socket.socket() as listener:
         listener.bind(("127.0.0.1", 0))
         port = listener.getsockname()[1]
@@ -496,6 +514,16 @@ def main():
                 status, _, body = request("POST", "/requests", b"x" * 65537)
                 assert status == 413
                 checks += 3
+                for fixture in validation_fixtures:
+                    status, headers, body = request("POST", "/requests", fixture["input"].encode())
+                    assert status == 200 and headers["content-type"].startswith("application/json"), (fixture["name"], status, body)
+                    assert json.loads(body) == validation_reference[fixture["name"]], (fixture["name"], body, validation_reference[fixture["name"]])
+                    checks += 1
+                for fixture in validation_errors:
+                    status, headers, body = request("POST", "/requests", fixture["input"].encode())
+                    assert status == 400 and headers["content-type"].startswith("application/json"), (fixture["name"], status, body)
+                    assert isinstance(json.loads(body)["error"], str), fixture["name"]
+                    checks += 1
                 status, _, body = request("POST", "/filter", hook_input.encode())
                 assert status == 200 and json.loads(body) == hook_reference["priority"]
                 status, _, body = request("GET", "/hooks?case=unknown")

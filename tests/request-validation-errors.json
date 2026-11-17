@@ -1,0 +1,146 @@
+[
+  {
+    "name": "callback-event-limit-exceeded",
+    "input": "{\"query\":{\"0\":0,\"1\":1,\"2\":2,\"3\":3,\"4\":4,\"5\":5,\"6\":6,\"7\":7,\"8\":8,\"9\":9,\"10\":10,\"11\":11,\"12\":12,\"13\":13,\"14\":14,\"15\":15,\"16\":16,\"17\":17,\"18\":18,\"19\":19,\"20\":20,\"21\":21,\"22\":22,\"23\":23,\"24\":24,\"25\":25,\"26\":26,\"27\":27,\"28\":28,\"29\":29,\"30\":30,\"31\":31,\"32\":32,\"33\":33,\"34\":34,\"35\":35,\"36\":36,\"37\":37,\"38\":38,\"39\":39,\"40\":40,\"41\":41,\"42\":42,\"43\":43,\"44\":44,\"45\":45,\"46\":46,\"47\":47,\"48\":48,\"49\":49,\"50\":50,\"51\":51,\"52\":52,\"53\":53,\"54\":54,\"55\":55,\"56\":56,\"57\":57,\"58\":58,\"59\":59,\"60\":60,\"61\":61,\"62\":62,\"63\":63},\"rules\":{\"0\":{\"validate\":\"pass\"},\"1\":{\"validate\":\"pass\"},\"2\":{\"validate\":\"pass\"},\"3\":{\"validate\":\"pass\"},\"4\":{\"validate\":\"pass\"},\"5\":{\"validate\":\"pass\"},\"6\":{\"validate\":\"pass\"},\"7\":{\"validate\":\"pass\"},\"8\":{\"validate\":\"pass\"},\"9\":{\"validate\":\"pass\"},\"10\":{\"validate\":\"pass\"},\"11\":{\"validate\":\"pass\"},\"12\":{\"validate\":\"pass\"},\"13\":{\"validate\":\"pass\"},\"14\":{\"validate\":\"pass\"},\"15\":{\"validate\":\"pass\"},\"16\":{\"validate\":\"pass\"},\"17\":{\"validate\":\"pass\"},\"18\":{\"validate\":\"pass\"},\"19\":{\"validate\":\"pass\"},\"20\":{\"validate\":\"pass\"},\"21\":{\"validate\":\"pass\"},\"22\":{\"validate\":\"pass\"},\"23\":{\"validate\":\"pass\"},\"24\":{\"validate\":\"pass\"},\"25\":{\"validate\":\"pass\"},\"26\":{\"validate\":\"pass\"},\"27\":{\"validate\":\"pass\"},\"28\":{\"validate\":\"pass\"},\"29\":{\"validate\":\"pass\"},\"30\":{\"validate\":\"pass\"},\"31\":{\"validate\":\"pass\"},\"32\":{\"validate\":\"pass\"},\"33\":{\"validate\":\"pass\"},\"34\":{\"validate\":\"pass\"},\"35\":{\"validate\":\"pass\"},\"36\":{\"validate\":\"pass\"},\"37\":{\"validate\":\"pass\"},\"38\":{\"validate\":\"pass\"},\"39\":{\"validate\":\"pass\"},\"40\":{\"validate\":\"pass\"},\"41\":{\"validate\":\"pass\"},\"42\":{\"validate\":\"pass\"},\"43\":{\"validate\":\"pass\"},\"44\":{\"validate\":\"pass\"},\"45\":{\"validate\":\"pass\"},\"46\":{\"validate\":\"pass\"},\"47\":{\"validate\":\"pass\"},\"48\":{\"validate\":\"pass\"},\"49\":{\"validate\":\"pass\"},\"50\":{\"validate\":\"pass\"},\"51\":{\"validate\":\"pass\"},\"52\":{\"validate\":\"pass\"},\"53\":{\"validate\":\"pass\"},\"54\":{\"validate\":\"pass\"},\"55\":{\"validate\":\"pass\"},\"56\":{\"validate\":\"pass\"},\"57\":{\"validate\":\"pass\"},\"58\":{\"validate\":\"pass\"},\"59\":{\"validate\":\"pass\"},\"60\":{\"validate\":\"pass\"},\"61\":{\"validate\":\"pass\"},\"62\":{\"validate\":\"pass\"},\"63\":{\"validate\":\"pass\"}},\"operations\":[{\"op\":\"validate\"},{\"op\":\"validate\"},{\"op\":\"validate\"},{\"op\":\"validate\"},{\"op\":\"validate\"},{\"op\":\"validate\"},{\"op\":\"validate\"},{\"op\":\"validate\"},{\"op\":\"validate\"},{\"op\":\"validate\"},{\"op\":\"validate\"},{\"op\":\"validate\"},{\"op\":\"validate\"},{\"op\":\"validate\"},{\"op\":\"validate\"},{\"op\":\"validate\"},{\"op\":\"validate\"}]}"
+  },
+  {
+    "name": "rules-not-array",
+    "input": "{\"rules\":1,\"operations\":[{\"op\":\"validate\"}]}"
+  },
+  {
+    "name": "rule-not-object",
+    "input": "{\"rules\":{\"x\":1},\"operations\":[{\"op\":\"validate\"}]}"
+  },
+  {
+    "name": "required-not-bool",
+    "input": "{\"rules\":{\"x\":{\"required\":1}},\"operations\":[{\"op\":\"validate\"}]}"
+  },
+  {
+    "name": "unknown-option",
+    "input": "{\"rules\":{\"x\":{\"type\":\"integer\"}},\"operations\":[{\"op\":\"validate\"}]}"
+  },
+  {
+    "name": "unknown-validator",
+    "input": "{\"rules\":{\"x\":{\"validate\":\"unknown\"}},\"operations\":[{\"op\":\"validate\"}]}"
+  },
+  {
+    "name": "validator-not-string",
+    "input": "{\"rules\":{\"x\":{\"validate\":true}},\"operations\":[{\"op\":\"validate\"}]}"
+  },
+  {
+    "name": "unknown-sanitizer",
+    "input": "{\"rules\":{\"x\":{\"sanitize\":\"integer\"}},\"operations\":[{\"op\":\"validate\"}]}"
+  },
+  {
+    "name": "oversized-rules",
+    "input": "{\"rules\":{\"0\":{},\"1\":{},\"2\":{},\"3\":{},\"4\":{},\"5\":{},\"6\":{},\"7\":{},\"8\":{},\"9\":{},\"10\":{},\"11\":{},\"12\":{},\"13\":{},\"14\":{},\"15\":{},\"16\":{},\"17\":{},\"18\":{},\"19\":{},\"20\":{},\"21\":{},\"22\":{},\"23\":{},\"24\":{},\"25\":{},\"26\":{},\"27\":{},\"28\":{},\"29\":{},\"30\":{},\"31\":{},\"32\":{},\"33\":{},\"34\":{},\"35\":{},\"36\":{},\"37\":{},\"38\":{},\"39\":{},\"40\":{},\"41\":{},\"42\":{},\"43\":{},\"44\":{},\"45\":{},\"46\":{},\"47\":{},\"48\":{},\"49\":{},\"50\":{},\"51\":{},\"52\":{},\"53\":{},\"54\":{},\"55\":{},\"56\":{},\"57\":{},\"58\":{},\"59\":{},\"60\":{},\"61\":{},\"62\":{},\"63\":{},\"64\":{}},\"operations\":[{\"op\":\"validate\"}]}"
+  },
+  {
+    "name": "nul-key",
+    "input": "{\"rules\":{\"x\\u0000\":{}},\"operations\":[{\"op\":\"validate\"}]}"
+  },
+  {
+    "name": "unknown-route",
+    "input": "{\"route_validate\":\"unknown\",\"operations\":[{\"op\":\"validate\"}]}"
+  },
+  {
+    "name": "route-not-string",
+    "input": "{\"route_validate\":false,\"operations\":[{\"op\":\"validate\"}]}"
+  },
+  {
+    "name": "route-object",
+    "input": "{\"route_validate\":{},\"operations\":[{\"op\":\"validate\"}]}"
+  },
+  {
+    "name": "args-not-array-validate",
+    "input": "{\"attributes\":{\"args\":1},\"query\":{\"x\":1},\"operations\":[{\"op\":\"validate\"}]}"
+  },
+  {
+    "name": "args-not-array-sanitize",
+    "input": "{\"attributes\":{\"args\":1},\"query\":{\"x\":1},\"operations\":[{\"op\":\"sanitize\"}]}"
+  },
+  {
+    "name": "arg-not-array-validate",
+    "input": "{\"attributes\":{\"args\":{\"x\":true}},\"query\":{\"x\":1},\"operations\":[{\"op\":\"validate\"}]}"
+  },
+  {
+    "name": "arg-not-array-sanitize",
+    "input": "{\"attributes\":{\"args\":{\"x\":true}},\"query\":{\"x\":1},\"operations\":[{\"op\":\"sanitize\"}]}"
+  },
+  {
+    "name": "too-many-args-validate",
+    "input": "{\"attributes\":{\"args\":{\"0\":{},\"1\":{},\"2\":{},\"3\":{},\"4\":{},\"5\":{},\"6\":{},\"7\":{},\"8\":{},\"9\":{},\"10\":{},\"11\":{},\"12\":{},\"13\":{},\"14\":{},\"15\":{},\"16\":{},\"17\":{},\"18\":{},\"19\":{},\"20\":{},\"21\":{},\"22\":{},\"23\":{},\"24\":{},\"25\":{},\"26\":{},\"27\":{},\"28\":{},\"29\":{},\"30\":{},\"31\":{},\"32\":{},\"33\":{},\"34\":{},\"35\":{},\"36\":{},\"37\":{},\"38\":{},\"39\":{},\"40\":{},\"41\":{},\"42\":{},\"43\":{},\"44\":{},\"45\":{},\"46\":{},\"47\":{},\"48\":{},\"49\":{},\"50\":{},\"51\":{},\"52\":{},\"53\":{},\"54\":{},\"55\":{},\"56\":{},\"57\":{},\"58\":{},\"59\":{},\"60\":{},\"61\":{},\"62\":{},\"63\":{},\"64\":{}}},\"query\":{\"x\":1},\"operations\":[{\"op\":\"validate\"}]}"
+  },
+  {
+    "name": "too-many-args-sanitize",
+    "input": "{\"attributes\":{\"args\":{\"0\":{},\"1\":{},\"2\":{},\"3\":{},\"4\":{},\"5\":{},\"6\":{},\"7\":{},\"8\":{},\"9\":{},\"10\":{},\"11\":{},\"12\":{},\"13\":{},\"14\":{},\"15\":{},\"16\":{},\"17\":{},\"18\":{},\"19\":{},\"20\":{},\"21\":{},\"22\":{},\"23\":{},\"24\":{},\"25\":{},\"26\":{},\"27\":{},\"28\":{},\"29\":{},\"30\":{},\"31\":{},\"32\":{},\"33\":{},\"34\":{},\"35\":{},\"36\":{},\"37\":{},\"38\":{},\"39\":{},\"40\":{},\"41\":{},\"42\":{},\"43\":{},\"44\":{},\"45\":{},\"46\":{},\"47\":{},\"48\":{},\"49\":{},\"50\":{},\"51\":{},\"52\":{},\"53\":{},\"54\":{},\"55\":{},\"56\":{},\"57\":{},\"58\":{},\"59\":{},\"60\":{},\"61\":{},\"62\":{},\"63\":{},\"64\":{}}},\"query\":{\"x\":1},\"operations\":[{\"op\":\"sanitize\"}]}"
+  },
+  {
+    "name": "arg-required-string-validate",
+    "input": "{\"attributes\":{\"args\":{\"x\":{\"required\":\"true\"}}},\"query\":{\"x\":1},\"operations\":[{\"op\":\"validate\"}]}"
+  },
+  {
+    "name": "arg-required-string-sanitize",
+    "input": "{\"attributes\":{\"args\":{\"x\":{\"required\":\"true\"}}},\"query\":{\"x\":1},\"operations\":[{\"op\":\"sanitize\"}]}"
+  },
+  {
+    "name": "general-schema-validate",
+    "input": "{\"attributes\":{\"args\":{\"x\":{\"type\":\"integer\"}}},\"query\":{\"x\":1},\"operations\":[{\"op\":\"validate\"}]}"
+  },
+  {
+    "name": "general-schema-sanitize",
+    "input": "{\"attributes\":{\"args\":{\"x\":{\"type\":\"integer\"}}},\"query\":{\"x\":1},\"operations\":[{\"op\":\"sanitize\"}]}"
+  },
+  {
+    "name": "arbitrary-function-validate",
+    "input": "{\"attributes\":{\"args\":{\"x\":{\"validate_callback\":\"is_numeric\"}}},\"query\":{\"x\":1},\"operations\":[{\"op\":\"validate\"}]}"
+  },
+  {
+    "name": "arbitrary-function-sanitize",
+    "input": "{\"attributes\":{\"args\":{\"x\":{\"validate_callback\":\"is_numeric\"}}},\"query\":{\"x\":1},\"operations\":[{\"op\":\"sanitize\"}]}"
+  },
+  {
+    "name": "wrong-phase-validate",
+    "input": "{\"attributes\":{\"args\":{\"x\":{\"validate_callback\":\"wordpress_request_sanitize_keep\"}}},\"query\":{\"x\":1},\"operations\":[{\"op\":\"validate\"}]}"
+  },
+  {
+    "name": "wrong-phase-sanitize",
+    "input": "{\"attributes\":{\"args\":{\"x\":{\"validate_callback\":\"wordpress_request_sanitize_keep\"}}},\"query\":{\"x\":1},\"operations\":[{\"op\":\"sanitize\"}]}"
+  },
+  {
+    "name": "array-callable-validate",
+    "input": "{\"attributes\":{\"args\":{\"x\":{\"sanitize_callback\":[\"Class\",\"method\"]}}},\"query\":{\"x\":1},\"operations\":[{\"op\":\"validate\"}]}"
+  },
+  {
+    "name": "array-callable-sanitize",
+    "input": "{\"attributes\":{\"args\":{\"x\":{\"sanitize_callback\":[\"Class\",\"method\"]}}},\"query\":{\"x\":1},\"operations\":[{\"op\":\"sanitize\"}]}"
+  },
+  {
+    "name": "empty-string-callable-validate",
+    "input": "{\"attributes\":{\"args\":{\"x\":{\"validate_callback\":\"\"}}},\"query\":{\"x\":1},\"operations\":[{\"op\":\"validate\"}]}"
+  },
+  {
+    "name": "empty-string-callable-sanitize",
+    "input": "{\"attributes\":{\"args\":{\"x\":{\"validate_callback\":\"\"}}},\"query\":{\"x\":1},\"operations\":[{\"op\":\"sanitize\"}]}"
+  },
+  {
+    "name": "route-bool-validate",
+    "input": "{\"attributes\":{\"validate_callback\":false},\"query\":{\"x\":1},\"operations\":[{\"op\":\"validate\"}]}"
+  },
+  {
+    "name": "route-bool-sanitize",
+    "input": "{\"attributes\":{\"validate_callback\":false},\"query\":{\"x\":1},\"operations\":[{\"op\":\"sanitize\"}]}"
+  },
+  {
+    "name": "route-wrong-phase-validate",
+    "input": "{\"attributes\":{\"validate_callback\":\"wordpress_request_validate_pass\"},\"query\":{\"x\":1},\"operations\":[{\"op\":\"validate\"}]}"
+  },
+  {
+    "name": "route-wrong-phase-sanitize",
+    "input": "{\"attributes\":{\"validate_callback\":\"wordpress_request_validate_pass\"},\"query\":{\"x\":1},\"operations\":[{\"op\":\"sanitize\"}]}"
+  },
+  {
+    "name": "reconfigured-arbitrary-callback",
+    "input": "{\"operations\":[{\"op\":\"set-attributes\",\"value\":{\"args\":{\"x\":{\"sanitize_callback\":\"trim\"}}}},{\"op\":\"sanitize\"}]}"
+  }
+]

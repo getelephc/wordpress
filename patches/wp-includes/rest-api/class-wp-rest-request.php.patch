@@ -672,172 +672,165 @@
  		$this->attributes = $attributes;
  	}
  
-@@ -830,66 +835,9 @@
+@@ -830,7 +835,7 @@
  	 *
  	 * @return true|WP_Error True if parameters were sanitized, WP_Error if an error occurred during sanitization.
  	 */
 -	public function sanitize_params() {
--		$attributes = $this->get_attributes();
--
--		// No arguments set, skip sanitizing.
--		if ( empty( $attributes['args'] ) ) {
--			return true;
--		}
--
--		$order = $this->get_parameter_order();
--
++	public function sanitize_params(): mixed {
+ 		$attributes = $this->get_attributes();
+ 
+ 		// No arguments set, skip sanitizing.
+@@ -840,24 +845,24 @@
+ 
+ 		$order = $this->get_parameter_order();
+ 
 -		$invalid_params  = array();
 -		$invalid_details = array();
--
--		foreach ( $order as $type ) {
--			if ( empty( $this->params[ $type ] ) ) {
--				continue;
--			}
--
++		$invalid_params  = wordpress_request_map();
++		$invalid_details = wordpress_request_map();
+ 
+ 		foreach ( $order as $type ) {
+ 			if ( empty( $this->params[ $type ] ) ) {
+ 				continue;
+ 			}
+ 
 -			foreach ( $this->params[ $type ] as $key => $value ) {
--				if ( ! isset( $attributes['args'][ $key ] ) ) {
--					continue;
--				}
--
++			foreach ( (array) $this->params[ $type ] as $key => $value ) {
+ 				if ( ! isset( $attributes['args'][ $key ] ) ) {
+ 					continue;
+ 				}
+ 
 -				$param_args = $attributes['args'][ $key ];
--
--				// If the arg has a type but no sanitize_callback attribute, default to rest_parse_request_arg.
--				if ( ! array_key_exists( 'sanitize_callback', $param_args ) && ! empty( $param_args['type'] ) ) {
++				$param_args = (array) $attributes['args'][ $key ];
+ 
+ 				// If the arg has a type but no sanitize_callback attribute, default to rest_parse_request_arg.
+ 				if ( ! array_key_exists( 'sanitize_callback', $param_args ) && ! empty( $param_args['type'] ) ) {
 -					$param_args['sanitize_callback'] = 'rest_parse_request_arg';
--				}
--				// If there's still no sanitize_callback, nothing to do here.
--				if ( empty( $param_args['sanitize_callback'] ) ) {
--					continue;
--				}
--
--				/** @var mixed|WP_Error $sanitized_value */
++					throw new LogicException('Automatic schema callbacks are outside the request profile.');
+ 				}
+ 				// If there's still no sanitize_callback, nothing to do here.
+ 				if ( empty( $param_args['sanitize_callback'] ) ) {
+@@ -865,13 +870,17 @@
+ 				}
+ 
+ 				/** @var mixed|WP_Error $sanitized_value */
 -				$sanitized_value = call_user_func( $param_args['sanitize_callback'], $value, $this, $key );
 -
 -				if ( is_wp_error( $sanitized_value ) ) {
--					$invalid_params[ $key ]  = implode( ' ', $sanitized_value->get_error_messages() );
--					$invalid_details[ $key ] = rest_convert_error_to_response( $sanitized_value )->get_data();
--				} else {
--					$this->params[ $type ][ $key ] = $sanitized_value;
--				}
--			}
--		}
--
--		if ( $invalid_params ) {
--			return new WP_Error(
--				'rest_invalid_param',
--				/* translators: %s: List of invalid parameters. */
--				sprintf( __( 'Invalid parameter(s): %s' ), implode( ', ', array_keys( $invalid_params ) ) ),
--				array(
--					'status'  => 400,
--					'params'  => $invalid_params,
--					'details' => $invalid_details,
--				)
--			);
--		}
--
--		return true;
-+	public function sanitize_params(): mixed {
-+		throw new LogicException('Schema sanitization is outside the request object profile.');
++				$sanitized_value = call_user_func( WordPressHookCallbacks::resolve( $param_args['sanitize_callback'] ), $value, $this, $key );
 +
- 	}
- 
- 	/**
-@@ -900,91 +848,9 @@
++				if ( is_wp_error( $sanitized_value ) && $sanitized_value instanceof WP_Error ) {
+ 					$invalid_params[ $key ]  = implode( ' ', $sanitized_value->get_error_messages() );
+ 					$invalid_details[ $key ] = rest_convert_error_to_response( $sanitized_value )->get_data();
+ 				} else {
+-					$this->params[ $type ][ $key ] = $sanitized_value;
++					$groups = $this->params;
++					$values = (array) $groups[ $type ];
++					$values[ $key ] = $sanitized_value;
++					$groups[ $type ] = $values;
++					$this->params = $groups;
+ 				}
+ 			}
+ 		}
+@@ -880,7 +889,7 @@
+ 			return new WP_Error(
+ 				'rest_invalid_param',
+ 				/* translators: %s: List of invalid parameters. */
+-				sprintf( __( 'Invalid parameter(s): %s' ), implode( ', ', array_keys( $invalid_params ) ) ),
++				sprintf( 'Invalid parameter(s): %s', implode( ', ', array_keys( $invalid_params ) ) ),
+ 				array(
+ 					'status'  => 400,
+ 					'params'  => $invalid_params,
+@@ -900,7 +909,7 @@
  	 * @return true|WP_Error True if there are no parameters to validate or if all pass validation,
  	 *                       WP_Error if required parameters are missing.
  	 */
 -	public function has_valid_params() {
--		// If JSON data was passed, check for errors.
--		$json_error = $this->parse_json_params();
--		if ( is_wp_error( $json_error ) ) {
--			return $json_error;
--		}
--
--		$attributes = $this->get_attributes();
--		$required   = array();
--
++	public function has_valid_params(): mixed {
+ 		// If JSON data was passed, check for errors.
+ 		$json_error = $this->parse_json_params();
+ 		if ( is_wp_error( $json_error ) ) {
+@@ -910,9 +919,10 @@
+ 		$attributes = $this->get_attributes();
+ 		$required   = array();
+ 
 -		$args = empty( $attributes['args'] ) ? array() : $attributes['args'];
--
--		foreach ( $args as $key => $arg ) {
--			$param = $this->get_param( $key );
--			if ( isset( $arg['required'] ) && true === $arg['required'] && null === $param ) {
--				$required[] = $key;
--			}
--		}
--
--		if ( ! empty( $required ) ) {
--			return new WP_Error(
--				'rest_missing_callback_param',
--				/* translators: %s: List of required parameters. */
++		$args = (array) ( $attributes['args'] ?? array() );
+ 
+ 		foreach ( $args as $key => $arg ) {
++			$arg = (array) $arg;
+ 			$param = $this->get_param( $key );
+ 			if ( isset( $arg['required'] ) && true === $arg['required'] && null === $param ) {
+ 				$required[] = $key;
+@@ -923,7 +933,7 @@
+ 			return new WP_Error(
+ 				'rest_missing_callback_param',
+ 				/* translators: %s: List of required parameters. */
 -				sprintf( __( 'Missing parameter(s): %s' ), implode( ', ', $required ) ),
--				array(
--					'status' => 400,
--					'params' => $required,
--				)
--			);
--		}
--
--		/*
--		 * Check the validation callbacks for each registered arg.
--		 *
--		 * This is done after required checking as required checking is cheaper.
--		 */
++				sprintf( 'Missing parameter(s): %s', implode( ', ', $required ) ),
+ 				array(
+ 					'status' => 400,
+ 					'params' => $required,
+@@ -936,22 +946,23 @@
+ 		 *
+ 		 * This is done after required checking as required checking is cheaper.
+ 		 */
 -		$invalid_params  = array();
 -		$invalid_details = array();
--
--		foreach ( $args as $key => $arg ) {
--
--			$param = $this->get_param( $key );
--
--			if ( null !== $param && ! empty( $arg['validate_callback'] ) ) {
--				/** @var bool|\WP_Error $valid_check */
++		$invalid_params  = wordpress_request_map();
++		$invalid_details = wordpress_request_map();
+ 
+ 		foreach ( $args as $key => $arg ) {
++			$arg = (array) $arg;
+ 
+ 			$param = $this->get_param( $key );
+ 
+ 			if ( null !== $param && ! empty( $arg['validate_callback'] ) ) {
+ 				/** @var bool|\WP_Error $valid_check */
 -				$valid_check = call_user_func( $arg['validate_callback'], $param, $this, $key );
--
--				if ( false === $valid_check ) {
++				$valid_check = call_user_func( WordPressHookCallbacks::resolve( $arg['validate_callback'] ), $param, $this, $key );
+ 
+ 				if ( false === $valid_check ) {
 -					$invalid_params[ $key ] = __( 'Invalid parameter.' );
--				}
--
++					$invalid_params[ $key ] = 'Invalid parameter.';
+ 				}
+ 
 -				if ( is_wp_error( $valid_check ) ) {
--					$invalid_params[ $key ]  = implode( ' ', $valid_check->get_error_messages() );
--					$invalid_details[ $key ] = rest_convert_error_to_response( $valid_check )->get_data();
--				}
--			}
--		}
--
--		if ( $invalid_params ) {
--			return new WP_Error(
--				'rest_invalid_param',
--				/* translators: %s: List of invalid parameters. */
++				if ( is_wp_error( $valid_check ) && $valid_check instanceof WP_Error ) {
+ 					$invalid_params[ $key ]  = implode( ' ', $valid_check->get_error_messages() );
+ 					$invalid_details[ $key ] = rest_convert_error_to_response( $valid_check )->get_data();
+ 				}
+@@ -962,7 +973,7 @@
+ 			return new WP_Error(
+ 				'rest_invalid_param',
+ 				/* translators: %s: List of invalid parameters. */
 -				sprintf( __( 'Invalid parameter(s): %s' ), implode( ', ', array_keys( $invalid_params ) ) ),
--				array(
--					'status'  => 400,
--					'params'  => $invalid_params,
--					'details' => $invalid_details,
--				)
--			);
--		}
--
--		if ( isset( $attributes['validate_callback'] ) ) {
++				sprintf( 'Invalid parameter(s): %s', implode( ', ', array_keys( $invalid_params ) ) ),
+ 				array(
+ 					'status'  => 400,
+ 					'params'  => $invalid_params,
+@@ -972,15 +983,15 @@
+ 		}
+ 
+ 		if ( isset( $attributes['validate_callback'] ) ) {
 -			$valid_check = call_user_func( $attributes['validate_callback'], $this );
 -
 -			if ( is_wp_error( $valid_check ) ) {
--				return $valid_check;
--			}
--
--			if ( false === $valid_check ) {
--				// A WP_Error instance is preferred, but false is supported for parity with the per-arg validate_callback.
--				return new WP_Error( 'rest_invalid_params', __( 'Invalid parameters.' ), array( 'status' => 400 ) );
--			}
--		}
--
--		return true;
-+	public function has_valid_params(): mixed {
-+		throw new LogicException('Schema validation is outside the request object profile.');
++			$valid_check = call_user_func( WordPressHookCallbacks::resolve( $attributes['validate_callback'] ), $this );
 +
- 	}
++			if ( is_wp_error( $valid_check ) && $valid_check instanceof WP_Error ) {
+ 				return $valid_check;
+ 			}
  
- 	/**
-@@ -996,16 +862,14 @@
+ 			if ( false === $valid_check ) {
+ 				// A WP_Error instance is preferred, but false is supported for parity with the per-arg validate_callback.
+-				return new WP_Error( 'rest_invalid_params', __( 'Invalid parameters.' ), array( 'status' => 400 ) );
++				return new WP_Error( 'rest_invalid_params', 'Invalid parameters.', array( 'status' => 400 ) );
+ 			}
+ 		}
+ 
+@@ -996,16 +1007,14 @@
  	 * @return bool Whether the parameter is set.
  	 */
  	#[ReturnTypeWillChange]
@@ -859,7 +852,7 @@
  	}
  
  	/**
-@@ -1017,7 +881,7 @@
+@@ -1017,7 +1026,7 @@
  	 * @return mixed|null Value if set, null otherwise.
  	 */
  	#[ReturnTypeWillChange]
@@ -868,7 +861,7 @@
  		return $this->get_param( $offset );
  	}
  
-@@ -1030,7 +894,7 @@
+@@ -1030,7 +1039,7 @@
  	 * @param mixed  $value  Parameter value.
  	 */
  	#[ReturnTypeWillChange]
@@ -877,7 +870,7 @@
  		$this->set_param( $offset, $value );
  	}
  
-@@ -1042,13 +906,19 @@
+@@ -1042,13 +1051,19 @@
  	 * @param string $offset Parameter name.
  	 */
  	#[ReturnTypeWillChange]
@@ -902,7 +895,7 @@
  	}
  
  	/**
-@@ -1059,40 +929,8 @@
+@@ -1059,40 +1074,8 @@
  	 * @param string $url URL with protocol, domain, path and query args.
  	 * @return WP_REST_Request|false WP_REST_Request object on success, false on failure.
  	 */
