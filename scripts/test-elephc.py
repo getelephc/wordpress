@@ -260,6 +260,28 @@ def main():
     assert scalar_reference["length-emoji"]["results"][1] is True
     print(f"PASS: {len(scalar_fixtures)} scalar-schema cases match original PHP; stdin and {len(scalar_errors)} CLI boundary checks.")
 
+    collection_fixtures = json.loads((ROOT / "tests/collection-schema-fixtures.json").read_text())
+    collection_errors = json.loads((ROOT / "tests/collection-schema-errors.json").read_text())
+    collection_reference = run_json([php, "tests/collection-schema-reference.php", "upstream"])
+    assert len(collection_reference) == len(collection_fixtures), "Duplicate collection fixture names"
+    assert run_json([php, "tests/collection-schema-reference.php", "profile"]) == collection_reference, "Patched collection schemas differ from original PHP"
+    for fixture in collection_fixtures:
+        actual = run_json([requests_cli, fixture["input"]])
+        assert actual == collection_reference[fixture["name"]], (fixture["name"], actual, collection_reference[fixture["name"]])
+    assert json.loads(run_output([requests_cli], collection_fixtures[0]["input"].encode())) == collection_reference[collection_fixtures[0]["name"]]
+    for fixture in collection_errors:
+        result = subprocess.run([requests_cli], input=fixture["input"].encode(), capture_output=True, timeout=20)
+        assert result.returncode == 2 and not result.stdout, (fixture["name"], result)
+        assert result.stderr.startswith(b"Request profile: ") and b"Fatal error" not in result.stderr and b"Warning:" not in result.stderr, (fixture["name"], result.stderr)
+    assert collection_reference["nested-error-path"]["results"][0]["error"]["data"]["param"] == "payload[people][1][age]"
+    assert collection_reference["array-sparse-key-normalization"]["results"][0]["error"]["data"]["param"] == "items[1]"
+    assert collection_reference["object-present-properties-order"]["results"][0]["error"]["data"]["param"] == "value[second]"
+    assert collection_reference["object-v4-overrides-v3"]["results"][0] is True
+    assert collection_reference["object-legacy-required"]["results"][0]["error"]["first_code"] == "rest_property_required"
+    snapshots = collection_reference["request-collection-success"]["results"]
+    assert snapshots[0]["params"] == snapshots[2]["params"]
+    print(f"PASS: {len(collection_fixtures)} collection-schema cases match original PHP; stdin and {len(collection_errors)} CLI boundary checks.")
+
     with socket.socket() as listener:
         listener.bind(("127.0.0.1", 0))
         port = listener.getsockname()[1]
@@ -548,6 +570,16 @@ def main():
                     assert json.loads(body) == scalar_reference[fixture["name"]], (fixture["name"], body, scalar_reference[fixture["name"]])
                     checks += 1
                 for fixture in scalar_errors:
+                    status, headers, body = request("POST", "/requests", fixture["input"].encode())
+                    assert status == 400 and headers["content-type"].startswith("application/json"), (fixture["name"], status, body)
+                    assert isinstance(json.loads(body)["error"], str), fixture["name"]
+                    checks += 1
+                for fixture in collection_fixtures:
+                    status, headers, body = request("POST", "/requests", fixture["input"].encode())
+                    assert status == 200 and headers["content-type"].startswith("application/json"), (fixture["name"], status, body)
+                    assert json.loads(body) == collection_reference[fixture["name"]], (fixture["name"], body, collection_reference[fixture["name"]])
+                    checks += 1
+                for fixture in collection_errors:
                     status, headers, body = request("POST", "/requests", fixture["input"].encode())
                     assert status == 400 and headers["content-type"].startswith("application/json"), (fixture["name"], status, body)
                     assert isinstance(json.loads(body)["error"], str), fixture["name"]

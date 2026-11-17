@@ -133,7 +133,7 @@ function wordpress_request_rules(WordPressRequestAdapter $request, array $spec):
                         $arg['required'] = $value;
                         break;
                     case 'schema':
-                        $arg['profile_schema'] = wordpress_scalar_schema($value);
+                        $arg['profile_schema'] = wordpress_schema($value);
                         break;
                     case 'validate':
                     case 'sanitize':
@@ -171,7 +171,7 @@ function wordpress_request_validation_ready(WP_REST_Request $request): void {
                 $phase = $option === 'validate_callback' ? 'validate' : 'sanitize';
                 if ($value !== null && $value !== false && !wordpress_request_callback_allowed($phase, $value)) { throw new InvalidArgumentException('Callbacks must belong to the source-defined request manifest.'); }
             } elseif ($option === 'profile_schema') {
-                wordpress_scalar_schema($value);
+                wordpress_schema($value);
             } else { throw new InvalidArgumentException('General schema attributes are outside the request callback profile.'); }
         }
         $uses_schema = ($arg['validate_callback'] ?? null) === 'wordpress_request_validate_schema';

@@ -19,7 +19,7 @@ if (($argv[1] ?? '') === 'profile') {
     require __DIR__ . '/../elephc/runtime/requests-support.php';
     require __DIR__ . '/../elephc/runtime/request-validation.php';
     require __DIR__ . '/../elephc/runtime/rest-locale.php';
-    require __DIR__ . '/../elephc/runtime/scalar-schema.php';
+    require __DIR__ . '/../elephc/runtime/schema-support.php';
     mb_internal_encoding('UTF-8');
     function _n(string $single, string $plural, mixed $number): string { return wordpress_scalar_plural($single, $plural, $number); }
     // The fixture uses the original option filter and a fixed English locale.

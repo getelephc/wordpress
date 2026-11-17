@@ -8,7 +8,16 @@ foreach (json_decode(file_get_contents(__DIR__ . '/scalar-schema-fixtures.json')
         $input = json_decode($fixture['input'], true);
         foreach ($input['operations'] as $index => $operation) {
             if ($operation['op'] !== 'scalar-check') { continue; }
-            $value = rest_validate_value_from_schema($operation['value'], $operation['schema'], $operation['key'] ?? 'value');
+            $schema = $operation['schema'];
+            $param = $operation['key'] ?? 'value';
+            switch ($schema['type']) {
+                case 'null': $value = rest_validate_null_value_from_schema($operation['value'], $param); break;
+                case 'boolean': $value = rest_validate_boolean_value_from_schema($operation['value'], $param); break;
+                case 'number': $value = rest_validate_number_value_from_schema($operation['value'], $schema, $param); break;
+                case 'integer': $value = rest_validate_integer_value_from_schema($operation['value'], $schema, $param); break;
+                case 'string': $value = rest_validate_string_value_from_schema($operation['value'], $schema, $param); break;
+                default: throw new RuntimeException('Unexpected scalar control type.');
+            }
             $expected = json_decode(json_encode(wordpress_request_validation_result($value)), true);
             if ($actual['results'][$index] !== $expected) { throw new RuntimeException('Scalar helper differs from original schema dispatcher: ' . $fixture['name']); }
         }

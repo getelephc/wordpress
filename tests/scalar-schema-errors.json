@@ -21,11 +21,11 @@
   },
   {
     "name": "invalid-schema-5",
-    "input": "{\"operations\":[{\"op\":\"scalar-check\",\"value\":2,\"schema\":{\"type\":\"array\"}}]}"
+    "input": "{\"operations\":[{\"op\":\"scalar-check\",\"value\":2,\"schema\":{\"type\":\"array\",\"uniqueItems\":true}}]}"
   },
   {
     "name": "invalid-schema-6",
-    "input": "{\"operations\":[{\"op\":\"scalar-check\",\"value\":2,\"schema\":{\"type\":\"object\"}}]}"
+    "input": "{\"operations\":[{\"op\":\"scalar-check\",\"value\":2,\"schema\":{\"type\":\"object\",\"patternProperties\":{}}}]}"
   },
   {
     "name": "invalid-schema-7",
@@ -117,7 +117,7 @@
   },
   {
     "name": "invalid-nested-schema",
-    "input": "{\"attributes\":{\"args\":{\"x\":{\"profile_schema\":{\"type\":\"object\"},\"validate_callback\":\"wordpress_request_validate_schema\"}}},\"query\":{\"x\":1},\"operations\":[{\"op\":\"validate\"}]}"
+    "input": "{\"attributes\":{\"args\":{\"x\":{\"profile_schema\":{\"type\":\"object\",\"patternProperties\":{}},\"validate_callback\":\"wordpress_request_validate_schema\"}}},\"query\":{\"x\":1},\"operations\":[{\"op\":\"validate\"}]}"
   },
   {
     "name": "rules-without-schema",

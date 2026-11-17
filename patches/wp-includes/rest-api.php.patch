@@ -55,7 +55,214 @@
  		return true;
  	}
  
-@@ -2362,12 +2363,12 @@
+@@ -1628,10 +1629,8 @@
+  * @param mixed $maybe_array The value being evaluated.
+  * @return bool
+  */
+-function rest_is_array( $maybe_array ) {
+-	if ( is_scalar( $maybe_array ) ) {
+-		$maybe_array = wp_parse_list( $maybe_array );
+-	}
++function rest_is_array( mixed $maybe_array ): bool {
++	if ( is_scalar( $maybe_array ) ) { throw new InvalidArgumentException('Scalar list coercion is outside the collection schema profile.'); }
+ 
+ 	return wp_is_numeric_array( $maybe_array );
+ }
+@@ -1644,17 +1643,15 @@
+  * @param mixed $maybe_array The value being evaluated.
+  * @return array Returns the array extracted from the value.
+  */
+-function rest_sanitize_array( $maybe_array ) {
+-	if ( is_scalar( $maybe_array ) ) {
+-		return wp_parse_list( $maybe_array );
+-	}
++function rest_sanitize_array( mixed $maybe_array ): array {
++	if ( is_scalar( $maybe_array ) ) { throw new InvalidArgumentException('Scalar list coercion is outside the collection schema profile.'); }
+ 
+ 	if ( ! is_array( $maybe_array ) ) {
+ 		return array();
+ 	}
+ 
+ 	// Normalize to numeric array so nothing unexpected is in the keys.
+-	return array_values( $maybe_array );
++	return array_values( (array) $maybe_array );
+ }
+ 
+ /**
+@@ -1665,18 +1662,12 @@
+  * @param mixed $maybe_object The value being evaluated.
+  * @return bool True if object like, otherwise false.
+  */
+-function rest_is_object( $maybe_object ) {
++function rest_is_object( mixed $maybe_object ): bool {
+ 	if ( '' === $maybe_object ) {
+ 		return true;
+ 	}
+ 
+-	if ( $maybe_object instanceof stdClass ) {
+-		return true;
+-	}
+-
+-	if ( $maybe_object instanceof JsonSerializable ) {
+-		$maybe_object = $maybe_object->jsonSerialize();
+-	}
++	if ( is_object( $maybe_object ) ) { throw new InvalidArgumentException('PHP object values are outside the collection schema profile.'); }
+ 
+ 	return is_array( $maybe_object );
+ }
+@@ -1689,24 +1680,18 @@
+  * @param mixed $maybe_object The value being evaluated.
+  * @return array Returns the object extracted from the value as an associative array.
+  */
+-function rest_sanitize_object( $maybe_object ) {
++function rest_sanitize_object( mixed $maybe_object ): array {
+ 	if ( '' === $maybe_object ) {
+ 		return array();
+ 	}
+ 
+-	if ( $maybe_object instanceof stdClass ) {
+-		return (array) $maybe_object;
+-	}
+-
+-	if ( $maybe_object instanceof JsonSerializable ) {
+-		$maybe_object = $maybe_object->jsonSerialize();
+-	}
++	if ( is_object( $maybe_object ) ) { throw new InvalidArgumentException('PHP object values are outside the collection schema profile.'); }
+ 
+ 	if ( ! is_array( $maybe_object ) ) {
+ 		return array();
+ 	}
+ 
+-	return $maybe_object;
++	return (array) $maybe_object;
+ }
+ 
+ /**
+@@ -2218,59 +2203,18 @@
+  * @param string $param The parameter name, used in error messages.
+  * @return true|WP_Error
+  */
+-function rest_validate_value_from_schema( $value, $args, $param = '' ) {
+-	if ( isset( $args['anyOf'] ) ) {
+-		$matching_schema = rest_find_any_matching_schema( $value, $args, $param );
+-		if ( is_wp_error( $matching_schema ) ) {
+-			return $matching_schema;
+-		}
+-
+-		if ( ! isset( $args['type'] ) && isset( $matching_schema['type'] ) ) {
+-			$args['type'] = $matching_schema['type'];
+-		}
+-	}
+-
+-	if ( isset( $args['oneOf'] ) ) {
+-		$matching_schema = rest_find_one_matching_schema( $value, $args, $param );
+-		if ( is_wp_error( $matching_schema ) ) {
+-			return $matching_schema;
+-		}
+-
+-		if ( ! isset( $args['type'] ) && isset( $matching_schema['type'] ) ) {
+-			$args['type'] = $matching_schema['type'];
+-		}
+-	}
++function rest_validate_value_from_schema( mixed $value, array $args, mixed $param = '' ): mixed {
++	if ( isset( $args['anyOf'] ) ) { throw new LogicException('Schema keyword is outside this profile.'); }
++
++	if ( isset( $args['oneOf'] ) ) { throw new LogicException('Schema keyword is outside this profile.'); }
+ 
+ 	$allowed_types = array( 'array', 'object', 'string', 'number', 'integer', 'boolean', 'null' );
+ 
+-	if ( ! isset( $args['type'] ) ) {
+-		/* translators: %s: Parameter. */
+-		_doing_it_wrong( __FUNCTION__, sprintf( __( 'The "type" schema keyword for %s is required.' ), $param ), '5.5.0' );
+-	}
+-
+-	if ( is_array( $args['type'] ) ) {
+-		$best_type = rest_handle_multi_type_schema( $value, $args, $param );
+-
+-		if ( ! $best_type ) {
+-			return new WP_Error(
+-				'rest_invalid_type',
+-				/* translators: 1: Parameter, 2: List of types. */
+-				sprintf( __( '%1$s is not of type %2$s.' ), $param, implode( ',', $args['type'] ) ),
+-				array( 'param' => $param )
+-			);
+-		}
+-
+-		$args['type'] = $best_type;
+-	}
+-
+-	if ( ! in_array( $args['type'], $allowed_types, true ) ) {
+-		_doing_it_wrong(
+-			__FUNCTION__,
+-			/* translators: 1: Parameter, 2: The list of allowed types. */
+-			wp_sprintf( __( 'The "type" schema keyword for %1$s can only be one of the built-in types: %2$l.' ), $param, $allowed_types ),
+-			'5.5.0'
+-		);
+-	}
++	if ( ! isset( $args['type'] ) ) { throw new LogicException('Schema keyword is outside this profile.'); }
++
++	if ( is_array( $args['type'] ) ) { throw new LogicException('Schema keyword is outside this profile.'); }
++
++	if ( ! in_array( $args['type'], $allowed_types, true ) ) { throw new LogicException('Schema keyword is outside this profile.'); }
+ 
+ 	switch ( $args['type'] ) {
+ 		case 'null':
+@@ -2303,52 +2247,13 @@
+ 		return $is_valid;
+ 	}
+ 
+-	if ( ! empty( $args['enum'] ) ) {
+-		$enum_contains_value = rest_validate_enum( $value, $args, $param );
+-		if ( is_wp_error( $enum_contains_value ) ) {
+-			return $enum_contains_value;
+-		}
+-	}
++	if ( ! empty( $args['enum'] ) ) { throw new LogicException('Schema keyword is outside this profile.'); }
+ 
+ 	/*
+ 	 * The "format" keyword should only be applied to strings. However, for backward compatibility,
+ 	 * we allow the "format" keyword if the type keyword was not specified, or was set to an invalid value.
+ 	 */
+-	if ( isset( $args['format'] )
+-		&& ( ! isset( $args['type'] ) || 'string' === $args['type'] || ! in_array( $args['type'], $allowed_types, true ) )
+-	) {
+-		switch ( $args['format'] ) {
+-			case 'hex-color':
+-				if ( ! rest_parse_hex_color( $value ) ) {
+-					return new WP_Error( 'rest_invalid_hex_color', __( 'Invalid hex color.' ) );
+-				}
+-				break;
+-
+-			case 'date-time':
+-				if ( false === rest_parse_date( $value ) ) {
+-					return new WP_Error( 'rest_invalid_date', __( 'Invalid date.' ) );
+-				}
+-				break;
+-
+-			case 'email':
+-				if ( ! is_email( $value ) ) {
+-					return new WP_Error( 'rest_invalid_email', __( 'Invalid email address.' ) );
+-				}
+-				break;
+-			case 'ip':
+-				if ( ! rest_is_ip_address( $value ) ) {
+-					/* translators: %s: IP address. */
+-					return new WP_Error( 'rest_invalid_ip', sprintf( __( '%s is not a valid IP address.' ), $param ) );
+-				}
+-				break;
+-			case 'uuid':
+-				if ( ! wp_is_uuid( $value ) ) {
+-					/* translators: %s: The name of a JSON field expecting a valid UUID. */
+-					return new WP_Error( 'rest_invalid_uuid', sprintf( __( '%s is not a valid UUID.' ), $param ) );
+-				}
+-				break;
+-		}
+-	}
++	if ( isset( $args['format'] ) ) { throw new LogicException('Schema formats are outside this profile.'); }
+ 
+ 	return true;
+ }
+@@ -2362,12 +2267,12 @@
   * @param string $param The parameter name, used in error messages.
   * @return true|WP_Error
   */
@@ -70,7 +277,7 @@
  			array( 'param' => $param )
  		);
  	}
-@@ -2384,12 +2385,12 @@
+@@ -2384,12 +2289,12 @@
   * @param string $param The parameter name, used in error messages.
   * @return true|WP_Error
   */
@@ -85,7 +292,207 @@
  			array( 'param' => $param )
  		);
  	}
-@@ -2593,21 +2594,21 @@
+@@ -2407,12 +2312,12 @@
+  * @param string $param The parameter name, used in error messages.
+  * @return true|WP_Error
+  */
+-function rest_validate_object_value_from_schema( $value, $args, $param ) {
++function rest_validate_object_value_from_schema( mixed $value, array $args, mixed $param ): mixed {
+ 	if ( ! rest_is_object( $value ) ) {
+ 		return new WP_Error(
+ 			'rest_invalid_type',
+ 			/* translators: 1: Parameter, 2: Type name. */
+-			sprintf( __( '%1$s is not of type %2$s.' ), $param, 'object' ),
++			sprintf( '%1$s is not of type %2$s.', $param, 'object' ),
+ 			array( 'param' => $param )
+ 		);
+ 	}
+@@ -2420,56 +2325,50 @@
+ 	$value = rest_sanitize_object( $value );
+ 
+ 	if ( isset( $args['required'] ) && is_array( $args['required'] ) ) { // schema version 4
+-		foreach ( $args['required'] as $name ) {
+-			if ( ! array_key_exists( $name, $value ) ) {
++		foreach ( (array) $args['required'] as $name ) {
++			if ( ! array_key_exists( $name, (array) $value ) ) {
+ 				return new WP_Error(
+ 					'rest_property_required',
+ 					/* translators: 1: Property of an object, 2: Parameter. */
+-					sprintf( __( '%1$s is a required property of %2$s.' ), $name, $param )
++					sprintf( '%1$s is a required property of %2$s.', $name, $param )
+ 				);
+ 			}
+ 		}
+ 	} elseif ( isset( $args['properties'] ) ) { // schema version 3
+-		foreach ( $args['properties'] as $name => $property ) {
+-			if ( isset( $property['required'] ) && true === $property['required'] && ! array_key_exists( $name, $value ) ) {
++		foreach ( (array) $args['properties'] as $name => $property ) {
++			$property = (array) $property;
++			if ( isset( $property['required'] ) && true === $property['required'] && ! array_key_exists( $name, (array) $value ) ) {
+ 				return new WP_Error(
+ 					'rest_property_required',
+ 					/* translators: 1: Property of an object, 2: Parameter. */
+-					sprintf( __( '%1$s is a required property of %2$s.' ), $name, $param )
++					sprintf( '%1$s is a required property of %2$s.', $name, $param )
+ 				);
+ 			}
+ 		}
+ 	}
+ 
+-	foreach ( $value as $property => $v ) {
++	foreach ( (array) $value as $property => $v ) {
+ 		if ( isset( $args['properties'][ $property ] ) ) {
+-			$is_valid = rest_validate_value_from_schema( $v, $args['properties'][ $property ], $param . '[' . $property . ']' );
++			$is_valid = rest_validate_value_from_schema( $v, (array) $args['properties'][ $property ], $param . '[' . $property . ']' );
+ 			if ( is_wp_error( $is_valid ) ) {
+ 				return $is_valid;
+ 			}
+ 			continue;
+ 		}
+ 
+-		$pattern_property_schema = rest_find_matching_pattern_property_schema( $property, $args );
+-		if ( null !== $pattern_property_schema ) {
+-			$is_valid = rest_validate_value_from_schema( $v, $pattern_property_schema, $param . '[' . $property . ']' );
+-			if ( is_wp_error( $is_valid ) ) {
+-				return $is_valid;
+-			}
+-			continue;
+-		}
++		if ( isset( $args['patternProperties'] ) ) { throw new LogicException('Pattern properties are outside this profile.'); }
+ 
+ 		if ( isset( $args['additionalProperties'] ) ) {
+ 			if ( false === $args['additionalProperties'] ) {
+ 				return new WP_Error(
+ 					'rest_additional_properties_forbidden',
+ 					/* translators: %s: Property of an object. */
+-					sprintf( __( '%1$s is not a valid property of Object.' ), $property )
++					sprintf( '%1$s is not a valid property of Object.', $property )
+ 				);
+ 			}
+ 
+ 			if ( is_array( $args['additionalProperties'] ) ) {
+-				$is_valid = rest_validate_value_from_schema( $v, $args['additionalProperties'], $param . '[' . $property . ']' );
++				$is_valid = rest_validate_value_from_schema( $v, (array) $args['additionalProperties'], $param . '[' . $property . ']' );
+ 				if ( is_wp_error( $is_valid ) ) {
+ 					return $is_valid;
+ 				}
+@@ -2477,34 +2376,34 @@
+ 		}
+ 	}
+ 
+-	if ( isset( $args['minProperties'] ) && count( $value ) < $args['minProperties'] ) {
++	if ( isset( $args['minProperties'] ) && count( (array) $value ) < $args['minProperties'] ) {
+ 		return new WP_Error(
+ 			'rest_too_few_properties',
+ 			sprintf(
+ 				/* translators: 1: Parameter, 2: Number. */
+-				_n(
++				wordpress_scalar_plural(
+ 					'%1$s must contain at least %2$s property.',
+ 					'%1$s must contain at least %2$s properties.',
+ 					$args['minProperties']
+ 				),
+ 				$param,
+-				number_format_i18n( $args['minProperties'] )
++				number_format( (float) $args['minProperties'] )
+ 			)
+ 		);
+ 	}
+ 
+-	if ( isset( $args['maxProperties'] ) && count( $value ) > $args['maxProperties'] ) {
++	if ( isset( $args['maxProperties'] ) && count( (array) $value ) > $args['maxProperties'] ) {
+ 		return new WP_Error(
+ 			'rest_too_many_properties',
+ 			sprintf(
+ 				/* translators: 1: Parameter, 2: Number. */
+-				_n(
++				wordpress_scalar_plural(
+ 					'%1$s must contain at most %2$s property.',
+ 					'%1$s must contain at most %2$s properties.',
+ 					$args['maxProperties']
+ 				),
+ 				$param,
+-				number_format_i18n( $args['maxProperties'] )
++				number_format( (float) $args['maxProperties'] )
+ 			)
+ 		);
+ 	}
+@@ -2522,12 +2421,12 @@
+  * @param string $param The parameter name, used in error messages.
+  * @return true|WP_Error
+  */
+-function rest_validate_array_value_from_schema( $value, $args, $param ) {
++function rest_validate_array_value_from_schema( mixed $value, array $args, mixed $param ): mixed {
+ 	if ( ! rest_is_array( $value ) ) {
+ 		return new WP_Error(
+ 			'rest_invalid_type',
+ 			/* translators: 1: Parameter, 2: Type name. */
+-			sprintf( __( '%1$s is not of type %2$s.' ), $param, 'array' ),
++			sprintf( '%1$s is not of type %2$s.', $param, 'array' ),
+ 			array( 'param' => $param )
+ 		);
+ 	}
+@@ -2535,50 +2434,47 @@
+ 	$value = rest_sanitize_array( $value );
+ 
+ 	if ( isset( $args['items'] ) ) {
+-		foreach ( $value as $index => $v ) {
+-			$is_valid = rest_validate_value_from_schema( $v, $args['items'], $param . '[' . $index . ']' );
++		foreach ( (array) $value as $index => $v ) {
++			$is_valid = rest_validate_value_from_schema( $v, (array) $args['items'], $param . '[' . $index . ']' );
+ 			if ( is_wp_error( $is_valid ) ) {
+ 				return $is_valid;
+ 			}
+ 		}
+ 	}
+ 
+-	if ( isset( $args['minItems'] ) && count( $value ) < $args['minItems'] ) {
++	if ( isset( $args['minItems'] ) && count( (array) $value ) < $args['minItems'] ) {
+ 		return new WP_Error(
+ 			'rest_too_few_items',
+ 			sprintf(
+ 				/* translators: 1: Parameter, 2: Number. */
+-				_n(
++				wordpress_scalar_plural(
+ 					'%1$s must contain at least %2$s item.',
+ 					'%1$s must contain at least %2$s items.',
+ 					$args['minItems']
+ 				),
+ 				$param,
+-				number_format_i18n( $args['minItems'] )
++				number_format( (float) $args['minItems'] )
+ 			)
+ 		);
+ 	}
+ 
+-	if ( isset( $args['maxItems'] ) && count( $value ) > $args['maxItems'] ) {
++	if ( isset( $args['maxItems'] ) && count( (array) $value ) > $args['maxItems'] ) {
+ 		return new WP_Error(
+ 			'rest_too_many_items',
+ 			sprintf(
+ 				/* translators: 1: Parameter, 2: Number. */
+-				_n(
++				wordpress_scalar_plural(
+ 					'%1$s must contain at most %2$s item.',
+ 					'%1$s must contain at most %2$s items.',
+ 					$args['maxItems']
+ 				),
+ 				$param,
+-				number_format_i18n( $args['maxItems'] )
++				number_format( (float) $args['maxItems'] )
+ 			)
+ 		);
+ 	}
+ 
+-	if ( ! empty( $args['uniqueItems'] ) && ! rest_validate_array_contains_unique_items( $value ) ) {
+-		/* translators: %s: Parameter. */
+-		return new WP_Error( 'rest_duplicate_items', sprintf( __( '%s has duplicate items.' ), $param ) );
+-	}
++	if ( ! empty( $args['uniqueItems'] ) ) { throw new LogicException('Unique item checks are outside this profile.'); }
+ 
+ 	return true;
+ }
+@@ -2593,21 +2489,21 @@
   * @param string $param The parameter name, used in error messages.
   * @return true|WP_Error
   */
@@ -111,7 +518,7 @@
  		);
  	}
  
-@@ -2616,7 +2617,7 @@
+@@ -2616,7 +2512,7 @@
  			return new WP_Error(
  				'rest_out_of_bounds',
  				/* translators: 1: Parameter, 2: Minimum number. */
@@ -120,7 +527,7 @@
  			);
  		}
  
-@@ -2624,7 +2625,7 @@
+@@ -2624,7 +2520,7 @@
  			return new WP_Error(
  				'rest_out_of_bounds',
  				/* translators: 1: Parameter, 2: Minimum number. */
@@ -129,7 +536,7 @@
  			);
  		}
  	}
-@@ -2634,7 +2635,7 @@
+@@ -2634,7 +2530,7 @@
  			return new WP_Error(
  				'rest_out_of_bounds',
  				/* translators: 1: Parameter, 2: Maximum number. */
@@ -138,7 +545,7 @@
  			);
  		}
  
-@@ -2642,7 +2643,7 @@
+@@ -2642,7 +2538,7 @@
  			return new WP_Error(
  				'rest_out_of_bounds',
  				/* translators: 1: Parameter, 2: Maximum number. */
@@ -147,7 +554,7 @@
  			);
  		}
  	}
-@@ -2654,7 +2655,7 @@
+@@ -2654,7 +2550,7 @@
  					'rest_out_of_bounds',
  					sprintf(
  						/* translators: 1: Parameter, 2: Minimum number, 3: Maximum number. */
@@ -156,7 +563,7 @@
  						$param,
  						$args['minimum'],
  						$args['maximum']
-@@ -2669,7 +2670,7 @@
+@@ -2669,7 +2565,7 @@
  					'rest_out_of_bounds',
  					sprintf(
  						/* translators: 1: Parameter, 2: Minimum number, 3: Maximum number. */
@@ -165,7 +572,7 @@
  						$param,
  						$args['minimum'],
  						$args['maximum']
-@@ -2684,7 +2685,7 @@
+@@ -2684,7 +2580,7 @@
  					'rest_out_of_bounds',
  					sprintf(
  						/* translators: 1: Parameter, 2: Minimum number, 3: Maximum number. */
@@ -174,7 +581,7 @@
  						$param,
  						$args['minimum'],
  						$args['maximum']
-@@ -2699,7 +2700,7 @@
+@@ -2699,7 +2595,7 @@
  					'rest_out_of_bounds',
  					sprintf(
  						/* translators: 1: Parameter, 2: Minimum number, 3: Maximum number. */
@@ -183,7 +590,7 @@
  						$param,
  						$args['minimum'],
  						$args['maximum']
-@@ -2722,55 +2723,49 @@
+@@ -2722,55 +2618,49 @@
   * @param string $param The parameter name, used in error messages.
   * @return true|WP_Error
   */
@@ -248,7 +655,7 @@
  
  	return true;
  }
-@@ -2785,7 +2780,7 @@
+@@ -2785,7 +2675,7 @@
   * @param string $param The parameter name, used in error messages.
   * @return true|WP_Error
   */
@@ -257,7 +664,7 @@
  	$is_valid_number = rest_validate_number_value_from_schema( $value, $args, $param );
  	if ( is_wp_error( $is_valid_number ) ) {
  		return $is_valid_number;
-@@ -2795,7 +2790,7 @@
+@@ -2795,7 +2685,7 @@
  		return new WP_Error(
  			'rest_invalid_type',
  			/* translators: 1: Parameter, 2: Type name. */
@@ -266,7 +673,7 @@
  			array( 'param' => $param )
  		);
  	}
-@@ -3461,14 +3456,14 @@
+@@ -3461,14 +3351,14 @@
   *
   * @return WP_REST_Response List of associative arrays with code and message keys.
   */
@@ -283,7 +690,7 @@
  			if ( is_array( $error_data ) && isset( $error_data['status'] ) && is_numeric( $error_data['status'] ) ) {
  				$status = (int) $error_data['status'];
  			}
-@@ -3486,7 +3481,7 @@
+@@ -3486,7 +3376,7 @@
  		foreach ( (array) $messages as $message ) {
  			$formatted = array(
  				'code'    => $code,
@@ -292,7 +699,7 @@
  				'data'    => $last_data,
  			);
  
-@@ -3498,7 +3493,7 @@
+@@ -3498,7 +3388,7 @@
  		}
  	}
  

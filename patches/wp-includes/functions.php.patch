@@ -59,6 +59,21 @@
  	}
  
  	return implode( $sep, $ret );
+@@ -5380,12 +5381,12 @@
+  *
+  * @phpstan-assert-if-true array<int, mixed> $data
+  */
+-function wp_is_numeric_array( $data ): bool {
++function wp_is_numeric_array( mixed $data ): bool {
+ 	if ( ! is_array( $data ) ) {
+ 		return false;
+ 	}
+ 
+-	return array_all( $data, fn( $value, $key ) => ! is_string( $key ) );
++	return array_all( (array) $data, static fn( mixed $value, mixed $key ): bool => ! is_string( $key ) );
+ }
+ 
+ /**
 @@ -5416,12 +5417,12 @@
   *                                of the entire object. Default false.
   * @return array A list of objects or object fields.

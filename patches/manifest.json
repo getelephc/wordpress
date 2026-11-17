@@ -407,10 +407,10 @@
     {
       "path": "wp-includes/functions.php",
       "original_sha256": "cac8a17e293df99f0683a88debd3ba5e5cce274183a4e9fd3c9f18375747f41c",
-      "patched_source_sha256": "c415600ba1d7a10ea0c1611d68a15fd97e543c553b9c3fd4ee4b271d944cfb82",
-      "patched_sha256": "468565c21a5d1c62ede05f20dd9a2362ee44d904a18a296d9c1f5ee572cf8419",
+      "patched_source_sha256": "68c06ac26c0ba28e1e8343af9508171a2015bdb1bd96367ff850e3bdb61e8070",
+      "patched_sha256": "a8c1e2efe19efbe66a5f30970e009ca2a78f217e998001b5b579f6a0015457be",
       "patch": "patches/wp-includes/functions.php.patch",
-      "patch_sha256": "16335235cdd35b48c5a9bd225946f5104a3d9175c9aebec29bd0328f10d17fe3",
+      "patch_sha256": "82aad0a7d42233185e9ab1f5d88c077cfaa64c9c1540de2c479874307d3e12b2",
       "functions": [
         {
           "name": "build_query",
@@ -425,33 +425,39 @@
           "sha256": "2c54807c86f1eefb60a7670c1d600cf501fc8b1ac594b0511d7e1ad487dae74b"
         },
         {
+          "name": "wp_is_numeric_array",
+          "start": 167537,
+          "end": 167744,
+          "sha256": "a2e8aea7f6833c9f1ce2d6a8aa611b15a0a57e4b5cd5b717ddecde8c3ba45a22"
+        },
+        {
           "name": "wp_filter_object_list",
-          "start": 169117,
-          "end": 169472,
+          "start": 169156,
+          "end": 169511,
           "sha256": "82f6c1c17707076fc8bef83890ffa2483cbe697a4c63d0dd61dd00c52a6abe87"
         },
         {
           "name": "wp_list_filter",
-          "start": 170694,
-          "end": 170862,
+          "start": 170733,
+          "end": 170901,
           "sha256": "5080baa4b97c310b3978d37001f3ba59c1a88f4adb21b4ec1baf21eb18e73ac9"
         },
         {
           "name": "wp_list_pluck",
-          "start": 171724,
-          "end": 171970,
+          "start": 171763,
+          "end": 172009,
           "sha256": "f40666992422695e6bfd77c649684cb4b7b2bd7e019e3f83c518e6b289f1674c"
         },
         {
           "name": "wp_list_sort",
-          "start": 172687,
-          "end": 172984,
+          "start": 172726,
+          "end": 173023,
           "sha256": "7e4c7295eff4bc0cf552064fb369ace0862d89de102a7600ea5fd0f648ff21c3"
         },
         {
           "name": "wp_suspend_cache_addition",
-          "start": 205704,
-          "end": 205878,
+          "start": 205743,
+          "end": 205917,
           "sha256": "ec39ae6d9a9e033fc1c48d94fea35b6bf438717bc5ec377381ba88ef9c16b8c3"
         }
       ]
@@ -543,10 +549,10 @@
     {
       "path": "wp-includes/rest-api.php",
       "original_sha256": "9c4af1341e37de253323cf7c28da1424f41decc2154904e2b71a4e71c9cdd70c",
-      "patched_sha256": "472e11406203f72327925f08dc7c3d01b5919e313d84db7dc5f9a37788d75643",
+      "patched_sha256": "44976ad6565c6a7c15610738d49225262d1d56d6530487863cb157fd31e80829",
       "patch": "patches/wp-includes/rest-api.php.patch",
-      "patch_sha256": "91e4fb48ab4aaeda891fcab5333f155b80c18dca22e266ad8b823dfdd3d9cfd1",
-      "patched_source_sha256": "cf92ca086fbfa9f1aa1833aa23d4f640eb513fecb9a7a47b2765a4e86f3a411e",
+      "patch_sha256": "070784c2f1346f8dc209862f417368d66c3f641b031ae3a3fe3b0237a02426ee",
+      "patched_source_sha256": "d127edf6f0f5610dc9628698449e9d6f67f7d880e01366e29c2c9fae78461ae0",
       "functions": [
         {
           "name": "rest_ensure_response",
@@ -573,39 +579,81 @@
           "sha256": "15db672dc14099dc7991ba7afe47be2095a51a27a82f5c7f9dc82cb2bff8c30a"
         },
         {
+          "name": "rest_is_array",
+          "start": 47918,
+          "end": 48158,
+          "sha256": "17e794ef8cd29278476c48e17e5ef003e8546573b497d87922d7e8ed359bd7ee"
+        },
+        {
+          "name": "rest_sanitize_array",
+          "start": 48352,
+          "end": 48728,
+          "sha256": "6707451341a9f9138d3d2e2e424aa57260595ae55a1cea6c7120fddb369dd701"
+        },
+        {
+          "name": "rest_is_object",
+          "start": 48918,
+          "end": 49199,
+          "sha256": "8d4a0cc41e10abf228211060c60a906a9d3d062fb61961523322814a04d1a38b"
+        },
+        {
+          "name": "rest_sanitize_object",
+          "start": 49420,
+          "end": 49767,
+          "sha256": "615e4dfb5d820fa5b38b96c4ffeeb88432bbaff4c8ce23a302ede471f7415a7f"
+        },
+        {
+          "name": "rest_validate_value_from_schema",
+          "start": 64700,
+          "end": 66761,
+          "sha256": "67c2168758e50cdfb0bc79b068bafe067abc377d559982dfa388060cef9b3b45"
+        },
+        {
           "name": "rest_validate_null_value_from_schema",
-          "start": 68934,
-          "end": 69255,
+          "start": 66978,
+          "end": 67299,
           "sha256": "6f8f8a76b6108434fdf0fb3ebc7c24bb27f1ddfedfc20dbc983c2084f9eded1e"
         },
         {
           "name": "rest_validate_boolean_value_from_schema",
-          "start": 69475,
-          "end": 69814,
+          "start": 67519,
+          "end": 67858,
           "sha256": "f8a6b8de2c397cf81ed46b32a7f0c7a91014b4e1954ac9727aa1ae233e257638"
         },
         {
+          "name": "rest_validate_object_value_from_schema",
+          "start": 68138,
+          "end": 71334,
+          "sha256": "1a150ac4ae11a6225e94c2ff2c4b4a6e0c8b67dd4156e0e0cb3f0ff127237ed3"
+        },
+        {
+          "name": "rest_validate_array_value_from_schema",
+          "start": 71613,
+          "end": 73213,
+          "sha256": "aa9d6c402262efdb73cd6ddb05db55abab03c4a36ffbc96a8cd19e1097692c71"
+        },
+        {
           "name": "rest_validate_number_value_from_schema",
-          "start": 75523,
-          "end": 79249,
+          "start": 73492,
+          "end": 77218,
           "sha256": "379e0d1d01c0dac8a83895a5a45f26b3fd0d67ce80ba873bb664f407b63d5995"
         },
         {
           "name": "rest_validate_string_value_from_schema",
-          "start": 79528,
-          "end": 80902,
+          "start": 77497,
+          "end": 78871,
           "sha256": "a2b35d21850d6a7b5bbc82b489df66a8dc81a28e4d343d3a603b088ffb46389a"
         },
         {
           "name": "rest_validate_integer_value_from_schema",
-          "start": 81183,
-          "end": 81693,
+          "start": 79152,
+          "end": 79662,
           "sha256": "b8509c1c6a3b92d97f213278cf259f5e9a8b46fcb54196f3e62c4011ff422a4c"
         },
         {
           "name": "rest_convert_error_to_response",
-          "start": 100805,
-          "end": 101943,
+          "start": 98774,
+          "end": 99912,
           "sha256": "d42b305f261ab840847d712da1e1fbc07c44c1a2c7ce004376f327aad7e718ab"
         }
       ]
