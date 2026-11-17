@@ -282,6 +282,31 @@ def main():
     assert snapshots[0]["params"] == snapshots[2]["params"]
     print(f"PASS: {len(collection_fixtures)} collection-schema cases match original PHP; stdin and {len(collection_errors)} CLI boundary checks.")
 
+    unique_fixtures = json.loads((ROOT / "tests/unique-schema-fixtures.json").read_text())
+    unique_errors = json.loads((ROOT / "tests/unique-schema-errors.json").read_text())
+    unique_reference = run_json([php, "tests/unique-schema-reference.php", "upstream"])
+    assert len(unique_reference) == len(unique_fixtures), "Duplicate unique fixture names"
+    assert run_json([php, "tests/unique-schema-reference.php", "profile"]) == unique_reference, "Patched unique schemas differ from original PHP"
+    for fixture in unique_fixtures:
+        actual = run_json([requests_cli, fixture["input"]])
+        assert actual == unique_reference[fixture["name"]], (fixture["name"], actual, unique_reference[fixture["name"]])
+    assert json.loads(run_output([requests_cli], unique_fixtures[0]["input"].encode())) == unique_reference[unique_fixtures[0]["name"]]
+    for fixture in unique_errors:
+        result = subprocess.run([requests_cli], input=fixture["input"].encode(), capture_output=True, timeout=20)
+        assert result.returncode == 2 and not result.stdout, (fixture["name"], result)
+        assert result.stderr.startswith(b"Request profile: ") and b"Fatal error" not in result.stderr and b"Warning:" not in result.stderr, (fixture["name"], result.stderr)
+    assert unique_reference["object-order-duplicate"]["results"][0]["error"]["first_code"] == "rest_duplicate_items"
+    assert unique_reference["int-float-distinct"]["results"][0] is True
+    assert unique_reference["items-not-coerced"]["results"][0] is True
+    assert unique_reference["nested-error-path"]["results"][0]["error"]["message"] == "payload[rows][1] has duplicate items."
+    assert unique_reference["min-count-before-duplicates"]["results"][0]["error"]["first_code"] == "rest_too_few_items"
+    assert unique_reference["item-error-first"]["results"][0]["error"]["first_code"] == "rest_invalid_type"
+    for name in ["request-success", "request-duplicates", "request-post-precedence"]:
+        snapshots = unique_reference[name]["results"]
+        assert snapshots[0]["params"] == snapshots[2]["params"]
+    assert unique_reference["request-state-reset"]["results"] == [[], True, []]
+    print(f"PASS: {len(unique_fixtures)} unique-schema cases match original PHP; stdin and {len(unique_errors)} CLI boundary checks.")
+
     with socket.socket() as listener:
         listener.bind(("127.0.0.1", 0))
         port = listener.getsockname()[1]
@@ -580,6 +605,16 @@ def main():
                     assert json.loads(body) == collection_reference[fixture["name"]], (fixture["name"], body, collection_reference[fixture["name"]])
                     checks += 1
                 for fixture in collection_errors:
+                    status, headers, body = request("POST", "/requests", fixture["input"].encode())
+                    assert status == 400 and headers["content-type"].startswith("application/json"), (fixture["name"], status, body)
+                    assert isinstance(json.loads(body)["error"], str), fixture["name"]
+                    checks += 1
+                for fixture in unique_fixtures:
+                    status, headers, body = request("POST", "/requests", fixture["input"].encode())
+                    assert status == 200 and headers["content-type"].startswith("application/json"), (fixture["name"], status, body)
+                    assert json.loads(body) == unique_reference[fixture["name"]], (fixture["name"], body, unique_reference[fixture["name"]])
+                    checks += 1
+                for fixture in unique_errors:
                     status, headers, body = request("POST", "/requests", fixture["input"].encode())
                     assert status == 400 and headers["content-type"].startswith("application/json"), (fixture["name"], status, body)
                     assert isinstance(json.loads(body)["error"], str), fixture["name"]

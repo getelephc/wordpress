@@ -16,6 +16,8 @@ function wordpress_schema_guard(mixed $input, int $depth = 0): int {
             if (!is_bool($value)) { throw new InvalidArgumentException('Exclusive schema flags must be boolean.'); }
         } elseif ($type === 'string' && in_array($key, ['minLength', 'maxLength'], true)) {
             if (!is_int($value) || (int) $value < 0 || (int) $value > 1000000) { throw new InvalidArgumentException('String schema lengths must be integers from 0 to 1000000.'); }
+        } elseif ($type === 'array' && $key === 'uniqueItems') {
+            if (!is_bool($value)) { throw new InvalidArgumentException('uniqueItems must be boolean.'); }
         } elseif (($type === 'array' && in_array($key, ['minItems', 'maxItems'], true)) || ($type === 'object' && in_array($key, ['minProperties', 'maxProperties'], true))) {
             if (!is_int($value) || (int) $value < 0 || (int) $value > 256) { throw new InvalidArgumentException('Collection schema counts must be integers from 0 to 256.'); }
         } elseif ($type === 'array' && $key === 'items') {

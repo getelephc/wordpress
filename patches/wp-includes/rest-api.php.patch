@@ -138,7 +138,52 @@
  }
  
  /**
-@@ -2218,59 +2203,18 @@
+@@ -1794,7 +1779,7 @@
+  * @param array $input_array The array to check.
+  * @return bool True if the array contains unique items, false otherwise.
+  */
+-function rest_validate_array_contains_unique_items( $input_array ) {
++function rest_validate_array_contains_unique_items( array $input_array ): bool {
+ 	$seen = array();
+ 
+ 	foreach ( $input_array as $item ) {
+@@ -1823,24 +1808,21 @@
+  * @param mixed $value The value to stabilize. Must already be sanitized. Objects should have been converted to arrays.
+  * @return mixed The stabilized value.
+  */
+-function rest_stabilize_value( $value ) {
++function rest_stabilize_value( mixed $value ): mixed {
+ 	if ( is_scalar( $value ) || is_null( $value ) ) {
+ 		return $value;
+ 	}
+ 
+-	if ( is_object( $value ) ) {
+-		_doing_it_wrong( __FUNCTION__, __( 'Cannot stabilize objects. Convert the object to an array first.' ), '5.5.0' );
+-
+-		return $value;
+-	}
+-
+-	ksort( $value );
+-
+-	foreach ( $value as $k => $v ) {
+-		$value[ $k ] = rest_stabilize_value( $v );
+-	}
+-
+-	return $value;
++	if ( is_object( $value ) ) { throw new LogicException('PHP object stabilization is outside this profile.'); }
++
++	$stable = (array) $value;
++	ksort( $stable );
++
++	foreach ( $stable as $k => $v ) {
++		$stable[ $k ] = rest_stabilize_value( $v );
++	}
++
++	return $stable;
+ }
+ 
+ /**
+@@ -2218,59 +2200,18 @@
   * @param string $param The parameter name, used in error messages.
   * @return true|WP_Error
   */
@@ -207,7 +252,7 @@
  
  	switch ( $args['type'] ) {
  		case 'null':
-@@ -2303,52 +2247,13 @@
+@@ -2303,52 +2244,13 @@
  		return $is_valid;
  	}
  
@@ -262,7 +307,7 @@
  
  	return true;
  }
-@@ -2362,12 +2267,12 @@
+@@ -2362,12 +2264,12 @@
   * @param string $param The parameter name, used in error messages.
   * @return true|WP_Error
   */
@@ -277,7 +322,7 @@
  			array( 'param' => $param )
  		);
  	}
-@@ -2384,12 +2289,12 @@
+@@ -2384,12 +2286,12 @@
   * @param string $param The parameter name, used in error messages.
   * @return true|WP_Error
   */
@@ -292,7 +337,7 @@
  			array( 'param' => $param )
  		);
  	}
-@@ -2407,12 +2312,12 @@
+@@ -2407,12 +2309,12 @@
   * @param string $param The parameter name, used in error messages.
   * @return true|WP_Error
   */
@@ -307,7 +352,7 @@
  			array( 'param' => $param )
  		);
  	}
-@@ -2420,56 +2325,50 @@
+@@ -2420,56 +2322,50 @@
  	$value = rest_sanitize_object( $value );
  
  	if ( isset( $args['required'] ) && is_array( $args['required'] ) ) { // schema version 4
@@ -376,7 +421,7 @@
  				if ( is_wp_error( $is_valid ) ) {
  					return $is_valid;
  				}
-@@ -2477,34 +2376,34 @@
+@@ -2477,34 +2373,34 @@
  		}
  	}
  
@@ -417,7 +462,7 @@
  			)
  		);
  	}
-@@ -2522,12 +2421,12 @@
+@@ -2522,12 +2418,12 @@
   * @param string $param The parameter name, used in error messages.
   * @return true|WP_Error
   */
@@ -432,7 +477,7 @@
  			array( 'param' => $param )
  		);
  	}
-@@ -2535,50 +2434,47 @@
+@@ -2535,49 +2431,49 @@
  	$value = rest_sanitize_array( $value );
  
  	if ( isset( $args['items'] ) ) {
@@ -485,13 +530,13 @@
  	}
  
 -	if ( ! empty( $args['uniqueItems'] ) && ! rest_validate_array_contains_unique_items( $value ) ) {
--		/* translators: %s: Parameter. */
++	if ( ! empty( $args['uniqueItems'] ) && ! rest_validate_array_contains_unique_items( (array) $value ) ) {
+ 		/* translators: %s: Parameter. */
 -		return new WP_Error( 'rest_duplicate_items', sprintf( __( '%s has duplicate items.' ), $param ) );
--	}
-+	if ( ! empty( $args['uniqueItems'] ) ) { throw new LogicException('Unique item checks are outside this profile.'); }
++		return new WP_Error( 'rest_duplicate_items', sprintf( '%s has duplicate items.', $param ) );
+ 	}
  
  	return true;
- }
 @@ -2593,21 +2489,21 @@
   * @param string $param The parameter name, used in error messages.
   * @return true|WP_Error
