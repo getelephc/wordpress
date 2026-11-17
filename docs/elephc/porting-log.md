@@ -749,6 +749,51 @@ are build observations without speed claims.
 Compiler tasks `ad219f8e` and `bb834c02` request retesting
 the two hard compilation failures on current main before retiring adapters.
 
+## REST request callback lifecycle, 2026-11-17
+
+The bounded request class now retains original has_valid_params and sanitize_params
+for required fields and explicit callbacks. The selected REST module adds original
+rest_is_integer, rest_is_boolean and rest_sanitize_boolean. There are still 21 core
+files, 20 patches and thirteen executables. Complete patched sources, helper ranges,
+fragments and generated modules retain verified hashes; upstream remains untouched.
+
+Lifecycle methods use explicit types, uniform invalid-parameter/detail maps and
+WP_Error narrowing. Named callback invocation resolves native descriptors through
+the existing finite manifest. Successful sanitization updates fresh current source
+buckets. The original required checks, source traversal, callback ordering, exact
+false/error handling and aggregation algorithms remain. Fixed English validation
+messages match the original-PHP locale fixture. The integer helper rejects NUL
+strings before the unchanged regex to preserve PHP behavior on the pinned matcher.
+Automatic rest_parse_request_arg dispatch remains an explicit general-schema boundary.
+
+The existing requests CLI and POST `/requests` accept optional rules for at most
+64 fields and route_validate. Rules replace attributes.args with required flags
+and named source-defined validation/sanitization callbacks. Raw attributes permit
+only the same bounded callback fields when a phase runs. validate and sanitize
+operations explicitly call the original methods; callback-events exposes their
+ordered key/value and actual request method/route arguments. Trace state resets
+per invocation and is limited to 1,024 events. Wrappers, rule selection and trace
+inspection are application fixtures, separate from core schema logic.
+
+Required checks precede callbacks, optional null skips validation, and callback
+null/zero results pass while exact false and WP_Error fail. The route callback
+runs after successful parameter validation. Sanitization visits every active
+source, including defaults, retains partial successful updates and aggregates
+original error messages/details. Duplicate source failures and callback error
+history retain original conversion behavior. Sanitization without argument rules
+leaves JSON parsing lazy. Error inspection exposes both WP_Error and its converted
+REST response, keeping the transport inspection envelope at HTTP 200.
+
+The new corpus contains 102 original-PHP/profile/native cases and 36 invalid
+inputs. It covers integer/boolean edge values, numeric parameter keys, malformed
+JSON, required/null behavior, phase and source order, callback returns, partial
+updates, route context, attribute replacement and the exact/exceeded event limit.
+The complete suite retains all earlier cases and passes 2,710 HTTP checks through
+one repeated worker. Fresh source-only reproduction rebuilds thirteen executables
+and repeats the same checks, removing its export. No new compiler failure was
+identified. Form decoding, general JSON Schema, URL discovery, authentication,
+handler dispatch and the complete CMS remain outside the profile.
+
 ## Follow-up direction
 
 A broader CMS experiment should address the UTF-8 compatibility loader's

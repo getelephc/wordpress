@@ -49,8 +49,10 @@
   handler execution remain outside the profile.
 - REST requests preserve canonical headers, active-source precedence, null/presence
   distinctions, lazy JSON flags, ArrayAccess and isolated permalink policy. Budget
-  checks and peek must not force parsing. Form decoding, schema callbacks, URL
-  discovery, authentication and dispatch remain explicit boundaries.
+  checks and peek must not force parsing. Required/callback phases use the original
+  lifecycle with a finite source-defined manifest and request-local traces. Preserve
+  partial sanitization and error aggregation. Form decoding, general JSON Schema,
+  URL discovery, authentication and dispatch remain explicit boundaries.
 - The complete WordPress compile probes intentionally fail on the pinned SDK.
   Keep their diagnostics separate from the verified parser profile.
 - Keep provenance, boundaries and verified results current in the README,

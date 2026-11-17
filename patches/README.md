@@ -27,8 +27,8 @@ Repeated preparation starts from the same original sources and is idempotent.
 | `load.php` | Select/type `is_wp_error`, bounded integer `absint` and original JSON media-type predicate |
 | `class-wp-http-response.php` | Typed data/status/headers, uniform header storage and local updates |
 | `rest-api/class-wp-rest-response.php` | Typed inherited response API, local link updates and explicit array/message casts |
-| `rest-api/class-wp-rest-request.php` | Typed request state, local source/header updates, ArrayAccess signatures and explicit form/schema/URL boundaries |
-| `rest-api.php` | Select/type only response ensuring and error conversion |
+| `rest-api/class-wp-rest-request.php` | Typed request state, local source/header updates, ArrayAccess, original callback lifecycle with descriptors and explicit form/general-schema/URL boundaries |
+| `rest-api.php` | Select/type response ensuring, error conversion, integer/boolean predicates and boolean sanitization |
 | `class-wp-list-util.php` | Typed array records, uniform result maps, local sort updates, method callback descriptors and explicit object-record boundaries |
 | `blocks.php` | Five selected serialization functions, typed recursion, explicit string emptiness and a JSON encoder boundary |
 | `formatting.php` | Typed formatting values, concrete regex cache, builtin bridges and closure newline-preservation callback |
@@ -148,8 +148,8 @@ classes with their inheritance. Header/links use uniform mixed maps and local
 bucket updates; typed casts make link sets, callbacks, metadata and error records
 explicit. The original CURIE filter, header concatenation, link filtering/key
 policy and error algorithms remain. Integer absint is selected from the existing
-load module within the adapter's bounded status domain. Only rest_ensure_response
-and rest_convert_error_to_response enter the new rest-api module; the original
+load module within the adapter's bounded status domain. rest_ensure_response
+and rest_convert_error_to_response enter the selected rest-api module; the original
 status reducer, message formatting and reverse-conversion behavior are preserved.
 The adapter validates error-body shape before calling the original as_error API.
 
@@ -162,7 +162,7 @@ values and a typed closure. Permalink policy comes from the adapter; original PH
 uses the normal pre-option filter. Native JSON errors retain the verified 400
 constant and fixed English label. The pure media-type regex loses only its
 memoization to avoid the pinned static-empty-array initialization failure.
-Schema sanitization/validation and from_url become explicit exceptions; the
+Automatic schema sanitization and from_url become explicit exceptions; the
 original URL-encoded parse_str branch is an explicit boundary after its normal
 guards. These unsupported original bodies remain visible in the patch diff.
 
@@ -171,3 +171,15 @@ near-location diagnostic suffix before placing it into the original WordPress
 error payload. Decoder codes and other error fields remain. The original PHP
 oracle uses normal option filters, a fixed English gettext fixture and the
 original WP_Http constant definition without executing a transport.
+
+The original has_valid_params and sanitize_params bodies retain required checks,
+callback order, exact-false/error handling, partial successful writes and aggregated
+messages/details. Callback arguments resolve through WordPressHookCallbacks;
+error narrowing, uniform detail maps and local source updates adapt native storage.
+The fixed English fixture supplies the original validation messages. The selected
+REST module also includes rest_is_integer, rest_is_boolean and rest_sanitize_boolean.
+The integer predicate returns false before regex matching for NUL strings, preserving
+PHP rejection despite the pinned matcher limitation. The JSON adapter validates
+at most 64 argument rules and permits only source-defined callback names; general
+schema keywords and arbitrary discovery remain explicit boundaries. Callback rules,
+wrappers and the bounded trace are application fixtures, separate from core logic.

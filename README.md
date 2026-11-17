@@ -8,7 +8,7 @@ attributes, caching, lists, URLs, text sanitization, errors and HTTP/REST reques
 objects, plus an HTTP server. It uses 21 original core files with 20 compatibility
 patches. Selected modules contain 24 formatting functions, five
 block serializers, 21 KSES functions, seven helpers from `functions.php`, three
-URL parsing helpers from `http.php`, three helpers from `load.php`, and two response
+URL parsing helpers from `http.php`, three helpers from `load.php`, and five REST
 helpers from `rest-api.php`. Documents, JSON block trees, content, cache/list
 records, URLs and request/error/response sequences are processed at runtime.
 The HTTP adapter, callback manifest and demo callbacks belong to this experiment.
@@ -678,6 +678,8 @@ An `operations` list of at most 256 entries is required.
 | `get-param`, `has-param`, `set-param` | Required integer/string `key`; setter also requires JSON `value` |
 | `offset-get`, `offset-exists`, `offset-set`, `offset-unset` | Exercise real ArrayAccess operators; setter requires `value` |
 | `peek`, `snapshot` | Inspect raw sources/parse flags or run the normal merged-parameter getters |
+| `validate`, `sanitize` | Run original required/callback validation or parameter sanitization explicitly |
+| `callback-events` | Inspect this sequence's ordered parameter and route callback arguments |
 
 `get-param` skips null values while `has-param` recognizes a present null.
 `get-params` can retain a higher-priority null that differs from individual
@@ -710,13 +712,74 @@ invocation resets the order filter and option context. The fixed English JSON
 error label and pinned BAD_REQUEST constant avoid loading locale/transport
 bootstrap in native code.
 
-URL-encoded parsing for non-POST bodies, schema validation/sanitization, URL
+URL-encoded parsing for non-POST bodies, general JSON Schema validation/sanitization, URL
 request discovery, authentication and route/handler dispatch remain outside the
 profile. Supply already decoded POST/query maps explicitly. The class retains
-explicit exceptions for unsupported schema/URL APIs and the parse_str-dependent
+explicit exceptions for automatic schema callbacks, URL discovery and the parse_str-dependent
 branch. The media-type predicate retains its original regex without its static
 memoization, which the pinned backend rejects. Examples and boundaries are in
 `tests/requests-fixtures.json` and `tests/requests-errors.json`.
+
+### Required parameters and callbacks
+
+The original `has_valid_params()` and `sanitize_params()` methods run source-defined
+callbacks. Optional `rules` replaces `attributes.args` with at most 64 parameter
+rules. `required` is boolean; `validate` and `sanitize` select callbacks from the
+following finite manifest. False or null disables a parameter callback.
+
+| Rule field | Selectors |
+| --- | --- |
+| `validate` | `integer`, `boolean`, `string`, `pass`, `fail`, `error`, `return-null`, `return-zero` |
+| `sanitize` | `keep`, `trim`, `upper`, `boolean`, `null`, `error` |
+| Root `route_validate` | `pass`, `fail`, `error`, `check-blocked`; null clears it |
+
+```bash
+./elephc/runtime/requests <<'JSON' | python3 -m json.tool
+{
+  "method": "POST",
+  "route": "/demo",
+  "query": {"id": "12", "name": " Ada ", "enabled": "FALSE"},
+  "rules": {
+    "id": {"required": true, "validate": "integer"},
+    "name": {"validate": "string", "sanitize": "trim"},
+    "enabled": {"validate": "boolean", "sanitize": "boolean"}
+  },
+  "route_validate": "check-blocked",
+  "operations": [
+    {"op": "validate"},
+    {"op": "sanitize"},
+    {"op": "get-params"},
+    {"op": "callback-events"}
+  ]
+}
+JSON
+```
+
+Both phases return true here; parameters become `id: "12"`, `name: "Ada"`
+and `enabled: false`. Integer validation keeps the original value. The integer
+and boolean predicates and boolean sanitizer are original WordPress REST helpers.
+Trim/uppercase callbacks accept NUL-free strings and otherwise return `WP_Error`.
+The other callbacks expose lifecycle behavior for this experiment; `check-blocked`
+receives the actual request and rejects an effective `blocked: true` value.
+
+Validation checks malformed JSON and missing required values before parameter
+callbacks, then runs the route callback only after all parameter checks pass.
+Only exact false or `WP_Error` fails a callback; null and zero remain valid.
+Optional null values skip validation. Sanitization visits every active source,
+including defaults, and keeps successful updates even when other values fail.
+Sanitization without argument rules leaves JSON parsing lazy. Neither phase runs
+automatically, so operation order is explicit.
+
+Core failures return an `error` snapshot and an original REST `response` with its
+own `status` and `data`. The inspection endpoint still returns HTTP 200. Error
+details include the original aggregated parameter messages and callback data/history.
+Raw `attributes.args` may also use the manifest's named functions, visible in
+`get-attributes`; phase preflight permits only `required`, `validate_callback`
+and `sanitize_callback` fields with the appropriate manifest functions.
+Callback wrappers, rules and diagnostics belong to this experiment.
+The trace allows 1,024 events and resets for every sequence and HTTP request.
+Tests are in `tests/request-validation-fixtures.json` and
+`tests/request-validation-errors.json`.
 
 ## Verified behavior
 
@@ -744,8 +807,10 @@ cover messages, data/history, copying, recognition and hooks, with **38 invalid
 inputs**. Another **74 response-object cases** cover inheritance, status, headers,
 links, metadata, identity and error conversion, with **48 invalid inputs**.
 Another **70 request-object cases** cover headers, precedence, lazy JSON,
-ArrayAccess and context, with **45 invalid inputs**. The server checks all twelve
-corpora twice through one worker for **2,434 HTTP checks**, including routing, body limits, response MIME types and request isolation.
+ArrayAccess and context, with **45 invalid inputs**. Another **102 request-validation
+cases** cover required fields, callbacks, source mutation and aggregated errors,
+with **36 invalid inputs**. The server checks all thirteen corpora twice through
+one worker for **2,710 HTTP checks**, including routing, body limits, response MIME types and request isolation.
 
 | Request | Result |
 | --- | --- |
@@ -753,7 +818,7 @@ corpora twice through one worker for **2,434 HTTP checks**, including routing, b
 | `GET /blocks` | Parsed demo as JSON |
 | `GET /health` | Version/profile information, `database: false` |
 | `POST /parse` | Parse a raw UTF-8 block document as JSON |
-| `POST /requests` | Inspect core REST request objects and parameter/JSON behavior |
+| `POST /requests` | Inspect REST request objects, parameters, JSON and explicit callback phases |
 | `POST /responses` | Inspect native HTTP/REST response objects and convert core errors |
 | `POST /errors` | Run a JSON sequence against original core error objects |
 | `POST /sanitize` | Sanitize text, escape HTML and check identifiers/colors from JSON input |
@@ -819,7 +884,8 @@ WP_Error
 WP_HTTP_Response and WP_REST_Response
 WP_REST_Request (bounded parameter/header/JSON profile)
 absint, is_wp_error and wp_is_json_media_type from wp-includes/load.php
-rest_ensure_response and rest_convert_error_to_response from wp-includes/rest-api.php
+rest_ensure_response, rest_convert_error_to_response, rest_is_integer,
+rest_is_boolean and rest_sanitize_boolean from wp-includes/rest-api.php
 four list wrappers, wp_suspend_cache_addition and two query builders from wp-includes/functions.php
 three selected URL parser functions from wp-includes/http.php
 ```
