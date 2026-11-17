@@ -8,7 +8,7 @@ attributes, caching, lists, URLs, text sanitization, errors and HTTP/REST reques
 objects, plus an HTTP server. It uses 21 original core files with 20 compatibility
 patches. Selected modules contain 24 formatting functions, five
 block serializers, 21 KSES functions, eight helpers from `functions.php`, three
-URL parsing helpers from `http.php`, three helpers from `load.php`, and seventeen REST
+URL parsing helpers from `http.php`, three helpers from `load.php`, and nineteen REST
 helpers from `rest-api.php`. Documents, JSON block trees, content, cache/list
 records, URLs and request/error/response sequences are processed at runtime.
 The HTTP adapter, callback manifest and demo callbacks belong to this experiment.
@@ -873,7 +873,7 @@ accept the same value/schema pair; `scalar-check` remains an alias.
 
 | Type | Additional supported keywords |
 | --- | --- |
-| `array` | Single-schema `items`, integer `minItems`/`maxItems` |
+| `array` | Single-schema `items`, integer `minItems`/`maxItems`, boolean `uniqueItems` |
 | `object` | `properties`, required-name list, boolean/schema `additionalProperties`, integer `minProperties`/`maxProperties` |
 
 Each schema allows 64 nodes including the root and eight nested levels below it.
@@ -892,10 +892,28 @@ associative-array semantics. Validation visits values in their original order,
 reports the first nested error, and leaves the input unchanged.
 
 Scalar-to-list coercion (CSV/space-separated strings, numbers and booleans), PHP
-objects, `uniqueItems`, pattern properties, enum, formats and combining/multi-type
+objects, pattern properties, enum, formats and combining/multi-type
 schemas remain outside the profile. Unsupported coercion branches fail explicitly.
 The collection corpus covers nesting, required/additional properties, count limits,
 error ordering/paths, unchanged values and schema budgets against original PHP.
+
+`uniqueItems: true` uses the original recursive stabilization, serialization and
+seen-key algorithm. Object property order is ignored recursively; list value
+order is preserved. Values are not coerced: `1`, `1.0` and `"1"` remain distinct,
+even with integer item validation. Empty JSON objects/lists both decode to PHP
+arrays and therefore compare as duplicates. `uniqueItems: false` disables the check.
+Only boolean flags are accepted, on array schemas within the existing budgets.
+
+```bash
+echo '{"operations":[{"op":"schema-check","value":["php","php"],"schema":{"type":"array","uniqueItems":true},"key":"tags"}]}' \
+  | elephc/runtime/requests
+```
+
+This returns the original `rest_duplicate_items` error with
+`tags has duplicate items.`. Core checks item validity and collection counts before
+uniqueness. Request callbacks aggregate duplicate errors through the existing
+validation lifecycle and leave caller values unchanged. Direct schema errors keep
+their original absent status data; the inspection envelope remains HTTP 200.
 
 ## Verified behavior
 
@@ -927,8 +945,10 @@ ArrayAccess and context, with **45 invalid inputs**. Another **102 request-valid
 cases** cover required fields, callbacks, source mutation and aggregated errors,
 with **36 invalid inputs**. Another **163 scalar-schema cases** cover direct and
 request callback validation, with **38 invalid inputs**. Another **74 collection-schema
-cases** cover recursive arrays/objects, with **39 invalid inputs**. The server checks
-all fifteen corpora twice through one worker for **3,338 HTTP checks**, including routing, body limits, response MIME types and request isolation.
+cases** cover recursive arrays/objects, with **39 invalid inputs**. Another **53
+unique-item cases** cover recursive duplicate semantics, type distinctions and
+request lifecycle behavior, with **16 invalid inputs**. The server checks
+all sixteen corpora twice through one worker for **3,476 HTTP checks**, including routing, body limits, response MIME types and request isolation.
 
 | Request | Result |
 | --- | --- |

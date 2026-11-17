@@ -55,7 +55,9 @@
   dispatcher and scalar/array/object validators, at most 64 schema nodes and eight
   nested schema levels. Preserve required-list precedence, numeric array key policy,
   nested error paths, value independence and fixed English locale behavior.
-  Scalar list coercion, unique items, combining/multi-type schemas, enum/formats/patterns,
+  Boolean uniqueItems uses original recursive stabilization and serialization;
+  preserve value type distinctions, property-order independence and error precedence.
+  Scalar list coercion, combining/multi-type schemas, enum/formats/patterns,
   automatic schema sanitization, form decoding and full JSON Schema remain boundaries.
   URL discovery, authentication and dispatch remain explicit boundaries.
 - The complete WordPress compile probes intentionally fail on the pinned SDK.

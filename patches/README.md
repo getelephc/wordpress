@@ -201,10 +201,20 @@ normalization, additional-property schemas, count checks and first-error paths.
 Mixed values, array casts and typed predicates provide native contracts. Collection
 plural/number messages reuse the common fixed English locale bridge. Scalar list
 coercion and PHP object/JsonSerializable paths become explicit input boundaries;
-pattern properties, unique items and unsupported dispatcher branches throw.
+pattern properties and unsupported dispatcher branches throw.
 The selected wp_is_numeric_array retains its original array_all predicate with a
 typed first-class closure, including sparse/negative numeric keys. The application
 schema guard bounds recursion to eight nested levels and 64 nodes and accepts only
 documented keywords. Original WordPress sources stay unchanged; all new function
 ranges and full/module checksums are recorded. The request fixture is now
 schema-support.php; legacy scalar-check input remains an alias for schema-check.
+
+Unique-item validation selects the original rest_stabilize_value and
+rest_validate_array_contains_unique_items helpers. Explicit mixed/array signatures
+and a local decoded-array copy supply native storage contracts; PHP object
+stabilization is an explicit boundary. Original recursive ksort, serialize and
+seen-key behavior remain, including property-order independence, scalar type
+distinctions and list value order. The validator retains original item/count error
+precedence and duplicate messages with the fixed English locale. The application
+guard permits only boolean uniqueItems on array schemas. Full patched-source,
+ordered function-range and final-module hashes cover all nineteen REST helpers.

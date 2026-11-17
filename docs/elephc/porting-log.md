@@ -928,6 +928,37 @@ pin changed. The earlier full/native source-only result remains 3,338 HTTP
 checks on the pinned SDK; that suite was not rerun on the main snapshot.
 The downloaded SDK scratch directory was removed after verification.
 
+## REST unique-item validation, 2026-11-17
+
+The selected REST graph now includes original rest_stabilize_value and
+rest_validate_array_contains_unique_items, for nineteen helpers. The graph retains
+21 core files, 20 patches and thirteen executables. Explicit types, a local array
+copy and a cast at the unique-check call provide native storage contracts. Original
+recursive key sorting, PHP serialization and seen-key lookup remain. PHP object
+stabilization throws explicitly; decoded JSON arrays/maps follow the existing
+profile. The duplicate message uses the existing fixed English locale.
+
+The application schema guard accepts boolean uniqueItems on array schemas at any
+supported schema level. True detects duplicate values after item/count checks;
+false skips the uniqueness check. Property order is ignored recursively, list
+value order is retained, and values are not coerced. Integer 1, float 1.0 and
+string "1" remain distinct, including under an integer items schema. Empty JSON
+objects and lists both decode as PHP arrays and compare as duplicates. Inputs
+remain unchanged. Direct duplicate errors retain original absent status metadata;
+request validation aggregates them under rest_invalid_param with status 400.
+
+The new corpus adds 53 original-PHP/profile/native scenarios and 16 invalid inputs.
+It covers nested/property-order duplicates, sparse keys, mixed scalar types,
+Unicode/NUL, signed zero, large integers, exact/exceeded value budgets, error
+precedence, source priority, callback traces and unchanged snapshots. Three old
+boundary inputs now use invalid non-boolean flags because boolean flags are
+supported. All earlier valid cases remain. Full native and fresh source-only
+reproduction each pass 3,476 HTTP checks through one repeated worker. The latter
+rebuilds all thirteen executables and removes its export. No new compiler defect
+was identified; the primitive ksort/serialize control matches PHP. Original
+upstream files and the SDK pin remain unchanged. The original bootstrap blockers
+documented above remain separate from this verified subsystem.
+
 ## Follow-up direction
 
 A broader CMS experiment can now address the missing strspn primitive and
