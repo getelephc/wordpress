@@ -55,7 +55,218 @@
  		return true;
  	}
  
-@@ -3461,14 +3462,14 @@
+@@ -2362,12 +2363,12 @@
+  * @param string $param The parameter name, used in error messages.
+  * @return true|WP_Error
+  */
+-function rest_validate_null_value_from_schema( $value, $param ) {
++function rest_validate_null_value_from_schema( mixed $value, mixed $param ): mixed {
+ 	if ( null !== $value ) {
+ 		return new WP_Error(
+ 			'rest_invalid_type',
+ 			/* translators: 1: Parameter, 2: Type name. */
+-			sprintf( __( '%1$s is not of type %2$s.' ), $param, 'null' ),
++			sprintf( '%1$s is not of type %2$s.', $param, 'null' ),
+ 			array( 'param' => $param )
+ 		);
+ 	}
+@@ -2384,12 +2385,12 @@
+  * @param string $param The parameter name, used in error messages.
+  * @return true|WP_Error
+  */
+-function rest_validate_boolean_value_from_schema( $value, $param ) {
++function rest_validate_boolean_value_from_schema( mixed $value, mixed $param ): mixed {
+ 	if ( ! rest_is_boolean( $value ) ) {
+ 		return new WP_Error(
+ 			'rest_invalid_type',
+ 			/* translators: 1: Parameter, 2: Type name. */
+-			sprintf( __( '%1$s is not of type %2$s.' ), $param, 'boolean' ),
++			sprintf( '%1$s is not of type %2$s.', $param, 'boolean' ),
+ 			array( 'param' => $param )
+ 		);
+ 	}
+@@ -2593,21 +2594,21 @@
+  * @param string $param The parameter name, used in error messages.
+  * @return true|WP_Error
+  */
+-function rest_validate_number_value_from_schema( $value, $args, $param ) {
++function rest_validate_number_value_from_schema( mixed $value, array $args, mixed $param ): mixed {
+ 	if ( ! is_numeric( $value ) ) {
+ 		return new WP_Error(
+ 			'rest_invalid_type',
+ 			/* translators: 1: Parameter, 2: Type name. */
+-			sprintf( __( '%1$s is not of type %2$s.' ), $param, $args['type'] ),
++			sprintf( '%1$s is not of type %2$s.', $param, $args['type'] ),
+ 			array( 'param' => $param )
+ 		);
+ 	}
+ 
+-	if ( isset( $args['multipleOf'] ) && fmod( $value, $args['multipleOf'] ) !== 0.0 ) {
++	if ( isset( $args['multipleOf'] ) && fmod( (float) $value, (float) $args['multipleOf'] ) !== 0.0 ) {
+ 		return new WP_Error(
+ 			'rest_invalid_multiple',
+ 			/* translators: 1: Parameter, 2: Multiplier. */
+-			sprintf( __( '%1$s must be a multiple of %2$s.' ), $param, $args['multipleOf'] )
++			sprintf( '%1$s must be a multiple of %2$s.', $param, $args['multipleOf'] )
+ 		);
+ 	}
+ 
+@@ -2616,7 +2617,7 @@
+ 			return new WP_Error(
+ 				'rest_out_of_bounds',
+ 				/* translators: 1: Parameter, 2: Minimum number. */
+-				sprintf( __( '%1$s must be greater than %2$d' ), $param, $args['minimum'] )
++				sprintf( '%1$s must be greater than %2$d', $param, $args['minimum'] )
+ 			);
+ 		}
+ 
+@@ -2624,7 +2625,7 @@
+ 			return new WP_Error(
+ 				'rest_out_of_bounds',
+ 				/* translators: 1: Parameter, 2: Minimum number. */
+-				sprintf( __( '%1$s must be greater than or equal to %2$d' ), $param, $args['minimum'] )
++				sprintf( '%1$s must be greater than or equal to %2$d', $param, $args['minimum'] )
+ 			);
+ 		}
+ 	}
+@@ -2634,7 +2635,7 @@
+ 			return new WP_Error(
+ 				'rest_out_of_bounds',
+ 				/* translators: 1: Parameter, 2: Maximum number. */
+-				sprintf( __( '%1$s must be less than %2$d' ), $param, $args['maximum'] )
++				sprintf( '%1$s must be less than %2$d', $param, $args['maximum'] )
+ 			);
+ 		}
+ 
+@@ -2642,7 +2643,7 @@
+ 			return new WP_Error(
+ 				'rest_out_of_bounds',
+ 				/* translators: 1: Parameter, 2: Maximum number. */
+-				sprintf( __( '%1$s must be less than or equal to %2$d' ), $param, $args['maximum'] )
++				sprintf( '%1$s must be less than or equal to %2$d', $param, $args['maximum'] )
+ 			);
+ 		}
+ 	}
+@@ -2654,7 +2655,7 @@
+ 					'rest_out_of_bounds',
+ 					sprintf(
+ 						/* translators: 1: Parameter, 2: Minimum number, 3: Maximum number. */
+-						__( '%1$s must be between %2$d (exclusive) and %3$d (exclusive)' ),
++						'%1$s must be between %2$d (exclusive) and %3$d (exclusive)',
+ 						$param,
+ 						$args['minimum'],
+ 						$args['maximum']
+@@ -2669,7 +2670,7 @@
+ 					'rest_out_of_bounds',
+ 					sprintf(
+ 						/* translators: 1: Parameter, 2: Minimum number, 3: Maximum number. */
+-						__( '%1$s must be between %2$d (exclusive) and %3$d (inclusive)' ),
++						'%1$s must be between %2$d (exclusive) and %3$d (inclusive)',
+ 						$param,
+ 						$args['minimum'],
+ 						$args['maximum']
+@@ -2684,7 +2685,7 @@
+ 					'rest_out_of_bounds',
+ 					sprintf(
+ 						/* translators: 1: Parameter, 2: Minimum number, 3: Maximum number. */
+-						__( '%1$s must be between %2$d (inclusive) and %3$d (exclusive)' ),
++						'%1$s must be between %2$d (inclusive) and %3$d (exclusive)',
+ 						$param,
+ 						$args['minimum'],
+ 						$args['maximum']
+@@ -2699,7 +2700,7 @@
+ 					'rest_out_of_bounds',
+ 					sprintf(
+ 						/* translators: 1: Parameter, 2: Minimum number, 3: Maximum number. */
+-						__( '%1$s must be between %2$d (inclusive) and %3$d (inclusive)' ),
++						'%1$s must be between %2$d (inclusive) and %3$d (inclusive)',
+ 						$param,
+ 						$args['minimum'],
+ 						$args['maximum']
+@@ -2722,55 +2723,49 @@
+  * @param string $param The parameter name, used in error messages.
+  * @return true|WP_Error
+  */
+-function rest_validate_string_value_from_schema( $value, $args, $param ) {
++function rest_validate_string_value_from_schema( mixed $value, array $args, mixed $param ): mixed {
+ 	if ( ! is_string( $value ) ) {
+ 		return new WP_Error(
+ 			'rest_invalid_type',
+ 			/* translators: 1: Parameter, 2: Type name. */
+-			sprintf( __( '%1$s is not of type %2$s.' ), $param, 'string' ),
++			sprintf( '%1$s is not of type %2$s.', $param, 'string' ),
+ 			array( 'param' => $param )
+ 		);
+ 	}
+ 
+-	if ( isset( $args['minLength'] ) && mb_strlen( $value ) < $args['minLength'] ) {
++	if ( isset( $args['minLength'] ) && mb_strlen( (string) $value, 'UTF-8' ) < $args['minLength'] ) {
+ 		return new WP_Error(
+ 			'rest_too_short',
+ 			sprintf(
+ 				/* translators: 1: Parameter, 2: Number of characters. */
+-				_n(
++				wordpress_scalar_plural(
+ 					'%1$s must be at least %2$s character long.',
+ 					'%1$s must be at least %2$s characters long.',
+ 					$args['minLength']
+ 				),
+ 				$param,
+-				number_format_i18n( $args['minLength'] )
++				number_format( (float) $args['minLength'] )
+ 			)
+ 		);
+ 	}
+ 
+-	if ( isset( $args['maxLength'] ) && mb_strlen( $value ) > $args['maxLength'] ) {
++	if ( isset( $args['maxLength'] ) && mb_strlen( (string) $value, 'UTF-8' ) > $args['maxLength'] ) {
+ 		return new WP_Error(
+ 			'rest_too_long',
+ 			sprintf(
+ 				/* translators: 1: Parameter, 2: Number of characters. */
+-				_n(
++				wordpress_scalar_plural(
+ 					'%1$s must be at most %2$s character long.',
+ 					'%1$s must be at most %2$s characters long.',
+ 					$args['maxLength']
+ 				),
+ 				$param,
+-				number_format_i18n( $args['maxLength'] )
++				number_format( (float) $args['maxLength'] )
+ 			)
+ 		);
+ 	}
+ 
+-	if ( isset( $args['pattern'] ) && ! rest_validate_json_schema_pattern( $args['pattern'], $value ) ) {
+-		return new WP_Error(
+-			'rest_invalid_pattern',
+-			/* translators: 1: Parameter, 2: Pattern. */
+-			sprintf( __( '%1$s does not match pattern %2$s.' ), $param, $args['pattern'] )
+-		);
+-	}
++	if ( isset( $args['pattern'] ) ) { throw new LogicException('String patterns are outside the scalar schema profile.'); }
+ 
+ 	return true;
+ }
+@@ -2785,7 +2780,7 @@
+  * @param string $param The parameter name, used in error messages.
+  * @return true|WP_Error
+  */
+-function rest_validate_integer_value_from_schema( $value, $args, $param ) {
++function rest_validate_integer_value_from_schema( mixed $value, array $args, mixed $param ): mixed {
+ 	$is_valid_number = rest_validate_number_value_from_schema( $value, $args, $param );
+ 	if ( is_wp_error( $is_valid_number ) ) {
+ 		return $is_valid_number;
+@@ -2795,7 +2790,7 @@
+ 		return new WP_Error(
+ 			'rest_invalid_type',
+ 			/* translators: 1: Parameter, 2: Type name. */
+-			sprintf( __( '%1$s is not of type %2$s.' ), $param, 'integer' ),
++			sprintf( '%1$s is not of type %2$s.', $param, 'integer' ),
+ 			array( 'param' => $param )
+ 		);
+ 	}
+@@ -3461,14 +3456,14 @@
   *
   * @return WP_REST_Response List of associative arrays with code and message keys.
   */
@@ -72,7 +283,7 @@
  			if ( is_array( $error_data ) && isset( $error_data['status'] ) && is_numeric( $error_data['status'] ) ) {
  				$status = (int) $error_data['status'];
  			}
-@@ -3486,7 +3487,7 @@
+@@ -3486,7 +3481,7 @@
  		foreach ( (array) $messages as $message ) {
  			$formatted = array(
  				'code'    => $code,
@@ -81,7 +292,7 @@
  				'data'    => $last_data,
  			);
  
-@@ -3498,7 +3499,7 @@
+@@ -3498,7 +3493,7 @@
  		}
  	}
  

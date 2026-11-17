@@ -81,7 +81,7 @@ function wordpress_request_route_check_blocked(WP_REST_Request $request): mixed 
 
 function wordpress_request_callback_names(string $phase): array {
     switch ($phase) {
-        case 'validate': return ['pass' => 'wordpress_request_validate_pass', 'fail' => 'wordpress_request_validate_fail', 'error' => 'wordpress_request_validate_error', 'integer' => 'wordpress_request_validate_integer', 'boolean' => 'wordpress_request_validate_boolean', 'string' => 'wordpress_request_validate_string', 'return-null' => 'wordpress_request_validate_return_null', 'return-zero' => 'wordpress_request_validate_return_zero'];
+        case 'validate': return ['schema' => 'wordpress_request_validate_schema', 'pass' => 'wordpress_request_validate_pass', 'fail' => 'wordpress_request_validate_fail', 'error' => 'wordpress_request_validate_error', 'integer' => 'wordpress_request_validate_integer', 'boolean' => 'wordpress_request_validate_boolean', 'string' => 'wordpress_request_validate_string', 'return-null' => 'wordpress_request_validate_return_null', 'return-zero' => 'wordpress_request_validate_return_zero'];
         case 'sanitize': return ['keep' => 'wordpress_request_sanitize_keep', 'trim' => 'wordpress_request_sanitize_trim', 'upper' => 'wordpress_request_sanitize_upper', 'boolean' => 'wordpress_request_sanitize_boolean', 'null' => 'wordpress_request_sanitize_null', 'error' => 'wordpress_request_sanitize_error'];
         case 'route': return ['pass' => 'wordpress_request_route_pass', 'fail' => 'wordpress_request_route_fail', 'error' => 'wordpress_request_route_error', 'check-blocked' => 'wordpress_request_route_check_blocked'];
     }
@@ -90,6 +90,7 @@ function wordpress_request_callback_names(string $phase): array {
 
 function wordpress_request_validation_setup(): void {
     WordPressRequestValidationTrace::$events = [];
+    WordPressHookCallbacks::register('wordpress_request_validate_schema', wordpress_request_validate_schema(...));
     WordPressHookCallbacks::register('wordpress_request_validate_pass', wordpress_request_validate_pass(...));
     WordPressHookCallbacks::register('wordpress_request_validate_fail', wordpress_request_validate_fail(...));
     WordPressHookCallbacks::register('wordpress_request_validate_error', wordpress_request_validate_error(...));
@@ -131,6 +132,9 @@ function wordpress_request_rules(WordPressRequestAdapter $request, array $spec):
                         if (!is_bool($value)) { throw new InvalidArgumentException('required must be boolean.'); }
                         $arg['required'] = $value;
                         break;
+                    case 'schema':
+                        $arg['profile_schema'] = wordpress_scalar_schema($value);
+                        break;
                     case 'validate':
                     case 'sanitize':
                         if ($value === false || $value === null) { break; }
@@ -166,8 +170,12 @@ function wordpress_request_validation_ready(WP_REST_Request $request): void {
             } elseif ($option === 'validate_callback' || $option === 'sanitize_callback') {
                 $phase = $option === 'validate_callback' ? 'validate' : 'sanitize';
                 if ($value !== null && $value !== false && !wordpress_request_callback_allowed($phase, $value)) { throw new InvalidArgumentException('Callbacks must belong to the source-defined request manifest.'); }
+            } elseif ($option === 'profile_schema') {
+                wordpress_scalar_schema($value);
             } else { throw new InvalidArgumentException('General schema attributes are outside the request callback profile.'); }
         }
+        $uses_schema = ($arg['validate_callback'] ?? null) === 'wordpress_request_validate_schema';
+        if ($uses_schema !== array_key_exists('profile_schema', (array) $arg)) { throw new InvalidArgumentException('Schema callbacks require matching profile_schema metadata.'); }
     }
     if (isset($attributes['validate_callback']) && !wordpress_request_callback_allowed('route', $attributes['validate_callback'])) { throw new InvalidArgumentException('Route callbacks must belong to the source-defined request manifest.'); }
 }

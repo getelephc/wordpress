@@ -108,6 +108,10 @@ function wordpress_requests_operation(WordPressRequestAdapter $request, array $o
     $op = (string) $operation['op'];
     $value = array_key_exists('value', $operation) ? $operation['value'] : null;
     switch ($op) {
+        case 'scalar-check':
+            if (!array_key_exists('value', $operation)) { throw new InvalidArgumentException('Scalar checks require value.'); }
+            wordpress_error_json($value);
+            return wordpress_request_validation_result(wordpress_scalar_validate($value, $operation['schema'] ?? null, array_key_exists('key', $operation) ? wordpress_error_code($operation['key']) : 'value'));
         case 'validate':
             wordpress_request_validation_ready($request);
             return wordpress_request_validation_result($request->has_valid_params());

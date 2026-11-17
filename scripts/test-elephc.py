@@ -242,6 +242,24 @@ def main():
     assert validation_reference["sanitize-all-errors-and-success"]["request"]["sources"]["POST"]["y"] == " POST "
     print(f"PASS: {len(validation_fixtures)} request-validation cases match original PHP; {len(validation_errors)} CLI boundary checks.")
 
+    scalar_fixtures = json.loads((ROOT / "tests/scalar-schema-fixtures.json").read_text())
+    scalar_errors = json.loads((ROOT / "tests/scalar-schema-errors.json").read_text())
+    scalar_reference = run_json([php, "tests/scalar-schema-reference.php", "upstream"])
+    assert len(scalar_reference) == len(scalar_fixtures), "Duplicate scalar fixture names"
+    assert run_json([php, "tests/scalar-schema-reference.php", "profile"]) == scalar_reference, "Patched scalar schema helpers differ from original PHP"
+    for fixture in scalar_fixtures:
+        actual = run_json([requests_cli, fixture["input"]])
+        assert actual == scalar_reference[fixture["name"]], (fixture["name"], actual, scalar_reference[fixture["name"]])
+    assert json.loads(run_output([requests_cli], scalar_fixtures[0]["input"].encode())) == scalar_reference[scalar_fixtures[0]["name"]]
+    for fixture in scalar_errors:
+        result = subprocess.run([requests_cli], input=fixture["input"].encode(), capture_output=True, timeout=20)
+        assert result.returncode == 2 and not result.stdout, (fixture["name"], result)
+        assert result.stderr.startswith(b"Request profile: ") and b"Fatal error" not in result.stderr and b"Warning:" not in result.stderr, (fixture["name"], result.stderr)
+    assert scalar_reference["integer-error-order"]["results"][0]["error"]["data"]["details"]["age"]["code"] == "rest_out_of_bounds"
+    assert scalar_reference["request-schema-success"]["request"]["params"]["age"] == "20"
+    assert scalar_reference["length-emoji"]["results"][1] is True
+    print(f"PASS: {len(scalar_fixtures)} scalar-schema cases match original PHP; stdin and {len(scalar_errors)} CLI boundary checks.")
+
     with socket.socket() as listener:
         listener.bind(("127.0.0.1", 0))
         port = listener.getsockname()[1]
@@ -520,6 +538,16 @@ def main():
                     assert json.loads(body) == validation_reference[fixture["name"]], (fixture["name"], body, validation_reference[fixture["name"]])
                     checks += 1
                 for fixture in validation_errors:
+                    status, headers, body = request("POST", "/requests", fixture["input"].encode())
+                    assert status == 400 and headers["content-type"].startswith("application/json"), (fixture["name"], status, body)
+                    assert isinstance(json.loads(body)["error"], str), fixture["name"]
+                    checks += 1
+                for fixture in scalar_fixtures:
+                    status, headers, body = request("POST", "/requests", fixture["input"].encode())
+                    assert status == 200 and headers["content-type"].startswith("application/json"), (fixture["name"], status, body)
+                    assert json.loads(body) == scalar_reference[fixture["name"]], (fixture["name"], body, scalar_reference[fixture["name"]])
+                    checks += 1
+                for fixture in scalar_errors:
                     status, headers, body = request("POST", "/requests", fixture["input"].encode())
                     assert status == 400 and headers["content-type"].startswith("application/json"), (fixture["name"], status, body)
                     assert isinstance(json.loads(body)["error"], str), fixture["name"]
