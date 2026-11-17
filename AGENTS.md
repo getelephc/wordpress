@@ -51,7 +51,9 @@
   distinctions, lazy JSON flags, ArrayAccess and isolated permalink policy. Budget
   checks and peek must not force parsing. Required/callback phases use the original
   lifecycle with a finite source-defined manifest and request-local traces. Preserve
-  partial sanitization and error aggregation. Form decoding, general JSON Schema,
+  partial sanitization and error aggregation. Scalar schemas select the original
+  null/boolean/number/integer/string validators with explicit keyword and locale
+  bounds; validation must preserve values and error precedence. Form decoding, general JSON Schema,
   URL discovery, authentication and dispatch remain explicit boundaries.
 - The complete WordPress compile probes intentionally fail on the pinned SDK.
   Keep their diagnostics separate from the verified parser profile.

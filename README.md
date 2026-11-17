@@ -8,7 +8,7 @@ attributes, caching, lists, URLs, text sanitization, errors and HTTP/REST reques
 objects, plus an HTTP server. It uses 21 original core files with 20 compatibility
 patches. Selected modules contain 24 formatting functions, five
 block serializers, 21 KSES functions, seven helpers from `functions.php`, three
-URL parsing helpers from `http.php`, three helpers from `load.php`, and five REST
+URL parsing helpers from `http.php`, three helpers from `load.php`, and ten REST
 helpers from `rest-api.php`. Documents, JSON block trees, content, cache/list
 records, URLs and request/error/response sequences are processed at runtime.
 The HTTP adapter, callback manifest and demo callbacks belong to this experiment.
@@ -29,7 +29,7 @@ You need:
   `base-devel`, `python` and `patch`; on Debian/Ubuntu use `build-essential`,
   `binutils`, `python3` and `patch` with a sufficiently recent Python.
 - Internet access for the first WordPress download and PCRE2 installation.
-- PHP 8.4 or newer only for the differential reference tests. PHP is not
+- PHP 8.4 or newer with `mbstring` only for the differential reference tests. PHP is not
   required to compile or run the native executables.
 
 ## Build with Elephc
@@ -680,6 +680,7 @@ An `operations` list of at most 256 entries is required.
 | `peek`, `snapshot` | Inspect raw sources/parse flags or run the normal merged-parameter getters |
 | `validate`, `sanitize` | Run original required/callback validation or parameter sanitization explicitly |
 | `callback-events` | Inspect this sequence's ordered parameter and route callback arguments |
+| `scalar-check` | Required JSON `value` and scalar `schema`, optional integer/string parameter `key`; run the original type validator directly |
 
 `get-param` skips null values while `has-param` recognizes a present null.
 `get-params` can retain a higher-priority null that differs from individual
@@ -729,7 +730,7 @@ following finite manifest. False or null disables a parameter callback.
 
 | Rule field | Selectors |
 | --- | --- |
-| `validate` | `integer`, `boolean`, `string`, `pass`, `fail`, `error`, `return-null`, `return-zero` |
+| `validate` | `schema`, `integer`, `boolean`, `string`, `pass`, `fail`, `error`, `return-null`, `return-zero` |
 | `sanitize` | `keep`, `trim`, `upper`, `boolean`, `null`, `error` |
 | Root `route_validate` | `pass`, `fail`, `error`, `check-blocked`; null clears it |
 
@@ -774,12 +775,66 @@ Core failures return an `error` snapshot and an original REST `response` with it
 own `status` and `data`. The inspection endpoint still returns HTTP 200. Error
 details include the original aggregated parameter messages and callback data/history.
 Raw `attributes.args` may also use the manifest's named functions, visible in
-`get-attributes`; phase preflight permits only `required`, `validate_callback`
-and `sanitize_callback` fields with the appropriate manifest functions.
+`get-attributes`; phase preflight permits `required`, `validate_callback`,
+`sanitize_callback` and paired `profile_schema` fields with the appropriate manifest functions.
 Callback wrappers, rules and diagnostics belong to this experiment.
 The trace allows 1,024 events and resets for every sequence and HTTP request.
 Tests are in `tests/request-validation-fixtures.json` and
 `tests/request-validation-errors.json`.
+
+### Scalar schema validation
+
+`validate: "schema"` and a `schema` rule call the original WordPress scalar
+validators. Validation preserves the input value; sanitizers remain explicit.
+
+```bash
+./elephc/runtime/requests <<'JSON' | python3 -m json.tool
+{
+  "query": {"age": "17", "name": "Ada"},
+  "rules": {
+    "age": {
+      "validate": "schema",
+      "schema": {"type": "integer", "minimum": 18, "maximum": 99}
+    },
+    "name": {
+      "validate": "schema",
+      "schema": {"type": "string", "minLength": 1, "maxLength": 40}
+    }
+  },
+  "operations": [{"op": "validate"}, {"op": "callback-events"}]
+}
+JSON
+```
+
+This produces the original `rest_invalid_param` aggregate for `age`, with a
+`rest_out_of_bounds` detail. Changing age to `"20"` passes and keeps it a string.
+
+| Schema type | Accepted keywords beyond `type` |
+| --- | --- |
+| `null`, `boolean` | None |
+| `number`, `integer` | `minimum`, `maximum`, boolean `exclusiveMinimum`/`exclusiveMaximum`, positive `multipleOf` |
+| `string` | Integer `minLength` and `maxLength` |
+
+Numeric constraints must be finite JSON numbers within +/- 10^12; string lengths
+range from 0 to 1,000,000. The original numeric comparisons, floating remainder
+test and error precedence remain. Integer validation accepts original whole-valued
+numeric forms. String length counts UTF-8 code points, including combining marks
+separately. Errors use a fixed English locale and original number grouping.
+
+`scalar-check` tests a value directly, including null values that request callbacks
+normally skip. For example, supply an operation with `value: null` and
+`schema: {"type": "null"}`. Direct helper errors have no status metadata, so their
+original REST conversion defaults to status 500. Request validation aggregates
+them under status 400. Both remain successful inspection calls with transport
+status 200.
+
+The rule factory stores this bounded schema as `profile_schema` beside the
+source-defined callback. It does not enable automatic core schema sanitization.
+Raw attributes require both that metadata and `wordpress_request_validate_schema`.
+Arrays/objects, type unions, enum, pattern, format, anyOf/oneOf and unknown keywords
+fail explicitly. General JSON Schema and locale bootstrap remain outside the profile.
+The corpus compares the original specialized helpers with the original full schema
+dispatcher, then checks patched PHP, native CLI and repeated HTTP behavior.
 
 ## Verified behavior
 
@@ -809,8 +864,9 @@ links, metadata, identity and error conversion, with **48 invalid inputs**.
 Another **70 request-object cases** cover headers, precedence, lazy JSON,
 ArrayAccess and context, with **45 invalid inputs**. Another **102 request-validation
 cases** cover required fields, callbacks, source mutation and aggregated errors,
-with **36 invalid inputs**. The server checks all thirteen corpora twice through
-one worker for **2,710 HTTP checks**, including routing, body limits, response MIME types and request isolation.
+with **36 invalid inputs**. Another **163 scalar-schema cases** cover direct and
+request callback validation, with **38 invalid inputs**. The server checks all
+fourteen corpora twice through one worker for **3,112 HTTP checks**, including routing, body limits, response MIME types and request isolation.
 
 | Request | Result |
 | --- | --- |
@@ -885,7 +941,8 @@ WP_HTTP_Response and WP_REST_Response
 WP_REST_Request (bounded parameter/header/JSON profile)
 absint, is_wp_error and wp_is_json_media_type from wp-includes/load.php
 rest_ensure_response, rest_convert_error_to_response, rest_is_integer,
-rest_is_boolean and rest_sanitize_boolean from wp-includes/rest-api.php
+rest_is_boolean, rest_sanitize_boolean and five scalar schema validators
+from wp-includes/rest-api.php
 four list wrappers, wp_suspend_cache_addition and two query builders from wp-includes/functions.php
 three selected URL parser functions from wp-includes/http.php
 ```

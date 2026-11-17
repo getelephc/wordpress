@@ -28,7 +28,7 @@ Repeated preparation starts from the same original sources and is idempotent.
 | `class-wp-http-response.php` | Typed data/status/headers, uniform header storage and local updates |
 | `rest-api/class-wp-rest-response.php` | Typed inherited response API, local link updates and explicit array/message casts |
 | `rest-api/class-wp-rest-request.php` | Typed request state, local source/header updates, ArrayAccess, original callback lifecycle with descriptors and explicit form/general-schema/URL boundaries |
-| `rest-api.php` | Select/type response ensuring, error conversion, integer/boolean predicates and boolean sanitization |
+| `rest-api.php` | Select/type response ensuring, error conversion, integer/boolean predicates, boolean sanitization and five scalar schema validators |
 | `class-wp-list-util.php` | Typed array records, uniform result maps, local sort updates, method callback descriptors and explicit object-record boundaries |
 | `blocks.php` | Five selected serialization functions, typed recursion, explicit string emptiness and a JSON encoder boundary |
 | `formatting.php` | Typed formatting values, concrete regex cache, builtin bridges and closure newline-preservation callback |
@@ -183,3 +183,14 @@ PHP rejection despite the pinned matcher limitation. The JSON adapter validates
 at most 64 argument rules and permits only source-defined callback names; general
 schema keywords and arbitrary discovery remain explicit boundaries. Callback rules,
 wrappers and the bounded trace are application fixtures, separate from core logic.
+
+Five selected scalar validators retain original type checks, numeric limits,
+exclusive-bound combinations, floating multiple checks and UTF-8 string lengths.
+Typed numeric/array casts adapt their signatures. Fixed English translation and
+number formatting replace the locale bootstrap; the PHP oracle supplies the same
+locale and UTF-8 encoding through original helpers. The original pattern branch
+is an explicit exception. Application preflight accepts only the documented scalar
+keywords and bounds, and a finite dispatcher selects the original validator.
+This does not import the general schema dispatcher or automatic schema sanitizer.
+Direct reference cases additionally compare the selected helpers with the original
+full schema dispatcher. Preserve original error order and unchanged input values.

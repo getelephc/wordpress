@@ -794,6 +794,50 @@ and repeats the same checks, removing its export. No new compiler failure was
 identified. Form decoding, general JSON Schema, URL discovery, authentication,
 handler dispatch and the complete CMS remain outside the profile.
 
+## Scalar REST schema validators, 2026-11-17
+
+The selected REST module adds the original null, boolean, number, integer and
+string validators. It now contains ten helpers. The graph retains 21 core files,
+20 patches and thirteen executables; no upstream file is edited. Full patched
+source, ordered helper ranges, fragments and final module hashes remain verified.
+
+The methods retain original numeric type checks, minimum/maximum combinations,
+exclusive flags, floating multiple tests and integer error precedence. Explicit
+number casts provide native fmod contracts. String validation retains original
+UTF-8 code-point length checks with an explicit encoding. Fixed English plural
+selection and number formatting replace locale bootstrap in that helper; original
+PHP uses the equivalent English fixture and original number_format_i18n with no
+locale object. The unsupported pattern branch throws explicitly. The general
+schema dispatcher and sanitizer are not compiled into this profile.
+
+The requests CLI and POST `/requests` gain validate: schema with a schema rule.
+The factory stores profile_schema alongside the source-defined callback; phase
+preflight checks their pairing. A bounded dispatcher calls the selected original
+validator. Numeric schemas accept minimum, maximum, exclusiveMinimum,
+exclusiveMaximum and positive multipleOf; constraints are finite numbers within
++/- 10^12. String schemas accept integer minLength/maxLength from 0 to 1,000,000.
+Null/boolean schemas accept only type. Unknown keywords, arrays/objects, unions,
+enum, formats, patterns and combining schemas fail explicitly. Validation leaves
+values unchanged and explicit sanitizers retain their previous behavior.
+
+The scalar-check operation validates a supplied JSON value directly, including
+null values that request callbacks skip. It preserves original helper errors,
+which have no HTTP status metadata and therefore convert to status 500. The
+request lifecycle aggregates callback failures under status 400. Both are
+inspection results with transport status 200. Direct values retain existing
+256-field/16-level JSON bounds and parameter names exclude NUL.
+
+The 163 new cases cover original type/coercion rules, all exclusive-bound
+combinations, decimal multipliers and floating remainder behavior, numeric keys,
+UTF-8 accents/emoji/combining marks/NUL, singular/plural/grouped length messages,
+request aggregation, unchanged values, source priority and trace isolation.
+Reference checks additionally compare specialized helpers with the complete
+original schema dispatcher for supported inputs. All 38 invalid inputs fail
+explicitly. The complete native and fresh source-only suites retain every prior
+case and pass 3,112 HTTP checks through one repeated worker. The export is removed
+after rebuilding all thirteen executables. General JSON Schema, automatic schema
+sanitization, database bootstrap and full dispatch remain outside the profile.
+
 ## Follow-up direction
 
 A broader CMS experiment should address the UTF-8 compatibility loader's
