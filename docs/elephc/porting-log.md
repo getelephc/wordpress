@@ -838,6 +838,54 @@ case and pass 3,112 HTTP checks through one repeated worker. The export is remov
 after rebuilding all thirteen executables. General JSON Schema, automatic schema
 sanitization, database bootstrap and full dispatch remain outside the profile.
 
+## Recursive array and object schema validation, 2026-11-17
+
+The selected REST graph adds its original schema dispatcher, array/object
+validators and four collection predicates/normalizers. The functions module
+adds original wp_is_numeric_array, retaining array_all with a typed native
+closure. There are now seventeen REST helpers and eight functions.php helpers,
+with the same 21 core files, 20 patches and thirteen executables. Complete
+patched sources, ordered function ranges, fragments and final modules retain
+verified checksums; downloaded upstream sources are unchanged.
+
+The core dispatcher now reaches all seven single-type validators. Explicit
+exceptions replace unsupported combining/multi-type, enum and format paths.
+Object and array validators preserve required/property/item traversal, count
+checks, first-error propagation and nested parameter paths. Required-property
+lists take precedence over legacy property-level boolean flags, including an
+empty required list. Required properties recognize present null, then run the
+child schema. Object additionalProperties supports booleans or another schema.
+Array keys must be numeric; sparse and negative keys are accepted and a local
+normalized copy supplies consecutive indices for validation errors. Inputs stay
+unchanged. Object validation retains decoded arrays/maps and empty-string
+objects under original WordPress semantics.
+
+Explicit types, local array casts and the existing fixed English plural/number
+bridge supply native contracts. PHP object/JsonSerializable paths and scalar
+list coercion are explicit boundaries. Pattern properties and unique-item
+checks remain outside the selected graph. The application fixture is renamed
+schema-support.php and now validates recursive metadata with at most 64 schema
+nodes including root and eight nested levels below root. Property maps and
+required lists allow at most 64 entries; collection count limits are integers
+from 0 to 256. Value data retains existing 256-field/16-level JSON limits.
+
+The requests CLI and POST `/requests` gain schema-check, with scalar-check kept
+as an alias. Existing schema callbacks use the same recursive guard and original
+dispatcher. Scalar reference controls now independently compare that dispatcher
+with the original specialized helpers. Previously unsupported array/object
+type-only boundary cases are narrowed to the still-unsupported unique-item and
+pattern-property keywords; their boundary count is retained.
+
+The new corpus contains 74 original-PHP/profile/native scenarios and 39 invalid
+inputs. It covers nested paths, null presence, required-list precedence,
+additional-property rules, sparse numeric keys, item/property ordering, count
+limits, unchanged values, HTTP isolation and exact/exceeded schema budgets.
+Every prior corpus remains. Full native and fresh source-only reproduction
+each pass 3,338 HTTP checks through one repeated worker; the temporary export
+is removed after rebuilding all thirteen executables. Automatic schema
+sanitization, scalar list coercion, enum/formats/patterns, combining/multi-type
+schemas and full CMS dispatch remain outside the profile.
+
 ## Follow-up direction
 
 A broader CMS experiment should address the UTF-8 compatibility loader's

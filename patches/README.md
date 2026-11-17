@@ -21,14 +21,14 @@ Repeated preparation starts from the same original sources and is idempotent.
 | `kses.php` | Selected attribute/protocol/entity helpers, original entity table, explicit CSS/XML boundaries and regex adapters |
 | `class-wp-object-cache.php` | Typed cache storage, uniform mixed maps, local bucket updates, explicit site context and JSON-profile boundaries |
 | `cache.php` | Local class include, typed API, explicit global instance initialization/guards and deprecated reset boundary |
-| `functions.php` | Select/type four original list wrappers, `wp_suspend_cache_addition` and two query builders |
+| `functions.php` | Select/type four original list wrappers, `wp_suspend_cache_addition`, two query builders and `wp_is_numeric_array` |
 | `http.php` | Three selected URL parser/component helpers with explicit array/scalar boundaries |
 | `class-wp-error.php` | Typed properties/methods, uniform mixed maps, local bucket updates and explicit string-zero emptiness |
 | `load.php` | Select/type `is_wp_error`, bounded integer `absint` and original JSON media-type predicate |
 | `class-wp-http-response.php` | Typed data/status/headers, uniform header storage and local updates |
 | `rest-api/class-wp-rest-response.php` | Typed inherited response API, local link updates and explicit array/message casts |
 | `rest-api/class-wp-rest-request.php` | Typed request state, local source/header updates, ArrayAccess, original callback lifecycle with descriptors and explicit form/general-schema/URL boundaries |
-| `rest-api.php` | Select/type response ensuring, error conversion, integer/boolean predicates, boolean sanitization and five scalar schema validators |
+| `rest-api.php` | Select/type response ensuring, error conversion, scalar predicates/sanitizer, seven validators, four collection helpers and the bounded schema dispatcher |
 | `class-wp-list-util.php` | Typed array records, uniform result maps, local sort updates, method callback descriptors and explicit object-record boundaries |
 | `blocks.php` | Five selected serialization functions, typed recursion, explicit string emptiness and a JSON encoder boundary |
 | `formatting.php` | Typed formatting values, concrete regex cache, builtin bridges and closure newline-preservation callback |
@@ -191,6 +191,20 @@ number formatting replace the locale bootstrap; the PHP oracle supplies the same
 locale and UTF-8 encoding through original helpers. The original pattern branch
 is an explicit exception. Application preflight accepts only the documented scalar
 keywords and bounds, and a finite dispatcher selects the original validator.
-This does not import the general schema dispatcher or automatic schema sanitizer.
+The dispatcher now selects those validators and the bounded collection graph;
+automatic schema sanitization remains outside the profile.
 Direct reference cases additionally compare the selected helpers with the original
 full schema dispatcher. Preserve original error order and unchanged input values.
+
+Array/object validation retains original required/property traversal, local array
+normalization, additional-property schemas, count checks and first-error paths.
+Mixed values, array casts and typed predicates provide native contracts. Collection
+plural/number messages reuse the common fixed English locale bridge. Scalar list
+coercion and PHP object/JsonSerializable paths become explicit input boundaries;
+pattern properties, unique items and unsupported dispatcher branches throw.
+The selected wp_is_numeric_array retains its original array_all predicate with a
+typed first-class closure, including sparse/negative numeric keys. The application
+schema guard bounds recursion to eight nested levels and 64 nodes and accepts only
+documented keywords. Original WordPress sources stay unchanged; all new function
+ranges and full/module checksums are recorded. The request fixture is now
+schema-support.php; legacy scalar-check input remains an alias for schema-check.

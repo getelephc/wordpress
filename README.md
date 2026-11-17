@@ -7,8 +7,8 @@ The experiment builds native CLIs for blocks, serialization, hooks, content,
 attributes, caching, lists, URLs, text sanitization, errors and HTTP/REST request/response
 objects, plus an HTTP server. It uses 21 original core files with 20 compatibility
 patches. Selected modules contain 24 formatting functions, five
-block serializers, 21 KSES functions, seven helpers from `functions.php`, three
-URL parsing helpers from `http.php`, three helpers from `load.php`, and ten REST
+block serializers, 21 KSES functions, eight helpers from `functions.php`, three
+URL parsing helpers from `http.php`, three helpers from `load.php`, and seventeen REST
 helpers from `rest-api.php`. Documents, JSON block trees, content, cache/list
 records, URLs and request/error/response sequences are processed at runtime.
 The HTTP adapter, callback manifest and demo callbacks belong to this experiment.
@@ -680,7 +680,7 @@ An `operations` list of at most 256 entries is required.
 | `peek`, `snapshot` | Inspect raw sources/parse flags or run the normal merged-parameter getters |
 | `validate`, `sanitize` | Run original required/callback validation or parameter sanitization explicitly |
 | `callback-events` | Inspect this sequence's ordered parameter and route callback arguments |
-| `scalar-check` | Required JSON `value` and scalar `schema`, optional integer/string parameter `key`; run the original type validator directly |
+| `schema-check`, `scalar-check` | Required JSON `value` and bounded `schema`, optional integer/string parameter `key`; run the original schema validator directly |
 
 `get-param` skips null values while `has-param` recognizes a present null.
 `get-params` can retain a higher-priority null that differs from individual
@@ -784,8 +784,8 @@ Tests are in `tests/request-validation-fixtures.json` and
 
 ### Scalar schema validation
 
-`validate: "schema"` and a `schema` rule call the original WordPress scalar
-validators. Validation preserves the input value; sanitizers remain explicit.
+`validate: "schema"` and a `schema` rule call the original WordPress schema
+dispatcher and validators. Validation preserves the input value; sanitizers remain explicit.
 
 ```bash
 ./elephc/runtime/requests <<'JSON' | python3 -m json.tool
@@ -831,10 +831,71 @@ status 200.
 The rule factory stores this bounded schema as `profile_schema` beside the
 source-defined callback. It does not enable automatic core schema sanitization.
 Raw attributes require both that metadata and `wordpress_request_validate_schema`.
-Arrays/objects, type unions, enum, pattern, format, anyOf/oneOf and unknown keywords
-fail explicitly. General JSON Schema and locale bootstrap remain outside the profile.
+Type unions, enum, pattern, format, anyOf/oneOf and unknown keywords
+fail explicitly. Full JSON Schema and locale bootstrap remain outside the profile.
 The corpus compares the original specialized helpers with the original full schema
 dispatcher, then checks patched PHP, native CLI and repeated HTTP behavior.
+
+### Array and object schema validation
+
+The same `schema` rule supports nested decoded arrays and objects through the
+original core dispatcher, collection validators and key-shape predicate.
+
+```bash
+./elephc/runtime/requests <<'JSON' | python3 -m json.tool
+{
+  "query": {"people": [{"name": "Ada", "age": "20"}]},
+  "rules": {
+    "people": {
+      "required": true,
+      "validate": "schema",
+      "schema": {
+        "type": "array", "minItems": 1,
+        "items": {
+          "type": "object", "required": ["name", "age"],
+          "properties": {
+            "name": {"type": "string", "minLength": 1},
+            "age": {"type": "integer", "minimum": 18}
+          },
+          "additionalProperties": false
+        }
+      }
+    }
+  },
+  "operations": [{"op": "validate"}, {"op": "get-params"}]
+}
+JSON
+```
+
+The example passes and keeps `age` as the string `"20"`. Changing it to `"bad"`
+returns the original error path `people[0][age]`. Direct `schema-check` operations
+accept the same value/schema pair; `scalar-check` remains an alias.
+
+| Type | Additional supported keywords |
+| --- | --- |
+| `array` | Single-schema `items`, integer `minItems`/`maxItems` |
+| `object` | `properties`, required-name list, boolean/schema `additionalProperties`, integer `minProperties`/`maxProperties` |
+
+Each schema allows 64 nodes including the root and eight nested levels below it.
+Property maps and required-name lists allow 64 entries; collection counts range
+from 0 to 256. Values retain the existing 256-field/16-level JSON limits.
+Property schemas can use the original legacy boolean `required` flag. An explicit
+object required list, including an empty list, takes precedence over those flags.
+Required properties recognize present null; their child schema then validates it.
+
+Array validation accepts decoded arrays whose keys are numeric, including sparse
+and negative keys. Core normalizes its local copy before checking items, so error
+paths use consecutive indices. String-keyed maps fail the original array type
+check. Object validation preserves WordPress's acceptance of decoded lists/maps
+and empty-string objects. Decoded empty JSON lists and objects follow PHP's
+associative-array semantics. Validation visits values in their original order,
+reports the first nested error, and leaves the input unchanged.
+
+Scalar-to-list coercion (CSV/space-separated strings, numbers and booleans), PHP
+objects, `uniqueItems`, pattern properties, enum, formats and combining/multi-type
+schemas remain outside the profile. Unsupported coercion branches fail explicitly.
+The collection corpus covers nesting, required/additional properties, count limits,
+error ordering/paths, unchanged values and schema budgets against original PHP.
 
 ## Verified behavior
 
@@ -865,8 +926,9 @@ Another **70 request-object cases** cover headers, precedence, lazy JSON,
 ArrayAccess and context, with **45 invalid inputs**. Another **102 request-validation
 cases** cover required fields, callbacks, source mutation and aggregated errors,
 with **36 invalid inputs**. Another **163 scalar-schema cases** cover direct and
-request callback validation, with **38 invalid inputs**. The server checks all
-fourteen corpora twice through one worker for **3,112 HTTP checks**, including routing, body limits, response MIME types and request isolation.
+request callback validation, with **38 invalid inputs**. Another **74 collection-schema
+cases** cover recursive arrays/objects, with **39 invalid inputs**. The server checks
+all fifteen corpora twice through one worker for **3,338 HTTP checks**, including routing, body limits, response MIME types and request isolation.
 
 | Request | Result |
 | --- | --- |
@@ -942,8 +1004,10 @@ WP_REST_Request (bounded parameter/header/JSON profile)
 absint, is_wp_error and wp_is_json_media_type from wp-includes/load.php
 rest_ensure_response, rest_convert_error_to_response, rest_is_integer,
 rest_is_boolean, rest_sanitize_boolean and five scalar schema validators
+plus four collection helpers, two collection validators and the schema dispatcher
 from wp-includes/rest-api.php
-four list wrappers, wp_suspend_cache_addition and two query builders from wp-includes/functions.php
+four list wrappers, wp_suspend_cache_addition, two query builders and wp_is_numeric_array
+from wp-includes/functions.php
 three selected URL parser functions from wp-includes/http.php
 ```
 
