@@ -59,9 +59,6 @@ def main():
     parser.add_argument('--sdk-sha256', help='Verified SDK archive checksum')
     parser.add_argument('--output', required=True, type=Path, help='Generated report/log directory')
     args = parser.parse_args()
-    build_lock = Path(os.environ.get('BUILD_LOCK_BIN', Path.home() / '.codex/skills/me-build-lock/scripts/build-lock'))
-    if os.access(build_lock, os.X_OK) and not os.environ.get('ME_BUILD_LOCK_HELD'):
-        raise SystemExit(subprocess.call([str(build_lock), 'run', '--agent', 'codex', '--label', 'wordpress: goto compiler comparison', '--', sys.executable, str(Path(__file__).resolve()), *sys.argv[1:]], cwd=ROOT))
     candidate = shutil.which(args.compiler)
     baseline = shutil.which(args.baseline)
     if not candidate or not baseline:

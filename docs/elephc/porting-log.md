@@ -29,9 +29,10 @@ custom `--listen` options. PHP is used only by the reference checks, selected
 through `PHP_BIN` or `php` on `PATH`.
 
 The complete compiler SDK, C toolchain, Python 3.12 or newer and `patch` are
-native build prerequisites. The optional machine-wide build queue is reused
-when installed. Source-only reproduction copies `.elephc-version` along with
-the maintained source files so elvm selects the pinned compiler in the export.
+native build prerequisites. All scripts run directly with the documented tools
+on `PATH`, without workstation-specific scheduling helpers. Source-only
+reproduction copies `.elephc-version` along with the maintained source files
+so an optional version manager can select the pinned compiler in the export.
 
 ## Scope
 
@@ -404,8 +405,7 @@ overflow, suspension, bulk operations, global groups and simulated blog switchin
 All 38 invalid inputs return explicit errors. The full suite retains all previous
 corpora and passes 1,006 HTTP checks, including adjacent requests that verify cache
 and suspension isolation. A source-only export rebuilt all seven executables and
-passed the same checks, then removed its temporary tree. The build and full
-verification ran through the machine-wide queue.
+passed the same checks, then removed its temporary tree.
 
 The native cache executable is 1,423,232 bytes and the combined server is
 24,094,336 bytes. Existing standalone profiles are unchanged. These measurements
@@ -490,7 +490,7 @@ the maintained regex-nul-subject probe reports length 12 in both PHP and native,
 but anchored ASCII-letter matching returns 0 in PHP and 1 natively for a subject
 containing NUL. The URL adapter checks NUL before invoking that regex. The
 standalone diagnostic is kept outside verified application builds and was
-reproduced separately with locked PCRE2 10.47 through the build queue.
+reproduced separately with locked PCRE2 10.47.
 
 All 103 URL cases match unmodified PHP, patched PHP and native CLI; all 28
 invalid inputs return explicit errors. The complete suite retains every prior
@@ -921,7 +921,7 @@ wp-blog-header bootstrap retains the conditional ABSPATH resolution failure at
 wp-load.php:50. These are observed blockers, not a complete compatibility audit.
 
 scripts/check-goto.py repeats six compile-only probes per SDK and compiles/runs
-only the standalone goto control through the host build queue. No WordPress
+only the standalone goto control directly with the selected SDK. No WordPress
 startup or database access was executed. Preparation checks still verify 21
 core files and 20 patches. No upstream file, application adapter, patch or SDK
 pin changed. The earlier full/native source-only result remains 3,338 HTTP
@@ -967,3 +967,24 @@ UTF-8 and SHORTINIT diagnostics. The ordinary bootstrap also needs conditional
 ABSPATH resolution. Database-backed bootstrap, plugin discovery, themes, whole-document KSES,
 CSS and arbitrary block rendering require separate verified profiles. Current
 subsystem coverage does not establish their compatibility.
+
+
+## Portable build tools, 2026-11-18
+
+Native builds, source-only verification, compiler comparisons and the PHP hybrid
+scripts now invoke the documented toolchain directly from PATH. Personal agent
+helpers, scheduling wrappers and private directory discovery are absent from the
+repository scripts. A version manager is optional; the hybrid build manifest
+resolves the selected compiler executable from PATH.
+
+The hybrid source preparer creates its output directory and copies the maintained
+elephc.toml and elephc.lock. The build installs the locked PCRE2 dependency before
+compilation, so it does not depend on files left by the earlier hybrid preparer.
+The generated native PHP source remains byte-identical to the measured build.
+
+Verification used a restricted PATH containing the complete SDK, PHP toolchain
+and standard system tools, with no version manager or personal scheduling helper.
+A source-only export rebuilt the native profiles and passed all 3476 HTTP checks
+and the differential CLI corpora. A separate temporary hybrid project compiled
+the shared library, linked and called the PHP extension, and passed an exact
+Elephc profiling assertion. Both temporary trees were removed.

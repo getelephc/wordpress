@@ -11,11 +11,6 @@ if [[ $# != 0 ]]; then
     printf 'Unknown build argument: %s\n' "$1" >&2
     exit 1
 fi
-build_lock=${BUILD_LOCK_BIN:-$HOME/.codex/skills/me-build-lock/scripts/build-lock}
-if [[ -x $build_lock && -z ${ME_BUILD_LOCK_HELD:-} ]]; then
-    exec "$build_lock" run --agent codex --label 'wordpress: build native core profiles' -- "$root/scripts/build-elephc.sh"
-fi
-
 compiler=$(command -v "${ELEPHC_BIN:-elephc}") || {
     printf 'Elephc not found. Install the SDK or set ELEPHC_BIN to its executable.\n' >&2
     exit 1

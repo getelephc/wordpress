@@ -6,9 +6,9 @@
 - Run application code, Elephc and PHP reference checks directly on the host.
   This project intentionally uses native tools and has no database.
 - Use `127.0.0.1:9000` as the default local HTTP listener.
-- Use the machine-wide build queue for native builds and clean-room checks.
-  `scripts/build-elephc.sh` and `scripts/test-clean-room.py` use the installed
-  host queue when available.
+- Keep repository scripts portable: use tools on `PATH` without personal paths,
+  agent-specific helpers or automatic workload scheduling. Apply workstation
+  scheduling policies outside the repository scripts.
 - Downloaded WordPress sources in `upstream/` are original dependencies.
   Do not edit them. Maintain compatibility rewrites in `patches/`, including
   all original, patch and resulting source checksums.

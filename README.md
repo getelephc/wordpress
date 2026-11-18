@@ -22,8 +22,9 @@ Build and run directly on the host. The verified target is Linux x86_64.
 You need:
 
 - The complete Elephc 0.27.8 SDK, including its runtime archives, on `PATH`.
-  [elvm](https://github.com/illegalstudio/elvm) reads the repository's
-  `.elephc-version`; run `elvm install 0.27.8` if needed.
+  You can install it directly or optionally use
+  [elvm](https://github.com/illegalstudio/elvm) with `elvm install 0.27.8`;
+  the repository's `.elephc-version` records the selected version.
 - Bash, Python 3.12 or newer, `patch`, a C compiler/linker (`cc`) and GNU
   binutils (`as`, `ar`, `strip`). On Arch Linux these tools are provided by
   `base-devel`, `python` and `patch`; on Debian/Ubuntu use `build-essential`,
@@ -48,8 +49,8 @@ PCRE2 dependency, and produces `elephc/runtime/parse`, `elephc/runtime/hooks`,
 `elephc/runtime/sanitize`, `elephc/runtime/errors`, `elephc/runtime/responses`, `elephc/runtime/requests` and `elephc/runtime/server`.
 It uses `elephc` from `PATH`; set
 `ELEPHC_BIN=/absolute/path/to/elephc` to select another complete SDK.
-On workstations with the author's build queue installed, the script uses it
-automatically. The queue is optional on other machines.
+The scripts run directly with the documented tools on `PATH` and require no
+agent helpers or workstation-specific scheduler.
 
 The equivalent direct Elephc commands are:
 
@@ -1131,9 +1132,9 @@ python3 scripts/check-goto.py \
   --output elephc/build/goto-main-23314d3
 ```
 
-The script uses the host build queue when available. WordPress probes are
-compile-only; only the standalone control is compiled and executed. Its success
-does not mean WordPress boots. The [frozen report](docs/elephc/goto-main-23314d3.json)
+WordPress probes are compile-only; only the standalone control is compiled and
+executed. Its success does not mean WordPress boots. The
+[frozen report](docs/elephc/goto-main-23314d3.json)
 records artifact provenance, checksums and diagnostics. Both SDKs report
 `elephc 0.27.8`, so identify the development SDK by its source revision and checksum.
 The project pin and application profile remain unchanged; their previously
