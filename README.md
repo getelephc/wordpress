@@ -16,6 +16,15 @@ The HTTP adapter, callback manifest and demo callbacks belong to this experiment
 This is a core subsystem port. The complete CMS bootstrap, database, plugin
 discovery, themes, block rendering and `wp-admin` are outside the current profile.
 
+## PHP hybrid experiment
+
+The [PHP hybrid experiment](experiments/php-hybrid/README.md) runs the complete
+WordPress front controller with selected core algorithms compiled into a native
+PHP extension. It uses an isolated SQLite fixture, a Zend adapter and Elephc
+cdylib output. The [current measurements](experiments/php-hybrid/results.json)
+compare ordinary PHP, PHP with the extension loaded and native routing enabled.
+The native subsystem profile described below remains database-free.
+
 ## Requirements
 
 Build and run directly on the host. The verified target is Linux x86_64.

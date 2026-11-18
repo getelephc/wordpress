@@ -6,6 +6,9 @@
 - Run application code, Elephc and PHP reference checks directly on the host.
   This project intentionally uses native tools and has no database.
 - Use `127.0.0.1:9000` as the default local HTTP listener.
+- The PHP-hosted hybrid experiment under `experiments/php-hybrid/` uses an
+  isolated SQLite fixture. Its documentation, reports and tools describe only
+  the current implementation and PHP controls, without legacy hybrid variants.
 - Keep repository scripts portable: use tools on `PATH` without personal paths,
   agent-specific helpers or automatic workload scheduling. Apply workstation
   scheduling policies outside the repository scripts.

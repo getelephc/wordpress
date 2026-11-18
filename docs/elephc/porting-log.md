@@ -979,7 +979,7 @@ resolves the selected compiler executable from PATH.
 
 The hybrid source preparer creates its output directory and copies the maintained
 elephc.toml and elephc.lock. The build installs the locked PCRE2 dependency before
-compilation, so it does not depend on files left by the earlier hybrid preparer.
+compilation. All required dependency inputs are maintained in the repository.
 The generated native PHP source remains byte-identical to the measured build.
 
 Verification used a restricted PATH containing the complete SDK, PHP toolchain
