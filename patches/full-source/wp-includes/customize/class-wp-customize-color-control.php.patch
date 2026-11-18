@@ -1,0 +1,40 @@
+--- a/wp-includes/customize/class-wp-customize-color-control.php
++++ b/wp-includes/customize/class-wp-customize-color-control.php
+@@ -91,20 +91,20 @@
+ 	 * @since 4.1.0
+ 	 */
+ 	public function content_template() {
+-		?>
+-		<#
+-		var defaultValue = '#RRGGBB',
+-			defaultValueAttr = '',
+-			inputId = _.uniqueId( 'customize-color-control-input-' ),
+-			isHueSlider = data.mode === 'hue';
++		;
++echo '		<#
++		var defaultValue = \'#RRGGBB\',
++			defaultValueAttr = \'\',
++			inputId = _.uniqueId( \'customize-color-control-input-\' ),
++			isHueSlider = data.mode === \'hue\';
+ 
+ 		if ( data.defaultValue && _.isString( data.defaultValue ) && ! isHueSlider ) {
+-			if ( '#' !== data.defaultValue.substring( 0, 1 ) ) {
+-				defaultValue = '#' + data.defaultValue;
++			if ( \'#\' !== data.defaultValue.substring( 0, 1 ) ) {
++				defaultValue = \'#\' + data.defaultValue;
+ 			} else {
+ 				defaultValue = data.defaultValue;
+ 			}
+-			defaultValueAttr = ' data-default-color=' + defaultValue; // Quotes added automatically.
++			defaultValueAttr = \' data-default-color=\' + defaultValue; // Quotes added automatically.
+ 		}
+ 		#>
+ 		<# if ( data.label ) { #>
+@@ -121,6 +121,6 @@
+ 				<input id="{{ inputId }}" class="color-picker-hex" type="text" maxlength="7" placeholder="{{ defaultValue }}" {{ defaultValueAttr }} />
+ 			<# } #>
+ 		</div>
+-		<?php
++		';
+ 	}
+ }

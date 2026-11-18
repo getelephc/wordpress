@@ -1,0 +1,197 @@
+--- a/wp-admin/includes/theme-install.php
++++ b/wp-admin/includes/theme-install.php
+@@ -94,23 +94,36 @@
+ 	if ( ! $type_selector ) {
+ 		echo '<p class="install-help">' . __( 'Search for themes by keyword.' ) . '</p>';
+ 	}
+-	?>
+-<form id="search-themes" method="get">
++	;
++echo '<form id="search-themes" method="get">
+ 	<input type="hidden" name="tab" value="search" />
+-	<?php if ( $type_selector ) : ?>
+-	<label class="screen-reader-text" for="typeselector">
+-		<?php
++	';
++if ( $type_selector ) : ;
++echo '	<label class="screen-reader-text" for="typeselector">
++		';
+ 		/* translators: Hidden accessibility text. */
+ 		_e( 'Type of search' );
+-		?>
+-	</label>
++		;
++echo '	</label>
+ 	<select	name="type" id="typeselector">
+-	<option value="term" <?php selected( 'term', $type ); ?>><?php _e( 'Keyword' ); ?></option>
+-	<option value="author" <?php selected( 'author', $type ); ?>><?php _e( 'Author' ); ?></option>
+-	<option value="tag" <?php selected( 'tag', $type ); ?>><?php _ex( 'Tag', 'Theme Installer' ); ?></option>
++	<option value="term" ';
++selected( 'term', $type ); ;
++echo '>';
++_e( 'Keyword' ); ;
++echo '</option>
++	<option value="author" ';
++selected( 'author', $type ); ;
++echo '>';
++_e( 'Author' ); ;
++echo '</option>
++	<option value="tag" ';
++selected( 'tag', $type ); ;
++echo '>';
++_ex( 'Tag', 'Theme Installer' ); ;
++echo '</option>
+ 	</select>
+ 	<label class="screen-reader-text" for="s">
+-		<?php
++		';
+ 		switch ( $type ) {
+ 			case 'term':
+ 				/* translators: Hidden accessibility text. */
+@@ -125,20 +138,25 @@
+ 				_e( 'Search by tag' );
+ 				break;
+ 		}
+-		?>
+-	</label>
+-	<?php else : ?>
+-	<label class="screen-reader-text" for="s">
+-		<?php
++		;
++echo '	</label>
++	';
++else : ;
++echo '	<label class="screen-reader-text" for="s">
++		';
+ 		/* translators: Hidden accessibility text. */
+ 		_e( 'Search by keyword' );
+-		?>
+-	</label>
+-	<?php endif; ?>
+-	<input type="search" name="s" id="s" size="30" value="<?php echo esc_attr( $term ); ?>" autofocus="autofocus" />
+-	<?php submit_button( __( 'Search' ), '', 'search', false ); ?>
+-</form>
+-	<?php
++		;
++echo '	</label>
++	';
++endif; ;
++echo '	<input type="search" name="s" id="s" size="30" value="';
++echo esc_attr( $term ); ;
++echo '" autofocus="autofocus" />
++	';
++submit_button( __( 'Search' ), '', 'search', false ); ;
++echo '</form>
++	';
+ }
+ 
+ /**
+@@ -148,13 +166,17 @@
+  */
+ function install_themes_dashboard() {
+ 	install_theme_search_form( false );
+-	?>
+-<h4><?php _e( 'Feature Filter' ); ?></h4>
+-<p class="install-help"><?php _e( 'Find a theme based on specific features.' ); ?></p>
++	;
++echo '<h4>';
++_e( 'Feature Filter' ); ;
++echo '</h4>
++<p class="install-help">';
++_e( 'Find a theme based on specific features.' ); ;
++echo '</p>
+ 
+ <form method="get">
+ 	<input type="hidden" name="tab" value="search" />
+-	<?php
++	';
+ 	$feature_list = get_theme_feature_list();
+ 	echo '<div class="feature-filter">';
+ 
+@@ -166,25 +188,35 @@
+ 		foreach ( $features as $feature => $feature_name ) {
+ 			$feature_name = esc_html( $feature_name );
+ 			$feature      = esc_attr( $feature );
+-			?>
+-
++			;
++echo '
+ <li>
+-	<input type="checkbox" name="features[]" id="feature-id-<?php echo $feature; ?>" value="<?php echo $feature; ?>" />
+-	<label for="feature-id-<?php echo $feature; ?>"><?php echo $feature_name; ?></label>
++	<input type="checkbox" name="features[]" id="feature-id-';
++echo $feature; ;
++echo '" value="';
++echo $feature; ;
++echo '" />
++	<label for="feature-id-';
++echo $feature; ;
++echo '">';
++echo $feature_name; ;
++echo '</label>
+ </li>
+ 
+-<?php	} ?>
+-</ol>
++';
++} ;
++echo '</ol>
+ <br class="clear" />
+-		<?php
+-	}
+-	?>
+-
++		';
++	}
++	;
++echo '
+ </div>
+ <br class="clear" />
+-	<?php submit_button( __( 'Find Themes' ), '', 'search' ); ?>
+-</form>
+-	<?php
++	';
++submit_button( __( 'Find Themes' ), '', 'search' ); ;
++echo '</form>
++	';
+ }
+ 
+ /**
+@@ -193,20 +225,26 @@
+  * @since 2.8.0
+  */
+ function install_themes_upload() {
+-	?>
+-<p class="install-help"><?php _e( 'If you have a theme in a .zip format, you may install or update it by uploading it here.' ); ?></p>
+-<form method="post" enctype="multipart/form-data" class="wp-upload-form" action="<?php echo esc_url( self_admin_url( 'update.php?action=upload-theme' ) ); ?>">
+-	<?php wp_nonce_field( 'theme-upload' ); ?>
+-	<label class="screen-reader-text" for="themezip">
+-		<?php
++	;
++echo '<p class="install-help">';
++_e( 'If you have a theme in a .zip format, you may install or update it by uploading it here.' ); ;
++echo '</p>
++<form method="post" enctype="multipart/form-data" class="wp-upload-form" action="';
++echo esc_url( self_admin_url( 'update.php?action=upload-theme' ) ); ;
++echo '">
++	';
++wp_nonce_field( 'theme-upload' ); ;
++echo '	<label class="screen-reader-text" for="themezip">
++		';
+ 		/* translators: Hidden accessibility text. */
+ 		_e( 'Theme zip file' );
+-		?>
+-	</label>
++		;
++echo '	</label>
+ 	<input type="file" id="themezip" name="themezip" accept=".zip" />
+-	<?php submit_button( _x( 'Install Now', 'theme' ), '', 'install-theme-submit', false ); ?>
+-</form>
+-	<?php
++	';
++submit_button( _x( 'Install Now', 'theme' ), '', 'install-theme-submit', false ); ;
++echo '</form>
++	';
+ }
+ 
+ /**

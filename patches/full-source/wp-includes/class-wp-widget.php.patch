@@ -1,0 +1,11 @@
+--- a/wp-includes/class-wp-widget.php
++++ b/wp-includes/class-wp-widget.php
+@@ -550,7 +550,7 @@
+ 			 * @param null|string $return   Default 'noform'. Return null if new fields are added.
+ 			 * @param array       $instance An array of the widget's settings.
+ 			 */
+-			do_action_ref_array( 'in_widget_form', array( &$this, &$return, $instance ) );
++			throw new \RuntimeException( 'Reference-array call is outside the finite bootstrap fixture.' );
+ 		}
+ 
+ 		return $return;

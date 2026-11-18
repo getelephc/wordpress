@@ -1,0 +1,47 @@
+--- a/wp-includes/class-wp-site-query.php
++++ b/wp-includes/class-wp-site-query.php
+@@ -254,7 +254,7 @@
+ 		 *
+ 		 * @param WP_Site_Query $query The WP_Site_Query instance (passed by reference).
+ 		 */
+-		do_action_ref_array( 'parse_site_query', array( &$this ) );
++		do_action_ref_array( 'parse_site_query', array( $this ) );
+ 	}
+ 
+ 	/**
+@@ -298,7 +298,7 @@
+ 		 *
+ 		 * @param WP_Site_Query $query Current instance of WP_Site_Query (passed by reference).
+ 		 */
+-		do_action_ref_array( 'pre_get_sites', array( &$this ) );
++		do_action_ref_array( 'pre_get_sites', array( $this ) );
+ 
+ 		// Reparse query vars, in case they were modified in a 'pre_get_sites' callback.
+ 		$this->meta_query->parse_query_vars( $this->query_vars );
+@@ -338,7 +338,7 @@
+ 		 *                                            or null to run the normal queries.
+ 		 * @param WP_Site_Query            $query     The WP_Site_Query instance, passed by reference.
+ 		 */
+-		$site_data = apply_filters_ref_array( 'sites_pre_query', array( $site_data, &$this ) );
++		$site_data = apply_filters_ref_array( 'sites_pre_query', array( $site_data, $this ) );
+ 
+ 		if ( null !== $site_data ) {
+ 			if ( is_array( $site_data ) && ! $this->query_vars['count'] ) {
+@@ -420,7 +420,7 @@
+ 		 * @param WP_Site[]     $_sites An array of WP_Site objects.
+ 		 * @param WP_Site_Query $query  Current instance of WP_Site_Query (passed by reference).
+ 		 */
+-		$_sites = apply_filters_ref_array( 'the_sites', array( $_sites, &$this ) );
++		$_sites = apply_filters_ref_array( 'the_sites', array( $_sites, $this ) );
+ 
+ 		// Convert to WP_Site instances.
+ 		$this->sites = array_map( 'get_site', $_sites );
+@@ -672,7 +672,7 @@
+ 		 * }
+ 		 * @param WP_Site_Query $query   Current instance of WP_Site_Query (passed by reference).
+ 		 */
+-		$clauses = apply_filters_ref_array( 'sites_clauses', array( compact( $pieces ), &$this ) );
++		$clauses = apply_filters_ref_array( 'sites_clauses', array( compact( $pieces ), $this ) );
+ 
+ 		$fields  = $clauses['fields'] ?? '';
+ 		$join    = $clauses['join'] ?? '';

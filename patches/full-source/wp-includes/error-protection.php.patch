@@ -1,0 +1,11 @@
+--- a/wp-includes/error-protection.php
++++ b/wp-includes/error-protection.php
+@@ -85,7 +85,7 @@
+ 
+ 	$handler = null;
+ 	if ( defined( 'WP_CONTENT_DIR' ) && is_readable( WP_CONTENT_DIR . '/fatal-error-handler.php' ) ) {
+-		$handler = include WP_CONTENT_DIR . '/fatal-error-handler.php';
++		throw new RuntimeException( 'Custom fatal-error handlers are outside the finite Elephc manifest.' );
+ 	}
+ 
+ 	if ( ! is_object( $handler ) || ! is_callable( array( $handler, 'handle' ) ) ) {

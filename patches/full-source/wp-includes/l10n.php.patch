@@ -1,0 +1,20 @@
+--- a/wp-includes/l10n.php
++++ b/wp-includes/l10n.php
+@@ -1489,7 +1489,7 @@
+ 		$noop_translations = new NOOP_Translations();
+ 	}
+ 
+-	$l10n[ $domain ] = &$noop_translations;
++	$l10n[ $domain ] = $noop_translations;
+ 
+ 	return $noop_translations;
+ }
+@@ -1679,7 +1679,7 @@
+  * @return string[] Array of file header values keyed by header name.
+  */
+ function wp_get_l10n_php_file_data( $php_file ) {
+-	$data = (array) include $php_file;
++	$data = aot_translation_catalog( $php_file );
+ 
+ 	unset( $data['messages'] );
+ 	$headers = array(

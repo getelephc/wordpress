@@ -1,0 +1,24 @@
+--- a/wp-content/themes/twentytwentyfive/patterns/logos.php
++++ b/wp-content/themes/twentytwentyfive/patterns/logos.php
+@@ -10,11 +10,13 @@
+  * @since Twenty Twenty-Five 1.0
+  */
+ 
+-?>
+-<!-- wp:group {"align":"full","className":"is-style-section-1","style":{"spacing":{"padding":{"top":"var:preset|spacing|80","bottom":"var:preset|spacing|80"},"margin":{"top":"0","bottom":"0"}}},"layout":{"type":"constrained"}} -->
++;
++echo '<!-- wp:group {"align":"full","className":"is-style-section-1","style":{"spacing":{"padding":{"top":"var:preset|spacing|80","bottom":"var:preset|spacing|80"},"margin":{"top":"0","bottom":"0"}}},"layout":{"type":"constrained"}} -->
+ <div class="wp-block-group alignfull is-style-section-1" style="margin-top:0;margin-bottom:0;padding-top:var(--wp--preset--spacing--80);padding-bottom:var(--wp--preset--spacing--80)">
+ 	<!-- wp:heading {"textAlign":"center"} -->
+-	<h2 class="wp-block-heading has-text-align-center"><?php esc_html_e( 'The Stories Podcast is sponsored by', 'twentytwentyfive' ); ?></h2>
++	<h2 class="wp-block-heading has-text-align-center">';
++esc_html_e( 'The Stories Podcast is sponsored by', 'twentytwentyfive' ); ;
++echo '</h2>
+ 	<!-- /wp:heading -->
+ 
+ 	<!-- wp:spacer {"height":"var:preset|spacing|30"} -->
+@@ -46,3 +48,4 @@
+ 	<!-- /wp:group -->
+ </div>
+ <!-- /wp:group -->
++';

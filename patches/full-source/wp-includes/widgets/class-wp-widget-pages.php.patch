@@ -1,0 +1,108 @@
+--- a/wp-includes/widgets/class-wp-widget-pages.php
++++ b/wp-includes/widgets/class-wp-widget-pages.php
+@@ -103,13 +103,14 @@
+ 				$aria_label = $title ? $title : $default_title;
+ 				echo '<nav aria-label="' . esc_attr( $aria_label ) . '">';
+ 			}
+-			?>
+-
++			;
++echo '
+ 			<ul>
+-				<?php echo $output; ?>
+-			</ul>
+-
+-			<?php
++				';
++echo $output; ;
++echo '			</ul>
++
++			';
+ 			if ( 'html5' === $format ) {
+ 				echo '</nav>';
+ 			}
+@@ -159,27 +160,69 @@
+ 				'exclude' => '',
+ 			)
+ 		);
+-		?>
++		;
++echo '		<p>
++			<label for="';
++echo esc_attr( $this->get_field_id( 'title' ) ); ;
++echo '">';
++_e( 'Title:' ); ;
++echo '</label>
++			<input class="widefat" id="';
++echo esc_attr( $this->get_field_id( 'title' ) ); ;
++echo '" name="';
++echo esc_attr( $this->get_field_name( 'title' ) ); ;
++echo '" type="text" value="';
++echo esc_attr( $instance['title'] ); ;
++echo '" />
++		</p>
++
+ 		<p>
+-			<label for="<?php echo esc_attr( $this->get_field_id( 'title' ) ); ?>"><?php _e( 'Title:' ); ?></label>
+-			<input class="widefat" id="<?php echo esc_attr( $this->get_field_id( 'title' ) ); ?>" name="<?php echo esc_attr( $this->get_field_name( 'title' ) ); ?>" type="text" value="<?php echo esc_attr( $instance['title'] ); ?>" />
+-		</p>
+-
+-		<p>
+-			<label for="<?php echo esc_attr( $this->get_field_id( 'sortby' ) ); ?>"><?php _e( 'Sort by:' ); ?></label>
+-			<select name="<?php echo esc_attr( $this->get_field_name( 'sortby' ) ); ?>" id="<?php echo esc_attr( $this->get_field_id( 'sortby' ) ); ?>" class="widefat">
+-				<option value="post_title"<?php selected( $instance['sortby'], 'post_title' ); ?>><?php _e( 'Page title' ); ?></option>
+-				<option value="menu_order"<?php selected( $instance['sortby'], 'menu_order' ); ?>><?php _e( 'Page order' ); ?></option>
+-				<option value="ID"<?php selected( $instance['sortby'], 'ID' ); ?>><?php _e( 'Page ID' ); ?></option>
++			<label for="';
++echo esc_attr( $this->get_field_id( 'sortby' ) ); ;
++echo '">';
++_e( 'Sort by:' ); ;
++echo '</label>
++			<select name="';
++echo esc_attr( $this->get_field_name( 'sortby' ) ); ;
++echo '" id="';
++echo esc_attr( $this->get_field_id( 'sortby' ) ); ;
++echo '" class="widefat">
++				<option value="post_title"';
++selected( $instance['sortby'], 'post_title' ); ;
++echo '>';
++_e( 'Page title' ); ;
++echo '</option>
++				<option value="menu_order"';
++selected( $instance['sortby'], 'menu_order' ); ;
++echo '>';
++_e( 'Page order' ); ;
++echo '</option>
++				<option value="ID"';
++selected( $instance['sortby'], 'ID' ); ;
++echo '>';
++_e( 'Page ID' ); ;
++echo '</option>
+ 			</select>
+ 		</p>
+ 
+ 		<p>
+-			<label for="<?php echo esc_attr( $this->get_field_id( 'exclude' ) ); ?>"><?php _e( 'Exclude:' ); ?></label>
+-			<input type="text" value="<?php echo esc_attr( $instance['exclude'] ); ?>" name="<?php echo esc_attr( $this->get_field_name( 'exclude' ) ); ?>" id="<?php echo esc_attr( $this->get_field_id( 'exclude' ) ); ?>" class="widefat" />
++			<label for="';
++echo esc_attr( $this->get_field_id( 'exclude' ) ); ;
++echo '">';
++_e( 'Exclude:' ); ;
++echo '</label>
++			<input type="text" value="';
++echo esc_attr( $instance['exclude'] ); ;
++echo '" name="';
++echo esc_attr( $this->get_field_name( 'exclude' ) ); ;
++echo '" id="';
++echo esc_attr( $this->get_field_id( 'exclude' ) ); ;
++echo '" class="widefat" />
+ 			<br />
+-			<small><?php _e( 'Page IDs, separated by commas.' ); ?></small>
++			<small>';
++_e( 'Page IDs, separated by commas.' ); ;
++echo '</small>
+ 		</p>
+-		<?php
++		';
+ 	}
+ }

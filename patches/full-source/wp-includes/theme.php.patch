@@ -1,0 +1,73 @@
+--- a/wp-includes/theme.php
++++ b/wp-includes/theme.php
+@@ -3006,15 +3006,17 @@
+ 		$classes = (array) get_theme_support( 'custom-logo', 'header-text' );
+ 		$classes = array_map( 'sanitize_html_class', $classes );
+ 		$classes = '.' . implode( ', .', $classes );
+-		?>
+-		<!-- Custom Logo: hide header text -->
++		;
++echo '		<!-- Custom Logo: hide header text -->
+ 		<style id="custom-logo-css">
+-			<?php echo $classes; ?> {
++			';
++echo $classes; ;
++echo ' {
+ 				position: absolute;
+ 				clip-path: inset(50%);
+ 			}
+ 		</style>
+-		<?php
++		';
+ 	}
+ }
+ 
+@@ -3239,7 +3241,7 @@
+  */
+ function require_if_theme_supports( $feature, $file ) {
+ 	if ( current_theme_supports( $feature ) ) {
+-		require $file;
++		throw new RuntimeException( 'No feature-dependent PHP include is registered in the finite Elephc theme fixture.' );
+ 		return true;
+ 	}
+ 	return false;
+@@ -3805,23 +3807,26 @@
+ 	$home_origin  = parse_url( home_url() );
+ 	$cross_domain = ( strtolower( $admin_origin['host'] ) !== strtolower( $home_origin['host'] ) );
+ 	ob_start();
+-	?>
+-	<script>
++	;
++echo '	<script>
+ 		(function() {
+-			var request, b = document.body, c = 'className', cs = 'customize-support', rcs = new RegExp('(^|\\s+)(no-)?'+cs+'(\\s+|$)');
+-
+-	<?php	if ( $cross_domain ) : ?>
+-			request = (function(){ var xhr = new XMLHttpRequest(); return ('withCredentials' in xhr); })();
+-	<?php	else : ?>
+-			request = true;
+-	<?php	endif; ?>
+-
+-			b[c] = b[c].replace( rcs, ' ' );
++			var request, b = document.body, c = \'className\', cs = \'customize-support\', rcs = new RegExp(\'(^|\\\\s+)(no-)?\'+cs+\'(\\\\s+|$)\');
++
++	';
++if ( $cross_domain ) : ;
++echo '			request = (function(){ var xhr = new XMLHttpRequest(); return (\'withCredentials\' in xhr); })();
++	';
++else : ;
++echo '			request = true;
++	';
++endif; ;
++echo '
++			b[c] = b[c].replace( rcs, \' \' );
+ 			// The customizer requires postMessage and CORS (if the site is cross domain).
+-			b[c] += ( window.postMessage && request ? ' ' : ' no-' ) + cs;
++			b[c] += ( window.postMessage && request ? \' \' : \' no-\' ) + cs;
+ 		}());
+ 	</script>
+-	<?php
++	';
+ 	wp_print_inline_script_tag( wp_remove_surrounding_empty_script_tags( ob_get_clean() ) . "\n//# sourceURL=" . rawurlencode( __FUNCTION__ ) );
+ }
+ 

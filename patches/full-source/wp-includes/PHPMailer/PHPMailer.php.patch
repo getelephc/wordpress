@@ -1,0 +1,17 @@
+--- a/wp-includes/PHPMailer/PHPMailer.php
++++ b/wp-includes/PHPMailer/PHPMailer.php
+@@ -1263,7 +1263,13 @@
+         }
+         if ('Reply-To' !== $kind) {
+             if (!array_key_exists(strtolower($address), $this->all_recipients)) {
+-                $this->{$kind}[] = [$address, $name];
++                if ($kind === 'to') {
++                    $this->to[] = [$address, $name];
++                } elseif ($kind === 'cc') {
++                    $this->cc[] = [$address, $name];
++                } else {
++                    $this->bcc[] = [$address, $name];
++                }
+                 $this->all_recipients[strtolower($address)] = true;
+ 
+                 return true;

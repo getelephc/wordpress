@@ -1,0 +1,57 @@
+--- a/wp-includes/block-template-utils.php
++++ b/wp-includes/block-template-utils.php
+@@ -547,24 +547,48 @@
+ function _flatten_blocks( &$blocks ) {
+ 	$all_blocks = array();
+ 	$queue      = array();
+-	foreach ( $blocks as &$block ) {
+-		$queue[] = &$block;
++	foreach ( $blocks as $block ) {
++		$queue[] = $block;
+ 	}
+ 
+ 	while ( count( $queue ) > 0 ) {
+-		$block = &$queue[0];
++		$block = $queue[0];
+ 		array_shift( $queue );
+-		$all_blocks[] = &$block;
++		$all_blocks[] = $block;
+ 
+ 		if ( ! empty( $block['innerBlocks'] ) ) {
+-			foreach ( $block['innerBlocks'] as &$inner_block ) {
+-				$queue[] = &$inner_block;
++			foreach ( $block['innerBlocks'] as $inner_block ) {
++				$queue[] = $inner_block;
+ 			}
+ 		}
+ 	}
+ 
+ 	return $all_blocks;
+ }
++
++/** AOT path queue replacing the private reference-array interface. */
++function _wp_aot_flatten_block_paths( $blocks ) {
++    $queue = array();
++    foreach ( array_keys( $blocks ) as $key ) {
++        $queue[] = array( $key );
++    }
++    $paths = array();
++    while ( count( $queue ) > 0 ) {
++        $path = array_shift( $queue );
++        $paths[] = $path;
++        $block = _wp_array_get( $blocks, $path );
++        if ( ! empty( $block['innerBlocks'] ) ) {
++            foreach ( array_keys( $block['innerBlocks'] ) as $key ) {
++                $child_path = $path;
++                $child_path[] = 'innerBlocks';
++                $child_path[] = $key;
++                $queue[] = $child_path;
++            }
++        }
++    }
++    return $paths;
++}
++
+ 
+ /**
+  * Injects the active theme's stylesheet as a `theme` attribute

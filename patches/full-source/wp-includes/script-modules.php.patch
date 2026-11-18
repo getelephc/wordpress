@@ -1,0 +1,11 @@
+--- a/wp-includes/script-modules.php
++++ b/wp-includes/script-modules.php
+@@ -175,7 +175,7 @@
+ 	 *     'block-library/navigation/view.js' => …
+ 	 */
+ 	$assets_file = ABSPATH . WPINC . '/assets/script-modules-packages.php';
+-	$assets      = file_exists( $assets_file ) ? include $assets_file : array();
++	$assets      = file_exists( $assets_file ) ? aot_require_data( $assets_file ) : array();
+ 
+ 	foreach ( $assets as $file_name => $script_module_data ) {
+ 		/*

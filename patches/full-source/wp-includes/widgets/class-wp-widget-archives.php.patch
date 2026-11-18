@@ -1,0 +1,174 @@
+--- a/wp-includes/widgets/class-wp-widget-archives.php
++++ b/wp-includes/widgets/class-wp-widget-archives.php
+@@ -58,10 +58,16 @@
+ 
+ 		if ( $dropdown ) {
+ 			$dropdown_id = "{$this->id_base}-dropdown-{$this->number}";
+-			?>
+-		<label class="screen-reader-text" for="<?php echo esc_attr( $dropdown_id ); ?>"><?php echo $title; ?></label>
+-		<select id="<?php echo esc_attr( $dropdown_id ); ?>" name="archive-dropdown">
+-			<?php
++			;
++echo '		<label class="screen-reader-text" for="';
++echo esc_attr( $dropdown_id ); ;
++echo '">';
++echo $title; ;
++echo '</label>
++		<select id="';
++echo esc_attr( $dropdown_id ); ;
++echo '" name="archive-dropdown">
++			';
+ 			/**
+ 			 * Filters the arguments for the Archives widget drop-down.
+ 			 *
+@@ -100,20 +106,24 @@
+ 					$label = __( 'Select Post' );
+ 					break;
+ 			}
+-			?>
+-
+-			<option value=""><?php echo esc_html( $label ); ?></option>
+-			<?php wp_get_archives( $dropdown_args ); ?>
+-
++			;
++echo '
++			<option value="">';
++echo esc_html( $label ); ;
++echo '</option>
++			';
++wp_get_archives( $dropdown_args ); ;
++echo '
+ 		</select>
+ 
+-			<?php ob_start(); ?>
+-<script>
++			';
++ob_start(); ;
++echo '<script>
+ ( ( dropdownId ) => {
+ 	const dropdown = document.getElementById( dropdownId );
+ 	function onSelectChange() {
+ 		setTimeout( () => {
+-			if ( 'escape' === dropdown.dataset.lastkey ) {
++			if ( \'escape\' === dropdown.dataset.lastkey ) {
+ 				return;
+ 			}
+ 			if ( dropdown.value ) {
+@@ -122,8 +132,8 @@
+ 		}, 250 );
+ 	}
+ 	function onKeyUp( event ) {
+-		if ( 'Escape' === event.key ) {
+-			dropdown.dataset.lastkey = 'escape';
++		if ( \'Escape\' === event.key ) {
++			dropdown.dataset.lastkey = \'escape\';
+ 		} else {
+ 			delete dropdown.dataset.lastkey;
+ 		}
+@@ -131,12 +141,14 @@
+ 	function onClick() {
+ 		delete dropdown.dataset.lastkey;
+ 	}
+-	dropdown.addEventListener( 'keyup', onKeyUp );
+-	dropdown.addEventListener( 'click', onClick );
+-	dropdown.addEventListener( 'change', onSelectChange );
+-})( <?php echo wp_json_encode( $dropdown_id, JSON_HEX_TAG | JSON_UNESCAPED_SLASHES ); ?> );
++	dropdown.addEventListener( \'keyup\', onKeyUp );
++	dropdown.addEventListener( \'click\', onClick );
++	dropdown.addEventListener( \'change\', onSelectChange );
++})( ';
++echo wp_json_encode( $dropdown_id, JSON_HEX_TAG | JSON_UNESCAPED_SLASHES ); ;
++echo ' );
+ </script>
+-			<?php
++			';
+ 			wp_print_inline_script_tag( wp_remove_surrounding_empty_script_tags( ob_get_clean() ) . "\n//# sourceURL=" . rawurlencode( __METHOD__ ) );
+ 		} else {
+ 			$format = current_theme_supports( 'html5', 'navigation-widgets' ) ? 'html5' : 'xhtml';
+@@ -150,10 +162,10 @@
+ 				$aria_label = $title ? $title : $default_title;
+ 				echo '<nav aria-label="' . esc_attr( $aria_label ) . '">';
+ 			}
+-			?>
+-
++			;
++echo '
+ 			<ul>
+-				<?php
++				';
+ 				wp_get_archives(
+ 					/**
+ 					 * Filters the arguments for the Archives widget.
+@@ -175,10 +187,10 @@
+ 						$instance
+ 					)
+ 				);
+-				?>
+-			</ul>
+-
+-			<?php
++				;
++echo '			</ul>
++
++			';
+ 			if ( 'html5' === $format ) {
+ 				echo '</nav>';
+ 			}
+@@ -230,18 +242,48 @@
+ 				'dropdown' => '',
+ 			)
+ 		);
+-		?>
+-		<p>
+-			<label for="<?php echo $this->get_field_id( 'title' ); ?>"><?php _e( 'Title:' ); ?></label>
+-			<input class="widefat" id="<?php echo $this->get_field_id( 'title' ); ?>" name="<?php echo $this->get_field_name( 'title' ); ?>" type="text" value="<?php echo esc_attr( $instance['title'] ); ?>" />
++		;
++echo '		<p>
++			<label for="';
++echo $this->get_field_id( 'title' ); ;
++echo '">';
++_e( 'Title:' ); ;
++echo '</label>
++			<input class="widefat" id="';
++echo $this->get_field_id( 'title' ); ;
++echo '" name="';
++echo $this->get_field_name( 'title' ); ;
++echo '" type="text" value="';
++echo esc_attr( $instance['title'] ); ;
++echo '" />
+ 		</p>
+ 		<p>
+-			<input class="checkbox" type="checkbox"<?php checked( $instance['dropdown'] ); ?> id="<?php echo $this->get_field_id( 'dropdown' ); ?>" name="<?php echo $this->get_field_name( 'dropdown' ); ?>" />
+-			<label for="<?php echo $this->get_field_id( 'dropdown' ); ?>"><?php _e( 'Display as dropdown' ); ?></label>
++			<input class="checkbox" type="checkbox"';
++checked( $instance['dropdown'] ); ;
++echo ' id="';
++echo $this->get_field_id( 'dropdown' ); ;
++echo '" name="';
++echo $this->get_field_name( 'dropdown' ); ;
++echo '" />
++			<label for="';
++echo $this->get_field_id( 'dropdown' ); ;
++echo '">';
++_e( 'Display as dropdown' ); ;
++echo '</label>
+ 			<br />
+-			<input class="checkbox" type="checkbox"<?php checked( $instance['count'] ); ?> id="<?php echo $this->get_field_id( 'count' ); ?>" name="<?php echo $this->get_field_name( 'count' ); ?>" />
+-			<label for="<?php echo $this->get_field_id( 'count' ); ?>"><?php _e( 'Show post counts' ); ?></label>
++			<input class="checkbox" type="checkbox"';
++checked( $instance['count'] ); ;
++echo ' id="';
++echo $this->get_field_id( 'count' ); ;
++echo '" name="';
++echo $this->get_field_name( 'count' ); ;
++echo '" />
++			<label for="';
++echo $this->get_field_id( 'count' ); ;
++echo '">';
++_e( 'Show post counts' ); ;
++echo '</label>
+ 		</p>
+-		<?php
++		';
+ 	}
+ }

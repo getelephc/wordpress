@@ -1,0 +1,56 @@
+--- a/wp-includes/customize/class-wp-customize-media-control.php
++++ b/wp-includes/customize/class-wp-customize-media-control.php
+@@ -139,10 +139,10 @@
+ 	 * @since 4.2.0 Moved from WP_Customize_Upload_Control.
+ 	 */
+ 	public function content_template() {
+-		?>
+-		<#
+-		var descriptionId = _.uniqueId( 'customize-media-control-description-' );
+-		var describedByAttr = data.description ? ' aria-describedby="' + descriptionId + '" ' : '';
++		;
++echo '		<#
++		var descriptionId = _.uniqueId( \'customize-media-control-description-\' );
++		var describedByAttr = data.description ? \' aria-describedby="\' + descriptionId + \'" \' : \'\';
+ 		#>
+ 		<# if ( data.label ) { #>
+ 			<span class="customize-control-title">{{ data.label }}</span>
+@@ -155,11 +155,11 @@
+ 		<# if ( data.attachment && data.attachment.id ) { #>
+ 			<div class="attachment-media-view attachment-media-view-{{ data.attachment.type }} {{ data.attachment.orientation }}">
+ 				<div class="thumbnail thumbnail-{{ data.attachment.type }}">
+-					<# if ( 'image' === data.attachment.type && data.attachment.sizes && data.attachment.sizes.medium ) { #>
++					<# if ( \'image\' === data.attachment.type && data.attachment.sizes && data.attachment.sizes.medium ) { #>
+ 						<img class="attachment-thumb" src="{{ data.attachment.sizes.medium.url }}" draggable="false" alt="" />
+-					<# } else if ( 'image' === data.attachment.type && data.attachment.sizes && data.attachment.sizes.full ) { #>
++					<# } else if ( \'image\' === data.attachment.type && data.attachment.sizes && data.attachment.sizes.full ) { #>
+ 						<img class="attachment-thumb" src="{{ data.attachment.sizes.full.url }}" draggable="false" alt="" />
+-					<# } else if ( 'audio' === data.attachment.type ) { #>
++					<# } else if ( \'audio\' === data.attachment.type ) { #>
+ 						<# if ( data.attachment.image && data.attachment.image.src && data.attachment.image.src !== data.attachment.icon ) { #>
+ 							<img src="{{ data.attachment.image.src }}" class="thumbnail" draggable="false" alt="" />
+ 						<# } else { #>
+@@ -175,7 +175,7 @@
+ 						<audio style="visibility: hidden" controls class="wp-audio-shortcode" width="100%" preload="none">
+ 							<source type="{{ data.attachment.mime }}" src="{{ data.attachment.url }}" />
+ 						</audio>
+-					<# } else if ( 'video' === data.attachment.type ) { #>
++					<# } else if ( \'video\' === data.attachment.type ) { #>
+ 						<div class="wp-media-wrapper wp-video">
+ 							<video controls="controls" class="wp-video-shortcode" preload="metadata"
+ 								<# if ( data.attachment.image && data.attachment.image.src !== data.attachment.icon ) { #>poster="{{ data.attachment.image.src }}"<# } #>>
+@@ -201,12 +201,12 @@
+ 				<# } #>
+ 				<div class="actions">
+ 					<# if ( data.defaultAttachment ) { #>
+-						<button type="button" class="button default-button">{{ data.button_labels['default'] }}</button>
++						<button type="button" class="button default-button">{{ data.button_labels[\'default\'] }}</button>
+ 					<# } #>
+ 				</div>
+ 			</div>
+ 		<# } #>
+-		<?php
++		';
+ 	}
+ 
+ 	/**

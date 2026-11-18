@@ -1,0 +1,1036 @@
+--- a/wp-admin/includes/dashboard.php
++++ b/wp-admin/includes/dashboard.php
+@@ -265,23 +265,29 @@
+ 	if ( $columns ) {
+ 		$columns_css = " columns-$columns";
+ 	}
+-	?>
+-<div id="dashboard-widgets" class="metabox-holder<?php echo $columns_css; ?>">
++	;
++echo '<div id="dashboard-widgets" class="metabox-holder';
++echo $columns_css; ;
++echo '">
+ 	<div id="postbox-container-1" class="postbox-container">
+-	<?php do_meta_boxes( $screen->id, 'normal', '' ); ?>
+-	</div>
++	';
++do_meta_boxes( $screen->id, 'normal', '' ); ;
++echo '	</div>
+ 	<div id="postbox-container-2" class="postbox-container">
+-	<?php do_meta_boxes( $screen->id, 'side', '' ); ?>
+-	</div>
++	';
++do_meta_boxes( $screen->id, 'side', '' ); ;
++echo '	</div>
+ 	<div id="postbox-container-3" class="postbox-container">
+-	<?php do_meta_boxes( $screen->id, 'column3', '' ); ?>
+-	</div>
++	';
++do_meta_boxes( $screen->id, 'column3', '' ); ;
++echo '	</div>
+ 	<div id="postbox-container-4" class="postbox-container">
+-	<?php do_meta_boxes( $screen->id, 'column4', '' ); ?>
+-	</div>
++	';
++do_meta_boxes( $screen->id, 'column4', '' ); ;
++echo '	</div>
+ </div>
+ 
+-	<?php
++	';
+ 	wp_nonce_field( 'closedpostboxes', 'closedpostboxesnonce', false );
+ 	wp_nonce_field( 'meta-box-order', 'meta-box-order-nonce', false );
+ }
+@@ -298,10 +304,10 @@
+  * @since 2.7.0
+  */
+ function wp_dashboard_right_now() {
+-	?>
+-	<div class="main">
++	;
++echo '	<div class="main">
+ 	<ul>
+-	<?php
++	';
+ 	// Posts and Pages.
+ 	foreach ( array( 'post', 'page' ) as $post_type ) {
+ 		$num_posts = wp_count_posts( $post_type );
+@@ -339,19 +345,25 @@
+ 	if ( $num_comm && ( $num_comm->approved || $num_comm->moderated ) ) {
+ 		/* translators: %s: Number of comments. */
+ 		$text = sprintf( _n( '%s Comment', '%s Comments', $num_comm->approved ), number_format_i18n( $num_comm->approved ) );
+-		?>
+-		<li class="comment-count">
+-			<a href="edit-comments.php"><?php echo $text; ?></a>
++		;
++echo '		<li class="comment-count">
++			<a href="edit-comments.php">';
++echo $text; ;
++echo '</a>
+ 		</li>
+-		<?php
++		';
+ 		$moderated_comments_count_i18n = number_format_i18n( $num_comm->moderated );
+ 		/* translators: %s: Number of comments. */
+ 		$text = sprintf( _n( '%s Comment in moderation', '%s Comments in moderation', $num_comm->moderated ), $moderated_comments_count_i18n );
+-		?>
+-		<li class="comment-mod-count<?php echo ! $num_comm->moderated ? ' hidden' : ''; ?>">
+-			<a href="edit-comments.php?comment_status=moderated" class="comments-in-moderation-text"><?php echo $text; ?></a>
++		;
++echo '		<li class="comment-mod-count';
++echo ! $num_comm->moderated ? ' hidden' : ''; ;
++echo '">
++			<a href="edit-comments.php?comment_status=moderated" class="comments-in-moderation-text">';
++echo $text; ;
++echo '</a>
+ 		</li>
+-		<?php
++		';
+ 	}
+ 
+ 	/**
+@@ -371,9 +383,9 @@
+ 		echo '<li>' . implode( "</li>\n<li>", $elements ) . "</li>\n";
+ 	}
+ 
+-	?>
+-	</ul>
+-	<?php
++	;
++echo '	</ul>
++	';
+ 	update_right_now_message();
+ 
+ 	// Check if search engines are asked not to index this site.
+@@ -410,9 +422,9 @@
+ 
+ 		echo "<p class='search-engines-info'><a href='options-reading.php'$title_attr>$content</a></p>";
+ 	}
+-	?>
+-	</div>
+-	<?php
++	;
++echo '	</div>
++	';
+ 	/*
+ 	 * activity_box_end has a core action, but only prints content when multisite.
+ 	 * Using an output buffer is the only way to really check if anything's displayed here.
+@@ -440,11 +452,12 @@
+ 	$actions = ob_get_clean();
+ 
+ 	if ( ! empty( $actions ) ) :
+-		?>
+-	<div class="sub">
+-		<?php echo $actions; ?>
+-	</div>
+-		<?php
++		;
++echo '	<div class="sub">
++		';
++echo $actions; ;
++echo '	</div>
++		';
+ 	endif;
+ }
+ 
+@@ -480,13 +493,15 @@
+ 		echo implode( " |</li>\n", $actions ) . "</li>\n";
+ 		echo '</ul>';
+ 	}
+-	?>
+-	<br class="clear" />
+-
+-	<p class="youhave"><?php echo $sentence; ?></p>
+-
+-
+-	<?php
++	;
++echo '	<br class="clear" />
++
++	<p class="youhave">';
++echo $sentence; ;
++echo '</p>
++
++
++	';
+ 		/**
+ 		 * Fires in the Network Admin 'Right Now' dashboard widget
+ 		 * just before the user and site search form fields.
+@@ -494,34 +509,40 @@
+ 		 * @since MU (3.0.0)
+ 		 */
+ 		do_action( 'wpmuadminresult' );
+-	?>
+-
+-	<form action="<?php echo esc_url( network_admin_url( 'users.php' ) ); ?>" method="get">
++	;
++echo '
++	<form action="';
++echo esc_url( network_admin_url( 'users.php' ) ); ;
++echo '" method="get">
+ 		<p>
+ 			<label class="screen-reader-text" for="search-users">
+-				<?php
++				';
+ 				/* translators: Hidden accessibility text. */
+ 				_e( 'Search Users' );
+-				?>
+-			</label>
++				;
++echo '			</label>
+ 			<input type="search" name="s" value="" size="30" autocomplete="off" id="search-users" />
+-			<?php submit_button( __( 'Search Users' ), '', false, false, array( 'id' => 'submit_users' ) ); ?>
+-		</p>
++			';
++submit_button( __( 'Search Users' ), '', false, false, array( 'id' => 'submit_users' ) ); ;
++echo '		</p>
+ 	</form>
+ 
+-	<form action="<?php echo esc_url( network_admin_url( 'sites.php' ) ); ?>" method="get">
++	<form action="';
++echo esc_url( network_admin_url( 'sites.php' ) ); ;
++echo '" method="get">
+ 		<p>
+ 			<label class="screen-reader-text" for="search-sites">
+-				<?php
++				';
+ 				/* translators: Hidden accessibility text. */
+ 				_e( 'Search Sites' );
+-				?>
+-			</label>
++				;
++echo '			</label>
+ 			<input type="search" name="s" value="" size="30" autocomplete="off" id="search-sites" />
+-			<?php submit_button( __( 'Search Sites' ), '', false, false, array( 'id' => 'submit_sites' ) ); ?>
+-		</p>
++			';
++submit_button( __( 'Search Sites' ), '', false, false, array( 'id' => 'submit_sites' ) ); ;
++echo '		</p>
+ 	</form>
+-	<?php
++	';
+ 	/**
+ 	 * Fires at the end of the 'Right Now' widget in the Network Admin dashboard.
+ 	 *
+@@ -578,11 +599,13 @@
+ 	}
+ 
+ 	$post_ID = (int) $post->ID;
+-	?>
+-
+-	<form name="post" action="<?php echo esc_url( admin_url( 'post.php' ) ); ?>" method="post" id="quick-press" class="hide-if-no-js">
+-
+-		<?php
++	;
++echo '
++	<form name="post" action="';
++echo esc_url( admin_url( 'post.php' ) ); ;
++echo '" method="post" id="quick-press" class="hide-if-no-js">
++
++		';
+ 		if ( $message ) {
+ 			wp_admin_notice(
+ 				$message,
+@@ -594,34 +617,42 @@
+ 				)
+ 			);
+ 		}
+-		?>
+-
++		;
++echo '
+ 		<div class="input-text-wrap" id="title-wrap">
+ 			<label for="title">
+-				<?php
++				';
+ 				/** This filter is documented in wp-admin/edit-form-advanced.php */
+ 				echo apply_filters( 'enter_title_here', __( 'Title' ), $post );
+-				?>
+-			</label>
++				;
++echo '			</label>
+ 			<input type="text" name="post_title" id="title" autocomplete="off" />
+ 		</div>
+ 
+ 		<div class="textarea-wrap" id="description-wrap">
+-			<label for="content"><?php _e( 'Content' ); ?></label>
+-			<textarea name="content" id="content" placeholder="<?php esc_attr_e( 'What&#8217;s on your mind?' ); ?>" class="mceEditor" rows="3" cols="15" autocomplete="off"></textarea>
++			<label for="content">';
++_e( 'Content' ); ;
++echo '</label>
++			<textarea name="content" id="content" placeholder="';
++esc_attr_e( 'What&#8217;s on your mind?' ); ;
++echo '" class="mceEditor" rows="3" cols="15" autocomplete="off"></textarea>
+ 		</div>
+ 
+ 		<p class="submit">
+ 			<input type="hidden" name="action" id="quickpost-action" value="post-quickdraft-save" />
+-			<input type="hidden" name="post_ID" value="<?php echo $post_ID; ?>" />
++			<input type="hidden" name="post_ID" value="';
++echo $post_ID; ;
++echo '" />
+ 			<input type="hidden" name="post_type" value="post" />
+-			<?php wp_nonce_field( 'add-post' ); ?>
+-			<?php submit_button( __( 'Save Draft' ), 'primary', 'save', false, array( 'id' => 'save-post' ) ); ?>
+-			<br class="clear" />
++			';
++wp_nonce_field( 'add-post' ); ;
++echo '			';
++submit_button( __( 'Save Draft' ), 'primary', 'save', false, array( 'id' => 'save-post' ) ); ;
++echo '			<br class="clear" />
+ 		</p>
+ 
+ 	</form>
+-	<?php
++	';
+ 	wp_dashboard_recent_drafts();
+ }
+ 
+@@ -843,24 +874,31 @@
+ 			$actions_string .= "<span class='$action'>{$separator}{$link}</span>";
+ 		}
+ 	}
+-	?>
+-
+-		<li id="comment-<?php echo $comment->comment_ID; ?>" <?php comment_class( array( 'comment-item', wp_get_comment_status( $comment ) ), $comment ); ?>>
+-
+-			<?php
++	;
++echo '
++		<li id="comment-';
++echo $comment->comment_ID; ;
++echo '" ';
++comment_class( array( 'comment-item', wp_get_comment_status( $comment ) ), $comment ); ;
++echo '>
++
++			';
+ 			$comment_row_class = '';
+ 
+ 			if ( get_option( 'show_avatars' ) ) {
+ 				echo get_avatar( $comment, 50, 'mystery' );
+ 				$comment_row_class .= ' has-avatar';
+ 			}
+-			?>
+-
+-			<?php if ( ! $comment->comment_type || 'comment' === $comment->comment_type ) : ?>
+-
+-			<div class="dashboard-comment-wrap has-row-actions <?php echo $comment_row_class; ?>">
++			;
++echo '
++			';
++if ( ! $comment->comment_type || 'comment' === $comment->comment_type ) : ;
++echo '
++			<div class="dashboard-comment-wrap has-row-actions ';
++echo $comment_row_class; ;
++echo '">
+ 			<p class="comment-meta">
+-				<?php
++				';
+ 				// Comments might not have a post they relate to, e.g. programmatically created ones.
+ 				if ( $comment_post_link ) {
+ 					printf(
+@@ -878,10 +916,10 @@
+ 						'<span class="approve">' . __( '[Pending]' ) . '</span>'
+ 					);
+ 				}
+-				?>
+-			</p>
+-
+-				<?php
++				;
++echo '			</p>
++
++				';
+ 			else :
+ 				switch ( $comment->comment_type ) {
+ 					case 'pingback':
+@@ -894,10 +932,10 @@
+ 						$type = ucwords( $comment->comment_type );
+ 				}
+ 				$type = esc_html( $type );
+-				?>
+-			<div class="dashboard-comment-wrap has-row-actions">
++				;
++echo '			<div class="dashboard-comment-wrap has-row-actions">
+ 			<p class="comment-meta">
+-				<?php
++				';
+ 				// Pingbacks, Trackbacks or custom comment types might not have a post they relate to, e.g. programmatically created ones.
+ 				if ( $comment_post_link ) {
+ 					printf(
+@@ -915,18 +953,27 @@
+ 						'<span class="approve">' . __( '[Pending]' ) . '</span>'
+ 					);
+ 				}
+-				?>
+-			</p>
+-			<p class="comment-author"><?php comment_author_link( $comment ); ?></p>
+-
+-			<?php endif; // comment_type ?>
+-			<blockquote><p><?php comment_excerpt( $comment ); ?></p></blockquote>
+-			<?php if ( $actions_string ) : ?>
+-			<p class="row-actions"><?php echo $actions_string; ?></p>
+-			<?php endif; ?>
+-			</div>
++				;
++echo '			</p>
++			<p class="comment-author">';
++comment_author_link( $comment ); ;
++echo '</p>
++
++			';
++endif; // comment_type ;
++echo '			<blockquote><p>';
++comment_excerpt( $comment ); ;
++echo '</p></blockquote>
++			';
++if ( $actions_string ) : ;
++echo '			<p class="row-actions">';
++echo $actions_string; ;
++echo '</p>
++			';
++endif; ;
++echo '			</div>
+ 		</li>
+-	<?php
++	';
+ 	$GLOBALS['comment'] = null;
+ }
+ 
+@@ -1318,14 +1365,15 @@
+ function wp_dashboard_events_news() {
+ 	wp_print_community_events_markup();
+ 
+-	?>
+-
++	;
++echo '
+ 	<div class="wordpress-news hide-if-no-js">
+-		<?php wp_dashboard_primary(); ?>
+-	</div>
++		';
++wp_dashboard_primary(); ;
++echo '	</div>
+ 
+ 	<p class="community-events-footer">
+-		<?php
++		';
+ 			printf(
+ 				'<a href="%1$s" target="_blank">%2$s <span class="screen-reader-text"> %3$s</span><span aria-hidden="true" class="dashicons dashicons-external"></span></a>',
+ 				'https://make.wordpress.org/community/meetups-landing-page',
+@@ -1333,11 +1381,11 @@
+ 				/* translators: Hidden accessibility text. */
+ 				__( '(opens in a new tab)' )
+ 			);
+-		?>
+-
++		;
++echo '
+ 		|
+ 
+-		<?php
++		';
+ 			printf(
+ 				'<a href="%1$s" target="_blank">%2$s <span class="screen-reader-text"> %3$s</span><span aria-hidden="true" class="dashicons dashicons-external"></span></a>',
+ 				'https://central.wordcamp.org/schedule/',
+@@ -1345,11 +1393,11 @@
+ 				/* translators: Hidden accessibility text. */
+ 				__( '(opens in a new tab)' )
+ 			);
+-		?>
+-
++		;
++echo '
+ 		|
+ 
+-		<?php
++		';
+ 			printf(
+ 				'<a href="%1$s" target="_blank">%2$s <span class="screen-reader-text"> %3$s</span><span aria-hidden="true" class="dashicons dashicons-external"></span></a>',
+ 				/* translators: If a Rosetta site exists (e.g. https://es.wordpress.org/news/), then use that. Otherwise, leave untranslated. */
+@@ -1358,10 +1406,10 @@
+ 				/* translators: Hidden accessibility text. */
+ 				__( '(opens in a new tab)' )
+ 			);
+-		?>
+-	</p>
+-
+-	<?php
++		;
++echo '	</p>
++
++	';
+ }
+ 
+ /**
+@@ -1387,23 +1435,28 @@
+ 	 * Hide the main element when the page first loads, because the content
+ 	 * won't be ready until wp.communityEvents.renderEventsTemplate() has run.
+ 	 */
+-	?>
+-	<div id="community-events" class="community-events" aria-hidden="true">
++	;
++echo '	<div id="community-events" class="community-events" aria-hidden="true">
+ 		<div class="activity-block">
+ 			<p>
+ 				<span id="community-events-location-message"></span>
+ 
+ 				<button class="button-link community-events-toggle-location" aria-expanded="false">
+ 					<span class="dashicons dashicons-location" aria-hidden="true"></span>
+-					<span class="community-events-location-edit"><?php _e( 'Select location' ); ?></span>
++					<span class="community-events-location-edit">';
++_e( 'Select location' ); ;
++echo '</span>
+ 				</button>
+ 			</p>
+ 
+-			<form class="community-events-form" aria-hidden="true" action="<?php echo esc_url( admin_url( 'admin-ajax.php' ) ); ?>" method="post">
++			<form class="community-events-form" aria-hidden="true" action="';
++echo esc_url( admin_url( 'admin-ajax.php' ) ); ;
++echo '" method="post">
+ 				<label for="community-events-location">
+-					<?php _e( 'City:' ); ?>
+-				</label>
+-				<?php
++					';
++_e( 'City:' ); ;
++echo '				</label>
++				';
+ 				/* translators: Replace with a city related to your locale.
+ 				 * Test that it matches the expected location and has upcoming
+ 				 * events before including it. If no cities related to your
+@@ -1412,14 +1465,18 @@
+ 				 * name itself, without any region or country. Use the endonym
+ 				 * (native locale name) instead of the English name if possible.
+ 				 */
+-				?>
+-				<input id="community-events-location" class="regular-text" type="text" name="community-events-location" placeholder="<?php esc_attr_e( 'Cincinnati' ); ?>" />
+-
+-				<?php submit_button( __( 'Submit' ), 'secondary', 'community-events-submit', false ); ?>
+-
++				;
++echo '				<input id="community-events-location" class="regular-text" type="text" name="community-events-location" placeholder="';
++esc_attr_e( 'Cincinnati' ); ;
++echo '" />
++
++				';
++submit_button( __( 'Submit' ), 'secondary', 'community-events-submit', false ); ;
++echo '
+ 				<button class="community-events-cancel button-link" type="button" aria-expanded="false">
+-					<?php _e( 'Cancel' ); ?>
+-				</button>
++					';
++_e( 'Cancel' ); ;
++echo '				</button>
+ 
+ 				<span class="spinner"></span>
+ 			</form>
+@@ -1428,7 +1485,7 @@
+ 		<ul class="community-events-results activity-block last"></ul>
+ 	</div>
+ 
+-	<?php
++	';
+ }
+ 
+ /**
+@@ -1437,20 +1494,20 @@
+  * @since 4.8.0
+  */
+ function wp_print_community_events_templates() {
+-	?>
+-
++	;
++echo '
+ 	<script id="tmpl-community-events-attend-event-near" type="text/template">
+-		<?php
++		';
+ 		printf(
+ 			/* translators: %s: The name of a city. */
+ 			__( 'Attend an upcoming event near %s.' ),
+ 			'<strong>{{ data.location.description }}</strong>'
+ 		);
+-		?>
+-	</script>
++		;
++echo '	</script>
+ 
+ 	<script id="tmpl-community-events-could-not-locate" type="text/template">
+-		<?php
++		';
+ 		printf(
+ 			/* translators: %s is the name of the city we couldn't locate.
+ 			 * Replace the examples with cities in your locale, but test
+@@ -1460,8 +1517,8 @@
+ 			__( '%s could not be located. Please try another nearby city. For example: Kansas City; Springfield; Portland.' ),
+ 			'<em>{{data.unknownCity}}</em>'
+ 		);
+-		?>
+-	</script>
++		;
++echo '	</script>
+ 
+ 	<script id="tmpl-community-events-event-list" type="text/template">
+ 		<# _.each( data.events, function( event ) { #>
+@@ -1472,11 +1529,11 @@
+ 						<a class="event-title" href="{{ event.url }}">{{ event.title }}</a>
+ 						<# if ( event.type ) {
+ 							const titleCaseEventType = event.type.replace(
+-								/\w\S*/g,
++								/\\w\\S*/g,
+ 								function ( type ) { return type.charAt(0).toUpperCase() + type.substr(1).toLowerCase(); }
+ 							);
+ 						#>
+-							{{ 'wordcamp' === event.type ? 'WordCamp' : titleCaseEventType }}
++							{{ \'wordcamp\' === event.type ? \'WordCamp\' : titleCaseEventType }}
+ 							<span class="ce-separator" aria-hidden="true"></span>
+ 						<# } #>
+ 						<span class="event-city">{{ event.location.location }}</span>
+@@ -1485,7 +1542,7 @@
+ 
+ 				<div class="event-date-time">
+ 					<span class="event-date">{{ event.user_formatted_date }}</span>
+-					<# if ( 'meetup' === event.type ) { #>
++					<# if ( \'meetup\' === event.type ) { #>
+ 						<span class="event-time">
+ 							{{ event.user_formatted_time }} {{ event.timeZoneAbbreviation }}
+ 						</span>
+@@ -1496,14 +1553,14 @@
+ 
+ 		<# if ( data.events.length <= 2 ) { #>
+ 			<li class="event-none">
+-				<?php
++				';
+ 				printf(
+ 					/* translators: %s: Localized meetup organization documentation URL. */
+ 					__( 'Want more events? <a href="%s">Help organize the next one</a>!' ),
+ 					__( 'https://make.wordpress.org/community/organize-event-landing-page/' )
+ 				);
+-				?>
+-			</li>
++				;
++echo '			</li>
+ 		<# } #>
+ 
+ 	</script>
+@@ -1511,27 +1568,27 @@
+ 	<script id="tmpl-community-events-no-upcoming-events" type="text/template">
+ 		<li class="event-none">
+ 			<# if ( data.location.description ) { #>
+-				<?php
++				';
+ 				printf(
+ 					/* translators: 1: The city the user searched for, 2: Meetup organization documentation URL. */
+ 					__( 'There are no events scheduled near %1$s at the moment. Would you like to <a href="%2$s">organize a WordPress event</a>?' ),
+ 					'{{ data.location.description }}',
+ 					__( 'https://make.wordpress.org/community/handbook/meetup-organizer/welcome/' )
+ 				);
+-				?>
+-
++				;
++echo '
+ 			<# } else { #>
+-				<?php
++				';
+ 				printf(
+ 					/* translators: %s: Meetup organization documentation URL. */
+ 					__( 'There are no events scheduled near you at the moment. Would you like to <a href="%s">organize a WordPress event</a>?' ),
+ 					__( 'https://make.wordpress.org/community/handbook/meetup-organizer/welcome/' )
+ 				);
+-				?>
+-			<# } #>
++				;
++echo '			<# } #>
+ 		</li>
+ 	</script>
+-	<?php
++	';
+ }
+ 
+ /**
+@@ -1676,12 +1733,14 @@
+ 	$used        = round( $used, 2 );
+ 	$percentused = number_format( $percentused );
+ 
+-	?>
+-	<h3 class="mu-storage"><?php _e( 'Storage Space' ); ?></h3>
++	;
++echo '	<h3 class="mu-storage">';
++_e( 'Storage Space' ); ;
++echo '</h3>
+ 	<div class="mu-storage">
+ 	<ul>
+ 		<li class="storage-count">
+-			<?php
++			';
+ 			$text = sprintf(
+ 				/* translators: %s: Number of megabytes. */
+ 				__( '%s MB Space Allowed' ),
+@@ -1694,9 +1753,11 @@
+ 				/* translators: Hidden accessibility text. */
+ 				__( 'Manage Uploads' )
+ 			);
+-			?>
+-		</li><li class="storage-count <?php echo $used_class; ?>">
+-			<?php
++			;
++echo '		</li><li class="storage-count ';
++echo $used_class; ;
++echo '">
++			';
+ 			$text = sprintf(
+ 				/* translators: 1: Number of megabytes, 2: Percentage. */
+ 				__( '%1$s MB (%2$s%%) Space Used' ),
+@@ -1710,11 +1771,11 @@
+ 				/* translators: Hidden accessibility text. */
+ 				__( 'Manage Uploads' )
+ 			);
+-			?>
+-		</li>
++			;
++echo '		</li>
+ 	</ul>
+ 	</div>
+-	<?php
++	';
+ 	return null;
+ }
+ 
+@@ -1913,13 +1974,18 @@
+ 			PHP_VERSION
+ 		);
+ 	}
+-	?>
+-	<p class="bigger-bolder-text"><?php echo $message; ?></p>
+-
+-	<p><?php _e( 'What is PHP and how does it affect my site?' ); ?></p>
++	;
++echo '	<p class="bigger-bolder-text">';
++echo $message; ;
++echo '</p>
++
++	<p>';
++_e( 'What is PHP and how does it affect my site?' ); ;
++echo '</p>
+ 	<p>
+-		<?php _e( 'PHP is one of the programming languages used to build WordPress. Newer versions of PHP receive regular security updates and may increase your site&#8217;s performance.' ); ?>
+-		<?php
++		';
++_e( 'PHP is one of the programming languages used to build WordPress. Newer versions of PHP receive regular security updates and may increase your site&#8217;s performance.' ); ;
++echo '		';
+ 		if ( ! empty( $response['recommended_version'] ) ) {
+ 			printf(
+ 				/* translators: %s: The minimum recommended PHP version. */
+@@ -1927,11 +1993,11 @@
+ 				$response['recommended_version']
+ 			);
+ 		}
+-		?>
+-	</p>
++		;
++echo '	</p>
+ 
+ 	<p class="button-container">
+-		<?php
++		';
+ 		printf(
+ 			'<a class="button button-primary" href="%1$s" target="_blank">%2$s<span class="screen-reader-text"> %3$s</span><span aria-hidden="true" class="dashicons dashicons-external"></span></a>',
+ 			esc_url( wp_get_update_php_url() ),
+@@ -1939,9 +2005,9 @@
+ 			/* translators: Hidden accessibility text. */
+ 			__( '(opens in a new tab)' )
+ 		);
+-		?>
+-	</p>
+-	<?php
++		;
++echo '	</p>
++	';
+ 
+ 	wp_update_php_annotation();
+ 	wp_direct_php_update_button();
+@@ -1994,8 +2060,8 @@
+ 	}
+ 
+ 	$issues_total = $issue_counts['recommended'] + $issue_counts['critical'];
+-	?>
+-	<div class="health-check-widget">
++	;
++echo '	<div class="health-check-widget">
+ 		<div class="health-check-widget-title-section site-health-progress-wrapper loading hide-if-no-js">
+ 			<div class="site-health-progress">
+ 				<svg aria-hidden="true" focusable="false" width="100%" height="100%" viewBox="0 0 200 200" version="1.1" xmlns="http://www.w3.org/2000/svg">
+@@ -2004,44 +2070,64 @@
+ 				</svg>
+ 			</div>
+ 			<div class="site-health-progress-label">
+-				<?php if ( false === $get_issues ) : ?>
+-					<?php _e( 'No information yet&hellip;' ); ?>
+-				<?php else : ?>
+-					<?php _e( 'Results are still loading&hellip;' ); ?>
+-				<?php endif; ?>
+-			</div>
++				';
++if ( false === $get_issues ) : ;
++echo '					';
++_e( 'No information yet&hellip;' ); ;
++echo '				';
++else : ;
++echo '					';
++_e( 'Results are still loading&hellip;' ); ;
++echo '				';
++endif; ;
++echo '			</div>
+ 		</div>
+ 
+ 		<div class="site-health-details">
+-			<?php if ( false === $get_issues ) : ?>
+-				<p>
+-					<?php
++			';
++if ( false === $get_issues ) : ;
++echo '				<p>
++					';
+ 					printf(
+ 						/* translators: %s: URL to Site Health screen. */
+ 						__( 'Site health checks will automatically run periodically to gather information about your site. You can also <a href="%s">visit the Site Health screen</a> to gather information about your site now.' ),
+ 						esc_url( admin_url( 'site-health.php' ) )
+ 					);
+-					?>
+-				</p>
+-			<?php else : ?>
+-				<p>
+-					<?php if ( $issues_total <= 0 ) : ?>
+-						<?php _e( 'Great job! Your site currently passes all site health checks.' ); ?>
+-					<?php elseif ( 1 === (int) $issue_counts['critical'] ) : ?>
+-						<?php _e( 'Your site has a critical issue that should be addressed as soon as possible to improve its performance and security.' ); ?>
+-					<?php elseif ( $issue_counts['critical'] > 1 ) : ?>
+-						<?php _e( 'Your site has critical issues that should be addressed as soon as possible to improve its performance and security.' ); ?>
+-					<?php elseif ( 1 === (int) $issue_counts['recommended'] ) : ?>
+-						<?php _e( 'Your site&#8217;s health is looking good, but there is still one thing you can do to improve its performance and security.' ); ?>
+-					<?php else : ?>
+-						<?php _e( 'Your site&#8217;s health is looking good, but there are still some things you can do to improve its performance and security.' ); ?>
+-					<?php endif; ?>
+-				</p>
+-			<?php endif; ?>
+-
+-			<?php if ( $issues_total > 0 && false !== $get_issues ) : ?>
+-				<p>
+-					<?php
++					;
++echo '				</p>
++			';
++else : ;
++echo '				<p>
++					';
++if ( $issues_total <= 0 ) : ;
++echo '						';
++_e( 'Great job! Your site currently passes all site health checks.' ); ;
++echo '					';
++elseif ( 1 === (int) $issue_counts['critical'] ) : ;
++echo '						';
++_e( 'Your site has a critical issue that should be addressed as soon as possible to improve its performance and security.' ); ;
++echo '					';
++elseif ( $issue_counts['critical'] > 1 ) : ;
++echo '						';
++_e( 'Your site has critical issues that should be addressed as soon as possible to improve its performance and security.' ); ;
++echo '					';
++elseif ( 1 === (int) $issue_counts['recommended'] ) : ;
++echo '						';
++_e( 'Your site&#8217;s health is looking good, but there is still one thing you can do to improve its performance and security.' ); ;
++echo '					';
++else : ;
++echo '						';
++_e( 'Your site&#8217;s health is looking good, but there are still some things you can do to improve its performance and security.' ); ;
++echo '					';
++endif; ;
++echo '				</p>
++			';
++endif; ;
++echo '
++			';
++if ( $issues_total > 0 && false !== $get_issues ) : ;
++echo '				<p>
++					';
+ 					printf(
+ 						/* translators: 1: Number of issues. 2: URL to Site Health screen. */
+ 						_n(
+@@ -2052,13 +2138,14 @@
+ 						$issues_total,
+ 						esc_url( admin_url( 'site-health.php' ) )
+ 					);
+-					?>
+-				</p>
+-			<?php endif; ?>
+-		</div>
++					;
++echo '				</p>
++			';
++endif; ;
++echo '		</div>
+ 	</div>
+ 
+-	<?php
++	';
+ }
+ 
+ /**
+@@ -2080,21 +2167,26 @@
+ 	list( $display_version ) = explode( '-', wp_get_wp_version() );
+ 	$can_customize           = current_user_can( 'customize' );
+ 	$is_block_theme          = wp_is_block_theme();
+-	?>
+-	<div class="welcome-panel-content">
++	;
++echo '	<div class="welcome-panel-content">
+ 	<div class="welcome-panel-header-wrap">
+ 		<div class="welcome-panel-header">
+ 			<div class="welcome-panel-header-image">
+-				<?php echo file_get_contents( dirname( __DIR__ ) . '/images/dashboard-background.svg' ); ?>
+-			</div>
+-			<h2><?php _e( 'Welcome to WordPress!' ); ?></h2>
++				';
++echo file_get_contents( dirname( __DIR__ ) . '/images/dashboard-background.svg' ); ;
++echo '			</div>
++			<h2>';
++_e( 'Welcome to WordPress!' ); ;
++echo '</h2>
+ 			<p>
+-				<a href="<?php echo esc_url( admin_url( 'about.php' ) ); ?>">
+-				<?php
++				<a href="';
++echo esc_url( admin_url( 'about.php' ) ); ;
++echo '">
++				';
+ 					/* translators: %s: Current WordPress version. */
+ 					printf( __( 'Learn more about the %s version.' ), esc_html( $display_version ) );
+-				?>
+-				</a>
++				;
++echo '				</a>
+ 			</p>
+ 		</div>
+ 	</div>
+@@ -2105,9 +2197,17 @@
+ 				<path fill-rule="evenodd" clip-rule="evenodd" d="M32.0668 17.0854L28.8221 13.9454L18.2008 24.671L16.8983 29.0827L21.4257 27.8309L32.0668 17.0854ZM16 32.75H24V31.25H16V32.75Z" fill="white"/>
+ 			</svg>
+ 			<div class="welcome-panel-column-content">
+-				<h3><?php _e( 'Author rich content with blocks and patterns' ); ?></h3>
+-				<p><?php _e( 'Block patterns are pre-configured block layouts. Use them to get inspired or create new pages in a flash.' ); ?></p>
+-				<a href="<?php echo esc_url( admin_url( 'post-new.php?post_type=page' ) ); ?>"><?php _e( 'Add a new page' ); ?></a>
++				<h3>';
++_e( 'Author rich content with blocks and patterns' ); ;
++echo '</h3>
++				<p>';
++_e( 'Block patterns are pre-configured block layouts. Use them to get inspired or create new pages in a flash.' ); ;
++echo '</p>
++				<a href="';
++echo esc_url( admin_url( 'post-new.php?post_type=page' ) ); ;
++echo '">';
++_e( 'Add a new page' ); ;
++echo '</a>
+ 			</div>
+ 		</div>
+ 		<div class="welcome-panel-column">
+@@ -2116,18 +2216,39 @@
+ 				<path fill-rule="evenodd" clip-rule="evenodd" d="M18 16h12a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H18a2 2 0 0 1-2-2V18a2 2 0 0 1 2-2zm12 1.5H18a.5.5 0 0 0-.5.5v3h13v-3a.5.5 0 0 0-.5-.5zm.5 5H22v8h8a.5.5 0 0 0 .5-.5v-7.5zm-10 0h-3V30a.5.5 0 0 0 .5.5h2.5v-8z" fill="#fff"/>
+ 			</svg>
+ 			<div class="welcome-panel-column-content">
+-			<?php if ( $is_block_theme ) : ?>
+-				<h3><?php _e( 'Customize your entire site with block themes' ); ?></h3>
+-				<p><?php _e( 'Design everything on your site &#8212; from the header down to the footer, all using blocks and patterns.' ); ?></p>
+-				<a href="<?php echo esc_url( admin_url( 'site-editor.php' ) ); ?>"><?php _e( 'Open site editor' ); ?></a>
+-			<?php else : ?>
+-				<h3><?php _e( 'Start Customizing' ); ?></h3>
+-				<p><?php _e( 'Configure your site&#8217;s logo, header, menus, and more in the Customizer.' ); ?></p>
+-				<?php if ( $can_customize ) : ?>
+-					<a class="load-customize hide-if-no-customize" href="<?php echo wp_customize_url(); ?>"><?php _e( 'Open the Customizer' ); ?></a>
+-				<?php endif; ?>
+-			<?php endif; ?>
+-			</div>
++			';
++if ( $is_block_theme ) : ;
++echo '				<h3>';
++_e( 'Customize your entire site with block themes' ); ;
++echo '</h3>
++				<p>';
++_e( 'Design everything on your site &#8212; from the header down to the footer, all using blocks and patterns.' ); ;
++echo '</p>
++				<a href="';
++echo esc_url( admin_url( 'site-editor.php' ) ); ;
++echo '">';
++_e( 'Open site editor' ); ;
++echo '</a>
++			';
++else : ;
++echo '				<h3>';
++_e( 'Start Customizing' ); ;
++echo '</h3>
++				<p>';
++_e( 'Configure your site&#8217;s logo, header, menus, and more in the Customizer.' ); ;
++echo '</p>
++				';
++if ( $can_customize ) : ;
++echo '					<a class="load-customize hide-if-no-customize" href="';
++echo wp_customize_url(); ;
++echo '">';
++_e( 'Open the Customizer' ); ;
++echo '</a>
++				';
++endif; ;
++echo '			';
++endif; ;
++echo '			</div>
+ 		</div>
+ 		<div class="welcome-panel-column">
+ 			<svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
+@@ -2135,18 +2256,37 @@
+ 				<path fill-rule="evenodd" clip-rule="evenodd" d="M31 24a7 7 0 0 1-7 7V17a7 7 0 0 1 7 7zm-7-8a8 8 0 1 1 0 16 8 8 0 0 1 0-16z" fill="#fff"/>
+ 			</svg>
+ 			<div class="welcome-panel-column-content">
+-			<?php if ( $is_block_theme ) : ?>
+-				<h3><?php _e( 'Switch up your site&#8217;s look & feel with Styles' ); ?></h3>
+-				<p><?php _e( 'Tweak your site, or give it a whole new look! Get creative &#8212; how about a new color palette or font?' ); ?></p>
+-				<a href="<?php echo esc_url( add_query_arg( 'p', rawurlencode( '/styles' ), admin_url( 'site-editor.php' ) ) ); ?>"><?php _e( 'Edit styles' ); ?></a>
+-			<?php else : ?>
+-				<h3><?php _e( 'Discover a new way to build your site.' ); ?></h3>
+-				<p><?php _e( 'There is a new kind of WordPress theme, called a block theme, that lets you build the site you&#8217;ve always wanted &#8212; with blocks and styles.' ); ?></p>
+-				<a href="<?php echo esc_url( __( 'https://wordpress.org/documentation/article/block-themes/' ) ); ?>"><?php _e( 'Learn about block themes' ); ?></a>
+-			<?php endif; ?>
+-			</div>
++			';
++if ( $is_block_theme ) : ;
++echo '				<h3>';
++_e( 'Switch up your site&#8217;s look & feel with Styles' ); ;
++echo '</h3>
++				<p>';
++_e( 'Tweak your site, or give it a whole new look! Get creative &#8212; how about a new color palette or font?' ); ;
++echo '</p>
++				<a href="';
++echo esc_url( add_query_arg( 'p', rawurlencode( '/styles' ), admin_url( 'site-editor.php' ) ) ); ;
++echo '">';
++_e( 'Edit styles' ); ;
++echo '</a>
++			';
++else : ;
++echo '				<h3>';
++_e( 'Discover a new way to build your site.' ); ;
++echo '</h3>
++				<p>';
++_e( 'There is a new kind of WordPress theme, called a block theme, that lets you build the site you&#8217;ve always wanted &#8212; with blocks and styles.' ); ;
++echo '</p>
++				<a href="';
++echo esc_url( __( 'https://wordpress.org/documentation/article/block-themes/' ) ); ;
++echo '">';
++_e( 'Learn about block themes' ); ;
++echo '</a>
++			';
++endif; ;
++echo '			</div>
+ 		</div>
+ 	</div>
+ 	</div>
+-	<?php
+-}
++	';
++}

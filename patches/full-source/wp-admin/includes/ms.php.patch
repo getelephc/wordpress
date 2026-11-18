@@ -1,0 +1,421 @@
+--- a/wp-admin/includes/ms.php
++++ b/wp-admin/includes/ms.php
+@@ -259,14 +259,14 @@
+ 	$percent_used = ( $space_used / $space_allowed ) * 100;
+ 
+ 	$space = size_format( $space_allowed * MB_IN_BYTES );
+-	?>
+-	<strong>
+-	<?php
++	;
++echo '	<strong>
++	';
+ 		/* translators: Storage space that's been used. 1: Percentage of used space, 2: Total space allowed in megabytes or gigabytes. */
+ 		printf( __( 'Used: %1$s%% of %2$s' ), number_format( $percent_used ), $space );
+-	?>
+-	</strong>
+-	<?php
++	;
++echo '	</strong>
++	';
+ }
+ 
+ /**
+@@ -301,22 +301,28 @@
+ 		$quota = '';
+ 	}
+ 
+-	?>
+-	<tr>
+-		<th><label for="blog-upload-space-number"><?php _e( 'Site Upload Space Quota' ); ?></label></th>
++	;
++echo '	<tr>
++		<th><label for="blog-upload-space-number">';
++_e( 'Site Upload Space Quota' ); ;
++echo '</label></th>
+ 		<td>
+ 			<input type="number" step="1" min="0" style="width: 100px"
+ 				name="option[blog_upload_space]" id="blog-upload-space-number"
+-				aria-describedby="blog-upload-space-desc" value="<?php echo esc_attr( $quota ); ?>" />
++				aria-describedby="blog-upload-space-desc" value="';
++echo esc_attr( $quota ); ;
++echo '" />
+ 			<span id="blog-upload-space-desc"><span class="screen-reader-text">
+-				<?php
++				';
+ 				/* translators: Hidden accessibility text. */
+ 				_e( 'Size in megabytes' );
+-				?>
+-			</span> <?php _e( 'MB (Leave blank for network default)' ); ?></span>
++				;
++echo '			</span> ';
++_e( 'MB (Leave blank for network default)' ); ;
++echo '</span>
+ 		</td>
+ 	</tr>
+-	<?php
++	';
+ }
+ 
+ /**
+@@ -760,31 +766,40 @@
+  * @since 3.0.0
+  */
+ function choose_primary_blog() {
+-	?>
+-	<table class="form-table" role="presentation">
++	;
++echo '	<table class="form-table" role="presentation">
+ 	<tr>
+-	<?php /* translators: My Sites label. */ ?>
+-		<th scope="row"><label for="primary_blog"><?php _e( 'Primary Site' ); ?></label></th>
++	';
++/* translators: My Sites label. */ ;
++echo '		<th scope="row"><label for="primary_blog">';
++_e( 'Primary Site' ); ;
++echo '</label></th>
+ 		<td>
+-		<?php
++		';
+ 		$all_blogs    = get_blogs_of_user( get_current_user_id() );
+ 		$primary_blog = (int) get_user_meta( get_current_user_id(), 'primary_blog', true );
+ 		if ( count( $all_blogs ) > 1 ) {
+ 			$found = false;
+-			?>
+-			<select name="primary_blog" id="primary_blog">
+-				<?php
++			;
++echo '			<select name="primary_blog" id="primary_blog">
++				';
+ 				foreach ( (array) $all_blogs as $blog ) {
+ 					if ( $blog->userblog_id === $primary_blog ) {
+ 						$found = true;
+ 					}
+-					?>
+-					<option value="<?php echo $blog->userblog_id; ?>"<?php selected( $primary_blog, $blog->userblog_id ); ?>><?php echo esc_url( get_home_url( $blog->userblog_id ) ); ?></option>
+-					<?php
++					;
++echo '					<option value="';
++echo $blog->userblog_id; ;
++echo '"';
++selected( $primary_blog, $blog->userblog_id ); ;
++echo '>';
++echo esc_url( get_home_url( $blog->userblog_id ) ); ;
++echo '</option>
++					';
+ 				}
+-				?>
+-			</select>
+-			<?php
++				;
++echo '			</select>
++			';
+ 			if ( ! $found ) {
+ 				$blog = reset( $all_blogs );
+ 				update_user_meta( get_current_user_id(), 'primary_blog', $blog->userblog_id );
+@@ -798,11 +813,11 @@
+ 		} else {
+ 			_e( 'Not available' );
+ 		}
+-		?>
+-		</td>
++		;
++echo '		</td>
+ 	</tr>
+ 	</table>
+-	<?php
++	';
+ }
+ 
+ /**
+@@ -842,11 +857,13 @@
+  * @access private
+  */
+ function _thickbox_path_admin_subfolder() {
+-	?>
+-<script>
+-var tb_pathToImage = "<?php echo esc_js( includes_url( 'js/thickbox/loadingAnimation.gif', 'relative' ) ); ?>";
++	;
++echo '<script>
++var tb_pathToImage = "';
++echo esc_js( includes_url( 'js/thickbox/loadingAnimation.gif', 'relative' ) ); ;
++echo '";
+ </script>
+-	<?php
++	';
+ }
+ 
+ /**
+@@ -863,23 +880,32 @@
+ 		return false;
+ 	}
+ 
+-	?>
+-	<h1><?php esc_html_e( 'Delete Users' ); ?></h1>
+-
+-	<?php if ( 1 === count( $users ) ) : ?>
+-		<p><?php _e( 'You have chosen to delete the user from all networks and sites.' ); ?></p>
+-	<?php else : ?>
+-		<p><?php _e( 'You have chosen to delete the following users from all networks and sites.' ); ?></p>
+-	<?php endif; ?>
+-
++	;
++echo '	<h1>';
++esc_html_e( 'Delete Users' ); ;
++echo '</h1>
++
++	';
++if ( 1 === count( $users ) ) : ;
++echo '		<p>';
++_e( 'You have chosen to delete the user from all networks and sites.' ); ;
++echo '</p>
++	';
++else : ;
++echo '		<p>';
++_e( 'You have chosen to delete the following users from all networks and sites.' ); ;
++echo '</p>
++	';
++endif; ;
++echo '
+ 	<form action="users.php?action=dodelete" method="post" class="delete-and-reassign-users-form">
+ 	<input type="hidden" name="dodelete" />
+-	<?php
++	';
+ 	wp_nonce_field( 'ms-users-delete' );
+ 	$site_admins = get_super_admins();
+-	?>
+-	<table class="form-table" role="presentation">
+-	<?php
++	;
++echo '	<table class="form-table" role="presentation">
++	';
+ 	foreach ( $users as $user_id ) {
+ 		if ( '' !== $user_id && '0' !== $user_id ) {
+ 			$delete_user = get_userdata( $user_id );
+@@ -904,27 +930,29 @@
+ 				);
+ 			}
+ 
+-			?>
+-			<tr>
+-				<th scope="row"><?php echo esc_html( $delete_user->user_login ); ?>
+-					<?php echo '<input type="hidden" name="user[]" value="' . esc_attr( $user_id ) . '" />' . "\n"; ?>
+-				</th>
+-			<?php
++			;
++echo '			<tr>
++				<th scope="row">';
++echo esc_html( $delete_user->user_login ); ;
++echo '					';
++echo '<input type="hidden" name="user[]" value="' . esc_attr( $user_id ) . '" />' . "\n"; ;
++echo '				</th>
++			';
+ 			$blogs = get_blogs_of_user( $user_id, true );
+ 
+ 			if ( ! empty( $blogs ) ) {
+-				?>
+-				<td><fieldset><legend>
+-				<?php
++				;
++echo '				<td><fieldset><legend>
++				';
+ 				printf(
+ 					/* translators: 1: User login, 2: User ID. */
+ 					__( '%1$s (ID #%2$s): What should be done with the content owned by this user?' ),
+ 					'<strong>' . esc_html( $delete_user->user_login ) . '</strong>',
+ 					$user_id
+ 				);
+-				?>
+-				</legend>
+-				<?php
++				;
++echo '				</legend>
++				';
+ 				foreach ( (array) $blogs as $key => $details ) {
+ 					$blog_users = get_users(
+ 						array(
+@@ -966,36 +994,62 @@
+ 						restore_current_blog();
+ 
+ 						if ( ! $user_has_content ) {
+-							?>
+-							<p>
+-							<?php
++							;
++echo '							<p>
++							';
+ 							/* translators: %s: Link to user's site. */
+ 							printf( __( 'Site: %s' ), $user_site );
+-							?>
+-							</p>
+-							<input type="hidden" id="delete_option_<?php echo esc_attr( $details->userblog_id . '_' . $delete_user->ID ); ?>" name="delete[<?php echo $details->userblog_id . '][' . $delete_user->ID; ?>]" value="delete" required />
+-							<p><?php _e( 'This user does not have any content.' ); ?></p>
+-							<?php
++							;
++echo '							</p>
++							<input type="hidden" id="delete_option_';
++echo esc_attr( $details->userblog_id . '_' . $delete_user->ID ); ;
++echo '" name="delete[';
++echo $details->userblog_id . '][' . $delete_user->ID; ;
++echo ']" value="delete" required />
++							<p>';
++_e( 'This user does not have any content.' ); ;
++echo '</p>
++							';
+ 						} else {
+-							?>
+-							<fieldset>
++							;
++echo '							<fieldset>
+ 								<legend>
+-								<?php
++								';
+ 								/* translators: %s: Link to user's site. */
+ 								printf( __( 'Site: %s' ), $user_site );
+-								?>
+-								</legend>
++								;
++echo '								</legend>
+ 								<ul>
+ 									<li>
+-										<input type="radio" id="delete_option_<?php echo esc_attr( $details->userblog_id . '_' . $delete_user->ID ); ?>" name="delete[<?php echo $details->userblog_id . '][' . $delete_user->ID; ?>]" value="delete" required />
+-										<label for="delete_option_<?php echo esc_attr( $details->userblog_id . '_' . $delete_user->ID ); ?>"><?php _e( 'Delete all content.' ); ?></label>
++										<input type="radio" id="delete_option_';
++echo esc_attr( $details->userblog_id . '_' . $delete_user->ID ); ;
++echo '" name="delete[';
++echo $details->userblog_id . '][' . $delete_user->ID; ;
++echo ']" value="delete" required />
++										<label for="delete_option_';
++echo esc_attr( $details->userblog_id . '_' . $delete_user->ID ); ;
++echo '">';
++_e( 'Delete all content.' ); ;
++echo '</label>
+ 									</li>
+ 									<li>
+-										<input type="radio" id="reassign_option_<?php echo esc_attr( $details->userblog_id . '_' . $delete_user->ID ); ?>" name="delete[<?php echo $details->userblog_id . '][' . $delete_user->ID; ?>]" value="reassign" required />
+-										<label for="reassign_option_<?php echo esc_attr( $details->userblog_id . '_' . $delete_user->ID ); ?>"><?php _e( 'Attribute all content to another user.' ); ?></label>
+-
+-										<label for="reassign_user_<?php echo esc_attr( $details->userblog_id . '_' . $delete_user->ID ); ?>" class="screen-reader-text"><?php _e( 'Select a user to attribute the content to.' ); ?></label>
+-										<?php
++										<input type="radio" id="reassign_option_';
++echo esc_attr( $details->userblog_id . '_' . $delete_user->ID ); ;
++echo '" name="delete[';
++echo $details->userblog_id . '][' . $delete_user->ID; ;
++echo ']" value="reassign" required />
++										<label for="reassign_option_';
++echo esc_attr( $details->userblog_id . '_' . $delete_user->ID ); ;
++echo '">';
++_e( 'Attribute all content to another user.' ); ;
++echo '</label>
++
++										<label for="reassign_user_';
++echo esc_attr( $details->userblog_id . '_' . $delete_user->ID ); ;
++echo '" class="screen-reader-text">';
++_e( 'Select a user to attribute the content to.' ); ;
++echo '</label>
++										';
+ 										wp_dropdown_users(
+ 											array(
+ 												'show_option_none' => __( 'Select a user' ),
+@@ -1006,43 +1060,51 @@
+ 												'blog_id' => $details->userblog_id,
+ 											)
+ 										);
+-										?>
+-
++										;
++echo '
+ 									</li>
+ 								</ul>
+ 							</fieldset>
+-							<?php
++							';
+ 						}
+ 					}
+ 				}
+ 				echo '</fieldset></td></tr>';
+ 			} else {
+-				?>
+-				<td><p><?php _e( 'User has no sites or content and will be deleted.' ); ?></p></td>
+-			<?php } ?>
+-			</tr>
+-			<?php
++				;
++echo '				<td><p>';
++_e( 'User has no sites or content and will be deleted.' ); ;
++echo '</p></td>
++			';
++} ;
++echo '			</tr>
++			';
+ 		}
+ 	}
+ 
+-	?>
+-	</table>
+-	<?php
++	;
++echo '	</table>
++	';
+ 	/** This action is documented in wp-admin/users.php */
+ 	do_action( 'delete_user_form', $current_user, $users );
+ 
+ 	if ( 1 === count( $users ) ) :
+-		?>
+-		<p><?php _e( 'Once you hit &#8220;Confirm Deletion&#8221;, the user will be permanently removed.' ); ?></p>
+-	<?php else : ?>
+-		<p><?php _e( 'Once you hit &#8220;Confirm Deletion&#8221;, these users will be permanently removed.' ); ?></p>
+-		<?php
++		;
++echo '		<p>';
++_e( 'Once you hit &#8220;Confirm Deletion&#8221;, the user will be permanently removed.' ); ;
++echo '</p>
++	';
++else : ;
++echo '		<p>';
++_e( 'Once you hit &#8220;Confirm Deletion&#8221;, these users will be permanently removed.' ); ;
++echo '</p>
++		';
+ 	endif;
+ 
+ 	submit_button( __( 'Confirm Deletion' ), 'primary', 'submit', false, array( 'id' => 'confirm-users-deletion' ) );
+-	?>
+-	</form>
+-	<?php
++	;
++echo '	</form>
++	';
+ 	return true;
+ }
+ 
+@@ -1052,22 +1114,22 @@
+  * @since 4.1.0
+  */
+ function network_settings_add_js() {
+-	?>
+-<script>
++	;
++echo '<script>
+ jQuery( function($) {
+-	var languageSelect = $( '#WPLANG' );
+-	$( 'form' ).on( 'submit', function() {
++	var languageSelect = $( \'#WPLANG\' );
++	$( \'form\' ).on( \'submit\', function() {
+ 		/*
+-		 * Don't show a spinner for English and installed languages,
++		 * Don\'t show a spinner for English and installed languages,
+ 		 * as there is nothing to download.
+ 		 */
+-		if ( ! languageSelect.find( 'option:selected' ).data( 'installed' ) ) {
+-			$( '#submit', this ).after( '<span class="spinner language-install-spinner is-active" />' );
++		if ( ! languageSelect.find( \'option:selected\' ).data( \'installed\' ) ) {
++			$( \'#submit\', this ).after( \'<span class="spinner language-install-spinner is-active" />\' );
+ 		}
+ 	});
+ } );
+ </script>
+-	<?php
++	';
+ }
+ 
+ /**

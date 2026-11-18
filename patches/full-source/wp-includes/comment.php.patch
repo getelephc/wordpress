@@ -1,0 +1,27 @@
+--- a/wp-includes/comment.php
++++ b/wp-includes/comment.php
+@@ -1013,10 +1013,10 @@
+ 			$type = 'comment';
+ 		}
+ 
+-		$comments_by_type[ $type ][] = &$comments[ $i ];
++		$comments_by_type[ $type ][] = $comments[ $i ];
+ 
+ 		if ( 'trackback' === $type || 'pingback' === $type ) {
+-			$comments_by_type['pings'][] = &$comments[ $i ];
++			$comments_by_type['pings'][] = $comments[ $i ];
+ 		}
+ 	}
+ 
+@@ -3575,7 +3575,10 @@
+ 	 * @param string[] $pung       Array of link URLs already pinged (passed by reference).
+ 	 * @param int      $post_id    The post ID.
+ 	 */
+-	do_action_ref_array( 'pre_ping', array( &$post_links, &$pung, $post->ID ) );
++	if ( has_action( 'pre_ping' ) || has_action( 'all' ) ) {
++		throw new RuntimeException( 'Pingback reference callbacks are outside the finite fixture.' );
++	}
++	do_action( 'pre_ping', $post_links, $pung, $post->ID );
+ 
+ 	foreach ( (array) $post_links as $pagelinkedto ) {
+ 		$pingback_server_url = discover_pingback_server_uri( $pagelinkedto );

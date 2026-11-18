@@ -1,0 +1,36 @@
+--- a/wp-includes/php-ai-client/autoload.php
++++ b/wp-includes/php-ai-client/autoload.php
+@@ -27,7 +27,15 @@
+ 			$relative_class = substr( $class_name, $client_prefix_len );
+ 			$file           = $base_dir . '/src/' . str_replace( '\\', '/', $relative_class ) . '.php';
+ 			if ( file_exists( $file ) ) {
+-				require $file;
++				switch ( $file ) {
++					case __DIR__ . '/src/Providers/Http/Contracts/ClientWithOptionsInterface.php': require __DIR__ . '/src/Providers/Http/Contracts/ClientWithOptionsInterface.php'; break;
++					case __DIR__ . '/src/Providers/Http/Abstracts/AbstractClientDiscoveryStrategy.php': require __DIR__ . '/src/Providers/Http/Abstracts/AbstractClientDiscoveryStrategy.php'; break;
++					case __DIR__ . '/src/AiClient.php': require __DIR__ . '/src/AiClient.php'; break;
++					case __DIR__ . '/src/Providers/ProviderRegistry.php': require __DIR__ . '/src/Providers/ProviderRegistry.php'; break;
++					case __DIR__ . '/src/Providers/Http/Traits/WithHttpTransporterTrait.php': require __DIR__ . '/src/Providers/Http/Traits/WithHttpTransporterTrait.php'; break;
++					case __DIR__ . '/src/Providers/Http/Contracts/WithHttpTransporterInterface.php': require __DIR__ . '/src/Providers/Http/Contracts/WithHttpTransporterInterface.php'; break;
++					default: throw new \RuntimeException( 'AI client class is outside the finite source manifest: ' . $class_name );
++				}
+ 			}
+ 			return;
+ 		}
+@@ -37,7 +45,15 @@
+ 			$relative_class = substr( $class_name, $scoped_prefix_len );
+ 			$file           = $base_dir . '/third-party/' . str_replace( '\\', '/', $relative_class ) . '.php';
+ 			if ( file_exists( $file ) ) {
+-				require $file;
++				switch ( $file ) {
++					case __DIR__ . '/third-party/Psr/Http/Client/ClientInterface.php': require __DIR__ . '/third-party/Psr/Http/Client/ClientInterface.php'; break;
++					case __DIR__ . '/third-party/Psr/SimpleCache/CacheInterface.php': require __DIR__ . '/third-party/Psr/SimpleCache/CacheInterface.php'; break;
++					case __DIR__ . '/third-party/Http/Discovery/Strategy/DiscoveryStrategy.php': require __DIR__ . '/third-party/Http/Discovery/Strategy/DiscoveryStrategy.php'; break;
++					case __DIR__ . '/third-party/Psr/EventDispatcher/EventDispatcherInterface.php': require __DIR__ . '/third-party/Psr/EventDispatcher/EventDispatcherInterface.php'; break;
++					case __DIR__ . '/third-party/Http/Discovery/Psr18ClientDiscovery.php': require __DIR__ . '/third-party/Http/Discovery/Psr18ClientDiscovery.php'; break;
++					case __DIR__ . '/third-party/Http/Discovery/ClassDiscovery.php': require __DIR__ . '/third-party/Http/Discovery/ClassDiscovery.php'; break;
++					default: throw new \RuntimeException( 'AI client class is outside the finite source manifest: ' . $class_name );
++				}
+ 			}
+ 			return;
+ 		}

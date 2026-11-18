@@ -1,0 +1,745 @@
+--- a/wp-admin/includes/nav-menu.php
++++ b/wp-admin/includes/nav-menu.php
+@@ -359,38 +359,55 @@
+ 
+ 	$_nav_menu_placeholder = 0 > $_nav_menu_placeholder ? $_nav_menu_placeholder - 1 : -1;
+ 
+-	?>
+-	<div class="customlinkdiv" id="customlinkdiv">
+-		<input type="hidden" value="custom" name="menu-item[<?php echo $_nav_menu_placeholder; ?>][menu-item-type]" />
++	;
++echo '	<div class="customlinkdiv" id="customlinkdiv">
++		<input type="hidden" value="custom" name="menu-item[';
++echo $_nav_menu_placeholder; ;
++echo '][menu-item-type]" />
+ 		<p id="menu-item-url-wrap" class="wp-clearfix">
+-			<label for="custom-menu-item-url"><?php _e( 'URL' ); ?></label>
+-			<input id="custom-menu-item-url" name="menu-item[<?php echo $_nav_menu_placeholder; ?>][menu-item-url]"
+-				type="text"<?php wp_nav_menu_disabled_check( $nav_menu_selected_id ); ?>
+-				class="code menu-item-textbox form-required" placeholder="https://"
++			<label for="custom-menu-item-url">';
++_e( 'URL' ); ;
++echo '</label>
++			<input id="custom-menu-item-url" name="menu-item[';
++echo $_nav_menu_placeholder; ;
++echo '][menu-item-url]"
++				type="text"';
++wp_nav_menu_disabled_check( $nav_menu_selected_id ); ;
++echo '				class="code menu-item-textbox form-required" placeholder="https://"
+ 			/>
+-			<span id="custom-url-error" class="error-message" style="display: none;"><?php _e( 'Please provide a valid link.' ); ?></span>
++			<span id="custom-url-error" class="error-message" style="display: none;">';
++_e( 'Please provide a valid link.' ); ;
++echo '</span>
+ 		</p>
+ 
+ 		<p id="menu-item-name-wrap" class="wp-clearfix">
+-			<label for="custom-menu-item-name"><?php _e( 'Link Text' ); ?></label>
+-			<input id="custom-menu-item-name" name="menu-item[<?php echo $_nav_menu_placeholder; ?>][menu-item-title]"
+-				type="text"<?php wp_nav_menu_disabled_check( $nav_menu_selected_id ); ?>
+-				class="regular-text menu-item-textbox"
++			<label for="custom-menu-item-name">';
++_e( 'Link Text' ); ;
++echo '</label>
++			<input id="custom-menu-item-name" name="menu-item[';
++echo $_nav_menu_placeholder; ;
++echo '][menu-item-title]"
++				type="text"';
++wp_nav_menu_disabled_check( $nav_menu_selected_id ); ;
++echo '				class="regular-text menu-item-textbox"
+ 			/>
+ 		</p>
+ 
+ 		<p class="button-controls button-controls-customlinkdiv">
+ 			<span class="add-to-menu">
+ 				<input id="submit-customlinkdiv" name="add-custom-menu-item"
+-					type="submit"<?php wp_nav_menu_disabled_check( $nav_menu_selected_id ); ?>
+-					class="button submit-add-to-menu right" value="<?php esc_attr_e( 'Add to Menu' ); ?>"
++					type="submit"';
++wp_nav_menu_disabled_check( $nav_menu_selected_id ); ;
++echo '					class="button submit-add-to-menu right" value="';
++esc_attr_e( 'Add to Menu' ); ;
++echo '"
+ 				/>
+ 				<span class="spinner"></span>
+ 			</span>
+ 		</p>
+ 
+ 	</div><!-- /.customlinkdiv -->
+-	<?php
++	';
+ }
+ 
+ /**
+@@ -589,43 +606,76 @@
+ 		$view_all_url    = add_query_arg( $tab_name, 'all', remove_query_arg( $removed_args ) );
+ 		$search_url      = add_query_arg( $tab_name, 'search', remove_query_arg( $removed_args ) );
+ 	}
+-	?>
+-	<div id="<?php echo esc_attr( "posttype-{$post_type_name}" ); ?>" class="posttypediv">
+-		<ul id="<?php echo esc_attr( "posttype-{$post_type_name}-tabs" ); ?>" class="posttype-tabs add-menu-item-tabs">
+-			<li <?php echo ( 'most-recent' === $current_tab ? ' class="tabs"' : '' ); ?>>
++	;
++echo '	<div id="';
++echo esc_attr( "posttype-{$post_type_name}" ); ;
++echo '" class="posttypediv">
++		<ul id="';
++echo esc_attr( "posttype-{$post_type_name}-tabs" ); ;
++echo '" class="posttype-tabs add-menu-item-tabs">
++			<li ';
++echo ( 'most-recent' === $current_tab ? ' class="tabs"' : '' ); ;
++echo '>
+ 				<a class="nav-tab-link"
+-					data-type="<?php echo esc_attr( "tabs-panel-posttype-{$post_type_name}-most-recent" ); ?>"
+-					href="<?php echo esc_url( $most_recent_url . "#tabs-panel-posttype-{$post_type_name}-most-recent" ); ?>"
++					data-type="';
++echo esc_attr( "tabs-panel-posttype-{$post_type_name}-most-recent" ); ;
++echo '"
++					href="';
++echo esc_url( $most_recent_url . "#tabs-panel-posttype-{$post_type_name}-most-recent" ); ;
++echo '"
+ 				>
+-					<?php _e( 'Most Recent' ); ?>
+-				</a>
++					';
++_e( 'Most Recent' ); ;
++echo '				</a>
+ 			</li>
+-			<li <?php echo ( 'all' === $current_tab ? ' class="tabs"' : '' ); ?>>
++			<li ';
++echo ( 'all' === $current_tab ? ' class="tabs"' : '' ); ;
++echo '>
+ 				<a class="nav-tab-link"
+-					data-type="<?php echo esc_attr( "{$post_type_name}-all" ); ?>"
+-					href="<?php echo esc_url( $view_all_url . "#{$post_type_name}-all" ); ?>"
++					data-type="';
++echo esc_attr( "{$post_type_name}-all" ); ;
++echo '"
++					href="';
++echo esc_url( $view_all_url . "#{$post_type_name}-all" ); ;
++echo '"
+ 				>
+-					<?php _e( 'View All' ); ?>
+-				</a>
++					';
++_e( 'View All' ); ;
++echo '				</a>
+ 			</li>
+-			<li <?php echo ( 'search' === $current_tab ? ' class="tabs"' : '' ); ?>>
++			<li ';
++echo ( 'search' === $current_tab ? ' class="tabs"' : '' ); ;
++echo '>
+ 				<a class="nav-tab-link"
+-					data-type="<?php echo esc_attr( "tabs-panel-posttype-{$post_type_name}-search" ); ?>"
+-					href="<?php echo esc_url( $search_url . "#tabs-panel-posttype-{$post_type_name}-search" ); ?>"
++					data-type="';
++echo esc_attr( "tabs-panel-posttype-{$post_type_name}-search" ); ;
++echo '"
++					href="';
++echo esc_url( $search_url . "#tabs-panel-posttype-{$post_type_name}-search" ); ;
++echo '"
+ 				>
+-					<?php _e( 'Search' ); ?>
+-				</a>
++					';
++_e( 'Search' ); ;
++echo '				</a>
+ 			</li>
+ 		</ul><!-- .posttype-tabs -->
+ 
+-		<div id="<?php echo esc_attr( "tabs-panel-posttype-{$post_type_name}-most-recent" ); ?>"
+-			class="tabs-panel <?php echo ( 'most-recent' === $current_tab ? 'tabs-panel-active' : 'tabs-panel-inactive' ); ?>"
+-			role="region" aria-label="<?php esc_attr_e( 'Most Recent' ); ?>" tabindex="0"
++		<div id="';
++echo esc_attr( "tabs-panel-posttype-{$post_type_name}-most-recent" ); ;
++echo '"
++			class="tabs-panel ';
++echo ( 'most-recent' === $current_tab ? 'tabs-panel-active' : 'tabs-panel-inactive' ); ;
++echo '"
++			role="region" aria-label="';
++esc_attr_e( 'Most Recent' ); ;
++echo '" tabindex="0"
+ 		>
+-			<ul id="<?php echo esc_attr( "{$post_type_name}checklist-most-recent" ); ?>"
++			<ul id="';
++echo esc_attr( "{$post_type_name}checklist-most-recent" ); ;
++echo '"
+ 				class="categorychecklist form-no-clear"
+ 			>
+-				<?php
++				';
+ 				$recent_args = array_merge(
+ 					$args,
+ 					array(
+@@ -670,15 +720,21 @@
+ 					0,
+ 					(object) $args
+ 				);
+-				?>
+-			</ul>
++				;
++echo '			</ul>
+ 		</div><!-- /.tabs-panel -->
+ 
+-		<div id="<?php echo esc_attr( "tabs-panel-posttype-{$post_type_name}-search" ); ?>"
+-			class="tabs-panel <?php echo ( 'search' === $current_tab ? 'tabs-panel-active' : 'tabs-panel-inactive' ); ?>"
+-			role="region" aria-label="<?php echo esc_attr( $post_type->labels->search_items ); ?>" tabindex="0"
++		<div id="';
++echo esc_attr( "tabs-panel-posttype-{$post_type_name}-search" ); ;
++echo '"
++			class="tabs-panel ';
++echo ( 'search' === $current_tab ? 'tabs-panel-active' : 'tabs-panel-inactive' ); ;
++echo '"
++			role="region" aria-label="';
++echo esc_attr( $post_type->labels->search_items ); ;
++echo '" tabindex="0"
+ 		>
+-			<?php
++			';
+ 			if ( isset( $_REQUEST[ "quick-search-posttype-{$post_type_name}" ] ) ) {
+ 				$searched       = esc_attr( $_REQUEST[ "quick-search-posttype-{$post_type_name}" ] );
+ 				$search_results = get_posts(
+@@ -693,21 +749,30 @@
+ 				$searched       = '';
+ 				$search_results = array();
+ 			}
+-			?>
+-			<p class="quick-search-wrap">
+-				<label for="<?php echo esc_attr( "quick-search-posttype-{$post_type_name}" ); ?>" class="screen-reader-text">
+-					<?php
++			;
++echo '			<p class="quick-search-wrap">
++				<label for="';
++echo esc_attr( "quick-search-posttype-{$post_type_name}" ); ;
++echo '" class="screen-reader-text">
++					';
+ 					/* translators: Hidden accessibility text. */
+ 					_e( 'Search' );
+-					?>
+-				</label>
+-				<input type="search"<?php wp_nav_menu_disabled_check( $nav_menu_selected_id ); ?>
+-					class="quick-search" value="<?php echo $searched; ?>"
+-					name="<?php echo esc_attr( "quick-search-posttype-{$post_type_name}" ); ?>"
+-					id="<?php echo esc_attr( "quick-search-posttype-{$post_type_name}" ); ?>"
++					;
++echo '				</label>
++				<input type="search"';
++wp_nav_menu_disabled_check( $nav_menu_selected_id ); ;
++echo '					class="quick-search" value="';
++echo $searched; ;
++echo '"
++					name="';
++echo esc_attr( "quick-search-posttype-{$post_type_name}" ); ;
++echo '"
++					id="';
++echo esc_attr( "quick-search-posttype-{$post_type_name}" ); ;
++echo '"
+ 				/>
+ 				<span class="spinner"></span>
+-				<?php
++				';
+ 				submit_button(
+ 					__( 'Search' ),
+ 					'small quick-search-submit hide-if-js',
+@@ -715,45 +780,70 @@
+ 					false,
+ 					array( 'id' => "submit-quick-search-posttype-{$post_type_name}" )
+ 				);
+-				?>
+-			</p>
+-
+-			<ul id="<?php echo esc_attr( "{$post_type_name}-search-checklist" ); ?>"
+-				data-wp-lists="<?php echo esc_attr( "list:{$post_type_name}" ); ?>"
++				;
++echo '			</p>
++
++			<ul id="';
++echo esc_attr( "{$post_type_name}-search-checklist" ); ;
++echo '"
++				data-wp-lists="';
++echo esc_attr( "list:{$post_type_name}" ); ;
++echo '"
+ 				class="categorychecklist form-no-clear"
+ 			>
+-			<?php if ( ! empty( $search_results ) && ! is_wp_error( $search_results ) ) : ?>
+-				<?php
++			';
++if ( ! empty( $search_results ) && ! is_wp_error( $search_results ) ) : ;
++echo '				';
+ 				$args['walker'] = $walker;
+ 				echo walk_nav_menu_tree(
+ 					array_map( 'wp_setup_nav_menu_item', $search_results ),
+ 					0,
+ 					(object) $args
+ 				);
+-				?>
+-			<?php elseif ( is_wp_error( $search_results ) ) : ?>
+-				<li><?php echo $search_results->get_error_message(); ?></li>
+-			<?php elseif ( ! empty( $searched ) ) : ?>
+-				<li><?php _e( 'No results found.' ); ?></li>
+-			<?php endif; ?>
+-			</ul>
++				;
++echo '			';
++elseif ( is_wp_error( $search_results ) ) : ;
++echo '				<li>';
++echo $search_results->get_error_message(); ;
++echo '</li>
++			';
++elseif ( ! empty( $searched ) ) : ;
++echo '				<li>';
++_e( 'No results found.' ); ;
++echo '</li>
++			';
++endif; ;
++echo '			</ul>
+ 		</div><!-- /.tabs-panel -->
+ 
+-		<div id="<?php echo esc_attr( "{$post_type_name}-all" ); ?>"
+-			class="tabs-panel tabs-panel-view-all <?php echo ( 'all' === $current_tab ? 'tabs-panel-active' : 'tabs-panel-inactive' ); ?>"
+-			role="region" aria-label="<?php echo esc_attr( $post_type->labels->all_items ); ?>" tabindex="0"
++		<div id="';
++echo esc_attr( "{$post_type_name}-all" ); ;
++echo '"
++			class="tabs-panel tabs-panel-view-all ';
++echo ( 'all' === $current_tab ? 'tabs-panel-active' : 'tabs-panel-inactive' ); ;
++echo '"
++			role="region" aria-label="';
++echo esc_attr( $post_type->labels->all_items ); ;
++echo '" tabindex="0"
+ 		>
+-			<?php if ( ! empty( $page_links ) ) : ?>
+-				<div class="add-menu-item-pagelinks">
+-					<?php echo $page_links; ?>
+-				</div>
+-			<?php endif; ?>
+-
+-			<ul id="<?php echo esc_attr( "{$post_type_name}checklist" ); ?>"
+-				data-wp-lists="<?php echo esc_attr( "list:{$post_type_name}" ); ?>"
++			';
++if ( ! empty( $page_links ) ) : ;
++echo '				<div class="add-menu-item-pagelinks">
++					';
++echo $page_links; ;
++echo '				</div>
++			';
++endif; ;
++echo '
++			<ul id="';
++echo esc_attr( "{$post_type_name}checklist" ); ;
++echo '"
++				data-wp-lists="';
++echo esc_attr( "list:{$post_type_name}" ); ;
++echo '"
+ 				class="categorychecklist form-no-clear"
+ 			>
+-				<?php
++				';
+ 				$args['walker'] = $walker;
+ 
+ 				if ( $post_type->has_archive ) {
+@@ -810,35 +900,52 @@
+ 				);
+ 
+ 				echo $checkbox_items;
+-				?>
+-			</ul>
+-
+-			<?php if ( ! empty( $page_links ) ) : ?>
+-				<div class="add-menu-item-pagelinks">
+-					<?php echo $page_links; ?>
+-				</div>
+-			<?php endif; ?>
+-		</div><!-- /.tabs-panel -->
+-
+-		<p class="button-controls" data-items-type="<?php echo esc_attr( "posttype-{$post_type_name}" ); ?>">
++				;
++echo '			</ul>
++
++			';
++if ( ! empty( $page_links ) ) : ;
++echo '				<div class="add-menu-item-pagelinks">
++					';
++echo $page_links; ;
++echo '				</div>
++			';
++endif; ;
++echo '		</div><!-- /.tabs-panel -->
++
++		<p class="button-controls" data-items-type="';
++echo esc_attr( "posttype-{$post_type_name}" ); ;
++echo '">
+ 			<span class="list-controls hide-if-no-js">
+-				<input type="checkbox"<?php wp_nav_menu_disabled_check( $nav_menu_selected_id ); ?>
+-					id="<?php echo esc_attr( $tab_name ); ?>" class="select-all"
++				<input type="checkbox"';
++wp_nav_menu_disabled_check( $nav_menu_selected_id ); ;
++echo '					id="';
++echo esc_attr( $tab_name ); ;
++echo '" class="select-all"
+ 				/>
+-				<label for="<?php echo esc_attr( $tab_name ); ?>"><?php _e( 'Select All' ); ?></label>
++				<label for="';
++echo esc_attr( $tab_name ); ;
++echo '">';
++_e( 'Select All' ); ;
++echo '</label>
+ 			</span>
+ 
+ 			<span class="add-to-menu">
+-				<input type="submit"<?php wp_nav_menu_disabled_check( $nav_menu_selected_id ); ?>
+-					class="button submit-add-to-menu right" value="<?php esc_attr_e( 'Add to Menu' ); ?>"
+-					name="add-post-type-menu-item" id="<?php echo esc_attr( "submit-posttype-{$post_type_name}" ); ?>"
++				<input type="submit"';
++wp_nav_menu_disabled_check( $nav_menu_selected_id ); ;
++echo '					class="button submit-add-to-menu right" value="';
++esc_attr_e( 'Add to Menu' ); ;
++echo '"
++					name="add-post-type-menu-item" id="';
++echo esc_attr( "submit-posttype-{$post_type_name}" ); ;
++echo '"
+ 				/>
+ 				<span class="spinner"></span>
+ 			</span>
+ 		</p>
+ 
+ 	</div><!-- /.posttypediv -->
+-	<?php
++	';
+ }
+ 
+ /**
+@@ -961,43 +1068,76 @@
+ 		$view_all_url  = add_query_arg( $tab_name, 'all', remove_query_arg( $removed_args ) );
+ 		$search_url    = add_query_arg( $tab_name, 'search', remove_query_arg( $removed_args ) );
+ 	}
+-	?>
+-	<div id="<?php echo esc_attr( "taxonomy-{$taxonomy_name}" ); ?>" class="taxonomydiv">
+-		<ul id="<?php echo esc_attr( "taxonomy-{$taxonomy_name}-tabs" ); ?>" class="taxonomy-tabs add-menu-item-tabs">
+-			<li <?php echo ( 'most-used' === $current_tab ? ' class="tabs"' : '' ); ?>>
++	;
++echo '	<div id="';
++echo esc_attr( "taxonomy-{$taxonomy_name}" ); ;
++echo '" class="taxonomydiv">
++		<ul id="';
++echo esc_attr( "taxonomy-{$taxonomy_name}-tabs" ); ;
++echo '" class="taxonomy-tabs add-menu-item-tabs">
++			<li ';
++echo ( 'most-used' === $current_tab ? ' class="tabs"' : '' ); ;
++echo '>
+ 				<a class="nav-tab-link"
+-					data-type="<?php echo esc_attr( "tabs-panel-{$taxonomy_name}-pop" ); ?>"
+-					href="<?php echo esc_url( $most_used_url . "#tabs-panel-{$taxonomy_name}-pop" ); ?>"
++					data-type="';
++echo esc_attr( "tabs-panel-{$taxonomy_name}-pop" ); ;
++echo '"
++					href="';
++echo esc_url( $most_used_url . "#tabs-panel-{$taxonomy_name}-pop" ); ;
++echo '"
+ 				>
+-					<?php echo esc_html( $taxonomy->labels->most_used ); ?>
+-				</a>
++					';
++echo esc_html( $taxonomy->labels->most_used ); ;
++echo '				</a>
+ 			</li>
+-			<li <?php echo ( 'all' === $current_tab ? ' class="tabs"' : '' ); ?>>
++			<li ';
++echo ( 'all' === $current_tab ? ' class="tabs"' : '' ); ;
++echo '>
+ 				<a class="nav-tab-link"
+-					data-type="<?php echo esc_attr( "tabs-panel-{$taxonomy_name}-all" ); ?>"
+-					href="<?php echo esc_url( $view_all_url . "#tabs-panel-{$taxonomy_name}-all" ); ?>"
++					data-type="';
++echo esc_attr( "tabs-panel-{$taxonomy_name}-all" ); ;
++echo '"
++					href="';
++echo esc_url( $view_all_url . "#tabs-panel-{$taxonomy_name}-all" ); ;
++echo '"
+ 				>
+-					<?php _e( 'View All' ); ?>
+-				</a>
++					';
++_e( 'View All' ); ;
++echo '				</a>
+ 			</li>
+-			<li <?php echo ( 'search' === $current_tab ? ' class="tabs"' : '' ); ?>>
++			<li ';
++echo ( 'search' === $current_tab ? ' class="tabs"' : '' ); ;
++echo '>
+ 				<a class="nav-tab-link"
+-					data-type="<?php echo esc_attr( "tabs-panel-search-taxonomy-{$taxonomy_name}" ); ?>"
+-					href="<?php echo esc_url( $search_url . "#tabs-panel-search-taxonomy-{$taxonomy_name}" ); ?>"
++					data-type="';
++echo esc_attr( "tabs-panel-search-taxonomy-{$taxonomy_name}" ); ;
++echo '"
++					href="';
++echo esc_url( $search_url . "#tabs-panel-search-taxonomy-{$taxonomy_name}" ); ;
++echo '"
+ 				>
+-					<?php _e( 'Search' ); ?>
+-				</a>
++					';
++_e( 'Search' ); ;
++echo '				</a>
+ 			</li>
+ 		</ul><!-- .taxonomy-tabs -->
+ 
+-		<div id="<?php echo esc_attr( "tabs-panel-{$taxonomy_name}-pop" ); ?>"
+-			class="tabs-panel <?php echo ( 'most-used' === $current_tab ? 'tabs-panel-active' : 'tabs-panel-inactive' ); ?>"
+-			role="region" aria-label="<?php echo esc_attr( $taxonomy->labels->most_used ); ?>" tabindex="0"
++		<div id="';
++echo esc_attr( "tabs-panel-{$taxonomy_name}-pop" ); ;
++echo '"
++			class="tabs-panel ';
++echo ( 'most-used' === $current_tab ? 'tabs-panel-active' : 'tabs-panel-inactive' ); ;
++echo '"
++			role="region" aria-label="';
++echo esc_attr( $taxonomy->labels->most_used ); ;
++echo '" tabindex="0"
+ 		>
+-			<ul id="<?php echo esc_attr( "{$taxonomy_name}checklist-pop" ); ?>"
++			<ul id="';
++echo esc_attr( "{$taxonomy_name}checklist-pop" ); ;
++echo '"
+ 				class="categorychecklist form-no-clear"
+ 			>
+-				<?php
++				';
+ 				$popular_terms = get_terms(
+ 					array(
+ 						'taxonomy'     => $taxonomy_name,
+@@ -1014,45 +1154,67 @@
+ 					0,
+ 					(object) $args
+ 				);
+-				?>
+-			</ul>
++				;
++echo '			</ul>
+ 		</div><!-- /.tabs-panel -->
+ 
+-		<div id="<?php echo esc_attr( "tabs-panel-{$taxonomy_name}-all" ); ?>"
+-			class="tabs-panel tabs-panel-view-all <?php echo ( 'all' === $current_tab ? 'tabs-panel-active' : 'tabs-panel-inactive' ); ?>"
+-			role="region" aria-label="<?php echo esc_attr( $taxonomy->labels->all_items ); ?>" tabindex="0"
++		<div id="';
++echo esc_attr( "tabs-panel-{$taxonomy_name}-all" ); ;
++echo '"
++			class="tabs-panel tabs-panel-view-all ';
++echo ( 'all' === $current_tab ? 'tabs-panel-active' : 'tabs-panel-inactive' ); ;
++echo '"
++			role="region" aria-label="';
++echo esc_attr( $taxonomy->labels->all_items ); ;
++echo '" tabindex="0"
+ 		>
+-			<?php if ( ! empty( $page_links ) ) : ?>
+-				<div class="add-menu-item-pagelinks">
+-					<?php echo $page_links; ?>
+-				</div>
+-			<?php endif; ?>
+-
+-			<ul id="<?php echo esc_attr( "{$taxonomy_name}checklist" ); ?>"
+-				data-wp-lists="<?php echo esc_attr( "list:{$taxonomy_name}" ); ?>"
++			';
++if ( ! empty( $page_links ) ) : ;
++echo '				<div class="add-menu-item-pagelinks">
++					';
++echo $page_links; ;
++echo '				</div>
++			';
++endif; ;
++echo '
++			<ul id="';
++echo esc_attr( "{$taxonomy_name}checklist" ); ;
++echo '"
++				data-wp-lists="';
++echo esc_attr( "list:{$taxonomy_name}" ); ;
++echo '"
+ 				class="categorychecklist form-no-clear"
+ 			>
+-				<?php
++				';
+ 				$args['walker'] = $walker;
+ 				echo walk_nav_menu_tree(
+ 					array_map( 'wp_setup_nav_menu_item', $terms ),
+ 					0,
+ 					(object) $args
+ 				);
+-				?>
+-			</ul>
+-
+-			<?php if ( ! empty( $page_links ) ) : ?>
+-				<div class="add-menu-item-pagelinks">
+-					<?php echo $page_links; ?>
+-				</div>
+-			<?php endif; ?>
+-		</div><!-- /.tabs-panel -->
+-
+-		<div id="<?php echo esc_attr( "tabs-panel-search-taxonomy-{$taxonomy_name}" ); ?>"
+-			class="tabs-panel <?php echo ( 'search' === $current_tab ? 'tabs-panel-active' : 'tabs-panel-inactive' ); ?>"
+-			role="region" aria-label="<?php echo esc_attr( $taxonomy->labels->search_items ); ?>" tabindex="0">
+-			<?php
++				;
++echo '			</ul>
++
++			';
++if ( ! empty( $page_links ) ) : ;
++echo '				<div class="add-menu-item-pagelinks">
++					';
++echo $page_links; ;
++echo '				</div>
++			';
++endif; ;
++echo '		</div><!-- /.tabs-panel -->
++
++		<div id="';
++echo esc_attr( "tabs-panel-search-taxonomy-{$taxonomy_name}" ); ;
++echo '"
++			class="tabs-panel ';
++echo ( 'search' === $current_tab ? 'tabs-panel-active' : 'tabs-panel-inactive' ); ;
++echo '"
++			role="region" aria-label="';
++echo esc_attr( $taxonomy->labels->search_items ); ;
++echo '" tabindex="0">
++			';
+ 			if ( isset( $_REQUEST[ "quick-search-taxonomy-{$taxonomy_name}" ] ) ) {
+ 				$searched       = esc_attr( $_REQUEST[ "quick-search-taxonomy-{$taxonomy_name}" ] );
+ 				$search_results = get_terms(
+@@ -1069,21 +1231,29 @@
+ 				$searched       = '';
+ 				$search_results = array();
+ 			}
+-			?>
+-			<p class="quick-search-wrap">
+-				<label for="<?php echo esc_attr( "quick-search-taxonomy-{$taxonomy_name}" ); ?>" class="screen-reader-text">
+-					<?php
++			;
++echo '			<p class="quick-search-wrap">
++				<label for="';
++echo esc_attr( "quick-search-taxonomy-{$taxonomy_name}" ); ;
++echo '" class="screen-reader-text">
++					';
+ 					/* translators: Hidden accessibility text. */
+ 					_e( 'Search' );
+-					?>
+-				</label>
++					;
++echo '				</label>
+ 				<input type="search"
+-					class="quick-search" value="<?php echo $searched; ?>"
+-					name="<?php echo esc_attr( "quick-search-taxonomy-{$taxonomy_name}" ); ?>"
+-					id="<?php echo esc_attr( "quick-search-taxonomy-{$taxonomy_name}" ); ?>"
++					class="quick-search" value="';
++echo $searched; ;
++echo '"
++					name="';
++echo esc_attr( "quick-search-taxonomy-{$taxonomy_name}" ); ;
++echo '"
++					id="';
++echo esc_attr( "quick-search-taxonomy-{$taxonomy_name}" ); ;
++echo '"
+ 				/>
+ 				<span class="spinner"></span>
+-				<?php
++				';
+ 				submit_button(
+ 					__( 'Search' ),
+ 					'small quick-search-submit hide-if-js',
+@@ -1091,49 +1261,75 @@
+ 					false,
+ 					array( 'id' => "submit-quick-search-taxonomy-{$taxonomy_name}" )
+ 				);
+-				?>
+-			</p>
+-
+-			<ul id="<?php echo esc_attr( "{$taxonomy_name}-search-checklist" ); ?>"
+-				data-wp-lists="<?php echo esc_attr( "list:{$taxonomy_name}" ); ?>"
++				;
++echo '			</p>
++
++			<ul id="';
++echo esc_attr( "{$taxonomy_name}-search-checklist" ); ;
++echo '"
++				data-wp-lists="';
++echo esc_attr( "list:{$taxonomy_name}" ); ;
++echo '"
+ 				class="categorychecklist form-no-clear"
+ 			>
+-			<?php if ( ! empty( $search_results ) && ! is_wp_error( $search_results ) ) : ?>
+-				<?php
++			';
++if ( ! empty( $search_results ) && ! is_wp_error( $search_results ) ) : ;
++echo '				';
+ 				$args['walker'] = $walker;
+ 				echo walk_nav_menu_tree(
+ 					array_map( 'wp_setup_nav_menu_item', $search_results ),
+ 					0,
+ 					(object) $args
+ 				);
+-				?>
+-			<?php elseif ( is_wp_error( $search_results ) ) : ?>
+-				<li><?php echo $search_results->get_error_message(); ?></li>
+-			<?php elseif ( ! empty( $searched ) ) : ?>
+-				<li><?php _e( 'No results found.' ); ?></li>
+-			<?php endif; ?>
+-			</ul>
++				;
++echo '			';
++elseif ( is_wp_error( $search_results ) ) : ;
++echo '				<li>';
++echo $search_results->get_error_message(); ;
++echo '</li>
++			';
++elseif ( ! empty( $searched ) ) : ;
++echo '				<li>';
++_e( 'No results found.' ); ;
++echo '</li>
++			';
++endif; ;
++echo '			</ul>
+ 		</div><!-- /.tabs-panel -->
+ 
+-		<p class="button-controls" data-items-type="<?php echo esc_attr( "taxonomy-{$taxonomy_name}" ); ?>">
++		<p class="button-controls" data-items-type="';
++echo esc_attr( "taxonomy-{$taxonomy_name}" ); ;
++echo '">
+ 			<span class="list-controls hide-if-no-js">
+-				<input type="checkbox"<?php wp_nav_menu_disabled_check( $nav_menu_selected_id ); ?>
+-					id="<?php echo esc_attr( $tab_name ); ?>" class="select-all"
++				<input type="checkbox"';
++wp_nav_menu_disabled_check( $nav_menu_selected_id ); ;
++echo '					id="';
++echo esc_attr( $tab_name ); ;
++echo '" class="select-all"
+ 				/>
+-				<label for="<?php echo esc_attr( $tab_name ); ?>"><?php _e( 'Select All' ); ?></label>
++				<label for="';
++echo esc_attr( $tab_name ); ;
++echo '">';
++_e( 'Select All' ); ;
++echo '</label>
+ 			</span>
+ 
+ 			<span class="add-to-menu">
+-				<input type="submit"<?php wp_nav_menu_disabled_check( $nav_menu_selected_id ); ?>
+-					class="button submit-add-to-menu right" value="<?php esc_attr_e( 'Add to Menu' ); ?>"
+-					name="add-taxonomy-menu-item" id="<?php echo esc_attr( "submit-taxonomy-{$taxonomy_name}" ); ?>"
++				<input type="submit"';
++wp_nav_menu_disabled_check( $nav_menu_selected_id ); ;
++echo '					class="button submit-add-to-menu right" value="';
++esc_attr_e( 'Add to Menu' ); ;
++echo '"
++					name="add-taxonomy-menu-item" id="';
++echo esc_attr( "submit-taxonomy-{$taxonomy_name}" ); ;
++echo '"
+ 				/>
+ 				<span class="spinner"></span>
+ 			</span>
+ 		</p>
+ 
+ 	</div><!-- /.taxonomydiv -->
+-	<?php
++	';
+ }
+ 
+ /**

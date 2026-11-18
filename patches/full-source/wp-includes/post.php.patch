@@ -1,0 +1,11 @@
+--- a/wp-includes/post.php
++++ b/wp-includes/post.php
+@@ -7513,7 +7513,7 @@
+ 		$types = array();
+ 		// Icon wp_basename - extension = MIME wildcard.
+ 		foreach ( $icon_files as $file => $uri ) {
+-			$types[ preg_replace( '/^([^.]*).*$/', '$1', wp_basename( $file ) ) ] =& $icon_files[ $file ];
++			$types[ preg_replace( '/^([^.]*).*$/', '$1', wp_basename( $file ) ) ] = $icon_files[ $file ];
+ 		}
+ 
+ 		if ( ! empty( $mime ) ) {

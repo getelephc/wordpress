@@ -1,0 +1,265 @@
+--- a/wp-admin/includes/class-wp-plugin-install-list-table.php
++++ b/wp-admin/includes/class-wp-plugin-install-list-table.php
+@@ -299,10 +299,13 @@
+ 					'paragraph_wrap'     => false,
+ 				)
+ 			);
+-			?>
+-		<?php } else { ?>
+-			<div class="no-plugin-results"><?php _e( 'No plugins found. Try a different search.' ); ?></div>
+-			<?php
++			;
++echo '		';
++} else { ;
++echo '			<div class="no-plugin-results">';
++_e( 'No plugins found. Try a different search.' ); ;
++echo '</div>
++			';
+ 		}
+ 	}
+ 
+@@ -349,26 +352,26 @@
+ 			'<p>' . __( 'Plugins extend and expand the functionality of WordPress. You may install plugins from the <a href="%s">WordPress Plugin Directory</a> right on this page, or upload a plugin in .zip format by clicking the button above.' ) . '</p>',
+ 			__( 'https://wordpress.org/plugins/' )
+ 		);
+-		?>
+-<div class="wp-filter">
++		;
++echo '<div class="wp-filter">
+ 	<ul class="filter-links">
+-		<?php
++		';
+ 		if ( ! empty( $views ) ) {
+ 			foreach ( $views as $class => $view ) {
+ 				$views[ $class ] = "\t<li class='$class'>$view";
+ 			}
+ 			echo implode( " </li>\n", $views ) . "</li>\n";
+ 		}
+-		?>
+-	</ul>
+-
+-		<?php
++		;
++echo '	</ul>
++
++		';
+ 		if ( 'favorites' !== $tab ) {
+ 			install_search_form();
+ 		}
+-		?>
+-</div>
+-		<?php
++		;
++echo '</div>
++		';
+ 	}
+ 
+ 	/**
+@@ -389,16 +392,21 @@
+ 
+ 		$this->display_tablenav( 'top' );
+ 
+-		?>
+-<div class="wp-list-table <?php echo implode( ' ', $this->get_table_classes() ); ?>">
+-		<?php
++		;
++echo '<div class="wp-list-table ';
++echo implode( ' ', $this->get_table_classes() ); ;
++echo '">
++		';
+ 		$this->screen->render_screen_reader_content( 'heading_list' );
+-		?>
+-	<div id="the-list"<?php echo $data_attr; ?>>
+-		<?php $this->display_rows_or_placeholder(); ?>
+-	</div>
++		;
++echo '	<div id="the-list"';
++echo $data_attr; ;
++echo '>
++		';
++$this->display_rows_or_placeholder(); ;
++echo '	</div>
+ </div>
+-		<?php
++		';
+ 		$this->display_tablenav( 'bottom' );
+ 	}
+ 
+@@ -414,27 +422,30 @@
+ 
+ 		if ( 'top' === $which ) {
+ 			wp_referer_field();
+-			?>
+-			<div class="tablenav top">
++			;
++echo '			<div class="tablenav top">
+ 				<div class="alignleft actions">
+-					<?php
++					';
+ 					/**
+ 					 * Fires before the Plugin Install table header pagination is displayed.
+ 					 *
+ 					 * @since 2.7.0
+ 					 */
+ 					do_action( 'install_plugins_table_header' );
+-					?>
+-				</div>
+-				<?php $this->pagination( $which ); ?>
+-				<br class="clear" />
++					;
++echo '				</div>
++				';
++$this->pagination( $which ); ;
++echo '				<br class="clear" />
+ 			</div>
+-		<?php } else { ?>
+-			<div class="tablenav bottom">
+-				<?php $this->pagination( $which ); ?>
+-				<br class="clear" />
++		';
++} else { ;
++echo '			<div class="tablenav bottom">
++				';
++$this->pagination( $which ); ;
++echo '				<br class="clear" />
+ 			</div>
+-			<?php
++			';
+ 		}
+ 	}
+ 
+@@ -606,9 +617,11 @@
+ 			$action_links = apply_filters( 'plugin_install_action_links', $action_links, $plugin );
+ 
+ 			$last_updated_timestamp = strtotime( $plugin['last_updated'] );
+-			?>
+-		<div class="plugin-card plugin-card-<?php echo sanitize_html_class( $plugin['slug'] ); ?>">
+-			<?php
++			;
++echo '		<div class="plugin-card plugin-card-';
++echo sanitize_html_class( $plugin['slug'] ); ;
++echo '">
++			';
+ 			if ( ! $compatible_php || ! $compatible_wp ) {
+ 				$incompatible_notice_message = '';
+ 				if ( ! $compatible_php && ! $compatible_wp ) {
+@@ -664,37 +677,46 @@
+ 					)
+ 				);
+ 			}
+-			?>
+-			<div class="plugin-card-top">
++			;
++echo '			<div class="plugin-card-top">
+ 				<div class="name column-name">
+ 					<h3>
+-						<a href="<?php echo esc_url( $details_link ); ?>" class="thickbox open-plugin-details-modal">
+-						<?php echo $title; ?>
+-						<img src="<?php echo esc_url( $plugin_icon_url ); ?>" class="plugin-icon" alt="" />
++						<a href="';
++echo esc_url( $details_link ); ;
++echo '" class="thickbox open-plugin-details-modal">
++						';
++echo $title; ;
++echo '						<img src="';
++echo esc_url( $plugin_icon_url ); ;
++echo '" class="plugin-icon" alt="" />
+ 						</a>
+ 					</h3>
+ 				</div>
+ 				<div class="action-links">
+-					<?php
++					';
+ 					if ( $action_links ) {
+ 						echo '<ul class="plugin-action-buttons"><li>' . implode( '</li><li>', $action_links ) . '</li></ul>';
+ 					}
+-					?>
+-				</div>
++					;
++echo '				</div>
+ 				<div class="desc column-description">
+-					<p><?php echo $description; ?></p>
+-					<p class="authors"><?php echo $author; ?></p>
++					<p>';
++echo $description; ;
++echo '</p>
++					<p class="authors">';
++echo $author; ;
++echo '</p>
+ 				</div>
+ 			</div>
+-			<?php
++			';
+ 			$dependencies_notice = $this->get_dependencies_notice( $plugin );
+ 			if ( ! empty( $dependencies_notice ) ) {
+ 				echo $dependencies_notice;
+ 			}
+-			?>
+-			<div class="plugin-card-bottom">
++			;
++echo '			<div class="plugin-card-bottom">
+ 				<div class="vers column-rating">
+-					<?php
++					';
+ 					wp_star_rating(
+ 						array(
+ 							'rating' => $plugin['rating'],
+@@ -702,18 +724,22 @@
+ 							'number' => $plugin['num_ratings'],
+ 						)
+ 					);
+-					?>
+-					<span class="num-ratings" aria-hidden="true">(<?php echo number_format_i18n( $plugin['num_ratings'] ); ?>)</span>
++					;
++echo '					<span class="num-ratings" aria-hidden="true">(';
++echo number_format_i18n( $plugin['num_ratings'] ); ;
++echo ')</span>
+ 				</div>
+ 				<div class="column-updated">
+-					<strong><?php _e( 'Last Updated:' ); ?></strong>
+-					<?php
++					<strong>';
++_e( 'Last Updated:' ); ;
++echo '</strong>
++					';
+ 						/* translators: %s: Human-readable time difference. */
+ 						printf( __( '%s ago' ), human_time_diff( $last_updated_timestamp ) );
+-					?>
+-				</div>
++					;
++echo '				</div>
+ 				<div class="column-downloaded">
+-					<?php
++					';
+ 					if ( $plugin['active_installs'] >= 1000000 ) {
+ 						$active_installs_millions = floor( $plugin['active_installs'] / 1000000 );
+ 						$active_installs_text     = sprintf(
+@@ -728,10 +754,10 @@
+ 					}
+ 					/* translators: %s: Number of installations. */
+ 					printf( __( '%s Active Installations' ), $active_installs_text );
+-					?>
+-				</div>
++					;
++echo '				</div>
+ 				<div class="column-compatibility">
+-					<?php
++					';
+ 					if ( ! $tested_wp ) {
+ 						echo '<span class="compatibility-untested">' . __( 'Untested with your version of WordPress' ) . '</span>';
+ 					} elseif ( ! $compatible_wp ) {
+@@ -739,11 +765,11 @@
+ 					} else {
+ 						echo '<span class="compatibility-compatible">' . __( '<strong>Compatible</strong> with your version of WordPress' ) . '</span>';
+ 					}
+-					?>
+-				</div>
++					;
++echo '				</div>
+ 			</div>
+ 		</div>
+-			<?php
++			';
+ 		}
+ 
+ 		// Close off the group divs of the last one.

@@ -1,0 +1,79 @@
+--- a/wp-admin/includes/class-wp-links-list-table.php
++++ b/wp-admin/includes/class-wp-links-list-table.php
+@@ -105,9 +105,9 @@
+ 		if ( 'top' !== $which ) {
+ 			return;
+ 		}
+-		?>
+-		<div class="alignleft actions">
+-			<?php
++		;
++echo '		<div class="alignleft actions">
++			';
+ 			$dropdown_options = array(
+ 				'selected'        => $cat_id,
+ 				'name'            => 'cat_id',
+@@ -124,9 +124,9 @@
+ 			wp_dropdown_categories( $dropdown_options );
+ 
+ 			submit_button( __( 'Filter' ), 'compact', 'filter_action', false, array( 'id' => 'post-query-submit' ) );
+-			?>
+-		</div>
+-		<?php
++			;
++echo '		</div>
++		';
+ 	}
+ 
+ 	/**
+@@ -181,17 +181,23 @@
+ 		// Restores the more descriptive, specific name for use within this method.
+ 		$link = $item;
+ 
+-		?>
+-		<input type="checkbox" name="linkcheck[]" id="cb-select-<?php echo $link->link_id; ?>" value="<?php echo esc_attr( $link->link_id ); ?>" />
+-		<label for="cb-select-<?php echo $link->link_id; ?>">
++		;
++echo '		<input type="checkbox" name="linkcheck[]" id="cb-select-';
++echo $link->link_id; ;
++echo '" value="';
++echo esc_attr( $link->link_id ); ;
++echo '" />
++		<label for="cb-select-';
++echo $link->link_id; ;
++echo '">
+ 			<span class="screen-reader-text">
+-			<?php
++			';
+ 			/* translators: Hidden accessibility text. %s: Link name. */
+ 			printf( __( 'Select %s' ), $link->link_name );
+-			?>
+-			</span>
++			;
++echo '			</span>
+ 		</label>
+-		<?php
++		';
+ 	}
+ 
+ 	/**
+@@ -322,11 +328,14 @@
+ 			$link                = sanitize_bookmark( $link );
+ 			$link->link_name     = esc_attr( $link->link_name );
+ 			$link->link_category = wp_get_link_cats( $link->link_id );
+-			?>
+-		<tr id="link-<?php echo $link->link_id; ?>">
+-			<?php $this->single_row_columns( $link ); ?>
+-		</tr>
+-			<?php
++			;
++echo '		<tr id="link-';
++echo $link->link_id; ;
++echo '">
++			';
++$this->single_row_columns( $link ); ;
++echo '		</tr>
++			';
+ 		}
+ 	}
+ 

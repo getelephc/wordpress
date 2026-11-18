@@ -1,0 +1,14 @@
+--- a/wp-includes/class-wp-text-diff-renderer-table.php
++++ b/wp-includes/class-wp-text-diff-renderer-table.php
+@@ -306,7 +306,10 @@
+ 		foreach ( $orig_matches as $o => $f ) {
+ 			if ( is_numeric( $o ) && is_numeric( $f ) ) {
+ 				$text_diff = new Text_Diff( 'auto', array( array( $orig[ $o ] ), array( $final[ $f ] ) ) );
+-				$renderer  = new $this->inline_diff_renderer();
++				if ( 'WP_Text_Diff_Renderer_inline' !== $this->inline_diff_renderer ) {
++                    throw new RuntimeException( 'Custom inline renderer discovery is outside the finite Elephc manifest.' );
++                }
++                $renderer = new WP_Text_Diff_Renderer_inline();
+ 				$diff      = $renderer->render( $text_diff );
+ 
+ 				// If they're too different, don't include any <ins> or <del>'s.

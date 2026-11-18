@@ -1,0 +1,127 @@
+--- a/wp-includes/blocks.php
++++ b/wp-includes/blocks.php
+@@ -195,7 +195,7 @@
+ 	$module_uri       = get_block_asset_url( $module_path_norm );
+ 
+ 	/** @var array{ dependencies?: list<non-falsy-string|array{id: non-falsy-string, import?: 'static'|'dynamic'}>, version?: string|false|null, ... } $module_asset */
+-	$module_asset        = ! empty( $module_asset_path ) ? require $module_asset_path : array();
++	$module_asset        = ! empty( $module_asset_path ) ? aot_require_data( $module_asset_path ) : array();
+ 	$module_dependencies = $module_asset['dependencies'] ?? array();
+ 	$block_version       = $metadata['version'] ?? false;
+ 	$module_version      = $module_asset['version'] ?? $block_version;
+@@ -290,7 +290,7 @@
+ 
+ 	// Asset file for blocks is optional. See https://core.trac.wordpress.org/ticket/60460.
+ 	/** @var array{ handle?: non-falsy-string, dependencies?: list<non-falsy-string>, version?: string|false|null, ... } $script_asset */
+-	$script_asset  = ! empty( $script_asset_path ) ? require $script_asset_path : array();
++	$script_asset  = ! empty( $script_asset_path ) ? aot_require_data( $script_asset_path ) : array();
+ 	$script_handle = $script_asset['handle'] ??
+ 		generate_block_asset_handle( $metadata['name'], $field_name, $index );
+ 	if ( wp_script_is( $script_handle, 'registered' ) ) {
+@@ -628,7 +628,7 @@
+ 			 */
+ 			$settings['render_callback'] = static function ( $attributes, $content, $block ) use ( $template_path ) {
+ 				ob_start();
+-				require $template_path;
++				throw new RuntimeException( 'Custom PHP block render templates are outside the finite source manifest.' );
+ 				return ob_get_clean();
+ 			};
+ 		}
+@@ -652,7 +652,7 @@
+ 			 * @return string Returns the list of block variations.
+ 			 */
+ 			$settings['variation_callback'] = static function () use ( $variations_path ) {
+-				$variations = require $variations_path;
++				$variations = aot_require_data( $variations_path );
+ 				return $variations;
+ 			};
+ 			// The block instance's `variations` field is only allowed to be an array
+@@ -1618,16 +1618,10 @@
+ 
+ 		if ( $parent_block && ! $prev ) {
+ 			// Candidate for first-child insertion.
+-			$markup .= call_user_func_array(
+-				$callback,
+-				array( &$parent_block, 'first_child', $hooked_blocks, $context )
+-			);
+-		}
+-
+-		$markup .= call_user_func_array(
+-			$callback,
+-			array( &$block, 'before', $hooked_blocks, $context )
+-		);
++			$markup .= $callback( $parent_block, 'first_child', $hooked_blocks, $context );
++		}
++
++		$markup .= $callback( $block, 'before', $hooked_blocks, $context );
+ 
+ 		return $markup;
+ 	};
+@@ -1668,17 +1662,11 @@
+ 	 * @return string The serialized markup for the given block, with the markup for any hooked blocks appended to it.
+ 	 */
+ 	return function ( &$block, &$parent_block = null, $next = null ) use ( $hooked_blocks, $context, $callback ) {
+-		$markup = call_user_func_array(
+-			$callback,
+-			array( &$block, 'after', $hooked_blocks, $context )
+-		);
++		$markup = $callback( $block, 'after', $hooked_blocks, $context );
+ 
+ 		if ( $parent_block && ! $next ) {
+ 			// Candidate for last-child insertion.
+-			$markup .= call_user_func_array(
+-				$callback,
+-				array( &$parent_block, 'last_child', $hooked_blocks, $context )
+-			);
++			$markup .= $callback( $parent_block, 'last_child', $hooked_blocks, $context );
+ 		}
+ 
+ 		return $markup;
+@@ -1887,10 +1875,7 @@
+ 					? null
+ 					: $block['innerBlocks'][ $block_index - 1 ];
+ 
+-				$block_content .= call_user_func_array(
+-					$pre_callback,
+-					array( &$inner_block, &$block, $prev )
+-				);
++				$block_content .= $pre_callback( $inner_block, $block, $prev );
+ 			}
+ 
+ 			if ( is_callable( $post_callback ) ) {
+@@ -1898,10 +1883,7 @@
+ 					? null
+ 					: $block['innerBlocks'][ $block_index + 1 ];
+ 
+-				$post_markup = call_user_func_array(
+-					$post_callback,
+-					array( &$inner_block, &$block, $next )
+-				);
++				$post_markup = $post_callback( $inner_block, $block, $next );
+ 			}
+ 
+ 			$block_content .= traverse_and_serialize_block( $inner_block, $pre_callback, $post_callback );
+@@ -2080,10 +2062,7 @@
+ 				? null
+ 				: $blocks[ $index - 1 ];
+ 
+-			$result .= call_user_func_array(
+-				$pre_callback,
+-				array( &$block, &$parent_block, $prev )
+-			);
++			$result .= $pre_callback( $block, $parent_block, $prev );
+ 		}
+ 
+ 		if ( $post_callback_is_callable ) {
+@@ -2091,10 +2070,7 @@
+ 				? null
+ 				: $blocks[ $index + 1 ];
+ 
+-			$post_markup = call_user_func_array(
+-				$post_callback,
+-				array( &$block, &$parent_block, $next )
+-			);
++			$post_markup = $post_callback( $block, $parent_block, $next );
+ 		}
+ 
+ 		$result .= traverse_and_serialize_block( $block, $pre_callback, $post_callback );

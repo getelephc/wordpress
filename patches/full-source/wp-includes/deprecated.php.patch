@@ -1,0 +1,218 @@
+--- a/wp-includes/deprecated.php
++++ b/wp-includes/deprecated.php
+@@ -4210,9 +4210,9 @@
+ function wp_sensitive_page_meta() {
+ 	_deprecated_function( __FUNCTION__, '5.7.0', 'wp_robots_sensitive_page()' );
+ 
+-	?>
+-	<meta name='robots' content='noindex,noarchive' />
+-	<?php
++	;
++echo '	<meta name=\'robots\' content=\'noindex,noarchive\' />
++	';
+ 	wp_strict_cross_origin_referrer();
+ }
+ 
+@@ -5897,11 +5897,12 @@
+ 	_deprecated_function( __FUNCTION__, '6.4.0', 'wp_enqueue_embed_styles' );
+ 
+ 	$suffix = SCRIPT_DEBUG ? '' : '.min';
+-	?>
+-	<style>
+-		<?php echo file_get_contents( ABSPATH . WPINC . "/css/wp-embed-template$suffix.css" ); ?>
+-	</style>
+-	<?php
++	;
++echo '	<style>
++		';
++echo file_get_contents( ABSPATH . WPINC . "/css/wp-embed-template$suffix.css" ); ;
++echo '	</style>
++	';
+ }
+ 
+ /**
+@@ -5920,8 +5921,8 @@
+ 
+ 	$printed = true;
+ 
+-	?>
+-	<style>
++	;
++echo '	<style>
+ 	img.wp-smiley,
+ 	img.emoji {
+ 		display: inline !important;
+@@ -5935,7 +5936,7 @@
+ 		padding: 0 !important;
+ 	}
+ 	</style>
+-	<?php
++	';
+ }
+ 
+ /**
+@@ -5946,9 +5947,9 @@
+  */
+ function wp_admin_bar_header() {
+ 	_deprecated_function( __FUNCTION__, '6.4.0', 'wp_enqueue_admin_bar_header_styles' );
+-	?>
+-	<style media="print">#wpadminbar { display:none; }</style>
+-	<?php
++	;
++echo '	<style media="print">#wpadminbar { display:none; }</style>
++	';
+ }
+ 
+ /**
+@@ -5959,14 +5960,14 @@
+  */
+ function _admin_bar_bump_cb() {
+ 	_deprecated_function( __FUNCTION__, '6.4.0', 'wp_enqueue_admin_bar_bump_styles' );
+-	?>
+-	<style media="screen">
++	;
++echo '	<style media="screen">
+ 	html { margin-top: 32px !important; }
+ 	@media screen and ( max-width: 782px ) {
+ 	  html { margin-top: 46px !important; }
+ 	}
+ 	</style>
+-	<?php
++	';
+ }
+ 
+ /**
+@@ -6069,13 +6070,15 @@
+ 	$new_content         = '';
+ 	$template_blocks     = parse_blocks( $template_content );
+ 
+-	$blocks = _flatten_blocks( $template_blocks );
+-	foreach ( $blocks as &$block ) {
++	$paths = _wp_aot_flatten_block_paths( $template_blocks );
++	foreach ( $paths as $path ) {
++        $block = _wp_array_get( $template_blocks, $path );
+ 		if (
+ 			'core/template-part' === $block['blockName'] &&
+ 			! isset( $block['attrs']['theme'] )
+ 		) {
+ 			$block['attrs']['theme'] = get_stylesheet();
++            _wp_array_set( $template_blocks, $path, $block );
+ 			$has_updated_content     = true;
+ 		}
+ 	}
+@@ -6112,10 +6115,12 @@
+ 	$new_content         = '';
+ 	$template_blocks     = parse_blocks( $template_content );
+ 
+-	$blocks = _flatten_blocks( $template_blocks );
+-	foreach ( $blocks as $key => $block ) {
++	$paths = _wp_aot_flatten_block_paths( $template_blocks );
++	foreach ( $paths as $path ) {
++        $block = _wp_array_get( $template_blocks, $path );
+ 		if ( 'core/template-part' === $block['blockName'] && isset( $block['attrs']['theme'] ) ) {
+-			unset( $blocks[ $key ]['attrs']['theme'] );
++			unset( $block['attrs']['theme'] );
++            _wp_array_set( $template_blocks, $path, $block );
+ 			$has_updated_content = true;
+ 		}
+ 	}
+@@ -6154,14 +6159,14 @@
+ 	if ( ! $_wp_current_template_content ) {
+ 		return;
+ 	}
+-	?>
+-
+-	<?php
++	;
++echo '
++	';
+ 	/**
+ 	 * Print the skip-link styles.
+ 	 */
+-	?>
+-	<style id="skip-link-styles">
++	;
++echo '	<style id="skip-link-styles">
+ 		.skip-link.screen-reader-text {
+ 			border: 0;
+ 			clip-path: inset(50%);
+@@ -6192,19 +6197,19 @@
+ 			z-index: 100000;
+ 		}
+ 	</style>
+-	<?php
++	';
+ 	/**
+ 	 * Print the skip-link script.
+ 	 */
+-	?>
+-	<script>
++	;
++echo '	<script>
+ 	( function() {
+-		var skipLinkTarget = document.querySelector( 'main' ),
++		var skipLinkTarget = document.querySelector( \'main\' ),
+ 			sibling,
+ 			skipLinkTargetID,
+ 			skipLink;
+ 
+-		// Early exit if a skip-link target can't be located.
++		// Early exit if a skip-link target can\'t be located.
+ 		if ( ! skipLinkTarget ) {
+ 			return;
+ 		}
+@@ -6213,31 +6218,33 @@
+ 		 * Get the site wrapper.
+ 		 * The skip-link will be injected in the beginning of it.
+ 		 */
+-		sibling = document.querySelector( '.wp-site-blocks' );
++		sibling = document.querySelector( \'.wp-site-blocks\' );
+ 
+ 		// Early exit if the root element was not found.
+ 		if ( ! sibling ) {
+ 			return;
+ 		}
+ 
+-		// Get the skip-link target's ID, and generate one if it doesn't exist.
++		// Get the skip-link target\'s ID, and generate one if it doesn\'t exist.
+ 		skipLinkTargetID = skipLinkTarget.id;
+ 		if ( ! skipLinkTargetID ) {
+-			skipLinkTargetID = 'wp--skip-link--target';
++			skipLinkTargetID = \'wp--skip-link--target\';
+ 			skipLinkTarget.id = skipLinkTargetID;
+ 		}
+ 
+ 		// Create the skip link.
+-		skipLink = document.createElement( 'a' );
+-		skipLink.classList.add( 'skip-link', 'screen-reader-text' );
+-		skipLink.href = '#' + skipLinkTargetID;
+-		skipLink.innerHTML = '<?php /* translators: Hidden accessibility text. */ esc_html_e( 'Skip to content' ); ?>';
++		skipLink = document.createElement( \'a\' );
++		skipLink.classList.add( \'skip-link\', \'screen-reader-text\' );
++		skipLink.href = \'#\' + skipLinkTargetID;
++		skipLink.innerHTML = \'';
++/* translators: Hidden accessibility text. */ esc_html_e( 'Skip to content' ); ;
++echo '\';
+ 
+ 		// Inject the skip link.
+ 		sibling.parentElement.insertBefore( skipLink, sibling );
+ 	}() );
+ 	</script>
+-	<?php
++	';
+ }
+ 
+ /**
+@@ -6482,9 +6489,9 @@
+ 		return;
+ 	}
+ 
+-	?>
+-	<style>img:is([sizes="auto" i], [sizes^="auto," i]) { contain-intrinsic-size: 3000px 1500px }</style>
+-	<?php
++	;
++echo '	<style>img:is([sizes="auto" i], [sizes^="auto," i]) { contain-intrinsic-size: 3000px 1500px }</style>
++	';
+ }
+ 
+ /**

@@ -1,0 +1,31 @@
+--- a/wp-includes/build/pages/font-library/page-wp-admin.php
++++ b/wp-includes/build/pages/font-library/page-wp-admin.php
+@@ -149,7 +149,7 @@
+ 	// Get boot module asset file for dependencies
+ 	$asset_file = ABSPATH . WPINC . '/js/dist/script-modules/boot/index.min.asset.php';
+ 	if ( file_exists( $asset_file ) ) {
+-		$asset = require $asset_file;
++		$asset = aot_require_data( $asset_file );
+ 
+ 		// This script serves two purposes:
+ 		// 1. It ensures all the globals that are made available to the modules are loaded.
+@@ -263,8 +263,8 @@
+  * This renders within the normal WordPress admin interface.
+  */
+ function wp_font_library_wp_admin_render_page() {
+-	?>
+-	<style>
++	;
++echo '	<style>
+ 		/* Critical styles to prevent layout shifts - inlined for immediate application */
+ 
+ 		#wpwrap {
+@@ -316,7 +316,7 @@
+ 		}
+ 	</style>
+ 	<div id="font-library-wp-admin-app" class="boot-layout-container"></div>
+-	<?php
++	';
+ }
+ 
+ // Hook the enqueue function to admin_enqueue_scripts

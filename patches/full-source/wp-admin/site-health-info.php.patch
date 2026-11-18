@@ -1,0 +1,158 @@
+--- a/wp-admin/site-health-info.php
++++ b/wp-admin/site-health-info.php
+@@ -27,43 +27,50 @@
+ 		'additional_classes' => array( 'hide-if-js' ),
+ 	)
+ );
+-?>
+-
++;
++echo '
+ <div class="health-check-body health-check-debug-tab hide-if-no-js">
+-	<?php
++	';
+ 
+ 	WP_Debug_Data::check_for_updates();
+ 
+ 	$info = WP_Debug_Data::debug_data();
+ 
+-	?>
+-
++	;
++echo '
+ 	<h2>
+-		<?php _e( 'Site Health Info' ); ?>
+-	</h2>
++		';
++_e( 'Site Health Info' ); ;
++echo '	</h2>
+ 
+ 	<p>
+-		<?php
++		';
+ 			/* translators: %s: URL to Site Health Status page. */
+ 			printf( __( 'This page can show you every detail about the configuration of your WordPress website. For any improvements that could be made, see the <a href="%s">Site Health Status</a> page.' ), esc_url( admin_url( 'site-health.php' ) ) );
+-		?>
+-	</p>
++		;
++echo '	</p>
+ 	<p>
+-		<?php _e( 'If you want to export a handy list of all the information on this page, you can use the button below to copy it to the clipboard. You can then paste it in a text file and save it to your device, or paste it in an email exchange with a support engineer or theme/plugin developer for example.' ); ?>
+-	</p>
++		';
++_e( 'If you want to export a handy list of all the information on this page, you can use the button below to copy it to the clipboard. You can then paste it in a text file and save it to your device, or paste it in an email exchange with a support engineer or theme/plugin developer for example.' ); ;
++echo '	</p>
+ 
+ 	<div class="site-health-copy-buttons">
+ 		<div class="copy-button-wrapper">
+-			<button type="button" class="button copy-button" data-clipboard-text="<?php echo esc_attr( WP_Debug_Data::format( $info, 'debug' ) ); ?>">
+-				<?php _e( 'Copy site info to clipboard' ); ?>
+-			</button>
+-			<span class="success hidden" aria-hidden="true"><?php _e( 'Copied!' ); ?></span>
++			<button type="button" class="button copy-button" data-clipboard-text="';
++echo esc_attr( WP_Debug_Data::format( $info, 'debug' ) ); ;
++echo '">
++				';
++_e( 'Copy site info to clipboard' ); ;
++echo '			</button>
++			<span class="success hidden" aria-hidden="true">';
++_e( 'Copied!' ); ;
++echo '</span>
+ 		</div>
+ 	</div>
+ 
+ 	<div id="health-check-debug" class="health-check-accordion">
+ 
+-		<?php
++		';
+ 
+ 		$sizes_fields = array( 'uploads_size', 'themes_size', 'plugins_size', 'fonts_size', 'wordpress_size', 'database_size', 'total_size' );
+ 
+@@ -72,12 +79,17 @@
+ 				continue;
+ 			}
+ 
+-			?>
+-			<h3 class="health-check-accordion-heading">
+-				<button id="health-check-section-<?php echo esc_attr( $section ); ?>" aria-expanded="false" class="health-check-accordion-trigger" aria-controls="health-check-accordion-block-<?php echo esc_attr( $section ); ?>" type="button">
++			;
++echo '			<h3 class="health-check-accordion-heading">
++				<button id="health-check-section-';
++echo esc_attr( $section ); ;
++echo '" aria-expanded="false" class="health-check-accordion-trigger" aria-controls="health-check-accordion-block-';
++echo esc_attr( $section ); ;
++echo '" type="button">
+ 					<span class="title">
+-						<?php echo esc_html( $details['label'] ); ?>
+-						<?php
++						';
++echo esc_html( $details['label'] ); ;
++echo '						';
+ 
+ 						if ( isset( $details['show_count'] ) && $details['show_count'] ) {
+ 							printf(
+@@ -86,32 +98,34 @@
+ 							);
+ 						}
+ 
+-						?>
+-					</span>
+-					<?php
++						;
++echo '					</span>
++					';
+ 
+ 					if ( 'wp-paths-sizes' === $section ) {
+-						?>
+-						<span class="health-check-wp-paths-sizes spinner"></span>
+-						<?php
++						;
++echo '						<span class="health-check-wp-paths-sizes spinner"></span>
++						';
+ 					}
+ 
+-					?>
+-					<span class="icon"></span>
++					;
++echo '					<span class="icon"></span>
+ 				</button>
+ 			</h3>
+ 
+-			<div id="health-check-accordion-block-<?php echo esc_attr( $section ); ?>" class="health-check-accordion-panel" hidden="hidden">
+-				<?php
++			<div id="health-check-accordion-block-';
++echo esc_attr( $section ); ;
++echo '" class="health-check-accordion-panel" hidden="hidden">
++				';
+ 
+ 				if ( isset( $details['description'] ) && ! empty( $details['description'] ) ) {
+ 					printf( '<p>%s</p>', $details['description'] );
+ 				}
+ 
+-				?>
+-				<table class="widefat striped health-check-table">
++				;
++echo '				<table class="widefat striped health-check-table">
+ 					<tbody>
+-					<?php
++					';
+ 
+ 					foreach ( $details['fields'] as $field_name => $field ) {
+ 						if ( is_array( $field['value'] ) ) {
+@@ -133,10 +147,12 @@
+ 						}
+ 					}
+ 
+-					?>
+-					</tbody>
++					;
++echo '					</tbody>
+ 				</table>
+ 			</div>
+-		<?php } ?>
+-	</div>
++		';
++} ;
++echo '	</div>
+ </div>
++';

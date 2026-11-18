@@ -1,0 +1,100 @@
+--- a/wp-includes/theme-compat/comments.php
++++ b/wp-includes/theme-compat/comments.php
+@@ -20,18 +20,21 @@
+ 	die( 'Please do not load this page directly. Thanks!' );
+ }
+ 
+-if ( post_password_required() ) { ?>
+-		<p class="nocomments"><?php _e( 'This post is password protected. Enter the password to view comments.' ); ?></p>
+-	<?php
++if ( post_password_required() ) { ;
++echo '		<p class="nocomments">';
++_e( 'This post is password protected. Enter the password to view comments.' ); ;
++echo '</p>
++	';
+ 	return;
+ }
+-?>
+-
++;
++echo '
+ <!-- You can start editing here. -->
+ 
+-<?php if ( have_comments() ) : ?>
+-	<h3 id="comments">
+-		<?php
++';
++if ( have_comments() ) : ;
++echo '	<h3 id="comments">
++		';
+ 		if ( '1' === get_comments_number() ) {
+ 			printf(
+ 				/* translators: %s: Post title. */
+@@ -46,32 +49,48 @@
+ 				'&#8220;' . get_the_title() . '&#8221;'
+ 			);
+ 		}
+-		?>
+-	</h3>
++		;
++echo '	</h3>
+ 
+ 	<div class="navigation">
+-		<div class="alignleft"><?php previous_comments_link(); ?></div>
+-		<div class="alignright"><?php next_comments_link(); ?></div>
++		<div class="alignleft">';
++previous_comments_link(); ;
++echo '</div>
++		<div class="alignright">';
++next_comments_link(); ;
++echo '</div>
+ 	</div>
+ 
+ 	<ol class="commentlist">
+-	<?php wp_list_comments(); ?>
+-	</ol>
++	';
++wp_list_comments(); ;
++echo '	</ol>
+ 
+ 	<div class="navigation">
+-		<div class="alignleft"><?php previous_comments_link(); ?></div>
+-		<div class="alignright"><?php next_comments_link(); ?></div>
++		<div class="alignleft">';
++previous_comments_link(); ;
++echo '</div>
++		<div class="alignright">';
++next_comments_link(); ;
++echo '</div>
+ 	</div>
+-<?php else : // This is displayed if there are no comments so far. ?>
++';
++else : // This is displayed if there are no comments so far. ;
++echo '
++	';
++if ( comments_open() ) : ;
++echo '		<!-- If comments are open, but there are no comments. -->
+ 
+-	<?php if ( comments_open() ) : ?>
+-		<!-- If comments are open, but there are no comments. -->
++	';
++else : // Comments are closed. ;
++echo '		<!-- If comments are closed. -->
++		<p class="nocomments">';
++_e( 'Comments are closed.' ); ;
++echo '</p>
+ 
+-	<?php else : // Comments are closed. ?>
+-		<!-- If comments are closed. -->
+-		<p class="nocomments"><?php _e( 'Comments are closed.' ); ?></p>
+-
+-	<?php endif; ?>
+-<?php endif; ?>
+-
+-<?php comment_form(); ?>
++	';
++endif; ;
++endif; ;
++echo '
++';
++comment_form(); ;

@@ -1,0 +1,48 @@
+--- a/wp-includes/widgets/class-wp-widget-media-audio.php
++++ b/wp-includes/widgets/class-wp-widget-media-audio.php
+@@ -186,10 +186,10 @@
+ 	 */
+ 	public function render_control_template_scripts() {
+ 		parent::render_control_template_scripts()
+-		?>
+-		<script type="text/html" id="tmpl-wp-media-widget-audio-preview">
+-			<# if ( data.error && 'missing_attachment' === data.error ) { #>
+-				<?php
++		;
++echo '		<script type="text/html" id="tmpl-wp-media-widget-audio-preview">
++			<# if ( data.error && \'missing_attachment\' === data.error ) { #>
++				';
+ 				wp_admin_notice(
+ 					$this->l10n['missing_attachment'],
+ 					array(
+@@ -197,9 +197,9 @@
+ 						'additional_classes' => array( 'notice-alt', 'notice-missing-attachment' ),
+ 					)
+ 				);
+-				?>
+-			<# } else if ( data.error ) { #>
+-				<?php
++				;
++echo '			<# } else if ( data.error ) { #>
++				';
+ 				wp_admin_notice(
+ 					__( 'Unable to preview media due to an unknown error.' ),
+ 					array(
+@@ -207,11 +207,12 @@
+ 						'additional_classes' => array( 'notice-alt' ),
+ 					)
+ 				);
+-				?>
+-			<# } else if ( data.model && data.model.src ) { #>
+-				<?php wp_underscore_audio_template(); ?>
+-			<# } #>
++				;
++echo '			<# } else if ( data.model && data.model.src ) { #>
++				';
++wp_underscore_audio_template(); ;
++echo '			<# } #>
+ 		</script>
+-		<?php
++		';
+ 	}
+ }

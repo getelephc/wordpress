@@ -1,0 +1,22 @@
+--- a/wp-includes/category.php
++++ b/wp-includes/category.php
+@@ -384,11 +384,11 @@
+ 		$category->category_nicename    = $category->slug;
+ 		$category->category_parent      = $category->parent;
+ 	} elseif ( is_array( $category ) && isset( $category['term_id'] ) ) {
+-		$category['cat_ID']               = &$category['term_id'];
+-		$category['category_count']       = &$category['count'];
+-		$category['category_description'] = &$category['description'];
+-		$category['cat_name']             = &$category['name'];
+-		$category['category_nicename']    = &$category['slug'];
+-		$category['category_parent']      = &$category['parent'];
+-	}
+-}
++		$category['cat_ID']               = $category['term_id'];
++		$category['category_count']       = $category['count'];
++		$category['category_description'] = $category['description'];
++		$category['cat_name']             = $category['name'];
++		$category['category_nicename']    = $category['slug'];
++		$category['category_parent']      = $category['parent'];
++	}
++}

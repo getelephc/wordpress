@@ -1,0 +1,936 @@
+--- a/wp-admin/includes/class-wp-posts-list-table.php
++++ b/wp-admin/includes/class-wp-posts-list-table.php
+@@ -532,16 +532,20 @@
+ 		}
+ 
+ 		$displayed_post_format = $_GET['post_format'] ?? '';
+-		?>
+-		<label for="filter-by-format" class="screen-reader-text">
+-			<?php
++		;
++echo '		<label for="filter-by-format" class="screen-reader-text">
++			';
+ 			/* translators: Hidden accessibility text. */
+ 			_e( 'Filter by post format' );
+-			?>
+-		</label>
++			;
++echo '		</label>
+ 		<select name="post_format" id="filter-by-format">
+-			<option<?php selected( $displayed_post_format, '' ); ?> value=""><?php _e( 'All formats' ); ?></option>
+-			<?php
++			<option';
++selected( $displayed_post_format, '' ); ;
++echo ' value="">';
++_e( 'All formats' ); ;
++echo '</option>
++			';
+ 			foreach ( $used_post_formats as $used_post_format ) {
+ 				// Post format slug.
+ 				$slug = str_replace( 'post-format-', '', $used_post_format->slug );
+@@ -552,22 +556,28 @@
+ 				if ( 'standard' === $slug ) {
+ 					continue;
+ 				}
+-				?>
+-				<option<?php selected( $displayed_post_format, $slug ); ?> value="<?php echo esc_attr( $slug ); ?>"><?php echo esc_html( $pretty_name ); ?></option>
+-				<?php
+-			}
+-			?>
+-		</select>
+-		<?php
++				;
++echo '				<option';
++selected( $displayed_post_format, $slug ); ;
++echo ' value="';
++echo esc_attr( $slug ); ;
++echo '">';
++echo esc_html( $pretty_name ); ;
++echo '</option>
++				';
++			}
++			;
++echo '		</select>
++		';
+ 	}
+ 
+ 	/**
+ 	 * @param string $which
+ 	 */
+ 	protected function extra_tablenav( $which ) {
+-		?>
+-		<div class="alignleft actions">
+-		<?php
++		;
++echo '		<div class="alignleft actions">
++		';
+ 		if ( 'top' === $which ) {
+ 			ob_start();
+ 
+@@ -605,9 +615,9 @@
+ 		) {
+ 			submit_button( __( 'Empty Trash' ), 'apply', 'delete_all', false );
+ 		}
+-		?>
+-		</div>
+-		<?php
++		;
++echo '		</div>
++		';
+ 		/**
+ 		 * Fires immediately following the closing "actions" div in the tablenav for the posts
+ 		 * list table.
+@@ -1079,29 +1089,35 @@
+ 			if ( '' !== $no_title_excerpt ) {
+ 				$post_title .= ' ' . $no_title_excerpt;
+ 			}
+-			?>
+-			<input id="cb-select-<?php the_ID(); ?>" type="checkbox" name="post[]" value="<?php the_ID(); ?>" />
+-			<label for="cb-select-<?php the_ID(); ?>">
++			;
++echo '			<input id="cb-select-';
++the_ID(); ;
++echo '" type="checkbox" name="post[]" value="';
++the_ID(); ;
++echo '" />
++			<label for="cb-select-';
++the_ID(); ;
++echo '">
+ 				<span class="screen-reader-text">
+-				<?php
++				';
+ 					/* translators: %s: Post title. */
+ 					printf( __( 'Select %s' ), $post_title );
+-				?>
+-				</span>
++				;
++echo '				</span>
+ 			</label>
+ 			<div class="locked-indicator">
+ 				<span class="locked-indicator-icon" aria-hidden="true"></span>
+ 				<span class="screen-reader-text">
+-				<?php
++				';
+ 				printf(
+ 					/* translators: Hidden accessibility text. %s: Post title. */
+ 					__( '&#8220;%s&#8221; is locked' ),
+ 					$post_title
+ 				);
+-				?>
+-				</span>
++				;
++echo '				</span>
+ 			</div>
+-			<?php
++			';
+ 		endif;
+ 	}
+ 
+@@ -1360,15 +1376,15 @@
+ 	 * @param WP_Post $post The current WP_Post object.
+ 	 */
+ 	public function column_comments( $post ) {
+-		?>
+-		<div class="post-com-count-wrapper">
+-		<?php
++		;
++echo '		<div class="post-com-count-wrapper">
++		';
+ 			$pending_comments = $this->comment_pending_count[ $post->ID ] ?? 0;
+ 
+ 			$this->comments_bubble( $post->ID, $pending_comments );
+-		?>
+-		</div>
+-		<?php
++		;
++echo '		</div>
++		';
+ 	}
+ 
+ 	/**
+@@ -1537,11 +1553,16 @@
+ 		} else {
+ 			$classes .= ' level-0';
+ 		}
+-		?>
+-		<tr id="post-<?php echo $post->ID; ?>" class="<?php echo implode( ' ', get_post_class( $classes, $post->ID ) ); ?>">
+-			<?php $this->single_row_columns( $post ); ?>
+-		</tr>
+-		<?php
++		;
++echo '		<tr id="post-';
++echo $post->ID; ;
++echo '" class="';
++echo implode( ' ', get_post_class( $classes, $post->ID ) ); ;
++echo '">
++			';
++$this->single_row_columns( $post ); ;
++echo '		</tr>
++		';
+ 		$GLOBALS['post'] = $global_post;
+ 	}
+ 
+@@ -1763,11 +1784,11 @@
+ 			'comments'   => true,
+ 			'author'     => true,
+ 		);
+-		?>
+-
++		;
++echo '
+ 		<form method="get">
+ 		<table style="display: none"><tbody id="inlineedit">
+-		<?php
++		';
+ 		$hclass              = count( $hierarchical_taxonomies ) ? 'post' : 'page';
+ 		$inline_edit_classes = "inline-edit-row inline-edit-row-$hclass";
+ 		$bulk_edit_classes   = "bulk-edit-row bulk-edit-row-$hclass bulk-edit-{$screen->post_type}";
+@@ -1778,51 +1799,79 @@
+ 		while ( $bulk < 2 ) :
+ 			$classes  = $inline_edit_classes . ' ';
+ 			$classes .= $bulk ? $bulk_edit_classes : $quick_edit_classes;
+-			?>
+-			<tr id="<?php echo $bulk ? 'bulk-edit' : 'inline-edit'; ?>" class="<?php echo $classes; ?>" style="display: none">
+-			<td colspan="<?php echo $this->get_column_count(); ?>" class="colspanchange">
+-			<div class="inline-edit-wrapper" role="region" aria-labelledby="<?php echo $bulk ? 'bulk' : 'quick'; ?>-edit-legend">
++			;
++echo '			<tr id="';
++echo $bulk ? 'bulk-edit' : 'inline-edit'; ;
++echo '" class="';
++echo $classes; ;
++echo '" style="display: none">
++			<td colspan="';
++echo $this->get_column_count(); ;
++echo '" class="colspanchange">
++			<div class="inline-edit-wrapper" role="region" aria-labelledby="';
++echo $bulk ? 'bulk' : 'quick'; ;
++echo '-edit-legend">
+ 			<fieldset class="inline-edit-col-left">
+-				<legend class="inline-edit-legend" id="<?php echo $bulk ? 'bulk' : 'quick'; ?>-edit-legend"><?php echo $bulk ? __( 'Bulk Edit' ) : __( 'Quick Edit' ); ?></legend>
++				<legend class="inline-edit-legend" id="';
++echo $bulk ? 'bulk' : 'quick'; ;
++echo '-edit-legend">';
++echo $bulk ? __( 'Bulk Edit' ) : __( 'Quick Edit' ); ;
++echo '</legend>
+ 				<div class="inline-edit-col">
+ 
+-				<?php if ( post_type_supports( $screen->post_type, 'title' ) ) : ?>
+-
+-					<?php if ( $bulk ) : ?>
+-
++				';
++if ( post_type_supports( $screen->post_type, 'title' ) ) : ;
++echo '
++					';
++if ( $bulk ) : ;
++echo '
+ 						<div id="bulk-title-div">
+ 							<div id="bulk-titles"></div>
+ 						</div>
+ 
+-					<?php else : // $bulk ?>
+-
++					';
++else : // $bulk ;
++echo '
+ 						<label>
+-							<span class="title"><?php _e( 'Title' ); ?></span>
++							<span class="title">';
++_e( 'Title' ); ;
++echo '</span>
+ 							<span class="input-text-wrap"><input type="text" name="post_title" class="ptitle" value="" /></span>
+ 						</label>
+ 
+-						<?php if ( is_post_type_viewable( $screen->post_type ) ) : ?>
+-
++						';
++if ( is_post_type_viewable( $screen->post_type ) ) : ;
++echo '
+ 							<label>
+-								<span class="title"><?php _e( 'Slug' ); ?></span>
++								<span class="title">';
++_e( 'Slug' ); ;
++echo '</span>
+ 								<span class="input-text-wrap"><input type="text" name="post_name" value="" autocomplete="off" spellcheck="false" /></span>
+ 							</label>
+ 
+-						<?php endif; // is_post_type_viewable() ?>
+-
+-					<?php endif; // $bulk ?>
+-
+-				<?php endif; // post_type_supports( ... 'title' ) ?>
+-
+-				<?php if ( ! $bulk ) : ?>
+-					<fieldset class="inline-edit-date">
+-						<legend><span class="title"><?php _e( 'Date' ); ?></span></legend>
+-						<?php touch_time( 1, 1, 0, 1 ); ?>
+-					</fieldset>
++						';
++endif; // is_post_type_viewable() ;
++echo '
++					';
++endif; // $bulk ;
++echo '
++				';
++endif; // post_type_supports( ... 'title' ) ;
++echo '
++				';
++if ( ! $bulk ) : ;
++echo '					<fieldset class="inline-edit-date">
++						<legend><span class="title">';
++_e( 'Date' ); ;
++echo '</span></legend>
++						';
++touch_time( 1, 1, 0, 1 ); ;
++echo '					</fieldset>
+ 					<br class="clear" />
+-				<?php endif; // $bulk ?>
+-
+-				<?php
++				';
++endif; // $bulk ;
++echo '
++				';
+ 				if ( post_type_supports( $screen->post_type, 'author' ) ) {
+ 					$authors_dropdown = '';
+ 
+@@ -1873,69 +1922,90 @@
+ 						echo $authors_dropdown;
+ 					}
+ 				} // post_type_supports( ... 'author' )
+-				?>
+-
+-				<?php if ( ! $bulk && $can_publish ) : ?>
+-
++				;
++echo '
++				';
++if ( ! $bulk && $can_publish ) : ;
++echo '
+ 					<div class="inline-edit-group wp-clearfix">
+ 						<label class="alignleft">
+-							<span class="title"><?php _e( 'Password' ); ?></span>
++							<span class="title">';
++_e( 'Password' ); ;
++echo '</span>
+ 							<span class="input-text-wrap"><input type="text" name="post_password" class="inline-edit-password-input ltr" value="" /></span>
+ 						</label>
+ 
+ 						<span class="alignleft inline-edit-or">
+-							<?php
++							';
+ 							/* translators: Between password field and private checkbox on post quick edit interface. */
+ 							_e( '&ndash;OR&ndash;' );
+-							?>
+-						</span>
++							;
++echo '						</span>
+ 						<label class="alignleft inline-edit-private">
+ 							<input type="checkbox" name="keep_private" value="private" />
+-							<span class="checkbox-title"><?php _e( 'Private' ); ?></span>
++							<span class="checkbox-title">';
++_e( 'Private' ); ;
++echo '</span>
+ 						</label>
+ 					</div>
+ 
+-				<?php endif; ?>
+-
++				';
++endif; ;
++echo '
+ 				</div>
+ 			</fieldset>
+ 
+-			<?php if ( count( $hierarchical_taxonomies ) && ! $bulk ) : ?>
+-
++			';
++if ( count( $hierarchical_taxonomies ) && ! $bulk ) : ;
++echo '
+ 				<fieldset class="inline-edit-col-center inline-edit-categories">
+ 					<div class="inline-edit-col">
+ 
+-					<?php foreach ( $hierarchical_taxonomies as $taxonomy ) : ?>
+-
+-						<span class="title inline-edit-categories-label"><?php echo esc_html( $taxonomy->labels->name ); ?></span>
+-						<input type="hidden" name="<?php echo ( 'category' === $taxonomy->name ) ? 'post_category[]' : 'tax_input[' . esc_attr( $taxonomy->name ) . '][]'; ?>" value="0" />
+-						<ul class="cat-checklist <?php echo esc_attr( $taxonomy->name ); ?>-checklist">
+-							<?php wp_terms_checklist( 0, array( 'taxonomy' => $taxonomy->name ) ); ?>
+-						</ul>
+-
+-					<?php endforeach; // $hierarchical_taxonomies as $taxonomy ?>
+-
++					';
++foreach ( $hierarchical_taxonomies as $taxonomy ) : ;
++echo '
++						<span class="title inline-edit-categories-label">';
++echo esc_html( $taxonomy->labels->name ); ;
++echo '</span>
++						<input type="hidden" name="';
++echo ( 'category' === $taxonomy->name ) ? 'post_category[]' : 'tax_input[' . esc_attr( $taxonomy->name ) . '][]'; ;
++echo '" value="0" />
++						<ul class="cat-checklist ';
++echo esc_attr( $taxonomy->name ); ;
++echo '-checklist">
++							';
++wp_terms_checklist( 0, array( 'taxonomy' => $taxonomy->name ) ); ;
++echo '						</ul>
++
++					';
++endforeach; // $hierarchical_taxonomies as $taxonomy ;
++echo '
+ 					</div>
+ 				</fieldset>
+ 
+-			<?php endif; // count( $hierarchical_taxonomies ) && ! $bulk ?>
+-
++			';
++endif; // count( $hierarchical_taxonomies ) && ! $bulk ;
++echo '
+ 			<fieldset class="inline-edit-col-right">
+ 				<div class="inline-edit-col">
+ 
+-				<?php
++				';
+ 				if ( post_type_supports( $screen->post_type, 'author' ) && $bulk ) {
+ 					echo $authors_dropdown;
+ 				}
+-				?>
+-
+-				<?php if ( post_type_supports( $screen->post_type, 'page-attributes' ) ) : ?>
+-
+-					<?php if ( $post_type_object->hierarchical ) : ?>
+-
++				;
++echo '
++				';
++if ( post_type_supports( $screen->post_type, 'page-attributes' ) ) : ;
++echo '
++					';
++if ( $post_type_object->hierarchical ) : ;
++echo '
+ 						<label>
+-							<span class="title"><?php _e( 'Parent' ); ?></span>
+-							<?php
++							<span class="title">';
++_e( 'Parent' ); ;
++echo '</span>
++							';
+ 							$dropdown_args = array(
+ 								'post_type'         => $post_type_object->name,
+ 								'selected'          => $post->post_parent,
+@@ -1964,128 +2034,203 @@
+ 							$dropdown_args = apply_filters( 'quick_edit_dropdown_pages_args', $dropdown_args, $bulk );
+ 
+ 							wp_dropdown_pages( $dropdown_args );
+-							?>
++							;
++echo '						</label>
++
++					';
++endif; // hierarchical ;
++echo '
++					';
++if ( ! $bulk ) : ;
++echo '
++						<label>
++							<span class="title">';
++_e( 'Order' ); ;
++echo '</span>
++							<span class="input-text-wrap"><input type="text" name="menu_order" class="inline-edit-menu-order-input" value="';
++echo $post->menu_order; ;
++echo '" /></span>
+ 						</label>
+ 
+-					<?php endif; // hierarchical ?>
+-
+-					<?php if ( ! $bulk ) : ?>
+-
+-						<label>
+-							<span class="title"><?php _e( 'Order' ); ?></span>
+-							<span class="input-text-wrap"><input type="text" name="menu_order" class="inline-edit-menu-order-input" value="<?php echo $post->menu_order; ?>" /></span>
+-						</label>
+-
+-					<?php endif; // ! $bulk ?>
+-
+-				<?php endif; // post_type_supports( ... 'page-attributes' ) ?>
+-
+-				<?php if ( 0 < count( get_page_templates( null, $screen->post_type ) ) ) : ?>
+-
++					';
++endif; // ! $bulk ;
++echo '
++				';
++endif; // post_type_supports( ... 'page-attributes' ) ;
++echo '
++				';
++if ( 0 < count( get_page_templates( null, $screen->post_type ) ) ) : ;
++echo '
+ 					<label>
+-						<span class="title"><?php _e( 'Template' ); ?></span>
++						<span class="title">';
++_e( 'Template' ); ;
++echo '</span>
+ 						<select name="page_template">
+-							<?php if ( $bulk ) : ?>
+-							<option value="-1"><?php _e( '&mdash; No Change &mdash;' ); ?></option>
+-							<?php endif; // $bulk ?>
+-							<?php
++							';
++if ( $bulk ) : ;
++echo '							<option value="-1">';
++_e( '&mdash; No Change &mdash;' ); ;
++echo '</option>
++							';
++endif; // $bulk ;
++echo '							';
+ 							/** This filter is documented in wp-admin/includes/meta-boxes.php */
+ 							$default_title = apply_filters( 'default_page_template_title', __( 'Default template' ), 'quick-edit' );
+-							?>
+-							<option value="default"><?php echo esc_html( $default_title ); ?></option>
+-							<?php page_template_dropdown( '', $screen->post_type ); ?>
+-						</select>
++							;
++echo '							<option value="default">';
++echo esc_html( $default_title ); ;
++echo '</option>
++							';
++page_template_dropdown( '', $screen->post_type ); ;
++echo '						</select>
+ 					</label>
+ 
+-				<?php endif; ?>
+-
+-				<?php if ( count( $flat_taxonomies ) && ! $bulk ) : ?>
+-
+-					<?php foreach ( $flat_taxonomies as $taxonomy ) : ?>
+-
+-						<?php if ( current_user_can( $taxonomy->cap->assign_terms ) ) : ?>
+-							<?php $taxonomy_name = esc_attr( $taxonomy->name ); ?>
+-							<div class="inline-edit-tags-wrap">
++				';
++endif; ;
++echo '
++				';
++if ( count( $flat_taxonomies ) && ! $bulk ) : ;
++echo '
++					';
++foreach ( $flat_taxonomies as $taxonomy ) : ;
++echo '
++						';
++if ( current_user_can( $taxonomy->cap->assign_terms ) ) : ;
++echo '							';
++$taxonomy_name = esc_attr( $taxonomy->name ); ;
++echo '							<div class="inline-edit-tags-wrap">
+ 							<label class="inline-edit-tags">
+-								<span class="title"><?php echo esc_html( $taxonomy->labels->name ); ?></span>
+-								<textarea data-wp-taxonomy="<?php echo $taxonomy_name; ?>" cols="22" rows="1" name="tax_input[<?php echo esc_attr( $taxonomy->name ); ?>]" class="tax_input_<?php echo esc_attr( $taxonomy->name ); ?>" aria-describedby="inline-edit-<?php echo esc_attr( $taxonomy->name ); ?>-desc"></textarea>
++								<span class="title">';
++echo esc_html( $taxonomy->labels->name ); ;
++echo '</span>
++								<textarea data-wp-taxonomy="';
++echo $taxonomy_name; ;
++echo '" cols="22" rows="1" name="tax_input[';
++echo esc_attr( $taxonomy->name ); ;
++echo ']" class="tax_input_';
++echo esc_attr( $taxonomy->name ); ;
++echo '" aria-describedby="inline-edit-';
++echo esc_attr( $taxonomy->name ); ;
++echo '-desc"></textarea>
+ 							</label>
+-							<p class="howto" id="inline-edit-<?php echo esc_attr( $taxonomy->name ); ?>-desc"><?php echo esc_html( $taxonomy->labels->separate_items_with_commas ); ?></p>
++							<p class="howto" id="inline-edit-';
++echo esc_attr( $taxonomy->name ); ;
++echo '-desc">';
++echo esc_html( $taxonomy->labels->separate_items_with_commas ); ;
++echo '</p>
+ 							</div>
+-						<?php endif; // current_user_can( 'assign_terms' ) ?>
+-
+-					<?php endforeach; // $flat_taxonomies as $taxonomy ?>
+-
+-				<?php endif; // count( $flat_taxonomies ) && ! $bulk ?>
+-
+-				<?php if ( post_type_supports( $screen->post_type, 'comments' ) || post_type_supports( $screen->post_type, 'trackbacks' ) ) : ?>
+-
+-					<?php if ( $bulk ) : ?>
+-
++						';
++endif; // current_user_can( 'assign_terms' ) ;
++echo '
++					';
++endforeach; // $flat_taxonomies as $taxonomy ;
++echo '
++				';
++endif; // count( $flat_taxonomies ) && ! $bulk ;
++echo '
++				';
++if ( post_type_supports( $screen->post_type, 'comments' ) || post_type_supports( $screen->post_type, 'trackbacks' ) ) : ;
++echo '
++					';
++if ( $bulk ) : ;
++echo '
+ 						<div class="inline-edit-group wp-clearfix">
+ 
+-						<?php if ( post_type_supports( $screen->post_type, 'comments' ) ) : ?>
+-
++						';
++if ( post_type_supports( $screen->post_type, 'comments' ) ) : ;
++echo '
+ 							<label class="alignleft">
+-								<span class="title"><?php _e( 'Comments' ); ?></span>
++								<span class="title">';
++_e( 'Comments' ); ;
++echo '</span>
+ 								<select name="comment_status">
+-									<option value=""><?php _e( '&mdash; No Change &mdash;' ); ?></option>
+-									<option value="open"><?php _e( 'Allow' ); ?></option>
+-									<option value="closed"><?php _e( 'Do not allow' ); ?></option>
++									<option value="">';
++_e( '&mdash; No Change &mdash;' ); ;
++echo '</option>
++									<option value="open">';
++_e( 'Allow' ); ;
++echo '</option>
++									<option value="closed">';
++_e( 'Do not allow' ); ;
++echo '</option>
+ 								</select>
+ 							</label>
+ 
+-						<?php endif; ?>
+-
+-						<?php if ( post_type_supports( $screen->post_type, 'trackbacks' ) ) : ?>
+-
++						';
++endif; ;
++echo '
++						';
++if ( post_type_supports( $screen->post_type, 'trackbacks' ) ) : ;
++echo '
+ 							<label class="alignright">
+-								<span class="title"><?php _e( 'Pings' ); ?></span>
++								<span class="title">';
++_e( 'Pings' ); ;
++echo '</span>
+ 								<select name="ping_status">
+-									<option value=""><?php _e( '&mdash; No Change &mdash;' ); ?></option>
+-									<option value="open"><?php _e( 'Allow' ); ?></option>
+-									<option value="closed"><?php _e( 'Do not allow' ); ?></option>
++									<option value="">';
++_e( '&mdash; No Change &mdash;' ); ;
++echo '</option>
++									<option value="open">';
++_e( 'Allow' ); ;
++echo '</option>
++									<option value="closed">';
++_e( 'Do not allow' ); ;
++echo '</option>
+ 								</select>
+ 							</label>
+ 
+-						<?php endif; ?>
+-
++						';
++endif; ;
++echo '
+ 						</div>
+ 
+-					<?php else : // $bulk ?>
+-
++					';
++else : // $bulk ;
++echo '
+ 						<div class="inline-edit-group wp-clearfix">
+ 
+-						<?php if ( post_type_supports( $screen->post_type, 'comments' ) ) : ?>
+-
++						';
++if ( post_type_supports( $screen->post_type, 'comments' ) ) : ;
++echo '
+ 							<label class="alignleft">
+ 								<input type="checkbox" name="comment_status" value="open" />
+-								<span class="checkbox-title"><?php _e( 'Allow Comments' ); ?></span>
++								<span class="checkbox-title">';
++_e( 'Allow Comments' ); ;
++echo '</span>
+ 							</label>
+ 
+-						<?php endif; ?>
+-
+-						<?php if ( post_type_supports( $screen->post_type, 'trackbacks' ) ) : ?>
+-
++						';
++endif; ;
++echo '
++						';
++if ( post_type_supports( $screen->post_type, 'trackbacks' ) ) : ;
++echo '
+ 							<label class="alignleft">
+ 								<input type="checkbox" name="ping_status" value="open" />
+-								<span class="checkbox-title"><?php _e( 'Allow Pings' ); ?></span>
++								<span class="checkbox-title">';
++_e( 'Allow Pings' ); ;
++echo '</span>
+ 							</label>
+ 
+-						<?php endif; ?>
+-
++						';
++endif; ;
++echo '
+ 						</div>
+ 
+-					<?php endif; // $bulk ?>
+-
+-				<?php endif; // post_type_supports( ... comments or pings ) ?>
+-
++					';
++endif; // $bulk ;
++echo '
++				';
++endif; // post_type_supports( ... comments or pings ) ;
++echo '
+ 					<div class="inline-edit-group wp-clearfix">
+ 
+ 						<label class="inline-edit-status alignleft">
+-							<span class="title"><?php _e( 'Status' ); ?></span>
++							<span class="title">';
++_e( 'Status' ); ;
++echo '</span>
+ 							<select name="_status">
+-								<?php
++								';
+ 								$inline_edit_statuses = array();
+ 								if ( $bulk ) {
+ 									$inline_edit_statuses['-1'] = __( '&mdash; No Change &mdash;' );
+@@ -2116,62 +2261,98 @@
+ 								$inline_edit_statuses = apply_filters( 'quick_edit_statuses', $inline_edit_statuses, $screen->post_type, $bulk, $can_publish );
+ 
+ 								foreach ( $inline_edit_statuses as $inline_status_value => $inline_status_text ) :
+-									?>
+-									<option value="<?php echo esc_attr( $inline_status_value ); ?>"><?php echo esc_attr( $inline_status_text ); ?></option>
+-									<?php
++									;
++echo '									<option value="';
++echo esc_attr( $inline_status_value ); ;
++echo '">';
++echo esc_attr( $inline_status_text ); ;
++echo '</option>
++									';
+ 								endforeach;
+-								?>
+-							</select>
++								;
++echo '							</select>
+ 						</label>
+ 
+-						<?php if ( 'post' === $screen->post_type && $can_publish && current_user_can( $post_type_object->cap->edit_others_posts ) ) : ?>
+-
+-							<?php if ( $bulk ) : ?>
+-
++						';
++if ( 'post' === $screen->post_type && $can_publish && current_user_can( $post_type_object->cap->edit_others_posts ) ) : ;
++echo '
++							';
++if ( $bulk ) : ;
++echo '
+ 								<label class="alignright">
+-									<span class="title"><?php _e( 'Sticky' ); ?></span>
++									<span class="title">';
++_e( 'Sticky' ); ;
++echo '</span>
+ 									<select name="sticky">
+-										<option value="-1"><?php _e( '&mdash; No Change &mdash;' ); ?></option>
+-										<option value="sticky"><?php _e( 'Sticky' ); ?></option>
+-										<option value="unsticky"><?php _e( 'Not Sticky' ); ?></option>
++										<option value="-1">';
++_e( '&mdash; No Change &mdash;' ); ;
++echo '</option>
++										<option value="sticky">';
++_e( 'Sticky' ); ;
++echo '</option>
++										<option value="unsticky">';
++_e( 'Not Sticky' ); ;
++echo '</option>
+ 									</select>
+ 								</label>
+ 
+-							<?php else : // $bulk ?>
+-
++							';
++else : // $bulk ;
++echo '
+ 								<label class="alignleft">
+ 									<input type="checkbox" name="sticky" value="sticky" />
+-									<span class="checkbox-title"><?php _e( 'Make this post sticky' ); ?></span>
++									<span class="checkbox-title">';
++_e( 'Make this post sticky' ); ;
++echo '</span>
+ 								</label>
+ 
+-							<?php endif; // $bulk ?>
+-
+-						<?php endif; // 'post' && $can_publish && current_user_can( 'edit_others_posts' ) ?>
+-
++							';
++endif; // $bulk ;
++echo '
++						';
++endif; // 'post' && $can_publish && current_user_can( 'edit_others_posts' ) ;
++echo '
+ 					</div>
+ 
+-				<?php if ( $bulk && current_theme_supports( 'post-formats' ) && post_type_supports( $screen->post_type, 'post-formats' ) ) : ?>
+-					<?php $post_formats = get_theme_support( 'post-formats' ); ?>
+-
++				';
++if ( $bulk && current_theme_supports( 'post-formats' ) && post_type_supports( $screen->post_type, 'post-formats' ) ) : ;
++echo '					';
++$post_formats = get_theme_support( 'post-formats' ); ;
++echo '
+ 					<label class="alignleft">
+-						<span class="title"><?php _ex( 'Format', 'post format' ); ?></span>
++						<span class="title">';
++_ex( 'Format', 'post format' ); ;
++echo '</span>
+ 						<select name="post_format">
+-							<option value="-1"><?php _e( '&mdash; No Change &mdash;' ); ?></option>
+-							<option value="0"><?php echo get_post_format_string( 'standard' ); ?></option>
+-							<?php if ( is_array( $post_formats[0] ) ) : ?>
+-								<?php foreach ( $post_formats[0] as $format ) : ?>
+-									<option value="<?php echo esc_attr( $format ); ?>"><?php echo esc_html( get_post_format_string( $format ) ); ?></option>
+-								<?php endforeach; ?>
+-							<?php endif; ?>
+-						</select>
++							<option value="-1">';
++_e( '&mdash; No Change &mdash;' ); ;
++echo '</option>
++							<option value="0">';
++echo get_post_format_string( 'standard' ); ;
++echo '</option>
++							';
++if ( is_array( $post_formats[0] ) ) : ;
++echo '								';
++foreach ( $post_formats[0] as $format ) : ;
++echo '									<option value="';
++echo esc_attr( $format ); ;
++echo '">';
++echo esc_html( get_post_format_string( $format ) ); ;
++echo '</option>
++								';
++endforeach; ;
++echo '							';
++endif; ;
++echo '						</select>
+ 					</label>
+ 
+-				<?php endif; ?>
+-
++				';
++endif; ;
++echo '
+ 				</div>
+ 			</fieldset>
+ 
+-			<?php
++			';
+ 			list( $columns ) = $this->get_column_info();
+ 
+ 			foreach ( $columns as $column_name => $column_display_name ) {
+@@ -2204,29 +2385,48 @@
+ 					do_action( 'quick_edit_custom_box', $column_name, $screen->post_type, '' );
+ 				}
+ 			}
+-			?>
+-
++			;
++echo '
+ 			<div class="submit inline-edit-save">
+-				<?php if ( ! $bulk ) : ?>
+-					<?php wp_nonce_field( 'inlineeditnonce', '_inline_edit', false ); ?>
+-					<button type="button" class="button button-primary save"><?php _e( 'Update' ); ?></button>
+-				<?php else : ?>
+-					<?php submit_button( __( 'Update' ), 'primary', 'bulk_edit', false ); ?>
+-				<?php endif; ?>
+-
+-				<button type="button" class="button cancel"><?php _e( 'Cancel' ); ?></button>
+-
+-				<?php if ( ! $bulk ) : ?>
+-					<span class="spinner"></span>
+-				<?php endif; ?>
+-
+-				<input type="hidden" name="post_view" value="<?php echo esc_attr( $m ); ?>" />
+-				<input type="hidden" name="screen" value="<?php echo esc_attr( $screen->id ); ?>" />
+-				<?php if ( ! $bulk && ! post_type_supports( $screen->post_type, 'author' ) ) : ?>
+-					<input type="hidden" name="post_author" value="<?php echo esc_attr( $post->post_author ); ?>" />
+-				<?php endif; ?>
+-
+-				<?php
++				';
++if ( ! $bulk ) : ;
++echo '					';
++wp_nonce_field( 'inlineeditnonce', '_inline_edit', false ); ;
++echo '					<button type="button" class="button button-primary save">';
++_e( 'Update' ); ;
++echo '</button>
++				';
++else : ;
++echo '					';
++submit_button( __( 'Update' ), 'primary', 'bulk_edit', false ); ;
++echo '				';
++endif; ;
++echo '
++				<button type="button" class="button cancel">';
++_e( 'Cancel' ); ;
++echo '</button>
++
++				';
++if ( ! $bulk ) : ;
++echo '					<span class="spinner"></span>
++				';
++endif; ;
++echo '
++				<input type="hidden" name="post_view" value="';
++echo esc_attr( $m ); ;
++echo '" />
++				<input type="hidden" name="screen" value="';
++echo esc_attr( $screen->id ); ;
++echo '" />
++				';
++if ( ! $bulk && ! post_type_supports( $screen->post_type, 'author' ) ) : ;
++echo '					<input type="hidden" name="post_author" value="';
++echo esc_attr( $post->post_author ); ;
++echo '" />
++				';
++endif; ;
++echo '
++				';
+ 				wp_admin_notice(
+ 					'<p class="error"></p>',
+ 					array(
+@@ -2235,18 +2435,18 @@
+ 						'paragraph_wrap'     => false,
+ 					)
+ 				);
+-				?>
+-			</div>
++				;
++echo '			</div>
+ 		</div> <!-- end of .inline-edit-wrapper -->
+ 
+ 			</td></tr>
+ 
+-			<?php
++			';
+ 			++$bulk;
+ 		endwhile;
+-		?>
+-		</tbody></table>
++		;
++echo '		</tbody></table>
+ 		</form>
+-		<?php
++		';
+ 	}
+ }

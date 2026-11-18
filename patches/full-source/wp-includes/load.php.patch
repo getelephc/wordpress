@@ -1,0 +1,38 @@
+--- a/wp-includes/load.php
++++ b/wp-includes/load.php
+@@ -404,7 +404,7 @@
+ 	}
+ 
+ 	if ( file_exists( WP_CONTENT_DIR . '/maintenance.php' ) ) {
+-		require_once WP_CONTENT_DIR . '/maintenance.php';
++		throw new RuntimeException( 'This optional drop-in is outside the finite Elephc manifest.' );
+ 		die();
+ 	}
+ 
+@@ -441,7 +441,7 @@
+ 		return false;
+ 	}
+ 
+-	require ABSPATH . '.maintenance';
++	throw new RuntimeException( 'This optional drop-in is outside the finite Elephc manifest.' );
+ 
+ 	// If the $upgrading timestamp is older than 10 minutes, consider maintenance over.
+ 	if ( ( time() - $upgrading ) >= 10 * MINUTE_IN_SECONDS ) {
+@@ -715,6 +715,8 @@
+ 	if ( isset( $wpdb ) ) {
+ 		return;
+ 	}
++
++	throw new RuntimeException( 'The isolated SQLite fixture must initialize wpdb; server connections are outside this profile.' );
+ 
+ 	$dbuser     = defined( 'DB_USER' ) ? DB_USER : '';
+ 	$dbpassword = defined( 'DB_PASSWORD' ) ? DB_PASSWORD : '';
+@@ -858,7 +860,7 @@
+ 			 * that an external object cache is being used.
+ 			 */
+ 			if ( file_exists( WP_CONTENT_DIR . '/object-cache.php' ) ) {
+-				require_once WP_CONTENT_DIR . '/object-cache.php';
++				throw new RuntimeException( 'This optional drop-in is outside the finite Elephc manifest.' );
+ 
+ 				if ( function_exists( 'wp_cache_init' ) ) {
+ 					wp_using_ext_object_cache( true );

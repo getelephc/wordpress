@@ -1,0 +1,74 @@
+--- a/wp-includes/build/pages/font-library/page.php
++++ b/wp-includes/build/pages/font-library/page.php
+@@ -155,7 +155,7 @@
+ 	// Get boot module asset file for dependencies
+ 	$asset_file = ABSPATH . WPINC . '/js/dist/script-modules/boot/index.min.asset.php';
+ 	if ( file_exists( $asset_file ) ) {
+-		$asset = require $asset_file;
++		$asset = aot_require_data( $asset_file );
+ 
+ 		// This script serves two purposes:
+ 		// 1. It ensures all the globals that are made available to the modules are loaded.
+@@ -241,13 +241,19 @@
+ 	}
+ 
+ 	// Output the HTML
+-	?>
+-	<!DOCTYPE html>
+-	<html <?php language_attributes(); ?>>
++	;
++echo '	<!DOCTYPE html>
++	<html ';
++language_attributes(); ;
++echo '>
+ 	<head>
+-		<meta charset="<?php bloginfo( 'charset' ); ?>">
++		<meta charset="';
++bloginfo( 'charset' ); ;
++echo '">
+ 		<meta name="viewport" content="width=device-width, initial-scale=1">
+-		<title><?php echo esc_html( get_admin_page_title() ); ?></title>
++		<title>';
++echo esc_html( get_admin_page_title() ); ;
++echo '</title>
+ 		<style>
+ 			html {
+ 				background: #f1f1f1;
+@@ -261,7 +267,7 @@
+ 			}
+ 			#wpadminbar { display: none; }
+ 		</style>
+-	<?php
++	';
+ 	global $hook_suffix;
+ 	// phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited
+ 	$hook_suffix = 'font-library';
+@@ -276,11 +282,11 @@
+ 	/** This action is documented in wp-admin/admin-header.php */
+ 	do_action( 'admin_head' );
+ 	// END see wp-admin/admin-header.php
+-	?>
+-	</head>
++	;
++echo '	</head>
+ 	<body class="font-library">
+ 		<div id="font-library-app" style="height: 100vh; box-sizing: border-box;"></div>
+-	<?php
++	';
+ 	// BEGIN see wp-admin/admin-footer.php
+ 
+ 	/** This action is documented in wp-admin/admin-footer.php */
+@@ -296,10 +302,10 @@
+ 	/** This action is documented in wp-admin/admin-footer.php */
+ 	do_action( "admin_footer-{$hook_suffix}" ); // phpcs:ignore WordPress.NamingConventions.ValidHookName.UseUnderscores
+ 	// END see wp-admin/admin-footer.php
+-	?>
+-	</body>
++	;
++echo '	</body>
+ 	</html>
+-	<?php
++	';
+ 	exit;
+ }
+ 

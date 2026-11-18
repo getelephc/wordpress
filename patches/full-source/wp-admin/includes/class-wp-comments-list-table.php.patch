@@ -1,0 +1,137 @@
+--- a/wp-admin/includes/class-wp-comments-list-table.php
++++ b/wp-admin/includes/class-wp-comments-list-table.php
+@@ -611,9 +611,11 @@
+ 
+ 		$this->screen->render_screen_reader_content( 'heading_list' );
+ 
+-		?>
+-<table class="wp-list-table <?php echo implode( ' ', $this->get_table_classes() ); ?>">
+-		<?php
++		;
++echo '<table class="wp-list-table ';
++echo implode( ' ', $this->get_table_classes() ); ;
++echo '">
++		';
+ 		if ( ! isset( $_GET['orderby'] ) ) {
+ 			// In the initial view, Comments are ordered by comment's date but there's no column for that.
+ 			echo '<caption class="screen-reader-text">' .
+@@ -623,19 +625,21 @@
+ 		} else {
+ 			$this->print_table_description();
+ 		}
+-		?>
+-	<thead>
++		;
++echo '	<thead>
+ 	<tr>
+-		<?php $this->print_column_headers(); ?>
+-	</tr>
++		';
++$this->print_column_headers(); ;
++echo '	</tr>
+ 	</thead>
+ 
+ 	<tbody id="the-comment-list" data-wp-lists="list:comment">
+-		<?php $this->display_rows_or_placeholder(); ?>
+-	</tbody>
++		';
++$this->display_rows_or_placeholder(); ;
++echo '	</tbody>
+ 
+ 	<tbody id="the-extra-comment-list" data-wp-lists="list:comment" style="display: none;">
+-		<?php
++		';
+ 			/*
+ 			 * Back up the items to restore after printing the extra items markup.
+ 			 * The extra items may be empty, which will prevent the table nav from displaying later.
+@@ -644,17 +648,18 @@
+ 			$this->items = $this->extra_items;
+ 			$this->display_rows_or_placeholder();
+ 			$this->items = $items;
+-		?>
+-	</tbody>
++		;
++echo '	</tbody>
+ 
+ 	<tfoot>
+ 	<tr>
+-		<?php $this->print_column_headers( false ); ?>
+-	</tr>
++		';
++$this->print_column_headers( false ); ;
++echo '	</tr>
+ 	</tfoot>
+ 
+ </table>
+-		<?php
++		';
+ 
+ 		$this->display_tablenav( 'bottom' );
+ 	}
+@@ -953,17 +958,23 @@
+ 		$comment = $item;
+ 
+ 		if ( $this->user_can ) {
+-			?>
+-		<input id="cb-select-<?php echo $comment->comment_ID; ?>" type="checkbox" name="delete_comments[]" value="<?php echo $comment->comment_ID; ?>" />
+-		<label for="cb-select-<?php echo $comment->comment_ID; ?>">
++			;
++echo '		<input id="cb-select-';
++echo $comment->comment_ID; ;
++echo '" type="checkbox" name="delete_comments[]" value="';
++echo $comment->comment_ID; ;
++echo '" />
++		<label for="cb-select-';
++echo $comment->comment_ID; ;
++echo '">
+ 			<span class="screen-reader-text">
+-			<?php
++			';
+ 			/* translators: Hidden accessibility text. */
+ 			_e( 'Select comment' );
+-			?>
+-			</span>
++			;
++echo '			</span>
+ 		</label>
+-			<?php
++			';
+ 		}
+ 	}
+ 
+@@ -996,15 +1007,27 @@
+ 		if ( $this->user_can ) {
+ 			/** This filter is documented in wp-admin/includes/comment.php */
+ 			$comment_content = apply_filters( 'comment_edit_pre', $comment->comment_content );
+-			?>
+-		<div id="inline-<?php echo $comment->comment_ID; ?>" class="hidden">
+-			<textarea class="comment" rows="1" cols="1"><?php echo esc_textarea( $comment_content ); ?></textarea>
+-			<div class="author-email"><?php echo esc_html( $comment->comment_author_email ); ?></div>
+-			<div class="author"><?php echo esc_html( $comment->comment_author ); ?></div>
+-			<div class="author-url"><?php echo esc_url( $comment->comment_author_url ); ?></div>
+-			<div class="comment_status"><?php echo $comment->comment_approved; ?></div>
++			;
++echo '		<div id="inline-';
++echo $comment->comment_ID; ;
++echo '" class="hidden">
++			<textarea class="comment" rows="1" cols="1">';
++echo esc_textarea( $comment_content ); ;
++echo '</textarea>
++			<div class="author-email">';
++echo esc_html( $comment->comment_author_email ); ;
++echo '</div>
++			<div class="author">';
++echo esc_html( $comment->comment_author ); ;
++echo '</div>
++			<div class="author-url">';
++echo esc_url( $comment->comment_author_url ); ;
++echo '</div>
++			<div class="comment_status">';
++echo $comment->comment_approved; ;
++echo '</div>
+ 		</div>
+-			<?php
++			';
+ 		}
+ 	}
+ 

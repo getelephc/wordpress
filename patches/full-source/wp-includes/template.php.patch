@@ -1,0 +1,38 @@
+--- a/wp-includes/template.php
++++ b/wp-includes/template.php
+@@ -877,9 +877,33 @@
+ 	do_action( 'wp_before_load_template', $_template_file, $load_once, $args );
+ 
+ 	if ( $load_once ) {
+-		require_once $_template_file;
++		switch ( $_template_file ) {
++            case ABSPATH . WPINC . '/template-canvas.php': require_once ABSPATH . WPINC . '/template-canvas.php'; break;
++            case ABSPATH . WPINC . '/theme-compat/comments.php': require_once ABSPATH . WPINC . '/theme-compat/comments.php'; break;
++            case ABSPATH . WPINC . '/theme-compat/embed-404.php': require_once ABSPATH . WPINC . '/theme-compat/embed-404.php'; break;
++            case ABSPATH . WPINC . '/theme-compat/embed-content.php': require_once ABSPATH . WPINC . '/theme-compat/embed-content.php'; break;
++            case ABSPATH . WPINC . '/theme-compat/embed.php': require_once ABSPATH . WPINC . '/theme-compat/embed.php'; break;
++            case ABSPATH . WPINC . '/theme-compat/footer-embed.php': require_once ABSPATH . WPINC . '/theme-compat/footer-embed.php'; break;
++            case ABSPATH . WPINC . '/theme-compat/footer.php': require_once ABSPATH . WPINC . '/theme-compat/footer.php'; break;
++            case ABSPATH . WPINC . '/theme-compat/header-embed.php': require_once ABSPATH . WPINC . '/theme-compat/header-embed.php'; break;
++            case ABSPATH . WPINC . '/theme-compat/header.php': require_once ABSPATH . WPINC . '/theme-compat/header.php'; break;
++            case ABSPATH . WPINC . '/theme-compat/sidebar.php': require_once ABSPATH . WPINC . '/theme-compat/sidebar.php'; break;
++            default: throw new RuntimeException( 'PHP templates outside the fixed WordPress manifest are unavailable.' );
++        }
+ 	} else {
+-		require $_template_file;
++		switch ( $_template_file ) {
++            case ABSPATH . WPINC . '/template-canvas.php': require ABSPATH . WPINC . '/template-canvas.php'; break;
++            case ABSPATH . WPINC . '/theme-compat/comments.php': require ABSPATH . WPINC . '/theme-compat/comments.php'; break;
++            case ABSPATH . WPINC . '/theme-compat/embed-404.php': require ABSPATH . WPINC . '/theme-compat/embed-404.php'; break;
++            case ABSPATH . WPINC . '/theme-compat/embed-content.php': require ABSPATH . WPINC . '/theme-compat/embed-content.php'; break;
++            case ABSPATH . WPINC . '/theme-compat/embed.php': require ABSPATH . WPINC . '/theme-compat/embed.php'; break;
++            case ABSPATH . WPINC . '/theme-compat/footer-embed.php': require ABSPATH . WPINC . '/theme-compat/footer-embed.php'; break;
++            case ABSPATH . WPINC . '/theme-compat/footer.php': require ABSPATH . WPINC . '/theme-compat/footer.php'; break;
++            case ABSPATH . WPINC . '/theme-compat/header-embed.php': require ABSPATH . WPINC . '/theme-compat/header-embed.php'; break;
++            case ABSPATH . WPINC . '/theme-compat/header.php': require ABSPATH . WPINC . '/theme-compat/header.php'; break;
++            case ABSPATH . WPINC . '/theme-compat/sidebar.php': require ABSPATH . WPINC . '/theme-compat/sidebar.php'; break;
++            default: throw new RuntimeException( 'PHP templates outside the fixed WordPress manifest are unavailable.' );
++        }
+ 	}
+ 
+ 	/**

@@ -1,0 +1,26 @@
+--- a/wp-content/themes/twentytwentyfive/patterns/template-home-text-blog.php
++++ b/wp-content/themes/twentytwentyfive/patterns/template-home-text-blog.php
+@@ -11,13 +11,15 @@
+  * @since Twenty Twenty-Five 1.0
+  */
+ 
+-?>
+-<!-- wp:template-part {"slug":"header"} /-->
++;
++echo '<!-- wp:template-part {"slug":"header"} /-->
+ 
+ <!-- wp:group {"tagName":"main","style":{"spacing":{"margin":{"top":"var:preset|spacing|60"}}},"layout":{"type":"constrained"}} -->
+ <main class="wp-block-group" style="margin-top:var(--wp--preset--spacing--60)">
+ 	<!-- wp:heading {"level":1,"align":"wide","fontSize":"x-large"} -->
+-	<h1 class="wp-block-heading alignwide has-x-large-font-size"><?php esc_html_e( 'Blog', 'twentytwentyfive' ); ?></h1>
++	<h1 class="wp-block-heading alignwide has-x-large-font-size">';
++esc_html_e( 'Blog', 'twentytwentyfive' ); ;
++echo '</h1>
+ 	<!-- /wp:heading -->
+ 	<!-- wp:spacer {"height":"var:preset|spacing|50"} -->
+ 	<div style="height:var(--wp--preset--spacing--50)" aria-hidden="true" class="wp-block-spacer"></div>
+@@ -27,3 +29,4 @@
+ <!-- /wp:group -->
+ 
+ <!-- wp:template-part {"slug":"footer"} /-->
++';

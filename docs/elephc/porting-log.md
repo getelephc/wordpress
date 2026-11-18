@@ -1,4 +1,74 @@
-# WordPress native core experiment
+# WordPress on Elephc porting log
+
+
+## Complete-source restart, 2026-11-18
+
+The primary experiment now follows the sibling Tempest/Laravel workflow: begin
+with the entire original WordPress distribution, preserve full files and apply
+reviewable compatibility patches and finite fixtures. The earlier bounded core
+profiles below remain separate experiments. Their selected ranges do not define
+the new port's source graph.
+
+- Original dependency: WordPress 7.1.4, all 3,782 archive files verified byte for
+  byte. Source, patch and resulting complete-file SHA-256 inventories are checked.
+- Main SDK: `22654308233a43f96ff4ae2482e08afe61fe956e`, Linux x86_64, PHP profile
+  8.4. The full artifact identity is in `elephc/full-source/toolchain.json`.
+  Its banner alone says 0.27.8. The optimized nightly
+  `8fd1043dbef1ae7263ffdd1a6eae6acdb13d6bee` is used during parser/import
+  normalization; verified native controls use the main SDK.
+- Entry point: the original `wp-load.php`, an explicit local `wp-config.php`
+  fixture and the complete `wp-settings.php`, with the original theme setup,
+  core hooks, registries and initialization lifecycle. No function-range
+  extraction and no pre-rendered page fixture.
+- Local configuration: single site, English, original Twenty Twenty-Five theme,
+  no plugins or external network. The isolated PDO SQLite drop-in creates only
+  the site-options table in memory. It never opens a database server connection.
+
+Verified with ordinary PHP: complete original and patched startup agree on
+`wp_loaded`, `init`, site options, 16 post types, eight taxonomies and 116 registered
+blocks, plus original static and dynamic block rendering. Another 468 nested setting results and 18 deprecated template
+transformations, including stateful filter-call order, agree with original core.
+The contents of all 109 core/default-theme patterns also agree, as do 16 block
+visitor serialization results and their reference-mutation traces.
+
+Verified natively with the main SDK: 51 Sodium comparisons against the original
+WordPress polyfill, 672 binary-span results, 18,375 PHP version comparisons and
+90 UTF-8 results using the complete core UTF-8 files, and eight SQLite results,
+including object rows and upserts. Thirteen reference-call results through
+first-class callables, closures, method arrays and invokable objects also pass.
+In total, 19,209 native comparisons pass.
+A source-only export has
+reproduced those controls and the complete original/patched PHP bootstrap.
+These controls do not establish native CMS bootstrap coverage.
+
+The original transitive graph required parser and import compatibility work.
+The current series contains 307 complete-file patches and five fixtures. The
+final main-SDK check was stopped after 747 seconds without a final verdict; it
+did not establish either successful type checking or native startup. Current patches lower mixed HTML and comma-separated
+static declarations, preserve integer offset storage for UTF-8 reference calls,
+use finite source loaders and declare unsupported reference-alias interfaces.
+The private returned reference arrays and legacy global aliases have explicit
+snapshot boundaries. Two minimal array-reference probes also fail on the main
+SDK and pass under PHP; their sources are in `elephc/full-source/probes`.
+A separate two-file probe compiles but cannot invoke an included user function
+by its literal string name. Both `function_exists` and `is_callable` return true.
+The same entry-file control and first-class form work; an unused first-class root
+and `require_once` do not repair string dispatch. This is a focused SDK failure,
+with potential impact on WordPress callbacks; the full native bootstrap has not
+run. The public reproducer is documented with the other compiler probes.
+RSS XML tree reference parsing and reference-based feed link maps now fail
+explicitly outside the bootstrap fixture. No successful native WordPress startup, frontend response,
+admin request or REST dispatch is claimed.
+
+The real libsodium bridge covers the cryptographic primitives required by the
+fixture. PHP version ordering and binary spans are explicit platform helpers,
+not rewritten WordPress business logic. Missing custom PHP catalogs, plugins,
+themes, filesystem transports and upgrade loaders fail explicitly. A finite
+loader selects the original AI-client classes used at startup; it does not mock
+their implementation.
+
+Reproduction commands are in the root README. Public scripts use tools on PATH
+or an explicit SDK executable; machine-wide scheduling stays outside the repo.
 
 ## Baseline, 2026-11-13
 

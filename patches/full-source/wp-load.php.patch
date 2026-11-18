@@ -1,0 +1,11 @@
+--- a/wp-load.php
++++ b/wp-load.php
+@@ -52,7 +52,7 @@
+ } elseif ( @file_exists( dirname( ABSPATH ) . '/wp-config.php' ) && ! @file_exists( dirname( ABSPATH ) . '/wp-settings.php' ) ) {
+ 
+ 	/** The config file resides one level above ABSPATH but is not part of another installation */
+-	require_once dirname( ABSPATH ) . '/wp-config.php';
++	throw new RuntimeException( 'Parent-directory configuration is outside the isolated fixture.' );
+ 
+ } else {
+ 

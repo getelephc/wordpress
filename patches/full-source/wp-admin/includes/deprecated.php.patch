@@ -1,0 +1,40 @@
+--- a/wp-admin/includes/deprecated.php
++++ b/wp-admin/includes/deprecated.php
+@@ -557,7 +557,7 @@
+ 			$this->query_where .= " AND $wpdb->users.ID = $wpdb->usermeta.user_id AND meta_key = '{$level_key}'";
+ 		}
+ 
+-		do_action_ref_array( 'pre_user_search', array( &$this ) );
++		do_action_ref_array( 'pre_user_search', array( $this ) );
+ 	}
+ 
+ 	/**
+@@ -1510,20 +1510,20 @@
+  * @deprecated 4.9.0
+  */
+ function options_permalink_add_js() {
+-	?>
+-	<script>
++	;
++echo '	<script>
+ 		jQuery( function() {
+-			jQuery('.permalink-structure input:radio').change(function() {
+-				if ( 'custom' == this.value )
++			jQuery(\'.permalink-structure input:radio\').change(function() {
++				if ( \'custom\' == this.value )
+ 					return;
+-				jQuery('#permalink_structure').val( this.value );
++				jQuery(\'#permalink_structure\').val( this.value );
+ 			});
+-			jQuery( '#permalink_structure' ).on( 'click input', function() {
+-				jQuery( '#custom_selection' ).prop( 'checked', true );
++			jQuery( \'#permalink_structure\' ).on( \'click input\', function() {
++				jQuery( \'#custom_selection\' ).prop( \'checked\', true );
+ 			});
+ 		} );
+ 	</script>
+-	<?php
++	';
+ }
+ 
+ /**

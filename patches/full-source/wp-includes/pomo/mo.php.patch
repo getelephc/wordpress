@@ -1,0 +1,22 @@
+--- a/wp-includes/pomo/mo.php
++++ b/wp-includes/pomo/mo.php
+@@ -298,8 +298,8 @@
+ 				if ( '' === $original ) {
+ 					$this->set_headers( $this->make_headers( $translation ) );
+ 				} else {
+-					$entry                          = &$this->make_entry( $original, $translation );
+-					$this->entries[ $entry->key() ] = &$entry;
++					$entry                          = $this->make_entry( $original, $translation );
++					$this->entries[ $entry->key() ] = $entry;
+ 				}
+ 			}
+ 			return true;
+@@ -316,7 +316,7 @@
+ 		 *  0x00 as a plural translations separator
+ 		 * @return Translation_Entry Entry instance.
+ 		 */
+-		public function &make_entry( $original, $translation ) {
++		public function make_entry( $original, $translation ) {
+ 			$entry = new Translation_Entry();
+ 			// Look for context, separated by \4.
+ 			$parts = explode( "\4", $original );

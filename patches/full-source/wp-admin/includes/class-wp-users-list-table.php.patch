@@ -1,0 +1,61 @@
+--- a/wp-admin/includes/class-wp-users-list-table.php
++++ b/wp-admin/includes/class-wp-users-list-table.php
+@@ -300,21 +300,33 @@
+ 	protected function extra_tablenav( $which ) {
+ 		$id        = 'bottom' === $which ? 'new_role2' : 'new_role';
+ 		$button_id = 'bottom' === $which ? 'changeit2' : 'changeit';
+-		?>
+-	<div class="alignleft actions">
+-		<?php if ( current_user_can( 'promote_users' ) && $this->has_items() ) : ?>
+-		<label class="screen-reader-text" for="<?php echo $id; ?>">
+-			<?php
++		;
++echo '	<div class="alignleft actions">
++		';
++if ( current_user_can( 'promote_users' ) && $this->has_items() ) : ;
++echo '		<label class="screen-reader-text" for="';
++echo $id; ;
++echo '">
++			';
+ 			/* translators: Hidden accessibility text. */
+ 			_e( 'Change role to&hellip;' );
+-			?>
+-		</label>
+-		<select name="<?php echo $id; ?>" id="<?php echo $id; ?>">
+-			<option value=""><?php _e( 'Change role to&hellip;' ); ?></option>
+-			<?php wp_dropdown_roles(); ?>
+-			<option value="none"><?php _e( '&mdash; No role for this site &mdash;' ); ?></option>
++			;
++echo '		</label>
++		<select name="';
++echo $id; ;
++echo '" id="';
++echo $id; ;
++echo '">
++			<option value="">';
++_e( 'Change role to&hellip;' ); ;
++echo '</option>
++			';
++wp_dropdown_roles(); ;
++echo '			<option value="none">';
++_e( '&mdash; No role for this site &mdash;' ); ;
++echo '</option>
+ 		</select>
+-			<?php
++			';
+ 			submit_button( __( 'Change' ), '', $button_id, false );
+ 		endif;
+ 
+@@ -328,9 +340,9 @@
+ 		 * @param string $which The location of the extra table nav markup: 'top' or 'bottom'.
+ 		 */
+ 		do_action( 'restrict_manage_users', $which );
+-		?>
+-		</div>
+-		<?php
++		;
++echo '		</div>
++		';
+ 		/**
+ 		 * Fires immediately following the closing "actions" div in the tablenav for the users
+ 		 * list table.

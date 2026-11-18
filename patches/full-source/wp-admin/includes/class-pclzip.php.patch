@@ -1,0 +1,36 @@
+--- a/wp-admin/includes/class-pclzip.php
++++ b/wp-admin/includes/class-pclzip.php
+@@ -394,10 +394,12 @@
+              ,PCLZIP_ATT_FILE_COMMENT => 'optional'
+ 						);
+     foreach ($v_att_list as $v_entry) {
++      $v_descriptor = array();
+       $v_result = $this->privFileDescrParseAtt($v_entry,
+-                                               $v_filedescr_list[],
++                                               $v_descriptor,
+                                                $v_options,
+                                                $v_supported_attributes);
++      $v_filedescr_list[] = $v_descriptor;
+       if ($v_result != 1) {
+         return 0;
+       }
+@@ -577,10 +579,12 @@
+              ,PCLZIP_ATT_FILE_COMMENT => 'optional'
+ 						);
+     foreach ($v_att_list as $v_entry) {
++      $v_descriptor = array();
+       $v_result = $this->privFileDescrParseAtt($v_entry,
+-                                               $v_filedescr_list[],
++                                               $v_descriptor,
+                                                $v_options,
+                                                $v_supported_attributes);
++      $v_filedescr_list[] = $v_descriptor;
+       if ($v_result != 1) {
+         return 0;
+       }
+@@ -5729,4 +5733,4 @@
+   // --------------------------------------------------------------------------------
+ 
+ 
+-?>
++;

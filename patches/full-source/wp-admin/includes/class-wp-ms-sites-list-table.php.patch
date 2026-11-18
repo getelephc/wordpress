@@ -1,0 +1,85 @@
+--- a/wp-admin/includes/class-wp-ms-sites-list-table.php
++++ b/wp-admin/includes/class-wp-ms-sites-list-table.php
+@@ -337,9 +337,9 @@
+ 	 * @param string $which The location of the extra table nav markup: Either 'top' or 'bottom'.
+ 	 */
+ 	protected function extra_tablenav( $which ) {
+-		?>
+-		<div class="alignleft actions">
+-		<?php
++		;
++echo '		<div class="alignleft actions">
++		';
+ 		if ( 'top' === $which ) {
+ 			ob_start();
+ 
+@@ -359,9 +359,9 @@
+ 				submit_button( __( 'Filter' ), '', 'filter_action', false, array( 'id' => 'site-query-submit' ) );
+ 			}
+ 		}
+-		?>
+-		</div>
+-		<?php
++		;
++echo '		</div>
++		';
+ 		/**
+ 		 * Fires immediately following the closing "actions" div in the tablenav for the
+ 		 * MS sites list table.
+@@ -442,17 +442,23 @@
+ 
+ 		if ( ! is_main_site( $blog['blog_id'] ) ) :
+ 			$blogname = untrailingslashit( $blog['domain'] . $blog['path'] );
+-			?>
+-			<input type="checkbox" id="blog_<?php echo $blog['blog_id']; ?>" name="allblogs[]" value="<?php echo esc_attr( $blog['blog_id'] ); ?>" />
+-			<label for="blog_<?php echo $blog['blog_id']; ?>">
++			;
++echo '			<input type="checkbox" id="blog_';
++echo $blog['blog_id']; ;
++echo '" name="allblogs[]" value="';
++echo esc_attr( $blog['blog_id'] ); ;
++echo '" />
++			<label for="blog_';
++echo $blog['blog_id']; ;
++echo '">
+ 				<span class="screen-reader-text">
+-				<?php
++				';
+ 				/* translators: %s: Site URL. */
+ 				printf( __( 'Select %s' ), $blogname );
+-				?>
+-				</span>
++				;
++echo '				</span>
+ 			</label>
+-			<?php
++			';
+ 		endif;
+ 	}
+ 
+@@ -481,9 +487,9 @@
+ 
+ 		$blogname = untrailingslashit( $blog['domain'] . $blog['path'] );
+ 
+-		?>
+-		<strong>
+-			<?php
++		;
++echo '		<strong>
++			';
+ 			printf(
+ 				'<a href="%1$s" class="edit">%2$s</a>',
+ 				esc_url( network_admin_url( 'site-info.php?id=' . $blog['blog_id'] ) ),
+@@ -491,9 +497,9 @@
+ 			);
+ 
+ 			$this->site_states( $blog );
+-			?>
+-		</strong>
+-		<?php
++			;
++echo '		</strong>
++		';
+ 		if ( 'list' !== $mode ) {
+ 			switch_to_blog( $blog['blog_id'] );
+ 			echo '<p>';

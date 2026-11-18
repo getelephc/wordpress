@@ -1,0 +1,49 @@
+--- a/wp-includes/widgets/class-wp-widget-recent-comments.php
++++ b/wp-includes/widgets/class-wp-widget-recent-comments.php
+@@ -187,17 +187,37 @@
+ 	public function form( $instance ) {
+ 		$title  = $instance['title'] ?? '';
+ 		$number = isset( $instance['number'] ) ? absint( $instance['number'] ) : 5;
+-		?>
++		;
++echo '		<p>
++			<label for="';
++echo $this->get_field_id( 'title' ); ;
++echo '">';
++_e( 'Title:' ); ;
++echo '</label>
++			<input class="widefat" id="';
++echo $this->get_field_id( 'title' ); ;
++echo '" name="';
++echo $this->get_field_name( 'title' ); ;
++echo '" type="text" value="';
++echo esc_attr( $title ); ;
++echo '" />
++		</p>
++
+ 		<p>
+-			<label for="<?php echo $this->get_field_id( 'title' ); ?>"><?php _e( 'Title:' ); ?></label>
+-			<input class="widefat" id="<?php echo $this->get_field_id( 'title' ); ?>" name="<?php echo $this->get_field_name( 'title' ); ?>" type="text" value="<?php echo esc_attr( $title ); ?>" />
++			<label for="';
++echo $this->get_field_id( 'number' ); ;
++echo '">';
++_e( 'Number of comments to show:' ); ;
++echo '</label>
++			<input class="tiny-text" id="';
++echo $this->get_field_id( 'number' ); ;
++echo '" name="';
++echo $this->get_field_name( 'number' ); ;
++echo '" type="number" step="1" min="1" value="';
++echo $number; ;
++echo '" size="3" />
+ 		</p>
+-
+-		<p>
+-			<label for="<?php echo $this->get_field_id( 'number' ); ?>"><?php _e( 'Number of comments to show:' ); ?></label>
+-			<input class="tiny-text" id="<?php echo $this->get_field_id( 'number' ); ?>" name="<?php echo $this->get_field_name( 'number' ); ?>" type="number" step="1" min="1" value="<?php echo $number; ?>" size="3" />
+-		</p>
+-		<?php
++		';
+ 	}
+ 
+ 	/**

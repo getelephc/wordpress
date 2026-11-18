@@ -1,0 +1,22 @@
+--- a/wp-includes/class-wp-embed.php
++++ b/wp-includes/class-wp-embed.php
+@@ -87,13 +87,15 @@
+ 		if ( ! $post || empty( $_GET['message'] ) ) {
+ 			return;
+ 		}
+-		?>
+-<script>
++		;
++echo '<script>
+ 	jQuery( function($) {
+-		$.get("<?php echo esc_url( admin_url( 'admin-ajax.php', 'relative' ) ) . '?action=oembed-cache&post=' . $post->ID; ?>");
++		$.get("';
++echo esc_url( admin_url( 'admin-ajax.php', 'relative' ) ) . '?action=oembed-cache&post=' . $post->ID; ;
++echo '");
+ 	} );
+ </script>
+-		<?php
++		';
+ 	}
+ 
+ 	/**

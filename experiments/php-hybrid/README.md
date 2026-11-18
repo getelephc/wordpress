@@ -4,6 +4,10 @@ Measured 2026-11-18T10:53:42Z, Linux x86_64, WordPress 7.1.4, PHP 8.5.12 NTS, pi
 
 The complete WordPress front controller, Twenty Twenty-Five and official SQLite integration 3.1.3 run in PHP. Selected core algorithms execute in an Elephc shared library through a real Zend extension, in the same process. The experiment uses four local posts and one isolated SQLite file. External HTTP, cron and mail delivery are disabled identically in every mode.
 
+This experiment uses the released Elephc 0.27.8 SDK independently of the root
+complete-source port. Use the release SDK directory on `PATH` when
+rebuilding; the root `.elephc-version` now records the separate main-SDK port.
+
 ## Native coverage
 
 There are **171 callable native entry points**, **189 interception points in the generated WordPress copy**, and **147 distinct entries exercised** by the operation checks or real HTTP requests. The compiled source contains 289 functions including bridge helpers and lowered methods, plus 9 native record classes. These counts are not percentages of WordPress code or CPU time.

@@ -1,10 +1,18 @@
 # Project conventions
 
-- This is a bounded WordPress core port to Elephc, covering block parsing and
-  serialization, hooks, shortcodes, attribute KSES, object caching, list utilities,
-  URL helpers, text/identifier sanitization, errors, responses and bounded REST request objects through native CLI and HTTP profiles. Keep the scope explicit.
+- The primary experiment starts from the complete original WordPress archive,
+  following the Tempest/Laravel full-file patch workflow. Maximize actual native
+  WordPress execution through reviewable compatibility patches and explicit
+  fixtures. Use `scripts/prepare-wordpress.py`, `patches/full-source/` and
+  `elephc/full-source/fixtures/`. Do not extract selected function ranges for
+  this profile. Keep compiler traversal and verified native behavior distinct.
+- The earlier subsystem profiles cover blocks, hooks, shortcodes, attribute
+  KSES, caching, lists, URLs, sanitization and bounded REST objects. Their
+  boundaries below apply to those profiles and do not limit the primary port.
 - Run application code, Elephc and PHP reference checks directly on the host.
-  This project intentionally uses native tools and has no database.
+  Use native tools. The full-source fixture uses isolated in-memory SQLite;
+  the subsystem profiles have no database. Never connect the fixture to a
+  shared database.
 - Use `127.0.0.1:9000` as the default local HTTP listener.
 - The PHP-hosted hybrid experiment under `experiments/php-hybrid/` uses an
   isolated SQLite fixture. Its documentation, reports and tools describe only
@@ -63,7 +71,8 @@
   Scalar list coercion, combining/multi-type schemas, enum/formats/patterns,
   automatic schema sanitization, form decoding and full JSON Schema remain boundaries.
   URL discovery, authentication and dispatch remain explicit boundaries.
-- The complete WordPress compile probes intentionally fail on the pinned SDK.
-  Keep their diagnostics separate from the verified parser profile.
+- The earlier complete WordPress compile probes preserve release-SDK failure
+  diagnostics. Keep them separate from the verified subsystem profiles and the
+  new complete-source port on the main SDK.
 - Keep provenance, boundaries and verified results current in the README,
   porting log and Code Journal. Never use em dashes.

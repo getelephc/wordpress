@@ -1,0 +1,402 @@
+--- a/wp-includes/class-wp-customize-control.php
++++ b/wp-includes/class-wp-customize-control.php
+@@ -496,22 +496,39 @@
+ 		$describedby_attr = ( ! empty( $this->description ) ) ? ' aria-describedby="' . esc_attr( $description_id ) . '" ' : '';
+ 		switch ( $this->type ) {
+ 			case 'checkbox':
+-				?>
+-				<span class="customize-inside-control-row">
++				;
++echo '				<span class="customize-inside-control-row">
+ 					<input
+-						id="<?php echo esc_attr( $input_id ); ?>"
+-						<?php echo $describedby_attr; ?>
+-						type="checkbox"
+-						value="<?php echo esc_attr( $this->value() ); ?>"
+-						<?php $this->link(); ?>
+-						<?php checked( $this->value() ); ?>
+-					/>
+-					<label for="<?php echo esc_attr( $input_id ); ?>"><?php echo esc_html( $this->label ); ?></label>
+-					<?php if ( ! empty( $this->description ) ) : ?>
+-						<span id="<?php echo esc_attr( $description_id ); ?>" class="description customize-control-description"><?php echo $this->description; ?></span>
+-					<?php endif; ?>
+-				</span>
+-				<?php
++						id="';
++echo esc_attr( $input_id ); ;
++echo '"
++						';
++echo $describedby_attr; ;
++echo '						type="checkbox"
++						value="';
++echo esc_attr( $this->value() ); ;
++echo '"
++						';
++$this->link(); ;
++echo '						';
++checked( $this->value() ); ;
++echo '					/>
++					<label for="';
++echo esc_attr( $input_id ); ;
++echo '">';
++echo esc_html( $this->label ); ;
++echo '</label>
++					';
++if ( ! empty( $this->description ) ) : ;
++echo '						<span id="';
++echo esc_attr( $description_id ); ;
++echo '" class="description customize-control-description">';
++echo $this->description; ;
++echo '</span>
++					';
++endif; ;
++echo '				</span>
++				';
+ 				break;
+ 			case 'radio':
+ 				if ( empty( $this->choices ) ) {
+@@ -519,81 +536,155 @@
+ 				}
+ 
+ 				$name = '_customize-radio-' . $this->id;
+-				?>
+-				<?php if ( ! empty( $this->label ) ) : ?>
+-					<span class="customize-control-title"><?php echo esc_html( $this->label ); ?></span>
+-				<?php endif; ?>
+-				<?php if ( ! empty( $this->description ) ) : ?>
+-					<span id="<?php echo esc_attr( $description_id ); ?>" class="description customize-control-description"><?php echo $this->description; ?></span>
+-				<?php endif; ?>
+-
+-				<?php foreach ( $this->choices as $value => $label ) : ?>
+-					<span class="customize-inside-control-row">
++				;
++echo '				';
++if ( ! empty( $this->label ) ) : ;
++echo '					<span class="customize-control-title">';
++echo esc_html( $this->label ); ;
++echo '</span>
++				';
++endif; ;
++echo '				';
++if ( ! empty( $this->description ) ) : ;
++echo '					<span id="';
++echo esc_attr( $description_id ); ;
++echo '" class="description customize-control-description">';
++echo $this->description; ;
++echo '</span>
++				';
++endif; ;
++echo '
++				';
++foreach ( $this->choices as $value => $label ) : ;
++echo '					<span class="customize-inside-control-row">
+ 						<input
+-							id="<?php echo esc_attr( $input_id . '-radio-' . $value ); ?>"
++							id="';
++echo esc_attr( $input_id . '-radio-' . $value ); ;
++echo '"
+ 							type="radio"
+-							<?php echo $describedby_attr; ?>
+-							value="<?php echo esc_attr( $value ); ?>"
+-							name="<?php echo esc_attr( $name ); ?>"
+-							<?php $this->link(); ?>
+-							<?php checked( $this->value(), $value ); ?>
+-							/>
+-						<label for="<?php echo esc_attr( $input_id . '-radio-' . $value ); ?>"><?php echo esc_html( $label ); ?></label>
++							';
++echo $describedby_attr; ;
++echo '							value="';
++echo esc_attr( $value ); ;
++echo '"
++							name="';
++echo esc_attr( $name ); ;
++echo '"
++							';
++$this->link(); ;
++echo '							';
++checked( $this->value(), $value ); ;
++echo '							/>
++						<label for="';
++echo esc_attr( $input_id . '-radio-' . $value ); ;
++echo '">';
++echo esc_html( $label ); ;
++echo '</label>
+ 					</span>
+-				<?php endforeach; ?>
+-				<?php
++				';
++endforeach; ;
++echo '				';
+ 				break;
+ 			case 'select':
+ 				if ( empty( $this->choices ) ) {
+ 					return;
+ 				}
+ 
+-				?>
+-				<?php if ( ! empty( $this->label ) ) : ?>
+-					<label for="<?php echo esc_attr( $input_id ); ?>" class="customize-control-title"><?php echo esc_html( $this->label ); ?></label>
+-				<?php endif; ?>
+-				<?php if ( ! empty( $this->description ) ) : ?>
+-					<span id="<?php echo esc_attr( $description_id ); ?>" class="description customize-control-description"><?php echo $this->description; ?></span>
+-				<?php endif; ?>
+-
+-				<select id="<?php echo esc_attr( $input_id ); ?>" <?php echo $describedby_attr; ?> <?php $this->link(); ?>>
+-					<?php
++				;
++echo '				';
++if ( ! empty( $this->label ) ) : ;
++echo '					<label for="';
++echo esc_attr( $input_id ); ;
++echo '" class="customize-control-title">';
++echo esc_html( $this->label ); ;
++echo '</label>
++				';
++endif; ;
++echo '				';
++if ( ! empty( $this->description ) ) : ;
++echo '					<span id="';
++echo esc_attr( $description_id ); ;
++echo '" class="description customize-control-description">';
++echo $this->description; ;
++echo '</span>
++				';
++endif; ;
++echo '
++				<select id="';
++echo esc_attr( $input_id ); ;
++echo '" ';
++echo $describedby_attr; ;
++echo ' ';
++$this->link(); ;
++echo '>
++					';
+ 					foreach ( $this->choices as $value => $label ) {
+ 						echo '<option value="' . esc_attr( $value ) . '"' . selected( $this->value(), $value, false ) . '>' . esc_html( $label ) . '</option>';
+ 					}
+-					?>
+-				</select>
+-				<?php
++					;
++echo '				</select>
++				';
+ 				break;
+ 			case 'textarea':
+ 				if ( ! array_key_exists( 'rows', $this->input_attrs ) ) {
+ 					$this->input_attrs['rows'] = 5;
+ 				}
+-				?>
+-				<?php if ( ! empty( $this->label ) ) : ?>
+-					<label for="<?php echo esc_attr( $input_id ); ?>" class="customize-control-title"><?php echo esc_html( $this->label ); ?></label>
+-				<?php endif; ?>
+-				<?php if ( ! empty( $this->description ) ) : ?>
+-					<span id="<?php echo esc_attr( $description_id ); ?>" class="description customize-control-description"><?php echo $this->description; ?></span>
+-				<?php endif; ?>
+-				<textarea
+-					id="<?php echo esc_attr( $input_id ); ?>"
+-					<?php echo $describedby_attr; ?>
+-					<?php $this->input_attrs(); ?>
+-					<?php $this->link(); ?>
+-				><?php echo esc_textarea( $this->value() ); ?></textarea>
+-				<?php
++				;
++echo '				';
++if ( ! empty( $this->label ) ) : ;
++echo '					<label for="';
++echo esc_attr( $input_id ); ;
++echo '" class="customize-control-title">';
++echo esc_html( $this->label ); ;
++echo '</label>
++				';
++endif; ;
++echo '				';
++if ( ! empty( $this->description ) ) : ;
++echo '					<span id="';
++echo esc_attr( $description_id ); ;
++echo '" class="description customize-control-description">';
++echo $this->description; ;
++echo '</span>
++				';
++endif; ;
++echo '				<textarea
++					id="';
++echo esc_attr( $input_id ); ;
++echo '"
++					';
++echo $describedby_attr; ;
++echo '					';
++$this->input_attrs(); ;
++echo '					';
++$this->link(); ;
++echo '				>';
++echo esc_textarea( $this->value() ); ;
++echo '</textarea>
++				';
+ 				break;
+ 			case 'dropdown-pages':
+-				?>
+-				<?php if ( ! empty( $this->label ) ) : ?>
+-					<label for="<?php echo esc_attr( $input_id ); ?>" class="customize-control-title"><?php echo esc_html( $this->label ); ?></label>
+-				<?php endif; ?>
+-				<?php if ( ! empty( $this->description ) ) : ?>
+-					<span id="<?php echo esc_attr( $description_id ); ?>" class="description customize-control-description"><?php echo $this->description; ?></span>
+-				<?php endif; ?>
+-
+-				<?php
++				;
++echo '				';
++if ( ! empty( $this->label ) ) : ;
++echo '					<label for="';
++echo esc_attr( $input_id ); ;
++echo '" class="customize-control-title">';
++echo esc_html( $this->label ); ;
++echo '</label>
++				';
++endif; ;
++echo '				';
++if ( ! empty( $this->description ) ) : ;
++echo '					<span id="';
++echo esc_attr( $description_id ); ;
++echo '" class="description customize-control-description">';
++echo $this->description; ;
++echo '</span>
++				';
++endif; ;
++echo '
++				';
+ 				$dropdown_name     = '_customize-dropdown-pages-' . $this->id;
+ 				$show_option_none  = __( '&mdash; Select &mdash;' );
+ 				$option_none_value = '0';
+@@ -635,45 +726,82 @@
+ 				}
+ 
+ 				echo $dropdown;
+-				?>
+-				<?php if ( $this->allow_addition && current_user_can( 'publish_pages' ) && current_user_can( 'edit_theme_options' ) ) : // Currently tied to menus functionality. ?>
+-					<button type="button" class="button-link add-new-toggle">
+-						<?php
++				;
++echo '				';
++if ( $this->allow_addition && current_user_can( 'publish_pages' ) && current_user_can( 'edit_theme_options' ) ) : // Currently tied to menus functionality. ;
++echo '					<button type="button" class="button-link add-new-toggle">
++						';
+ 						/* translators: %s: Add Page label. */
+ 						printf( __( '+ %s' ), get_post_type_object( 'page' )->labels->add_new_item );
+-						?>
+-					</button>
++						;
++echo '					</button>
+ 					<div class="new-content-item-wrapper">
+-						<label for="create-input-<?php echo esc_attr( $this->id ); ?>"><?php _e( 'New page title' ); ?></label>
++						<label for="create-input-';
++echo esc_attr( $this->id ); ;
++echo '">';
++_e( 'New page title' ); ;
++echo '</label>
+ 						<div class="new-content-item">
+-							<input type="text" id="create-input-<?php echo esc_attr( $this->id ); ?>" class="create-item-input form-required">
+-							<button type="button" class="button add-content"><?php _e( 'Add' ); ?></button>
++							<input type="text" id="create-input-';
++echo esc_attr( $this->id ); ;
++echo '" class="create-item-input form-required">
++							<button type="button" class="button add-content">';
++_e( 'Add' ); ;
++echo '</button>
+ 						</div>
+-						<span id="create-input-<?php echo esc_attr( $this->id ); ?>-error" class="create-item-error error-message" style="display: none;"><?php _e( 'Please enter a page title' ); ?></span>
++						<span id="create-input-';
++echo esc_attr( $this->id ); ;
++echo '-error" class="create-item-error error-message" style="display: none;">';
++_e( 'Please enter a page title' ); ;
++echo '</span>
+ 
+ 					</div>
+-				<?php endif; ?>
+-				<?php
++				';
++endif; ;
++echo '				';
+ 				break;
+ 			default:
+-				?>
+-				<?php if ( ! empty( $this->label ) ) : ?>
+-					<label for="<?php echo esc_attr( $input_id ); ?>" class="customize-control-title"><?php echo esc_html( $this->label ); ?></label>
+-				<?php endif; ?>
+-				<?php if ( ! empty( $this->description ) ) : ?>
+-					<span id="<?php echo esc_attr( $description_id ); ?>" class="description customize-control-description"><?php echo $this->description; ?></span>
+-				<?php endif; ?>
+-				<input
+-					id="<?php echo esc_attr( $input_id ); ?>"
+-					type="<?php echo esc_attr( $this->type ); ?>"
+-					<?php echo $describedby_attr; ?>
+-					<?php $this->input_attrs(); ?>
+-					<?php if ( ! isset( $this->input_attrs['value'] ) ) : ?>
+-						value="<?php echo esc_attr( $this->value() ); ?>"
+-					<?php endif; ?>
+-					<?php $this->link(); ?>
+-					/>
+-				<?php
++				;
++echo '				';
++if ( ! empty( $this->label ) ) : ;
++echo '					<label for="';
++echo esc_attr( $input_id ); ;
++echo '" class="customize-control-title">';
++echo esc_html( $this->label ); ;
++echo '</label>
++				';
++endif; ;
++echo '				';
++if ( ! empty( $this->description ) ) : ;
++echo '					<span id="';
++echo esc_attr( $description_id ); ;
++echo '" class="description customize-control-description">';
++echo $this->description; ;
++echo '</span>
++				';
++endif; ;
++echo '				<input
++					id="';
++echo esc_attr( $input_id ); ;
++echo '"
++					type="';
++echo esc_attr( $this->type ); ;
++echo '"
++					';
++echo $describedby_attr; ;
++echo '					';
++$this->input_attrs(); ;
++echo '					';
++if ( ! isset( $this->input_attrs['value'] ) ) : ;
++echo '						value="';
++echo esc_attr( $this->value() ); ;
++echo '"
++					';
++endif; ;
++echo '					';
++$this->link(); ;
++echo '					/>
++				';
+ 				break;
+ 		}
+ 	}
+@@ -690,11 +818,14 @@
+ 	 * @since 4.1.0
+ 	 */
+ 	final public function print_template() {
+-		?>
+-		<script type="text/html" id="tmpl-customize-control-<?php echo esc_attr( $this->type ); ?>-content">
+-			<?php $this->content_template(); ?>
+-		</script>
+-		<?php
++		;
++echo '		<script type="text/html" id="tmpl-customize-control-';
++echo esc_attr( $this->type ); ;
++echo '-content">
++			';
++$this->content_template(); ;
++echo '		</script>
++		';
+ 	}
+ 
+ 	/**

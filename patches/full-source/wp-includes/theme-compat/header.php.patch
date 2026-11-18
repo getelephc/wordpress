@@ -1,0 +1,109 @@
+--- a/wp-includes/theme-compat/header.php
++++ b/wp-includes/theme-compat/header.php
+@@ -14,48 +14,80 @@
+ 	/* translators: %s: Template name. */
+ 	sprintf( __( 'Please include a %s template in your theme.' ), basename( __FILE__ ) )
+ );
+-?>
+-<!DOCTYPE html>
+-<html <?php language_attributes(); ?>>
++;
++echo '<!DOCTYPE html>
++<html ';
++language_attributes(); ;
++echo '>
+ <head>
+ <link rel="profile" href="https://gmpg.org/xfn/11" />
+-<meta http-equiv="Content-Type" content="<?php bloginfo( 'html_type' ); ?>; charset=<?php bloginfo( 'charset' ); ?>" />
++<meta http-equiv="Content-Type" content="';
++bloginfo( 'html_type' ); ;
++echo '; charset=';
++bloginfo( 'charset' ); ;
++echo '" />
+ 
+-<title><?php echo wp_get_document_title(); ?></title>
++<title>';
++echo wp_get_document_title(); ;
++echo '</title>
+ 
+-<link rel="stylesheet" href="<?php bloginfo( 'stylesheet_url' ); ?>" media="screen" />
+-<link rel="pingback" href="<?php bloginfo( 'pingback_url' ); ?>" />
++<link rel="stylesheet" href="';
++bloginfo( 'stylesheet_url' ); ;
++echo '" media="screen" />
++<link rel="pingback" href="';
++bloginfo( 'pingback_url' ); ;
++echo '" />
+ 
+-<?php if ( file_exists( get_stylesheet_directory() . '/images/kubrickbgwide.jpg' ) ) { ?>
+-<style media="screen">
++';
++if ( file_exists( get_stylesheet_directory() . '/images/kubrickbgwide.jpg' ) ) { ;
++echo '<style media="screen">
+ 
+-	<?php
++	';
+ 	// Checks to see whether it needs a sidebar.
+ 	if ( empty( $withcomments ) && ! is_single() ) {
+-		?>
+-	#page { background: url("<?php bloginfo( 'stylesheet_directory' ); ?>/images/kubrickbg-<?php bloginfo( 'text_direction' ); ?>.jpg") repeat-y top; border: none; }
+-<?php } else { // No sidebar. ?>
+-	#page { background: url("<?php bloginfo( 'stylesheet_directory' ); ?>/images/kubrickbgwide.jpg") repeat-y top; border: none; }
+-<?php } ?>
+-
++		;
++echo '	#page { background: url("';
++bloginfo( 'stylesheet_directory' ); ;
++echo '/images/kubrickbg-';
++bloginfo( 'text_direction' ); ;
++echo '.jpg") repeat-y top; border: none; }
++';
++} else { // No sidebar. ;
++echo '	#page { background: url("';
++bloginfo( 'stylesheet_directory' ); ;
++echo '/images/kubrickbgwide.jpg") repeat-y top; border: none; }
++';
++} ;
++echo '
+ </style>
+-<?php } ?>
+-
+-<?php
++';
++} ;
++echo '
++';
+ if ( is_singular() ) {
+ 	wp_enqueue_script( 'comment-reply' );
+ }
+-?>
+-
+-<?php wp_head(); ?>
+-</head>
+-<body <?php body_class(); ?>>
++;
++echo '
++';
++wp_head(); ;
++echo '</head>
++<body ';
++body_class(); ;
++echo '>
+ <div id="page">
+ 
+ <div id="header" role="banner">
+ 	<div id="headerimg">
+-		<h1><a href="<?php echo home_url(); ?>/"><?php bloginfo( 'name' ); ?></a></h1>
+-		<div class="description"><?php bloginfo( 'description' ); ?></div>
++		<h1><a href="';
++echo home_url(); ;
++echo '/">';
++bloginfo( 'name' ); ;
++echo '</a></h1>
++		<div class="description">';
++bloginfo( 'description' ); ;
++echo '</div>
+ 	</div>
+ </div>
+ <hr />
++';

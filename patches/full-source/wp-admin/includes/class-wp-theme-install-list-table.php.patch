@@ -1,0 +1,267 @@
+--- a/wp-admin/includes/class-wp-theme-install-list-table.php
++++ b/wp-admin/includes/class-wp-theme-install-list-table.php
+@@ -205,27 +205,29 @@
+ 	 */
+ 	public function display() {
+ 		wp_nonce_field( 'fetch-list-' . get_class( $this ), '_ajax_fetch_list_nonce' );
+-		?>
+-		<div class="tablenav top themes">
++		;
++echo '		<div class="tablenav top themes">
+ 			<div class="alignleft actions">
+-				<?php
++				';
+ 				/**
+ 				 * Fires in the Install Themes list table header.
+ 				 *
+ 				 * @since 2.8.0
+ 				 */
+ 				do_action( 'install_themes_table_header' );
+-				?>
+-			</div>
+-			<?php $this->pagination( 'top' ); ?>
+-			<br class="clear" />
++				;
++echo '			</div>
++			';
++$this->pagination( 'top' ); ;
++echo '			<br class="clear" />
+ 		</div>
+ 
+ 		<div id="availablethemes">
+-			<?php $this->display_rows_or_placeholder(); ?>
+-		</div>
+-
+-		<?php
++			';
++$this->display_rows_or_placeholder(); ;
++echo '		</div>
++
++		';
+ 		$this->tablenav( 'bottom' );
+ 	}
+ 
+@@ -237,13 +239,13 @@
+ 	public function display_rows() {
+ 		$themes = $this->items;
+ 		foreach ( $themes as $theme ) {
+-			?>
+-				<div class="available-theme installable-theme">
+-				<?php
++			;
++echo '				<div class="available-theme installable-theme">
++				';
+ 					$this->single_row( $theme );
+-				?>
+-				</div>
+-			<?php
++				;
++echo '				</div>
++			';
+ 		} // End foreach $theme_names.
+ 
+ 		$this->theme_installer();
+@@ -360,29 +362,43 @@
+ 		 */
+ 		$actions = apply_filters( 'theme_install_actions', $actions, $theme );
+ 
+-		?>
+-		<a class="screenshot install-theme-preview" href="<?php echo esc_url( $preview_url ); ?>" aria-label="<?php echo esc_attr( $preview_title ); ?>">
+-			<img src="<?php echo esc_url( $theme->screenshot_url . '?ver=' . $theme->version ); ?>" width="150" alt="" />
++		;
++echo '		<a class="screenshot install-theme-preview" href="';
++echo esc_url( $preview_url ); ;
++echo '" aria-label="';
++echo esc_attr( $preview_title ); ;
++echo '">
++			<img src="';
++echo esc_url( $theme->screenshot_url . '?ver=' . $theme->version ); ;
++echo '" width="150" alt="" />
+ 		</a>
+ 
+-		<h3><?php echo $name; ?></h3>
++		<h3>';
++echo $name; ;
++echo '</h3>
+ 		<div class="theme-author">
+-		<?php
++		';
+ 			/* translators: %s: Theme author. */
+ 			printf( __( 'By %s' ), $author );
+-		?>
+-		</div>
++		;
++echo '		</div>
+ 
+ 		<div class="action-links">
+ 			<ul>
+-				<?php foreach ( $actions as $action ) : ?>
+-					<li><?php echo $action; ?></li>
+-				<?php endforeach; ?>
+-				<li class="hide-if-no-js"><a href="#" class="theme-detail"><?php _e( 'Details' ); ?></a></li>
++				';
++foreach ( $actions as $action ) : ;
++echo '					<li>';
++echo $action; ;
++echo '</li>
++				';
++endforeach; ;
++echo '				<li class="hide-if-no-js"><a href="#" class="theme-detail">';
++_e( 'Details' ); ;
++echo '</a></li>
+ 			</ul>
+ 		</div>
+ 
+-		<?php
++		';
+ 		$this->install_theme_info( $theme );
+ 	}
+ 
+@@ -390,26 +406,32 @@
+ 	 * Prints the wrapper for the theme installer.
+ 	 */
+ 	public function theme_installer() {
+-		?>
+-		<div id="theme-installer" class="wp-full-overlay expanded">
++		;
++echo '		<div id="theme-installer" class="wp-full-overlay expanded">
+ 			<div class="wp-full-overlay-sidebar">
+ 				<div class="wp-full-overlay-header">
+-					<a href="#" class="close-full-overlay button"><?php _e( 'Close' ); ?></a>
++					<a href="#" class="close-full-overlay button">';
++_e( 'Close' ); ;
++echo '</a>
+ 					<span class="theme-install"></span>
+ 				</div>
+ 				<div class="wp-full-overlay-sidebar-content">
+ 					<div class="install-theme-info"></div>
+ 				</div>
+ 				<div class="wp-full-overlay-footer">
+-					<button type="button" class="collapse-sidebar button" aria-expanded="true" aria-label="<?php esc_attr_e( 'Collapse Sidebar' ); ?>">
++					<button type="button" class="collapse-sidebar button" aria-expanded="true" aria-label="';
++esc_attr_e( 'Collapse Sidebar' ); ;
++echo '">
+ 						<span class="collapse-sidebar-arrow"></span>
+-						<span class="collapse-sidebar-label"><?php _e( 'Collapse' ); ?></span>
++						<span class="collapse-sidebar-label">';
++_e( 'Collapse' ); ;
++echo '</span>
+ 					</button>
+ 				</div>
+ 			</div>
+ 			<div class="wp-full-overlay-main"></div>
+ 		</div>
+-		<?php
++		';
+ 	}
+ 
+ 	/**
+@@ -419,16 +441,19 @@
+ 	 * @param stdClass $theme A WordPress.org Theme API object.
+ 	 */
+ 	public function theme_installer_single( $theme ) {
+-		?>
+-		<div id="theme-installer" class="wp-full-overlay single-theme">
++		;
++echo '		<div id="theme-installer" class="wp-full-overlay single-theme">
+ 			<div class="wp-full-overlay-sidebar">
+-				<?php $this->install_theme_info( $theme ); ?>
+-			</div>
++				';
++$this->install_theme_info( $theme ); ;
++echo '			</div>
+ 			<div class="wp-full-overlay-main">
+-				<iframe src="<?php echo esc_url( $theme->preview_url ); ?>"></iframe>
++				<iframe src="';
++echo esc_url( $theme->preview_url ); ;
++echo '"></iframe>
+ 			</div>
+ 		</div>
+-		<?php
++		';
+ 	}
+ 
+ 	/**
+@@ -466,9 +491,9 @@
+ 
+ 		$status = $this->_get_theme_status( $theme );
+ 
+-		?>
+-		<div class="install-theme-info">
+-		<?php
++		;
++echo '		<div class="install-theme-info">
++		';
+ 		switch ( $status ) {
+ 			case 'update_available':
+ 				printf(
+@@ -495,19 +520,25 @@
+ 				);
+ 				break;
+ 		}
+-		?>
+-			<h3 class="theme-name"><?php echo $name; ?></h3>
++		;
++echo '			<h3 class="theme-name">';
++echo $name; ;
++echo '</h3>
+ 			<span class="theme-by">
+-			<?php
++			';
+ 				/* translators: %s: Theme author. */
+ 				printf( __( 'By %s' ), $author );
+-			?>
+-			</span>
+-			<?php if ( isset( $theme->screenshot_url ) ) : ?>
+-				<img class="theme-screenshot" src="<?php echo esc_url( $theme->screenshot_url . '?ver=' . $theme->version ); ?>" alt="" />
+-			<?php endif; ?>
+-			<div class="theme-details">
+-				<?php
++			;
++echo '			</span>
++			';
++if ( isset( $theme->screenshot_url ) ) : ;
++echo '				<img class="theme-screenshot" src="';
++echo esc_url( $theme->screenshot_url . '?ver=' . $theme->version ); ;
++echo '" alt="" />
++			';
++endif; ;
++echo '			<div class="theme-details">
++				';
+ 				wp_star_rating(
+ 					array(
+ 						'rating' => $theme->rating,
+@@ -515,18 +546,24 @@
+ 						'number' => $theme->num_ratings,
+ 					)
+ 				);
+-				?>
+-				<div class="theme-version">
+-					<strong><?php _e( 'Version:' ); ?> </strong>
+-					<?php echo wp_kses( $theme->version, $themes_allowedtags ); ?>
+-				</div>
++				;
++echo '				<div class="theme-version">
++					<strong>';
++_e( 'Version:' ); ;
++echo ' </strong>
++					';
++echo wp_kses( $theme->version, $themes_allowedtags ); ;
++echo '				</div>
+ 				<div class="theme-description">
+-					<?php echo wp_kses( $theme->description, $themes_allowedtags ); ?>
+-				</div>
++					';
++echo wp_kses( $theme->description, $themes_allowedtags ); ;
++echo '				</div>
+ 			</div>
+-			<input class="theme-preview-url" type="hidden" value="<?php echo esc_url( $theme->preview_url ); ?>" />
++			<input class="theme-preview-url" type="hidden" value="';
++echo esc_url( $theme->preview_url ); ;
++echo '" />
+ 		</div>
+-		<?php
++		';
+ 	}
+ 
+ 	/**

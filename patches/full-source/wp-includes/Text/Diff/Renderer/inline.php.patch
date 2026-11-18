@@ -1,0 +1,38 @@
+--- a/wp-includes/Text/Diff/Renderer/inline.php
++++ b/wp-includes/Text/Diff/Renderer/inline.php
+@@ -14,7 +14,7 @@
+ /** Text_Diff_Renderer */
+ 
+ // WP #7391
+-require_once dirname(dirname(__FILE__)) . '/Renderer.php';
++require_once __DIR__ . '/../Renderer.php';
+ 
+ /**
+  * "Inline" diff renderer.
+@@ -103,7 +103,7 @@
+     function _lines($lines, $prefix = ' ', $encode = true)
+     {
+         if ($encode) {
+-            array_walk($lines, array(&$this, '_encode'));
++            array_walk($lines, array($this, '_encode'));
+         }
+ 
+         if ($this->_split_level == 'lines') {
+@@ -115,7 +115,7 @@
+ 
+     function _added($lines)
+     {
+-        array_walk($lines, array(&$this, '_encode'));
++        array_walk($lines, array($this, '_encode'));
+         $lines[0] = $this->_ins_prefix . $lines[0];
+         $lines[count($lines) - 1] .= $this->_ins_suffix;
+         return $this->_lines($lines, ' ', false);
+@@ -123,7 +123,7 @@
+ 
+     function _deleted($lines, $words = false)
+     {
+-        array_walk($lines, array(&$this, '_encode'));
++        array_walk($lines, array($this, '_encode'));
+         $lines[0] = $this->_del_prefix . $lines[0];
+         $lines[count($lines) - 1] .= $this->_del_suffix;
+         return $this->_lines($lines, ' ', false);

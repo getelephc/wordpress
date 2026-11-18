@@ -1,0 +1,169 @@
+--- a/wp-includes/widgets/class-wp-widget-links.php
++++ b/wp-includes/widgets/class-wp-widget-links.php
+@@ -142,47 +142,138 @@
+ 		if ( ! $limit ) {
+ 			$limit = -1;
+ 		}
+-		?>
+-		<p>
+-			<label for="<?php echo $this->get_field_id( 'category' ); ?>"><?php _e( 'Select Link Category:' ); ?></label>
+-			<select class="widefat" id="<?php echo $this->get_field_id( 'category' ); ?>" name="<?php echo $this->get_field_name( 'category' ); ?>">
+-				<option value=""><?php _ex( 'All Links', 'links widget' ); ?></option>
+-				<?php foreach ( $link_cats as $link_cat ) : ?>
+-					<option value="<?php echo (int) $link_cat->term_id; ?>" <?php selected( $instance['category'], $link_cat->term_id ); ?>>
+-						<?php echo esc_html( $link_cat->name ); ?>
+-					</option>
+-				<?php endforeach; ?>
+-			</select>
+-			<label for="<?php echo $this->get_field_id( 'orderby' ); ?>"><?php _e( 'Sort by:' ); ?></label>
+-			<select name="<?php echo $this->get_field_name( 'orderby' ); ?>" id="<?php echo $this->get_field_id( 'orderby' ); ?>" class="widefat">
+-				<option value="name"<?php selected( $instance['orderby'], 'name' ); ?>><?php _e( 'Link title' ); ?></option>
+-				<option value="rating"<?php selected( $instance['orderby'], 'rating' ); ?>><?php _e( 'Link rating' ); ?></option>
+-				<option value="id"<?php selected( $instance['orderby'], 'id' ); ?>><?php _e( 'Link ID' ); ?></option>
+-				<option value="rand"<?php selected( $instance['orderby'], 'rand' ); ?>><?php _ex( 'Random', 'Links widget' ); ?></option>
++		;
++echo '		<p>
++			<label for="';
++echo $this->get_field_id( 'category' ); ;
++echo '">';
++_e( 'Select Link Category:' ); ;
++echo '</label>
++			<select class="widefat" id="';
++echo $this->get_field_id( 'category' ); ;
++echo '" name="';
++echo $this->get_field_name( 'category' ); ;
++echo '">
++				<option value="">';
++_ex( 'All Links', 'links widget' ); ;
++echo '</option>
++				';
++foreach ( $link_cats as $link_cat ) : ;
++echo '					<option value="';
++echo (int) $link_cat->term_id; ;
++echo '" ';
++selected( $instance['category'], $link_cat->term_id ); ;
++echo '>
++						';
++echo esc_html( $link_cat->name ); ;
++echo '					</option>
++				';
++endforeach; ;
++echo '			</select>
++			<label for="';
++echo $this->get_field_id( 'orderby' ); ;
++echo '">';
++_e( 'Sort by:' ); ;
++echo '</label>
++			<select name="';
++echo $this->get_field_name( 'orderby' ); ;
++echo '" id="';
++echo $this->get_field_id( 'orderby' ); ;
++echo '" class="widefat">
++				<option value="name"';
++selected( $instance['orderby'], 'name' ); ;
++echo '>';
++_e( 'Link title' ); ;
++echo '</option>
++				<option value="rating"';
++selected( $instance['orderby'], 'rating' ); ;
++echo '>';
++_e( 'Link rating' ); ;
++echo '</option>
++				<option value="id"';
++selected( $instance['orderby'], 'id' ); ;
++echo '>';
++_e( 'Link ID' ); ;
++echo '</option>
++				<option value="rand"';
++selected( $instance['orderby'], 'rand' ); ;
++echo '>';
++_ex( 'Random', 'Links widget' ); ;
++echo '</option>
+ 			</select>
+ 		</p>
+ 
+ 		<p>
+-			<input class="checkbox" type="checkbox"<?php checked( $instance['images'], true ); ?> id="<?php echo $this->get_field_id( 'images' ); ?>" name="<?php echo $this->get_field_name( 'images' ); ?>" />
+-			<label for="<?php echo $this->get_field_id( 'images' ); ?>"><?php _e( 'Show Link Image' ); ?></label>
++			<input class="checkbox" type="checkbox"';
++checked( $instance['images'], true ); ;
++echo ' id="';
++echo $this->get_field_id( 'images' ); ;
++echo '" name="';
++echo $this->get_field_name( 'images' ); ;
++echo '" />
++			<label for="';
++echo $this->get_field_id( 'images' ); ;
++echo '">';
++_e( 'Show Link Image' ); ;
++echo '</label>
+ 			<br />
+ 
+-			<input class="checkbox" type="checkbox"<?php checked( $instance['name'], true ); ?> id="<?php echo $this->get_field_id( 'name' ); ?>" name="<?php echo $this->get_field_name( 'name' ); ?>" />
+-			<label for="<?php echo $this->get_field_id( 'name' ); ?>"><?php _e( 'Show Link Name' ); ?></label>
++			<input class="checkbox" type="checkbox"';
++checked( $instance['name'], true ); ;
++echo ' id="';
++echo $this->get_field_id( 'name' ); ;
++echo '" name="';
++echo $this->get_field_name( 'name' ); ;
++echo '" />
++			<label for="';
++echo $this->get_field_id( 'name' ); ;
++echo '">';
++_e( 'Show Link Name' ); ;
++echo '</label>
+ 			<br />
+ 
+-			<input class="checkbox" type="checkbox"<?php checked( $instance['description'], true ); ?> id="<?php echo $this->get_field_id( 'description' ); ?>" name="<?php echo $this->get_field_name( 'description' ); ?>" />
+-			<label for="<?php echo $this->get_field_id( 'description' ); ?>"><?php _e( 'Show Link Description' ); ?></label>
++			<input class="checkbox" type="checkbox"';
++checked( $instance['description'], true ); ;
++echo ' id="';
++echo $this->get_field_id( 'description' ); ;
++echo '" name="';
++echo $this->get_field_name( 'description' ); ;
++echo '" />
++			<label for="';
++echo $this->get_field_id( 'description' ); ;
++echo '">';
++_e( 'Show Link Description' ); ;
++echo '</label>
+ 			<br />
+ 
+-			<input class="checkbox" type="checkbox"<?php checked( $instance['rating'], true ); ?> id="<?php echo $this->get_field_id( 'rating' ); ?>" name="<?php echo $this->get_field_name( 'rating' ); ?>" />
+-			<label for="<?php echo $this->get_field_id( 'rating' ); ?>"><?php _e( 'Show Link Rating' ); ?></label>
++			<input class="checkbox" type="checkbox"';
++checked( $instance['rating'], true ); ;
++echo ' id="';
++echo $this->get_field_id( 'rating' ); ;
++echo '" name="';
++echo $this->get_field_name( 'rating' ); ;
++echo '" />
++			<label for="';
++echo $this->get_field_id( 'rating' ); ;
++echo '">';
++_e( 'Show Link Rating' ); ;
++echo '</label>
+ 		</p>
+ 
+ 		<p>
+-			<label for="<?php echo $this->get_field_id( 'limit' ); ?>"><?php _e( 'Number of links to show:' ); ?></label>
+-			<input id="<?php echo $this->get_field_id( 'limit' ); ?>" name="<?php echo $this->get_field_name( 'limit' ); ?>" type="text" value="<?php echo ( -1 !== $limit ) ? (int) $limit : ''; ?>" size="3" />
++			<label for="';
++echo $this->get_field_id( 'limit' ); ;
++echo '">';
++_e( 'Number of links to show:' ); ;
++echo '</label>
++			<input id="';
++echo $this->get_field_id( 'limit' ); ;
++echo '" name="';
++echo $this->get_field_name( 'limit' ); ;
++echo '" type="text" value="';
++echo ( -1 !== $limit ) ? (int) $limit : ''; ;
++echo '" size="3" />
+ 		</p>
+-		<?php
++		';
+ 	}
+ }

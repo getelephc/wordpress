@@ -1,0 +1,46 @@
+--- a/wp-includes/class-wp.php
++++ b/wp-includes/class-wp.php
+@@ -153,7 +153,7 @@
+ 		$post_type_query_vars = array();
+ 
+ 		if ( is_array( $extra_query_vars ) ) {
+-			$this->extra_query_vars = & $extra_query_vars;
++			$this->extra_query_vars = $extra_query_vars;
+ 		} elseif ( ! empty( $extra_query_vars ) ) {
+ 			parse_str( $extra_query_vars, $this->extra_query_vars );
+ 		}
+@@ -415,7 +415,7 @@
+ 		 *
+ 		 * @param WP $wp Current WordPress environment instance (passed by reference).
+ 		 */
+-		do_action_ref_array( 'parse_request', array( &$this ) );
++		do_action_ref_array( 'parse_request', array( $this ) );
+ 
+ 		return true;
+ 	}
+@@ -595,7 +595,7 @@
+ 		 *
+ 		 * @param WP $wp Current WordPress environment instance (passed by reference).
+ 		 */
+-		do_action_ref_array( 'send_headers', array( &$this ) );
++		do_action_ref_array( 'send_headers', array( $this ) );
+ 	}
+ 
+ 	/**
+@@ -668,7 +668,7 @@
+ 		}
+ 
+ 		$GLOBALS['query_string'] = $this->query_string;
+-		$GLOBALS['posts']        = & $wp_query->posts;
++		$GLOBALS['posts']        = $wp_query->posts;
+ 		$GLOBALS['post']         = $wp_query->post ?? null;
+ 		$GLOBALS['request']      = $wp_query->request;
+ 
+@@ -836,6 +836,6 @@
+ 		 *
+ 		 * @param WP $wp Current WordPress environment instance (passed by reference).
+ 		 */
+-		do_action_ref_array( 'wp', array( &$this ) );
++		do_action_ref_array( 'wp', array( $this ) );
+ 	}
+ }

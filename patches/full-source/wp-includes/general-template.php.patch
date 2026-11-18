@@ -1,0 +1,33 @@
+--- a/wp-includes/general-template.php
++++ b/wp-includes/general-template.php
+@@ -307,7 +307,7 @@
+ 
+ 	if ( '' !== $search_form_template ) {
+ 		ob_start();
+-		require $search_form_template;
++		throw new RuntimeException( 'Custom PHP search forms are outside the fixed block-theme template manifest.' );
+ 		$form = ob_get_clean();
+ 	} else {
+ 		// Build a string containing an aria-label to use for the search form.
+@@ -3804,9 +3804,9 @@
+  * @since 5.7.0
+  */
+ function wp_strict_cross_origin_referrer() {
+-	?>
+-	<meta name='referrer' content='strict-origin-when-cross-origin' />
+-	<?php
++	;
++echo '	<meta name=\'referrer\' content=\'strict-origin-when-cross-origin\' />
++	';
+ }
+ 
+ /**
+@@ -5577,7 +5577,7 @@
+  * to a separate file and is only included conditionally on PHP < 8.1.
+  */
+ if ( PHP_VERSION_ID < 80100 ) {
+-	require_once __DIR__ . '/php-compat/readonly.php';
++	throw new RuntimeException( 'The native WordPress profile targets PHP 8.4 and does not load pre-8.1 syntax shims.' );
+ }
+ 
+ /**

@@ -1,0 +1,198 @@
+--- a/wp-includes/functions.php
++++ b/wp-includes/functions.php
+@@ -2402,7 +2402,8 @@
+  *                |array{ error: non-empty-string }
+  */
+ function wp_upload_dir( $time = null, $create_dir = true, $refresh_cache = false ) {
+-	static $cache = array(), $tested_paths = array();
++	static $cache = array();
++	static $tested_paths = array();
+ 
+ 	$key = sprintf( '%d-%s', get_current_blog_id(), (string) $time );
+ 
+@@ -3957,13 +3958,17 @@
+ 		) {
+ 			$dir_attr = get_language_attributes();
+ 		}
+-		?>
+-<!DOCTYPE html>
+-<html <?php echo $dir_attr; ?>>
++		;
++echo '<!DOCTYPE html>
++<html ';
++echo $dir_attr; ;
++echo '>
+ <head>
+-	<meta http-equiv="Content-Type" content="text/html; charset=<?php echo $parsed_args['charset']; ?>" />
++	<meta http-equiv="Content-Type" content="text/html; charset=';
++echo $parsed_args['charset']; ;
++echo '" />
+ 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+-		<?php
++		';
+ 		if ( function_exists( 'wp_robots' ) && function_exists( 'wp_robots_no_robots' ) && function_exists( 'add_filter' ) ) {
+ 			add_filter( 'wp_robots', 'wp_robots_no_robots' );
+ 			// Prevent warnings because of $wp_query not existing.
+@@ -3971,8 +3976,10 @@
+ 			remove_filter( 'wp_robots', 'wp_robots_noindex_search' );
+ 			wp_robots();
+ 		}
+-		?>
+-	<title><?php echo $title; ?></title>
++		;
++echo '	<title>';
++echo $title; ;
++echo '</title>
+ 	<style>
+ 		html {
+ 			background: #f1f1f1;
+@@ -4076,19 +4083,21 @@
+ 			box-shadow: none;
+ 		}
+ 
+-		<?php
++		';
+ 		if ( 'rtl' === $text_direction ) {
+ 			echo 'body { font-family: Tahoma, Arial; }';
+ 		}
+-		?>
+-	</style>
++		;
++echo '	</style>
+ </head>
+ <body id="error-page">
+-<?php endif; // ! did_action( 'admin_head' ) ?>
+-	<?php echo $message; ?>
+-</body>
++';
++endif; // ! did_action( 'admin_head' ) ;
++echo '	';
++echo $message; ;
++echo '</body>
+ </html>
+-	<?php
++	';
+ 	if ( $parsed_args['exit'] ) {
+ 		die();
+ 	}
+@@ -5609,7 +5618,7 @@
+ 
+ 	// Load custom DB error template, if present.
+ 	if ( file_exists( WP_CONTENT_DIR . '/db-error.php' ) ) {
+-		require_once WP_CONTENT_DIR . '/db-error.php';
++		throw new RuntimeException( 'Custom database error drop-ins are outside the finite Elephc fixture.' );
+ 		die();
+ 	}
+ 
+@@ -6757,7 +6766,8 @@
+  * @return string HTML select element for timezones.
+  */
+ function wp_timezone_choice( $selected_zone, $locale = null ) {
+-	static $mo_loaded = false, $locale_loaded = null;
++	static $mo_loaded = false;
++	static $locale_loaded = null;
+ 
+ 	$continents = array( 'Africa', 'America', 'Antarctica', 'Arctic', 'Asia', 'Atlantic', 'Australia', 'Europe', 'Indian', 'Pacific' );
+ 
+@@ -7605,17 +7615,19 @@
+ 	$same_domain = apply_filters( 'wp_auth_check_same_domain', $same_domain );
+ 	$wrap_class  = $same_domain ? 'hidden' : 'hidden fallback';
+ 
+-	?>
+-	<div id="wp-auth-check-wrap" class="<?php echo $wrap_class; ?>">
++	;
++echo '	<div id="wp-auth-check-wrap" class="';
++echo $wrap_class; ;
++echo '">
+ 	<div id="wp-auth-check-bg"></div>
+ 	<div id="wp-auth-check">
+ 	<button type="button" class="wp-auth-check-close button-link"><span class="screen-reader-text">
+-		<?php
++		';
+ 		/* translators: Hidden accessibility text. */
+ 		_e( 'Close dialog' );
+-		?>
+-	</span></button>
+-	<?php
++		;
++echo '	</span></button>
++	';
+ 
+ 	if ( $same_domain ) {
+ 		$login_src = add_query_arg(
+@@ -7625,20 +7637,30 @@
+ 			),
+ 			$login_url
+ 		);
+-		?>
+-		<div id="wp-auth-check-form" class="loading" data-src="<?php echo esc_url( $login_src ); ?>"></div>
+-		<?php
+-	}
+-
+-	?>
+-	<div class="wp-auth-fallback">
+-		<p><b class="wp-auth-fallback-expired" tabindex="0"><?php _e( 'Session expired' ); ?></b></p>
+-		<p><a href="<?php echo esc_url( $login_url ); ?>" target="_blank"><?php _e( 'Please log in again.' ); ?></a>
+-		<?php _e( 'The login page will open in a new tab. After logging in you can close it and return to this page.' ); ?></p>
++		;
++echo '		<div id="wp-auth-check-form" class="loading" data-src="';
++echo esc_url( $login_src ); ;
++echo '"></div>
++		';
++	}
++
++	;
++echo '	<div class="wp-auth-fallback">
++		<p><b class="wp-auth-fallback-expired" tabindex="0">';
++_e( 'Session expired' ); ;
++echo '</b></p>
++		<p><a href="';
++echo esc_url( $login_url ); ;
++echo '" target="_blank">';
++_e( 'Please log in again.' ); ;
++echo '</a>
++		';
++_e( 'The login page will open in a new tab. After logging in you can close it and return to this page.' ); ;
++echo '</p>
+ 	</div>
+ 	</div>
+ 	</div>
+-	<?php
++	';
+ }
+ 
+ /**
+@@ -7917,22 +7939,25 @@
+ 	$name = 'wp-preview-' . (int) $post->ID;
+ 
+ 	ob_start();
+-	?>
+-	<script>
++	;
++echo '	<script>
+ 	( function() {
+ 		var query = document.location.search;
+ 
+-		if ( query && query.indexOf( 'preview=true' ) !== -1 ) {
+-			window.name = '<?php echo $name; ?>';
++		if ( query && query.indexOf( \'preview=true\' ) !== -1 ) {
++			window.name = \'';
++echo $name; ;
++echo '\';
+ 		}
+ 
+ 		if ( window.addEventListener ) {
+-			window.addEventListener( 'pagehide', function() { window.name = ''; } );
++			window.addEventListener( \'pagehide\', function() { window.name = \'\'; } );
+ 		}
+ 	}());
+-	//# sourceURL=<?php echo rawurlencode( __FUNCTION__ ); ?>
+-	</script>
+-	<?php
++	//# sourceURL=';
++echo rawurlencode( __FUNCTION__ ); ;
++echo '	</script>
++	';
+ 	wp_print_inline_script_tag( wp_remove_surrounding_empty_script_tags( ob_get_clean() ) );
+ }
+ 

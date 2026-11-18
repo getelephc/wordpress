@@ -1,0 +1,41 @@
+--- a/wp-includes/formatting.php
++++ b/wp-includes/formatting.php
+@@ -36,22 +36,22 @@
+  */
+ function wptexturize( $text, $reset = false ) {
+ 	global $wp_cockneyreplace, $shortcode_tags;
+-	static $static_characters            = null,
+-		$static_replacements             = null,
+-		$dynamic_characters              = null,
+-		$dynamic_replacements            = null,
+-		$default_no_texturize_tags       = null,
+-		$default_no_texturize_shortcodes = null,
+-		$run_texturize                   = true,
+-		$apos                            = null,
+-		$prime                           = null,
+-		$double_prime                    = null,
+-		$opening_quote                   = null,
+-		$closing_quote                   = null,
+-		$opening_single_quote            = null,
+-		$closing_single_quote            = null,
+-		$open_q_flag                     = '<!--oq-->',
+-		$open_sq_flag                    = '<!--osq-->',
++	static $static_characters            = null; static 
++		$static_replacements             = null; static 
++		$dynamic_characters              = null; static 
++		$dynamic_replacements            = null; static 
++		$default_no_texturize_tags       = null; static 
++		$default_no_texturize_shortcodes = null; static 
++		$run_texturize                   = true; static 
++		$apos                            = null; static 
++		$prime                           = null; static 
++		$double_prime                    = null; static 
++		$opening_quote                   = null; static 
++		$closing_quote                   = null; static 
++		$opening_single_quote            = null; static 
++		$closing_single_quote            = null; static 
++		$open_q_flag                     = '<!--oq-->'; static 
++		$open_sq_flag                    = '<!--osq-->'; static 
+ 		$apos_flag                       = '<!--apos-->';
+ 
+ 	// If there's nothing to do, just stop.

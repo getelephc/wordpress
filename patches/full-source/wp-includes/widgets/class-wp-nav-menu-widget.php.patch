@@ -1,0 +1,103 @@
+--- a/wp-includes/widgets/class-wp-nav-menu-widget.php
++++ b/wp-includes/widgets/class-wp-nav-menu-widget.php
+@@ -163,9 +163,11 @@
+ 		}
+ 
+ 		// If no menus exists, direct the user to go and create some.
+-		?>
+-		<p class="nav-menu-widget-no-menus-message" <?php echo $not_empty_menus_style; ?>>
+-			<?php
++		;
++echo '		<p class="nav-menu-widget-no-menus-message" ';
++echo $not_empty_menus_style; ;
++echo '>
++			';
+ 			if ( $wp_customize instanceof WP_Customize_Manager ) {
+ 				$url = 'javascript: wp.customize.panel( "nav_menus" ).focus();';
+ 			} else {
+@@ -178,30 +180,65 @@
+ 				// The URL can be a `javascript:` link, so esc_attr() is used here instead of esc_url().
+ 				esc_attr( $url )
+ 			);
+-			?>
+-		</p>
+-		<div class="nav-menu-widget-form-controls" <?php echo $empty_menus_style; ?>>
++			;
++echo '		</p>
++		<div class="nav-menu-widget-form-controls" ';
++echo $empty_menus_style; ;
++echo '>
+ 			<p>
+-				<label for="<?php echo $this->get_field_id( 'title' ); ?>"><?php _e( 'Title:' ); ?></label>
+-				<input type="text" class="widefat" id="<?php echo $this->get_field_id( 'title' ); ?>" name="<?php echo $this->get_field_name( 'title' ); ?>" value="<?php echo esc_attr( $title ); ?>" />
++				<label for="';
++echo $this->get_field_id( 'title' ); ;
++echo '">';
++_e( 'Title:' ); ;
++echo '</label>
++				<input type="text" class="widefat" id="';
++echo $this->get_field_id( 'title' ); ;
++echo '" name="';
++echo $this->get_field_name( 'title' ); ;
++echo '" value="';
++echo esc_attr( $title ); ;
++echo '" />
+ 			</p>
+ 			<p>
+-				<label for="<?php echo $this->get_field_id( 'nav_menu' ); ?>"><?php _e( 'Select Menu:' ); ?></label>
+-				<select id="<?php echo $this->get_field_id( 'nav_menu' ); ?>" name="<?php echo $this->get_field_name( 'nav_menu' ); ?>">
+-					<option value="0"><?php _e( '&mdash; Select &mdash;' ); ?></option>
+-					<?php foreach ( $menus as $menu ) : ?>
+-						<option value="<?php echo esc_attr( $menu->term_id ); ?>" <?php selected( $nav_menu, $menu->term_id ); ?>>
+-							<?php echo esc_html( $menu->name ); ?>
+-						</option>
+-					<?php endforeach; ?>
+-				</select>
++				<label for="';
++echo $this->get_field_id( 'nav_menu' ); ;
++echo '">';
++_e( 'Select Menu:' ); ;
++echo '</label>
++				<select id="';
++echo $this->get_field_id( 'nav_menu' ); ;
++echo '" name="';
++echo $this->get_field_name( 'nav_menu' ); ;
++echo '">
++					<option value="0">';
++_e( '&mdash; Select &mdash;' ); ;
++echo '</option>
++					';
++foreach ( $menus as $menu ) : ;
++echo '						<option value="';
++echo esc_attr( $menu->term_id ); ;
++echo '" ';
++selected( $nav_menu, $menu->term_id ); ;
++echo '>
++							';
++echo esc_html( $menu->name ); ;
++echo '						</option>
++					';
++endforeach; ;
++echo '				</select>
+ 			</p>
+-			<?php if ( $wp_customize instanceof WP_Customize_Manager ) : ?>
+-				<p class="edit-selected-nav-menu" style="<?php echo $nav_menu_style; ?>">
+-					<button type="button" class="button"><?php _e( 'Edit Menu' ); ?></button>
++			';
++if ( $wp_customize instanceof WP_Customize_Manager ) : ;
++echo '				<p class="edit-selected-nav-menu" style="';
++echo $nav_menu_style; ;
++echo '">
++					<button type="button" class="button">';
++_e( 'Edit Menu' ); ;
++echo '</button>
+ 				</p>
+-			<?php endif; ?>
+-		</div>
+-		<?php
++			';
++endif; ;
++echo '		</div>
++		';
+ 	}
+ }

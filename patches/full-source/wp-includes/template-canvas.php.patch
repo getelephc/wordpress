@@ -1,0 +1,45 @@
+--- a/wp-includes/template-canvas.php
++++ b/wp-includes/template-canvas.php
+@@ -10,18 +10,30 @@
+  * This needs to run before <head> so that blocks can add scripts and styles in wp_head().
+  */
+ $template_html = get_the_block_template_html();
+-?><!DOCTYPE html>
+-<html <?php language_attributes(); ?>>
++;
++echo '<!DOCTYPE html>
++<html ';
++language_attributes(); ;
++echo '>
+ <head>
+-	<meta charset="<?php bloginfo( 'charset' ); ?>" />
+-	<?php wp_head(); ?>
+-</head>
++	<meta charset="';
++bloginfo( 'charset' ); ;
++echo '" />
++	';
++wp_head(); ;
++echo '</head>
+ 
+-<body <?php body_class(); ?>>
+-<?php wp_body_open(); ?>
+-
+-<?php echo $template_html; ?>
+-
+-<?php wp_footer(); ?>
+-</body>
++<body ';
++body_class(); ;
++echo '>
++';
++wp_body_open(); ;
++echo '
++';
++echo $template_html; ;
++echo '
++';
++wp_footer(); ;
++echo '</body>
+ </html>
++';

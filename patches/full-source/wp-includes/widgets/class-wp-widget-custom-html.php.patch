@@ -1,0 +1,95 @@
+--- a/wp-includes/widgets/class-wp-widget-custom-html.php
++++ b/wp-includes/widgets/class-wp-widget-custom-html.php
+@@ -248,10 +248,22 @@
+ 	 */
+ 	public function form( $instance ) {
+ 		$instance = wp_parse_args( (array) $instance, $this->default_instance );
+-		?>
+-		<input id="<?php echo $this->get_field_id( 'title' ); ?>" name="<?php echo $this->get_field_name( 'title' ); ?>" class="title sync-input" type="hidden" value="<?php echo esc_attr( $instance['title'] ); ?>" />
+-		<textarea id="<?php echo $this->get_field_id( 'content' ); ?>" name="<?php echo $this->get_field_name( 'content' ); ?>" class="content sync-input" hidden><?php echo esc_textarea( $instance['content'] ); ?></textarea>
+-		<?php
++		;
++echo '		<input id="';
++echo $this->get_field_id( 'title' ); ;
++echo '" name="';
++echo $this->get_field_name( 'title' ); ;
++echo '" class="title sync-input" type="hidden" value="';
++echo esc_attr( $instance['title'] ); ;
++echo '" />
++		<textarea id="';
++echo $this->get_field_id( 'content' ); ;
++echo '" name="';
++echo $this->get_field_name( 'content' ); ;
++echo '" class="content sync-input" hidden>';
++echo esc_textarea( $instance['content'] ); ;
++echo '</textarea>
++		';
+ 	}
+ 
+ 	/**
+@@ -260,38 +272,49 @@
+ 	 * @since 4.9.0
+ 	 */
+ 	public static function render_control_template_scripts() {
+-		?>
+-		<script type="text/html" id="tmpl-widget-custom-html-control-fields">
+-			<# var elementIdPrefix = 'el' + String( Math.random() ).replace( /\D/g, '' ) + '_' #>
++		;
++echo '		<script type="text/html" id="tmpl-widget-custom-html-control-fields">
++			<# var elementIdPrefix = \'el\' + String( Math.random() ).replace( /\\D/g, \'\' ) + \'_\' #>
+ 			<p>
+-				<label for="{{ elementIdPrefix }}title"><?php esc_html_e( 'Title:' ); ?></label>
++				<label for="{{ elementIdPrefix }}title">';
++esc_html_e( 'Title:' ); ;
++echo '</label>
+ 				<input id="{{ elementIdPrefix }}title" type="text" class="widefat title">
+ 			</p>
+ 
+ 			<p>
+-				<label for="{{ elementIdPrefix }}content" id="{{ elementIdPrefix }}content-label"><?php esc_html_e( 'Content:' ); ?></label>
++				<label for="{{ elementIdPrefix }}content" id="{{ elementIdPrefix }}content-label">';
++esc_html_e( 'Content:' ); ;
++echo '</label>
+ 				<textarea id="{{ elementIdPrefix }}content" class="widefat code content" rows="16" cols="20"></textarea>
+ 			</p>
+ 
+-			<?php if ( ! current_user_can( 'unfiltered_html' ) ) : ?>
+-				<?php
++			';
++if ( ! current_user_can( 'unfiltered_html' ) ) : ;
++echo '				';
+ 				$probably_unsafe_html = array( 'script', 'iframe', 'form', 'input', 'style' );
+ 				$allowed_html         = wp_kses_allowed_html( 'post' );
+ 				$disallowed_html      = array_diff( $probably_unsafe_html, array_keys( $allowed_html ) );
+-				?>
+-				<?php if ( ! empty( $disallowed_html ) ) : ?>
+-					<# if ( data.codeEditorDisabled ) { #>
++				;
++echo '				';
++if ( ! empty( $disallowed_html ) ) : ;
++echo '					<# if ( data.codeEditorDisabled ) { #>
+ 						<p>
+-							<?php _e( 'Some HTML tags are not permitted, including:' ); ?>
+-							<code><?php echo implode( '</code>, <code>', $disallowed_html ); ?></code>
++							';
++_e( 'Some HTML tags are not permitted, including:' ); ;
++echo '							<code>';
++echo implode( '</code>, <code>', $disallowed_html ); ;
++echo '</code>
+ 						</p>
+ 					<# } #>
+-				<?php endif; ?>
+-			<?php endif; ?>
+-
++				';
++endif; ;
++echo '			';
++endif; ;
++echo '
+ 			<div class="code-editor-error-container"></div>
+ 		</script>
+-		<?php
++		';
+ 	}
+ 
+ 	/**

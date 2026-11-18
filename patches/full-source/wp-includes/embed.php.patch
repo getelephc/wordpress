@@ -1,0 +1,147 @@
+--- a/wp-includes/embed.php
++++ b/wp-includes/embed.php
+@@ -1139,11 +1139,13 @@
+ 	if ( is_404() || ! ( get_comments_number() || comments_open() ) ) {
+ 		return;
+ 	}
+-	?>
+-	<div class="wp-embed-comments">
+-		<a href="<?php comments_link(); ?>" target="_top">
++	;
++echo '	<div class="wp-embed-comments">
++		<a href="';
++comments_link(); ;
++echo '" target="_top">
+ 			<span class="dashicons dashicons-admin-comments"></span>
+-			<?php
++			';
+ 			printf(
+ 				/* translators: %s: Number of comments. */
+ 				_n(
+@@ -1153,10 +1155,10 @@
+ 				),
+ 				number_format_i18n( get_comments_number() )
+ 			);
+-			?>
+-		</a>
++			;
++echo '		</a>
+ 	</div>
+-	<?php
++	';
+ }
+ 
+ /**
+@@ -1168,13 +1170,15 @@
+ 	if ( is_404() ) {
+ 		return;
+ 	}
+-	?>
+-	<div class="wp-embed-share">
+-		<button type="button" class="wp-embed-share-dialog-open" aria-label="<?php esc_attr_e( 'Open sharing dialog' ); ?>">
++	;
++echo '	<div class="wp-embed-share">
++		<button type="button" class="wp-embed-share-dialog-open" aria-label="';
++esc_attr_e( 'Open sharing dialog' ); ;
++echo '">
+ 			<span class="dashicons dashicons-share"></span>
+ 		</button>
+ 	</div>
+-	<?php
++	';
+ }
+ 
+ /**
+@@ -1192,40 +1196,74 @@
+ 	$share_tab_html_id        = 'wp-embed-share-tab-html-' . $unique_suffix;
+ 	$description_wordpress_id = 'wp-embed-share-description-wordpress-' . $unique_suffix;
+ 	$description_html_id      = 'wp-embed-share-description-html-' . $unique_suffix;
+-	?>
+-	<div class="wp-embed-share-dialog hidden" role="dialog" aria-label="<?php esc_attr_e( 'Sharing options' ); ?>">
++	;
++echo '	<div class="wp-embed-share-dialog hidden" role="dialog" aria-label="';
++esc_attr_e( 'Sharing options' ); ;
++echo '">
+ 		<div class="wp-embed-share-dialog-content">
+ 			<div class="wp-embed-share-dialog-text">
+ 				<ul class="wp-embed-share-tabs" role="tablist">
+ 					<li class="wp-embed-share-tab-button wp-embed-share-tab-button-wordpress" role="presentation">
+-						<button type="button" role="tab" aria-controls="<?php echo $share_tab_wordpress_id; ?>" aria-selected="true" tabindex="0"><?php esc_html_e( 'WordPress Embed' ); ?></button>
++						<button type="button" role="tab" aria-controls="';
++echo $share_tab_wordpress_id; ;
++echo '" aria-selected="true" tabindex="0">';
++esc_html_e( 'WordPress Embed' ); ;
++echo '</button>
+ 					</li>
+ 					<li class="wp-embed-share-tab-button wp-embed-share-tab-button-html" role="presentation">
+-						<button type="button" role="tab" aria-controls="<?php echo $share_tab_html_id; ?>" aria-selected="false" tabindex="-1"><?php esc_html_e( 'HTML Embed' ); ?></button>
++						<button type="button" role="tab" aria-controls="';
++echo $share_tab_html_id; ;
++echo '" aria-selected="false" tabindex="-1">';
++esc_html_e( 'HTML Embed' ); ;
++echo '</button>
+ 					</li>
+ 				</ul>
+-				<div id="<?php echo $share_tab_wordpress_id; ?>" class="wp-embed-share-tab" role="tabpanel" aria-hidden="false">
+-					<input type="text" value="<?php the_permalink(); ?>" class="wp-embed-share-input" aria-label="<?php esc_attr_e( 'URL' ); ?>" aria-describedby="<?php echo $description_wordpress_id; ?>" tabindex="0" readonly/>
+-
+-					<p class="wp-embed-share-description" id="<?php echo $description_wordpress_id; ?>">
+-						<?php _e( 'Copy and paste this URL into your WordPress site to embed' ); ?>
+-					</p>
++				<div id="';
++echo $share_tab_wordpress_id; ;
++echo '" class="wp-embed-share-tab" role="tabpanel" aria-hidden="false">
++					<input type="text" value="';
++the_permalink(); ;
++echo '" class="wp-embed-share-input" aria-label="';
++esc_attr_e( 'URL' ); ;
++echo '" aria-describedby="';
++echo $description_wordpress_id; ;
++echo '" tabindex="0" readonly/>
++
++					<p class="wp-embed-share-description" id="';
++echo $description_wordpress_id; ;
++echo '">
++						';
++_e( 'Copy and paste this URL into your WordPress site to embed' ); ;
++echo '					</p>
+ 				</div>
+-				<div id="<?php echo $share_tab_html_id; ?>" class="wp-embed-share-tab" role="tabpanel" aria-hidden="true">
+-					<textarea class="wp-embed-share-input" aria-label="<?php esc_attr_e( 'HTML' ); ?>" aria-describedby="<?php echo $description_html_id; ?>" tabindex="0" readonly><?php echo esc_textarea( get_post_embed_html( 600, 400 ) ); ?></textarea>
+-
+-					<p class="wp-embed-share-description" id="<?php echo $description_html_id; ?>">
+-						<?php _e( 'Copy and paste this code into your site to embed' ); ?>
+-					</p>
++				<div id="';
++echo $share_tab_html_id; ;
++echo '" class="wp-embed-share-tab" role="tabpanel" aria-hidden="true">
++					<textarea class="wp-embed-share-input" aria-label="';
++esc_attr_e( 'HTML' ); ;
++echo '" aria-describedby="';
++echo $description_html_id; ;
++echo '" tabindex="0" readonly>';
++echo esc_textarea( get_post_embed_html( 600, 400 ) ); ;
++echo '</textarea>
++
++					<p class="wp-embed-share-description" id="';
++echo $description_html_id; ;
++echo '">
++						';
++_e( 'Copy and paste this code into your site to embed' ); ;
++echo '					</p>
+ 				</div>
+ 			</div>
+ 
+-			<button type="button" class="wp-embed-share-dialog-close" aria-label="<?php esc_attr_e( 'Close sharing dialog' ); ?>">
++			<button type="button" class="wp-embed-share-dialog-close" aria-label="';
++esc_attr_e( 'Close sharing dialog' ); ;
++echo '">
+ 				<span class="dashicons dashicons-no"></span>
+ 			</button>
+ 		</div>
+ 	</div>
+-	<?php
++	';
+ }
+ 
+ /**

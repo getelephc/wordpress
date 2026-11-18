@@ -1,0 +1,68 @@
+--- a/wp-settings.php
++++ b/wp-settings.php
+@@ -97,7 +97,7 @@
+  */
+ if ( WP_CACHE && apply_filters( 'enable_loading_advanced_cache_dropin', true ) && file_exists( WP_CONTENT_DIR . '/advanced-cache.php' ) ) {
+ 	// For an advanced caching plugin to use. Uses a static drop-in because you would only want one.
+-	include WP_CONTENT_DIR . '/advanced-cache.php';
++	throw new RuntimeException( 'Advanced cache PHP is outside the request-local fixture.' );
+ 
+ 	// Re-initialize any hooks added manually by advanced-cache.php.
+ 	if ( $wp_filter ) {
+@@ -505,7 +505,7 @@
+ // Load must-use plugins.
+ foreach ( wp_get_mu_plugins() as $mu_plugin ) {
+ 	$_wp_plugin_file = $mu_plugin;
+-	include_once $mu_plugin;
++	throw new RuntimeException( 'Must-use plugin is outside the finite source manifest: ' . $mu_plugin );
+ 	$mu_plugin = $_wp_plugin_file; // Avoid stomping of the $mu_plugin variable in a plugin.
+ 
+ 	/**
+@@ -525,7 +525,7 @@
+ 		wp_register_plugin_realpath( $network_plugin );
+ 
+ 		$_wp_plugin_file = $network_plugin;
+-		include_once $network_plugin;
++		throw new RuntimeException( 'Network plugin is outside the finite source manifest: ' . $network_plugin );
+ 		$network_plugin = $_wp_plugin_file; // Avoid stomping of the $network_plugin variable in a plugin.
+ 
+ 		/**
+@@ -594,7 +594,7 @@
+ 	}
+ 
+ 	$_wp_plugin_file = $plugin;
+-	include_once $plugin;
++	throw new RuntimeException( 'Plugin is outside the finite source manifest: ' . $plugin );
+ 	$plugin = $_wp_plugin_file; // Avoid stomping of the $plugin variable in a plugin.
+ 
+ 	/**
+@@ -714,7 +714,7 @@
+ $locale      = get_locale();
+ $locale_file = WP_LANG_DIR . "/$locale.php";
+ if ( ( 0 === validate_file( $locale ) ) && is_readable( $locale_file ) ) {
+-	require $locale_file;
++	throw new RuntimeException( 'PHP locale is outside the English fixture: ' . $locale_file );
+ }
+ unset( $locale_file );
+ 
+@@ -744,7 +744,10 @@
+ 	$wp_theme->load_textdomain();
+ 
+ 	if ( file_exists( $theme . '/functions.php' ) ) {
+-		include $theme . '/functions.php';
++		if ( $theme !== WP_CONTENT_DIR . '/themes/twentytwentyfive' ) {
++			throw new RuntimeException( 'Theme is outside the finite source manifest: ' . $theme );
++		}
++		include WP_CONTENT_DIR . '/themes/twentytwentyfive/functions.php';
+ 	}
+ }
+ unset( $theme, $wp_theme );
+@@ -782,7 +785,7 @@
+ if ( is_multisite() ) {
+ 	$file = ms_site_check();
+ 	if ( true !== $file ) {
+-		require $file;
++		throw new RuntimeException( 'Multisite status PHP is outside the single-site fixture: ' . $file );
+ 		die();
+ 	}
+ 	unset( $file );

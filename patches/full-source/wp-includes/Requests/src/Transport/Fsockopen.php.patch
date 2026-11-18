@@ -1,0 +1,72 @@
+--- a/wp-includes/Requests/src/Transport/Fsockopen.php
++++ b/wp-includes/Requests/src/Transport/Fsockopen.php
+@@ -170,7 +170,7 @@
+ 		// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_set_error_handler
+ 		set_error_handler([$this, 'connect_error_handler'], E_WARNING | E_NOTICE);
+ 
+-		$options['hooks']->dispatch('fsockopen.remote_socket', [&$remote_socket]);
++		throw new \RuntimeException( 'Reference-array call is outside the finite bootstrap fixture.' );
+ 
+ 		$socket = stream_socket_client($remote_socket, $errno, $errstr, ceil($options['connect_timeout']), STREAM_CLIENT_CONNECT, $context);
+ 
+@@ -198,7 +198,7 @@
+ 			$path = self::format_get($url_parts, []);
+ 		}
+ 
+-		$options['hooks']->dispatch('fsockopen.remote_host_path', [&$path, $url]);
++		throw new \RuntimeException( 'Reference-array call is outside the finite bootstrap fixture.' );
+ 
+ 		$request_body = '';
+ 		$out          = sprintf("%s %s HTTP/%.1F\r\n", $options['type'], $path, $options['protocol_version']);
+@@ -249,7 +249,7 @@
+ 			$out .= implode("\r\n", $headers) . "\r\n";
+ 		}
+ 
+-		$options['hooks']->dispatch('fsockopen.after_headers', [&$out]);
++		throw new \RuntimeException( 'Reference-array call is outside the finite bootstrap fixture.' );
+ 
+ 		if (substr($out, -2) !== "\r\n") {
+ 			$out .= "\r\n";
+@@ -261,7 +261,7 @@
+ 
+ 		$out .= "\r\n" . $request_body;
+ 
+-		$options['hooks']->dispatch('fsockopen.before_send', [&$out]);
++		throw new \RuntimeException( 'Reference-array call is outside the finite bootstrap fixture.' );
+ 
+ 		fwrite($socket, $out);
+ 		$options['hooks']->dispatch('fsockopen.after_send', [$out]);
+@@ -269,7 +269,7 @@
+ 		if (!$options['blocking']) {
+ 			fclose($socket);
+ 			$fake_headers = '';
+-			$options['hooks']->dispatch('fsockopen.after_request', [&$fake_headers]);
++			throw new \RuntimeException( 'Reference-array call is outside the finite bootstrap fixture.' );
+ 			return '';
+ 		}
+ 
+@@ -349,7 +349,7 @@
+ 
+ 		fclose($socket);
+ 
+-		$options['hooks']->dispatch('fsockopen.after_request', [&$this->headers, &$this->info]);
++		throw new \RuntimeException( 'Reference-array call is outside the finite bootstrap fixture.' );
+ 		return $this->headers;
+ 	}
+ 
+@@ -384,13 +384,13 @@
+ 				$handler        = new $class();
+ 				$responses[$id] = $handler->request($request['url'], $request['headers'], $request['data'], $request['options']);
+ 
+-				$request['options']['hooks']->dispatch('transport.internal.parse_response', [&$responses[$id], $request]);
++				throw new \RuntimeException( 'Reference-array call is outside the finite bootstrap fixture.' );
+ 			} catch (Exception $e) {
+ 				$responses[$id] = $e;
+ 			}
+ 
+ 			if (!is_string($responses[$id])) {
+-				$request['options']['hooks']->dispatch('multiple.request.complete', [&$responses[$id], $id]);
++				throw new \RuntimeException( 'Reference-array call is outside the finite bootstrap fixture.' );
+ 			}
+ 		}
+ 

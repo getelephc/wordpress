@@ -1,0 +1,258 @@
+--- a/wp-includes/feed-atom-comments.php
++++ b/wp-includes/feed-atom-comments.php
+@@ -10,12 +10,14 @@
+ 
+ /** This action is documented in wp-includes/feed-rss2.php */
+ do_action( 'rss_tag_pre', 'atom-comments' );
+-?>
+-<feed
++;
++echo '<feed
+ 	xmlns="http://www.w3.org/2005/Atom"
+-	xml:lang="<?php bloginfo_rss( 'language' ); ?>"
++	xml:lang="';
++bloginfo_rss( 'language' ); ;
++echo '"
+ 	xmlns:thr="http://purl.org/syndication/thread/1.0"
+-	<?php
++	';
+ 		/** This action is documented in wp-includes/feed-atom.php */
+ 		do_action( 'atom_ns' );
+ 
+@@ -25,10 +27,10 @@
+ 		 * @since 2.8.0
+ 		 */
+ 		do_action( 'atom_comments_ns' );
+-	?>
+->
++	;
++echo '>
+ 	<title type="text">
+-	<?php
++	';
+ 	if ( is_singular() ) {
+ 		/* translators: Comments feed title. %s: Post title. */
+ 		printf( ent2ncr( __( 'Comments on %s' ) ), get_the_title_rss() );
+@@ -39,34 +41,64 @@
+ 		/* translators: Comments feed title. %s: Site title. */
+ 		printf( ent2ncr( __( 'Comments for %s' ) ), get_wp_title_rss() );
+ 	}
+-	?>
+-	</title>
+-	<subtitle type="text"><?php bloginfo_rss( 'description' ); ?></subtitle>
+-
+-	<updated><?php echo get_feed_build_date( 'Y-m-d\TH:i:s\Z' ); ?></updated>
+-
+-<?php if ( is_singular() ) : ?>
+-	<link rel="alternate" type="<?php bloginfo_rss( 'html_type' ); ?>" href="<?php comments_link_feed(); ?>" />
+-	<link rel="self" type="application/atom+xml" href="<?php echo esc_url( get_post_comments_feed_link( '', 'atom' ) ); ?>" />
+-	<id><?php echo esc_url( get_post_comments_feed_link( '', 'atom' ) ); ?></id>
+-<?php elseif ( is_search() ) : ?>
+-	<link rel="alternate" type="<?php bloginfo_rss( 'html_type' ); ?>" href="<?php echo home_url() . '?s=' . get_search_query(); ?>" />
+-	<link rel="self" type="application/atom+xml" href="<?php echo get_search_comments_feed_link( '', 'atom' ); ?>" />
+-	<id><?php echo get_search_comments_feed_link( '', 'atom' ); ?></id>
+-<?php else : ?>
+-	<link rel="alternate" type="<?php bloginfo_rss( 'html_type' ); ?>" href="<?php bloginfo_rss( 'url' ); ?>" />
+-	<link rel="self" type="application/atom+xml" href="<?php bloginfo_rss( 'comments_atom_url' ); ?>" />
+-	<id><?php bloginfo_rss( 'comments_atom_url' ); ?></id>
+-<?php endif; ?>
+-<?php
++	;
++echo '	</title>
++	<subtitle type="text">';
++bloginfo_rss( 'description' ); ;
++echo '</subtitle>
++
++	<updated>';
++echo get_feed_build_date( 'Y-m-d\TH:i:s\Z' ); ;
++echo '</updated>
++
++';
++if ( is_singular() ) : ;
++echo '	<link rel="alternate" type="';
++bloginfo_rss( 'html_type' ); ;
++echo '" href="';
++comments_link_feed(); ;
++echo '" />
++	<link rel="self" type="application/atom+xml" href="';
++echo esc_url( get_post_comments_feed_link( '', 'atom' ) ); ;
++echo '" />
++	<id>';
++echo esc_url( get_post_comments_feed_link( '', 'atom' ) ); ;
++echo '</id>
++';
++elseif ( is_search() ) : ;
++echo '	<link rel="alternate" type="';
++bloginfo_rss( 'html_type' ); ;
++echo '" href="';
++echo home_url() . '?s=' . get_search_query(); ;
++echo '" />
++	<link rel="self" type="application/atom+xml" href="';
++echo get_search_comments_feed_link( '', 'atom' ); ;
++echo '" />
++	<id>';
++echo get_search_comments_feed_link( '', 'atom' ); ;
++echo '</id>
++';
++else : ;
++echo '	<link rel="alternate" type="';
++bloginfo_rss( 'html_type' ); ;
++echo '" href="';
++bloginfo_rss( 'url' ); ;
++echo '" />
++	<link rel="self" type="application/atom+xml" href="';
++bloginfo_rss( 'comments_atom_url' ); ;
++echo '" />
++	<id>';
++bloginfo_rss( 'comments_atom_url' ); ;
++echo '</id>
++';
++endif; ;
+ 	/**
+ 	 * Fires at the end of the Atom comment feed header.
+ 	 *
+ 	 * @since 2.8.0
+ 	 */
+ 	do_action( 'comments_atom_head' );
+-?>
+-<?php
++;
+ while ( have_comments() ) :
+ 	the_comment();
+ 	$comment_post = get_post( $comment->comment_post_ID );
+@@ -74,10 +106,10 @@
+ 	 * @global WP_Post $post Global post object.
+ 	 */
+ 	$GLOBALS['post'] = $comment_post;
+-	?>
+-	<entry>
++	;
++echo '	<entry>
+ 		<title>
+-		<?php
++		';
+ 		if ( ! is_singular() ) {
+ 			$title = get_the_title( $comment_post->ID );
+ 			/** This filter is documented in wp-includes/feed.php */
+@@ -88,36 +120,65 @@
+ 			/* translators: Comment author title. %s: Comment author name. */
+ 			printf( ent2ncr( __( 'By: %s' ) ), get_comment_author_rss() );
+ 		}
+-		?>
+-		</title>
+-		<link rel="alternate" href="<?php comment_link(); ?>" type="<?php bloginfo_rss( 'html_type' ); ?>" />
++		;
++echo '		</title>
++		<link rel="alternate" href="';
++comment_link(); ;
++echo '" type="';
++bloginfo_rss( 'html_type' ); ;
++echo '" />
+ 
+ 		<author>
+-			<name><?php comment_author_rss(); ?></name>
+-			<?php
++			<name>';
++comment_author_rss(); ;
++echo '</name>
++			';
+ 			if ( get_comment_author_url() ) {
+ 				echo '<uri>' . get_comment_author_url() . '</uri>';
+ 			}
+-			?>
+-
++			;
++echo '
+ 		</author>
+ 
+-		<id><?php comment_guid(); ?></id>
+-		<updated><?php echo mysql2date( 'Y-m-d\TH:i:s\Z', get_comment_time( 'Y-m-d H:i:s', true, false ), false ); ?></updated>
+-		<published><?php echo mysql2date( 'Y-m-d\TH:i:s\Z', get_comment_time( 'Y-m-d H:i:s', true, false ), false ); ?></published>
+-
+-		<?php if ( post_password_required( $comment_post ) ) : ?>
+-			<content type="html" xml:base="<?php comment_link(); ?>"><![CDATA[<?php echo get_the_password_form(); ?>]]></content>
+-		<?php else : ?>
+-			<content type="html" xml:base="<?php comment_link(); ?>"><![CDATA[<?php comment_text(); ?>]]></content>
+-		<?php endif; // End if post_password_required(). ?>
+-
+-		<?php
++		<id>';
++comment_guid(); ;
++echo '</id>
++		<updated>';
++echo mysql2date( 'Y-m-d\TH:i:s\Z', get_comment_time( 'Y-m-d H:i:s', true, false ), false ); ;
++echo '</updated>
++		<published>';
++echo mysql2date( 'Y-m-d\TH:i:s\Z', get_comment_time( 'Y-m-d H:i:s', true, false ), false ); ;
++echo '</published>
++
++		';
++if ( post_password_required( $comment_post ) ) : ;
++echo '			<content type="html" xml:base="';
++comment_link(); ;
++echo '"><![CDATA[';
++echo get_the_password_form(); ;
++echo ']]></content>
++		';
++else : ;
++echo '			<content type="html" xml:base="';
++comment_link(); ;
++echo '"><![CDATA[';
++comment_text(); ;
++echo ']]></content>
++		';
++endif; // End if post_password_required(). ;
++echo '
++		';
+ 		// Return comment threading information (https://www.ietf.org/rfc/rfc4685.txt).
+ 		if ( '0' === $comment->comment_parent ) : // This comment is top-level.
+-			?>
+-			<thr:in-reply-to ref="<?php the_guid(); ?>" href="<?php the_permalink_rss(); ?>" type="<?php bloginfo_rss( 'html_type' ); ?>" />
+-			<?php
++			;
++echo '			<thr:in-reply-to ref="';
++the_guid(); ;
++echo '" href="';
++the_permalink_rss(); ;
++echo '" type="';
++bloginfo_rss( 'html_type' ); ;
++echo '" />
++			';
+ 		else : // This comment is in reply to another comment.
+ 			$parent_comment = get_comment( $comment->comment_parent );
+ 			/*
+@@ -125,9 +186,15 @@
+ 			 * but WP doesn't create them for comments (unlike posts).
+ 			 * Either way, it's more important that they both use the same system.
+ 			 */
+-			?>
+-			<thr:in-reply-to ref="<?php comment_guid( $parent_comment ); ?>" href="<?php echo get_comment_link( $parent_comment ); ?>" type="<?php bloginfo_rss( 'html_type' ); ?>" />
+-			<?php
++			;
++echo '			<thr:in-reply-to ref="';
++comment_guid( $parent_comment ); ;
++echo '" href="';
++echo get_comment_link( $parent_comment ); ;
++echo '" type="';
++bloginfo_rss( 'html_type' ); ;
++echo '" />
++			';
+ 		endif;
+ 
+ 		/**
+@@ -139,9 +206,10 @@
+ 		 * @param int $comment_post_id ID of the post the current comment is connected to.
+ 		 */
+ 		do_action( 'comment_atom_entry', $comment->comment_ID, $comment_post->ID );
+-		?>
+-	</entry>
+-	<?php
++		;
++echo '	</entry>
++	';
+ endwhile;
+-?>
+-</feed>
++;
++echo '</feed>
++';

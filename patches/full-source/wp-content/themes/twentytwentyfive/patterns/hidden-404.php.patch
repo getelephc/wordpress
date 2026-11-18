@@ -1,0 +1,49 @@
+--- a/wp-content/themes/twentytwentyfive/patterns/hidden-404.php
++++ b/wp-content/themes/twentytwentyfive/patterns/hidden-404.php
+@@ -9,8 +9,8 @@
+  * @since Twenty Twenty-Five 1.0
+  */
+ 
+-?>
+-<!-- wp:group {"style":{"spacing":{"padding":{"right":"0","left":"0"}}},"layout":{"type":"constrained"}} -->
++;
++echo '<!-- wp:group {"style":{"spacing":{"padding":{"right":"0","left":"0"}}},"layout":{"type":"constrained"}} -->
+ <div class="wp-block-group" style="padding-right:0;padding-left:0">
+ 	<!-- wp:columns {"align":"wide","style":{"spacing":{"blockGap":{"top":"var:preset|spacing|50","left":"var:preset|spacing|50"}}}} -->
+ 	<div class="wp-block-columns alignwide">
+@@ -18,7 +18,11 @@
+ 		<div class="wp-block-column">
+ 			<!-- wp:image {"scale":"cover","sizeSlug":"full","linkDestination":"none"} -->
+ 			<figure class="wp-block-image size-full">
+-				<img src="<?php echo esc_url( get_template_directory_uri() ); ?>/assets/images/404-image.webp" alt="<?php echo esc_attr_x( 'Small totara tree on ridge above Long Point', 'image description', 'twentytwentyfive' ); ?>" style="object-fit:cover"/>
++				<img src="';
++echo esc_url( get_template_directory_uri() ); ;
++echo '/assets/images/404-image.webp" alt="';
++echo esc_attr_x( 'Small totara tree on ridge above Long Point', 'image description', 'twentytwentyfive' ); ;
++echo '" style="object-fit:cover"/>
+ 			</figure>
+ 			<!-- /wp:image -->
+ 		</div>
+@@ -29,11 +33,14 @@
+ 			<div class="wp-block-group">
+ 				<!-- wp:heading {"level":1} -->
+ 				<h1 class="wp-block-heading">
+-					<?php echo esc_html_x( 'Page not found', '404 error message', 'twentytwentyfive' ); ?>
+-				</h1>
++					';
++echo esc_html_x( 'Page not found', '404 error message', 'twentytwentyfive' ); ;
++echo '				</h1>
+ 				<!-- /wp:heading -->
+ 				<!-- wp:paragraph -->
+-				<p><?php echo esc_html_x( 'The page you are looking for doesn\'t exist, or it has been moved. Please try searching using the form below.', '404 error message', 'twentytwentyfive' ); ?></p>
++				<p>';
++echo esc_html_x( 'The page you are looking for doesn\'t exist, or it has been moved. Please try searching using the form below.', '404 error message', 'twentytwentyfive' ); ;
++echo '</p>
+ 				<!-- /wp:paragraph -->
+ 				<!-- wp:pattern {"slug":"twentytwentyfive/hidden-search"} /-->
+ 			</div>
+@@ -44,3 +51,4 @@
+ 	<!-- /wp:columns -->
+ </div>
+ <!-- /wp:group -->
++';

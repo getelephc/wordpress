@@ -1,0 +1,11 @@
+--- a/wp-includes/feed.php
++++ b/wp-includes/feed.php
+@@ -843,7 +843,7 @@
+ 	 * @param SimplePie\SimplePie $feed SimplePie feed object (passed by reference).
+ 	 * @param string|string[]     $url  URL of feed or array of URLs of feeds to retrieve.
+ 	 */
+-	do_action_ref_array( 'wp_feed_options', array( &$feed, $url ) );
++	do_action_ref_array( 'wp_feed_options', array( $feed, $url ) );
+ 
+ 	if ( empty( $url ) ) {
+ 		/*

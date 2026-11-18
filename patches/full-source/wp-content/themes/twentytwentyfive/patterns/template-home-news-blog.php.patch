@@ -1,0 +1,29 @@
+--- a/wp-content/themes/twentytwentyfive/patterns/template-home-news-blog.php
++++ b/wp-content/themes/twentytwentyfive/patterns/template-home-news-blog.php
+@@ -11,8 +11,8 @@
+  * @since Twenty Twenty-Five 1.0
+  */
+ 
+-?>
+-<!-- wp:template-part {"slug":"header-large-title"} /-->
++;
++echo '<!-- wp:template-part {"slug":"header-large-title"} /-->
+ 
+ <!-- wp:group {"tagName":"main","style":{"spacing":{"blockGap":"0"}},"layout":{"type":"constrained"}} -->
+ <main class="wp-block-group">
+@@ -37,7 +37,9 @@
+ 						<!-- /wp:post-template -->
+ 						<!-- wp:query-no-results -->
+ 							<!-- wp:paragraph -->
+-							<p><?php echo esc_html_x( 'Sorry, but nothing was found. Please try a search with different keywords.', 'Message explaining that there are no results returned from a search.', 'twentytwentyfive' ); ?></p>
++							<p>';
++echo esc_html_x( 'Sorry, but nothing was found. Please try a search with different keywords.', 'Message explaining that there are no results returned from a search.', 'twentytwentyfive' ); ;
++echo '</p>
+ 							<!-- /wp:paragraph -->
+ 						<!-- /wp:query-no-results -->
+ 					</div>
+@@ -164,3 +166,4 @@
+ <!-- /wp:group -->
+ 
+ <!-- wp:template-part {"slug":"footer-newsletter"} /-->
++';

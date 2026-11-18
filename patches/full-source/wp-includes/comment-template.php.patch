@@ -1,0 +1,45 @@
+--- a/wp-includes/comment-template.php
++++ b/wp-includes/comment-template.php
+@@ -1622,9 +1622,12 @@
+ 	$include = apply_filters( 'comments_template', $theme_template );
+ 
+ 	if ( file_exists( $include ) ) {
+-		require $include;
++		if ( $include !== ABSPATH . WPINC . '/theme-compat/comments.php' ) {
++			throw new RuntimeException( 'Comments template is outside the finite source manifest: ' . $include );
++		}
++		require ABSPATH . WPINC . '/theme-compat/comments.php';
+ 	} elseif ( file_exists( trailingslashit( $wp_template_path ) . $file ) ) {
+-		require trailingslashit( $wp_template_path ) . $file;
++		throw new RuntimeException( 'Custom PHP comments templates are outside the finite fixture.' );
+ 	} else { // Backward compat code will be removed in a future release.
+ 		require ABSPATH . WPINC . '/theme-compat/comments.php';
+ 	}
+@@ -2697,9 +2700,11 @@
+ 	 * @since 3.0.0
+ 	 */
+ 	do_action( 'comment_form_before' );
+-	?>
+-	<div id="respond" class="<?php echo esc_attr( $args['class_container'] ); ?>">
+-		<?php
++	;
++echo '	<div id="respond" class="';
++echo esc_attr( $args['class_container'] ); ;
++echo '">
++		';
+ 		echo $args['title_reply_before'];
+ 
+ 		comment_form_title( $args['title_reply'], $args['title_reply_to'], true, $post_id );
+@@ -2900,9 +2905,9 @@
+ 			echo '</form>';
+ 
+ 		endif;
+-		?>
+-	</div><!-- #respond -->
+-	<?php
++		;
++echo '	</div><!-- #respond -->
++	';
+ 
+ 	/**
+ 	 * Fires after the comment form.

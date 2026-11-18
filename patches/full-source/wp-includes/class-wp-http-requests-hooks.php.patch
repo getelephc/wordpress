@@ -1,0 +1,11 @@
+--- a/wp-includes/class-wp-http-requests-hooks.php
++++ b/wp-includes/class-wp-http-requests-hooks.php
+@@ -55,7 +55,7 @@
+ 		switch ( $hook ) {
+ 			case 'curl.before_send':
+ 				/** This action is documented in wp-includes/class-wp-http-curl.php */
+-				do_action_ref_array( 'http_api_curl', array( &$parameters[0], $this->request, $this->url ) );
++				throw new \RuntimeException( 'Reference-array call is outside the finite bootstrap fixture.' );
+ 				break;
+ 		}
+ 

@@ -1,0 +1,55 @@
+--- a/wp-includes/class-wp-duotone.php
++++ b/wp-includes/class-wp-duotone.php
+@@ -695,8 +695,8 @@
+ 
+ 		ob_start();
+ 
+-		?>
+-
++		;
++echo '
+ 		<svg
+ 			xmlns="http://www.w3.org/2000/svg"
+ 			viewBox="0 0 0 0"
+@@ -707,7 +707,9 @@
+ 			style="visibility: hidden; position: absolute; left: -9999px; overflow: hidden;"
+ 		>
+ 			<defs>
+-				<filter id="<?php echo esc_attr( $filter_id ); ?>">
++				<filter id="';
++echo esc_attr( $filter_id ); ;
++echo '">
+ 					<feColorMatrix
+ 						color-interpolation-filters="sRGB"
+ 						type="matrix"
+@@ -719,17 +721,25 @@
+ 						"
+ 					/>
+ 					<feComponentTransfer color-interpolation-filters="sRGB" >
+-						<feFuncR type="table" tableValues="<?php echo esc_attr( implode( ' ', $duotone_values['r'] ) ); ?>" />
+-						<feFuncG type="table" tableValues="<?php echo esc_attr( implode( ' ', $duotone_values['g'] ) ); ?>" />
+-						<feFuncB type="table" tableValues="<?php echo esc_attr( implode( ' ', $duotone_values['b'] ) ); ?>" />
+-						<feFuncA type="table" tableValues="<?php echo esc_attr( implode( ' ', $duotone_values['a'] ) ); ?>" />
++						<feFuncR type="table" tableValues="';
++echo esc_attr( implode( ' ', $duotone_values['r'] ) ); ;
++echo '" />
++						<feFuncG type="table" tableValues="';
++echo esc_attr( implode( ' ', $duotone_values['g'] ) ); ;
++echo '" />
++						<feFuncB type="table" tableValues="';
++echo esc_attr( implode( ' ', $duotone_values['b'] ) ); ;
++echo '" />
++						<feFuncA type="table" tableValues="';
++echo esc_attr( implode( ' ', $duotone_values['a'] ) ); ;
++echo '" />
+ 					</feComponentTransfer>
+ 					<feComposite in2="SourceGraphic" operator="in" />
+ 				</filter>
+ 			</defs>
+ 		</svg>
+ 
+-		<?php
++		';
+ 
+ 		$svg = ob_get_clean();
+ 

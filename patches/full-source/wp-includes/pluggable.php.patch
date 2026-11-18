@@ -1,0 +1,20 @@
+--- a/wp-includes/pluggable.php
++++ b/wp-includes/pluggable.php
+@@ -282,7 +282,7 @@
+ 			require_once ABSPATH . WPINC . '/class-wp-phpmailer.php';
+ 			$phpmailer = new WP_PHPMailer( true );
+ 
+-			$phpmailer::$validator = static function ( $email ) {
++			WP_PHPMailer::$validator = static function ( $email ) {
+ 				return (bool) is_email( $email );
+ 			};
+ 		}
+@@ -619,7 +619,7 @@
+ 		 *
+ 		 * @param PHPMailer $phpmailer The PHPMailer instance (passed by reference).
+ 		 */
+-		do_action_ref_array( 'phpmailer_init', array( &$phpmailer ) );
++		do_action( 'phpmailer_init', $phpmailer );
+ 
+ 		$mail_data = compact( 'to', 'subject', 'message', 'headers', 'attachments', 'embeds' );
+ 

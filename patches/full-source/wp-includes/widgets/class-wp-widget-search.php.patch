@@ -1,0 +1,30 @@
+--- a/wp-includes/widgets/class-wp-widget-search.php
++++ b/wp-includes/widgets/class-wp-widget-search.php
+@@ -67,12 +67,22 @@
+ 	public function form( $instance ) {
+ 		$instance = wp_parse_args( (array) $instance, array( 'title' => '' ) );
+ 		$title    = $instance['title'];
+-		?>
+-		<p>
+-			<label for="<?php echo $this->get_field_id( 'title' ); ?>"><?php _e( 'Title:' ); ?></label>
+-			<input class="widefat" id="<?php echo $this->get_field_id( 'title' ); ?>" name="<?php echo $this->get_field_name( 'title' ); ?>" type="text" value="<?php echo esc_attr( $title ); ?>" />
++		;
++echo '		<p>
++			<label for="';
++echo $this->get_field_id( 'title' ); ;
++echo '">';
++_e( 'Title:' ); ;
++echo '</label>
++			<input class="widefat" id="';
++echo $this->get_field_id( 'title' ); ;
++echo '" name="';
++echo $this->get_field_name( 'title' ); ;
++echo '" type="text" value="';
++echo esc_attr( $title ); ;
++echo '" />
+ 		</p>
+-		<?php
++		';
+ 	}
+ 
+ 	/**

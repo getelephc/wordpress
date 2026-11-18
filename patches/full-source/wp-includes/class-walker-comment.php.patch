@@ -1,0 +1,240 @@
+--- a/wp-includes/class-walker-comment.php
++++ b/wp-includes/class-walker-comment.php
+@@ -254,12 +254,23 @@
+ 	 */
+ 	protected function ping( $comment, $depth, $args ) {
+ 		$tag = ( 'div' === $args['style'] ) ? 'div' : 'li';
+-		?>
+-		<<?php echo $tag; ?> id="comment-<?php comment_ID(); ?>" <?php comment_class( '', $comment ); ?>>
++		;
++echo '		<';
++echo $tag; ;
++echo ' id="comment-';
++comment_ID(); ;
++echo '" ';
++comment_class( '', $comment ); ;
++echo '>
+ 			<div class="comment-body">
+-				<?php _e( 'Pingback:' ); ?> <?php comment_author_link( $comment ); ?> <?php edit_comment_link( __( 'Edit' ), '<span class="edit-link">', '</span>' ); ?>
+-			</div>
+-		<?php
++				';
++_e( 'Pingback:' ); ;
++echo ' ';
++comment_author_link( $comment ); ;
++echo ' ';
++edit_comment_link( __( 'Edit' ), '<span class="edit-link">', '</span>' ); ;
++echo '			</div>
++		';
+ 	}
+ 
+ 	/**
+@@ -313,18 +324,28 @@
+ 		} else {
+ 			$moderation_note = __( 'Your comment is awaiting moderation. This is a preview; your comment will be visible after it has been approved.' );
+ 		}
+-		?>
+-		<<?php echo $tag; ?> <?php comment_class( $this->has_children ? 'parent' : '', $comment ); ?> id="comment-<?php comment_ID(); ?>">
+-		<?php if ( 'div' !== $args['style'] ) : ?>
+-		<div id="div-comment-<?php comment_ID(); ?>" class="comment-body">
+-		<?php endif; ?>
+-		<div class="comment-author vcard">
+-			<?php
++		;
++echo '		<';
++echo $tag; ;
++echo ' ';
++comment_class( $this->has_children ? 'parent' : '', $comment ); ;
++echo ' id="comment-';
++comment_ID(); ;
++echo '">
++		';
++if ( 'div' !== $args['style'] ) : ;
++echo '		<div id="div-comment-';
++comment_ID(); ;
++echo '" class="comment-body">
++		';
++endif; ;
++echo '		<div class="comment-author vcard">
++			';
+ 			if ( 0 !== $args['avatar_size'] ) {
+ 				echo get_avatar( $comment, $args['avatar_size'] );
+ 			}
+-			?>
+-			<?php
++			;
++echo '			';
+ 			$comment_author = get_comment_author_link( $comment );
+ 
+ 			if ( '0' === $comment->comment_approved && ! $show_pending_links ) {
+@@ -336,15 +357,19 @@
+ 				__( '%s <span class="says">says:</span>' ),
+ 				sprintf( '<cite class="fn">%s</cite>', $comment_author )
+ 			);
+-			?>
+-		</div>
+-		<?php if ( '0' === $comment->comment_approved ) : ?>
+-		<em class="comment-awaiting-moderation"><?php echo $moderation_note; ?></em>
++			;
++echo '		</div>
++		';
++if ( '0' === $comment->comment_approved ) : ;
++echo '		<em class="comment-awaiting-moderation">';
++echo $moderation_note; ;
++echo '</em>
+ 		<br />
+-		<?php endif; ?>
+-
++		';
++endif; ;
++echo '
+ 		<div class="comment-meta commentmetadata">
+-			<?php
++			';
+ 			printf(
+ 				'<a href="%s">%s</a>',
+ 				esc_url( get_comment_link( $comment, $args ) ),
+@@ -357,10 +382,10 @@
+ 			);
+ 
+ 			edit_comment_link( __( '(Edit)' ), ' &nbsp;&nbsp;', '' );
+-			?>
+-		</div>
+-
+-		<?php
++			;
++echo '		</div>
++
++		';
+ 		comment_text(
+ 			$comment,
+ 			array_merge(
+@@ -372,9 +397,9 @@
+ 				)
+ 			)
+ 		);
+-		?>
+-
+-		<?php
++		;
++echo '
++		';
+ 		comment_reply_link(
+ 			array_merge(
+ 				$args,
+@@ -387,12 +412,14 @@
+ 				)
+ 			)
+ 		);
+-		?>
+-
+-		<?php if ( 'div' !== $args['style'] ) : ?>
+-		</div>
+-		<?php endif; ?>
+-		<?php
++		;
++echo '
++		';
++if ( 'div' !== $args['style'] ) : ;
++echo '		</div>
++		';
++endif; ;
++echo '		';
+ 	}
+ 
+ 	/**
+@@ -417,17 +444,25 @@
+ 		} else {
+ 			$moderation_note = __( 'Your comment is awaiting moderation. This is a preview; your comment will be visible after it has been approved.' );
+ 		}
+-		?>
+-		<<?php echo $tag; ?> id="comment-<?php comment_ID(); ?>" <?php comment_class( $this->has_children ? 'parent' : '', $comment ); ?>>
+-			<article id="div-comment-<?php comment_ID(); ?>" class="comment-body">
++		;
++echo '		<';
++echo $tag; ;
++echo ' id="comment-';
++comment_ID(); ;
++echo '" ';
++comment_class( $this->has_children ? 'parent' : '', $comment ); ;
++echo '>
++			<article id="div-comment-';
++comment_ID(); ;
++echo '" class="comment-body">
+ 				<footer class="comment-meta">
+ 					<div class="comment-author vcard">
+-						<?php
++						';
+ 						if ( 0 !== $args['avatar_size'] ) {
+ 							echo get_avatar( $comment, $args['avatar_size'] );
+ 						}
+-						?>
+-						<?php
++						;
++echo '						';
+ 						$comment_author = get_comment_author_link( $comment );
+ 
+ 						if ( '0' === $comment->comment_approved && ! $show_pending_links ) {
+@@ -439,11 +474,11 @@
+ 							__( '%s <span class="says">says:</span>' ),
+ 							sprintf( '<b class="fn">%s</b>', $comment_author )
+ 						);
+-						?>
+-					</div><!-- .comment-author -->
++						;
++echo '					</div><!-- .comment-author -->
+ 
+ 					<div class="comment-metadata">
+-						<?php
++						';
+ 						printf(
+ 							'<a href="%s"><time datetime="%s">%s</time></a>',
+ 							esc_url( get_comment_link( $comment, $args ) ),
+@@ -457,19 +492,24 @@
+ 						);
+ 
+ 						edit_comment_link( __( 'Edit' ), ' <span class="edit-link">', '</span>' );
+-						?>
+-					</div><!-- .comment-metadata -->
+-
+-					<?php if ( '0' === $comment->comment_approved ) : ?>
+-					<em class="comment-awaiting-moderation"><?php echo $moderation_note; ?></em>
+-					<?php endif; ?>
+-				</footer><!-- .comment-meta -->
++						;
++echo '					</div><!-- .comment-metadata -->
++
++					';
++if ( '0' === $comment->comment_approved ) : ;
++echo '					<em class="comment-awaiting-moderation">';
++echo $moderation_note; ;
++echo '</em>
++					';
++endif; ;
++echo '				</footer><!-- .comment-meta -->
+ 
+ 				<div class="comment-content">
+-					<?php comment_text(); ?>
+-				</div><!-- .comment-content -->
+-
+-				<?php
++					';
++comment_text(); ;
++echo '				</div><!-- .comment-content -->
++
++				';
+ 				if ( '1' === $comment->comment_approved || $show_pending_links ) {
+ 					comment_reply_link(
+ 						array_merge(
+@@ -484,8 +524,8 @@
+ 						)
+ 					);
+ 				}
+-				?>
+-			</article><!-- .comment-body -->
+-		<?php
++				;
++echo '			</article><!-- .comment-body -->
++		';
+ 	}
+ }

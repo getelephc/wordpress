@@ -1,0 +1,119 @@
+--- a/wp-includes/media.php
++++ b/wp-includes/media.php
+@@ -3091,19 +3091,19 @@
+  * @since 3.9.0
+  */
+ function wp_underscore_playlist_templates() {
+-	?>
+-<script type="text/html" id="tmpl-wp-playlist-current-item">
++	;
++echo '<script type="text/html" id="tmpl-wp-playlist-current-item">
+ 	<# if ( data.thumb && data.thumb.src ) { #>
+ 		<img src="{{ data.thumb.src }}" alt="" />
+ 	<# } #>
+ 	<div class="wp-playlist-caption">
+ 		<span class="wp-playlist-item-meta wp-playlist-item-title">
+ 			<# if ( data.meta.album || data.meta.artist ) { #>
+-				<?php
++				';
+ 				/* translators: %s: Playlist item title. */
+ 				printf( _x( '&#8220;%s&#8221;', 'playlist item title' ), '{{ data.title }}' );
+-				?>
+-			<# } else { #>
++				;
++echo '			<# } else { #>
+ 				{{ data.title }}
+ 			<# } #>
+ 		</span>
+@@ -3114,17 +3114,17 @@
+ <script type="text/html" id="tmpl-wp-playlist-item">
+ 	<div class="wp-playlist-item">
+ 		<a class="wp-playlist-caption" href="{{ data.src }}">
+-			{{ data.index ? ( data.index + '. ' ) : '' }}
++			{{ data.index ? ( data.index + \'. \' ) : \'\' }}
+ 			<# if ( data.caption ) { #>
+ 				{{ data.caption }}
+ 			<# } else { #>
+ 				<# if ( data.artists && data.meta.artist ) { #>
+ 					<span class="wp-playlist-item-title">
+-						<?php
++						';
+ 						/* translators: %s: Playlist item title. */
+ 						printf( _x( '&#8220;%s&#8221;', 'playlist item title' ), '{{{ data.title }}}' );
+-						?>
+-					</span>
++						;
++echo '					</span>
+ 					<span class="wp-playlist-item-artist"> &mdash; {{ data.meta.artist }}</span>
+ 				<# } else { #>
+ 					<span class="wp-playlist-item-title">{{{ data.title }}}</span>
+@@ -3136,7 +3136,7 @@
+ 		<# } #>
+ 	</div>
+ </script>
+-	<?php
++	';
+ }
+ 
+ /**
+@@ -3404,32 +3404,46 @@
+ 		do_action( 'wp_playlist_scripts', $atts['type'], $atts['style'] );
+ 		$is_loaded = true;
+ 	}
+-	?>
+-<div class="wp-playlist wp-<?php echo $safe_type; ?>-playlist wp-playlist-<?php echo $safe_style; ?>">
+-	<?php if ( 'audio' === $atts['type'] ) : ?>
+-		<div class="wp-playlist-current-item"></div>
+-	<?php endif; ?>
+-	<<?php echo $safe_type; ?> controls="controls" preload="none" width="<?php echo (int) $theme_width; ?>"
+-		<?php
++	;
++echo '<div class="wp-playlist wp-';
++echo $safe_type; ;
++echo '-playlist wp-playlist-';
++echo $safe_style; ;
++echo '">
++	';
++if ( 'audio' === $atts['type'] ) : ;
++echo '		<div class="wp-playlist-current-item"></div>
++	';
++endif; ;
++echo '	<';
++echo $safe_type; ;
++echo ' controls="controls" preload="none" width="';
++echo (int) $theme_width; ;
++echo '"
++		';
+ 		if ( 'video' === $safe_type ) {
+ 			echo ' height="', (int) $theme_height, '"';
+ 		}
+-		?>
+-	></<?php echo $safe_type; ?>>
++		;
++echo '	></';
++echo $safe_type; ;
++echo '>
+ 	<div class="wp-playlist-next"></div>
+ 	<div class="wp-playlist-prev"></div>
+ 	<noscript>
+ 	<ol>
+-		<?php
++		';
+ 		foreach ( $attachments as $att_id => $attachment ) {
+ 			printf( '<li>%s</li>', wp_get_attachment_link( $att_id ) );
+ 		}
+-		?>
+-	</ol>
++		;
++echo '	</ol>
+ 	</noscript>
+-	<script type="application/json" class="wp-playlist-script"><?php echo wp_json_encode( $data, JSON_HEX_TAG | JSON_UNESCAPED_SLASHES ); ?></script>
++	<script type="application/json" class="wp-playlist-script">';
++echo wp_json_encode( $data, JSON_HEX_TAG | JSON_UNESCAPED_SLASHES ); ;
++echo '</script>
+ </div>
+-	<?php
++	';
+ 	return ob_get_clean();
+ }
+ add_shortcode( 'playlist', 'wp_playlist_shortcode' );

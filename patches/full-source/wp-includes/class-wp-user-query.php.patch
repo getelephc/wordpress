@@ -1,0 +1,29 @@
+--- a/wp-includes/class-wp-user-query.php
++++ b/wp-includes/class-wp-user-query.php
+@@ -280,7 +280,7 @@
+ 		 *
+ 		 * @param WP_User_Query $query Current instance of WP_User_Query (passed by reference).
+ 		 */
+-		do_action_ref_array( 'pre_get_users', array( &$this ) );
++		do_action_ref_array( 'pre_get_users', array( $this ) );
+ 
+ 		// Ensure that query vars are filled after 'pre_get_users'.
+ 		$qv =& $this->query_vars;
+@@ -769,7 +769,7 @@
+ 		 *
+ 		 * @param WP_User_Query $query Current instance of WP_User_Query (passed by reference).
+ 		 */
+-		do_action_ref_array( 'pre_user_query', array( &$this ) );
++		do_action_ref_array( 'pre_user_query', array( $this ) );
+ 	}
+ 
+ 	/**
+@@ -817,7 +817,7 @@
+ 		 *                               or null to allow WP to run its normal queries.
+ 		 * @param WP_User_Query $query   The WP_User_Query instance (passed by reference).
+ 		 */
+-		$this->results = apply_filters_ref_array( 'users_pre_query', array( null, &$this ) );
++		$this->results = apply_filters_ref_array( 'users_pre_query', array( null, $this ) );
+ 
+ 		if ( null === $this->results ) {
+ 			// Beginning of the string is on a new line to prevent leading whitespace. See https://core.trac.wordpress.org/ticket/56841.

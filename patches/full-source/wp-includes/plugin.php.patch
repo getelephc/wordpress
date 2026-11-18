@@ -1,0 +1,11 @@
+--- a/wp-includes/plugin.php
++++ b/wp-includes/plugin.php
+@@ -814,7 +814,7 @@
+ 	global $wp_plugin_paths;
+ 
+ 	// Normalize, but store as static to avoid recalculation of a constant value.
+-	static $wp_plugin_path = null, $wpmu_plugin_path = null;
++	static $wp_plugin_path = null; static  $wpmu_plugin_path = null;
+ 
+ 	if ( ! isset( $wp_plugin_path ) ) {
+ 		$wp_plugin_path   = wp_normalize_path( WP_PLUGIN_DIR );

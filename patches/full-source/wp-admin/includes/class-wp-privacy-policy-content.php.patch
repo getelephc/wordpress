@@ -1,0 +1,82 @@
+--- a/wp-admin/includes/class-wp-privacy-policy-content.php
++++ b/wp-admin/includes/class-wp-privacy-policy-content.php
+@@ -415,39 +415,57 @@
+ 			}
+ 
+ 			$plugin_name = esc_html( $section['plugin_name'] );
+-			?>
+-			<h4 class="privacy-settings-accordion-heading">
+-				<button aria-expanded="false" class="privacy-settings-accordion-trigger" aria-controls="privacy-settings-accordion-block-<?php echo $i; ?>" type="button">
+-				<span class="title"><?php echo $plugin_name; ?></span>
+-				<?php if ( ! empty( $section['removed'] ) || ! empty( $section['updated'] ) ) : ?>
+-				<span class="badge <?php echo $badge_class; ?>"> <?php echo $badge_title; ?></span>
+-				<?php endif; ?>
+-				<span class="icon"></span>
++			;
++echo '			<h4 class="privacy-settings-accordion-heading">
++				<button aria-expanded="false" class="privacy-settings-accordion-trigger" aria-controls="privacy-settings-accordion-block-';
++echo $i; ;
++echo '" type="button">
++				<span class="title">';
++echo $plugin_name; ;
++echo '</span>
++				';
++if ( ! empty( $section['removed'] ) || ! empty( $section['updated'] ) ) : ;
++echo '				<span class="badge ';
++echo $badge_class; ;
++echo '"> ';
++echo $badge_title; ;
++echo '</span>
++				';
++endif; ;
++echo '				<span class="icon"></span>
+ 			</button>
+ 			</h4>
+-			<div id="privacy-settings-accordion-block-<?php echo $i; ?>" class="privacy-settings-accordion-panel privacy-text-box-body" hidden="hidden">
++			<div id="privacy-settings-accordion-block-';
++echo $i; ;
++echo '" class="privacy-settings-accordion-panel privacy-text-box-body" hidden="hidden">
+ 				<div class="privacy-text-copy-content">
+-					<?php
++					';
+ 					echo $removed;
+ 					echo $section['policy_text'];
+-					?>
+-				</div>
+-				<?php if ( empty( $section['removed'] ) ) : ?>
+-				<div class="privacy-settings-accordion-actions">
+-					<span class="success" aria-hidden="true"><?php _e( 'Copied!' ); ?></span>
++					;
++echo '				</div>
++				';
++if ( empty( $section['removed'] ) ) : ;
++echo '				<div class="privacy-settings-accordion-actions">
++					<span class="success" aria-hidden="true">';
++_e( 'Copied!' ); ;
++echo '</span>
+ 					<button type="button" class="privacy-text-copy button">
+-						<span aria-hidden="true"><?php _e( 'Copy suggested policy text to clipboard' ); ?></span>
++						<span aria-hidden="true">';
++_e( 'Copy suggested policy text to clipboard' ); ;
++echo '</span>
+ 						<span class="screen-reader-text">
+-							<?php
++							';
+ 							/* translators: Hidden accessibility text. %s: Plugin name. */
+ 							printf( __( 'Copy suggested policy text from %s.' ), $plugin_name );
+-							?>
+-						</span>
++							;
++echo '						</span>
+ 					</button>
+ 				</div>
+-				<?php endif; ?>
+-			</div>
+-			<?php
++				';
++endif; ;
++echo '			</div>
++			';
+ 		}
+ 	}
+ 

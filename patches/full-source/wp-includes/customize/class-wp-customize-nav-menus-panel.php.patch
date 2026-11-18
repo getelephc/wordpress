@@ -1,0 +1,77 @@
+--- a/wp-includes/customize/class-wp-customize-nav-menus-panel.php
++++ b/wp-includes/customize/class-wp-customize-nav-menus-panel.php
+@@ -66,51 +66,54 @@
+ 	 * @see WP_Customize_Panel::print_template()
+ 	 */
+ 	protected function content_template() {
+-		?>
+-		<li class="panel-meta customize-info accordion-section <# if ( ! data.description ) { #> cannot-expand<# } #>">
++		;
++echo '		<li class="panel-meta customize-info accordion-section <# if ( ! data.description ) { #> cannot-expand<# } #>">
+ 			<button type="button" class="customize-panel-back" tabindex="-1">
+ 				<span class="screen-reader-text">
+-					<?php
++					';
+ 					/* translators: Hidden accessibility text. */
+ 					_e( 'Back' );
+-					?>
+-				</span>
++					;
++echo '				</span>
+ 			</button>
+ 			<div class="accordion-section-title">
+ 				<span class="preview-notice">
+-					<?php
++					';
+ 					/* translators: %s: The site/panel title in the Customizer. */
+ 					printf( __( 'You are customizing %s' ), '<strong class="panel-title">{{ data.title }}</strong>' );
+-					?>
+-				</span>
++					;
++echo '				</span>
+ 				<button type="button" class="customize-help-toggle dashicons dashicons-editor-help" aria-expanded="false">
+ 					<span class="screen-reader-text">
+-						<?php
++						';
+ 						/* translators: Hidden accessibility text. */
+ 						_e( 'Help' );
+-						?>
+-					</span>
++						;
++echo '					</span>
+ 				</button>
+ 				<button type="button" class="customize-screen-options-toggle" aria-expanded="false">
+ 					<span class="screen-reader-text">
+-						<?php
++						';
+ 						/* translators: Hidden accessibility text. */
+ 						_e( 'Menu Options' );
+-						?>
+-					</span>
++						;
++echo '					</span>
+ 				</button>
+ 			</div>
+ 			<# if ( data.description ) { #>
+ 			<div class="description customize-panel-description">{{{ data.description }}}</div>
+ 			<# } #>
+ 			<div id="screen-options-wrap">
+-				<?php $this->render_screen_options(); ?>
+-			</div>
++				';
++$this->render_screen_options(); ;
++echo '			</div>
+ 		</li>
+-		<?php
++		';
+ 		// NOTE: The following is a workaround for an inability to treat (and thus label) a list of sections as a whole.
+-		?>
+-		<li class="customize-control-title customize-section-title-nav_menus-heading"><?php _e( 'Menus' ); ?></li>
+-		<?php
++		;
++echo '		<li class="customize-control-title customize-section-title-nav_menus-heading">';
++_e( 'Menus' ); ;
++echo '</li>
++		';
+ 	}
+ }

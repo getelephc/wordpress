@@ -1,0 +1,11 @@
+--- a/wp-includes/class-wp-fatal-error-handler.php
++++ b/wp-includes/class-wp-fatal-error-handler.php
+@@ -146,7 +146,7 @@
+ 			// Load custom PHP error template, if present.
+ 			$php_error_pluggable = WP_CONTENT_DIR . '/php-error.php';
+ 			if ( is_readable( $php_error_pluggable ) ) {
+-				require_once $php_error_pluggable;
++				throw new RuntimeException( 'Custom fatal-error templates are outside the finite Elephc manifest.' );
+ 
+ 				return;
+ 			}

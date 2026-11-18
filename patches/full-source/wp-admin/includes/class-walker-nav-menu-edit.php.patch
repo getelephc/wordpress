@@ -1,0 +1,412 @@
+--- a/wp-admin/includes/class-walker-nav-menu-edit.php
++++ b/wp-admin/includes/class-walker-nav-menu-edit.php
+@@ -120,19 +120,37 @@
+ 			$submenu_text = 'style="display: none;"';
+ 		}
+ 
+-		?>
+-		<li id="menu-item-<?php echo $item_id; ?>" class="<?php echo implode( ' ', $classes ); ?>">
++		;
++echo '		<li id="menu-item-';
++echo $item_id; ;
++echo '" class="';
++echo implode( ' ', $classes ); ;
++echo '">
+ 			<div class="menu-item-bar">
+ 				<div class="menu-item-handle">
+-					<label class="item-title" for="menu-item-checkbox-<?php echo $item_id; ?>">
+-						<input id="menu-item-checkbox-<?php echo $item_id; ?>" type="checkbox" class="menu-item-checkbox" data-menu-item-id="<?php echo $item_id; ?>" disabled="disabled" />
+-						<span class="menu-item-title"><?php echo esc_html( $title ); ?></span>
+-						<span class="is-submenu" <?php echo $submenu_text; ?>><?php _e( 'sub item' ); ?></span>
++					<label class="item-title" for="menu-item-checkbox-';
++echo $item_id; ;
++echo '">
++						<input id="menu-item-checkbox-';
++echo $item_id; ;
++echo '" type="checkbox" class="menu-item-checkbox" data-menu-item-id="';
++echo $item_id; ;
++echo '" disabled="disabled" />
++						<span class="menu-item-title">';
++echo esc_html( $title ); ;
++echo '</span>
++						<span class="is-submenu" ';
++echo $submenu_text; ;
++echo '>';
++_e( 'sub item' ); ;
++echo '</span>
+ 					</label>
+ 					<span class="item-controls">
+-						<span class="item-type"><?php echo esc_html( $menu_item->type_label ); ?></span>
++						<span class="item-type">';
++echo esc_html( $menu_item->type_label ); ;
++echo '</span>
+ 						<span class="item-order hide-if-js">
+-							<?php
++							';
+ 							printf(
+ 								'<a href="%s" class="item-move-up" aria-label="%s">&#8593;</a>',
+ 								wp_nonce_url(
+@@ -147,9 +165,9 @@
+ 								),
+ 								esc_attr__( 'Move up' )
+ 							);
+-							?>
+-							|
+-							<?php
++							;
++echo '							|
++							';
+ 							printf(
+ 								'<a href="%s" class="item-move-down" aria-label="%s">&#8595;</a>',
+ 								wp_nonce_url(
+@@ -164,9 +182,9 @@
+ 								),
+ 								esc_attr__( 'Move down' )
+ 							);
+-							?>
+-						</span>
+-						<?php
++							;
++echo '						</span>
++						';
+ 						if ( isset( $_GET['edit-menu-item'] ) && $item_id === $_GET['edit-menu-item'] ) {
+ 							$edit_url = admin_url( 'nav-menus.php' );
+ 						} else {
+@@ -186,86 +204,175 @@
+ 							/* translators: Hidden accessibility text. */
+ 							__( 'Edit' )
+ 						);
+-						?>
+-					</span>
++						;
++echo '					</span>
+ 				</div>
+ 			</div>
+ 
+-			<div class="menu-item-settings wp-clearfix" id="menu-item-settings-<?php echo $item_id; ?>">
+-				<?php if ( 'custom' === $menu_item->type ) : ?>
+-					<p class="field-url description description-wide">
+-						<label for="edit-menu-item-url-<?php echo $item_id; ?>">
+-							<?php _e( 'URL' ); ?><br />
+-							<input type="text" id="edit-menu-item-url-<?php echo $item_id; ?>" class="widefat code edit-menu-item-url" name="menu-item-url[<?php echo $item_id; ?>]" value="<?php echo esc_url( $menu_item->url ); ?>" />
++			<div class="menu-item-settings wp-clearfix" id="menu-item-settings-';
++echo $item_id; ;
++echo '">
++				';
++if ( 'custom' === $menu_item->type ) : ;
++echo '					<p class="field-url description description-wide">
++						<label for="edit-menu-item-url-';
++echo $item_id; ;
++echo '">
++							';
++_e( 'URL' ); ;
++echo '<br />
++							<input type="text" id="edit-menu-item-url-';
++echo $item_id; ;
++echo '" class="widefat code edit-menu-item-url" name="menu-item-url[';
++echo $item_id; ;
++echo ']" value="';
++echo esc_url( $menu_item->url ); ;
++echo '" />
+ 						</label>
+ 					</p>
+-				<?php endif; ?>
+-				<p class="description description-wide">
+-					<label for="edit-menu-item-title-<?php echo $item_id; ?>">
+-						<?php _e( 'Navigation Label' ); ?><br />
+-						<input type="text" id="edit-menu-item-title-<?php echo $item_id; ?>" class="widefat edit-menu-item-title" name="menu-item-title[<?php echo $item_id; ?>]" value="<?php echo htmlspecialchars( $menu_item->title, ENT_QUOTES ); ?>" />
++				';
++endif; ;
++echo '				<p class="description description-wide">
++					<label for="edit-menu-item-title-';
++echo $item_id; ;
++echo '">
++						';
++_e( 'Navigation Label' ); ;
++echo '<br />
++						<input type="text" id="edit-menu-item-title-';
++echo $item_id; ;
++echo '" class="widefat edit-menu-item-title" name="menu-item-title[';
++echo $item_id; ;
++echo ']" value="';
++echo htmlspecialchars( $menu_item->title, ENT_QUOTES ); ;
++echo '" />
+ 					</label>
+ 				</p>
+ 				<p class="field-title-attribute field-attr-title description description-wide">
+-					<label for="edit-menu-item-attr-title-<?php echo $item_id; ?>">
+-						<?php _e( 'Title Attribute' ); ?><br />
+-						<input type="text" id="edit-menu-item-attr-title-<?php echo $item_id; ?>" class="widefat edit-menu-item-attr-title" name="menu-item-attr-title[<?php echo $item_id; ?>]" value="<?php echo htmlspecialchars( $menu_item->post_excerpt, ENT_QUOTES ); ?>" />
++					<label for="edit-menu-item-attr-title-';
++echo $item_id; ;
++echo '">
++						';
++_e( 'Title Attribute' ); ;
++echo '<br />
++						<input type="text" id="edit-menu-item-attr-title-';
++echo $item_id; ;
++echo '" class="widefat edit-menu-item-attr-title" name="menu-item-attr-title[';
++echo $item_id; ;
++echo ']" value="';
++echo htmlspecialchars( $menu_item->post_excerpt, ENT_QUOTES ); ;
++echo '" />
+ 					</label>
+ 				</p>
+ 				<p class="field-link-target description">
+-					<label for="edit-menu-item-target-<?php echo $item_id; ?>">
+-						<input type="checkbox" id="edit-menu-item-target-<?php echo $item_id; ?>" value="_blank" name="menu-item-target[<?php echo $item_id; ?>]"<?php checked( $menu_item->target, '_blank' ); ?> />
+-						<?php _e( 'Open link in a new tab' ); ?>
+-					</label>
++					<label for="edit-menu-item-target-';
++echo $item_id; ;
++echo '">
++						<input type="checkbox" id="edit-menu-item-target-';
++echo $item_id; ;
++echo '" value="_blank" name="menu-item-target[';
++echo $item_id; ;
++echo ']"';
++checked( $menu_item->target, '_blank' ); ;
++echo ' />
++						';
++_e( 'Open link in a new tab' ); ;
++echo '					</label>
+ 				</p>
+ 				<div class="description-group">
+ 					<p class="field-css-classes description description-thin">
+-						<label for="edit-menu-item-classes-<?php echo $item_id; ?>">
+-							<?php _e( 'CSS Classes (optional)' ); ?><br />
+-							<input type="text" id="edit-menu-item-classes-<?php echo $item_id; ?>" class="widefat code edit-menu-item-classes" name="menu-item-classes[<?php echo $item_id; ?>]" value="<?php echo htmlspecialchars( implode( ' ', $menu_item->classes ), ENT_QUOTES ); ?>" />
++						<label for="edit-menu-item-classes-';
++echo $item_id; ;
++echo '">
++							';
++_e( 'CSS Classes (optional)' ); ;
++echo '<br />
++							<input type="text" id="edit-menu-item-classes-';
++echo $item_id; ;
++echo '" class="widefat code edit-menu-item-classes" name="menu-item-classes[';
++echo $item_id; ;
++echo ']" value="';
++echo htmlspecialchars( implode( ' ', $menu_item->classes ), ENT_QUOTES ); ;
++echo '" />
+ 						</label>
+ 					</p>
+ 					<p class="field-xfn description description-thin">
+-						<label for="edit-menu-item-xfn-<?php echo $item_id; ?>">
+-							<?php _e( 'Link Relationship (XFN)' ); ?><br />
+-							<input type="text" id="edit-menu-item-xfn-<?php echo $item_id; ?>" class="widefat code edit-menu-item-xfn" name="menu-item-xfn[<?php echo $item_id; ?>]" value="<?php echo htmlspecialchars( $menu_item->xfn, ENT_QUOTES ); ?>" />
++						<label for="edit-menu-item-xfn-';
++echo $item_id; ;
++echo '">
++							';
++_e( 'Link Relationship (XFN)' ); ;
++echo '<br />
++							<input type="text" id="edit-menu-item-xfn-';
++echo $item_id; ;
++echo '" class="widefat code edit-menu-item-xfn" name="menu-item-xfn[';
++echo $item_id; ;
++echo ']" value="';
++echo htmlspecialchars( $menu_item->xfn, ENT_QUOTES ); ;
++echo '" />
+ 						</label>
+ 					</p>
+ 				</div>
+ 				<p class="field-description description description-wide">
+-					<label for="edit-menu-item-description-<?php echo $item_id; ?>">
+-						<?php _e( 'Description' ); ?><br />
+-						<textarea id="edit-menu-item-description-<?php echo $item_id; ?>" class="widefat edit-menu-item-description" rows="3" cols="20" name="menu-item-description[<?php echo $item_id; ?>]"><?php echo esc_textarea( $menu_item->description ); // textarea_escaped ?></textarea>
+-						<span class="description"><?php _e( 'The description will be displayed in the menu if the active theme supports it.' ); ?></span>
++					<label for="edit-menu-item-description-';
++echo $item_id; ;
++echo '">
++						';
++_e( 'Description' ); ;
++echo '<br />
++						<textarea id="edit-menu-item-description-';
++echo $item_id; ;
++echo '" class="widefat edit-menu-item-description" rows="3" cols="20" name="menu-item-description[';
++echo $item_id; ;
++echo ']">';
++echo esc_textarea( $menu_item->description ); // textarea_escaped ;
++echo '</textarea>
++						<span class="description">';
++_e( 'The description will be displayed in the menu if the active theme supports it.' ); ;
++echo '</span>
+ 					</label>
+ 				</p>
+ 
+-				<?php
++				';
+ 				/**
+ 				 * Update parent and order of menu item using select inputs.
+ 				 *
+ 				 * @since 6.7.0
+ 				 */
+-				?>
+-	
++				;
++echo '	
+ 				<div class="field-move-combo description-group">
+ 					<p class="description description-wide">
+-						<label for="edit-menu-item-parent-<?php echo $item_id; ?>">
+-							<?php _e( 'Menu Parent' ); ?>
+-						</label>
+-						<select class="edit-menu-item-parent widefat" id="edit-menu-item-parent-<?php echo $item_id; ?>" name="menu-item-parent[<?php echo $item_id; ?>]">
++						<label for="edit-menu-item-parent-';
++echo $item_id; ;
++echo '">
++							';
++_e( 'Menu Parent' ); ;
++echo '						</label>
++						<select class="edit-menu-item-parent widefat" id="edit-menu-item-parent-';
++echo $item_id; ;
++echo '" name="menu-item-parent[';
++echo $item_id; ;
++echo ']">
+ 						</select>
+ 					</p>
+ 					<p class="description description-wide">
+-						<label for="edit-menu-item-order-<?php echo $item_id; ?>">
+-							<?php _e( 'Menu Order' ); ?>
+-						</label>
+-						<select class="edit-menu-item-order widefat" id="edit-menu-item-order-<?php echo $item_id; ?>" name="menu-item-order[<?php echo $item_id; ?>]">
++						<label for="edit-menu-item-order-';
++echo $item_id; ;
++echo '">
++							';
++_e( 'Menu Order' ); ;
++echo '						</label>
++						<select class="edit-menu-item-order widefat" id="edit-menu-item-order-';
++echo $item_id; ;
++echo '" name="menu-item-order[';
++echo $item_id; ;
++echo ']">
+ 						</select>
+ 					</p>
+ 				</div>
+ 
+-				<?php
++				';
+ 				/**
+ 				 * Fires just before the move buttons of a nav menu item in the menu editor.
+ 				 *
+@@ -278,28 +385,38 @@
+ 				 * @param int           $current_object_id Nav menu ID.
+ 				 */
+ 				do_action( 'wp_nav_menu_item_custom_fields', $item_id, $menu_item, $depth, $args, $current_object_id );
+-				?>
+-
++				;
++echo '
+ 				<fieldset class="field-move hide-if-no-js description description-wide">
+-					<span class="field-move-visual-label" aria-hidden="true"><?php _e( 'Move' ); ?></span>
+-					<button type="button" class="button-link menus-move menus-move-up" data-dir="up"><?php _e( 'Up one' ); ?></button>
+-					<button type="button" class="button-link menus-move menus-move-down" data-dir="down"><?php _e( 'Down one' ); ?></button>
++					<span class="field-move-visual-label" aria-hidden="true">';
++_e( 'Move' ); ;
++echo '</span>
++					<button type="button" class="button-link menus-move menus-move-up" data-dir="up">';
++_e( 'Up one' ); ;
++echo '</button>
++					<button type="button" class="button-link menus-move menus-move-down" data-dir="down">';
++_e( 'Down one' ); ;
++echo '</button>
+ 					<button type="button" class="button-link menus-move menus-move-left" data-dir="left"></button>
+ 					<button type="button" class="button-link menus-move menus-move-right" data-dir="right"></button>
+-					<button type="button" class="button-link menus-move menus-move-top" data-dir="top"><?php _e( 'To the top' ); ?></button>
++					<button type="button" class="button-link menus-move menus-move-top" data-dir="top">';
++_e( 'To the top' ); ;
++echo '</button>
+ 				</fieldset>
+ 
+ 				<div class="menu-item-actions description-wide submitbox">
+-					<?php if ( 'custom' !== $menu_item->type && false !== $original_title ) : ?>
+-						<p class="link-to-original">
+-							<?php
++					';
++if ( 'custom' !== $menu_item->type && false !== $original_title ) : ;
++echo '						<p class="link-to-original">
++							';
+ 							/* translators: %s: Link to menu item's original object. */
+ 							printf( __( 'Original: %s' ), '<a href="' . esc_url( $menu_item->url ) . '">' . esc_html( $original_title ) . '</a>' );
+-							?>
+-						</p>
+-					<?php endif; ?>
+-
+-					<?php
++							;
++echo '						</p>
++					';
++endif; ;
++echo '
++					';
+ 					printf(
+ 						'<a class="item-delete submitdelete deletion" id="delete-%s" href="%s">%s</a>',
+ 						$item_id,
+@@ -315,9 +432,9 @@
+ 						),
+ 						__( 'Remove' )
+ 					);
+-					?>
+-					<span class="meta-sep hide-if-no-js"> | </span>
+-					<?php
++					;
++echo '					<span class="meta-sep hide-if-no-js"> | </span>
++					';
+ 					printf(
+ 						'<a class="item-cancel submitcancel hide-if-no-js" id="cancel-%s" href="%s#menu-item-settings-%s">%s</a>',
+ 						$item_id,
+@@ -333,18 +450,42 @@
+ 						$item_id,
+ 						__( 'Cancel' )
+ 					);
+-					?>
+-				</div>
+-
+-				<input class="menu-item-data-db-id" type="hidden" name="menu-item-db-id[<?php echo $item_id; ?>]" value="<?php echo $item_id; ?>" />
+-				<input class="menu-item-data-object-id" type="hidden" name="menu-item-object-id[<?php echo $item_id; ?>]" value="<?php echo esc_attr( $menu_item->object_id ); ?>" />
+-				<input class="menu-item-data-object" type="hidden" name="menu-item-object[<?php echo $item_id; ?>]" value="<?php echo esc_attr( $menu_item->object ); ?>" />
+-				<input class="menu-item-data-parent-id" type="hidden" name="menu-item-parent-id[<?php echo $item_id; ?>]" value="<?php echo esc_attr( $menu_item->menu_item_parent ); ?>" />
+-				<input class="menu-item-data-position" type="hidden" name="menu-item-position[<?php echo $item_id; ?>]" value="<?php echo esc_attr( $menu_item->menu_order ); ?>" />
+-				<input class="menu-item-data-type" type="hidden" name="menu-item-type[<?php echo $item_id; ?>]" value="<?php echo esc_attr( $menu_item->type ); ?>" />
++					;
++echo '				</div>
++
++				<input class="menu-item-data-db-id" type="hidden" name="menu-item-db-id[';
++echo $item_id; ;
++echo ']" value="';
++echo $item_id; ;
++echo '" />
++				<input class="menu-item-data-object-id" type="hidden" name="menu-item-object-id[';
++echo $item_id; ;
++echo ']" value="';
++echo esc_attr( $menu_item->object_id ); ;
++echo '" />
++				<input class="menu-item-data-object" type="hidden" name="menu-item-object[';
++echo $item_id; ;
++echo ']" value="';
++echo esc_attr( $menu_item->object ); ;
++echo '" />
++				<input class="menu-item-data-parent-id" type="hidden" name="menu-item-parent-id[';
++echo $item_id; ;
++echo ']" value="';
++echo esc_attr( $menu_item->menu_item_parent ); ;
++echo '" />
++				<input class="menu-item-data-position" type="hidden" name="menu-item-position[';
++echo $item_id; ;
++echo ']" value="';
++echo esc_attr( $menu_item->menu_order ); ;
++echo '" />
++				<input class="menu-item-data-type" type="hidden" name="menu-item-type[';
++echo $item_id; ;
++echo ']" value="';
++echo esc_attr( $menu_item->type ); ;
++echo '" />
+ 			</div><!-- .menu-item-settings-->
+ 			<ul class="menu-item-transport"></ul>
+-		<?php
++		';
+ 		$output .= ob_get_clean();
+ 	}
+ }
+\ No newline at end of file

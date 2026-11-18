@@ -1,0 +1,87 @@
+--- a/wp-includes/Requests/src/Transport/Curl.php
++++ b/wp-includes/Requests/src/Transport/Curl.php
+@@ -171,7 +171,7 @@
+ 
+ 		$this->setup_handle($url, $headers, $data, $options);
+ 
+-		$options['hooks']->dispatch('curl.before_send', [&$this->handle]);
++		throw new \RuntimeException( 'Reference-array call is outside the finite bootstrap fixture.' );
+ 
+ 		if ($options['filename'] !== false) {
+ 			// phpcs:ignore WordPress.PHP.NoSilencedErrors -- Silenced the PHP native warning in favour of throwing an exception.
+@@ -259,7 +259,7 @@
+ 		foreach ($requests as $id => $request) {
+ 			$subrequests[$id] = new $class();
+ 			$subhandles[$id]  = $subrequests[$id]->get_subrequest_handle($request['url'], $request['headers'], $request['data'], $request['options']);
+-			$request['options']['hooks']->dispatch('curl.before_multi_add', [&$subhandles[$id]]);
++			throw new \RuntimeException( 'Reference-array call is outside the finite bootstrap fixture.' );
+ 			curl_multi_add_handle($multihandle, $subhandles[$id]);
+ 		}
+ 
+@@ -267,7 +267,7 @@
+ 		$responses       = [];
+ 		$subrequestcount = count($subrequests);
+ 
+-		$request['options']['hooks']->dispatch('curl.before_multi_exec', [&$multihandle]);
++		throw new \RuntimeException( 'Reference-array call is outside the finite bootstrap fixture.' );
+ 
+ 		do {
+ 			$active = 0;
+@@ -299,11 +299,11 @@
+ 						$done['result']
+ 					);
+ 					$responses[$key] = $exception;
+-					$options['hooks']->dispatch('transport.internal.parse_error', [&$responses[$key], $requests[$key]]);
++					throw new \RuntimeException( 'Reference-array call is outside the finite bootstrap fixture.' );
+ 				} else {
+ 					$responses[$key] = $subrequests[$key]->process_response($subrequests[$key]->response_data, $options);
+ 
+-					$options['hooks']->dispatch('transport.internal.parse_response', [&$responses[$key], $requests[$key]]);
++					throw new \RuntimeException( 'Reference-array call is outside the finite bootstrap fixture.' );
+ 				}
+ 
+ 				curl_multi_remove_handle($multihandle, $done['handle']);
+@@ -313,14 +313,14 @@
+ 				}
+ 
+ 				if (!is_string($responses[$key])) {
+-					$options['hooks']->dispatch('multiple.request.complete', [&$responses[$key], $key]);
++					throw new \RuntimeException( 'Reference-array call is outside the finite bootstrap fixture.' );
+ 				}
+ 
+ 				$completed++;
+ 			}
+ 		} while ($active || $completed < $subrequestcount);
+ 
+-		$request['options']['hooks']->dispatch('curl.after_multi_exec', [&$multihandle]);
++		throw new \RuntimeException( 'Reference-array call is outside the finite bootstrap fixture.' );
+ 
+ 		curl_multi_close($multihandle);
+ 
+@@ -364,7 +364,7 @@
+ 	 * @param array $options Request options, see {@see \WpOrg\Requests\Requests::response()} for documentation
+ 	 */
+ 	private function setup_handle($url, $headers, $data, $options) {
+-		$options['hooks']->dispatch('curl.before_request', [&$this->handle]);
++		throw new \RuntimeException( 'Reference-array call is outside the finite bootstrap fixture.' );
+ 
+ 		// Force closing the connection for old versions of cURL (<7.22).
+ 		if (!isset($headers['Connection'])) {
+@@ -474,7 +474,7 @@
+ 	public function process_response($response, $options) {
+ 		if ($options['blocking'] === false) {
+ 			$fake_headers = '';
+-			$options['hooks']->dispatch('curl.after_request', [&$fake_headers]);
++			throw new \RuntimeException( 'Reference-array call is outside the finite bootstrap fixture.' );
+ 			return false;
+ 		}
+ 
+@@ -496,7 +496,7 @@
+ 
+ 		$this->info = curl_getinfo($this->handle);
+ 
+-		$options['hooks']->dispatch('curl.after_request', [&$this->headers, &$this->info]);
++		throw new \RuntimeException( 'Reference-array call is outside the finite bootstrap fixture.' );
+ 		return $this->headers;
+ 	}
+ 

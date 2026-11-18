@@ -1,0 +1,124 @@
+--- a/wp-includes/class-wp-customize-widgets.php
++++ b/wp-includes/class-wp-customize-widgets.php
+@@ -906,63 +906,75 @@
+ 	 * @since 3.9.0
+ 	 */
+ 	public function output_widget_control_templates() {
+-		?>
+-		<div id="widgets-left"><!-- compatibility with JS which looks for widget templates here -->
++		;
++echo '		<div id="widgets-left"><!-- compatibility with JS which looks for widget templates here -->
+ 		<div id="available-widgets">
+ 			<div class="customize-section-title">
+ 				<button class="customize-section-back" tabindex="-1">
+ 					<span class="screen-reader-text">
+-						<?php
++						';
+ 						/* translators: Hidden accessibility text. */
+ 						_e( 'Back' );
+-						?>
+-					</span>
++						;
++echo '					</span>
+ 				</button>
+ 				<h3>
+ 					<span class="customize-action">
+-						<?php
++						';
+ 						$panel       = $this->manager->get_panel( 'widgets' );
+ 						$panel_title = $panel->title ?? __( 'Widgets' );
+ 						/* translators: &#9656; is the unicode right-pointing triangle. %s: Section title in the Customizer. */
+ 						printf( __( 'Customizing &#9656; %s' ), esc_html( $panel_title ) );
+-						?>
+-					</span>
+-					<?php _e( 'Add a Widget' ); ?>
+-				</h3>
++						;
++echo '					</span>
++					';
++_e( 'Add a Widget' ); ;
++echo '				</h3>
+ 			</div>
+ 			<div id="available-widgets-filter">
+ 				<label for="widgets-search">
+-					<?php
++					';
+ 					/* translators: Hidden accessibility text. */
+ 					_e( 'Search Widgets' );
+-					?>
+-				</label>
++					;
++echo '				</label>
+ 				<input type="text" id="widgets-search" aria-describedby="widgets-search-desc" />
+ 				<div class="search-icon" aria-hidden="true"></div>
+ 				<button type="button" class="clear-results"><span class="screen-reader-text">
+-					<?php
++					';
+ 					/* translators: Hidden accessibility text. */
+ 					_e( 'Clear Results' );
+-					?>
+-				</span></button>
++					;
++echo '				</span></button>
+ 				<p class="screen-reader-text" id="widgets-search-desc">
+-					<?php
++					';
+ 					/* translators: Hidden accessibility text. */
+ 					_e( 'The search results will be updated as you type.' );
+-					?>
+-				</p>
++					;
++echo '				</p>
+ 			</div>
+ 			<div id="available-widgets-list">
+-			<?php foreach ( $this->get_available_widgets() as $available_widget ) : ?>
+-				<div id="widget-tpl-<?php echo esc_attr( $available_widget['id'] ); ?>" data-widget-id="<?php echo esc_attr( $available_widget['id'] ); ?>" class="widget-tpl <?php echo esc_attr( $available_widget['id'] ); ?>" tabindex="0">
+-					<?php echo $available_widget['control_tpl']; ?>
+-				</div>
+-			<?php endforeach; ?>
+-			<p class="no-widgets-found-message"><?php _e( 'No widgets found.' ); ?></p>
++			';
++foreach ( $this->get_available_widgets() as $available_widget ) : ;
++echo '				<div id="widget-tpl-';
++echo esc_attr( $available_widget['id'] ); ;
++echo '" data-widget-id="';
++echo esc_attr( $available_widget['id'] ); ;
++echo '" class="widget-tpl ';
++echo esc_attr( $available_widget['id'] ); ;
++echo '" tabindex="0">
++					';
++echo $available_widget['control_tpl']; ;
++echo '				</div>
++			';
++endforeach; ;
++echo '			<p class="no-widgets-found-message">';
++_e( 'No widgets found.' ); ;
++echo '</p>
+ 			</div><!-- #available-widgets-list -->
+ 		</div><!-- #available-widgets -->
+ 		</div><!-- #widgets-left -->
+-		<?php
++		';
+ 	}
+ 
+ 	/**
+@@ -1281,8 +1293,8 @@
+ 	 * @since 3.9.0
+ 	 */
+ 	public function print_preview_css() {
+-		?>
+-		<style>
++		;
++echo '		<style>
+ 		.widget-customizer-highlighted-widget {
+ 			outline: none;
+ 			-webkit-box-shadow: 0 0 2px rgba(30, 140, 190, 0.8);
+@@ -1291,7 +1303,7 @@
+ 			z-index: 1;
+ 		}
+ 		</style>
+-		<?php
++		';
+ 	}
+ 
+ 	/**

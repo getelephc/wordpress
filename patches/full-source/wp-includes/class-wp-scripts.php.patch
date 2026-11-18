@@ -1,0 +1,11 @@
+--- a/wp-includes/class-wp-scripts.php
++++ b/wp-includes/class-wp-scripts.php
+@@ -167,7 +167,7 @@
+ 		 *
+ 		 * @param WP_Scripts $wp_scripts WP_Scripts instance (passed by reference).
+ 		 */
+-		do_action_ref_array( 'wp_default_scripts', array( &$this ) );
++		do_action_ref_array( 'wp_default_scripts', array( $this ) );
+ 	}
+ 
+ 	/**

@@ -1,0 +1,34 @@
+--- a/wp-content/themes/twentytwentyfive/patterns/hidden-sidebar.php
++++ b/wp-content/themes/twentytwentyfive/patterns/hidden-sidebar.php
+@@ -9,9 +9,11 @@
+  * @since Twenty Twenty-Five 1.0
+  */
+ 
+-?>
+-<!-- wp:heading {"style":{"typography":{"fontStyle":"normal","fontWeight":"600","textTransform":"uppercase","letterSpacing":"1.6px"}},"fontSize":"small"} -->
+-<h2 class="wp-block-heading has-small-font-size" style="font-style:normal;font-weight:600;letter-spacing:1.6px;text-transform:uppercase"><?php esc_html_e( 'Other Posts', 'twentytwentyfive' ); ?></h2>
++;
++echo '<!-- wp:heading {"style":{"typography":{"fontStyle":"normal","fontWeight":"600","textTransform":"uppercase","letterSpacing":"1.6px"}},"fontSize":"small"} -->
++<h2 class="wp-block-heading has-small-font-size" style="font-style:normal;font-weight:600;letter-spacing:1.6px;text-transform:uppercase">';
++esc_html_e( 'Other Posts', 'twentytwentyfive' ); ;
++echo '</h2>
+ <!-- /wp:heading -->
+ 
+ <!-- wp:spacer {"height":"var:preset|spacing|40"} -->
+@@ -34,9 +36,14 @@
+ 	<!-- /wp:post-template -->
+ 
+ 	<!-- wp:query-no-results -->
+-		<!-- wp:paragraph {"placeholder":"<?php esc_attr_e( 'Add text or blocks that will display when a query returns no results.', 'twentytwentyfive' ); ?>","fontSize":"medium"} -->
+-		<p class="has-medium-font-size"><?php echo esc_html_x( 'Sorry, but nothing was found. Please try a search with different keywords.', 'Message explaining that there are no results returned from a search.', 'twentytwentyfive' ); ?></p>
++		<!-- wp:paragraph {"placeholder":"';
++esc_attr_e( 'Add text or blocks that will display when a query returns no results.', 'twentytwentyfive' ); ;
++echo '","fontSize":"medium"} -->
++		<p class="has-medium-font-size">';
++echo esc_html_x( 'Sorry, but nothing was found. Please try a search with different keywords.', 'Message explaining that there are no results returned from a search.', 'twentytwentyfive' ); ;
++echo '</p>
+ 		<!-- /wp:paragraph -->
+ 	<!-- /wp:query-no-results -->
+ </div>
+ <!-- /wp:query -->
++';

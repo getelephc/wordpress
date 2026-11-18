@@ -1,0 +1,79 @@
+--- a/wp-admin/includes/class-wp-ms-users-list-table.php
++++ b/wp-admin/includes/class-wp-ms-users-list-table.php
+@@ -234,17 +234,23 @@
+ 		if ( is_super_admin( $user->ID ) ) {
+ 			return;
+ 		}
+-		?>
+-		<input type="checkbox" id="blog_<?php echo $user->ID; ?>" name="allusers[]" value="<?php echo esc_attr( $user->ID ); ?>" />
+-		<label for="blog_<?php echo $user->ID; ?>">
++		;
++echo '		<input type="checkbox" id="blog_';
++echo $user->ID; ;
++echo '" name="allusers[]" value="';
++echo esc_attr( $user->ID ); ;
++echo '" />
++		<label for="blog_';
++echo $user->ID; ;
++echo '">
+ 			<span class="screen-reader-text">
+-			<?php
++			';
+ 			/* translators: Hidden accessibility text. %s: User login. */
+ 			printf( __( 'Select %s' ), esc_html( $user->user_login ) );
+-			?>
+-			</span>
++			;
++echo '			</span>
+ 		</label>
+-		<?php
++		';
+ 	}
+ 
+ 	/**
+@@ -278,17 +284,17 @@
+ 			$edit = esc_html( $user->user_login );
+ 		}
+ 
+-		?>
+-		<strong>
+-			<?php
++		;
++echo '		<strong>
++			';
+ 			echo $edit;
+ 
+ 			if ( in_array( $user->user_login, $super_admins, true ) ) {
+ 				echo ' &mdash; ' . __( 'Super Admin' );
+ 			}
+-			?>
+-		</strong>
+-		<?php
++			;
++echo '		</strong>
++		';
+ 	}
+ 
+ 	/**
+@@ -501,11 +507,16 @@
+ 				}
+ 			}
+ 
+-			?>
+-			<tr id="user-<?php echo (int) $user->ID; ?>" class="<?php echo trim( $class ); ?>">
+-				<?php $this->single_row_columns( $user ); ?>
+-			</tr>
+-			<?php
++			;
++echo '			<tr id="user-';
++echo (int) $user->ID; ;
++echo '" class="';
++echo trim( $class ); ;
++echo '">
++				';
++$this->single_row_columns( $user ); ;
++echo '			</tr>
++			';
+ 		}
+ 	}
+ 

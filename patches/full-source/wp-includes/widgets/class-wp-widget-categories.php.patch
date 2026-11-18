@@ -1,0 +1,163 @@
+--- a/wp-includes/widgets/class-wp-widget-categories.php
++++ b/wp-includes/widgets/class-wp-widget-categories.php
+@@ -93,14 +93,14 @@
+ 			echo '</form>';
+ 
+ 			ob_start();
+-			?>
+-
++			;
++echo '
+ <script>
+ ( ( dropdownId ) => {
+ 	const dropdown = document.getElementById( dropdownId );
+ 	function onSelectChange() {
+ 		setTimeout( () => {
+-			if ( 'escape' === dropdown.dataset.lastkey ) {
++			if ( \'escape\' === dropdown.dataset.lastkey ) {
+ 				return;
+ 			}
+ 			if ( dropdown.value && parseInt( dropdown.value ) > 0 && dropdown instanceof HTMLSelectElement ) {
+@@ -109,8 +109,8 @@
+ 		}, 250 );
+ 	}
+ 	function onKeyUp( event ) {
+-		if ( 'Escape' === event.key ) {
+-			dropdown.dataset.lastkey = 'escape';
++		if ( \'Escape\' === event.key ) {
++			dropdown.dataset.lastkey = \'escape\';
+ 		} else {
+ 			delete dropdown.dataset.lastkey;
+ 		}
+@@ -118,13 +118,15 @@
+ 	function onClick() {
+ 		delete dropdown.dataset.lastkey;
+ 	}
+-	dropdown.addEventListener( 'keyup', onKeyUp );
+-	dropdown.addEventListener( 'click', onClick );
+-	dropdown.addEventListener( 'change', onSelectChange );
+-})( <?php echo wp_json_encode( $dropdown_id, JSON_HEX_TAG | JSON_UNESCAPED_SLASHES ); ?> );
++	dropdown.addEventListener( \'keyup\', onKeyUp );
++	dropdown.addEventListener( \'click\', onClick );
++	dropdown.addEventListener( \'change\', onSelectChange );
++})( ';
++echo wp_json_encode( $dropdown_id, JSON_HEX_TAG | JSON_UNESCAPED_SLASHES ); ;
++echo ' );
+ </script>
+ 
+-			<?php
++			';
+ 			wp_print_inline_script_tag( wp_remove_surrounding_empty_script_tags( ob_get_clean() ) . "\n//# sourceURL=" . rawurlencode( __METHOD__ ) );
+ 		} else {
+ 			$format = current_theme_supports( 'html5', 'navigation-widgets' ) ? 'html5' : 'xhtml';
+@@ -138,10 +140,10 @@
+ 				$aria_label = $title ? $title : $default_title;
+ 				echo '<nav aria-label="' . esc_attr( $aria_label ) . '">';
+ 			}
+-			?>
+-
++			;
++echo '
+ 			<ul>
+-				<?php
++				';
+ 				$cat_args['title_li'] = '';
+ 
+ 				/**
+@@ -154,10 +156,10 @@
+ 				 * @param array $instance Array of settings for the current widget.
+ 				 */
+ 				wp_list_categories( apply_filters( 'widget_categories_args', $cat_args, $instance ) );
+-				?>
+-			</ul>
+-
+-			<?php
++				;
++echo '			</ul>
++
++			';
+ 			if ( 'html5' === $format ) {
+ 				echo '</nav>';
+ 			}
+@@ -199,24 +201,64 @@
+ 		$count        = isset( $instance['count'] ) ? (bool) $instance['count'] : false;
+ 		$hierarchical = isset( $instance['hierarchical'] ) ? (bool) $instance['hierarchical'] : false;
+ 		$dropdown     = isset( $instance['dropdown'] ) ? (bool) $instance['dropdown'] : false;
+-		?>
++		;
++echo '		<p>
++			<label for="';
++echo $this->get_field_id( 'title' ); ;
++echo '">';
++_e( 'Title:' ); ;
++echo '</label>
++			<input class="widefat" id="';
++echo $this->get_field_id( 'title' ); ;
++echo '" name="';
++echo $this->get_field_name( 'title' ); ;
++echo '" type="text" value="';
++echo esc_attr( $instance['title'] ); ;
++echo '" />
++		</p>
++
+ 		<p>
+-			<label for="<?php echo $this->get_field_id( 'title' ); ?>"><?php _e( 'Title:' ); ?></label>
+-			<input class="widefat" id="<?php echo $this->get_field_id( 'title' ); ?>" name="<?php echo $this->get_field_name( 'title' ); ?>" type="text" value="<?php echo esc_attr( $instance['title'] ); ?>" />
++			<input type="checkbox" class="checkbox" id="';
++echo $this->get_field_id( 'dropdown' ); ;
++echo '" name="';
++echo $this->get_field_name( 'dropdown' ); ;
++echo '"';
++checked( $dropdown ); ;
++echo ' />
++			<label for="';
++echo $this->get_field_id( 'dropdown' ); ;
++echo '">';
++_e( 'Display as dropdown' ); ;
++echo '</label>
++			<br />
++
++			<input type="checkbox" class="checkbox" id="';
++echo $this->get_field_id( 'count' ); ;
++echo '" name="';
++echo $this->get_field_name( 'count' ); ;
++echo '"';
++checked( $count ); ;
++echo ' />
++			<label for="';
++echo $this->get_field_id( 'count' ); ;
++echo '">';
++_e( 'Show post counts' ); ;
++echo '</label>
++			<br />
++
++			<input type="checkbox" class="checkbox" id="';
++echo $this->get_field_id( 'hierarchical' ); ;
++echo '" name="';
++echo $this->get_field_name( 'hierarchical' ); ;
++echo '"';
++checked( $hierarchical ); ;
++echo ' />
++			<label for="';
++echo $this->get_field_id( 'hierarchical' ); ;
++echo '">';
++_e( 'Show hierarchy' ); ;
++echo '</label>
+ 		</p>
+-
+-		<p>
+-			<input type="checkbox" class="checkbox" id="<?php echo $this->get_field_id( 'dropdown' ); ?>" name="<?php echo $this->get_field_name( 'dropdown' ); ?>"<?php checked( $dropdown ); ?> />
+-			<label for="<?php echo $this->get_field_id( 'dropdown' ); ?>"><?php _e( 'Display as dropdown' ); ?></label>
+-			<br />
+-
+-			<input type="checkbox" class="checkbox" id="<?php echo $this->get_field_id( 'count' ); ?>" name="<?php echo $this->get_field_name( 'count' ); ?>"<?php checked( $count ); ?> />
+-			<label for="<?php echo $this->get_field_id( 'count' ); ?>"><?php _e( 'Show post counts' ); ?></label>
+-			<br />
+-
+-			<input type="checkbox" class="checkbox" id="<?php echo $this->get_field_id( 'hierarchical' ); ?>" name="<?php echo $this->get_field_name( 'hierarchical' ); ?>"<?php checked( $hierarchical ); ?> />
+-			<label for="<?php echo $this->get_field_id( 'hierarchical' ); ?>"><?php _e( 'Show hierarchy' ); ?></label>
+-		</p>
+-		<?php
++		';
+ 	}
+ }

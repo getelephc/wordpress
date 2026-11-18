@@ -1,0 +1,175 @@
+// Native primitives missing from the SDK, supplied through public C ABIs.
+extern "System" {
+    function sodium_init(): i32;
+    function malloc(u64 $size): ptr;
+    function free(ptr $memory): void;
+    function crypto_generichash(ptr $output, u64 $size, string $message, u64 $length, string $key, u64 $key_length): i32;
+    function crypto_box_easy(ptr $output, string $message, u64 $length, string $nonce, string $public_key, string $secret_key): i32;
+    function crypto_sign_verify_detached(string $signature, string $message, u64 $length, string $public_key): i32;
+}
+
+if (sodium_init() < 0) throw new RuntimeException('Native Sodium initialization failed.');
+
+class SodiumException extends Exception {}
+
+const SODIUM_BASE64_VARIANT_ORIGINAL = 1;
+const SODIUM_BASE64_VARIANT_ORIGINAL_NO_PADDING = 3;
+const SODIUM_BASE64_VARIANT_URLSAFE = 5;
+const SODIUM_BASE64_VARIANT_URLSAFE_NO_PADDING = 7;
+
+function sodium_crypto_generichash(string $message, string $key = '', int $length = 32): string {
+    if ($length < 16 || $length > 64 || (strlen($key) !== 0 && (strlen($key) < 16 || strlen($key) > 64))) {
+        throw new SodiumException('Invalid generic hash length or key length.');
+    }
+    $memory = malloc($length);
+    if (ptr_is_null($memory)) throw new RuntimeException('Native hash allocation failed.');
+    try {
+        if (crypto_generichash($memory, $length, $message, strlen($message), $key, strlen($key)) !== 0) {
+            throw new SodiumException('Native generic hash failed.');
+        }
+        return ptr_read_string($memory, (int) $length);
+    } finally {
+        free($memory);
+    }
+}
+
+function sodium_crypto_box(string $message, string $nonce, string $key_pair): string {
+    if (strlen($nonce) !== 24 || strlen($key_pair) !== 64) {
+        throw new SodiumException('Invalid box nonce or key pair length.');
+    }
+    $length = strlen($message) + 16;
+    $memory = malloc($length);
+    if (ptr_is_null($memory)) throw new RuntimeException('Native box allocation failed.');
+    try {
+        if (crypto_box_easy($memory, $message, strlen($message), $nonce, substr($key_pair, 32, 32), substr($key_pair, 0, 32)) !== 0) {
+            throw new SodiumException('Native box operation failed.');
+        }
+        return ptr_read_string($memory, (int) $length);
+    } finally {
+        free($memory);
+    }
+}
+
+function sodium_crypto_sign_verify_detached(string $signature, string $message, string $key): bool {
+    if (strlen($signature) !== 64 || strlen($key) !== 32) {
+        throw new SodiumException('Invalid signature or public key length.');
+    }
+    return crypto_sign_verify_detached($signature, $message, strlen($message), $key) === 0;
+}
+
+function sodium_bin2base64(string $bytes, int $variant): string {
+    if ($variant !== 1 && $variant !== 3 && $variant !== 5 && $variant !== 7) {
+        throw new SodiumException('Invalid base64 variant.');
+    }
+    $encoded = base64_encode($bytes);
+    if ($variant === 5 || $variant === 7) $encoded = strtr($encoded, '+/', '-_');
+    if ($variant === 3 || $variant === 7) $encoded = rtrim($encoded, '=');
+    return $encoded;
+}
+
+// PHP masks are binary strings. libc strspn stops at NUL and cannot implement this.
+function strspn(string $string, string $characters, int $offset = 0, ?int $length = null): int {
+    $size = strlen($string);
+    $start = $offset < 0 ? max(0, $size + $offset) : min($size, $offset);
+    $end = $length === null ? $size : ($length < 0 ? max($start, $size + $length) : min($size, $start + $length));
+    $allowed = array_fill(0, 256, false);
+    for ($i = 0; $i < strlen($characters); ++$i) $allowed[ord($characters[$i])] = true;
+    $at = $start;
+    while ($at < $end && $allowed[ord($string[$at])]) ++$at;
+    return $at - $start;
+}
+
+// PHP version ordering, following php-src/ext/standard/versioning.c.
+function aot_version_digit(string $byte): bool {
+    if ($byte === '') return false;
+    $code = ord($byte);
+    return $code >= 48 && $code <= 57;
+}
+
+function aot_version_parts(string $version): array {
+    if ($version === '' || $version[0] === '#') return explode('.', $version);
+    $normalized = $version[0];
+    $previous = $version[0];
+    for ($i = 1; $i < strlen($version); ++$i) {
+        $byte = $version[$i];
+        $last = $normalized[strlen($normalized) - 1];
+        $code = ord($byte);
+        $digit = aot_version_digit($byte);
+        $previous_digit = aot_version_digit($previous);
+        if ($byte === '-' || $byte === '_' || $byte === '+') {
+            if ($last !== '.') $normalized .= '.';
+        } elseif (($previous !== '.' && !$previous_digit && $digit) || ($previous_digit && !$digit && $byte !== '.')) {
+            if ($last !== '.') $normalized .= '.';
+            $normalized .= $byte;
+        } elseif (!$digit && !($code >= 65 && $code <= 90) && !($code >= 97 && $code <= 122)) {
+            if ($last !== '.') $normalized .= '.';
+        } else {
+            $normalized .= $byte;
+        }
+        $previous = $byte;
+    }
+    if ($normalized[strlen($normalized) - 1] === '.') $normalized = substr($normalized, 0, -1);
+    return explode('.', $normalized);
+}
+
+function aot_version_order(string $part): int {
+    $forms = array('dev', 'alpha', 'a', 'beta', 'b', 'RC', 'rc', '#', 'pl', 'p');
+    $orders = array(0, 1, 1, 2, 2, 3, 3, 4, 5, 5);
+    foreach ($forms as $index => $form) {
+        if (str_starts_with($part, $form)) return (int) $orders[$index];
+    }
+    return -1;
+}
+
+function aot_version_compare(string $first, string $second): int {
+    if ($first === '' || $second === '') return ($first !== '') <=> ($second !== '');
+    $left = aot_version_parts($first);
+    $right = aot_version_parts($second);
+    if ((count($left) === 1 && $left[0] === '') || (count($right) === 1 && $right[0] === '')) {
+        $remaining = implode('.', $left);
+        if ($remaining !== '' && aot_version_digit($remaining[0])) return 1;
+        return aot_version_compare($remaining, '#N#');
+    }
+    $at = 0;
+    while ($at < count($left) && $at < count($right)) {
+        $a = (string) $left[$at];
+        $b = (string) $right[$at];
+        $a_digit = aot_version_digit($a === '' ? '' : $a[0]);
+        $b_digit = aot_version_digit($b === '' ? '' : $b[0]);
+        if ($a_digit && $b_digit) {
+            $result = ((int) $a) <=> ((int) $b);
+        } else {
+            $result = aot_version_order($a_digit ? '#N#' : $a) <=> aot_version_order($b_digit ? '#N#' : $b);
+        }
+        if ($result !== 0) return $result;
+        ++$at;
+    }
+    if ($at < count($left)) {
+        $remaining = (string) $left[$at];
+        if ($remaining !== '' && aot_version_digit($remaining[0])) return 1;
+        return aot_version_compare(implode('.', array_slice($left, $at)), '#N#');
+    }
+    if ($at < count($right)) {
+        $remaining = (string) $right[$at];
+        if ($remaining !== '' && aot_version_digit($remaining[0])) return -1;
+        return aot_version_compare('#N#', implode('.', array_slice($right, $at)));
+    }
+    return 0;
+}
+
+function version_compare(string $first, string $second, ?string $operator = null): int|bool {
+    foreach (array($first, $second) as $value) {
+        for ($i = 0; $i < strlen($value); ++$i) {
+            if (ord($value[$i]) === 0) throw new ValueError('Version strings must not contain NUL.');
+        }
+    }
+    $result = aot_version_compare($first, $second);
+    if ($operator === null) return $result;
+    if ($operator === '<' || $operator === 'lt') return $result < 0;
+    if ($operator === '<=' || $operator === 'le') return $result <= 0;
+    if ($operator === '>' || $operator === 'gt') return $result > 0;
+    if ($operator === '>=' || $operator === 'ge') return $result >= 0;
+    if ($operator === '==' || $operator === '=' || $operator === 'eq') return $result === 0;
+    if ($operator === '!=' || $operator === '<>' || $operator === 'ne') return $result !== 0;
+    throw new ValueError('Invalid version comparison operator.');
+}

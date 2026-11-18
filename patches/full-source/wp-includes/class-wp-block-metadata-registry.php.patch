@@ -1,0 +1,20 @@
+--- a/wp-includes/class-wp-block-metadata-registry.php
++++ b/wp-includes/class-wp-block-metadata-registry.php
+@@ -172,7 +172,7 @@
+ 
+ 		if ( null === $collection['metadata'] ) {
+ 			// Load the manifest file if not already loaded
+-			$collection['metadata'] = require $collection['manifest'];
++			$collection['metadata'] = aot_require_data( $collection['manifest'] );
+ 		}
+ 
+ 		// Get the block name from the path.
+@@ -211,7 +211,7 @@
+ 
+ 		if ( null === $collection['metadata'] ) {
+ 			// Load the manifest file if not already loaded.
+-			$collection['metadata'] = require $collection['manifest'];
++			$collection['metadata'] = aot_require_data( $collection['manifest'] );
+ 		}
+ 
+ 		return array_map(

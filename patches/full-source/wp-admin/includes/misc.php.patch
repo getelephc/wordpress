@@ -1,0 +1,297 @@
+--- a/wp-admin/includes/misc.php
++++ b/wp-admin/includes/misc.php
+@@ -410,20 +410,30 @@
+ 				wp_print_theme_file_tree( $theme_file, $level, $index, $size );
+ 				continue;
+ 			}
+-			?>
+-			<li role="treeitem" aria-expanded="true" tabindex="-1"
+-				aria-level="<?php echo esc_attr( $level ); ?>"
+-				aria-setsize="<?php echo esc_attr( $size ); ?>"
+-				aria-posinset="<?php echo esc_attr( $index ); ?>">
+-				<span class="folder-label"><?php echo esc_html( $label ); ?> <span class="screen-reader-text">
+-					<?php
++			;
++echo '			<li role="treeitem" aria-expanded="true" tabindex="-1"
++				aria-level="';
++echo esc_attr( $level ); ;
++echo '"
++				aria-setsize="';
++echo esc_attr( $size ); ;
++echo '"
++				aria-posinset="';
++echo esc_attr( $index ); ;
++echo '">
++				<span class="folder-label">';
++echo esc_html( $label ); ;
++echo ' <span class="screen-reader-text">
++					';
+ 					/* translators: Hidden accessibility text. */
+ 					_e( 'folder' );
+-					?>
+-				</span><span aria-hidden="true" class="icon"></span></span>
+-				<ul role="group" class="tree-folder"><?php wp_print_theme_file_tree( $theme_file, $level + 1, $index, $size ); ?></ul>
++					;
++echo '				</span><span aria-hidden="true" class="icon"></span></span>
++				<ul role="group" class="tree-folder">';
++wp_print_theme_file_tree( $theme_file, $level + 1, $index, $size ); ;
++echo '</ul>
+ 			</li>
+-			<?php
++			';
+ 		endforeach;
+ 	} else {
+ 		$filename = $tree;
+@@ -434,14 +444,26 @@
+ 			),
+ 			self_admin_url( 'theme-editor.php' )
+ 		);
+-		?>
+-		<li role="none" class="<?php echo esc_attr( $relative_file === $filename ? 'current-file' : '' ); ?>">
+-			<a role="treeitem" tabindex="<?php echo esc_attr( $relative_file === $filename ? '0' : '-1' ); ?>"
+-				href="<?php echo esc_url( $url ); ?>"
+-				aria-level="<?php echo esc_attr( $level ); ?>"
+-				aria-setsize="<?php echo esc_attr( $size ); ?>"
+-				aria-posinset="<?php echo esc_attr( $index ); ?>">
+-				<?php
++		;
++echo '		<li role="none" class="';
++echo esc_attr( $relative_file === $filename ? 'current-file' : '' ); ;
++echo '">
++			<a role="treeitem" tabindex="';
++echo esc_attr( $relative_file === $filename ? '0' : '-1' ); ;
++echo '"
++				href="';
++echo esc_url( $url ); ;
++echo '"
++				aria-level="';
++echo esc_attr( $level ); ;
++echo '"
++				aria-setsize="';
++echo esc_attr( $size ); ;
++echo '"
++				aria-posinset="';
++echo esc_attr( $index ); ;
++echo '">
++				';
+ 				$file_description = esc_html( get_file_description( $filename ) );
+ 
+ 				if ( $file_description !== $filename && wp_basename( $filename ) !== $file_description ) {
+@@ -453,10 +475,10 @@
+ 				} else {
+ 					echo $file_description;
+ 				}
+-				?>
+-			</a>
++				;
++echo '			</a>
+ 		</li>
+-		<?php
++		';
+ 	}
+ }
+ 
+@@ -515,20 +537,30 @@
+ 				wp_print_plugin_file_tree( $plugin_file, $label, $level, $index, $size );
+ 				continue;
+ 			}
+-			?>
+-			<li role="treeitem" aria-expanded="true" tabindex="-1"
+-				aria-level="<?php echo esc_attr( $level ); ?>"
+-				aria-setsize="<?php echo esc_attr( $size ); ?>"
+-				aria-posinset="<?php echo esc_attr( $index ); ?>">
+-				<span class="folder-label"><?php echo esc_html( $label ); ?> <span class="screen-reader-text">
+-					<?php
++			;
++echo '			<li role="treeitem" aria-expanded="true" tabindex="-1"
++				aria-level="';
++echo esc_attr( $level ); ;
++echo '"
++				aria-setsize="';
++echo esc_attr( $size ); ;
++echo '"
++				aria-posinset="';
++echo esc_attr( $index ); ;
++echo '">
++				<span class="folder-label">';
++echo esc_html( $label ); ;
++echo ' <span class="screen-reader-text">
++					';
+ 					/* translators: Hidden accessibility text. */
+ 					_e( 'folder' );
+-					?>
+-				</span><span aria-hidden="true" class="icon"></span></span>
+-				<ul role="group" class="tree-folder"><?php wp_print_plugin_file_tree( $plugin_file, '', $level + 1, $index, $size ); ?></ul>
++					;
++echo '				</span><span aria-hidden="true" class="icon"></span></span>
++				<ul role="group" class="tree-folder">';
++wp_print_plugin_file_tree( $plugin_file, '', $level + 1, $index, $size ); ;
++echo '</ul>
+ 			</li>
+-			<?php
++			';
+ 		endforeach;
+ 	} else {
+ 		$url = add_query_arg(
+@@ -538,23 +570,35 @@
+ 			),
+ 			self_admin_url( 'plugin-editor.php' )
+ 		);
+-		?>
+-		<li role="none" class="<?php echo esc_attr( $file === $tree ? 'current-file' : '' ); ?>">
+-			<a role="treeitem" tabindex="<?php echo esc_attr( $file === $tree ? '0' : '-1' ); ?>"
+-				href="<?php echo esc_url( $url ); ?>"
+-				aria-level="<?php echo esc_attr( $level ); ?>"
+-				aria-setsize="<?php echo esc_attr( $size ); ?>"
+-				aria-posinset="<?php echo esc_attr( $index ); ?>">
+-				<?php
++		;
++echo '		<li role="none" class="';
++echo esc_attr( $file === $tree ? 'current-file' : '' ); ;
++echo '">
++			<a role="treeitem" tabindex="';
++echo esc_attr( $file === $tree ? '0' : '-1' ); ;
++echo '"
++				href="';
++echo esc_url( $url ); ;
++echo '"
++				aria-level="';
++echo esc_attr( $level ); ;
++echo '"
++				aria-setsize="';
++echo esc_attr( $size ); ;
++echo '"
++				aria-posinset="';
++echo esc_attr( $index ); ;
++echo '">
++				';
+ 				if ( $file === $tree ) {
+ 					echo '<span class="notice notice-info">' . esc_html( $label ) . '</span>';
+ 				} else {
+ 					echo esc_html( $label );
+ 				}
+-				?>
+-			</a>
++				;
++echo '			</a>
+ 		</li>
+-		<?php
++		';
+ 	}
+ }
+ 
+@@ -1025,35 +1069,55 @@
+ 	if ( empty( $current_color ) || ! isset( $_wp_admin_css_colors[ $current_color ] ) ) {
+ 		$current_color = 'modern';
+ 	}
+-	?>
+-	<fieldset id="color-picker" class="scheme-list">
+-		<legend class="screen-reader-text"><span><?php _e( 'Administration Color Scheme' ); ?></span></legend>
+-		<?php
++	;
++echo '	<fieldset id="color-picker" class="scheme-list">
++		<legend class="screen-reader-text"><span>';
++_e( 'Administration Color Scheme' ); ;
++echo '</span></legend>
++		';
+ 		wp_nonce_field( 'save-color-scheme', 'color-nonce', false );
+ 		foreach ( $_wp_admin_css_colors as $color => $color_info ) :
+ 
+-			?>
+-			<div class="color-option <?php echo ( $color === $current_color ) ? 'selected' : ''; ?>">
+-				<input name="admin_color" id="admin_color_<?php echo esc_attr( $color ); ?>" type="radio" value="<?php echo esc_attr( $color ); ?>" <?php checked( $color, $current_color ); ?> />
+-				<input type="hidden" class="css_url" value="<?php echo esc_url( $color_info->url ); ?>" />
+-				<input type="hidden" class="icon_colors" value="<?php echo esc_attr( wp_json_encode( array( 'icons' => $color_info->icon_colors ) ) ); ?>" />
+-				<label for="admin_color_<?php echo esc_attr( $color ); ?>"><?php echo esc_html( $color_info->name ); ?></label>
++			;
++echo '			<div class="color-option ';
++echo ( $color === $current_color ) ? 'selected' : ''; ;
++echo '">
++				<input name="admin_color" id="admin_color_';
++echo esc_attr( $color ); ;
++echo '" type="radio" value="';
++echo esc_attr( $color ); ;
++echo '" ';
++checked( $color, $current_color ); ;
++echo ' />
++				<input type="hidden" class="css_url" value="';
++echo esc_url( $color_info->url ); ;
++echo '" />
++				<input type="hidden" class="icon_colors" value="';
++echo esc_attr( wp_json_encode( array( 'icons' => $color_info->icon_colors ) ) ); ;
++echo '" />
++				<label for="admin_color_';
++echo esc_attr( $color ); ;
++echo '">';
++echo esc_html( $color_info->name ); ;
++echo '</label>
+ 				<div class="color-palette">
+-				<?php
++				';
+ 				foreach ( $color_info->colors as $html_color ) {
+-					?>
+-					<div class="color-palette-shade" style="background-color: <?php echo esc_attr( $html_color ); ?>">&nbsp;</div>
+-					<?php
++					;
++echo '					<div class="color-palette-shade" style="background-color: ';
++echo esc_attr( $html_color ); ;
++echo '">&nbsp;</div>
++					';
+ 				}
+-				?>
+-				</div>
++				;
++echo '				</div>
+ 			</div>
+-			<?php
++			';
+ 
+ 		endforeach;
+-		?>
+-	</fieldset>
+-	<?php
++		;
++echo '	</fieldset>
++	';
+ }
+ 
+ /**
+@@ -1408,14 +1472,16 @@
+ 	 * @param string $filtered_url The admin canonical URL value.
+ 	 */
+ 	$filtered_url = apply_filters( 'wp_admin_canonical_url', $filtered_url );
+-	?>
+-	<link id="wp-admin-canonical" rel="canonical" href="<?php echo esc_url( $filtered_url ); ?>" />
++	;
++echo '	<link id="wp-admin-canonical" rel="canonical" href="';
++echo esc_url( $filtered_url ); ;
++echo '" />
+ 	<script>
+ 		if ( window.history.replaceState ) {
+-			window.history.replaceState( null, null, document.getElementById( 'wp-admin-canonical' ).href + window.location.hash );
++			window.history.replaceState( null, null, document.getElementById( \'wp-admin-canonical\' ).href + window.location.hash );
+ 		}
+ 	</script>
+-	<?php
++	';
+ }
+ 
+ /**
+@@ -1427,13 +1493,13 @@
+  * @since 4.6.0
+  */
+ function wp_page_reload_on_back_button_js() {
+-	?>
+-	<script>
+-		if ( typeof performance !== 'undefined' && performance.navigation && performance.navigation.type === 2 ) {
++	;
++echo '	<script>
++		if ( typeof performance !== \'undefined\' && performance.navigation && performance.navigation.type === 2 ) {
+ 			document.location.reload( true );
+ 		}
+ 	</script>
+-	<?php
++	';
+ }
+ 
+ /**

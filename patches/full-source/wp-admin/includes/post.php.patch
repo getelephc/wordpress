@@ -1,0 +1,245 @@
+--- a/wp-admin/includes/post.php
++++ b/wp-admin/includes/post.php
+@@ -1851,11 +1851,13 @@
+ 
+ 	$hidden = $locked ? '' : ' hidden';
+ 
+-	?>
+-	<div id="post-lock-dialog" class="notification-dialog-wrap<?php echo $hidden; ?>">
++	;
++echo '	<div id="post-lock-dialog" class="notification-dialog-wrap';
++echo $hidden; ;
++echo '">
+ 	<div class="notification-dialog-background"></div>
+ 	<div class="notification-dialog">
+-	<?php
++	';
+ 
+ 	if ( $locked ) {
+ 		$query_args = array();
+@@ -1885,11 +1887,13 @@
+ 		$override = apply_filters( 'override_post_lock', true, $post, $user );
+ 		$tab_last = $override ? '' : ' wp-tab-last';
+ 
+-		?>
+-		<div class="post-locked-message">
+-		<div class="post-locked-avatar"><?php echo get_avatar( $user->ID, 64 ); ?></div>
++		;
++echo '		<div class="post-locked-message">
++		<div class="post-locked-avatar">';
++echo get_avatar( $user->ID, 64 ); ;
++echo '</div>
+ 		<p class="currently-editing wp-tab-first" tabindex="0">
+-		<?php
++		';
+ 		if ( $override ) {
+ 			/* translators: %s: User's display name. */
+ 			printf( __( '%s is currently editing this post. Do you want to take over?' ), esc_html( $user->display_name ) );
+@@ -1897,9 +1901,9 @@
+ 			/* translators: %s: User's display name. */
+ 			printf( __( '%s is currently editing this post.' ), esc_html( $user->display_name ) );
+ 		}
+-		?>
+-		</p>
+-		<?php
++		;
++echo '		</p>
++		';
+ 		/**
+ 		 * Fires inside the post locked dialog before the buttons are displayed.
+ 		 *
+@@ -1910,35 +1914,56 @@
+ 		 * @param WP_User $user The user with the lock for the post.
+ 		 */
+ 		do_action( 'post_locked_dialog', $post, $user );
+-		?>
+-		<p>
+-		<a class="button" href="<?php echo esc_url( $sendback ); ?>"><?php echo $sendback_text; ?></a>
+-		<?php if ( $preview_link ) { ?>
+-		<a class="button<?php echo $tab_last; ?>" href="<?php echo esc_url( $preview_link ); ?>"><?php echo esc_html_x( 'Preview', 'verb' ); ?></a>
+-			<?php
++		;
++echo '		<p>
++		<a class="button" href="';
++echo esc_url( $sendback ); ;
++echo '">';
++echo $sendback_text; ;
++echo '</a>
++		';
++if ( $preview_link ) { ;
++echo '		<a class="button';
++echo $tab_last; ;
++echo '" href="';
++echo esc_url( $preview_link ); ;
++echo '">';
++echo esc_html_x( 'Preview', 'verb' ); ;
++echo '</a>
++			';
+ 		}
+ 
+ 		// Allow plugins to prevent some users overriding the post lock.
+ 		if ( $override ) {
+-			?>
+-	<a class="button button-primary wp-tab-last" href="<?php echo esc_url( add_query_arg( 'get-post-lock', '1', wp_nonce_url( get_edit_post_link( $post->ID, 'url' ), 'lock-post_' . $post->ID ) ) ); ?>"><?php _e( 'Take over' ); ?></a>
+-			<?php
+-		}
+-
+-		?>
+-		</p>
++			;
++echo '	<a class="button button-primary wp-tab-last" href="';
++echo esc_url( add_query_arg( 'get-post-lock', '1', wp_nonce_url( get_edit_post_link( $post->ID, 'url' ), 'lock-post_' . $post->ID ) ) ); ;
++echo '">';
++_e( 'Take over' ); ;
++echo '</a>
++			';
++		}
++
++		;
++echo '		</p>
+ 		</div>
+-		<?php
++		';
+ 	} else {
+-		?>
+-		<div class="post-taken-over">
++		;
++echo '		<div class="post-taken-over">
+ 			<div class="post-locked-avatar"></div>
+ 			<p class="wp-tab-first" tabindex="0">
+ 			<span class="currently-editing"></span><br />
+-			<span class="locked-saving hidden"><img src="<?php echo esc_url( admin_url( 'images/spinner-2x.gif' ) ); ?>" width="16" height="16" alt="" /> <?php _e( 'Saving revision&hellip;' ); ?></span>
+-			<span class="locked-saved hidden"><?php _e( 'Your latest changes were saved as a revision.' ); ?></span>
++			<span class="locked-saving hidden"><img src="';
++echo esc_url( admin_url( 'images/spinner-2x.gif' ) ); ;
++echo '" width="16" height="16" alt="" /> ';
++_e( 'Saving revision&hellip;' ); ;
++echo '</span>
++			<span class="locked-saved hidden">';
++_e( 'Your latest changes were saved as a revision.' ); ;
++echo '</span>
+ 			</p>
+-			<?php
++			';
+ 			/**
+ 			 * Fires inside the dialog displayed when a user has lost the post lock.
+ 			 *
+@@ -1947,16 +1972,20 @@
+ 			 * @param WP_Post $post Post object.
+ 			 */
+ 			do_action( 'post_lock_lost_dialog', $post );
+-			?>
+-			<p><a class="button button-primary wp-tab-last" href="<?php echo esc_url( $sendback ); ?>"><?php echo $sendback_text; ?></a></p>
++			;
++echo '			<p><a class="button button-primary wp-tab-last" href="';
++echo esc_url( $sendback ); ;
++echo '">';
++echo $sendback_text; ;
++echo '</a></p>
+ 		</div>
+-		<?php
+-	}
+-
+-	?>
++		';
++	}
++
++	;
++echo '	</div>
+ 	</div>
+-	</div>
+-	<?php
++	';
+ }
+ 
+ /**
+@@ -2390,30 +2419,38 @@
+ 	$priorities    = array( 'high', 'sorted', 'core', 'default', 'low' );
+ 
+ 	// Render meta boxes.
+-	?>
+-	<form class="metabox-base-form">
+-	<?php the_block_editor_meta_box_post_form_hidden_fields( $post ); ?>
++	;
++echo '	<form class="metabox-base-form">
++	';
++the_block_editor_meta_box_post_form_hidden_fields( $post ); ;
++echo '	</form>
++	<form id="toggle-custom-fields-form" method="post" action="';
++echo esc_url( admin_url( 'post.php' ) ); ;
++echo '">
++		';
++wp_nonce_field( 'toggle-custom-fields', 'toggle-custom-fields-nonce' ); ;
++echo '		<input type="hidden" name="action" value="toggle-custom-fields" />
+ 	</form>
+-	<form id="toggle-custom-fields-form" method="post" action="<?php echo esc_url( admin_url( 'post.php' ) ); ?>">
+-		<?php wp_nonce_field( 'toggle-custom-fields', 'toggle-custom-fields-nonce' ); ?>
+-		<input type="hidden" name="action" value="toggle-custom-fields" />
+-	</form>
+-	<?php foreach ( $locations as $location ) : ?>
+-		<form class="metabox-location-<?php echo esc_attr( $location ); ?>" onsubmit="return false;">
++	';
++foreach ( $locations as $location ) : ;
++echo '		<form class="metabox-location-';
++echo esc_attr( $location ); ;
++echo '" onsubmit="return false;">
+ 			<div id="poststuff" class="sidebar-open">
+ 				<div id="postbox-container-2" class="postbox-container">
+-					<?php
++					';
+ 					do_meta_boxes(
+ 						$current_screen,
+ 						$location,
+ 						$post
+ 					);
+-					?>
+-				</div>
++					;
++echo '				</div>
+ 			</div>
+ 		</form>
+-	<?php endforeach; ?>
+-	<?php
++	';
++endforeach; ;
++echo '	';
+ 
+ 	$meta_boxes_per_location = array();
+ 	foreach ( $locations as $location ) {
+@@ -2584,15 +2621,27 @@
+ 			echo $element;
+ 		}
+ 	}
+-	?>
+-	<input type="hidden" id="user-id" name="user_ID" value="<?php echo (int) $user_id; ?>" />
+-	<input type="hidden" id="hiddenaction" name="action" value="<?php echo esc_attr( $form_action ); ?>" />
+-	<input type="hidden" id="originalaction" name="originalaction" value="<?php echo esc_attr( $form_action ); ?>" />
+-	<input type="hidden" id="post_type" name="post_type" value="<?php echo esc_attr( $post->post_type ); ?>" />
+-	<input type="hidden" id="original_post_status" name="original_post_status" value="<?php echo esc_attr( $post->post_status ); ?>" />
+-	<input type="hidden" id="referredby" name="referredby" value="<?php echo $referer ? esc_url( $referer ) : ''; ?>" />
+-
+-	<?php
++	;
++echo '	<input type="hidden" id="user-id" name="user_ID" value="';
++echo (int) $user_id; ;
++echo '" />
++	<input type="hidden" id="hiddenaction" name="action" value="';
++echo esc_attr( $form_action ); ;
++echo '" />
++	<input type="hidden" id="originalaction" name="originalaction" value="';
++echo esc_attr( $form_action ); ;
++echo '" />
++	<input type="hidden" id="post_type" name="post_type" value="';
++echo esc_attr( $post->post_type ); ;
++echo '" />
++	<input type="hidden" id="original_post_status" name="original_post_status" value="';
++echo esc_attr( $post->post_status ); ;
++echo '" />
++	<input type="hidden" id="referredby" name="referredby" value="';
++echo $referer ? esc_url( $referer ) : ''; ;
++echo '" />
++
++	';
+ 	if ( 'draft' !== get_post_status( $post ) ) {
+ 		wp_original_referer_field( true, 'previous' );
+ 	}

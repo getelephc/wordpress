@@ -1,0 +1,96 @@
+--- a/wp-includes/widgets/class-wp-widget-media.php
++++ b/wp-includes/widgets/class-wp-widget-media.php
+@@ -342,16 +342,24 @@
+ 			array_keys( $instance_schema )
+ 		);
+ 
+-		foreach ( $instance as $name => $value ) : ?>
+-			<input
++		foreach ( $instance as $name => $value ) : ;
++echo '			<input
+ 				type="hidden"
+-				data-property="<?php echo esc_attr( $name ); ?>"
++				data-property="';
++echo esc_attr( $name ); ;
++echo '"
+ 				class="media-widget-instance-property"
+-				name="<?php echo esc_attr( $this->get_field_name( $name ) ); ?>"
+-				id="<?php echo esc_attr( $this->get_field_id( $name ) ); // Needed specifically by wpWidgets.appendTitle(). ?>"
+-				value="<?php echo esc_attr( is_array( $value ) ? implode( ',', $value ) : (string) $value ); ?>"
++				name="';
++echo esc_attr( $this->get_field_name( $name ) ); ;
++echo '"
++				id="';
++echo esc_attr( $this->get_field_id( $name ) ); // Needed specifically by wpWidgets.appendTitle(). ;
++echo '"
++				value="';
++echo esc_attr( is_array( $value ) ? implode( ',', $value ) : (string) $value ); ;
++echo '"
+ 			/>
+-			<?php
++			';
+ 		endforeach;
+ 	}
+ 
+@@ -414,34 +422,45 @@
+ 	 * @since 4.8.0
+ 	 */
+ 	public function render_control_template_scripts() {
+-		?>
+-		<script type="text/html" id="tmpl-widget-media-<?php echo esc_attr( $this->id_base ); ?>-control">
+-			<# var elementIdPrefix = 'el' + String( Math.random() ) + '_' #>
++		;
++echo '		<script type="text/html" id="tmpl-widget-media-';
++echo esc_attr( $this->id_base ); ;
++echo '-control">
++			<# var elementIdPrefix = \'el\' + String( Math.random() ) + \'_\' #>
+ 			<p>
+-				<label for="{{ elementIdPrefix }}title"><?php esc_html_e( 'Title:' ); ?></label>
++				<label for="{{ elementIdPrefix }}title">';
++esc_html_e( 'Title:' ); ;
++echo '</label>
+ 				<input id="{{ elementIdPrefix }}title" type="text" class="widefat title">
+ 			</p>
+-			<div class="media-widget-preview <?php echo esc_attr( $this->id_base ); ?>">
++			<div class="media-widget-preview ';
++echo esc_attr( $this->id_base ); ;
++echo '">
+ 				<div class="attachment-media-view">
+ 					<button type="button" class="select-media button-add-media not-selected">
+-						<?php echo esc_html( $this->l10n['add_media'] ); ?>
+-					</button>
++						';
++echo esc_html( $this->l10n['add_media'] ); ;
++echo '					</button>
+ 				</div>
+ 			</div>
+ 			<p class="media-widget-buttons">
+ 				<button type="button" class="button edit-media selected">
+-					<?php echo esc_html( $this->l10n['edit_media'] ); ?>
+-				</button>
+-			<?php if ( ! empty( $this->l10n['replace_media'] ) ) : ?>
+-				<button type="button" class="button change-media select-media selected">
+-					<?php echo esc_html( $this->l10n['replace_media'] ); ?>
+-				</button>
+-			<?php endif; ?>
+-			</p>
++					';
++echo esc_html( $this->l10n['edit_media'] ); ;
++echo '				</button>
++			';
++if ( ! empty( $this->l10n['replace_media'] ) ) : ;
++echo '				<button type="button" class="button change-media select-media selected">
++					';
++echo esc_html( $this->l10n['replace_media'] ); ;
++echo '				</button>
++			';
++endif; ;
++echo '			</p>
+ 			<div class="media-widget-fields">
+ 			</div>
+ 		</script>
+-		<?php
++		';
+ 	}
+ 
+ 	/**

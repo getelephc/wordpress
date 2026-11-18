@@ -1,0 +1,11 @@
+--- a/wp-includes/class-wpdb.php
++++ b/wp-includes/class-wpdb.php
+@@ -2002,7 +2002,7 @@
+ 
+ 			// Load custom DB error template, if present.
+ 			if ( file_exists( WP_CONTENT_DIR . '/db-error.php' ) ) {
+-				require_once WP_CONTENT_DIR . '/db-error.php';
++				throw new RuntimeException( 'Custom database error drop-ins are outside the finite Elephc fixture.' );
+ 				die();
+ 			}
+ 

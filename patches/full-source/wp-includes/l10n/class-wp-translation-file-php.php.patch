@@ -1,0 +1,11 @@
+--- a/wp-includes/l10n/class-wp-translation-file-php.php
++++ b/wp-includes/l10n/class-wp-translation-file-php.php
+@@ -21,7 +21,7 @@
+ 	protected function parse_file() {
+ 		$this->parsed = true;
+ 
+-		$result = include $this->file;
++		$result = aot_translation_catalog( $this->file );
+ 		if ( ! $result || ! is_array( $result ) ) {
+ 			$this->error = 'Invalid data';
+ 			return;

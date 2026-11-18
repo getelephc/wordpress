@@ -1,0 +1,104 @@
+--- a/wp-includes/SimplePie/autoloader.php
++++ b/wp-includes/SimplePie/autoloader.php
+@@ -40,7 +40,55 @@
+ 
+     // if the file exists, require it
+     if (file_exists($file)) {
+-        require $file;
++        switch ( $file ) {
++            case __DIR__ . '/src/Author.php': require __DIR__ . '/src/Author.php'; break;
++            case __DIR__ . '/src/Cache/Base.php': require __DIR__ . '/src/Cache/Base.php'; break;
++            case __DIR__ . '/src/Cache/BaseDataCache.php': require __DIR__ . '/src/Cache/BaseDataCache.php'; break;
++            case __DIR__ . '/src/Cache/CallableNameFilter.php': require __DIR__ . '/src/Cache/CallableNameFilter.php'; break;
++            case __DIR__ . '/src/Cache/DB.php': require __DIR__ . '/src/Cache/DB.php'; break;
++            case __DIR__ . '/src/Cache/DataCache.php': require __DIR__ . '/src/Cache/DataCache.php'; break;
++            case __DIR__ . '/src/Cache/File.php': require __DIR__ . '/src/Cache/File.php'; break;
++            case __DIR__ . '/src/Cache/Memcache.php': require __DIR__ . '/src/Cache/Memcache.php'; break;
++            case __DIR__ . '/src/Cache/Memcached.php': require __DIR__ . '/src/Cache/Memcached.php'; break;
++            case __DIR__ . '/src/Cache/MySQL.php': require __DIR__ . '/src/Cache/MySQL.php'; break;
++            case __DIR__ . '/src/Cache/NameFilter.php': require __DIR__ . '/src/Cache/NameFilter.php'; break;
++            case __DIR__ . '/src/Cache/Psr16.php': require __DIR__ . '/src/Cache/Psr16.php'; break;
++            case __DIR__ . '/src/Cache/Redis.php': require __DIR__ . '/src/Cache/Redis.php'; break;
++            case __DIR__ . '/src/Cache.php': require __DIR__ . '/src/Cache.php'; break;
++            case __DIR__ . '/src/Caption.php': require __DIR__ . '/src/Caption.php'; break;
++            case __DIR__ . '/src/Category.php': require __DIR__ . '/src/Category.php'; break;
++            case __DIR__ . '/src/Content/Type/Sniffer.php': require __DIR__ . '/src/Content/Type/Sniffer.php'; break;
++            case __DIR__ . '/src/Copyright.php': require __DIR__ . '/src/Copyright.php'; break;
++            case __DIR__ . '/src/Credit.php': require __DIR__ . '/src/Credit.php'; break;
++            case __DIR__ . '/src/Enclosure.php': require __DIR__ . '/src/Enclosure.php'; break;
++            case __DIR__ . '/src/Exception.php': require __DIR__ . '/src/Exception.php'; break;
++            case __DIR__ . '/src/File.php': require __DIR__ . '/src/File.php'; break;
++            case __DIR__ . '/src/Gzdecode.php': require __DIR__ . '/src/Gzdecode.php'; break;
++            case __DIR__ . '/src/HTTP/Client.php': require __DIR__ . '/src/HTTP/Client.php'; break;
++            case __DIR__ . '/src/HTTP/ClientException.php': require __DIR__ . '/src/HTTP/ClientException.php'; break;
++            case __DIR__ . '/src/HTTP/FileClient.php': require __DIR__ . '/src/HTTP/FileClient.php'; break;
++            case __DIR__ . '/src/HTTP/Parser.php': require __DIR__ . '/src/HTTP/Parser.php'; break;
++            case __DIR__ . '/src/HTTP/Psr18Client.php': require __DIR__ . '/src/HTTP/Psr18Client.php'; break;
++            case __DIR__ . '/src/HTTP/Psr7Response.php': require __DIR__ . '/src/HTTP/Psr7Response.php'; break;
++            case __DIR__ . '/src/HTTP/RawTextResponse.php': require __DIR__ . '/src/HTTP/RawTextResponse.php'; break;
++            case __DIR__ . '/src/HTTP/Response.php': require __DIR__ . '/src/HTTP/Response.php'; break;
++            case __DIR__ . '/src/IRI.php': require __DIR__ . '/src/IRI.php'; break;
++            case __DIR__ . '/src/Item.php': require __DIR__ . '/src/Item.php'; break;
++            case __DIR__ . '/src/Locator.php': require __DIR__ . '/src/Locator.php'; break;
++            case __DIR__ . '/src/Misc.php': require __DIR__ . '/src/Misc.php'; break;
++            case __DIR__ . '/src/Net/IPv6.php': require __DIR__ . '/src/Net/IPv6.php'; break;
++            case __DIR__ . '/src/Parse/Date.php': require __DIR__ . '/src/Parse/Date.php'; break;
++            case __DIR__ . '/src/Parser.php': require __DIR__ . '/src/Parser.php'; break;
++            case __DIR__ . '/src/Rating.php': require __DIR__ . '/src/Rating.php'; break;
++            case __DIR__ . '/src/Registry.php': require __DIR__ . '/src/Registry.php'; break;
++            case __DIR__ . '/src/RegistryAware.php': require __DIR__ . '/src/RegistryAware.php'; break;
++            case __DIR__ . '/src/Restriction.php': require __DIR__ . '/src/Restriction.php'; break;
++            case __DIR__ . '/src/Sanitize.php': require __DIR__ . '/src/Sanitize.php'; break;
++            case __DIR__ . '/src/SimplePie.php': require __DIR__ . '/src/SimplePie.php'; break;
++            case __DIR__ . '/src/Source.php': require __DIR__ . '/src/Source.php'; break;
++            case __DIR__ . '/src/XML/Declaration/Parser.php': require __DIR__ . '/src/XML/Declaration/Parser.php'; break;
++            default: throw new \RuntimeException( 'SimplePie class is outside the pinned source manifest: ' . $file );
++        }
+     }
+ });
+ 
+@@ -81,6 +129,43 @@
+ 		}
+ 
+ 		$filename = $this->path . DIRECTORY_SEPARATOR . str_replace('_', DIRECTORY_SEPARATOR, $class) . '.php';
+-		include $filename;
++		switch ( $filename ) {
++		    case __DIR__ . '/library/SimplePie/Author.php': include __DIR__ . '/library/SimplePie/Author.php'; break;
++		    case __DIR__ . '/library/SimplePie/Cache/Base.php': include __DIR__ . '/library/SimplePie/Cache/Base.php'; break;
++		    case __DIR__ . '/library/SimplePie/Cache/DB.php': include __DIR__ . '/library/SimplePie/Cache/DB.php'; break;
++		    case __DIR__ . '/library/SimplePie/Cache/File.php': include __DIR__ . '/library/SimplePie/Cache/File.php'; break;
++		    case __DIR__ . '/library/SimplePie/Cache/Memcache.php': include __DIR__ . '/library/SimplePie/Cache/Memcache.php'; break;
++		    case __DIR__ . '/library/SimplePie/Cache/Memcached.php': include __DIR__ . '/library/SimplePie/Cache/Memcached.php'; break;
++		    case __DIR__ . '/library/SimplePie/Cache/MySQL.php': include __DIR__ . '/library/SimplePie/Cache/MySQL.php'; break;
++		    case __DIR__ . '/library/SimplePie/Cache/Redis.php': include __DIR__ . '/library/SimplePie/Cache/Redis.php'; break;
++		    case __DIR__ . '/library/SimplePie/Cache.php': include __DIR__ . '/library/SimplePie/Cache.php'; break;
++		    case __DIR__ . '/library/SimplePie/Caption.php': include __DIR__ . '/library/SimplePie/Caption.php'; break;
++		    case __DIR__ . '/library/SimplePie/Category.php': include __DIR__ . '/library/SimplePie/Category.php'; break;
++		    case __DIR__ . '/library/SimplePie/Content/Type/Sniffer.php': include __DIR__ . '/library/SimplePie/Content/Type/Sniffer.php'; break;
++		    case __DIR__ . '/library/SimplePie/Copyright.php': include __DIR__ . '/library/SimplePie/Copyright.php'; break;
++		    case __DIR__ . '/library/SimplePie/Core.php': include __DIR__ . '/library/SimplePie/Core.php'; break;
++		    case __DIR__ . '/library/SimplePie/Credit.php': include __DIR__ . '/library/SimplePie/Credit.php'; break;
++		    case __DIR__ . '/library/SimplePie/Decode/HTML/Entities.php': include __DIR__ . '/library/SimplePie/Decode/HTML/Entities.php'; break;
++		    case __DIR__ . '/library/SimplePie/Enclosure.php': include __DIR__ . '/library/SimplePie/Enclosure.php'; break;
++		    case __DIR__ . '/library/SimplePie/Exception.php': include __DIR__ . '/library/SimplePie/Exception.php'; break;
++		    case __DIR__ . '/library/SimplePie/File.php': include __DIR__ . '/library/SimplePie/File.php'; break;
++		    case __DIR__ . '/library/SimplePie/HTTP/Parser.php': include __DIR__ . '/library/SimplePie/HTTP/Parser.php'; break;
++		    case __DIR__ . '/library/SimplePie/IRI.php': include __DIR__ . '/library/SimplePie/IRI.php'; break;
++		    case __DIR__ . '/library/SimplePie/Item.php': include __DIR__ . '/library/SimplePie/Item.php'; break;
++		    case __DIR__ . '/library/SimplePie/Locator.php': include __DIR__ . '/library/SimplePie/Locator.php'; break;
++		    case __DIR__ . '/library/SimplePie/Misc.php': include __DIR__ . '/library/SimplePie/Misc.php'; break;
++		    case __DIR__ . '/library/SimplePie/Net/IPv6.php': include __DIR__ . '/library/SimplePie/Net/IPv6.php'; break;
++		    case __DIR__ . '/library/SimplePie/Parse/Date.php': include __DIR__ . '/library/SimplePie/Parse/Date.php'; break;
++		    case __DIR__ . '/library/SimplePie/Parser.php': include __DIR__ . '/library/SimplePie/Parser.php'; break;
++		    case __DIR__ . '/library/SimplePie/Rating.php': include __DIR__ . '/library/SimplePie/Rating.php'; break;
++		    case __DIR__ . '/library/SimplePie/Registry.php': include __DIR__ . '/library/SimplePie/Registry.php'; break;
++		    case __DIR__ . '/library/SimplePie/Restriction.php': include __DIR__ . '/library/SimplePie/Restriction.php'; break;
++		    case __DIR__ . '/library/SimplePie/Sanitize.php': include __DIR__ . '/library/SimplePie/Sanitize.php'; break;
++		    case __DIR__ . '/library/SimplePie/Source.php': include __DIR__ . '/library/SimplePie/Source.php'; break;
++		    case __DIR__ . '/library/SimplePie/XML/Declaration/Parser.php': include __DIR__ . '/library/SimplePie/XML/Declaration/Parser.php'; break;
++		    case __DIR__ . '/library/SimplePie/gzdecode.php': include __DIR__ . '/library/SimplePie/gzdecode.php'; break;
++		    case __DIR__ . '/library/SimplePie.php': include __DIR__ . '/library/SimplePie.php'; break;
++		    default: throw new \RuntimeException( 'SimplePie class is outside the pinned source manifest: ' . $filename );
++		}
+ 	}
+ }

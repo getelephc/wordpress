@@ -1,0 +1,45 @@
+--- a/wp-admin/includes/class-wp-ms-themes-list-table.php
++++ b/wp-admin/includes/class-wp-ms-themes-list-table.php
+@@ -532,20 +532,26 @@
+ 		$theme = $item;
+ 
+ 		$checkbox_id = 'checkbox_' . md5( $theme->get( 'Name' ) );
+-		?>
+-		<input type="checkbox" name="checked[]" value="<?php echo esc_attr( $theme->get_stylesheet() ); ?>" id="<?php echo $checkbox_id; ?>" />
+-		<label for="<?php echo $checkbox_id; ?>" >
++		;
++echo '		<input type="checkbox" name="checked[]" value="';
++echo esc_attr( $theme->get_stylesheet() ); ;
++echo '" id="';
++echo $checkbox_id; ;
++echo '" />
++		<label for="';
++echo $checkbox_id; ;
++echo '" >
+ 			<span class="screen-reader-text">
+-			<?php
++			';
+ 			printf(
+ 				/* translators: Hidden accessibility text. %s: Theme name */
+ 				__( 'Select %s' ),
+ 				$theme->display( 'Name' )
+ 			);
+-			?>
+-			</span>
++			;
++echo '			</span>
+ 		</label>
+-		<?php
++		';
+ 	}
+ 
+ 	/**
+@@ -806,7 +812,7 @@
+ 	public function column_autoupdates( $theme ) {
+ 		global $status, $page;
+ 
+-		static $auto_updates, $available_updates;
++		static $auto_updates; static  $available_updates;
+ 
+ 		if ( ! $auto_updates ) {
+ 			$auto_updates = (array) get_site_option( 'auto_update_themes', array() );

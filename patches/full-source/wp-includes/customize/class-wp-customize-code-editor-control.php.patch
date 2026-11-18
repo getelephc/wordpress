@@ -1,0 +1,26 @@
+--- a/wp-includes/customize/class-wp-customize-code-editor-control.php
++++ b/wp-includes/customize/class-wp-customize-code-editor-control.php
+@@ -90,8 +90,8 @@
+ 	 * @since 4.9.0
+ 	 */
+ 	public function content_template() {
+-		?>
+-		<# var elementIdPrefix = 'el' + String( Math.random() ); #>
++		;
++echo '		<# var elementIdPrefix = \'el\' + String( Math.random() ); #>
+ 		<# if ( data.label ) { #>
+ 			<label for="{{ elementIdPrefix }}_editor" class="customize-control-title">
+ 				{{ data.label }}
+@@ -102,10 +102,10 @@
+ 		<# } #>
+ 		<div class="customize-control-notifications-container"></div>
+ 		<textarea id="{{ elementIdPrefix }}_editor"
+-			<# _.each( _.extend( { 'class': 'code' }, data.input_attrs ), function( value, key ) { #>
++			<# _.each( _.extend( { \'class\': \'code\' }, data.input_attrs ), function( value, key ) { #>
+ 				{{{ key }}}="{{ value }}"
+ 			<# }); #>
+ 			></textarea>
+-		<?php
++		';
+ 	}
+ }

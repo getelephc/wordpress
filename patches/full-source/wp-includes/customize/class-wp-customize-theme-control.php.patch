@@ -1,0 +1,287 @@
+--- a/wp-includes/customize/class-wp-customize-theme-control.php
++++ b/wp-includes/customize/class-wp-customize-theme-control.php
+@@ -65,8 +65,8 @@
+ 		$preview_label = sprintf( __( 'Live preview theme: %s' ), '{{ data.theme.name }}' );
+ 		/* translators: %s: Theme name. */
+ 		$install_label = sprintf( __( 'Install and preview theme: %s' ), '{{ data.theme.name }}' );
+-		?>
+-		<# if ( data.theme.active ) { #>
++		;
++echo '		<# if ( data.theme.active ) { #>
+ 			<div class="theme active" tabindex="0" aria-describedby="{{ data.section }}-{{ data.theme.id }}-action">
+ 		<# } else { #>
+ 			<div class="theme" tabindex="0" aria-describedby="{{ data.section }}-{{ data.theme.id }}-action">
+@@ -80,20 +80,24 @@
+ 				<div class="theme-screenshot blank"></div>
+ 			<# } #>
+ 
+-			<span class="more-details theme-details" id="{{ data.section }}-{{ data.theme.id }}-action" aria-label="<?php echo esc_attr( $details_label ); ?>"><?php _e( 'Theme Details' ); ?></span>
++			<span class="more-details theme-details" id="{{ data.section }}-{{ data.theme.id }}-action" aria-label="';
++echo esc_attr( $details_label ); ;
++echo '">';
++_e( 'Theme Details' ); ;
++echo '</span>
+ 
+ 			<div class="theme-author">
+-			<?php
++			';
+ 				/* translators: Theme author name. */
+ 				printf( _x( 'By %s', 'theme author' ), '{{ data.theme.author }}' );
+-			?>
+-			</div>
+-
+-			<# if ( 'installed' === data.theme.type && data.theme.hasUpdate ) { #>
++			;
++echo '			</div>
++
++			<# if ( \'installed\' === data.theme.type && data.theme.hasUpdate ) { #>
+ 				<# if ( data.theme.updateResponse.compatibleWP && data.theme.updateResponse.compatiblePHP ) { #>
+ 					<div class="update-message notice inline notice-warning notice-alt" data-slug="{{ data.theme.id }}">
+ 						<p>
+-							<?php
++							';
+ 							if ( is_multisite() ) {
+ 								_e( 'New version available.' );
+ 							} else {
+@@ -103,14 +107,14 @@
+ 									'<button class="button-link update-theme" type="button">' . __( 'Update now' ) . '</button>'
+ 								);
+ 							}
+-							?>
+-						</p>
++							;
++echo '						</p>
+ 					</div>
+ 				<# } else { #>
+ 					<div class="update-message notice inline notice-error notice-alt" data-slug="{{ data.theme.id }}">
+ 						<p>
+ 							<# if ( ! data.theme.updateResponse.compatibleWP && ! data.theme.updateResponse.compatiblePHP ) { #>
+-								<?php
++								';
+ 								printf(
+ 									/* translators: %s: Theme name. */
+ 									__( 'There is a new version of %s available, but it does not work with your versions of WordPress and PHP.' ),
+@@ -138,9 +142,9 @@
+ 									);
+ 									wp_update_php_annotation( '</p><p><em>', '</em>' );
+ 								}
+-								?>
+-							<# } else if ( ! data.theme.updateResponse.compatibleWP ) { #>
+-								<?php
++								;
++echo '							<# } else if ( ! data.theme.updateResponse.compatibleWP ) { #>
++								';
+ 								printf(
+ 									/* translators: %s: Theme name. */
+ 									__( 'There is a new version of %s available, but it does not work with your version of WordPress.' ),
+@@ -153,9 +157,9 @@
+ 										self_admin_url( 'update-core.php' )
+ 									);
+ 								}
+-								?>
+-							<# } else if ( ! data.theme.updateResponse.compatiblePHP ) { #>
+-								<?php
++								;
++echo '							<# } else if ( ! data.theme.updateResponse.compatiblePHP ) { #>
++								';
+ 								printf(
+ 									/* translators: %s: Theme name. */
+ 									__( 'There is a new version of %s available, but it does not work with your version of PHP.' ),
+@@ -169,8 +173,8 @@
+ 									);
+ 									wp_update_php_annotation( '</p><p><em>', '</em>' );
+ 								}
+-								?>
+-							<# } #>
++								;
++echo '							<# } #>
+ 						</p>
+ 					</div>
+ 				<# } #>
+@@ -179,7 +183,7 @@
+ 			<# if ( ! data.theme.compatibleWP || ! data.theme.compatiblePHP ) { #>
+ 				<div class="notice notice-error notice-alt"><p>
+ 					<# if ( ! data.theme.compatibleWP && ! data.theme.compatiblePHP ) { #>
+-						<?php
++						';
+ 						_e( 'This theme does not work with your versions of WordPress and PHP.' );
+ 						if ( current_user_can( 'update_core' ) && current_user_can( 'update_php' ) ) {
+ 							printf(
+@@ -203,9 +207,9 @@
+ 							);
+ 							wp_update_php_annotation( '</p><p><em>', '</em>' );
+ 						}
+-						?>
+-					<# } else if ( ! data.theme.compatibleWP ) { #>
+-						<?php
++						;
++echo '					<# } else if ( ! data.theme.compatibleWP ) { #>
++						';
+ 						_e( 'This theme does not work with your version of WordPress.' );
+ 						if ( current_user_can( 'update_core' ) ) {
+ 							printf(
+@@ -214,9 +218,9 @@
+ 								self_admin_url( 'update-core.php' )
+ 							);
+ 						}
+-						?>
+-					<# } else if ( ! data.theme.compatiblePHP ) { #>
+-						<?php
++						;
++echo '					<# } else if ( ! data.theme.compatiblePHP ) { #>
++						';
+ 						_e( 'This theme does not work with your version of PHP.' );
+ 						if ( current_user_can( 'update_php' ) ) {
+ 							printf(
+@@ -226,21 +230,27 @@
+ 							);
+ 							wp_update_php_annotation( '</p><p><em>', '</em>' );
+ 						}
+-						?>
+-					<# } #>
++						;
++echo '					<# } #>
+ 				</p></div>
+ 			<# } #>
+ 
+ 			<# if ( data.theme.active ) { #>
+ 				<div class="theme-id-container">
+ 					<h3 class="theme-name" id="{{ data.section }}-{{ data.theme.id }}-name">
+-						<span><?php _ex( 'Previewing:', 'theme' ); ?></span> {{ data.theme.name }}
++						<span>';
++_ex( 'Previewing:', 'theme' ); ;
++echo '</span> {{ data.theme.name }}
+ 					</h3>
+ 					<div class="theme-actions">
+-						<button type="button" class="button button-primary customize-theme" aria-label="<?php echo esc_attr( $customize_label ); ?>"><?php _e( 'Customize' ); ?></button>
++						<button type="button" class="button button-primary customize-theme" aria-label="';
++echo esc_attr( $customize_label ); ;
++echo '">';
++_e( 'Customize' ); ;
++echo '</button>
+ 					</div>
+ 				</div>
+-				<?php
++				';
+ 				wp_admin_notice(
+ 					_x( 'Installed', 'theme' ),
+ 					array(
+@@ -248,33 +258,38 @@
+ 						'additional_classes' => array( 'notice-alt' ),
+ 					)
+ 				);
+-				?>
+-			<# } else if ( 'installed' === data.theme.type ) { #>
++				;
++echo '			<# } else if ( \'installed\' === data.theme.type ) { #>
+ 				<# if ( data.theme.blockTheme ) { #>
+ 					<div class="theme-id-container">
+ 						<h3 class="theme-name" id="{{ data.section }}-{{ data.theme.id }}-name">{{ data.theme.name }}</h3>
+ 						<div class="theme-actions">
+ 							<# if ( data.theme.actions.activate ) { #>
+-								<?php
++								';
+ 									/* translators: %s: Theme name. */
+ 									$aria_label = sprintf( _x( 'Activate %s', 'theme' ), '{{ data.name }}' );
+-								?>
+-								<a href="{{{ data.theme.actions.activate }}}" class="button button-primary activate" aria-label="<?php echo esc_attr( $aria_label ); ?>"><?php _e( 'Activate' ); ?></a>
++								;
++echo '								<a href="{{{ data.theme.actions.activate }}}" class="button button-primary activate" aria-label="';
++echo esc_attr( $aria_label ); ;
++echo '">';
++_e( 'Activate' ); ;
++echo '</a>
+ 							<# } #>
+ 						</div>
+ 					</div>
+-					<?php $customizer_not_supported_message = __( 'This theme doesn\'t support Customizer.' ); ?>
+-					<# if ( data.theme.actions.activate ) { #>
+-						<?php
++					';
++$customizer_not_supported_message = __( 'This theme doesn\'t support Customizer.' ); ;
++echo '					<# if ( data.theme.actions.activate ) { #>
++						';
+ 							$customizer_not_supported_message .= ' ' . sprintf(
+ 								/* translators: %s: URL to the themes page (also it activates the theme). */
+ 								__( 'However, you can still <a href="%s">activate this theme</a>, and use the Site Editor to customize it.' ),
+ 								'{{{ data.theme.actions.activate }}}'
+ 							);
+-						?>
+-					<# } #>
+-
+-					<?php
++						;
++echo '					<# } #>
++
++					';
+ 					wp_admin_notice(
+ 						$customizer_not_supported_message,
+ 						array(
+@@ -282,19 +297,27 @@
+ 							'additional_classes' => array( 'notice-alt' ),
+ 						)
+ 					);
+-					?>
+-				<# } else { #>
++					;
++echo '				<# } else { #>
+ 					<div class="theme-id-container">
+ 						<h3 class="theme-name" id="{{ data.section }}-{{ data.theme.id }}-name">{{ data.theme.name }}</h3>
+ 						<div class="theme-actions">
+ 							<# if ( data.theme.compatibleWP && data.theme.compatiblePHP ) { #>
+-								<button type="button" class="button button-primary preview-theme" aria-label="<?php echo esc_attr( $preview_label ); ?>" data-slug="{{ data.theme.id }}"><?php _e( 'Live Preview' ); ?></button>
++								<button type="button" class="button button-primary preview-theme" aria-label="';
++echo esc_attr( $preview_label ); ;
++echo '" data-slug="{{ data.theme.id }}">';
++_e( 'Live Preview' ); ;
++echo '</button>
+ 							<# } else { #>
+-								<button type="button" class="button button-primary disabled" aria-label="<?php echo esc_attr( $preview_label ); ?>"><?php _e( 'Live Preview' ); ?></button>
++								<button type="button" class="button button-primary disabled" aria-label="';
++echo esc_attr( $preview_label ); ;
++echo '">';
++_e( 'Live Preview' ); ;
++echo '</button>
+ 							<# } #>
+ 						</div>
+ 					</div>
+-					<?php
++					';
+ 					wp_admin_notice(
+ 						_x( 'Installed', 'theme' ),
+ 						array(
+@@ -302,21 +325,29 @@
+ 							'additional_classes' => array( 'notice-alt' ),
+ 						)
+ 					);
+-					?>
+-				<# } #>
++					;
++echo '				<# } #>
+ 			<# } else { #>
+ 				<div class="theme-id-container">
+ 					<h3 class="theme-name" id="{{ data.section }}-{{ data.theme.id }}-name">{{ data.theme.name }}</h3>
+ 					<div class="theme-actions">
+ 						<# if ( data.theme.compatibleWP && data.theme.compatiblePHP ) { #>
+-							<button type="button" class="button button-primary theme-install preview" aria-label="<?php echo esc_attr( $install_label ); ?>" data-slug="{{ data.theme.id }}" data-name="{{ data.theme.name }}"><?php _e( 'Install &amp; Preview' ); ?></button>
++							<button type="button" class="button button-primary theme-install preview" aria-label="';
++echo esc_attr( $install_label ); ;
++echo '" data-slug="{{ data.theme.id }}" data-name="{{ data.theme.name }}">';
++_e( 'Install &amp; Preview' ); ;
++echo '</button>
+ 						<# } else { #>
+-							<button type="button" class="button button-primary disabled" aria-label="<?php echo esc_attr( $install_label ); ?>" disabled><?php _e( 'Install &amp; Preview' ); ?></button>
++							<button type="button" class="button button-primary disabled" aria-label="';
++echo esc_attr( $install_label ); ;
++echo '" disabled>';
++_e( 'Install &amp; Preview' ); ;
++echo '</button>
+ 						<# } #>
+ 					</div>
+ 				</div>
+ 			<# } #>
+ 		</div>
+-		<?php
++		';
+ 	}
+ }

@@ -1,0 +1,194 @@
+--- a/wp-admin/includes/class-wp-list-table.php
++++ b/wp-admin/includes/class-wp-list-table.php
+@@ -412,13 +412,22 @@
+ 		if ( ! empty( $_REQUEST['detached'] ) ) {
+ 			echo '<input type="hidden" name="detached" value="' . esc_attr( $_REQUEST['detached'] ) . '" />';
+ 		}
+-		?>
+-<p class="search-box">
+-	<label class="screen-reader-text" for="<?php echo esc_attr( $input_id ); ?>"><?php echo $text; ?>:</label>
+-	<input type="search" id="<?php echo esc_attr( $input_id ); ?>" name="s" value="<?php _admin_search_query(); ?>" />
+-		<?php submit_button( $text, 'compact', '', false, array( 'id' => 'search-submit' ) ); ?>
+-</p>
+-		<?php
++		;
++echo '<p class="search-box">
++	<label class="screen-reader-text" for="';
++echo esc_attr( $input_id ); ;
++echo '">';
++echo $text; ;
++echo ':</label>
++	<input type="search" id="';
++echo esc_attr( $input_id ); ;
++echo '" name="s" value="';
++_admin_search_query(); ;
++echo '" />
++		';
++submit_button( $text, 'compact', '', false, array( 'id' => 'search-submit' ) ); ;
++echo '</p>
++		';
+ 	}
+ 
+ 	/**
+@@ -771,11 +780,17 @@
+ 		}
+ 
+ 		$selected_month = isset( $_GET['m'] ) ? (int) $_GET['m'] : 0;
+-		?>
+-		<label for="filter-by-date" class="screen-reader-text"><?php echo get_post_type_object( $post_type )->labels->filter_by_date; ?></label>
++		;
++echo '		<label for="filter-by-date" class="screen-reader-text">';
++echo get_post_type_object( $post_type )->labels->filter_by_date; ;
++echo '</label>
+ 		<select name="m" id="filter-by-date">
+-			<option<?php selected( $selected_month, 0 ); ?> value="0"><?php _e( 'All dates' ); ?></option>
+-		<?php
++			<option';
++selected( $selected_month, 0 ); ;
++echo ' value="0">';
++_e( 'All dates' ); ;
++echo '</option>
++		';
+ 		foreach ( $months as $arc_row ) {
+ 			if ( 0 === (int) $arc_row->year ) {
+ 				continue;
+@@ -792,9 +807,9 @@
+ 				esc_html( sprintf( __( '%1$s %2$d' ), $wp_locale->get_month( $month ), $year ) )
+ 			);
+ 		}
+-		?>
+-		</select>
+-		<?php
++		;
++echo '		</select>
++		';
+ 	}
+ 
+ 	/**
+@@ -805,10 +820,12 @@
+ 	 * @param string $current_mode The current view mode slug, e.g. 'list' or 'excerpt'.
+ 	 */
+ 	protected function view_switcher( $current_mode ) {
+-		?>
+-		<input type="hidden" name="mode" value="<?php echo esc_attr( $current_mode ); ?>" />
++		;
++echo '		<input type="hidden" name="mode" value="';
++echo esc_attr( $current_mode ); ;
++echo '" />
+ 		<div class="view-switch">
+-		<?php
++		';
+ 		foreach ( $this->modes as $mode => $title ) {
+ 			$classes      = array( 'view-' . $mode );
+ 			$aria_current = '';
+@@ -827,9 +844,9 @@
+ 				$title
+ 			);
+ 		}
+-		?>
+-		</div>
+-		<?php
++		;
++echo '		</div>
++		';
+ 	}
+ 
+ 	/**
+@@ -1625,33 +1642,39 @@
+ 		$this->display_tablenav( 'top' );
+ 
+ 		$this->screen->render_screen_reader_content( 'heading_list' );
+-		?>
+-<table class="wp-list-table <?php echo implode( ' ', $this->get_table_classes() ); ?>">
+-		<?php $this->print_table_description(); ?>
+-	<thead>
++		;
++echo '<table class="wp-list-table ';
++echo implode( ' ', $this->get_table_classes() ); ;
++echo '">
++		';
++$this->print_table_description(); ;
++echo '	<thead>
+ 	<tr>
+-		<?php $this->print_column_headers(); ?>
+-	</tr>
++		';
++$this->print_column_headers(); ;
++echo '	</tr>
+ 	</thead>
+ 
+ 	<tbody id="the-list"
+-		<?php
++		';
+ 		if ( $singular ) {
+ 			echo " data-wp-lists='list:$singular'";
+ 		}
+-		?>
+-		>
+-		<?php $this->display_rows_or_placeholder(); ?>
+-	</tbody>
++		;
++echo '		>
++		';
++$this->display_rows_or_placeholder(); ;
++echo '	</tbody>
+ 
+ 	<tfoot>
+ 	<tr>
+-		<?php $this->print_column_headers( false ); ?>
+-	</tr>
++		';
++$this->print_column_headers( false ); ;
++echo '	</tr>
+ 	</tfoot>
+ 
+ </table>
+-		<?php
++		';
+ 		$this->display_tablenav( 'bottom' );
+ 	}
+ 
+@@ -1684,26 +1707,31 @@
+ 		if ( 'top' === $which ) {
+ 			wp_nonce_field( 'bulk-' . $this->_args['plural'] );
+ 		}
+-		?>
+-	<div class="tablenav <?php echo esc_attr( $which ); ?>">
+-
+-		<?php
++		;
++echo '	<div class="tablenav ';
++echo esc_attr( $which ); ;
++echo '">
++
++		';
+ 		$visibility = ' hidden';
+ 		if ( $this->has_items() ) {
+ 			$visibility = '';
+ 		}
+-		?>
+-		<div class="alignleft actions bulkactions<?php echo $visibility; ?>">
+-			<?php $this->bulk_actions( $which ); ?>
+-		</div>
+-		<?php
++		;
++echo '		<div class="alignleft actions bulkactions';
++echo $visibility; ;
++echo '">
++			';
++$this->bulk_actions( $which ); ;
++echo '		</div>
++		';
+ 		$this->extra_tablenav( $which );
+ 		$this->pagination( $which );
+-		?>
+-
++		;
++echo '
+ 		<br class="clear" />
+ 	</div>
+-		<?php
++		';
+ 	}
+ 
+ 	/**

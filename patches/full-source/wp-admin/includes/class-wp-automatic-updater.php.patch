@@ -1,0 +1,11 @@
+--- a/wp-admin/includes/class-wp-automatic-updater.php
++++ b/wp-admin/includes/class-wp-automatic-updater.php
+@@ -1766,7 +1766,7 @@
+ 			return false;
+ 		}
+ 
+-		require $maintenance_file;
++		throw new RuntimeException( 'Dynamically generated upgrade maintenance files are outside the finite Elephc fixture.' );
+ 		if ( ! is_int( $upgrading ) ) {
+ 			return false;
+ 		}

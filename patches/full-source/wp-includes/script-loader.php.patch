@@ -1,0 +1,11 @@
+--- a/wp-includes/script-loader.php
++++ b/wp-includes/script-loader.php
+@@ -282,7 +282,7 @@
+ 	 *     'api-fetch.js' => array(...
+ 	 */
+ 	$assets_file = ABSPATH . WPINC . '/assets/script-loader-packages.php';
+-	$assets      = file_exists( $assets_file ) ? include $assets_file : array();
++	$assets      = file_exists( $assets_file ) ? aot_require_data( $assets_file ) : array();
+ 
+ 	foreach ( $assets as $file_name => $package_data ) {
+ 		$basename = str_replace( '.js', '', basename( $file_name ) );

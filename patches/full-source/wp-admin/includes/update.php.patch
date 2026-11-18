@@ -1,0 +1,82 @@
+--- a/wp-admin/includes/update.php
++++ b/wp-admin/includes/update.php
+@@ -912,8 +912,8 @@
+  *     }
+  */
+ function wp_print_admin_notice_templates() {
+-	?>
+-	<script id="tmpl-wp-updates-admin-notice" type="text/html">
++	;
++echo '	<script id="tmpl-wp-updates-admin-notice" type="text/html">
+ 		<div <# if ( data.id ) { #>id="{{ data.id }}"<# } #> class="notice {{ data.className }}"><p>{{{ data.message }}}</p></div>
+ 	</script>
+ 	<script id="tmpl-wp-bulk-updates-admin-notice" type="text/html">
+@@ -926,11 +926,11 @@
+ 					<button class="button-link bulk-action-errors-collapsed" aria-expanded="false">
+ 						{{{ data.errorMessage }}}
+ 						<span class="screen-reader-text">
+-							<?php
++							';
+ 							/* translators: Hidden accessibility text. */
+ 							_e( 'Show more details' );
+-							?>
+-						</span>
++							;
++echo '						</span>
+ 						<span class="toggle-indicator" aria-hidden="true"></span>
+ 					</button>
+ 				<# } #>
+@@ -944,7 +944,7 @@
+ 			<# } #>
+ 		</div>
+ 	</script>
+-	<?php
++	';
+ }
+ 
+ /**
+@@ -975,8 +975,8 @@
+  *     }
+  */
+ function wp_print_update_row_templates() {
+-	?>
+-	<script id="tmpl-item-update-row" type="text/template">
++	;
++echo '	<script id="tmpl-item-update-row" type="text/template">
+ 		<tr class="plugin-update-tr update" id="{{ data.slug }}-update" data-slug="{{ data.slug }}" <# if ( data.plugin ) { #>data-plugin="{{ data.plugin }}"<# } #>>
+ 			<td colspan="{{ data.colspan }}" class="plugin-update colspanchange">
+ 				{{{ data.content }}}
+@@ -987,26 +987,26 @@
+ 		<tr class="plugin-deleted-tr inactive deleted" id="{{ data.slug }}-deleted" data-slug="{{ data.slug }}" <# if ( data.plugin ) { #>data-plugin="{{ data.plugin }}"<# } #>>
+ 			<td colspan="{{ data.colspan }}" class="plugin-update colspanchange">
+ 				<# if ( data.plugin ) { #>
+-					<?php
++					';
+ 					printf(
+ 						/* translators: %s: Plugin name. */
+ 						_x( '%s was successfully deleted.', 'plugin' ),
+ 						'<strong>{{{ data.name }}}</strong>'
+ 					);
+-					?>
+-				<# } else { #>
+-					<?php
++					;
++echo '				<# } else { #>
++					';
+ 					printf(
+ 						/* translators: %s: Theme name. */
+ 						_x( '%s was successfully deleted.', 'theme' ),
+ 						'<strong>{{{ data.name }}}</strong>'
+ 					);
+-					?>
+-				<# } #>
++					;
++echo '				<# } #>
+ 			</td>
+ 		</tr>
+ 	</script>
+-	<?php
++	';
+ }
+ 
+ /**

@@ -1,0 +1,164 @@
+--- a/wp-includes/customize/class-wp-customize-date-time-control.php
++++ b/wp-includes/customize/class-wp-customize-date-time-control.php
+@@ -108,10 +108,12 @@
+ 		if ( 1 !== substr_count( $date_format, '%1$s' ) || 1 !== substr_count( $date_format, '%2$s' ) || 1 !== substr_count( $date_format, '%3$s' ) ) {
+ 			$date_format = '%1$s-%2$s-%3$s';
+ 		}
+-		?>
+-
+-		<# _.defaults( data, <?php echo wp_json_encode( $data ); ?> ); #>
+-		<# var idPrefix = _.uniqueId( 'el' ) + '-'; #>
++		;
++echo '
++		<# _.defaults( data, ';
++echo wp_json_encode( $data ); ;
++echo ' ); #>
++		<# var idPrefix = _.uniqueId( \'el\' ) + \'-\'; #>
+ 
+ 		<# if ( data.label ) { #>
+ 			<span class="customize-control-title">
+@@ -122,17 +124,20 @@
+ 		<# if ( data.description ) { #>
+ 			<span class="description customize-control-description">{{ data.description }}</span>
+ 		<# } #>
+-		<div class="date-time-fields {{ data.includeTime ? 'includes-time' : '' }}">
++		<div class="date-time-fields {{ data.includeTime ? \'includes-time\' : \'\' }}">
+ 			<fieldset class="day-row">
+-				<legend class="title-day {{ ! data.includeTime ? 'screen-reader-text' : '' }}"><?php esc_html_e( 'Date' ); ?></legend>
++				<legend class="title-day {{ ! data.includeTime ? \'screen-reader-text\' : \'\' }}">';
++esc_html_e( 'Date' ); ;
++echo '</legend>
+ 				<div class="day-fields clear">
+-					<?php ob_start(); ?>
+-					<label for="{{ idPrefix }}date-time-month" class="screen-reader-text">
+-						<?php
++					';
++ob_start(); ;
++echo '					<label for="{{ idPrefix }}date-time-month" class="screen-reader-text">
++						';
+ 						/* translators: Hidden accessibility text. */
+ 						esc_html_e( 'Month' );
+-						?>
+-					</label>
++						;
++echo '					</label>
+ 					<select id="{{ idPrefix }}date-time-month" class="date-input month" data-component="month">
+ 						<# _.each( data.month_choices, function( choice ) {
+ 							if ( _.isObject( choice ) && ! _.isUndefined( choice.text ) && ! _.isUndefined( choice.value ) ) {
+@@ -145,70 +150,84 @@
+ 							</option>
+ 						<# } ); #>
+ 					</select>
+-					<?php $month_field = trim( ob_get_clean() ); ?>
+-
+-					<?php ob_start(); ?>
+-					<label for="{{ idPrefix }}date-time-day" class="screen-reader-text">
+-						<?php
++					';
++$month_field = trim( ob_get_clean() ); ;
++echo '
++					';
++ob_start(); ;
++echo '					<label for="{{ idPrefix }}date-time-day" class="screen-reader-text">
++						';
+ 						/* translators: Hidden accessibility text. */
+ 						esc_html_e( 'Day' );
+-						?>
+-					</label>
++						;
++echo '					</label>
+ 					<input id="{{ idPrefix }}date-time-day" type="number" size="2" autocomplete="off" class="date-input day tiny-text" data-component="day" min="1" max="31" />
+-					<?php $day_field = trim( ob_get_clean() ); ?>
+-
+-					<?php ob_start(); ?>
+-					<label for="{{ idPrefix }}date-time-year" class="screen-reader-text">
+-						<?php
++					';
++$day_field = trim( ob_get_clean() ); ;
++echo '
++					';
++ob_start(); ;
++echo '					<label for="{{ idPrefix }}date-time-year" class="screen-reader-text">
++						';
+ 						/* translators: Hidden accessibility text. */
+ 						esc_html_e( 'Year' );
+-						?>
+-					</label>
++						;
++echo '					</label>
+ 					<input id="{{ idPrefix }}date-time-year" type="number" size="4" autocomplete="off" class="date-input year tiny-text" data-component="year" min="{{ data.minYear }}" max="{{ data.maxYear }}">
+-					<?php $year_field = trim( ob_get_clean() ); ?>
+-
+-					<?php printf( $date_format, $year_field, $month_field, $day_field ); ?>
+-				</div>
++					';
++$year_field = trim( ob_get_clean() ); ;
++echo '
++					';
++printf( $date_format, $year_field, $month_field, $day_field ); ;
++echo '				</div>
+ 			</fieldset>
+ 			<# if ( data.includeTime ) { #>
+ 				<fieldset class="time-row clear">
+-					<legend class="title-time"><?php esc_html_e( 'Time' ); ?></legend>
++					<legend class="title-time">';
++esc_html_e( 'Time' ); ;
++echo '</legend>
+ 					<div class="time-fields clear">
+ 						<label for="{{ idPrefix }}date-time-hour" class="screen-reader-text">
+-							<?php
++							';
+ 							/* translators: Hidden accessibility text. */
+ 							esc_html_e( 'Hour' );
+-							?>
+-						</label>
++							;
++echo '						</label>
+ 						<# var maxHour = data.twelveHourFormat ? 12 : 23; #>
+ 						<# var minHour = data.twelveHourFormat ? 1 : 0; #>
+ 						<input id="{{ idPrefix }}date-time-hour" type="number" size="2" autocomplete="off" class="date-input hour tiny-text" data-component="hour" min="{{ minHour }}" max="{{ maxHour }}">
+ 						:
+ 						<label for="{{ idPrefix }}date-time-minute" class="screen-reader-text">
+-							<?php
++							';
+ 							/* translators: Hidden accessibility text. */
+ 							esc_html_e( 'Minute' );
+-							?>
+-						</label>
++							;
++echo '						</label>
+ 						<input id="{{ idPrefix }}date-time-minute" type="number" size="2" autocomplete="off" class="date-input minute tiny-text" data-component="minute" min="0" max="59">
+ 						<# if ( data.twelveHourFormat ) { #>
+ 							<label for="{{ idPrefix }}date-time-meridian" class="screen-reader-text">
+-								<?php
++								';
+ 								/* translators: Hidden accessibility text. */
+ 								esc_html_e( 'Meridian' );
+-								?>
+-							</label>
++								;
++echo '							</label>
+ 							<select id="{{ idPrefix }}date-time-meridian" class="date-input meridian" data-component="meridian">
+-								<option value="am"><?php esc_html_e( 'AM' ); ?></option>
+-								<option value="pm"><?php esc_html_e( 'PM' ); ?></option>
++								<option value="am">';
++esc_html_e( 'AM' ); ;
++echo '</option>
++								<option value="pm">';
++esc_html_e( 'PM' ); ;
++echo '</option>
+ 							</select>
+ 						<# } #>
+-						<p><?php echo $timezone_info['description']; ?></p>
++						<p>';
++echo $timezone_info['description']; ;
++echo '</p>
+ 					</div>
+ 				</fieldset>
+ 			<# } #>
+ 		</div>
+-		<?php
++		';
+ 	}
+ 
+ 	/**

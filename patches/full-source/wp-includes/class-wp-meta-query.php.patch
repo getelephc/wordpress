@@ -1,0 +1,19 @@
+--- a/wp-includes/class-wp-meta-query.php
++++ b/wp-includes/class-wp-meta-query.php
+@@ -637,7 +637,7 @@
+ 		}
+ 
+ 		// Store the clause in our flat array.
+-		$this->clauses[ $clause_key ] =& $clause;
++		$this->clauses[ $clause_key ] = $clause;
+ 
+ 		// Next, build the WHERE clause.
+ 
+@@ -790,6 +790,7 @@
+ 			$sql_chunks['where'] = array( '( ' . implode( ' AND ', $sql_chunks['where'] ) . ' )' );
+ 		}
+ 
++		$this->clauses[ $clause_key ] = $clause;
+ 		return $sql_chunks;
+ 	}
+ 

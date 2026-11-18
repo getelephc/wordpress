@@ -1,0 +1,11 @@
+--- a/wp-includes/icons.php
++++ b/wp-includes/icons.php
+@@ -109,7 +109,7 @@
+ 		return;
+ 	}
+ 
+-	$collection = include $manifest_path;
++	$collection = include ABSPATH . WPINC . '/assets/icon-library-manifest.php';
+ 
+ 	if ( empty( $collection ) ) {
+ 		wp_trigger_error(

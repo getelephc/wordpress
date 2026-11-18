@@ -1,0 +1,670 @@
+--- a/wp-admin/includes/class-custom-image-header.php
++++ b/wp-admin/includes/class-custom-image-header.php
+@@ -375,26 +375,28 @@
+ 				$default_color = '#' . $default_color;
+ 			}
+ 		}
+-		?>
+-<script>
++		;
++echo '<script>
+ (function($){
+-	var default_color = '<?php echo esc_js( $default_color ); ?>',
++	var default_color = \'';
++echo esc_js( $default_color ); ;
++echo '\',
+ 		header_text_fields;
+ 
+ 	function pickColor(color) {
+-		$('#name').css('color', color);
+-		$('#desc').css('color', color);
+-		$('#text-color').val(color);
++		$(\'#name\').css(\'color\', color);
++		$(\'#desc\').css(\'color\', color);
++		$(\'#text-color\').val(color);
+ 	}
+ 
+ 	function toggle_text() {
+-		var checked = $('#display-header-text').prop('checked'),
++		var checked = $(\'#display-header-text\').prop(\'checked\'),
+ 			text_color;
+ 		header_text_fields.toggle( checked );
+ 		if ( ! checked )
+ 			return;
+-		text_color = $('#text-color');
+-		if ( '' === text_color.val().replace('#', '') ) {
++		text_color = $(\'#text-color\');
++		if ( \'\' === text_color.val().replace(\'#\', \'\') ) {
+ 			text_color.val( default_color );
+ 			pickColor( default_color );
+ 		} else {
+@@ -403,24 +405,26 @@
+ 	}
+ 
+ 	$( function() {
+-		var text_color = $('#text-color');
+-		header_text_fields = $('.displaying-header-text');
++		var text_color = $(\'#text-color\');
++		header_text_fields = $(\'.displaying-header-text\');
+ 		text_color.wpColorPicker({
+ 			change: function( event, ui ) {
+-				pickColor( text_color.wpColorPicker('color') );
++				pickColor( text_color.wpColorPicker(\'color\') );
+ 			},
+ 			clear: function() {
+-				pickColor( '' );
++				pickColor( \'\' );
+ 			}
+ 		});
+-		$('#display-header-text').click( toggle_text );
+-		<?php if ( ! display_header_text() ) : ?>
+-		toggle_text();
+-		<?php endif; ?>
+-	} );
++		$(\'#display-header-text\').click( toggle_text );
++		';
++if ( ! display_header_text() ) : ;
++echo '		toggle_text();
++		';
++endif; ;
++echo '	} );
+ })(jQuery);
+ </script>
+-		<?php
++		';
+ 	}
+ 
+ 	/**
+@@ -430,21 +434,25 @@
+ 	 */
+ 	public function js_2() {
+ 
+-		?>
+-<script>
++		;
++echo '<script>
+ 	function onEndCrop( coords ) {
+-		jQuery( '#x1' ).val(coords.x);
+-		jQuery( '#y1' ).val(coords.y);
+-		jQuery( '#width' ).val(coords.w);
+-		jQuery( '#height' ).val(coords.h);
++		jQuery( \'#x1\' ).val(coords.x);
++		jQuery( \'#y1\' ).val(coords.y);
++		jQuery( \'#width\' ).val(coords.w);
++		jQuery( \'#height\' ).val(coords.h);
+ 	}
+ 
+ 	jQuery( function() {
+-		var xinit = <?php echo absint( get_theme_support( 'custom-header', 'width' ) ); ?>;
+-		var yinit = <?php echo absint( get_theme_support( 'custom-header', 'height' ) ); ?>;
++		var xinit = ';
++echo absint( get_theme_support( 'custom-header', 'width' ) ); ;
++echo ';
++		var yinit = ';
++echo absint( get_theme_support( 'custom-header', 'height' ) ); ;
++echo ';
+ 		var ratio = xinit / yinit;
+-		var ximg = jQuery('img#upload').width();
+-		var yimg = jQuery('img#upload').height();
++		var ximg = jQuery(\'img#upload\').width();
++		var yimg = jQuery(\'img#upload\').height();
+ 
+ 		if ( yimg < yinit || ximg < xinit ) {
+ 			if ( ximg / yimg > ratio ) {
+@@ -456,7 +464,7 @@
+ 			}
+ 		}
+ 
+-		jQuery('img#upload').imgAreaSelect({
++		jQuery(\'img#upload\').imgAreaSelect({
+ 			handles: true,
+ 			keys: true,
+ 			show: true,
+@@ -464,39 +472,43 @@
+ 			y1: 0,
+ 			x2: xinit,
+ 			y2: yinit,
+-			<?php
++			';
+ 			if ( ! current_theme_supports( 'custom-header', 'flex-height' )
+ 				&& ! current_theme_supports( 'custom-header', 'flex-width' )
+ 			) {
+-				?>
+-			aspectRatio: xinit + ':' + yinit,
+-				<?php
++				;
++echo '			aspectRatio: xinit + \':\' + yinit,
++				';
+ 			}
+ 			if ( ! current_theme_supports( 'custom-header', 'flex-height' ) ) {
+-				?>
+-			maxHeight: <?php echo get_theme_support( 'custom-header', 'height' ); ?>,
+-				<?php
++				;
++echo '			maxHeight: ';
++echo get_theme_support( 'custom-header', 'height' ); ;
++echo ',
++				';
+ 			}
+ 			if ( ! current_theme_supports( 'custom-header', 'flex-width' ) ) {
+-				?>
+-			maxWidth: <?php echo get_theme_support( 'custom-header', 'width' ); ?>,
+-				<?php
+-			}
+-			?>
+-			onInit: function () {
+-				jQuery('#width').val(xinit);
+-				jQuery('#height').val(yinit);
++				;
++echo '			maxWidth: ';
++echo get_theme_support( 'custom-header', 'width' ); ;
++echo ',
++				';
++			}
++			;
++echo '			onInit: function () {
++				jQuery(\'#width\').val(xinit);
++				jQuery(\'#height\').val(yinit);
+ 			},
+ 			onSelectChange: function(img, c) {
+-				jQuery('#x1').val(c.x1);
+-				jQuery('#y1').val(c.y1);
+-				jQuery('#width').val(c.width);
+-				jQuery('#height').val(c.height);
++				jQuery(\'#x1\').val(c.x1);
++				jQuery(\'#y1\').val(c.y1);
++				jQuery(\'#width\').val(c.width);
++				jQuery(\'#height\').val(c.height);
+ 			}
+ 		});
+ 	} );
+ </script>
+-		<?php
++		';
+ 	}
+ 
+ 	/**
+@@ -506,12 +518,14 @@
+ 	 */
+ 	public function step_1() {
+ 		$this->process_default_headers();
+-		?>
+-
++		;
++echo '
+ <div class="wrap">
+-<h1><?php _e( 'Custom Header' ); ?></h1>
+-
+-		<?php
++<h1>';
++_e( 'Custom Header' ); ;
++echo '</h1>
++
++		';
+ 		if ( current_user_can( 'customize' ) ) {
+ 			$message = sprintf(
+ 				/* translators: %s: URL to header image configuration in Customizer. */
+@@ -541,18 +555,23 @@
+ 				)
+ 			);
+ 		}
+-		?>
+-
+-<h2><?php _e( 'Header Image' ); ?></h2>
++		;
++echo '
++<h2>';
++_e( 'Header Image' ); ;
++echo '</h2>
+ 
+ <table class="form-table" role="presentation">
+ <tbody>
+ 
+-		<?php if ( get_custom_header() || display_header_text() ) : ?>
+-<tr>
+-<th scope="row"><?php echo esc_html_x( 'Preview', 'noun' ); ?></th>
++		';
++if ( get_custom_header() || display_header_text() ) : ;
++echo '<tr>
++<th scope="row">';
++echo esc_html_x( 'Preview', 'noun' ); ;
++echo '</th>
+ <td>
+-			<?php
++			';
+ 			if ( $this->admin_image_div_callback ) {
+ 				call_user_func( $this->admin_image_div_callback );
+ 			} else {
+@@ -571,29 +590,48 @@
+ 				if ( $custom_header->height ) {
+ 					$header_image_style .= 'height:' . $custom_header->height . 'px;';
+ 				}
+-				?>
+-	<div id="headimg" style="<?php echo esc_attr( $header_image_style ); ?>">
+-				<?php
++				;
++echo '	<div id="headimg" style="';
++echo esc_attr( $header_image_style ); ;
++echo '">
++				';
+ 				if ( display_header_text() ) {
+ 					$style = ' style="color:#' . get_header_textcolor() . ';"';
+ 				} else {
+ 					$style = ' style="display:none;"';
+ 				}
+-				?>
+-		<h1><a id="name" class="displaying-header-text" <?php echo $style; ?> onclick="return false;" href="<?php bloginfo( 'url' ); ?>" tabindex="-1"><?php bloginfo( 'name' ); ?></a></h1>
+-		<div id="desc" class="displaying-header-text" <?php echo $style; ?>><?php bloginfo( 'description' ); ?></div>
++				;
++echo '		<h1><a id="name" class="displaying-header-text" ';
++echo $style; ;
++echo ' onclick="return false;" href="';
++bloginfo( 'url' ); ;
++echo '" tabindex="-1">';
++bloginfo( 'name' ); ;
++echo '</a></h1>
++		<div id="desc" class="displaying-header-text" ';
++echo $style; ;
++echo '>';
++bloginfo( 'description' ); ;
++echo '</div>
+ 	</div>
+-			<?php } ?>
+-</td>
++			';
++} ;
++echo '</td>
+ </tr>
+-		<?php endif; ?>
+-
+-		<?php if ( current_user_can( 'upload_files' ) && current_theme_supports( 'custom-header', 'uploads' ) ) : ?>
+-<tr>
+-<th scope="row"><?php _e( 'Select Image' ); ?></th>
++		';
++endif; ;
++echo '
++		';
++if ( current_user_can( 'upload_files' ) && current_theme_supports( 'custom-header', 'uploads' ) ) : ;
++echo '<tr>
++<th scope="row">';
++_e( 'Select Image' ); ;
++echo '</th>
+ <td>
+-	<p><?php _e( 'You can select an image to be shown at the top of your site by uploading from your computer or choosing from your media library. After selecting an image you will be able to crop it.' ); ?><br />
+-			<?php
++	<p>';
++_e( 'You can select an image to be shown at the top of your site by uploading from your computer or choosing from your media library. After selecting an image you will be able to crop it.' ); ;
++echo '<br />
++			';
+ 			if ( ! current_theme_supports( 'custom-header', 'flex-height' )
+ 				&& ! current_theme_supports( 'custom-header', 'flex-width' )
+ 			) {
+@@ -656,17 +694,23 @@
+ 					);
+ 				}
+ 			}
+-			?>
+-	</p>
+-	<form enctype="multipart/form-data" id="upload-form" class="wp-upload-form" method="post" action="<?php echo esc_url( add_query_arg( 'step', 2 ) ); ?>">
++			;
++echo '	</p>
++	<form enctype="multipart/form-data" id="upload-form" class="wp-upload-form" method="post" action="';
++echo esc_url( add_query_arg( 'step', 2 ) ); ;
++echo '">
+ 	<p>
+-		<label for="upload"><?php _e( 'Choose an image from your computer:' ); ?></label><br />
++		<label for="upload">';
++_e( 'Choose an image from your computer:' ); ;
++echo '</label><br />
+ 		<input type="file" id="upload" name="import" />
+ 		<input type="hidden" name="action" value="save" />
+-			<?php wp_nonce_field( 'custom-header-upload', '_wpnonce-custom-header-upload' ); ?>
+-			<?php submit_button( _x( 'Upload', 'verb' ), '', 'submit', false ); ?>
+-	</p>
+-			<?php
++			';
++wp_nonce_field( 'custom-header-upload', '_wpnonce-custom-header-upload' ); ;
++echo '			';
++submit_button( _x( 'Upload', 'verb' ), '', 'submit', false ); ;
++echo '	</p>
++			';
+ 			$modal_update_href = add_query_arg(
+ 				array(
+ 					'page'                          => 'custom-header',
+@@ -675,64 +719,97 @@
+ 				),
+ 				admin_url( 'themes.php' )
+ 			);
+-			?>
+-	<p>
+-		<label for="choose-from-library-link"><?php _e( 'Or choose an image from your media library:' ); ?></label><br />
++			;
++echo '	<p>
++		<label for="choose-from-library-link">';
++_e( 'Or choose an image from your media library:' ); ;
++echo '</label><br />
+ 		<button id="choose-from-library-link" class="button"
+-			data-update-link="<?php echo esc_url( $modal_update_href ); ?>"
+-			data-choose="<?php esc_attr_e( 'Choose a Custom Header' ); ?>"
+-			data-update="<?php esc_attr_e( 'Set as header' ); ?>"><?php _e( 'Choose Image' ); ?></button>
++			data-update-link="';
++echo esc_url( $modal_update_href ); ;
++echo '"
++			data-choose="';
++esc_attr_e( 'Choose a Custom Header' ); ;
++echo '"
++			data-update="';
++esc_attr_e( 'Set as header' ); ;
++echo '">';
++_e( 'Choose Image' ); ;
++echo '</button>
+ 	</p>
+ 	</form>
+ </td>
+ </tr>
+-		<?php endif; ?>
+-</tbody>
++		';
++endif; ;
++echo '</tbody>
+ </table>
+ 
+-<form method="post" action="<?php echo esc_url( add_query_arg( 'step', 1 ) ); ?>">
+-		<?php submit_button( null, 'screen-reader-text', 'save-header-options', false ); ?>
+-<table class="form-table" role="presentation">
++<form method="post" action="';
++echo esc_url( add_query_arg( 'step', 1 ) ); ;
++echo '">
++		';
++submit_button( null, 'screen-reader-text', 'save-header-options', false ); ;
++echo '<table class="form-table" role="presentation">
+ <tbody>
+-		<?php if ( get_uploaded_header_images() ) : ?>
+-<tr>
+-<th scope="row"><?php _e( 'Uploaded Images' ); ?></th>
++		';
++if ( get_uploaded_header_images() ) : ;
++echo '<tr>
++<th scope="row">';
++_e( 'Uploaded Images' ); ;
++echo '</th>
+ <td>
+-	<p><?php _e( 'You can choose one of your previously uploaded headers, or show a random one.' ); ?></p>
+-			<?php
++	<p>';
++_e( 'You can choose one of your previously uploaded headers, or show a random one.' ); ;
++echo '</p>
++			';
+ 			$this->show_header_selector( 'uploaded' );
+-			?>
+-</td>
++			;
++echo '</td>
+ </tr>
+-			<?php
++			';
+ 	endif;
+ 		if ( ! empty( $this->default_headers ) ) :
+-			?>
+-<tr>
+-<th scope="row"><?php _e( 'Default Images' ); ?></th>
++			;
++echo '<tr>
++<th scope="row">';
++_e( 'Default Images' ); ;
++echo '</th>
+ <td>
+-			<?php if ( current_theme_supports( 'custom-header', 'uploads' ) ) : ?>
+-	<p><?php _e( 'If you do not want to upload your own image, you can use one of these cool headers, or show a random one.' ); ?></p>
+-	<?php else : ?>
+-	<p><?php _e( 'You can use one of these cool headers or show a random one on each page.' ); ?></p>
+-	<?php endif; ?>
+-			<?php
++			';
++if ( current_theme_supports( 'custom-header', 'uploads' ) ) : ;
++echo '	<p>';
++_e( 'If you do not want to upload your own image, you can use one of these cool headers, or show a random one.' ); ;
++echo '</p>
++	';
++else : ;
++echo '	<p>';
++_e( 'You can use one of these cool headers or show a random one on each page.' ); ;
++echo '</p>
++	';
++endif; ;
++echo '			';
+ 			$this->show_header_selector( 'default' );
+-			?>
+-</td>
++			;
++echo '</td>
+ </tr>
+-			<?php
++			';
+ 	endif;
+ 		if ( get_header_image() ) :
+-			?>
+-<tr>
+-<th scope="row"><?php _e( 'Remove Image' ); ?></th>
++			;
++echo '<tr>
++<th scope="row">';
++_e( 'Remove Image' ); ;
++echo '</th>
+ <td>
+-	<p><?php _e( 'This will remove the header image. You will not be able to restore any customizations.' ); ?></p>
+-			<?php submit_button( __( 'Remove Header Image' ), '', 'removeheader', false ); ?>
+-</td>
++	<p>';
++_e( 'This will remove the header image. You will not be able to restore any customizations.' ); ;
++echo '</p>
++			';
++submit_button( __( 'Remove Header Image' ), '', 'removeheader', false ); ;
++echo '</td>
+ </tr>
+-			<?php
++			';
+ 	endif;
+ 
+ 		$default_image = sprintf(
+@@ -742,38 +819,55 @@
+ 		);
+ 
+ 		if ( $default_image && get_header_image() !== $default_image ) :
+-			?>
+-<tr>
+-<th scope="row"><?php _e( 'Reset Image' ); ?></th>
++			;
++echo '<tr>
++<th scope="row">';
++_e( 'Reset Image' ); ;
++echo '</th>
+ <td>
+-	<p><?php _e( 'This will restore the original header image. You will not be able to restore any customizations.' ); ?></p>
+-			<?php submit_button( __( 'Restore Original Header Image' ), '', 'resetheader', false ); ?>
+-</td>
++	<p>';
++_e( 'This will restore the original header image. You will not be able to restore any customizations.' ); ;
++echo '</p>
++			';
++submit_button( __( 'Restore Original Header Image' ), '', 'resetheader', false ); ;
++echo '</td>
+ </tr>
+-	<?php endif; ?>
+-</tbody>
++	';
++endif; ;
++echo '</tbody>
+ </table>
+ 
+-		<?php if ( current_theme_supports( 'custom-header', 'header-text' ) ) : ?>
+-
+-<h2><?php _e( 'Header Text' ); ?></h2>
++		';
++if ( current_theme_supports( 'custom-header', 'header-text' ) ) : ;
++echo '
++<h2>';
++_e( 'Header Text' ); ;
++echo '</h2>
+ 
+ <table class="form-table" role="presentation">
+ <tbody>
+ <tr>
+-<th scope="row"><?php _e( 'Header Text' ); ?></th>
++<th scope="row">';
++_e( 'Header Text' ); ;
++echo '</th>
+ <td>
+ 	<p>
+-	<label><input type="checkbox" name="display-header-text" id="display-header-text"<?php checked( display_header_text() ); ?> /> <?php _e( 'Show header text with your image.' ); ?></label>
++	<label><input type="checkbox" name="display-header-text" id="display-header-text"';
++checked( display_header_text() ); ;
++echo ' /> ';
++_e( 'Show header text with your image.' ); ;
++echo '</label>
+ 	</p>
+ </td>
+ </tr>
+ 
+ <tr class="displaying-header-text">
+-<th scope="row"><?php _e( 'Text Color' ); ?></th>
++<th scope="row">';
++_e( 'Text Color' ); ;
++echo '</th>
+ <td>
+ 	<p>
+-			<?php
++			';
+ 			$default_color = '';
+ 			if ( current_theme_supports( 'custom-header', 'default-text-color' ) ) {
+ 				$default_color = get_theme_support( 'custom-header', 'default-text-color' );
+@@ -794,13 +888,13 @@
+ 				/* translators: %s: Default text color. */
+ 				echo ' <span class="description hide-if-js">' . sprintf( _x( 'Default: %s', 'color' ), esc_html( $default_color ) ) . '</span>';
+ 			}
+-			?>
+-	</p>
++			;
++echo '	</p>
+ </td>
+ </tr>
+ </tbody>
+ </table>
+-			<?php
++			';
+ endif;
+ 
+ 		/**
+@@ -811,13 +905,14 @@
+ 		do_action( 'custom_header_options' );
+ 
+ 		wp_nonce_field( 'custom-header-options', '_wpnonce-custom-header-options' );
+-		?>
+-
+-		<?php submit_button( null, 'primary', 'save-header-options' ); ?>
+-</form>
++		;
++echo '
++		';
++submit_button( null, 'primary', 'save-header-options' ); ;
++echo '</form>
+ </div>
+ 
+-		<?php
++		';
+ 	}
+ 
+ 	/**
+@@ -924,44 +1019,70 @@
+ 		} else {
+ 			$oitar = 1;
+ 		}
+-		?>
+-
++		;
++echo '
+ <div class="wrap">
+-<h1><?php _e( 'Crop Header Image' ); ?></h1>
+-
+-<form method="post" action="<?php echo esc_url( add_query_arg( 'step', 3 ) ); ?>">
+-	<p class="hide-if-no-js"><?php _e( 'Choose the part of the image you want to use as your header.' ); ?></p>
+-	<p class="hide-if-js"><strong><?php _e( 'You need JavaScript to choose a part of the image.' ); ?></strong></p>
++<h1>';
++_e( 'Crop Header Image' ); ;
++echo '</h1>
++
++<form method="post" action="';
++echo esc_url( add_query_arg( 'step', 3 ) ); ;
++echo '">
++	<p class="hide-if-no-js">';
++_e( 'Choose the part of the image you want to use as your header.' ); ;
++echo '</p>
++	<p class="hide-if-js"><strong>';
++_e( 'You need JavaScript to choose a part of the image.' ); ;
++echo '</strong></p>
+ 
+ 	<div id="crop_image" style="position: relative">
+-		<img src="<?php echo esc_url( $url ); ?>" id="upload" width="<?php echo esc_attr( $width ); ?>" height="<?php echo esc_attr( $height ); ?>" alt="" />
++		<img src="';
++echo esc_url( $url ); ;
++echo '" id="upload" width="';
++echo esc_attr( $width ); ;
++echo '" height="';
++echo esc_attr( $height ); ;
++echo '" alt="" />
+ 	</div>
+ 
+ 	<input type="hidden" name="x1" id="x1" value="0" />
+ 	<input type="hidden" name="y1" id="y1" value="0" />
+-	<input type="hidden" name="width" id="width" value="<?php echo esc_attr( $width ); ?>" />
+-	<input type="hidden" name="height" id="height" value="<?php echo esc_attr( $height ); ?>" />
+-	<input type="hidden" name="attachment_id" id="attachment_id" value="<?php echo esc_attr( $attachment_id ); ?>" />
+-	<input type="hidden" name="oitar" id="oitar" value="<?php echo esc_attr( $oitar ); ?>" />
+-		<?php if ( empty( $_POST ) && isset( $_GET['file'] ) ) { ?>
+-	<input type="hidden" name="create-new-attachment" value="true" />
+-	<?php } ?>
+-		<?php wp_nonce_field( 'custom-header-crop-image' ); ?>
+-
++	<input type="hidden" name="width" id="width" value="';
++echo esc_attr( $width ); ;
++echo '" />
++	<input type="hidden" name="height" id="height" value="';
++echo esc_attr( $height ); ;
++echo '" />
++	<input type="hidden" name="attachment_id" id="attachment_id" value="';
++echo esc_attr( $attachment_id ); ;
++echo '" />
++	<input type="hidden" name="oitar" id="oitar" value="';
++echo esc_attr( $oitar ); ;
++echo '" />
++		';
++if ( empty( $_POST ) && isset( $_GET['file'] ) ) { ;
++echo '	<input type="hidden" name="create-new-attachment" value="true" />
++	';
++} ;
++echo '		';
++wp_nonce_field( 'custom-header-crop-image' ); ;
++echo '
+ 	<p class="submit">
+-		<?php submit_button( __( 'Crop and Publish' ), 'primary', 'submit', false ); ?>
+-		<?php
++		';
++submit_button( __( 'Crop and Publish' ), 'primary', 'submit', false ); ;
++echo '		';
+ 		if ( 1 === $oitar
+ 			&& ( current_theme_supports( 'custom-header', 'flex-height' )
+ 				|| current_theme_supports( 'custom-header', 'flex-width' ) )
+ 		) {
+ 			submit_button( __( 'Skip Cropping, Publish Image as Is' ), '', 'skip-cropping', false );
+ 		}
+-		?>
+-	</p>
++		;
++echo '	</p>
+ </form>
+ </div>
+-		<?php
++		';
+ 	}
+ 
+ 

@@ -1,0 +1,11 @@
+--- a/wp-admin/includes/class-wp-site-health.php
++++ b/wp-admin/includes/class-wp-site-health.php
+@@ -3353,7 +3353,7 @@
+ 	 */
+ 	public function wp_cron_scheduled_check() {
+ 		// Bootstrap wp-admin, as WP_Cron doesn't do this for us.
+-		require_once trailingslashit( ABSPATH ) . 'wp-admin/includes/admin.php';
++		require_once ABSPATH . 'wp-admin/includes/admin.php';
+ 
+ 		$tests = WP_Site_Health::get_tests();
+ 

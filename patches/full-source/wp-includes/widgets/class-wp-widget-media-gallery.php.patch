@@ -1,0 +1,65 @@
+--- a/wp-includes/widgets/class-wp-widget-media-gallery.php
++++ b/wp-includes/widgets/class-wp-widget-media-gallery.php
+@@ -174,8 +174,8 @@
+ 	 */
+ 	public function render_control_template_scripts() {
+ 		parent::render_control_template_scripts();
+-		?>
+-		<script type="text/html" id="tmpl-wp-media-widget-gallery-preview">
++		;
++echo '		<script type="text/html" id="tmpl-wp-media-widget-gallery-preview">
+ 			<#
+ 			var ids = _.filter( data.ids, function( id ) {
+ 				return ( id in data.attachments );
+@@ -197,7 +197,7 @@
+ 										<# } #>
+ 										<# if ( ! attachment.alt && attachment.filename ) { #>
+ 											aria-label="
+-											<?php
++											';
+ 											echo esc_attr(
+ 												sprintf(
+ 													/* translators: %s: The image file name. */
+@@ -205,21 +205,21 @@
+ 													'{{ attachment.filename }}'
+ 												)
+ 											);
+-											?>
+-											"
++											;
++echo '											"
+ 										<# } #>
+ 									/>
+ 									<# if ( index === 5 && data.ids.length > 6 ) { #>
+ 									<div class="gallery-icon-placeholder">
+ 										<p class="gallery-icon-placeholder-text" aria-label="
+-										<?php
++										';
+ 											printf(
+ 												/* translators: %s: The amount of additional, not visible images in the gallery widget preview. */
+ 												__( 'Additional images added to this gallery: %s' ),
+ 												'{{ data.ids.length - 5 }}'
+ 											);
+-										?>
+-										">+{{ data.ids.length - 5 }}</p>
++										;
++echo '										">+{{ data.ids.length - 5 }}</p>
+ 									</div>
+ 									<# } #>
+ 								</div>
+@@ -229,11 +229,13 @@
+ 				</ul>
+ 			<# } else { #>
+ 				<div class="attachment-media-view">
+-					<button type="button" class="placeholder button-add-media"><?php echo esc_html( $this->l10n['add_media'] ); ?></button>
++					<button type="button" class="placeholder button-add-media">';
++echo esc_html( $this->l10n['add_media'] ); ;
++echo '</button>
+ 				</div>
+ 			<# } #>
+ 		</script>
+-		<?php
++		';
+ 	}
+ 
+ 	/**

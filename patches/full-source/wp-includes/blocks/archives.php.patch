@@ -1,0 +1,50 @@
+--- a/wp-includes/blocks/archives.php
++++ b/wp-includes/blocks/archives.php
+@@ -122,13 +122,13 @@
+ 	ob_start();
+ 
+ 	$exports = array( $dropdown_id, home_url() );
+-	?>
+-	<script>
++	;
++echo '	<script>
+ 	( ( [ dropdownId, homeUrl ] ) => {
+ 		const dropdown = document.getElementById( dropdownId );
+ 		function onSelectChange() {
+ 			setTimeout( () => {
+-				if ( 'escape' === dropdown.dataset.lastkey ) {
++				if ( \'escape\' === dropdown.dataset.lastkey ) {
+ 					return;
+ 				}
+ 				if ( dropdown.value ) {
+@@ -137,8 +137,8 @@
+ 			}, 250 );
+ 		}
+ 		function onKeyUp( event ) {
+-			if ( 'Escape' === event.key ) {
+-				dropdown.dataset.lastkey = 'escape';
++			if ( \'Escape\' === event.key ) {
++				dropdown.dataset.lastkey = \'escape\';
+ 			} else {
+ 				delete dropdown.dataset.lastkey;
+ 			}
+@@ -146,12 +146,14 @@
+ 		function onClick() {
+ 			delete dropdown.dataset.lastkey;
+ 		}
+-		dropdown.addEventListener( 'keyup', onKeyUp );
+-		dropdown.addEventListener( 'click', onClick );
+-		dropdown.addEventListener( 'change', onSelectChange );
+-	} )( <?php echo wp_json_encode( $exports, JSON_HEX_TAG | JSON_UNESCAPED_SLASHES ); ?> );
++		dropdown.addEventListener( \'keyup\', onKeyUp );
++		dropdown.addEventListener( \'click\', onClick );
++		dropdown.addEventListener( \'change\', onSelectChange );
++	} )( ';
++echo wp_json_encode( $exports, JSON_HEX_TAG | JSON_UNESCAPED_SLASHES ); ;
++echo ' );
+ 	</script>
+-	<?php
++	';
+ 	return wp_get_inline_script_tag(
+ 		trim( str_replace( array( '<script>', '</script>' ), '', ob_get_clean() ) ) .
+ 		"\n//# sourceURL=" . rawurlencode( __FUNCTION__ )

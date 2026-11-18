@@ -1,0 +1,79 @@
+--- a/wp-includes/widgets/class-wp-widget-meta.php
++++ b/wp-includes/widgets/class-wp-widget-meta.php
+@@ -66,15 +66,26 @@
+ 			$aria_label = $title ? $title : $default_title;
+ 			echo '<nav aria-label="' . esc_attr( $aria_label ) . '">';
+ 		}
+-		?>
++		;
++echo '
++		<ul>
++			';
++wp_register(); ;
++echo '			<li>';
++wp_loginout(); ;
++echo '</li>
++			<li><a href="';
++echo esc_url( get_bloginfo( 'rss2_url' ) ); ;
++echo '">';
++_e( 'Entries feed' ); ;
++echo '</a></li>
++			<li><a href="';
++echo esc_url( get_bloginfo( 'comments_rss2_url' ) ); ;
++echo '">';
++_e( 'Comments feed' ); ;
++echo '</a></li>
+ 
+-		<ul>
+-			<?php wp_register(); ?>
+-			<li><?php wp_loginout(); ?></li>
+-			<li><a href="<?php echo esc_url( get_bloginfo( 'rss2_url' ) ); ?>"><?php _e( 'Entries feed' ); ?></a></li>
+-			<li><a href="<?php echo esc_url( get_bloginfo( 'comments_rss2_url' ) ); ?>"><?php _e( 'Comments feed' ); ?></a></li>
+-
+-			<?php
++			';
+ 			/**
+ 			 * Filters the "WordPress.org" list item HTML in the Meta widget.
+ 			 *
+@@ -95,11 +106,11 @@
+ 			);
+ 
+ 			wp_meta();
+-			?>
+-
++			;
++echo '
+ 		</ul>
+ 
+-		<?php
++		';
+ 		if ( 'html5' === $format ) {
+ 			echo '</nav>';
+ 		}
+@@ -133,11 +144,21 @@
+ 	 */
+ 	public function form( $instance ) {
+ 		$instance = wp_parse_args( (array) $instance, array( 'title' => '' ) );
+-		?>
+-		<p>
+-			<label for="<?php echo $this->get_field_id( 'title' ); ?>"><?php _e( 'Title:' ); ?></label>
+-			<input class="widefat" id="<?php echo $this->get_field_id( 'title' ); ?>" name="<?php echo $this->get_field_name( 'title' ); ?>" type="text" value="<?php echo esc_attr( $instance['title'] ); ?>" />
++		;
++echo '		<p>
++			<label for="';
++echo $this->get_field_id( 'title' ); ;
++echo '">';
++_e( 'Title:' ); ;
++echo '</label>
++			<input class="widefat" id="';
++echo $this->get_field_id( 'title' ); ;
++echo '" name="';
++echo $this->get_field_name( 'title' ); ;
++echo '" type="text" value="';
++echo esc_attr( $instance['title'] ); ;
++echo '" />
+ 		</p>
+-		<?php
++		';
+ 	}
+ }

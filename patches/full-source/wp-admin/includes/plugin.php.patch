@@ -1,0 +1,53 @@
+--- a/wp-admin/includes/plugin.php
++++ b/wp-admin/includes/plugin.php
+@@ -927,9 +927,9 @@
+ 
+ 	if ( false === $credentials ) {
+ 		if ( ! empty( $data ) ) {
+-			require_once ABSPATH . 'wp-admin/admin-header.php';
++			throw new RuntimeException( 'Interactive administration templates are outside the finite native fixture.' );
+ 			echo $data;
+-			require_once ABSPATH . 'wp-admin/admin-footer.php';
++			throw new RuntimeException( 'Interactive administration templates are outside the finite native fixture.' );
+ 			exit;
+ 		}
+ 		return null;
+@@ -942,9 +942,9 @@
+ 		$data = ob_get_clean();
+ 
+ 		if ( ! empty( $data ) ) {
+-			require_once ABSPATH . 'wp-admin/admin-header.php';
++			throw new RuntimeException( 'Interactive administration templates are outside the finite native fixture.' );
+ 			echo $data;
+-			require_once ABSPATH . 'wp-admin/admin-footer.php';
++			throw new RuntimeException( 'Interactive administration templates are outside the finite native fixture.' );
+ 			exit;
+ 		}
+ 		return null;
+@@ -1330,7 +1330,7 @@
+ 		define( 'WP_UNINSTALL_PLUGIN', $file );
+ 
+ 		wp_register_plugin_realpath( WP_PLUGIN_DIR . '/' . $file );
+-		include_once WP_PLUGIN_DIR . '/' . dirname( $file ) . '/uninstall.php';
++		throw new RuntimeException( 'No plugin PHP source is registered in the finite Elephc fixture.' );
+ 
+ 		return true;
+ 	}
+@@ -1342,7 +1342,7 @@
+ 		unset( $uninstallable_plugins );
+ 
+ 		wp_register_plugin_realpath( WP_PLUGIN_DIR . '/' . $file );
+-		include_once WP_PLUGIN_DIR . '/' . $file;
++		throw new RuntimeException( 'No plugin PHP source is registered in the finite Elephc fixture.' );
+ 
+ 		add_action( "uninstall_{$file}", $callable );
+ 
+@@ -2385,7 +2385,7 @@
+ 	}
+ 
+ 	wp_register_plugin_realpath( WP_PLUGIN_DIR . '/' . $plugin );
+-	include_once WP_PLUGIN_DIR . '/' . $plugin;
++	throw new RuntimeException( 'No plugin PHP source is registered in the finite Elephc fixture.' );
+ }
+ 
+ /**

@@ -1,0 +1,65 @@
+--- a/wp-includes/customize/class-wp-customize-background-position-control.php
++++ b/wp-includes/customize/class-wp-customize-background-position-control.php
+@@ -81,8 +81,8 @@
+ 				),
+ 			),
+ 		);
+-		?>
+-		<# if ( data.label ) { #>
++		;
++echo '		<# if ( data.label ) { #>
+ 			<span class="customize-control-title">{{{ data.label }}}</span>
+ 		<# } #>
+ 		<# if ( data.description ) { #>
+@@ -91,26 +91,36 @@
+ 		<div class="customize-control-content">
+ 			<fieldset>
+ 				<legend class="screen-reader-text"><span>
+-					<?php
++					';
+ 					/* translators: Hidden accessibility text. */
+ 					_e( 'Image Position' );
+-					?>
+-				</span></legend>
++					;
++echo '				</span></legend>
+ 				<div class="background-position-control">
+-				<?php foreach ( $options as $group ) : ?>
+-					<div class="button-group">
+-					<?php foreach ( $group as $value => $input ) : ?>
+-						<label>
+-							<input class="ui-helper-hidden-accessible" name="background-position" type="radio" value="<?php echo esc_attr( $value ); ?>">
+-							<span class="button display-options position"><span class="<?php echo esc_attr( $input['icon'] ); ?>" aria-hidden="true"></span></span>
+-							<span class="screen-reader-text"><?php echo $input['label']; ?></span>
++				';
++foreach ( $options as $group ) : ;
++echo '					<div class="button-group">
++					';
++foreach ( $group as $value => $input ) : ;
++echo '						<label>
++							<input class="ui-helper-hidden-accessible" name="background-position" type="radio" value="';
++echo esc_attr( $value ); ;
++echo '">
++							<span class="button display-options position"><span class="';
++echo esc_attr( $input['icon'] ); ;
++echo '" aria-hidden="true"></span></span>
++							<span class="screen-reader-text">';
++echo $input['label']; ;
++echo '</span>
+ 						</label>
+-					<?php endforeach; ?>
+-					</div>
+-				<?php endforeach; ?>
+-				</div>
++					';
++endforeach; ;
++echo '					</div>
++				';
++endforeach; ;
++echo '				</div>
+ 			</fieldset>
+ 		</div>
+-		<?php
++		';
+ 	}
+ }

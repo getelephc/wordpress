@@ -1,0 +1,114 @@
+--- a/wp-content/themes/twentytwentyfive/patterns/page-portfolio-home.php
++++ b/wp-content/themes/twentytwentyfive/patterns/page-portfolio-home.php
+@@ -14,8 +14,8 @@
+  * @since Twenty Twenty-Five 1.0
+  */
+ 
+-?>
+-<!-- wp:group {"align":"full","layout":{"type":"default"}} -->
++;
++echo '<!-- wp:group {"align":"full","layout":{"type":"default"}} -->
+ <div class="wp-block-group alignfull">
+ 	<!-- wp:group {"align":"full","style":{"spacing":{"padding":{"top":"var:preset|spacing|50","bottom":"var:preset|spacing|50"}}},"layout":{"type":"constrained"}} -->
+ 	<div class="wp-block-group alignfull" style="padding-top:var(--wp--preset--spacing--50);padding-bottom:var(--wp--preset--spacing--50)">
+@@ -24,7 +24,9 @@
+ 			<!-- wp:column {"width":"50%"} -->
+ 			<div class="wp-block-column" style="flex-basis:50%">
+ 				<!-- wp:heading {"align":"wide","fontSize":"x-large"} -->
+-				<h2 class="wp-block-heading alignwide has-x-large-font-size"><?php esc_html_e( 'My name is Anna Möller and these are some of my photo projects.', 'twentytwentyfive' ); ?></h2>
++				<h2 class="wp-block-heading alignwide has-x-large-font-size">';
++esc_html_e( 'My name is Anna Möller and these are some of my photo projects.', 'twentytwentyfive' ); ;
++echo '</h2>
+ 				<!-- /wp:heading -->
+ 			</div>
+ 			<!-- /wp:column -->
+@@ -62,7 +64,9 @@
+ 				<!-- /wp:post-template -->
+ 				<!-- wp:query-no-results -->
+ 				<!-- wp:paragraph -->
+-				<p><?php echo esc_html_x( 'Sorry, but nothing was found. Please try a search with different keywords.', 'Message explaining that there are no results returned from a search.', 'twentytwentyfive' ); ?></p>
++				<p>';
++echo esc_html_x( 'Sorry, but nothing was found. Please try a search with different keywords.', 'Message explaining that there are no results returned from a search.', 'twentytwentyfive' ); ;
++echo '</p>
+ 				<!-- /wp:paragraph -->
+ 				<!-- /wp:query-no-results -->
+ 			</div>
+@@ -84,7 +88,9 @@
+ 				<!-- /wp:post-template -->
+ 				<!-- wp:query-no-results -->
+ 				<!-- wp:paragraph -->
+-				<p><?php echo esc_html_x( 'Sorry, but nothing was found. Please try a search with different keywords.', 'Message explaining that there are no results returned from a search.', 'twentytwentyfive' ); ?></p>
++				<p>';
++echo esc_html_x( 'Sorry, but nothing was found. Please try a search with different keywords.', 'Message explaining that there are no results returned from a search.', 'twentytwentyfive' ); ;
++echo '</p>
+ 				<!-- /wp:paragraph -->
+ 				<!-- /wp:query-no-results -->
+ 			</div>
+@@ -118,7 +124,9 @@
+ 		<!-- /wp:post-template -->
+ 		<!-- wp:query-no-results -->
+ 		<!-- wp:paragraph -->
+-		<p><?php echo esc_html_x( 'Sorry, but nothing was found. Please try a search with different keywords.', 'Message explaining that there are no results returned from a search.', 'twentytwentyfive' ); ?></p>
++		<p>';
++echo esc_html_x( 'Sorry, but nothing was found. Please try a search with different keywords.', 'Message explaining that there are no results returned from a search.', 'twentytwentyfive' ); ;
++echo '</p>
+ 		<!-- /wp:paragraph -->
+ 		<!-- /wp:query-no-results -->
+ 	</div>
+@@ -151,7 +159,9 @@
+ 				<!-- /wp:post-template -->
+ 				<!-- wp:query-no-results -->
+ 				<!-- wp:paragraph -->
+-				<p><?php echo esc_html_x( 'Sorry, but nothing was found. Please try a search with different keywords.', 'Message explaining that there are no results returned from a search.', 'twentytwentyfive' ); ?></p>
++				<p>';
++echo esc_html_x( 'Sorry, but nothing was found. Please try a search with different keywords.', 'Message explaining that there are no results returned from a search.', 'twentytwentyfive' ); ;
++echo '</p>
+ 				<!-- /wp:paragraph -->
+ 				<!-- /wp:query-no-results -->
+ 			</div>
+@@ -173,7 +183,9 @@
+ 				<!-- /wp:post-template -->
+ 				<!-- wp:query-no-results -->
+ 				<!-- wp:paragraph -->
+-				<p><?php echo esc_html_x( 'Sorry, but nothing was found. Please try a search with different keywords.', 'Message explaining that there are no results returned from a search.', 'twentytwentyfive' ); ?></p>
++				<p>';
++echo esc_html_x( 'Sorry, but nothing was found. Please try a search with different keywords.', 'Message explaining that there are no results returned from a search.', 'twentytwentyfive' ); ;
++echo '</p>
+ 				<!-- /wp:paragraph -->
+ 				<!-- /wp:query-no-results -->
+ 			</div>
+@@ -200,7 +212,9 @@
+ 		<!-- /wp:post-template -->
+ 		<!-- wp:query-no-results -->
+ 		<!-- wp:paragraph -->
+-		<p><?php echo esc_html_x( 'Sorry, but nothing was found. Please try a search with different keywords.', 'Message explaining that there are no results returned from a search.', 'twentytwentyfive' ); ?></p>
++		<p>';
++echo esc_html_x( 'Sorry, but nothing was found. Please try a search with different keywords.', 'Message explaining that there are no results returned from a search.', 'twentytwentyfive' ); ;
++echo '</p>
+ 		<!-- /wp:paragraph -->
+ 		<!-- /wp:query-no-results -->
+ 	</div>
+@@ -223,10 +237,16 @@
+ 		<!-- wp:group {"align":"wide","layout":{"type":"default"}} -->
+ 		<div class="wp-block-group alignwide">
+ 			<!-- wp:paragraph {"fontSize":"small"} -->
+-			<p class="has-small-font-size"><?php esc_html_e( 'Twenty Twenty-Five', 'twentytwentyfive' ); ?></p>
++			<p class="has-small-font-size">';
++esc_html_e( 'Twenty Twenty-Five', 'twentytwentyfive' ); ;
++echo '</p>
+ 			<!-- /wp:paragraph -->
+ 			<!-- wp:paragraph {"fontSize":"small"} -->
+-			<p class="has-small-font-size"><?php esc_html_e( 'email@example.com', 'twentytwentyfive' ); ?><br><?php echo esc_html_x( '+1 555 349 1806', 'Phone number.', 'twentytwentyfive' ); ?></p>
++			<p class="has-small-font-size">';
++esc_html_e( 'email@example.com', 'twentytwentyfive' ); ;
++echo '<br>';
++echo esc_html_x( '+1 555 349 1806', 'Phone number.', 'twentytwentyfive' ); ;
++echo '</p>
+ 			<!-- /wp:paragraph -->
+ 		</div>
+ 		<!-- /wp:group -->
+@@ -234,3 +254,4 @@
+ 	<!-- /wp:group -->
+ </div>
+ <!-- /wp:group -->
++';

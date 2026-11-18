@@ -1,0 +1,140 @@
+--- a/wp-includes/widgets/class-wp-widget-recent-posts.php
++++ b/wp-includes/widgets/class-wp-widget-recent-posts.php
+@@ -85,11 +85,12 @@
+ 		if ( ! $r->have_posts() ) {
+ 			return;
+ 		}
+-		?>
+-
+-		<?php echo $args['before_widget']; ?>
+-
+-		<?php
++		;
++echo '
++		';
++echo $args['before_widget']; ;
++echo '
++		';
+ 		if ( $title ) {
+ 			echo $args['before_title'] . $title . $args['after_title'];
+ 		}
+@@ -105,11 +106,12 @@
+ 			$aria_label = $title ? $title : $default_title;
+ 			echo '<nav aria-label="' . esc_attr( $aria_label ) . '">';
+ 		}
+-		?>
+-
++		;
++echo '
+ 		<ul>
+-			<?php foreach ( $r->posts as $recent_post ) : ?>
+-				<?php
++			';
++foreach ( $r->posts as $recent_post ) : ;
++echo '				';
+ 				$post_title   = get_the_title( $recent_post->ID );
+ 				$title        = ( ! empty( $post_title ) ) ? $post_title : __( '(no title)' );
+ 				$aria_current = '';
+@@ -117,17 +119,28 @@
+ 				if ( get_queried_object_id() === $recent_post->ID ) {
+ 					$aria_current = ' aria-current="page"';
+ 				}
+-				?>
+-				<li>
+-					<a href="<?php the_permalink( $recent_post->ID ); ?>"<?php echo $aria_current; ?>><?php echo $title; ?></a>
+-					<?php if ( $show_date ) : ?>
+-						<span class="post-date"><?php echo get_the_date( '', $recent_post->ID ); ?></span>
+-					<?php endif; ?>
+-				</li>
+-			<?php endforeach; ?>
+-		</ul>
+-
+-		<?php
++				;
++echo '				<li>
++					<a href="';
++the_permalink( $recent_post->ID ); ;
++echo '"';
++echo $aria_current; ;
++echo '>';
++echo $title; ;
++echo '</a>
++					';
++if ( $show_date ) : ;
++echo '						<span class="post-date">';
++echo get_the_date( '', $recent_post->ID ); ;
++echo '</span>
++					';
++endif; ;
++echo '				</li>
++			';
++endforeach; ;
++echo '		</ul>
++
++		';
+ 		if ( 'html5' === $format ) {
+ 			echo '</nav>';
+ 		}
+@@ -164,21 +177,51 @@
+ 		$title     = isset( $instance['title'] ) ? esc_attr( $instance['title'] ) : '';
+ 		$number    = isset( $instance['number'] ) ? absint( $instance['number'] ) : 5;
+ 		$show_date = isset( $instance['show_date'] ) ? (bool) $instance['show_date'] : false;
+-		?>
++		;
++echo '		<p>
++			<label for="';
++echo $this->get_field_id( 'title' ); ;
++echo '">';
++_e( 'Title:' ); ;
++echo '</label>
++			<input class="widefat" id="';
++echo $this->get_field_id( 'title' ); ;
++echo '" name="';
++echo $this->get_field_name( 'title' ); ;
++echo '" type="text" value="';
++echo $title; ;
++echo '" />
++		</p>
++
+ 		<p>
+-			<label for="<?php echo $this->get_field_id( 'title' ); ?>"><?php _e( 'Title:' ); ?></label>
+-			<input class="widefat" id="<?php echo $this->get_field_id( 'title' ); ?>" name="<?php echo $this->get_field_name( 'title' ); ?>" type="text" value="<?php echo $title; ?>" />
++			<label for="';
++echo $this->get_field_id( 'number' ); ;
++echo '">';
++_e( 'Number of posts to show:' ); ;
++echo '</label>
++			<input class="tiny-text" id="';
++echo $this->get_field_id( 'number' ); ;
++echo '" name="';
++echo $this->get_field_name( 'number' ); ;
++echo '" type="number" step="1" min="1" value="';
++echo $number; ;
++echo '" size="3" />
+ 		</p>
+ 
+ 		<p>
+-			<label for="<?php echo $this->get_field_id( 'number' ); ?>"><?php _e( 'Number of posts to show:' ); ?></label>
+-			<input class="tiny-text" id="<?php echo $this->get_field_id( 'number' ); ?>" name="<?php echo $this->get_field_name( 'number' ); ?>" type="number" step="1" min="1" value="<?php echo $number; ?>" size="3" />
++			<input class="checkbox" type="checkbox"';
++checked( $show_date ); ;
++echo ' id="';
++echo $this->get_field_id( 'show_date' ); ;
++echo '" name="';
++echo $this->get_field_name( 'show_date' ); ;
++echo '" />
++			<label for="';
++echo $this->get_field_id( 'show_date' ); ;
++echo '">';
++_e( 'Display post date?' ); ;
++echo '</label>
+ 		</p>
+-
+-		<p>
+-			<input class="checkbox" type="checkbox"<?php checked( $show_date ); ?> id="<?php echo $this->get_field_id( 'show_date' ); ?>" name="<?php echo $this->get_field_name( 'show_date' ); ?>" />
+-			<label for="<?php echo $this->get_field_id( 'show_date' ); ?>"><?php _e( 'Display post date?' ); ?></label>
+-		</p>
+-		<?php
++		';
+ 	}
+ }

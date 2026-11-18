@@ -1,0 +1,57 @@
+--- a/wp-admin/includes/user.php
++++ b/wp-admin/includes/user.php
+@@ -172,7 +172,10 @@
+ 	 * @param string $pass1     The password (passed by reference).
+ 	 * @param string $pass2     The confirmed password (passed by reference).
+ 	 */
+-	do_action_ref_array( 'check_passwords', array( $user->user_login, &$pass1, &$pass2 ) );
++	if ( has_action( 'check_passwords' ) ) {
++        throw new RuntimeException( 'Password callbacks requiring reference arrays are outside the finite Elephc fixture.' );
++    }
++    do_action( 'check_passwords', $user->user_login, $pass1, $pass2 );
+ 
+ 	// Check for blank password when adding a user.
+ 	if ( ! $update && empty( $pass1 ) ) {
+@@ -229,7 +232,7 @@
+ 	 * @param bool     $update Whether this is a user update.
+ 	 * @param stdClass $user   User object (passed by reference).
+ 	 */
+-	do_action_ref_array( 'user_profile_update_errors', array( &$errors, $update, &$user ) );
++	do_action_ref_array( 'user_profile_update_errors', array( $errors, $update, $user ) );
+ 
+ 	if ( $errors->has_errors() ) {
+ 		return $errors;
+@@ -272,7 +275,8 @@
+  * @return array[] Array of arrays containing role information.
+  */
+ function get_editable_roles() {
+-	$all_roles = wp_roles()->roles;
++	$roles = wp_roles();
++	$all_roles = $roles->roles;
+ 
+ 	/**
+ 	 * Filters the list of editable roles.
+@@ -577,12 +581,18 @@
+  * @param WP_User $user User data object.
+  */
+ function use_ssl_preference( $user ) {
+-	?>
+-	<tr class="user-use-ssl-wrap">
+-		<th scope="row"><?php _e( 'Use https' ); ?></th>
+-		<td><label for="use_ssl"><input name="use_ssl" type="checkbox" id="use_ssl" value="1" <?php checked( '1', $user->use_ssl ); ?> /> <?php _e( 'Always use https when visiting the admin' ); ?></label></td>
++	;
++echo '	<tr class="user-use-ssl-wrap">
++		<th scope="row">';
++_e( 'Use https' ); ;
++echo '</th>
++		<td><label for="use_ssl"><input name="use_ssl" type="checkbox" id="use_ssl" value="1" ';
++checked( '1', $user->use_ssl ); ;
++echo ' /> ';
++_e( 'Always use https when visiting the admin' ); ;
++echo '</label></td>
+ 	</tr>
+-	<?php
++	';
+ }
+ 
+ /**

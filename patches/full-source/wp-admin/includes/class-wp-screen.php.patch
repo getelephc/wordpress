@@ -1,0 +1,367 @@
+--- a/wp-admin/includes/class-wp-screen.php
++++ b/wp-admin/includes/class-wp-screen.php
+@@ -869,48 +869,68 @@
+ 		}
+ 
+ 		// Time to render!
+-		?>
+-		<div id="screen-meta" class="metabox-prefs">
+-
+-			<div id="contextual-help-wrap" class="<?php echo esc_attr( $help_class ); ?>" tabindex="-1" aria-label="<?php esc_attr_e( 'Contextual Help Tab' ); ?>">
++		;
++echo '		<div id="screen-meta" class="metabox-prefs">
++
++			<div id="contextual-help-wrap" class="';
++echo esc_attr( $help_class ); ;
++echo '" tabindex="-1" aria-label="';
++esc_attr_e( 'Contextual Help Tab' ); ;
++echo '">
+ 				<div id="contextual-help-back"></div>
+ 				<div id="contextual-help-columns">
+ 					<div class="contextual-help-tabs">
+ 						<ul>
+-						<?php
++						';
+ 						$class = ' class="active"';
+ 						foreach ( $this->get_help_tabs() as $tab ) :
+ 							$link_id  = "tab-link-{$tab['id']}";
+ 							$panel_id = "tab-panel-{$tab['id']}";
+-							?>
+-
+-							<li id="<?php echo esc_attr( $link_id ); ?>"<?php echo $class; ?>>
+-								<a href="<?php echo esc_url( "#$panel_id" ); ?>" aria-controls="<?php echo esc_attr( $panel_id ); ?>">
+-									<?php echo esc_html( $tab['title'] ); ?>
+-								</a>
++							;
++echo '
++							<li id="';
++echo esc_attr( $link_id ); ;
++echo '"';
++echo $class; ;
++echo '>
++								<a href="';
++echo esc_url( "#$panel_id" ); ;
++echo '" aria-controls="';
++echo esc_attr( $panel_id ); ;
++echo '">
++									';
++echo esc_html( $tab['title'] ); ;
++echo '								</a>
+ 							</li>
+-							<?php
++							';
+ 							$class = '';
+ 						endforeach;
+-						?>
+-						</ul>
++						;
++echo '						</ul>
+ 					</div>
+ 
+-					<?php if ( $help_sidebar ) : ?>
+-					<div class="contextual-help-sidebar">
+-						<?php echo $help_sidebar; ?>
+-					</div>
+-					<?php endif; ?>
+-
++					';
++if ( $help_sidebar ) : ;
++echo '					<div class="contextual-help-sidebar">
++						';
++echo $help_sidebar; ;
++echo '					</div>
++					';
++endif; ;
++echo '
+ 					<div class="contextual-help-tabs-wrap">
+-						<?php
++						';
+ 						$classes = 'help-tab-content active';
+ 						foreach ( $this->get_help_tabs() as $tab ) :
+ 							$panel_id = "tab-panel-{$tab['id']}";
+-							?>
+-
+-							<div id="<?php echo esc_attr( $panel_id ); ?>" class="<?php echo $classes; ?>">
+-								<?php
++							;
++echo '
++							<div id="';
++echo esc_attr( $panel_id ); ;
++echo '" class="';
++echo $classes; ;
++echo '">
++								';
+ 								// Print tab content.
+ 								echo $tab['content'];
+ 
+@@ -918,16 +938,16 @@
+ 								if ( ! empty( $tab['callback'] ) ) {
+ 									call_user_func_array( $tab['callback'], array( $this, $tab ) );
+ 								}
+-								?>
+-							</div>
+-							<?php
++								;
++echo '							</div>
++							';
+ 							$classes = 'help-tab-content';
+ 						endforeach;
+-						?>
+-					</div>
++						;
++echo '					</div>
+ 				</div>
+ 			</div>
+-		<?php
++		';
+ 		// Setup layout columns.
+ 
+ 		/**
+@@ -962,28 +982,34 @@
+ 		if ( $this->show_screen_options() ) {
+ 			$this->render_screen_options();
+ 		}
+-		?>
+-		</div>
+-		<?php
++		;
++echo '		</div>
++		';
+ 		if ( ! $this->get_help_tabs() && ! $this->show_screen_options() ) {
+ 			return;
+ 		}
+-		?>
+-		<div id="screen-meta-links">
+-		<?php if ( $this->show_screen_options() ) : ?>
+-			<div id="screen-options-link-wrap" class="hide-if-no-js screen-meta-toggle">
+-			<button type="button" id="show-settings-link" class="button button-compact show-settings" aria-controls="screen-options-wrap" aria-expanded="false"><?php _e( 'Screen Options' ); ?></button>
++		;
++echo '		<div id="screen-meta-links">
++		';
++if ( $this->show_screen_options() ) : ;
++echo '			<div id="screen-options-link-wrap" class="hide-if-no-js screen-meta-toggle">
++			<button type="button" id="show-settings-link" class="button button-compact show-settings" aria-controls="screen-options-wrap" aria-expanded="false">';
++_e( 'Screen Options' ); ;
++echo '</button>
+ 			</div>
+-			<?php
++			';
+ 		endif;
+ 		if ( $this->get_help_tabs() ) :
+-			?>
+-			<div id="contextual-help-link-wrap" class="hide-if-no-js screen-meta-toggle">
+-			<button type="button" id="contextual-help-link" class="button button-compact show-settings" aria-controls="contextual-help-wrap" aria-expanded="false"><?php _e( 'Help' ); ?></button>
++			;
++echo '			<div id="contextual-help-link-wrap" class="hide-if-no-js screen-meta-toggle">
++			<button type="button" id="contextual-help-link" class="button button-compact show-settings" aria-controls="contextual-help-wrap" aria-expanded="false">';
++_e( 'Help' ); ;
++echo '</button>
+ 			</div>
+-		<?php endif; ?>
+-		</div>
+-		<?php
++		';
++endif; ;
++echo '		</div>
++		';
+ 	}
+ 
+ 	/**
+@@ -1116,15 +1142,19 @@
+ 		if ( ! isset( $wp_meta_boxes[ $this->id ] ) ) {
+ 			return;
+ 		}
+-		?>
+-		<fieldset class="metabox-prefs">
+-		<legend><?php _e( 'Screen elements' ); ?></legend>
++		;
++echo '		<fieldset class="metabox-prefs">
++		<legend>';
++_e( 'Screen elements' ); ;
++echo '</legend>
+ 		<p>
+-			<?php _e( 'Some screen elements can be shown or hidden by using the checkboxes.' ); ?>
+-			<?php _e( 'Expand or collapse the elements by clicking on their headings, and arrange them by dragging their headings or by clicking on the up and down arrows.' ); ?>
+-		</p>
++			';
++_e( 'Some screen elements can be shown or hidden by using the checkboxes.' ); ;
++echo '			';
++_e( 'Expand or collapse the elements by clicking on their headings, and arrange them by dragging their headings or by clicking on the up and down arrows.' ); ;
++echo '		</p>
+ 		<div class="metabox-prefs-container">
+-		<?php
++		';
+ 
+ 		meta_box_prefs( $this );
+ 
+@@ -1142,10 +1172,10 @@
+ 			echo '<input type="checkbox" id="wp_welcome_panel-hide"' . checked( (bool) $welcome_checked, true, false ) . ' />';
+ 			echo _x( 'Welcome', 'Welcome panel' ) . "</label>\n";
+ 		}
+-		?>
+-		</div>
++		;
++echo '		</div>
+ 		</fieldset>
+-		<?php
++		';
+ 	}
+ 
+ 	/**
+@@ -1163,10 +1193,12 @@
+ 		}
+ 
+ 		$legend = ! empty( $columns['_title'] ) ? $columns['_title'] : __( 'Columns' );
+-		?>
+-		<fieldset class="metabox-prefs">
+-		<legend><?php echo $legend; ?></legend>
+-		<?php
++		;
++echo '		<fieldset class="metabox-prefs">
++		<legend>';
++echo $legend; ;
++echo '</legend>
++		';
+ 		$special = array( '_title', 'cb', 'comment', 'media', 'name', 'title', 'username', 'blogname' );
+ 
+ 		foreach ( $columns as $column => $title ) {
+@@ -1191,9 +1223,9 @@
+ 			echo '<input class="hide-column-tog" name="' . $id . '" type="checkbox" id="' . $id . '" value="' . $column . '"' . checked( ! in_array( $column, $hidden, true ), true, false ) . ' />';
+ 			echo "$title</label>\n";
+ 		}
+-		?>
+-		</fieldset>
+-		<?php
++		;
++echo '		</fieldset>
++		';
+ 	}
+ 
+ 	/**
+@@ -1209,23 +1241,33 @@
+ 		$screen_layout_columns = $this->get_columns();
+ 		$num                   = $this->get_option( 'layout_columns', 'max' );
+ 
+-		?>
+-		<fieldset class='columns-prefs'>
+-		<legend class="screen-layout"><?php _e( 'Layout' ); ?></legend>
+-		<?php for ( $i = 1; $i <= $num; ++$i ) : ?>
+-			<label class="columns-prefs-<?php echo $i; ?>">
+-			<input type='radio' name='screen_columns' value='<?php echo esc_attr( $i ); ?>' <?php checked( $screen_layout_columns, $i ); ?> />
+-			<?php
++		;
++echo '		<fieldset class=\'columns-prefs\'>
++		<legend class="screen-layout">';
++_e( 'Layout' ); ;
++echo '</legend>
++		';
++for ( $i = 1; $i <= $num; ++$i ) : ;
++echo '			<label class="columns-prefs-';
++echo $i; ;
++echo '">
++			<input type=\'radio\' name=\'screen_columns\' value=\'';
++echo esc_attr( $i ); ;
++echo '\' ';
++checked( $screen_layout_columns, $i ); ;
++echo ' />
++			';
+ 				printf(
+ 					/* translators: %s: Number of columns on the page. */
+ 					_n( '%s column', '%s columns', $i ),
+ 					number_format_i18n( $i )
+ 				);
+-			?>
+-			</label>
+-		<?php endfor; ?>
+-		</fieldset>
+-		<?php
++			;
++echo '			</label>
++		';
++endfor; ;
++echo '		</fieldset>
++		';
+ 	}
+ 
+ 	/**
+@@ -1278,18 +1320,32 @@
+ 		// This needs a submit button.
+ 		add_filter( 'screen_options_show_submit', '__return_true' );
+ 
+-		?>
+-		<fieldset class="screen-options">
+-		<legend><?php _e( 'Pagination' ); ?></legend>
+-			<?php if ( $per_page_label ) : ?>
+-				<label for="<?php echo esc_attr( $option ); ?>"><?php echo $per_page_label; ?></label>
++		;
++echo '		<fieldset class="screen-options">
++		<legend>';
++_e( 'Pagination' ); ;
++echo '</legend>
++			';
++if ( $per_page_label ) : ;
++echo '				<label for="';
++echo esc_attr( $option ); ;
++echo '">';
++echo $per_page_label; ;
++echo '</label>
+ 				<input type="number" step="1" min="1" max="999" class="screen-per-page small-text" name="wp_screen_options[value]"
+-					id="<?php echo esc_attr( $option ); ?>"
+-					value="<?php echo esc_attr( $per_page ); ?>" />
+-			<?php endif; ?>
+-				<input type="hidden" name="wp_screen_options[option]" value="<?php echo esc_attr( $option ); ?>" />
++					id="';
++echo esc_attr( $option ); ;
++echo '"
++					value="';
++echo esc_attr( $per_page ); ;
++echo '" />
++			';
++endif; ;
++echo '				<input type="hidden" name="wp_screen_options[option]" value="';
++echo esc_attr( $option ); ;
++echo '" />
+ 		</fieldset>
+-		<?php
++		';
+ 	}
+ 
+ 	/**
+@@ -1331,19 +1387,27 @@
+ 
+ 		// This needs a submit button.
+ 		add_filter( 'screen_options_show_submit', '__return_true' );
+-		?>
+-		<fieldset class="metabox-prefs view-mode">
+-			<legend><?php _e( 'View mode' ); ?></legend>
++		;
++echo '		<fieldset class="metabox-prefs view-mode">
++			<legend>';
++_e( 'View mode' ); ;
++echo '</legend>
+ 			<label for="list-view-mode">
+-				<input id="list-view-mode" type="radio" name="mode" value="list" <?php checked( 'list', $mode ); ?> />
+-				<?php _e( 'Compact view' ); ?>
+-			</label>
++				<input id="list-view-mode" type="radio" name="mode" value="list" ';
++checked( 'list', $mode ); ;
++echo ' />
++				';
++_e( 'Compact view' ); ;
++echo '			</label>
+ 			<label for="excerpt-view-mode">
+-				<input id="excerpt-view-mode" type="radio" name="mode" value="excerpt" <?php checked( 'excerpt', $mode ); ?> />
+-				<?php _e( 'Extended view' ); ?>
+-			</label>
++				<input id="excerpt-view-mode" type="radio" name="mode" value="excerpt" ';
++checked( 'excerpt', $mode ); ;
++echo ' />
++				';
++_e( 'Extended view' ); ;
++echo '			</label>
+ 		</fieldset>
+-		<?php
++		';
+ 	}
+ 
+ 	/**

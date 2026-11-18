@@ -1,0 +1,831 @@
+--- a/wp-admin/includes/template.php
++++ b/wp-admin/includes/template.php
+@@ -240,19 +240,29 @@
+ 
+ 		$id      = "popular-$taxonomy-$term->term_id";
+ 		$checked = in_array( $term->term_id, $checked_terms, true ) ? 'checked="checked"' : '';
+-		?>
+-
+-		<li id="<?php echo $id; ?>" class="popular-category">
++		;
++echo '
++		<li id="';
++echo $id; ;
++echo '" class="popular-category">
+ 			<label class="selectit">
+-				<input id="in-<?php echo $id; ?>" type="checkbox" <?php echo $checked; ?> value="<?php echo (int) $term->term_id; ?>" <?php disabled( ! current_user_can( $tax->cap->assign_terms ) ); ?> />
+-				<?php
++				<input id="in-';
++echo $id; ;
++echo '" type="checkbox" ';
++echo $checked; ;
++echo ' value="';
++echo (int) $term->term_id; ;
++echo '" ';
++disabled( ! current_user_can( $tax->cap->assign_terms ) ); ;
++echo ' />
++				';
+ 				/** This filter is documented in wp-includes/category-template.php */
+ 				echo esc_html( apply_filters( 'the_category', $term->name, '', '' ) );
+-				?>
+-			</label>
++				;
++echo '			</label>
+ 		</li>
+ 
+-		<?php
++		';
+ 	}
+ 	return $popular_ids;
+ }
+@@ -452,28 +462,39 @@
+ 		}
+ 	}
+ 
+-	?>
+-<form method="get">
+-	<?php if ( $table_row ) : ?>
+-<table style="display:none;"><tbody id="com-reply"><tr id="replyrow" class="inline-edit-row" style="display:none;"><td colspan="<?php echo $wp_list_table->get_column_count(); ?>" class="colspanchange">
+-<?php else : ?>
+-<div id="com-reply" style="display:none;"><div id="replyrow" style="display:none;">
+-<?php endif; ?>
+-	<fieldset class="comment-reply">
++	;
++echo '<form method="get">
++	';
++if ( $table_row ) : ;
++echo '<table style="display:none;"><tbody id="com-reply"><tr id="replyrow" class="inline-edit-row" style="display:none;"><td colspan="';
++echo $wp_list_table->get_column_count(); ;
++echo '" class="colspanchange">
++';
++else : ;
++echo '<div id="com-reply" style="display:none;"><div id="replyrow" style="display:none;">
++';
++endif; ;
++echo '	<fieldset class="comment-reply">
+ 	<legend>
+-		<span class="hidden" id="editlegend"><?php _e( 'Edit Comment' ); ?></span>
+-		<span class="hidden" id="replyhead"><?php _e( 'Reply to Comment' ); ?></span>
+-		<span class="hidden" id="addhead"><?php _e( 'Add Comment' ); ?></span>
++		<span class="hidden" id="editlegend">';
++_e( 'Edit Comment' ); ;
++echo '</span>
++		<span class="hidden" id="replyhead">';
++_e( 'Reply to Comment' ); ;
++echo '</span>
++		<span class="hidden" id="addhead">';
++_e( 'Add Comment' ); ;
++echo '</span>
+ 	</legend>
+ 
+ 	<div id="replycontainer">
+ 	<label for="replycontent" class="screen-reader-text">
+-		<?php
++		';
+ 		/* translators: Hidden accessibility text. */
+ 		_e( 'Comment' );
+-		?>
+-	</label>
+-	<?php
++		;
++echo '	</label>
++	';
+ 	$quicktags_settings = array( 'buttons' => 'strong,em,link,block,del,ins,img,ul,ol,li,code,close' );
+ 	wp_editor(
+ 		'',
+@@ -484,22 +505,28 @@
+ 			'quicktags'     => $quicktags_settings,
+ 		)
+ 	);
+-	?>
+-	</div>
++	;
++echo '	</div>
+ 
+ 	<div id="edithead" style="display:none;">
+ 		<div class="inside">
+-		<label for="author-name"><?php _e( 'Name' ); ?></label>
++		<label for="author-name">';
++_e( 'Name' ); ;
++echo '</label>
+ 		<input type="text" name="newcomment_author" size="50" value="" id="author-name" />
+ 		</div>
+ 
+ 		<div class="inside">
+-		<label for="author-email"><?php _e( 'Email' ); ?></label>
++		<label for="author-email">';
++_e( 'Email' ); ;
++echo '</label>
+ 		<input type="text" name="newcomment_author_email" size="50" class="code" value="" id="author-email" />
+ 		</div>
+ 
+ 		<div class="inside">
+-		<label for="author-url"><?php _e( 'URL' ); ?></label>
++		<label for="author-url">';
++_e( 'URL' ); ;
++echo '</label>
+ 		<input type="text" id="author-url" name="newcomment_author_url" class="code" size="103" value="" />
+ 		</div>
+ 	</div>
+@@ -507,14 +534,22 @@
+ 	<div id="replysubmit" class="submit">
+ 		<p class="reply-submit-buttons">
+ 			<button type="button" class="save button button-primary">
+-				<span id="addbtn" style="display: none;"><?php _e( 'Add Comment' ); ?></span>
+-				<span id="savebtn" style="display: none;"><?php _e( 'Update Comment' ); ?></span>
+-				<span id="replybtn" style="display: none;"><?php _e( 'Submit Reply' ); ?></span>
++				<span id="addbtn" style="display: none;">';
++_e( 'Add Comment' ); ;
++echo '</span>
++				<span id="savebtn" style="display: none;">';
++_e( 'Update Comment' ); ;
++echo '</span>
++				<span id="replybtn" style="display: none;">';
++_e( 'Submit Reply' ); ;
++echo '</span>
+ 			</button>
+-			<button type="button" class="cancel button"><?php _e( 'Cancel' ); ?></button>
++			<button type="button" class="cancel button">';
++_e( 'Cancel' ); ;
++echo '</button>
+ 			<span class="waiting spinner"></span>
+ 		</p>
+-		<?php
++		';
+ 		wp_admin_notice(
+ 			'<p class="error"></p>',
+ 			array(
+@@ -523,30 +558,39 @@
+ 				'paragraph_wrap'     => false,
+ 			)
+ 		);
+-		?>
+-	</div>
++		;
++echo '	</div>
+ 
+ 	<input type="hidden" name="action" id="action" value="" />
+ 	<input type="hidden" name="comment_ID" id="comment_ID" value="" />
+ 	<input type="hidden" name="comment_post_ID" id="comment_post_ID" value="" />
+ 	<input type="hidden" name="status" id="status" value="" />
+-	<input type="hidden" name="position" id="position" value="<?php echo $position; ?>" />
+-	<input type="hidden" name="checkbox" id="checkbox" value="<?php echo $checkbox ? 1 : 0; ?>" />
+-	<input type="hidden" name="mode" id="mode" value="<?php echo esc_attr( $mode ); ?>" />
+-	<?php
++	<input type="hidden" name="position" id="position" value="';
++echo $position; ;
++echo '" />
++	<input type="hidden" name="checkbox" id="checkbox" value="';
++echo $checkbox ? 1 : 0; ;
++echo '" />
++	<input type="hidden" name="mode" id="mode" value="';
++echo esc_attr( $mode ); ;
++echo '" />
++	';
+ 		wp_nonce_field( 'replyto-comment', '_ajax_nonce-replyto-comment', false );
+ 	if ( current_user_can( 'unfiltered_html' ) ) {
+ 		wp_nonce_field( 'unfiltered-html-comment', '_wp_unfiltered_html_comment', false );
+ 	}
+-	?>
+-	</fieldset>
+-	<?php if ( $table_row ) : ?>
+-</td></tr></tbody></table>
+-	<?php else : ?>
+-</div></div>
+-	<?php endif; ?>
+-</form>
+-	<?php
++	;
++echo '	</fieldset>
++	';
++if ( $table_row ) : ;
++echo '</td></tr></tbody></table>
++	';
++else : ;
++echo '</div></div>
++	';
++endif; ;
++echo '</form>
++	';
+ }
+ 
+ /**
+@@ -555,26 +599,30 @@
+  * @since 2.9.0
+  */
+ function wp_comment_trashnotice() {
+-	?>
+-<div class="hidden" id="trash-undo-holder">
++	;
++echo '<div class="hidden" id="trash-undo-holder">
+ 	<div class="trash-undo-inside">
+-		<?php
++		';
+ 		/* translators: %s: Comment author, filled by Ajax. */
+ 		printf( __( 'Comment by %s moved to the Trash.' ), '<strong></strong>' );
+-		?>
+-		<span class="undo untrash"><a href="#"><?php _e( 'Undo' ); ?></a></span>
++		;
++echo '		<span class="undo untrash"><a href="#">';
++_e( 'Undo' ); ;
++echo '</a></span>
+ 	</div>
+ </div>
+ <div class="hidden" id="spam-undo-holder">
+ 	<div class="spam-undo-inside">
+-		<?php
++		';
+ 		/* translators: %s: Comment author, filled by Ajax. */
+ 		printf( __( 'Comment by %s marked as spam.' ), '<strong></strong>' );
+-		?>
+-		<span class="undo unspam"><a href="#"><?php _e( 'Undo' ); ?></a></span>
++		;
++echo '		<span class="undo unspam"><a href="#">';
++_e( 'Undo' ); ;
++echo '</a></span>
+ 	</div>
+ </div>
+-	<?php
++	';
+ }
+ 
+ /**
+@@ -602,23 +650,27 @@
+ 		return;
+ 	}
+ 	$count = 0;
+-	?>
+-<table id="list-table">
++	;
++echo '<table id="list-table">
+ 	<thead>
+ 	<tr>
+-		<th class="left"><?php _ex( 'Name', 'meta name' ); ?></th>
+-		<th><?php _e( 'Value' ); ?></th>
++		<th class="left">';
++_ex( 'Name', 'meta name' ); ;
++echo '</th>
++		<th>';
++_e( 'Value' ); ;
++echo '</th>
+ 	</tr>
+ 	</thead>
+-	<tbody id='the-list' data-wp-lists='list:meta'>
+-	<?php
++	<tbody id=\'the-list\' data-wp-lists=\'list:meta\'>
++	';
+ 	foreach ( $meta as $entry ) {
+ 		echo _list_meta_row( $entry, $count );
+ 	}
+-	?>
+-	</tbody>
++	;
++echo '	</tbody>
+ </table>
+-	<?php
++	';
+ }
+ 
+ /**
+@@ -736,47 +788,65 @@
+ 	if ( $keys ) {
+ 		natcasesort( $keys );
+ 	}
+-	?>
+-<p><strong><?php _e( 'Add Custom Field:' ); ?></strong></p>
++	;
++echo '<p><strong>';
++_e( 'Add Custom Field:' ); ;
++echo '</strong></p>
+ <table id="newmeta">
+ <thead>
+ <tr>
+-<th class="left"><label for="metakeyselect"><?php _ex( 'Name', 'meta name' ); ?></label></th>
+-<th><label for="metavalue"><?php _e( 'Value' ); ?></label></th>
++<th class="left"><label for="metakeyselect">';
++_ex( 'Name', 'meta name' ); ;
++echo '</label></th>
++<th><label for="metavalue">';
++_e( 'Value' ); ;
++echo '</label></th>
+ </tr>
+ </thead>
+ 
+ <tbody>
+ <tr>
+ <td id="newmetaleft" class="left">
+-	<?php if ( $keys ) { ?>
+-<select id="metakeyselect" name="metakeyselect">
+-<option value="#NONE#"><?php _e( '&mdash; Select &mdash;' ); ?></option>
+-		<?php
++	';
++if ( $keys ) { ;
++echo '<select id="metakeyselect" name="metakeyselect">
++<option value="#NONE#">';
++_e( '&mdash; Select &mdash;' ); ;
++echo '</option>
++		';
+ 		foreach ( $keys as $key ) {
+ 			if ( is_protected_meta( $key, 'post' ) || ! current_user_can( 'add_post_meta', $post->ID, $key ) ) {
+ 				continue;
+ 			}
+ 			echo "\n<option value='" . esc_attr( $key ) . "'>" . esc_html( $key ) . '</option>';
+ 		}
+-		?>
+-</select>
+-<input class="hidden" type="text" id="metakeyinput" name="metakeyinput" value="" aria-label="<?php _e( 'New custom field name' ); ?>" />
+-<button type="button" id="newmeta-button" class="button button-small hide-if-no-js" onclick="jQuery('#metakeyinput, #metakeyselect, #enternew, #cancelnew').toggleClass('hidden');jQuery('#metakeyinput, #metakeyselect').filter(':visible').trigger('focus');">
+-<span id="enternew"><?php _e( 'Enter new' ); ?></span>
+-<span id="cancelnew" class="hidden"><?php _e( 'Cancel' ); ?></span></button>
+-<?php } else { ?>
+-<input type="text" id="metakeyinput" name="metakeyinput" value="" />
+-<?php } ?>
+-</td>
++		;
++echo '</select>
++<input class="hidden" type="text" id="metakeyinput" name="metakeyinput" value="" aria-label="';
++_e( 'New custom field name' ); ;
++echo '" />
++<button type="button" id="newmeta-button" class="button button-small hide-if-no-js" onclick="jQuery(\'#metakeyinput, #metakeyselect, #enternew, #cancelnew\').toggleClass(\'hidden\');jQuery(\'#metakeyinput, #metakeyselect\').filter(\':visible\').trigger(\'focus\');">
++<span id="enternew">';
++_e( 'Enter new' ); ;
++echo '</span>
++<span id="cancelnew" class="hidden">';
++_e( 'Cancel' ); ;
++echo '</span></button>
++';
++} else { ;
++echo '<input type="text" id="metakeyinput" name="metakeyinput" value="" />
++';
++} ;
++echo '</td>
+ <td><textarea id="metavalue" name="metavalue" rows="2" cols="25"></textarea>
+-	<?php wp_nonce_field( 'add-meta', '_ajax_nonce-add-meta', false ); ?>
+-</td>
++	';
++wp_nonce_field( 'add-meta', '_ajax_nonce-add-meta', false ); ;
++echo '</td>
+ </tr>
+ </tbody>
+ </table>
+ <div class="submit add-custom-field">
+-	<?php
++	';
+ 	submit_button(
+ 		__( 'Add Custom Field' ),
+ 		'',
+@@ -787,9 +857,9 @@
+ 			'data-wp-lists' => 'add:the-list:newmeta',
+ 		)
+ 	);
+-	?>
+-</div>
+-	<?php
++	;
++echo '</div>
++	';
+ }
+ 
+ /**
+@@ -890,13 +960,17 @@
+ 		$cur_timeunit = 'cur_' . $timeunit;
+ 		echo '<input type="hidden" id="' . $cur_timeunit . '" name="' . $cur_timeunit . '" value="' . $curr . '" />' . "\n";
+ 	}
+-	?>
+-
++	;
++echo '
+ <p>
+-<a href="#edit_timestamp" class="save-timestamp hide-if-no-js button"><?php _e( 'OK' ); ?></a>
+-<a href="#edit_timestamp" class="cancel-timestamp hide-if-no-js button-cancel"><?php _e( 'Cancel' ); ?></a>
++<a href="#edit_timestamp" class="save-timestamp hide-if-no-js button">';
++_e( 'OK' ); ;
++echo '</a>
++<a href="#edit_timestamp" class="cancel-timestamp hide-if-no-js button-cancel">';
++_e( 'Cancel' ); ;
++echo '</a>
+ </p>
+-	<?php
++	';
+ }
+ 
+ /**
+@@ -1027,24 +1101,29 @@
+ 			)
+ 		);
+ 	else :
+-		?>
+-<form enctype="multipart/form-data" id="import-upload-form" method="post" class="wp-upload-form" action="<?php echo esc_url( wp_nonce_url( $action, 'import-upload' ) ); ?>">
++		;
++echo '<form enctype="multipart/form-data" id="import-upload-form" method="post" class="wp-upload-form" action="';
++echo esc_url( wp_nonce_url( $action, 'import-upload' ) ); ;
++echo '">
+ <p>
+-		<?php
++		';
+ 		printf(
+ 			'<label for="upload">%s</label> (%s)',
+ 			__( 'Choose a file from your computer:' ),
+ 			/* translators: %s: Maximum allowed file size. */
+ 			sprintf( __( 'Maximum size: %s' ), $size )
+ 		);
+-		?>
+-<input type="file" id="upload" name="import" size="25" />
++		;
++echo '<input type="file" id="upload" name="import" size="25" />
+ <input type="hidden" name="action" value="save" />
+-<input type="hidden" name="max_file_size" value="<?php echo $bytes; ?>" />
++<input type="hidden" name="max_file_size" value="';
++echo $bytes; ;
++echo '" />
+ </p>
+-		<?php submit_button( __( 'Upload file and import' ), 'primary' ); ?>
+-</form>
+-		<?php
++		';
++submit_button( __( 'Upload file and import' ), 'primary' ); ;
++echo '</form>
++		';
+ 	endif;
+ }
+ 
+@@ -1547,10 +1626,10 @@
+ 	$page = $screen->id;
+ 
+ 	$hidden = get_hidden_meta_boxes( $screen );
+-	?>
+-	<div id="side-sortables" class="accordion-container">
++	;
++echo '	<div id="side-sortables" class="accordion-container">
+ 		<ul class="outer-border">
+-	<?php
++	';
+ 	$i          = 0;
+ 	$first_open = false;
+ 
+@@ -1572,31 +1651,49 @@
+ 						$open_class    = 'open';
+ 						$aria_expanded = 'true';
+ 					}
+-					?>
+-					<li class="control-section accordion-section <?php echo $hidden_class; ?> <?php echo $open_class; ?> <?php echo esc_attr( $box['id'] ); ?>" id="<?php echo esc_attr( $box['id'] ); ?>">
++					;
++echo '					<li class="control-section accordion-section ';
++echo $hidden_class; ;
++echo ' ';
++echo $open_class; ;
++echo ' ';
++echo esc_attr( $box['id'] ); ;
++echo '" id="';
++echo esc_attr( $box['id'] ); ;
++echo '">
+ 						<h3 class="accordion-section-title hndle">
+-							<button type="button" class="accordion-trigger" aria-expanded="<?php echo $aria_expanded; ?>" aria-controls="<?php echo esc_attr( $box['id'] ); ?>-content">
++							<button type="button" class="accordion-trigger" aria-expanded="';
++echo $aria_expanded; ;
++echo '" aria-controls="';
++echo esc_attr( $box['id'] ); ;
++echo '-content">
+ 								<span class="accordion-title">
+-									<?php echo esc_html( $box['title'] ); ?>
+-									<span class="dashicons dashicons-arrow-down" aria-hidden="true"></span>
++									';
++echo esc_html( $box['title'] ); ;
++echo '									<span class="dashicons dashicons-arrow-down" aria-hidden="true"></span>
+ 								</span>
+ 							</button>
+ 						</h3>
+-						<div class="accordion-section-content <?php postbox_classes( $box['id'], $page ); ?>" id="<?php echo esc_attr( $box['id'] ); ?>-content">
++						<div class="accordion-section-content ';
++postbox_classes( $box['id'], $page ); ;
++echo '" id="';
++echo esc_attr( $box['id'] ); ;
++echo '-content">
+ 							<div class="inside">
+-								<?php call_user_func( $box['callback'], $data_object, $box ); ?>
+-							</div><!-- .inside -->
++								';
++call_user_func( $box['callback'], $data_object, $box ); ;
++echo '							</div><!-- .inside -->
+ 						</div><!-- .accordion-section-content -->
+ 					</li><!-- .accordion-section -->
+-					<?php
++					';
+ 				}
+ 			}
+ 		}
+ 	}
+-	?>
+-		</ul><!-- .outer-border -->
++	;
++echo '		</ul><!-- .outer-border -->
+ 	</div><!-- .accordion-container -->
+-	<?php
++	';
+ 	return $i;
+ }
+ 
+@@ -2028,43 +2125,52 @@
+  * @param string $found_action Optional. The value of the 'found_action' input field. Default empty string.
+  */
+ function find_posts_div( $found_action = '' ) {
+-	?>
+-	<div id="find-posts" class="find-box" style="display: none;">
++	;
++echo '	<div id="find-posts" class="find-box" style="display: none;">
+ 		<div id="find-posts-head" class="find-box-head">
+-			<?php _e( 'Attach to existing content' ); ?>
+-			<button type="button" id="find-posts-close"><span class="screen-reader-text">
+-				<?php
++			';
++_e( 'Attach to existing content' ); ;
++echo '			<button type="button" id="find-posts-close"><span class="screen-reader-text">
++				';
+ 				/* translators: Hidden accessibility text. */
+ 				_e( 'Close media attachment panel' );
+-				?>
+-			</span></button>
++				;
++echo '			</span></button>
+ 		</div>
+ 		<div class="find-box-inside">
+ 			<div class="find-box-search">
+-				<?php if ( $found_action ) { ?>
+-					<input type="hidden" name="found_action" value="<?php echo esc_attr( $found_action ); ?>" />
+-				<?php } ?>
+-				<input type="hidden" name="affected" id="affected" value="" />
+-				<?php wp_nonce_field( 'find-posts', '_ajax_nonce', false ); ?>
+-				<label class="screen-reader-text" for="find-posts-input">
+-					<?php
++				';
++if ( $found_action ) { ;
++echo '					<input type="hidden" name="found_action" value="';
++echo esc_attr( $found_action ); ;
++echo '" />
++				';
++} ;
++echo '				<input type="hidden" name="affected" id="affected" value="" />
++				';
++wp_nonce_field( 'find-posts', '_ajax_nonce', false ); ;
++echo '				<label class="screen-reader-text" for="find-posts-input">
++					';
+ 					/* translators: Hidden accessibility text. */
+ 					_e( 'Search' );
+-					?>
+-				</label>
++					;
++echo '				</label>
+ 				<input type="text" id="find-posts-input" name="ps" value="" />
+ 				<span class="spinner"></span>
+-				<input type="button" id="find-posts-search" value="<?php esc_attr_e( 'Search' ); ?>" class="button" />
++				<input type="button" id="find-posts-search" value="';
++esc_attr_e( 'Search' ); ;
++echo '" class="button" />
+ 				<div class="clear"></div>
+ 			</div>
+ 			<div id="find-posts-response"></div>
+ 		</div>
+ 		<div class="find-box-buttons">
+-			<?php submit_button( __( 'Select' ), 'primary alignright', 'find-posts-submit', false ); ?>
+-			<div class="clear"></div>
++			';
++submit_button( __( 'Select' ), 'primary alignright', 'find-posts-submit', false ); ;
++echo '			<div class="clear"></div>
+ 		</div>
+ 	</div>
+-	<?php
++	';
+ }
+ 
+ /**
+@@ -2136,23 +2242,43 @@
+ 
+ 	header( 'Content-Type: ' . get_option( 'html_type' ) . '; charset=' . get_option( 'blog_charset' ) );
+ 	_wp_admin_html_begin();
+-	?>
+-<title><?php bloginfo( 'name' ); ?> &rsaquo; <?php echo $title; ?> &#8212; <?php _e( 'WordPress' ); ?></title>
+-	<?php
++	;
++echo '<title>';
++bloginfo( 'name' ); ;
++echo ' &rsaquo; ';
++echo $title; ;
++echo ' &#8212; ';
++_e( 'WordPress' ); ;
++echo '</title>
++	';
+ 	wp_enqueue_style( 'colors' );
+-	?>
+-<script>
+-addLoadEvent = function(func){if(typeof jQuery!=='undefined')jQuery(function(){func();});else if(typeof wpOnload!=='function'){wpOnload=func;}else{var oldonload=wpOnload;wpOnload=function(){oldonload();func();}}};
++	;
++echo '<script>
++addLoadEvent = function(func){if(typeof jQuery!==\'undefined\')jQuery(function(){func();});else if(typeof wpOnload!==\'function\'){wpOnload=func;}else{var oldonload=wpOnload;wpOnload=function(){oldonload();func();}}};
+ function tb_close(){var win=window.dialogArguments||opener||parent||top;win.tb_remove();}
+-var ajaxurl = '<?php echo esc_js( admin_url( 'admin-ajax.php', 'relative' ) ); ?>',
+-	pagenow = '<?php echo esc_js( $current_screen->id ); ?>',
+-	typenow = '<?php echo esc_js( $current_screen->post_type ); ?>',
+-	adminpage = '<?php echo esc_js( $admin_body_class ); ?>',
+-	thousandsSeparator = '<?php echo esc_js( $wp_locale->number_format['thousands_sep'] ); ?>',
+-	decimalPoint = '<?php echo esc_js( $wp_locale->number_format['decimal_point'] ); ?>',
+-	isRtl = <?php echo (int) is_rtl(); ?>;
++var ajaxurl = \'';
++echo esc_js( admin_url( 'admin-ajax.php', 'relative' ) ); ;
++echo '\',
++	pagenow = \'';
++echo esc_js( $current_screen->id ); ;
++echo '\',
++	typenow = \'';
++echo esc_js( $current_screen->post_type ); ;
++echo '\',
++	adminpage = \'';
++echo esc_js( $admin_body_class ); ;
++echo '\',
++	thousandsSeparator = \'';
++echo esc_js( $wp_locale->number_format['thousands_sep'] ); ;
++echo '\',
++	decimalPoint = \'';
++echo esc_js( $wp_locale->number_format['decimal_point'] ); ;
++echo '\',
++	isRtl = ';
++echo (int) is_rtl(); ;
++echo ';
+ </script>
+-	<?php
++	';
+ 	/** This action is documented in wp-admin/admin-header.php */
+ 	do_action( 'admin_enqueue_scripts', $hook_suffix );
+ 
+@@ -2181,24 +2307,28 @@
+ 		$admin_body_class .= ' rtl';
+ 	}
+ 
+-	?>
+-</head>
+-	<?php
++	;
++echo '</head>
++	';
+ 	$admin_body_id = isset( $body_id ) ? 'id="' . $body_id . '" ' : '';
+ 
+ 	/** This filter is documented in wp-admin/admin-header.php */
+ 	$admin_body_classes = apply_filters( 'admin_body_class', '' );
+ 	$admin_body_classes = ltrim( $admin_body_classes . ' ' . $admin_body_class );
+-	?>
+-<body <?php echo $admin_body_id; ?>class="wp-admin wp-core-ui no-js iframe <?php echo esc_attr( $admin_body_classes ); ?>">
++	;
++echo '<body ';
++echo $admin_body_id; ;
++echo 'class="wp-admin wp-core-ui no-js iframe ';
++echo esc_attr( $admin_body_classes ); ;
++echo '">
+ <script>
+ (function(){
+ var c = document.body.className;
+-c = c.replace(/no-js/, 'js');
++c = c.replace(/no-js/, \'js\');
+ document.body.className = c;
+ })();
+ </script>
+-	<?php
++	';
+ }
+ 
+ /**
+@@ -2217,9 +2347,9 @@
+ 	 * @global string $hook_suffix
+ 	 */
+ 	global $hook_suffix;
+-	?>
+-	<div class="hidden">
+-	<?php
++	;
++echo '	<div class="hidden">
++	';
+ 	/** This action is documented in wp-admin/admin-footer.php */
+ 	do_action( 'admin_footer', $hook_suffix );
+ 
+@@ -2228,12 +2358,12 @@
+ 
+ 	/** This action is documented in wp-admin/admin-footer.php */
+ 	do_action( 'admin_print_footer_scripts' );
+-	?>
+-	</div>
+-<script>if(typeof wpOnload==='function')wpOnload();</script>
++	;
++echo '	</div>
++<script>if(typeof wpOnload===\'function\')wpOnload();</script>
+ </body>
+ </html>
+-	<?php
++	';
+ }
+ 
+ /**
+@@ -2497,16 +2627,18 @@
+  * @since 2.8.0
+  */
+ function compression_test() {
+-	?>
+-	<script>
+-	var compressionNonce = <?php echo wp_json_encode( wp_create_nonce( 'update_can_compress_scripts' ), JSON_HEX_TAG | JSON_UNESCAPED_SLASHES ); ?>;
++	;
++echo '	<script>
++	var compressionNonce = ';
++echo wp_json_encode( wp_create_nonce( 'update_can_compress_scripts' ), JSON_HEX_TAG | JSON_UNESCAPED_SLASHES ); ;
++echo ';
+ 	var testCompression = {
+ 		get : function(test) {
+ 			var x;
+ 			if ( window.XMLHttpRequest ) {
+ 				x = new XMLHttpRequest();
+ 			} else {
+-				try{x=new ActiveXObject('Msxml2.XMLHTTP');}catch(e){try{x=new ActiveXObject('Microsoft.XMLHTTP');}catch(e){};}
++				try{x=new ActiveXObject(\'Msxml2.XMLHTTP\');}catch(e){try{x=new ActiveXObject(\'Microsoft.XMLHTTP\');}catch(e){};}
+ 			}
+ 
+ 			if (x) {
+@@ -2514,13 +2646,13 @@
+ 					var r, h;
+ 					if ( x.readyState == 4 ) {
+ 						r = x.responseText.substr(0, 18);
+-						h = x.getResponseHeader('Content-Encoding');
++						h = x.getResponseHeader(\'Content-Encoding\');
+ 						testCompression.check(r, h, test);
+ 					}
+ 				};
+ 
+-				x.open('GET', ajaxurl + '?action=wp-compression-test&test='+test+'&_ajax_nonce='+compressionNonce+'&'+(new Date()).getTime(), true);
+-				x.send('');
++				x.open(\'GET\', ajaxurl + \'?action=wp-compression-test&test=\'+test+\'&_ajax_nonce=\'+compressionNonce+\'&\'+(new Date()).getTime(), true);
++				x.send(\'\');
+ 			}
+ 		},
+ 
+@@ -2530,7 +2662,7 @@
+ 
+ 			if ( 1 == test ) {
+ 				if ( h && ( h.match(/deflate/i) || h.match(/gzip/i) ) )
+-					this.get('no');
++					this.get(\'no\');
+ 				else
+ 					this.get(2);
+ 
+@@ -2538,16 +2670,16 @@
+ 			}
+ 
+ 			if ( 2 == test ) {
+-				if ( '"wpCompressionTest' === r )
+-					this.get('yes');
++				if ( \'"wpCompressionTest\' === r )
++					this.get(\'yes\');
+ 				else
+-					this.get('no');
++					this.get(\'no\');
+ 			}
+ 		}
+ 	};
+ 	testCompression.check();
+ 	</script>
+-	<?php
++	';
+ }
+ 
+ /**
+@@ -2664,10 +2796,12 @@
+ 		header( 'X-UA-Compatible: IE=edge' );
+ 	}
+ 
+-	?>
+-<!DOCTYPE html>
+-<html class="<?php echo $admin_html_class; ?>"
+-	<?php
++	;
++echo '<!DOCTYPE html>
++<html class="';
++echo $admin_html_class; ;
++echo '"
++	';
+ 	/**
+ 	 * Fires inside the HTML tag in the admin header.
+ 	 *
+@@ -2676,11 +2810,15 @@
+ 	do_action( 'admin_xml_ns' );
+ 
+ 	language_attributes();
+-	?>
+->
++	;
++echo '>
+ <head>
+-<meta http-equiv="Content-Type" content="<?php bloginfo( 'html_type' ); ?>; charset=<?php echo get_option( 'blog_charset' ); ?>" />
+-	<?php
++<meta http-equiv="Content-Type" content="';
++bloginfo( 'html_type' ); ;
++echo '; charset=';
++echo get_option( 'blog_charset' ); ;
++echo '" />
++	';
+ }
+ 
+ /**

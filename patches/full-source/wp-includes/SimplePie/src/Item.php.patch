@@ -1,0 +1,18 @@
+--- a/wp-includes/SimplePie/src/Item.php
++++ b/wp-includes/SimplePie/src/Item.php
+@@ -868,12 +868,12 @@
+                 if ($this->registry->call(Misc::class, 'is_isegment_nz_nc', [$key])) {
+                     if (isset($this->data['links'][\SimplePie\SimplePie::IANA_LINK_RELATIONS_REGISTRY . $key])) {
+                         $this->data['links'][\SimplePie\SimplePie::IANA_LINK_RELATIONS_REGISTRY . $key] = array_merge($this->data['links'][$key], $this->data['links'][\SimplePie\SimplePie::IANA_LINK_RELATIONS_REGISTRY . $key]);
+-                        $this->data['links'][$key] = &$this->data['links'][\SimplePie\SimplePie::IANA_LINK_RELATIONS_REGISTRY . $key];
++                        throw new \RuntimeException('RSS link-reference maps are outside the finite bootstrap fixture.');
+                     } else {
+-                        $this->data['links'][\SimplePie\SimplePie::IANA_LINK_RELATIONS_REGISTRY . $key] = &$this->data['links'][$key];
++                        throw new \RuntimeException('RSS link-reference maps are outside the finite bootstrap fixture.');
+                     }
+                 } elseif (substr((string) $key, 0, 41) === \SimplePie\SimplePie::IANA_LINK_RELATIONS_REGISTRY) {
+-                    $this->data['links'][substr((string) $key, 41)] = &$this->data['links'][$key];
++                    throw new \RuntimeException('RSS link-reference maps are outside the finite bootstrap fixture.');
+                 }
+                 $this->data['links'][$key] = array_unique($this->data['links'][$key]);
+             }

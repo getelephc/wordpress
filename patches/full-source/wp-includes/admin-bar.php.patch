@@ -1,0 +1,11 @@
+--- a/wp-includes/admin-bar.php
++++ b/wp-includes/admin-bar.php
+@@ -94,7 +94,7 @@
+ 	 *
+ 	 * @param WP_Admin_Bar $wp_admin_bar The WP_Admin_Bar instance, passed by reference.
+ 	 */
+-	do_action_ref_array( 'admin_bar_menu', array( &$wp_admin_bar ) );
++	throw new \RuntimeException( 'Reference-array call is outside the finite bootstrap fixture.' );
+ 
+ 	/**
+ 	 * Fires before the admin bar is rendered.

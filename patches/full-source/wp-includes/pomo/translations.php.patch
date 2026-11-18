@@ -1,0 +1,20 @@
+--- a/wp-includes/pomo/translations.php
++++ b/wp-includes/pomo/translations.php
+@@ -53,7 +53,7 @@
+ 			if ( false === $key ) {
+ 				return false;
+ 			}
+-			$this->entries[ $key ] = &$entry;
++			$this->entries[ $key ] = $entry;
+ 			return true;
+ 		}
+ 
+@@ -76,7 +76,7 @@
+ 			if ( isset( $this->entries[ $key ] ) ) {
+ 				$this->entries[ $key ]->merge_with( $entry );
+ 			} else {
+-				$this->entries[ $key ] = &$entry;
++				$this->entries[ $key ] = $entry;
+ 			}
+ 			return true;
+ 		}

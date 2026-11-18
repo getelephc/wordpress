@@ -1,0 +1,17 @@
+--- a/wp-includes/customize/class-wp-customize-new-menu-control.php
++++ b/wp-includes/customize/class-wp-customize-new-menu-control.php
+@@ -55,9 +55,11 @@
+ 	 */
+ 	public function render_content() {
+ 		_deprecated_function( __METHOD__, '4.9.0' );
+-		?>
+-		<button type="button" class="button button-primary" id="create-new-menu-submit"><?php _e( 'Create Menu' ); ?></button>
++		;
++echo '		<button type="button" class="button button-primary" id="create-new-menu-submit">';
++_e( 'Create Menu' ); ;
++echo '</button>
+ 		<span class="spinner"></span>
+-		<?php
++		';
+ 	}
+ }

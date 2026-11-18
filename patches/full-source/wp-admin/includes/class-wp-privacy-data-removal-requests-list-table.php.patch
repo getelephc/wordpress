@@ -1,0 +1,31 @@
+--- a/wp-admin/includes/class-wp-privacy-data-removal-requests-list-table.php
++++ b/wp-admin/includes/class-wp-privacy-data-removal-requests-list-table.php
+@@ -135,12 +135,22 @@
+ 					'data-nonce="' . esc_attr( $nonce ) .
+ 					'">';
+ 
+-				?>
+-				<span class="remove-personal-data-idle"><button type="button" class="button-link remove-personal-data-handle"><?php _e( 'Erase personal data' ); ?></button></span>
+-				<span class="remove-personal-data-processing hidden"><?php _e( 'Erasing data...' ); ?> <span class="erasure-progress"></span></span>
+-				<span class="remove-personal-data-success success-message hidden" ><?php _e( 'Erasure completed.' ); ?></span>
+-				<span class="remove-personal-data-failed hidden"><?php _e( 'Data erasure has failed.' ); ?> <button type="button" class="button-link remove-personal-data-handle"><?php _e( 'Retry' ); ?></button></span>
+-				<?php
++				;
++echo '				<span class="remove-personal-data-idle"><button type="button" class="button-link remove-personal-data-handle">';
++_e( 'Erase personal data' ); ;
++echo '</button></span>
++				<span class="remove-personal-data-processing hidden">';
++_e( 'Erasing data...' ); ;
++echo ' <span class="erasure-progress"></span></span>
++				<span class="remove-personal-data-success success-message hidden" >';
++_e( 'Erasure completed.' ); ;
++echo '</span>
++				<span class="remove-personal-data-failed hidden">';
++_e( 'Data erasure has failed.' ); ;
++echo ' <button type="button" class="button-link remove-personal-data-handle">';
++_e( 'Retry' ); ;
++echo '</button></span>
++				';
+ 
+ 				echo '</div>';
+ 

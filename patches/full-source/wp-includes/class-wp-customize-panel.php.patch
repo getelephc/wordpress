@@ -1,0 +1,100 @@
+--- a/wp-includes/class-wp-customize-panel.php
++++ b/wp-includes/class-wp-customize-panel.php
+@@ -328,14 +328,20 @@
+ 	 * @see WP_Customize_Manager::register_panel_type()
+ 	 */
+ 	public function print_template() {
+-		?>
+-		<script type="text/html" id="tmpl-customize-panel-<?php echo esc_attr( $this->type ); ?>-content">
+-			<?php $this->content_template(); ?>
+-		</script>
+-		<script type="text/html" id="tmpl-customize-panel-<?php echo esc_attr( $this->type ); ?>">
+-			<?php $this->render_template(); ?>
+-		</script>
+-		<?php
++		;
++echo '		<script type="text/html" id="tmpl-customize-panel-';
++echo esc_attr( $this->type ); ;
++echo '-content">
++			';
++$this->content_template(); ;
++echo '		</script>
++		<script type="text/html" id="tmpl-customize-panel-';
++echo esc_attr( $this->type ); ;
++echo '">
++			';
++$this->render_template(); ;
++echo '		</script>
++		';
+ 	}
+ 
+ 	/**
+@@ -349,8 +355,8 @@
+ 	 * @since 4.3.0
+ 	 */
+ 	protected function render_template() {
+-		?>
+-		<li id="accordion-panel-{{ data.id }}" class="accordion-section control-section control-panel control-panel-{{ data.type }}">
++		;
++echo '		<li id="accordion-panel-{{ data.id }}" class="accordion-section control-section control-panel control-panel-{{ data.type }}">
+ 			<h3 class="accordion-section-title">
+ 				<button type="button" class="accordion-trigger" aria-expanded="false" aria-controls="{{ data.id }}-content">
+ 					{{ data.title }}
+@@ -358,7 +364,7 @@
+ 			</h3>
+ 			<ul class="accordion-sub-container control-panel-content" id="{{ data.id }}-content"></ul>
+ 		</li>
+-		<?php
++		';
+ 	}
+ 
+ 	/**
+@@ -372,28 +378,28 @@
+ 	 * @since 4.3.0
+ 	 */
+ 	protected function content_template() {
+-		?>
+-		<li class="panel-meta customize-info accordion-section <# if ( ! data.description ) { #> cannot-expand<# } #>">
++		;
++echo '		<li class="panel-meta customize-info accordion-section <# if ( ! data.description ) { #> cannot-expand<# } #>">
+ 			<button class="customize-panel-back" tabindex="-1"><span class="screen-reader-text">
+-				<?php
++				';
+ 				/* translators: Hidden accessibility text. */
+ 				_e( 'Back' );
+-				?>
+-			</span></button>
++				;
++echo '			</span></button>
+ 			<div class="accordion-section-title">
+ 				<span class="preview-notice">
+-				<?php
++				';
+ 					/* translators: %s: The site/panel title in the Customizer. */
+ 					printf( __( 'You are customizing %s' ), '<strong class="panel-title">{{ data.title }}</strong>' );
+-				?>
+-				</span>
++				;
++echo '				</span>
+ 				<# if ( data.description ) { #>
+ 					<button type="button" class="customize-help-toggle dashicons dashicons-editor-help" aria-expanded="false"><span class="screen-reader-text">
+-						<?php
++						';
+ 						/* translators: Hidden accessibility text. */
+ 						_e( 'Help' );
+-						?>
+-					</span></button>
++						;
++echo '					</span></button>
+ 				<# } #>
+ 			</div>
+ 			<# if ( data.description ) { #>
+@@ -404,7 +410,7 @@
+ 
+ 			<div class="customize-control-notifications-container"></div>
+ 		</li>
+-		<?php
++		';
+ 	}
+ }
+ 

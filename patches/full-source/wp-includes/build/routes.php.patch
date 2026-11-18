@@ -1,0 +1,29 @@
+--- a/wp-includes/build/routes.php
++++ b/wp-includes/build/routes.php
+@@ -13,7 +13,7 @@
+ 	return;
+ }
+ 
+-$routes = require $routes_file;
++$routes = require __DIR__ . '/routes/registry.php';
+ 
+ // Group routes by page and store in globals for page-specific functions
+ $routes_by_page = array();
+@@ -50,7 +50,7 @@
+ 		if ( $route['has_content'] ) {
+ 			$content_asset_path = __DIR__ . "/routes/{$route['name']}/content.min.asset.php";
+ 			if ( file_exists( $content_asset_path ) ) {
+-				$content_asset = require $content_asset_path;
++				$content_asset = aot_require_data( $content_asset_path );
+ 				$content_handle = 'wp/routes/' . $route['name'] . '/content';
+ 				$extension = defined( 'SCRIPT_DEBUG' ) && SCRIPT_DEBUG ? '.js' : '.min.js';
+ 				// Deregister first to override any previously registered version
+@@ -69,7 +69,7 @@
+ 		if ( $route['has_route'] ) {
+ 			$route_asset_path = __DIR__ . "/routes/{$route['name']}/route.min.asset.php";
+ 			if ( file_exists( $route_asset_path ) ) {
+-				$route_asset = require $route_asset_path;
++				$route_asset = aot_require_data( $route_asset_path );
+ 				$route_handle = 'wp/routes/' . $route['name'] . '/route';
+ 				$extension = defined( 'SCRIPT_DEBUG' ) && SCRIPT_DEBUG ? '.js' : '.min.js';
+ 				// Deregister first to override any previously registered version

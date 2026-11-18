@@ -1,0 +1,17 @@
+--- a/wp-includes/Text/Diff.php
++++ b/wp-includes/Text/Diff.php
+@@ -48,9 +48,12 @@
+         }
+ 
+         // WP #7391
+-        require_once dirname(__FILE__).'/Diff/Engine/' . $engine . '.php';
++        if ($engine !== 'native') {
++            throw new RuntimeException('Only the original native text-diff engine is in the finite Elephc manifest.');
++        }
++        require_once __DIR__ . '/Diff/Engine/native.php';
+         $class = 'Text_Diff_Engine_' . $engine;
+-        $diff_engine = new $class();
++        $diff_engine = new Text_Diff_Engine_native();
+ 
+         $this->_edits = call_user_func_array(array($diff_engine, 'diff'), $params);
+     }

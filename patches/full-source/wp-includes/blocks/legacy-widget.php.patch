@@ -1,0 +1,60 @@
+--- a/wp-includes/blocks/legacy-widget.php
++++ b/wp-includes/blocks/legacy-widget.php
+@@ -90,15 +90,20 @@
+ 
+ 	define( 'IFRAME_REQUEST', true );
+ 
+-	?>
+-	<!doctype html>
+-	<html <?php language_attributes(); ?>>
++	;
++echo '	<!doctype html>
++	<html ';
++language_attributes(); ;
++echo '>
+ 	<head>
+-		<meta charset="<?php bloginfo( 'charset' ); ?>" />
++		<meta charset="';
++bloginfo( 'charset' ); ;
++echo '" />
+ 		<meta name="viewport" content="width=device-width, initial-scale=1" />
+ 		<link rel="profile" href="https://gmpg.org/xfn/11" />
+-		<?php wp_head(); ?>
+-		<style>
++		';
++wp_head(); ;
++echo '		<style>
+ 			/* Reset theme styles */
+ 			html, body, #page, #content {
+ 				padding: 0 !important;
+@@ -133,20 +138,23 @@
+ 			}
+ 		</style>
+ 	</head>
+-	<body <?php body_class(); ?>>
++	<body ';
++body_class(); ;
++echo '>
+ 		<div id="page" class="site">
+ 			<div id="content" class="site-content">
+-				<?php
++				';
+ 				$registry = WP_Block_Type_Registry::get_instance();
+ 				$block    = $registry->get_registered( 'core/legacy-widget' );
+ 				echo $block->render( $_GET['legacy-widget-preview'] );
+-				?>
+-			</div><!-- #content -->
++				;
++echo '			</div><!-- #content -->
+ 		</div><!-- #page -->
+-		<?php wp_footer(); ?>
+-	</body>
++		';
++wp_footer(); ;
++echo '	</body>
+ 	</html>
+-	<?php
++	';
+ 
+ 	exit;
+ }

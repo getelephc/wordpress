@@ -1,0 +1,36 @@
+--- a/wp-includes/class-wp-customize-setting.php
++++ b/wp-includes/class-wp-customize-setting.php
+@@ -858,7 +858,7 @@
+ 	 * @param bool  $create Default false.
+ 	 * @return array|null Keys are 'root', 'node', and 'key'.
+ 	 */
+-	final protected function multidimensional( &$root, $keys, $create = false ) {
++	final protected function multidimensional( &$root, $keys, $create = false, $replacement = null ) {
+ 		if ( $create && empty( $root ) ) {
+ 			$root = array();
+ 		}
+@@ -896,9 +896,13 @@
+ 			return null;
+ 		}
+ 
++		if ( null !== $replacement ) {
++			$node[ $last ] = $replacement;
++		}
++
+ 		return array(
+-			'root' => &$root,
+-			'node' => &$node,
++			'root' => $root,
++			'node' => $node,
+ 			'key'  => $last,
+ 		);
+ 	}
+@@ -920,7 +924,7 @@
+ 			return $value;
+ 		}
+ 
+-		$result = $this->multidimensional( $root, $keys, true );
++		$result = $this->multidimensional( $root, $keys, true, $value );
+ 
+ 		if ( isset( $result ) ) {
+ 			$result['node'][ $result['key'] ] = $value;

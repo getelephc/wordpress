@@ -1,0 +1,54 @@
+--- a/wp-admin/includes/class-wp-internal-pointers.php
++++ b/wp-admin/includes/class-wp-internal-pointers.php
+@@ -117,10 +117,12 @@
+ 			return;
+ 		}
+ 
+-		?>
+-		<script>
++		;
++echo '		<script>
+ 		(function($){
+-			var options = <?php echo wp_json_encode( $args, JSON_HEX_TAG | JSON_UNESCAPED_SLASHES ); ?>, setup;
++			var options = ';
++echo wp_json_encode( $args, JSON_HEX_TAG | JSON_UNESCAPED_SLASHES ); ;
++echo ', setup;
+ 
+ 			if ( ! options )
+ 				return;
+@@ -128,18 +130,22 @@
+ 			options = $.extend( options, {
+ 				close: function() {
+ 					$.post( ajaxurl, {
+-						pointer: '<?php echo $pointer_id; ?>',
+-						action: 'dismiss-wp-pointer'
++						pointer: \'';
++echo $pointer_id; ;
++echo '\',
++						action: \'dismiss-wp-pointer\'
+ 					});
+ 				}
+ 			});
+ 
+ 			setup = function() {
+-				$('<?php echo $selector; ?>').first().pointer( options ).pointer('open');
++				$(\'';
++echo $selector; ;
++echo '\').first().pointer( options ).pointer(\'open\');
+ 			};
+ 
+ 			if ( options.position && options.position.defer_loading )
+-				$(window).bind( 'load.wp-pointers', setup );
++				$(window).bind( \'load.wp-pointers\', setup );
+ 			else
+ 				$( function() {
+ 					setup();
+@@ -147,7 +153,7 @@
+ 
+ 		})( jQuery );
+ 		</script>
+-		<?php
++		';
+ 	}
+ 
+ 	public static function pointer_wp330_toolbar() {}

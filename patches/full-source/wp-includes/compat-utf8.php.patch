@@ -1,0 +1,41 @@
+--- a/wp-includes/compat-utf8.php
++++ b/wp-includes/compat-utf8.php
+@@ -305,7 +305,7 @@
+ 		$scrubbed .= substr( $bytes, $was_at, $next_byte_at - $was_at );
+ 		$scrubbed .= "\u{FFFD}";
+ 
+-		$next_byte_at += $invalid_length;
++		$next_byte_at = (int) ( $next_byte_at + $invalid_length );
+ 		$was_at        = $next_byte_at;
+ 	}
+ 
+@@ -344,15 +344,18 @@
+ 	}
+ 
+ 	$count           = 0;
+-	$at              = $byte_offset;
++	$at              = (int) $byte_offset;
+ 	$end             = strlen( $text );
+ 	$invalid_length  = 0;
+ 	$max_byte_length = min( $end - $at, $max_byte_length );
+ 
+ 	while ( $at < $end && ( $at - $byte_offset ) < $max_byte_length ) {
++		if ( null === $byte_offset ) {
++			throw new TypeError( 'The scan offset must be an integer.' );
++		}
+ 		$count += _wp_scan_utf8( $text, $at, $invalid_length, $max_byte_length - ( $at - $byte_offset ) );
+ 		$count += $invalid_length > 0 ? 1 : 0;
+-		$at    += $invalid_length;
++		$at     = (int) ( $at + $invalid_length );
+ 	}
+ 
+ 	return $count;
+@@ -506,7 +509,7 @@
+ 			continue;
+ 		}
+ 
+-		$next_at        = $at;
++		$next_at        = (int) $at;
+ 		$invalid_length = 0;
+ 		$found          = _wp_scan_utf8( $utf8_text, $next_at, $invalid_length, null, 1 );
+ 		$span_length    = $next_at - $at;

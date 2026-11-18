@@ -1,0 +1,24 @@
+--- a/wp-includes/class-requests.php
++++ b/wp-includes/class-requests.php
+@@ -57,7 +57,9 @@
+ 	 */
+ 	public static function autoloader($class) {
+ 		if (class_exists('WpOrg\Requests\Autoload') === false) {
+-			require_once __DIR__ . '/Requests/src/Autoload.php';
++			if ( ! class_exists( 'WpOrg\\Requests\\Autoload', false ) ) {
++			throw new RuntimeException( 'The native Requests loader must be initialized before legacy loader APIs.' );
++		}
+ 		}
+ 
+ 		return WpOrg\Requests\Autoload::load($class);
+@@ -72,7 +74,9 @@
+ 	 * @codeCoverageIgnore
+ 	 */
+ 	public static function register_autoloader() {
+-		require_once __DIR__ . '/Requests/src/Autoload.php';
++		if ( ! class_exists( 'WpOrg\\Requests\\Autoload', false ) ) {
++			throw new RuntimeException( 'The native Requests loader must be initialized before legacy loader APIs.' );
++		}
+ 		WpOrg\Requests\Autoload::register();
+ 	}
+ }

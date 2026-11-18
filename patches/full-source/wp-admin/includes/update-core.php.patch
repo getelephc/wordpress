@@ -1,0 +1,40 @@
+--- a/wp-admin/includes/update-core.php
++++ b/wp-admin/includes/update-core.php
+@@ -1435,7 +1435,7 @@
+ 		wp_opcache_invalidate( $versions_file );
+ 	}
+ 
+-	require WP_CONTENT_DIR . '/upgrade/version-current.php';
++	throw new RuntimeException( 'Core installation and upgrade resources are outside the finite Elephc fixture.' );
+ 	$wp_filesystem->delete( $versions_file );
+ 
+ 	$php_version    = PHP_VERSION;
+@@ -1979,7 +1979,7 @@
+ 			continue;
+ 		}
+ 
+-		require_once $to . $file;
++		throw new RuntimeException( 'Core installation and upgrade resources are outside the finite Elephc fixture.' );
+ 	}
+ }
+ 
+@@ -2036,14 +2036,14 @@
+ 		) . '</span>'
+ 	);
+ 	echo '</div>';
+-	?>
+-<script>
+-window.location = 'about.php?updated';
++	;
++echo '<script>
++window.location = \'about.php?updated\';
+ </script>
+-	<?php
++	';
+ 
+ 	// Include admin-footer.php and exit.
+-	require_once ABSPATH . 'wp-admin/admin-footer.php';
++	throw new RuntimeException( 'Core installation and upgrade resources are outside the finite Elephc fixture.' );
+ 	exit;
+ }
+ 

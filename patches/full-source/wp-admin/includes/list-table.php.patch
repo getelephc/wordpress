@@ -1,0 +1,58 @@
+--- a/wp-admin/includes/list-table.php
++++ b/wp-admin/includes/list-table.php
+@@ -46,7 +46,26 @@
+ 
+ 	if ( isset( $core_classes[ $class_name ] ) ) {
+ 		foreach ( (array) $core_classes[ $class_name ] as $required ) {
+-			require_once ABSPATH . 'wp-admin/includes/class-wp-' . $required . '-list-table.php';
++			switch ( $required ) {
++				case 'application-passwords': require_once ABSPATH . 'wp-admin/includes/class-wp-application-passwords-list-table.php'; break;
++				case 'comments': require_once ABSPATH . 'wp-admin/includes/class-wp-comments-list-table.php'; break;
++				case 'links': require_once ABSPATH . 'wp-admin/includes/class-wp-links-list-table.php'; break;
++				case 'media': require_once ABSPATH . 'wp-admin/includes/class-wp-media-list-table.php'; break;
++				case 'ms-sites': require_once ABSPATH . 'wp-admin/includes/class-wp-ms-sites-list-table.php'; break;
++				case 'ms-themes': require_once ABSPATH . 'wp-admin/includes/class-wp-ms-themes-list-table.php'; break;
++				case 'ms-users': require_once ABSPATH . 'wp-admin/includes/class-wp-ms-users-list-table.php'; break;
++				case 'plugin-install': require_once ABSPATH . 'wp-admin/includes/class-wp-plugin-install-list-table.php'; break;
++				case 'plugins': require_once ABSPATH . 'wp-admin/includes/class-wp-plugins-list-table.php'; break;
++				case 'post-comments': require_once ABSPATH . 'wp-admin/includes/class-wp-post-comments-list-table.php'; break;
++				case 'posts': require_once ABSPATH . 'wp-admin/includes/class-wp-posts-list-table.php'; break;
++				case 'privacy-data-export-requests': require_once ABSPATH . 'wp-admin/includes/class-wp-privacy-data-export-requests-list-table.php'; break;
++				case 'privacy-data-removal-requests': require_once ABSPATH . 'wp-admin/includes/class-wp-privacy-data-removal-requests-list-table.php'; break;
++				case 'terms': require_once ABSPATH . 'wp-admin/includes/class-wp-terms-list-table.php'; break;
++				case 'theme-install': require_once ABSPATH . 'wp-admin/includes/class-wp-theme-install-list-table.php'; break;
++				case 'themes': require_once ABSPATH . 'wp-admin/includes/class-wp-themes-list-table.php'; break;
++				case 'users': require_once ABSPATH . 'wp-admin/includes/class-wp-users-list-table.php'; break;
++				default: throw new RuntimeException( 'Unknown core list table source.' );
++			}
+ 		}
+ 
+ 		if ( isset( $args['screen'] ) ) {
+@@ -71,7 +90,26 @@
+ 			$class_name = $custom_class_name;
+ 		}
+ 
+-		return new $class_name( $args );
++		switch ( $class_name ) {
++			case 'WP_Posts_List_Table': return new WP_Posts_List_Table( $args );
++			case 'WP_Media_List_Table': return new WP_Media_List_Table( $args );
++			case 'WP_Terms_List_Table': return new WP_Terms_List_Table( $args );
++			case 'WP_Users_List_Table': return new WP_Users_List_Table( $args );
++			case 'WP_Comments_List_Table': return new WP_Comments_List_Table( $args );
++			case 'WP_Post_Comments_List_Table': return new WP_Post_Comments_List_Table( $args );
++			case 'WP_Links_List_Table': return new WP_Links_List_Table( $args );
++			case 'WP_Plugin_Install_List_Table': return new WP_Plugin_Install_List_Table( $args );
++			case 'WP_Themes_List_Table': return new WP_Themes_List_Table( $args );
++			case 'WP_Theme_Install_List_Table': return new WP_Theme_Install_List_Table( $args );
++			case 'WP_Plugins_List_Table': return new WP_Plugins_List_Table( $args );
++			case 'WP_Application_Passwords_List_Table': return new WP_Application_Passwords_List_Table( $args );
++			case 'WP_MS_Sites_List_Table': return new WP_MS_Sites_List_Table( $args );
++			case 'WP_MS_Users_List_Table': return new WP_MS_Users_List_Table( $args );
++			case 'WP_MS_Themes_List_Table': return new WP_MS_Themes_List_Table( $args );
++			case 'WP_Privacy_Data_Export_Requests_List_Table': return new WP_Privacy_Data_Export_Requests_List_Table( $args );
++			case 'WP_Privacy_Data_Removal_Requests_List_Table': return new WP_Privacy_Data_Removal_Requests_List_Table( $args );
++			default: throw new RuntimeException( 'Custom list table classes are outside the finite Elephc manifest.' );
++		}
+ 	}
+ 
+ 	return false;

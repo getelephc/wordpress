@@ -1,0 +1,42 @@
+--- a/wp-includes/class-wp-admin-bar.php
++++ b/wp-includes/class-wp-admin-bar.php
+@@ -466,21 +466,29 @@
+ 			$class .= ' mobile';
+ 		}
+ 
+-		?>
+-		<div id="wpadminbar" class="<?php echo $class; ?>">
+-			<?php if ( ! is_admin() && ! did_action( 'wp_body_open' ) ) { ?>
+-				<a class="screen-reader-shortcut" href="#wp-toolbar" tabindex="1"><?php _e( 'Skip to toolbar' ); ?></a>
+-			<?php } ?>
+-			<div class="quicklinks" id="wp-toolbar" role="navigation" aria-label="<?php esc_attr_e( 'Toolbar' ); ?>">
+-				<?php
++		;
++echo '		<div id="wpadminbar" class="';
++echo $class; ;
++echo '">
++			';
++if ( ! is_admin() && ! did_action( 'wp_body_open' ) ) { ;
++echo '				<a class="screen-reader-shortcut" href="#wp-toolbar" tabindex="1">';
++_e( 'Skip to toolbar' ); ;
++echo '</a>
++			';
++} ;
++echo '			<div class="quicklinks" id="wp-toolbar" role="navigation" aria-label="';
++esc_attr_e( 'Toolbar' ); ;
++echo '">
++				';
+ 				foreach ( $root->children as $group ) {
+ 					$this->_render_group( $group );
+ 				}
+-				?>
+-			</div>
++				;
++echo '			</div>
+ 		</div>
+ 
+-		<?php
++		';
+ 	}
+ 
+ 	/**

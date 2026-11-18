@@ -1,0 +1,386 @@
+--- a/wp-admin/includes/file.php
++++ b/wp-admin/includes/file.php
+@@ -307,53 +307,55 @@
+  * @since 4.9.0
+  */
+ function wp_print_file_editor_templates() {
+-	?>
+-	<script type="text/html" id="tmpl-wp-file-editor-notice">
+-		<div class="notice inline notice-{{ data.type || 'info' }} {{ data.alt ? 'notice-alt' : '' }} {{ data.dismissible ? 'is-dismissible' : '' }} {{ data.classes || '' }}">
+-			<# if ( 'php_error' === data.code ) { #>
++	;
++echo '	<script type="text/html" id="tmpl-wp-file-editor-notice">
++		<div class="notice inline notice-{{ data.type || \'info\' }} {{ data.alt ? \'notice-alt\' : \'\' }} {{ data.dismissible ? \'is-dismissible\' : \'\' }} {{ data.classes || \'\' }}">
++			<# if ( \'php_error\' === data.code ) { #>
+ 				<p>
+-					<?php
++					';
+ 					printf(
+ 						/* translators: 1: Line number, 2: File path. */
+ 						__( 'Your PHP code changes were not applied due to an error on line %1$s of file %2$s. Please fix and try saving again.' ),
+ 						'{{ data.line }}',
+ 						'{{ data.file }}'
+ 					);
+-					?>
+-				</p>
++					;
++echo '				</p>
+ 				<pre>{{ data.message }}</pre>
+-			<# } else if ( 'file_not_writable' === data.code ) { #>
++			<# } else if ( \'file_not_writable\' === data.code ) { #>
+ 				<p>
+-					<?php
++					';
+ 					printf(
+ 						/* translators: %s: Documentation URL. */
+ 						__( 'You need to make this file writable before you can save your changes. See <a href="%s">Changing File Permissions</a> for more information.' ),
+ 						__( 'https://developer.wordpress.org/advanced-administration/server/file-permissions/' )
+ 					);
+-					?>
+-				</p>
++					;
++echo '				</p>
+ 			<# } else { #>
+ 				<p>{{ data.message || data.code }}</p>
+ 
+-				<# if ( 'lint_errors' === data.code ) { #>
++				<# if ( \'lint_errors\' === data.code ) { #>
+ 					<p>
+-						<# var elementId = 'el-' + String( Math.random() ); #>
++						<# var elementId = \'el-\' + String( Math.random() ); #>
+ 						<input id="{{ elementId }}"  type="checkbox">
+-						<label for="{{ elementId }}"><?php _e( 'Update anyway, even though it might break your site?' ); ?></label>
++						<label for="{{ elementId }}">';
++_e( 'Update anyway, even though it might break your site?' ); ;
++echo '</label>
+ 					</p>
+ 				<# } #>
+ 			<# } #>
+ 			<# if ( data.dismissible ) { #>
+ 				<button type="button" class="notice-dismiss"><span class="screen-reader-text">
+-					<?php
++					';
+ 					/* translators: Hidden accessibility text. */
+ 					_e( 'Dismiss' );
+-					?>
+-				</span></button>
++					;
++echo '				</span></button>
+ 			<# } #>
+ 		</div>
+ 	</script>
+-	<?php
++	';
+ }
+ 
+ /**
+@@ -873,7 +875,7 @@
+ 
+ 	// You may have had one or more 'wp_handle_upload_prefilter' functions error out the file. Handle that gracefully.
+ 	if ( isset( $file['error'] ) && ! is_numeric( $file['error'] ) && $file['error'] ) {
+-		return call_user_func_array( $upload_error_handler, array( &$file, $file['error'] ) );
++		return $upload_error_handler( $file, $file['error'] );
+ 	}
+ 
+ 	// Install user overrides. Did we mention that this voids your warranty?
+@@ -924,18 +926,18 @@
+ 
+ 	// A correct form post will pass this test.
+ 	if ( $test_form && ( ! isset( $_POST['action'] ) || $_POST['action'] !== $action ) ) {
+-		return call_user_func_array( $upload_error_handler, array( &$file, __( 'Invalid form submission.' ) ) );
++		return $upload_error_handler( $file, __( 'Invalid form submission.' ) );
+ 	}
+ 
+ 	// A successful upload will pass this test. It makes no sense to override this one.
+ 	if ( isset( $file['error'] ) && $file['error'] > 0 ) {
+-		return call_user_func_array( $upload_error_handler, array( &$file, $upload_error_strings[ $file['error'] ] ) );
++		return $upload_error_handler( $file, $upload_error_strings[ $file['error'] ] );
+ 	}
+ 
+ 	// A properly uploaded file will pass this test. There should be no reason to override this one.
+ 	$test_uploaded_file = 'wp_handle_upload' === $action ? is_uploaded_file( $file['tmp_name'] ) : @is_readable( $file['tmp_name'] );
+ 	if ( ! $test_uploaded_file ) {
+-		return call_user_func_array( $upload_error_handler, array( &$file, __( 'Specified file failed upload test.' ) ) );
++		return $upload_error_handler( $file, __( 'Specified file failed upload test.' ) );
+ 	}
+ 
+ 	$test_file_size = 'wp_handle_upload' === $action ? $file['size'] : filesize( $file['tmp_name'] );
+@@ -953,7 +955,7 @@
+ 			);
+ 		}
+ 
+-		return call_user_func_array( $upload_error_handler, array( &$file, $error_msg ) );
++		return $upload_error_handler( $file, $error_msg );
+ 	}
+ 
+ 	// A correct MIME type will pass this test. Override $mimes or use the upload_mimes filter.
+@@ -969,7 +971,7 @@
+ 		}
+ 
+ 		if ( ( ! $type || ! $ext ) && ! current_user_can( 'unfiltered_upload' ) ) {
+-			return call_user_func_array( $upload_error_handler, array( &$file, __( 'Sorry, you are not allowed to upload this file type.' ) ) );
++			return $upload_error_handler( $file, __( 'Sorry, you are not allowed to upload this file type.' ) );
+ 		}
+ 
+ 		if ( ! $type ) {
+@@ -985,7 +987,7 @@
+ 	 */
+ 	$uploads = wp_upload_dir( $time );
+ 	if ( ! ( $uploads && false === $uploads['error'] ) ) {
+-		return call_user_func_array( $upload_error_handler, array( &$file, $uploads['error'] ) );
++		return $upload_error_handler( $file, $uploads['error'] );
+ 	}
+ 
+ 	$filename = wp_unique_filename( $uploads['path'], $file['name'], $unique_filename_callback );
+@@ -2188,6 +2190,10 @@
+ 		return false;
+ 	}
+ 
++	if ( 'direct' !== $method ) {
++		throw new RuntimeException( 'Only the direct filesystem transport is in the finite Elephc manifest.' );
++	}
++
+ 	if ( ! class_exists( "WP_Filesystem_$method" ) ) {
+ 
+ 		/**
+@@ -2206,11 +2212,14 @@
+ 			return null;
+ 		}
+ 
+-		require_once $abstraction_file;
++		if ( $abstraction_file !== ABSPATH . 'wp-admin/includes/class-wp-filesystem-direct.php' ) {
++			throw new RuntimeException( 'Custom filesystem class files are outside the finite Elephc manifest.' );
++		}
++		require_once ABSPATH . 'wp-admin/includes/class-wp-filesystem-direct.php';
+ 	}
+ 	$method = "WP_Filesystem_$method";
+ 
+-	$wp_filesystem = new $method( $args );
++	$wp_filesystem = new WP_Filesystem_Direct( $args );
+ 
+ 	/*
+ 	 * Define the timeouts for the connections. Only available after the constructor is called
+@@ -2552,19 +2561,21 @@
+ 	 * @param string        $context     Full path to the directory that is tested for being writable.
+ 	 */
+ 	$types = apply_filters( 'fs_ftp_connection_types', $types, $credentials, $type, $error, $context );
+-	?>
+-<form action="<?php echo esc_url( $form_post ); ?>" method="post">
++	;
++echo '<form action="';
++echo esc_url( $form_post ); ;
++echo '" method="post">
+ <div id="request-filesystem-credentials-form" class="request-filesystem-credentials-form">
+-	<?php
++	';
+ 	// Print a H1 heading in the FTP credentials modal dialog, default is a H2.
+ 	$heading_tag = 'h2';
+ 	if ( 'plugins.php' === $pagenow || 'plugin-install.php' === $pagenow ) {
+ 		$heading_tag = 'h1';
+ 	}
+ 	echo "<$heading_tag id='request-filesystem-credentials-title'>" . __( 'Connection Information' ) . "</$heading_tag>";
+-	?>
+-<p id="request-filesystem-credentials-desc">
+-	<?php
++	;
++echo '<p id="request-filesystem-credentials-desc">
++	';
+ 	$label_user = __( 'Username' );
+ 	$label_pass = __( 'Password' );
+ 	_e( 'To perform the requested action, WordPress needs to access your web server.' );
+@@ -2592,63 +2603,114 @@
+ 	if ( defined( 'FTP_PASS' ) ) {
+ 		$password_value = '*****';
+ 	}
+-	?>
+-</p>
++	;
++echo '</p>
+ <label for="hostname">
+-	<span class="field-title"><?php _e( 'Hostname' ); ?></span>
+-	<input name="hostname" type="text" id="hostname" aria-describedby="request-filesystem-credentials-desc" class="code" placeholder="<?php esc_attr_e( 'example: www.wordpress.org' ); ?>" value="<?php echo $hostname_value; ?>"<?php disabled( defined( 'FTP_HOST' ) ); ?> />
++	<span class="field-title">';
++_e( 'Hostname' ); ;
++echo '</span>
++	<input name="hostname" type="text" id="hostname" aria-describedby="request-filesystem-credentials-desc" class="code" placeholder="';
++esc_attr_e( 'example: www.wordpress.org' ); ;
++echo '" value="';
++echo $hostname_value; ;
++echo '"';
++disabled( defined( 'FTP_HOST' ) ); ;
++echo ' />
+ </label>
+ <div class="ftp-username">
+ 	<label for="username">
+-		<span class="field-title"><?php echo $label_user; ?></span>
+-		<input name="username" type="text" id="username" value="<?php echo esc_attr( $username ); ?>"<?php disabled( defined( 'FTP_USER' ) ); ?> />
++		<span class="field-title">';
++echo $label_user; ;
++echo '</span>
++		<input name="username" type="text" id="username" value="';
++echo esc_attr( $username ); ;
++echo '"';
++disabled( defined( 'FTP_USER' ) ); ;
++echo ' />
+ 	</label>
+ </div>
+ <div class="ftp-password">
+ 	<label for="password">
+-		<span class="field-title"><?php echo $label_pass; ?></span>
+-		<input name="password" type="password" id="password" value="<?php echo $password_value; ?>"<?php disabled( defined( 'FTP_PASS' ) ); ?> spellcheck="false" />
+-		<?php
++		<span class="field-title">';
++echo $label_pass; ;
++echo '</span>
++		<input name="password" type="password" id="password" value="';
++echo $password_value; ;
++echo '"';
++disabled( defined( 'FTP_PASS' ) ); ;
++echo ' spellcheck="false" />
++		';
+ 		if ( ! defined( 'FTP_PASS' ) ) {
+ 			_e( 'This password will not be stored on the server.' );
+ 		}
+-		?>
+-	</label>
++		;
++echo '	</label>
+ </div>
+ <fieldset>
+-<legend><?php _e( 'Connection Type' ); ?></legend>
+-	<?php
++<legend>';
++_e( 'Connection Type' ); ;
++echo '</legend>
++	';
+ 	$disabled = disabled( ( defined( 'FTP_SSL' ) && FTP_SSL ) || ( defined( 'FTP_SSH' ) && FTP_SSH ), true, false );
+ 	foreach ( $types as $name => $text ) :
+-		?>
+-	<label for="<?php echo esc_attr( $name ); ?>">
+-		<input type="radio" name="connection_type" id="<?php echo esc_attr( $name ); ?>" value="<?php echo esc_attr( $name ); ?>" <?php checked( $name, $connection_type ); ?> <?php echo $disabled; ?> />
+-		<?php echo $text; ?>
+-	</label>
+-		<?php
++		;
++echo '	<label for="';
++echo esc_attr( $name ); ;
++echo '">
++		<input type="radio" name="connection_type" id="';
++echo esc_attr( $name ); ;
++echo '" value="';
++echo esc_attr( $name ); ;
++echo '" ';
++checked( $name, $connection_type ); ;
++echo ' ';
++echo $disabled; ;
++echo ' />
++		';
++echo $text; ;
++echo '	</label>
++		';
+ 	endforeach;
+-	?>
+-</fieldset>
+-	<?php
++	;
++echo '</fieldset>
++	';
+ 	if ( isset( $types['ssh'] ) ) {
+ 		$hidden_class = '';
+ 		if ( 'ssh' !== $connection_type ) {
+ 			$hidden_class = ' class="hidden"';
+ 		}
+-		?>
+-<fieldset id="ssh-keys"<?php echo $hidden_class; ?>>
+-<legend><?php _e( 'Authentication Keys' ); ?></legend>
++		;
++echo '<fieldset id="ssh-keys"';
++echo $hidden_class; ;
++echo '>
++<legend>';
++_e( 'Authentication Keys' ); ;
++echo '</legend>
+ <label for="public_key">
+-	<span class="field-title"><?php _e( 'Public Key:' ); ?></span>
+-	<input name="public_key" type="text" id="public_key" aria-describedby="auth-keys-desc" value="<?php echo esc_attr( $public_key ); ?>"<?php disabled( defined( 'FTP_PUBKEY' ) ); ?> />
++	<span class="field-title">';
++_e( 'Public Key:' ); ;
++echo '</span>
++	<input name="public_key" type="text" id="public_key" aria-describedby="auth-keys-desc" value="';
++echo esc_attr( $public_key ); ;
++echo '"';
++disabled( defined( 'FTP_PUBKEY' ) ); ;
++echo ' />
+ </label>
+ <label for="private_key">
+-	<span class="field-title"><?php _e( 'Private Key:' ); ?></span>
+-	<input name="private_key" type="text" id="private_key" value="<?php echo esc_attr( $private_key ); ?>"<?php disabled( defined( 'FTP_PRIKEY' ) ); ?> />
++	<span class="field-title">';
++_e( 'Private Key:' ); ;
++echo '</span>
++	<input name="private_key" type="text" id="private_key" value="';
++echo esc_attr( $private_key ); ;
++echo '"';
++disabled( defined( 'FTP_PRIKEY' ) ); ;
++echo ' />
+ </label>
+-<p id="auth-keys-desc"><?php _e( 'Enter the location on the server where the public and private keys are located. If a passphrase is needed, enter that in the password field above.' ); ?></p>
++<p id="auth-keys-desc">';
++_e( 'Enter the location on the server where the public and private keys are located. If a passphrase is needed, enter that in the password field above.' ); ;
++echo '</p>
+ </fieldset>
+-		<?php
++		';
+ 	}
+ 
+ 	foreach ( (array) $extra_fields as $field ) {
+@@ -2664,15 +2726,19 @@
+ 	if ( ! function_exists( 'submit_button' ) ) {
+ 		require_once ABSPATH . 'wp-admin/includes/template.php';
+ 	}
+-	?>
+-	<p class="request-filesystem-credentials-action-buttons">
+-		<?php wp_nonce_field( 'filesystem-credentials', '_fs_nonce', false, true ); ?>
+-		<button class="button cancel-button" data-js-action="close" type="button"><?php _e( 'Cancel' ); ?></button>
+-		<?php submit_button( __( 'Proceed' ), 'primary', 'upgrade', false ); ?>
+-	</p>
++	;
++echo '	<p class="request-filesystem-credentials-action-buttons">
++		';
++wp_nonce_field( 'filesystem-credentials', '_fs_nonce', false, true ); ;
++echo '		<button class="button cancel-button" data-js-action="close" type="button">';
++_e( 'Cancel' ); ;
++echo '</button>
++		';
++submit_button( __( 'Proceed' ), 'primary', 'upgrade', false ); ;
++echo '	</p>
+ </div>
+ </form>
+-	<?php
++	';
+ 	return false;
+ }
+ 
+@@ -2692,16 +2758,17 @@
+ 	if ( ! $request_filesystem_credentials ) {
+ 		return;
+ 	}
+-	?>
+-	<div id="request-filesystem-credentials-dialog" class="notification-dialog-wrap request-filesystem-credentials-dialog">
++	;
++echo '	<div id="request-filesystem-credentials-dialog" class="notification-dialog-wrap request-filesystem-credentials-dialog">
+ 		<div class="notification-dialog-background"></div>
+ 		<div class="notification-dialog" role="dialog" aria-labelledby="request-filesystem-credentials-title" tabindex="0">
+ 			<div class="request-filesystem-credentials-dialog-content">
+-				<?php request_filesystem_credentials( site_url() ); ?>
+-			</div>
++				';
++request_filesystem_credentials( site_url() ); ;
++echo '			</div>
+ 		</div>
+ 	</div>
+-	<?php
++	';
+ }
+ 
+ /**

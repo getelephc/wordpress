@@ -1,0 +1,70 @@
+--- a/wp-includes/customize/class-wp-customize-nav-menu-location-control.php
++++ b/wp-includes/customize/class-wp-customize-nav-menu-location-control.php
+@@ -64,26 +64,50 @@
+ 		} else {
+ 			$no_value_hidden_class = ' hidden';
+ 		}
+-		?>
+-		<label>
+-			<?php if ( ! empty( $this->label ) ) : ?>
+-			<span class="customize-control-title"><?php echo esc_html( $this->label ); ?></span>
+-			<?php endif; ?>
+-
+-			<?php if ( ! empty( $this->description ) ) : ?>
+-			<span class="description customize-control-description"><?php echo $this->description; ?></span>
+-			<?php endif; ?>
+-
+-			<select <?php $this->link(); ?>>
+-				<?php
++		;
++echo '		<label>
++			';
++if ( ! empty( $this->label ) ) : ;
++echo '			<span class="customize-control-title">';
++echo esc_html( $this->label ); ;
++echo '</span>
++			';
++endif; ;
++echo '
++			';
++if ( ! empty( $this->description ) ) : ;
++echo '			<span class="description customize-control-description">';
++echo $this->description; ;
++echo '</span>
++			';
++endif; ;
++echo '
++			<select ';
++$this->link(); ;
++echo '>
++				';
+ 				foreach ( $this->choices as $value => $label ) :
+ 					echo '<option value="' . esc_attr( $value ) . '"' . selected( $this->value(), $value, false ) . '>' . esc_html( $label ) . '</option>';
+ 				endforeach;
+-				?>
+-			</select>
++				;
++echo '			</select>
+ 		</label>
+-		<button type="button" class="button-link create-menu<?php echo $value_hidden_class; ?>" data-location-id="<?php echo esc_attr( $this->location_id ); ?>" aria-label="<?php esc_attr_e( 'Create a menu for this location' ); ?>"><?php _e( '+ Create New Menu' ); ?></button>
+-		<button type="button" class="button-link edit-menu<?php echo $no_value_hidden_class; ?>" aria-label="<?php esc_attr_e( 'Edit selected menu' ); ?>"><?php _e( 'Edit Menu' ); ?></button>
+-		<?php
++		<button type="button" class="button-link create-menu';
++echo $value_hidden_class; ;
++echo '" data-location-id="';
++echo esc_attr( $this->location_id ); ;
++echo '" aria-label="';
++esc_attr_e( 'Create a menu for this location' ); ;
++echo '">';
++_e( '+ Create New Menu' ); ;
++echo '</button>
++		<button type="button" class="button-link edit-menu';
++echo $no_value_hidden_class; ;
++echo '" aria-label="';
++esc_attr_e( 'Edit selected menu' ); ;
++echo '">';
++_e( 'Edit Menu' ); ;
++echo '</button>
++		';
+ 	}
+ }

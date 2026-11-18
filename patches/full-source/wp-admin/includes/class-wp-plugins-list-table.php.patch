@@ -1,0 +1,32 @@
+--- a/wp-admin/includes/class-wp-plugins-list-table.php
++++ b/wp-admin/includes/class-wp-plugins-list-table.php
+@@ -474,13 +474,22 @@
+ 		if ( ! empty( $_REQUEST['order'] ) ) {
+ 			echo '<input type="hidden" name="order" value="' . esc_attr( $_REQUEST['order'] ) . '" />';
+ 		}
+-		?>
+-		<p class="search-box">
+-			<label for="<?php echo esc_attr( $input_id ); ?>"><?php echo $text; ?></label>
+-			<input type="search" id="<?php echo esc_attr( $input_id ); ?>" class="wp-filter-search" name="s" value="<?php _admin_search_query(); ?>" />
+-			<?php submit_button( $text, 'hide-if-js', '', false, array( 'id' => 'search-submit' ) ); ?>
+-		</p>
+-		<?php
++		;
++echo '		<p class="search-box">
++			<label for="';
++echo esc_attr( $input_id ); ;
++echo '">';
++echo $text; ;
++echo '</label>
++			<input type="search" id="';
++echo esc_attr( $input_id ); ;
++echo '" class="wp-filter-search" name="s" value="';
++_admin_search_query(); ;
++echo '" />
++			';
++submit_button( $text, 'hide-if-js', '', false, array( 'id' => 'search-submit' ) ); ;
++echo '		</p>
++		';
+ 	}
+ 
+ 	/**

@@ -1,0 +1,79 @@
+--- a/wp-includes/rest-api/endpoints/class-wp-rest-widget-types-controller.php
++++ b/wp-includes/rest-api/endpoints/class-wp-rest-widget-types-controller.php
+@@ -589,10 +589,10 @@
+ 			$return = $widget_object->form( $instance );
+ 
+ 			/** This filter is documented in wp-includes/class-wp-widget.php */
+-			do_action_ref_array(
+-				'in_widget_form',
+-				array( &$widget_object, &$return, $instance )
+-			);
++			if ( has_action( 'in_widget_form' ) || has_action( 'all' ) ) {
++				throw new RuntimeException( 'Widget form reference callbacks are outside the finite fixture.' );
++			}
++			do_action( 'in_widget_form', $widget_object, $return, $instance );
+ 		}
+ 
+ 		return ob_get_clean();
+@@ -632,15 +632,20 @@
+ 		}
+ 
+ 		ob_start();
+-		?>
+-		<!doctype html>
+-		<html <?php language_attributes(); ?>>
++		;
++echo '		<!doctype html>
++		<html ';
++language_attributes(); ;
++echo '>
+ 		<head>
+-			<meta charset="<?php bloginfo( 'charset' ); ?>" />
++			<meta charset="';
++bloginfo( 'charset' ); ;
++echo '" />
+ 			<meta name="viewport" content="width=device-width, initial-scale=1" />
+ 			<link rel="profile" href="https://gmpg.org/xfn/11" />
+-			<?php wp_head(); ?>
+-			<style>
++			';
++wp_head(); ;
++echo '			<style>
+ 				/* Reset theme styles */
+ 				html, body, #page, #content {
+ 					padding: 0 !important;
+@@ -648,10 +653,12 @@
+ 				}
+ 			</style>
+ 		</head>
+-		<body <?php body_class(); ?>>
++		<body ';
++body_class(); ;
++echo '>
+ 		<div id="page" class="site">
+ 			<div id="content" class="site-content">
+-				<?php
++				';
+ 				$registry = WP_Block_Type_Registry::get_instance();
+ 				$block    = $registry->get_registered( 'core/legacy-widget' );
+ 				echo $block->render(
+@@ -660,13 +667,14 @@
+ 						'instance' => $instance,
+ 					)
+ 				);
+-				?>
+-			</div><!-- #content -->
++				;
++echo '			</div><!-- #content -->
+ 		</div><!-- #page -->
+-		<?php wp_footer(); ?>
+-		</body>
++		';
++wp_footer(); ;
++echo '		</body>
+ 		</html>
+-		<?php
++		';
+ 		return ob_get_clean();
+ 	}
+ 

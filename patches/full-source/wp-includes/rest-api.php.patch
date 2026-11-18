@@ -1,0 +1,17 @@
+--- a/wp-includes/rest-api.php
++++ b/wp-includes/rest-api.php
+@@ -1048,9 +1048,11 @@
+ 	if ( empty( $api_root ) ) {
+ 		return;
+ 	}
+-	?>
+-	<api name="WP-API" blogID="1" preferred="false" apiLink="<?php echo esc_url( $api_root ); ?>" />
+-	<?php
++	;
++echo '	<api name="WP-API" blogID="1" preferred="false" apiLink="';
++echo esc_url( $api_root ); ;
++echo '" />
++	';
+ }
+ 
+ /**

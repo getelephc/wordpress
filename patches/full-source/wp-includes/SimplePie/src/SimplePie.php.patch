@@ -1,0 +1,54 @@
+--- a/wp-includes/SimplePie/src/SimplePie.php
++++ b/wp-includes/SimplePie/src/SimplePie.php
+@@ -790,7 +790,7 @@
+ 
+         $this->feed_url = $file->get_final_requested_uri();
+         $this->permanent_url = $this->feed_url;
+-        $this->file = &$file;
++        $this->file = $file;
+ 
+         return true;
+     }
+@@ -1764,7 +1764,7 @@
+                 if (isset($headers['content-type']) && preg_match('/;\x20?charset=([^;]*)/i', $headers['content-type'], $charset)) {
+                     $encodings[] = strtoupper($charset[1]);
+                 }
+-                $encodings = array_merge($encodings, $this->registry->call(Misc::class, 'xml_encoding', [$this->raw_data, &$this->registry]));
++                $encodings = array_merge($encodings, $this->registry->call(Misc::class, 'xml_encoding', [$this->raw_data, $this->registry]));
+                 $encodings[] = 'UTF-8';
+             } elseif (in_array($sniffed, $text_types) || substr($sniffed, 0, 5) === 'text/' && substr($sniffed, -4) === '+xml') {
+                 if (isset($headers['content-type']) && preg_match('/;\x20?charset=([^;]*)/i', $headers['content-type'], $charset)) {
+@@ -1779,7 +1779,7 @@
+         }
+ 
+         // Fallback to XML 1.0 Appendix F.1/UTF-8/ISO-8859-1
+-        $encodings = array_merge($encodings, $this->registry->call(Misc::class, 'xml_encoding', [$this->raw_data, &$this->registry]));
++        $encodings = array_merge($encodings, $this->registry->call(Misc::class, 'xml_encoding', [$this->raw_data, $this->registry]));
+         $encodings[] = 'UTF-8';
+         $encodings[] = 'ISO-8859-1';
+ 
+@@ -2094,7 +2094,7 @@
+             $headers[$key] = implode(', ', $values);
+         }
+ 
+-        $sniffer = $this->registry->create(Sniffer::class, [&$file]);
++        $sniffer = $this->registry->create(Sniffer::class, [$file]);
+         $sniffed = $sniffer->get_type();
+ 
+         return [$headers, $sniffed];
+@@ -2842,12 +2842,12 @@
+                 if ($this->registry->call(Misc::class, 'is_isegment_nz_nc', [$key])) {
+                     if (isset($this->data['links'][self::IANA_LINK_RELATIONS_REGISTRY . $key])) {
+                         $this->data['links'][self::IANA_LINK_RELATIONS_REGISTRY . $key] = array_merge($this->data['links'][$key], $this->data['links'][self::IANA_LINK_RELATIONS_REGISTRY . $key]);
+-                        $this->data['links'][$key] = &$this->data['links'][self::IANA_LINK_RELATIONS_REGISTRY . $key];
++                        throw new \RuntimeException('RSS link-reference maps are outside the finite bootstrap fixture.');
+                     } else {
+-                        $this->data['links'][self::IANA_LINK_RELATIONS_REGISTRY . $key] = &$this->data['links'][$key];
++                        throw new \RuntimeException('RSS link-reference maps are outside the finite bootstrap fixture.');
+                     }
+                 } elseif (substr($key, 0, 41) === self::IANA_LINK_RELATIONS_REGISTRY) {
+-                    $this->data['links'][substr($key, 41)] = &$this->data['links'][$key];
++                    throw new \RuntimeException('RSS link-reference maps are outside the finite bootstrap fixture.');
+                 }
+                 $this->data['links'][$key] = array_unique($this->data['links'][$key]);
+             }

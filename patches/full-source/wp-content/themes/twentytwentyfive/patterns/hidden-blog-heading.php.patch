@@ -1,0 +1,16 @@
+--- a/wp-content/themes/twentytwentyfive/patterns/hidden-blog-heading.php
++++ b/wp-content/themes/twentytwentyfive/patterns/hidden-blog-heading.php
+@@ -10,7 +10,10 @@
+  * @since Twenty Twenty-Five 1.0
+  */
+ 
+-?>
+-<!-- wp:heading {"textAlign":"left","level":1} -->
+-<h1 class="wp-block-heading has-text-align-left"><?php esc_html_e( 'Blog', 'twentytwentyfive' ); ?></h1>
++;
++echo '<!-- wp:heading {"textAlign":"left","level":1} -->
++<h1 class="wp-block-heading has-text-align-left">';
++esc_html_e( 'Blog', 'twentytwentyfive' ); ;
++echo '</h1>
+ <!-- /wp:heading -->
++';

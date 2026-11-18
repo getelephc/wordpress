@@ -1,0 +1,11 @@
+--- a/wp-includes/compat.php
++++ b/wp-includes/compat.php
+@@ -448,7 +448,7 @@
+ 
+ // sodium_crypto_box() was introduced with Sodium in PHP 7.2, but the extension may not be enabled.
+ if ( ! function_exists( 'sodium_crypto_box' ) ) {
+-	require ABSPATH . WPINC . '/sodium_compat/autoload.php';
++	throw new RuntimeException( 'The finite Elephc fixture requires native Sodium for cryptographic APIs.' );
+ }
+ 
+ if ( ! function_exists( 'array_is_list' ) ) {

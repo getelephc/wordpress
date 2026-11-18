@@ -1,0 +1,22 @@
+--- a/wp-includes/SimplePie/src/Parser.php
++++ b/wp-includes/SimplePie/src/Parser.php
+@@ -316,8 +316,8 @@
+                 $this->data['data'] .= '>';
+             }
+         } else {
+-            $this->datas[] = &$this->data;
+-            $this->data = &$this->data['child'][end($this->namespace)][end($this->element)][];
++            throw new \RuntimeException('RSS XML tree-reference parsing is outside the finite bootstrap fixture.');
++            throw new \RuntimeException('RSS XML tree-reference parsing is outside the finite bootstrap fixture.');
+             $this->data = ['data' => '', 'attribs' => $attribs, 'xml_base' => end($this->xml_base), 'xml_base_explicit' => end($this->xml_base_explicit), 'xml_lang' => end($this->xml_lang)];
+             if ((end($this->namespace) === \SimplePie\SimplePie::NAMESPACE_ATOM_03 && in_array(end($this->element), ['title', 'tagline', 'copyright', 'info', 'summary', 'content']) && isset($attribs['']['mode']) && $attribs['']['mode'] === 'xml')
+             || (end($this->namespace) === \SimplePie\SimplePie::NAMESPACE_ATOM_10 && in_array(end($this->element), ['rights', 'subtitle', 'summary', 'info', 'title', 'content']) && isset($attribs['']['type']) && $attribs['']['type'] === 'xhtml')
+@@ -355,7 +355,7 @@
+             }
+         }
+         if ($this->current_xhtml_construct === -1) {
+-            $this->data = &$this->datas[count($this->datas) - 1];
++            throw new \RuntimeException('RSS XML tree-reference parsing is outside the finite bootstrap fixture.');
+             array_pop($this->datas);
+         }
+ 

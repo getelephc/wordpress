@@ -1,0 +1,46 @@
+--- a/wp-includes/customize/class-wp-widget-area-customize-control.php
++++ b/wp-includes/customize/class-wp-widget-area-customize-control.php
+@@ -52,20 +52,31 @@
+ 	 */
+ 	public function render_content() {
+ 		$id = 'reorder-widgets-desc-' . str_replace( array( '[', ']' ), array( '-', '' ), $this->id );
+-		?>
+-		<button type="button" class="button add-new-widget" aria-expanded="false" aria-controls="available-widgets">
+-			<?php _e( 'Add a Widget' ); ?>
++		;
++echo '		<button type="button" class="button add-new-widget" aria-expanded="false" aria-controls="available-widgets">
++			';
++_e( 'Add a Widget' ); ;
++echo '		</button>
++		<button type="button" class="button-link reorder-toggle" aria-label="';
++esc_attr_e( 'Reorder widgets' ); ;
++echo '" aria-describedby="';
++echo esc_attr( $id ); ;
++echo '">
++			<span class="reorder">';
++_e( 'Reorder' ); ;
++echo '</span>
++			<span class="reorder-done">';
++_e( 'Done' ); ;
++echo '</span>
+ 		</button>
+-		<button type="button" class="button-link reorder-toggle" aria-label="<?php esc_attr_e( 'Reorder widgets' ); ?>" aria-describedby="<?php echo esc_attr( $id ); ?>">
+-			<span class="reorder"><?php _e( 'Reorder' ); ?></span>
+-			<span class="reorder-done"><?php _e( 'Done' ); ?></span>
+-		</button>
+-		<p class="screen-reader-text" id="<?php echo esc_attr( $id ); ?>">
+-			<?php
++		<p class="screen-reader-text" id="';
++echo esc_attr( $id ); ;
++echo '">
++			';
+ 			/* translators: Hidden accessibility text. */
+ 			_e( 'When in reorder mode, additional controls to reorder widgets will be available in the widgets list above.' );
+-			?>
+-		</p>
+-		<?php
++			;
++echo '		</p>
++		';
+ 	}
+ }

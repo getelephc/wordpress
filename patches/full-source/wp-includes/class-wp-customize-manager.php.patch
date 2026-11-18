@@ -1,0 +1,406 @@
+--- a/wp-includes/class-wp-customize-manager.php
++++ b/wp-includes/class-wp-customize-manager.php
+@@ -472,14 +472,16 @@
+ 			);
+ 			$message .= ob_get_clean();
+ 			ob_start();
+-			?>
+-			<script>
++			;
++echo '			<script>
+ 			( function( api, settings ) {
+ 				var preview = new api.Messenger( settings.messengerArgs );
+-				preview.send( 'iframe-loading-error', settings.error );
+-			} )( wp.customize, <?php echo wp_json_encode( $settings, JSON_HEX_TAG | JSON_UNESCAPED_SLASHES ); ?> );
++				preview.send( \'iframe-loading-error\', settings.error );
++			} )( wp.customize, ';
++echo wp_json_encode( $settings, JSON_HEX_TAG | JSON_UNESCAPED_SLASHES ); ;
++echo ' );
+ 			</script>
+-			<?php
++			';
+ 			$message .= wp_get_inline_script_tag( wp_remove_surrounding_empty_script_tags( ob_get_clean() ) . "\n//# sourceURL=" . rawurlencode( __METHOD__ ) );
+ 		}
+ 
+@@ -2061,8 +2063,8 @@
+ 	 * @since 4.2.0
+ 	 */
+ 	public function customize_preview_loading_style() {
+-		?>
+-		<style>
++		;
++echo '		<style>
+ 			body.wp-customizer-unloading {
+ 				opacity: 0.25;
+ 				cursor: progress !important;
+@@ -2081,7 +2083,7 @@
+ 				cursor: not-allowed !important;
+ 			}
+ 		</style>
+-		<?php
++		';
+ 	}
+ 
+ 	/**
+@@ -2097,20 +2099,20 @@
+ 			return;
+ 		}
+ 		ob_start();
+-		?>
+-		<script>
++		;
++echo '		<script>
+ 		( function() {
+ 			if ( parent !== window ) {
+ 				return;
+ 			}
+ 			const url = new URL( location.href );
+-			if ( url.searchParams.has( 'customize_messenger_channel' ) ) {
+-				url.searchParams.delete( 'customize_messenger_channel' );
++			if ( url.searchParams.has( \'customize_messenger_channel\' ) ) {
++				url.searchParams.delete( \'customize_messenger_channel\' );
+ 				location.replace( url );
+ 			}
+ 		} )();
+ 		</script>
+-		<?php
++		';
+ 		wp_print_inline_script_tag( wp_remove_surrounding_empty_script_tags( ob_get_clean() ) . "\n//# sourceURL=" . rawurlencode( __METHOD__ ) );
+ 	}
+ 
+@@ -2209,12 +2211,14 @@
+ 		}
+ 
+ 		ob_start();
+-		?>
+-		<script>
+-			var _wpCustomizeSettings = <?php echo wp_json_encode( $settings, JSON_HEX_TAG | JSON_UNESCAPED_SLASHES ); ?>;
++		;
++echo '		<script>
++			var _wpCustomizeSettings = ';
++echo wp_json_encode( $settings, JSON_HEX_TAG | JSON_UNESCAPED_SLASHES ); ;
++echo ';
+ 			_wpCustomizeSettings.values = {};
+ 			(function( v ) {
+-				<?php
++				';
+ 				/*
+ 				 * Serialize settings separately from the initial _wpCustomizeSettings
+ 				 * serialization in order to avoid a peak memory usage spike.
+@@ -2229,10 +2233,10 @@
+ 						);
+ 					}
+ 				}
+-				?>
+-			})( _wpCustomizeSettings.values );
++				;
++echo '			})( _wpCustomizeSettings.values );
+ 		</script>
+-		<?php
++		';
+ 		wp_print_inline_script_tag( wp_remove_surrounding_empty_script_tags( ob_get_clean() ) . "\n//# sourceURL=" . rawurlencode( __METHOD__ ) );
+ 	}
+ 
+@@ -4169,16 +4173,16 @@
+ 			);
+ 			$control->print_template();
+ 		}
+-		?>
+-
++		;
++echo '
+ 		<script type="text/html" id="tmpl-customize-control-default-content">
+ 			<#
+-			var inputId = _.uniqueId( 'customize-control-default-input-' );
+-			var descriptionId = _.uniqueId( 'customize-control-default-description-' );
+-			var describedByAttr = data.description ? ' aria-describedby="' + descriptionId + '" ' : '';
++			var inputId = _.uniqueId( \'customize-control-default-input-\' );
++			var descriptionId = _.uniqueId( \'customize-control-default-description-\' );
++			var describedByAttr = data.description ? \' aria-describedby="\' + descriptionId + \'" \' : \'\';
+ 			#>
+ 			<# switch ( data.type ) {
+-				case 'checkbox': #>
++				case \'checkbox\': #>
+ 					<span class="customize-inside-control-row">
+ 						<input
+ 							id="{{ inputId }}"
+@@ -4196,7 +4200,7 @@
+ 					</span>
+ 					<#
+ 					break;
+-				case 'radio':
++				case \'radio\':
+ 					if ( ! data.choices ) {
+ 						return;
+ 					}
+@@ -4222,14 +4226,14 @@
+ 							}
+ 							#>
+ 							<input
+-								id="{{ inputId + '-' + value }}"
++								id="{{ inputId + \'-\' + value }}"
+ 								type="radio"
+ 								value="{{ value }}"
+ 								name="{{ inputId }}"
+ 								data-customize-setting-key-link="default"
+ 								{{{ describedByAttr }}}
+ 							>
+-							<label for="{{ inputId + '-' + value }}">{{ text }}</label>
++							<label for="{{ inputId + \'-\' + value }}">{{ text }}</label>
+ 						</span>
+ 					<# } ); #>
+ 					<#
+@@ -4248,35 +4252,35 @@
+ 					<#
+ 					var inputAttrs = {
+ 						id: inputId,
+-						'data-customize-setting-key-link': 'default'
++						\'data-customize-setting-key-link\': \'default\'
+ 					};
+-					if ( 'textarea' === data.type ) {
+-						inputAttrs.rows = '5';
+-					} else if ( 'button' === data.type ) {
+-						inputAttrs['class'] = 'button button-secondary';
+-						inputAttrs.type = 'button';
++					if ( \'textarea\' === data.type ) {
++						inputAttrs.rows = \'5\';
++					} else if ( \'button\' === data.type ) {
++						inputAttrs[\'class\'] = \'button button-secondary\';
++						inputAttrs.type = \'button\';
+ 					} else {
+ 						inputAttrs.type = data.type;
+ 					}
+ 					if ( data.description ) {
+-						inputAttrs['aria-describedby'] = descriptionId;
++						inputAttrs[\'aria-describedby\'] = descriptionId;
+ 					}
+ 					_.extend( inputAttrs, data.input_attrs );
+ 					#>
+ 
+-					<# if ( 'button' === data.type ) { #>
++					<# if ( \'button\' === data.type ) { #>
+ 						<button
+ 							<# _.each( _.extend( inputAttrs ), function( value, key ) { #>
+ 								{{{ key }}}="{{ value }}"
+ 							<# } ); #>
+ 						>{{ inputAttrs.value }}</button>
+-					<# } else if ( 'textarea' === data.type ) { #>
++					<# } else if ( \'textarea\' === data.type ) { #>
+ 						<textarea
+ 							<# _.each( _.extend( inputAttrs ), function( value, key ) { #>
+ 								{{{ key }}}="{{ value }}"
+ 							<# }); #>
+ 						>{{ inputAttrs.value }}</textarea>
+-					<# } else if ( 'select' === data.type ) { #>
++					<# } else if ( \'select\' === data.type ) { #>
+ 						<# delete inputAttrs.type; #>
+ 						<select
+ 							<# _.each( _.extend( inputAttrs ), function( value, key ) { #>
+@@ -4308,22 +4312,22 @@
+ 		</script>
+ 
+ 		<script type="text/html" id="tmpl-customize-notification">
+-			<li class="notice notice-{{ data.type || 'info' }} {{ data.alt ? 'notice-alt' : '' }} {{ data.dismissible ? 'is-dismissible' : '' }} {{ data.containerClasses || '' }}" data-code="{{ data.code }}" data-type="{{ data.type }}">
++			<li class="notice notice-{{ data.type || \'info\' }} {{ data.alt ? \'notice-alt\' : \'\' }} {{ data.dismissible ? \'is-dismissible\' : \'\' }} {{ data.containerClasses || \'\' }}" data-code="{{ data.code }}" data-type="{{ data.type }}">
+ 				<div class="notification-message">{{{ data.message || data.code }}}</div>
+ 				<# if ( data.dismissible ) { #>
+ 					<button type="button" class="notice-dismiss"><span class="screen-reader-text">
+-						<?php
++						';
+ 						/* translators: Hidden accessibility text. */
+ 						_e( 'Dismiss' );
+-						?>
+-					</span></button>
++						;
++echo '					</span></button>
+ 				<# } #>
+ 			</li>
+ 		</script>
+ 
+ 		<script type="text/html" id="tmpl-customize-changeset-locked-notification">
+-			<li class="notice notice-{{ data.type || 'info' }} {{ data.containerClasses || '' }}" data-code="{{ data.code }}" data-type="{{ data.type }}">
+-				<div class="notification-message customize-changeset-locked-message {{ data.lockUser.avatar ? 'has-avatar' : '' }}">
++			<li class="notice notice-{{ data.type || \'info\' }} {{ data.containerClasses || \'\' }}" data-code="{{ data.code }}" data-type="{{ data.type }}">
++				<div class="notification-message customize-changeset-locked-message {{ data.lockUser.avatar ? \'has-avatar\' : \'\' }}">
+ 					<# if ( data.lockUser.avatar ) { #>
+ 						<img class="customize-changeset-locked-avatar" src="{{ data.lockUser.avatar }}" alt="{{ data.lockUser.name }}" />
+ 					<# } #>
+@@ -4331,23 +4335,29 @@
+ 						<# if ( data.message ) { #>
+ 							{{{ data.message }}}
+ 						<# } else if ( data.allowOverride ) { #>
+-							<?php
++							';
+ 							echo esc_html( sprintf( $l10n['locked_allow_override'], '{{ data.lockUser.name }}' ) );
+-							?>
+-						<# } else { #>
+-							<?php
++							;
++echo '						<# } else { #>
++							';
+ 							echo esc_html( sprintf( $l10n['locked'], '{{ data.lockUser.name }}' ) );
+-							?>
+-						<# } #>
++							;
++echo '						<# } #>
+ 					</p>
+ 					<p class="notice notice-error notice-alt" hidden></p>
+ 					<p class="action-buttons">
+ 						<# if ( data.returnUrl !== data.previewUrl ) { #>
+-							<a class="button customize-notice-go-back-button" href="{{ data.returnUrl }}"><?php _e( 'Go back' ); ?></a>
++							<a class="button customize-notice-go-back-button" href="{{ data.returnUrl }}">';
++_e( 'Go back' ); ;
++echo '</a>
+ 						<# } #>
+-						<a class="button customize-notice-preview-button" href="{{ data.frontendPreviewUrl }}"><?php echo esc_html_x( 'Preview', 'verb' ); ?></a>
++						<a class="button customize-notice-preview-button" href="{{ data.frontendPreviewUrl }}">';
++echo esc_html_x( 'Preview', 'verb' ); ;
++echo '</a>
+ 						<# if ( data.allowOverride ) { #>
+-							<button class="button button-primary wp-tab-last customize-notice-take-over-button"><?php _e( 'Take over' ); ?></button>
++							<button class="button button-primary wp-tab-last customize-notice-take-over-button">';
++_e( 'Take over' ); ;
++echo '</button>
+ 						<# } #>
+ 					</p>
+ 				</div>
+@@ -4355,58 +4365,69 @@
+ 		</script>
+ 
+ 		<script type="text/html" id="tmpl-customize-code-editor-lint-error-notification">
+-			<li class="notice notice-{{ data.type || 'info' }} {{ data.alt ? 'notice-alt' : '' }} {{ data.dismissible ? 'is-dismissible' : '' }} {{ data.containerClasses || '' }}" data-code="{{ data.code }}" data-type="{{ data.type }}">
++			<li class="notice notice-{{ data.type || \'info\' }} {{ data.alt ? \'notice-alt\' : \'\' }} {{ data.dismissible ? \'is-dismissible\' : \'\' }} {{ data.containerClasses || \'\' }}" data-code="{{ data.code }}" data-type="{{ data.type }}">
+ 				<div class="notification-message">{{{ data.message || data.code }}}</div>
+ 
+ 				<p>
+-					<# var elementId = 'el-' + String( Math.random() ); #>
++					<# var elementId = \'el-\' + String( Math.random() ); #>
+ 					<input id="{{ elementId }}" type="checkbox">
+-					<label for="{{ elementId }}"><?php _e( 'Update anyway, even though it might break your site?' ); ?></label>
++					<label for="{{ elementId }}">';
++_e( 'Update anyway, even though it might break your site?' ); ;
++echo '</label>
+ 				</p>
+ 			</li>
+ 		</script>
+ 
+-		<?php
++		';
+ 		/* The following template is obsolete in core but retained for plugins. */
+-		?>
+-		<script type="text/html" id="tmpl-customize-control-notifications">
++		;
++echo '		<script type="text/html" id="tmpl-customize-control-notifications">
+ 			<ul>
+ 				<# _.each( data.notifications, function( notification ) { #>
+-					<li class="notice notice-{{ notification.type || 'info' }} {{ data.altNotice ? 'notice-alt' : '' }}" data-code="{{ notification.code }}" data-type="{{ notification.type }}">{{{ notification.message || notification.code }}}</li>
++					<li class="notice notice-{{ notification.type || \'info\' }} {{ data.altNotice ? \'notice-alt\' : \'\' }}" data-code="{{ notification.code }}" data-type="{{ notification.type }}">{{{ notification.message || notification.code }}}</li>
+ 				<# } ); #>
+ 			</ul>
+ 		</script>
+ 
+ 		<script type="text/html" id="tmpl-customize-preview-link-control" >
+-			<# var elementPrefix = _.uniqueId( 'el' ) + '-' #>
++			<# var elementPrefix = _.uniqueId( \'el\' ) + \'-\' #>
+ 			<p class="customize-control-title">
+-				<?php esc_html_e( 'Share Preview Link' ); ?>
+-			</p>
+-			<p class="description customize-control-description"><?php esc_html_e( 'See how changes would look live on your website, and share the preview with people who can\'t access the Customizer.' ); ?></p>
++				';
++esc_html_e( 'Share Preview Link' ); ;
++echo '			</p>
++			<p class="description customize-control-description">';
++esc_html_e( 'See how changes would look live on your website, and share the preview with people who can\'t access the Customizer.' ); ;
++echo '</p>
+ 			<div class="customize-control-notifications-container"></div>
+ 			<div class="preview-link-wrapper">
+ 				<label for="{{ elementPrefix }}customize-preview-link-input" class="screen-reader-text">
+-					<?php
++					';
+ 					/* translators: Hidden accessibility text. */
+ 					esc_html_e( 'Preview Link' );
+-					?>
+-				</label>
++					;
++echo '				</label>
+ 				<a href="" target="">
+ 					<span class="preview-control-element" data-component="url"></span>
+ 					<span class="screen-reader-text">
+-						<?php
++						';
+ 						/* translators: Hidden accessibility text. */
+ 						_e( '(opens in a new tab)' );
+-						?>
+-					</span>
++						;
++echo '					</span>
+ 				</a>
+ 				<input id="{{ elementPrefix }}customize-preview-link-input" readonly tabindex="-1" class="preview-control-element" data-component="input">
+-				<button class="customize-copy-preview-link preview-control-element button button-secondary" data-component="button" data-copy-text="<?php esc_attr_e( 'Copy' ); ?>" data-copied-text="<?php esc_attr_e( 'Copied' ); ?>" ><?php esc_html_e( 'Copy' ); ?></button>
++				<button class="customize-copy-preview-link preview-control-element button button-secondary" data-component="button" data-copy-text="';
++esc_attr_e( 'Copy' ); ;
++echo '" data-copied-text="';
++esc_attr_e( 'Copied' ); ;
++echo '" >';
++esc_html_e( 'Copy' ); ;
++echo '</button>
+ 			</div>
+ 		</script>
+ 		<script type="text/html" id="tmpl-customize-selected-changeset-status-control">
+-			<# var inputId = _.uniqueId( 'customize-selected-changeset-status-control-input-' ); #>
+-			<# var descriptionId = _.uniqueId( 'customize-selected-changeset-status-control-description-' ); #>
++			<# var inputId = _.uniqueId( \'customize-selected-changeset-status-control-input-\' ); #>
++			<# var descriptionId = _.uniqueId( \'customize-selected-changeset-status-control-description-\' ); #>
+ 			<# if ( data.label ) { #>
+ 				<label for="{{ inputId }}" class="customize-control-title">{{ data.label }}</label>
+ 			<# } #>
+@@ -4414,14 +4435,14 @@
+ 				<span id="{{ descriptionId }}" class="description customize-control-description">{{{ data.description }}}</span>
+ 			<# } #>
+ 			<# _.each( data.choices, function( choice ) { #>
+-				<# var choiceId = inputId + '-' + choice.status; #>
++				<# var choiceId = inputId + \'-\' + choice.status; #>
+ 				<span class="customize-inside-control-row">
+ 					<input id="{{ choiceId }}" type="radio" value="{{ choice.status }}" name="{{ inputId }}" data-customize-setting-key-link="default">
+ 					<label for="{{ choiceId }}">{{ choice.label }}</label>
+ 				</span>
+ 			<# } ); #>
+ 		</script>
+-		<?php
++		';
+ 	}
+ 
+ 	/**
+@@ -4998,13 +5019,15 @@
+ 		}
+ 
+ 		ob_start();
+-		?>
+-		<script>
+-			var _wpCustomizeSettings = <?php echo wp_json_encode( $settings, JSON_HEX_TAG | JSON_UNESCAPED_SLASHES ); ?>;
++		;
++echo '		<script>
++			var _wpCustomizeSettings = ';
++echo wp_json_encode( $settings, JSON_HEX_TAG | JSON_UNESCAPED_SLASHES ); ;
++echo ';
+ 			_wpCustomizeSettings.initialClientTimestamp = _.now();
+ 			_wpCustomizeSettings.controls = {};
+ 			_wpCustomizeSettings.settings = {};
+-			<?php
++			';
+ 
+ 			// Serialize settings one by one to improve memory usage.
+ 			echo "(function ( s ){\n";
+@@ -5031,9 +5054,9 @@
+ 				}
+ 			}
+ 			echo "})( _wpCustomizeSettings.controls );\n";
+-			?>
+-		</script>
+-		<?php
++			;
++echo '		</script>
++		';
+ 		wp_print_inline_script_tag( wp_remove_surrounding_empty_script_tags( ob_get_clean() ) . "\n//# sourceURL=" . rawurlencode( __METHOD__ ) );
+ 	}
+ 

@@ -1,0 +1,72 @@
+--- a/wp-includes/class-wp-customize-section.php
++++ b/wp-includes/class-wp-customize-section.php
+@@ -335,11 +335,14 @@
+ 	 * @see WP_Customize_Manager::render_template()
+ 	 */
+ 	public function print_template() {
+-		?>
+-		<script type="text/html" id="tmpl-customize-section-<?php echo $this->type; ?>">
+-			<?php $this->render_template(); ?>
+-		</script>
+-		<?php
++		;
++echo '		<script type="text/html" id="tmpl-customize-section-';
++echo $this->type; ;
++echo '">
++			';
++$this->render_template(); ;
++echo '		</script>
++		';
+ 	}
+ 
+ 	/**
+@@ -353,8 +356,8 @@
+ 	 * @see WP_Customize_Section::print_template()
+ 	 */
+ 	protected function render_template() {
+-		?>
+-		<li id="accordion-section-{{ data.id }}" class="accordion-section control-section control-section-{{ data.type }}">
++		;
++echo '		<li id="accordion-section-{{ data.id }}" class="accordion-section control-section control-section-{{ data.type }}">
+ 			<h3 class="accordion-section-title">
+ 				<button type="button" class="accordion-trigger" aria-expanded="false" aria-controls="{{ data.id }}-content">
+ 					{{ data.title }}
+@@ -365,11 +368,11 @@
+ 					<div class="customize-section-title">
+ 						<button class="customize-section-back" tabindex="-1">
+ 							<span class="screen-reader-text">
+-								<?php
++								';
+ 								/* translators: Hidden accessibility text. */
+ 								_e( 'Back' );
+-								?>
+-							</span>
++								;
++echo '							</span>
+ 						</button>
+ 						<h3>
+ 							<span class="customize-action">
+@@ -379,11 +382,11 @@
+ 						</h3>
+ 						<# if ( data.description && data.description_hidden ) { #>
+ 							<button type="button" class="customize-help-toggle dashicons dashicons-editor-help" aria-expanded="false"><span class="screen-reader-text">
+-								<?php
++								';
+ 								/* translators: Hidden accessibility text. */
+ 								_e( 'Help' );
+-								?>
+-							</span></button>
++								;
++echo '							</span></button>
+ 							<div class="description customize-section-description">
+ 								{{{ data.description }}}
+ 							</div>
+@@ -400,7 +403,7 @@
+ 				</li>
+ 			</ul>
+ 		</li>
+-		<?php
++		';
+ 	}
+ }
+ 
