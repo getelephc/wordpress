@@ -1,0 +1,10 @@
+--- a/wp-includes/php-ai-client/src/Providers/Http/HttpTransporterFactory.php
++++ b/wp-includes/php-ai-client/src/Providers/Http/HttpTransporterFactory.php
+@@ -28,6 +28,6 @@
+      */
+     public static function createTransporter(): HttpTransporterInterface
+     {
+-        return new \WordPress\AiClient\Providers\Http\HttpTransporter(Psr18ClientDiscovery::find(), Psr17FactoryDiscovery::findRequestFactory(), Psr17FactoryDiscovery::findStreamFactory());
++        return new \WordPress\AiClient\Providers\Http\HttpTransporter(\wp_aot_require_nullable_WordPress_AiClientDependencies_Psr_Http_Client_ClientInterface( Psr18ClientDiscovery::find() ), \wp_aot_require_nullable_WordPress_AiClientDependencies_Psr_Http_Message_RequestFactoryInterface( Psr17FactoryDiscovery::findRequestFactory() ), \wp_aot_require_nullable_WordPress_AiClientDependencies_Psr_Http_Message_StreamFactoryInterface( Psr17FactoryDiscovery::findStreamFactory() ));
+     }
+ }

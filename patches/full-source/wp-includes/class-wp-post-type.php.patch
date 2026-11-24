@@ -1,0 +1,315 @@
+--- a/wp-includes/class-wp-post-type.php
++++ b/wp-includes/class-wp-post-type.php
+@@ -350,7 +350,7 @@
+ 	 * @since 4.6.0
+ 	 * @var array|false $rewrite
+ 	 */
+-	public $rewrite;
++	public mixed $rewrite = null;
+ 
+ 	/**
+ 	 * The features supported by the post type.
+@@ -472,7 +472,7 @@
+ 	 *                                See register_post_type() for information on accepted arguments.
+ 	 *                                Default empty array.
+ 	 */
+-	public function __construct( $post_type, $args = array() ) {
++	public function __construct( mixed $post_type, mixed $args = array() ) {
+ 		$this->name = $post_type;
+ 
+ 		$this->set_props( $args );
+@@ -487,7 +487,7 @@
+ 	 *
+ 	 * @param array|string $args Array or string of arguments for registering a post type.
+ 	 */
+-	public function set_props( $args ) {
++	public function set_props( mixed $args ): mixed {
+ 		$args = wp_parse_args( $args );
+ 
+ 		/**
+@@ -563,7 +563,7 @@
+ 			'_edit_link'                      => 'post.php?post=%d',
+ 		);
+ 
+-		$args = array_merge( $defaults, $args );
++		$args = \wp_aot_array_merge(array( $defaults, $args ));
+ 
+ 		$args['name'] = $this->name;
+ 
+@@ -666,6 +666,7 @@
+ 
+ 		$this->labels = get_post_type_labels( $this );
+ 		$this->label  = $this->labels->name;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -673,7 +674,7 @@
+ 	 *
+ 	 * @since 4.6.0
+ 	 */
+-	public function add_supports() {
++	public function add_supports(): mixed {
+ 		if ( ! empty( $this->supports ) ) {
+ 			foreach ( $this->supports as $feature => $args ) {
+ 				if ( is_array( $args ) ) {
+@@ -698,6 +699,7 @@
+ 			// Add default features.
+ 			add_post_type_support( $this->name, array( 'title', 'editor', 'autosave' ) );
+ 		}
++		return null;
+ 	}
+ 
+ 	/**
+@@ -708,7 +710,7 @@
+ 	 * @global WP_Rewrite $wp_rewrite WordPress rewrite component.
+ 	 * @global WP         $wp         Current WordPress environment instance.
+ 	 */
+-	public function add_rewrite_rules() {
++	public function add_rewrite_rules(): mixed {
+ 		global $wp_rewrite, $wp;
+ 
+ 		if ( false !== $this->query_var && $wp && is_post_type_viewable( $this ) ) {
+@@ -723,28 +725,29 @@
+ 			}
+ 
+ 			if ( $this->has_archive ) {
+-				$archive_slug = true === $this->has_archive ? $this->rewrite['slug'] : $this->has_archive;
+-				if ( $this->rewrite['with_front'] ) {
++				$archive_slug = true === $this->has_archive ? \wp_aot_mixed($this->rewrite)['slug'] : $this->has_archive;
++				if ( \wp_aot_mixed($this->rewrite)['with_front'] ) {
+ 					$archive_slug = substr( $wp_rewrite->front, 1 ) . $archive_slug;
+ 				} else {
+ 					$archive_slug = $wp_rewrite->root . $archive_slug;
+ 				}
+ 
+ 				add_rewrite_rule( "{$archive_slug}/?$", "index.php?post_type=$this->name", 'top' );
+-				if ( $this->rewrite['feeds'] && $wp_rewrite->feeds ) {
++				if ( \wp_aot_mixed($this->rewrite)['feeds'] && $wp_rewrite->feeds ) {
+ 					$feeds = '(' . trim( implode( '|', $wp_rewrite->feeds ) ) . ')';
+ 					add_rewrite_rule( "{$archive_slug}/feed/$feeds/?$", "index.php?post_type=$this->name" . '&feed=$matches[1]', 'top' );
+ 					add_rewrite_rule( "{$archive_slug}/$feeds/?$", "index.php?post_type=$this->name" . '&feed=$matches[1]', 'top' );
+ 				}
+-				if ( $this->rewrite['pages'] ) {
++				if ( \wp_aot_mixed($this->rewrite)['pages'] ) {
+ 					add_rewrite_rule( "{$archive_slug}/{$wp_rewrite->pagination_base}/([0-9]{1,})/?$", "index.php?post_type=$this->name" . '&paged=$matches[1]', 'top' );
+ 				}
+ 			}
+ 
+ 			$permastruct_args         = $this->rewrite;
+-			$permastruct_args['feed'] = $permastruct_args['feeds'];
++			$permastruct_args['feed'] = \wp_aot_mixed($permastruct_args)['feeds'];
+ 			add_permastruct( $this->name, "{$this->rewrite['slug']}/%$this->name%", $permastruct_args );
+ 		}
++		return null;
+ 	}
+ 
+ 	/**
+@@ -752,10 +755,11 @@
+ 	 *
+ 	 * @since 4.6.0
+ 	 */
+-	public function register_meta_boxes() {
++	public function register_meta_boxes(): mixed {
+ 		if ( $this->register_meta_box_cb ) {
+ 			add_action( 'add_meta_boxes_' . $this->name, $this->register_meta_box_cb, 10, 1 );
+ 		}
++		return null;
+ 	}
+ 
+ 	/**
+@@ -763,8 +767,9 @@
+ 	 *
+ 	 * @since 4.6.0
+ 	 */
+-	public function add_hooks() {
++	public function add_hooks(): mixed {
+ 		add_action( 'future_' . $this->name, '_future_post_hook', 5, 2 );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -772,10 +777,11 @@
+ 	 *
+ 	 * @since 4.6.0
+ 	 */
+-	public function register_taxonomies() {
++	public function register_taxonomies(): mixed {
+ 		foreach ( $this->taxonomies as $taxonomy ) {
+ 			register_taxonomy_for_object_type( $taxonomy, $this->name );
+ 		}
++		return null;
+ 	}
+ 
+ 	/**
+@@ -785,10 +791,11 @@
+ 	 *
+ 	 * @global array $_wp_post_type_features Post type features.
+ 	 */
+-	public function remove_supports() {
++	public function remove_supports(): mixed {
+ 		global $_wp_post_type_features;
+ 
+ 		unset( $_wp_post_type_features[ $this->name ] );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -800,7 +807,7 @@
+ 	 * @global WP         $wp                  Current WordPress environment instance.
+ 	 * @global array      $post_type_meta_caps Used to remove meta capabilities.
+ 	 */
+-	public function remove_rewrite_rules() {
++	public function remove_rewrite_rules(): mixed {
+ 		global $wp, $wp_rewrite, $post_type_meta_caps;
+ 
+ 		// Remove query var.
+@@ -823,6 +830,7 @@
+ 		foreach ( $this->cap as $cap ) {
+ 			unset( $post_type_meta_caps[ $cap ] );
+ 		}
++		return null;
+ 	}
+ 
+ 	/**
+@@ -830,10 +838,11 @@
+ 	 *
+ 	 * @since 4.6.0
+ 	 */
+-	public function unregister_meta_boxes() {
++	public function unregister_meta_boxes(): mixed {
+ 		if ( $this->register_meta_box_cb ) {
+ 			remove_action( 'add_meta_boxes_' . $this->name, $this->register_meta_box_cb, 10 );
+ 		}
++		return null;
+ 	}
+ 
+ 	/**
+@@ -841,10 +850,11 @@
+ 	 *
+ 	 * @since 4.6.0
+ 	 */
+-	public function unregister_taxonomies() {
++	public function unregister_taxonomies(): mixed {
+ 		foreach ( get_object_taxonomies( $this->name ) as $taxonomy ) {
+ 			unregister_taxonomy_for_object_type( $taxonomy, $this->name );
+ 		}
++		return null;
+ 	}
+ 
+ 	/**
+@@ -852,8 +862,9 @@
+ 	 *
+ 	 * @since 4.6.0
+ 	 */
+-	public function remove_hooks() {
++	public function remove_hooks(): mixed {
+ 		remove_action( 'future_' . $this->name, '_future_post_hook', 5 );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -866,14 +877,14 @@
+ 	 * @return WP_REST_Controller|null The controller instance, or null if the post type
+ 	 *                                 is set not to show in rest.
+ 	 */
+-	public function get_rest_controller() {
++	public function get_rest_controller(): mixed {
+ 		if ( ! $this->show_in_rest ) {
+ 			return null;
+ 		}
+ 
+ 		$class = $this->rest_controller_class ? $this->rest_controller_class : WP_REST_Posts_Controller::class;
+ 
+-		if ( ! class_exists( $class ) ) {
++		if ( ! \wp_aot_metadata_class_exists( \wp_aot_internal_string($class) ) ) {
+ 			return null;
+ 		}
+ 
+@@ -890,6 +901,7 @@
+ 		}
+ 
+ 		return $this->rest_controller;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -902,7 +914,7 @@
+ 	 * @return WP_REST_Controller|null The controller instance, or null if the post type
+ 	 *                                 is set not to show in rest.
+ 	 */
+-	public function get_revisions_rest_controller() {
++	public function get_revisions_rest_controller(): mixed {
+ 		if ( ! $this->show_in_rest ) {
+ 			return null;
+ 		}
+@@ -912,7 +924,7 @@
+ 		}
+ 
+ 		$class = $this->revisions_rest_controller_class ? $this->revisions_rest_controller_class : WP_REST_Revisions_Controller::class;
+-		if ( ! class_exists( $class ) ) {
++		if ( ! \wp_aot_metadata_class_exists( \wp_aot_internal_string($class) ) ) {
+ 			return null;
+ 		}
+ 
+@@ -929,6 +941,7 @@
+ 		}
+ 
+ 		return $this->revisions_rest_controller;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -941,7 +954,7 @@
+ 	 * @return WP_REST_Controller|null The controller instance, or null if the post type
+ 	 *                                 is set not to show in rest.
+ 	 */
+-	public function get_autosave_rest_controller() {
++	public function get_autosave_rest_controller(): mixed {
+ 		if ( ! $this->show_in_rest ) {
+ 			return null;
+ 		}
+@@ -952,7 +965,7 @@
+ 
+ 		$class = $this->autosave_rest_controller_class ? $this->autosave_rest_controller_class : WP_REST_Autosaves_Controller::class;
+ 
+-		if ( ! class_exists( $class ) ) {
++		if ( ! \wp_aot_metadata_class_exists( \wp_aot_internal_string($class) ) ) {
+ 			return null;
+ 		}
+ 
+@@ -969,6 +982,7 @@
+ 		}
+ 
+ 		return $this->autosave_rest_controller;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -978,7 +992,7 @@
+ 	 *
+ 	 * @return (string|null)[][] The default labels for post types.
+ 	 */
+-	public static function get_default_labels() {
++	public static function get_default_labels(): mixed {
+ 		if ( ! empty( self::$default_labels ) ) {
+ 			return self::$default_labels;
+ 		}
+@@ -1026,6 +1040,7 @@
+ 		);
+ 
+ 		return self::$default_labels;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1033,7 +1048,8 @@
+ 	 *
+ 	 * @since 6.0.0
+ 	 */
+-	public static function reset_default_labels() {
++	public static function reset_default_labels(): mixed {
+ 		self::$default_labels = array();
++		return null;
+ 	}
+ }

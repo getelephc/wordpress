@@ -1,0 +1,27 @@
+--- a/wp-admin/includes/class-file-upload-upgrader.php
++++ b/wp-admin/includes/class-file-upload-upgrader.php
+@@ -51,7 +51,7 @@
+ 	 * @param string $form      The name of the form the file was uploaded from.
+ 	 * @param string $urlholder The name of the `GET` parameter that holds the filename.
+ 	 */
+-	public function __construct( $form, $urlholder ) {
++	public function __construct( mixed $form, mixed $urlholder ) {
+ 
+ 		if ( empty( $_FILES[ $form ]['name'] ) && empty( $_GET[ $urlholder ] ) ) {
+ 			wp_die( __( 'Please select a file' ) );
+@@ -145,7 +145,7 @@
+ 	 *
+ 	 * @return bool Whether the cleanup was successful.
+ 	 */
+-	public function cleanup() {
++	public function cleanup(): mixed {
+ 		if ( $this->id ) {
+ 			wp_delete_attachment( $this->id );
+ 
+@@ -154,5 +154,6 @@
+ 		}
+ 
+ 		return true;
++		return null;
+ 	}
+ }

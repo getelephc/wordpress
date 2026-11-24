@@ -1,0 +1,55 @@
+--- a/wp-includes/SimplePie/src/Category.php
++++ b/wp-includes/SimplePie/src/Category.php
+@@ -83,9 +83,10 @@
+      *
+      * @return string|null
+      */
+-    public function get_term()
++    public function get_term(): mixed
+     {
+         return $this->term;
++    	return null;
+     }
+ 
+     /**
+@@ -93,9 +94,10 @@
+      *
+      * @return string|null
+      */
+-    public function get_scheme()
++    public function get_scheme(): mixed
+     {
+         return $this->scheme;
++    	return null;
+     }
+ 
+     /**
+@@ -104,12 +106,13 @@
+      * @param bool $strict
+      * @return string|null
+      */
+-    public function get_label(bool $strict = false)
++    public function get_label(bool $strict = false): mixed
+     {
+         if ($this->label === null && $strict !== true) {
+             return $this->get_term();
+         }
+         return $this->label;
++    	return null;
+     }
+ 
+     /**
+@@ -117,10 +120,11 @@
+      *
+      * @return string|null
+      */
+-    public function get_type()
++    public function get_type(): mixed
+     {
+         return $this->type;
++    	return null;
+     }
+ }
+ 
+-class_alias('SimplePie\Category', 'SimplePie_Category');
++(!defined('WP_AOT_NATIVE_RUNTIME') && (bool) \wp_aot_native_api('class_alias', array('SimplePie\Category', 'SimplePie_Category')));

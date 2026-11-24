@@ -1,0 +1,11 @@
+--- a/wp-content/plugins/akismet/views/start.php
++++ b/wp-content/plugins/akismet/views/start.php
+@@ -20,7 +20,7 @@
+ 			if ( Akismet::predefined_api_key() ) {
+ 				Akismet::view( 'predefined' );
+ 			} elseif ( $akismet_user && in_array( $akismet_user->status, array( Akismet::USER_STATUS_ACTIVE, Akismet::USER_STATUS_NO_SUB, Akismet::USER_STATUS_MISSING, Akismet::USER_STATUS_CANCELLED, Akismet::USER_STATUS_SUSPENDED ) ) ) {
+-				Akismet::view( 'connect-jp', compact( 'akismet_user' ) );
++				Akismet::view( 'connect-jp', \wp_aot_compact(get_defined_vars(), array( 'akismet_user' )) );
+ 			} else {
+ 				Akismet::view( 'activate' );
+ 			}

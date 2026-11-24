@@ -1,0 +1,99 @@
+--- a/wp-includes/abilities-api/class-wp-abilities-registry.php
++++ b/wp-includes/abilities-api/class-wp-abilities-registry.php
+@@ -24,7 +24,7 @@
+ 	 * @since 6.9.0
+ 	 * @var self|null
+ 	 */
+-	private static $instance = null;
++	private static mixed $instance = null;
+ 
+ 	/**
+ 	 * Holds the registered abilities.
+@@ -83,7 +83,7 @@
+ 	 * @return WP_Ability|null The registered ability instance on success, null on failure.
+ 	 */
+ 	public function register( string $name, array $args ): ?WP_Ability {
+-		if ( ! preg_match( '/^[a-z0-9-]+\/[a-z0-9-]+$/', $name ) ) {
++		if ( ! preg_match( '/^[a-z0-9-]+\/[a-z0-9-]+$/', \wp_aot_regex_text( $name ) ) ) {
+ 			_doing_it_wrong(
+ 				__METHOD__,
+ 				__(
+@@ -91,7 +91,7 @@
+ 				),
+ 				'6.9.0'
+ 			);
+-			return null;
++			return \wp_aot_require_nullable_WP_Ability(null);
+ 		}
+ 
+ 		if ( $this->is_registered( $name ) ) {
+@@ -101,7 +101,7 @@
+ 				sprintf( __( 'Ability "%s" is already registered.' ), esc_html( $name ) ),
+ 				'6.9.0'
+ 			);
+-			return null;
++			return \wp_aot_require_nullable_WP_Ability(null);
+ 		}
+ 
+ 		/**
+@@ -151,7 +151,7 @@
+ 					),
+ 					'6.9.0'
+ 				);
+-				return null;
++				return \wp_aot_require_nullable_WP_Ability(null);
+ 			}
+ 		}
+ 
+@@ -178,11 +178,11 @@
+ 				$e->getMessage(),
+ 				'6.9.0'
+ 			);
+-			return null;
++			return \wp_aot_require_nullable_WP_Ability(null);
+ 		}
+ 
+ 		$this->registered_abilities[ $name ] = $ability;
+-		return $ability;
++		return \wp_aot_require_nullable_WP_Ability($ability);
+ 	}
+ 
+ 	/**
+@@ -205,13 +205,13 @@
+ 				sprintf( __( 'Ability "%s" not found.' ), esc_html( $name ) ),
+ 				'6.9.0'
+ 			);
+-			return null;
++			return \wp_aot_require_nullable_WP_Ability(null);
+ 		}
+ 
+ 		$unregistered_ability = $this->registered_abilities[ $name ];
+ 		unset( $this->registered_abilities[ $name ] );
+ 
+-		return $unregistered_ability;
++		return \wp_aot_require_nullable_WP_Ability($unregistered_ability);
+ 	}
+ 
+ 	/**
+@@ -265,9 +265,9 @@
+ 				sprintf( __( 'Ability "%s" not found.' ), esc_html( $name ) ),
+ 				'6.9.0'
+ 			);
+-			return null;
+-		}
+-		return $this->registered_abilities[ $name ];
++			return \wp_aot_require_nullable_WP_Ability(null);
++		}
++		return \wp_aot_require_nullable_WP_Ability($this->registered_abilities[ $name ]);
+ 	}
+ 
+ 	/**
+@@ -313,7 +313,7 @@
+ 			do_action( 'wp_abilities_api_init', self::$instance );
+ 		}
+ 
+-		return self::$instance;
++		return \wp_aot_require_nullable_WP_Abilities_Registry(self::$instance);
+ 	}
+ 
+ 	/**

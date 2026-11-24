@@ -1,0 +1,17 @@
+--- a/wp-admin/network/edit.php
++++ b/wp-admin/network/edit.php
+@@ -14,7 +14,7 @@
+ 
+ if ( empty( $action ) ) {
+ 	wp_redirect( network_admin_url() );
+-	exit;
++	\wp_aot_exit();
+ }
+ 
+ /**
+@@ -38,4 +38,4 @@
+ do_action( "network_admin_edit_{$action}" );
+ 
+ wp_redirect( network_admin_url() );
+-exit;
++\wp_aot_exit();

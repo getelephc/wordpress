@@ -1,0 +1,19 @@
+--- a/wp-includes/php-ai-client/src/Tools/DTO/WebSearch.php
++++ b/wp-includes/php-ai-client/src/Tools/DTO/WebSearch.php
+@@ -14,7 +14,7 @@
+  *
+  * @phpstan-type WebSearchArrayShape array{allowedDomains?: string[], disallowedDomains?: string[]}
+  *
+- * @extends AbstractDataTransferObject<WebSearchArrayShape>
++ * @phpstan-extends AbstractDataTransferObject<WebSearchArrayShape>
+  */
+ class WebSearch extends AbstractDataTransferObject
+ {
+@@ -90,6 +90,6 @@
+      */
+     public static function fromArray(array $array): self
+     {
+-        return new self($array[self::KEY_ALLOWED_DOMAINS] ?? [], $array[self::KEY_DISALLOWED_DOMAINS] ?? []);
++        return new self(\wp_aot_require_array( $array[self::KEY_ALLOWED_DOMAINS] ?? [] ), \wp_aot_require_array( $array[self::KEY_DISALLOWED_DOMAINS] ?? [] ));
+     }
+ }

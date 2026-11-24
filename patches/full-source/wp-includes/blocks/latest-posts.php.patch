@@ -1,0 +1,91 @@
+--- a/wp-includes/blocks/latest-posts.php
++++ b/wp-includes/blocks/latest-posts.php
+@@ -25,9 +25,10 @@
+  * @return int Returns the global $block_core_latest_posts_excerpt_length variable
+  *             to allow the excerpt_length filter respect the Latest Block setting.
+  */
+-function block_core_latest_posts_get_excerpt_length() {
++function block_core_latest_posts_get_excerpt_length(): mixed {
+ 	global $block_core_latest_posts_excerpt_length;
+ 	return $block_core_latest_posts_excerpt_length;
++	return null;
+ }
+ 
+ /**
+@@ -42,9 +43,10 @@
+  *
+  * @return string Returns the post content with latest posts added.
+  */
+-function render_block_core_latest_posts( $attributes ) {
++function render_block_core_latest_posts( mixed $attributes ): mixed {
+ 	global $post, $block_core_latest_posts_excerpt_length;
+-	static $rendering_stack = array();
++	static $rendering_stack_aot_cell = new \WordPressStaticArrayCell();
++	$rendering_stack =& $rendering_stack_aot_cell->value;
+ 
+ 	$args = array(
+ 		'posts_per_page'      => $attributes['postsToShow'],
+@@ -59,7 +61,7 @@
+ 	add_filter( 'excerpt_length', 'block_core_latest_posts_get_excerpt_length', 20 );
+ 
+ 	if ( ! empty( $attributes['categories'] ) ) {
+-		$args['category__in'] = array_column( $attributes['categories'], 'id' );
++		$args['category__in'] = \wp_aot_array_column( $attributes['categories'], 'id' );
+ 	}
+ 	if ( isset( $attributes['selectedAuthor'] ) ) {
+ 		$args['author'] = $attributes['selectedAuthor'];
+@@ -204,12 +206,12 @@
+ 						// Run through the actions that are typically taken on the_content.
+ 						$post_content = _wp_apply_block_content_filters( $post_content, 'latest-posts' );
+ 					} finally {
+-						array_pop( $rendering_stack );
++						\wp_aot_array_pop( $rendering_stack );
+ 					}
+ 				}
+ 			}
+ 
+-			$post_content       = str_replace( ']]>', ']]&gt;', $post_content );
++			$post_content       = \wp_aot_str_replace( ']]>', ']]&gt;', $post_content );
+ 			$list_items_markup .= sprintf(
+ 				'<div class="wp-block-latest-posts__post-full-content">%1$s</div>',
+ 				$post_content
+@@ -265,6 +267,7 @@
+ 		$wrapper_attributes,
+ 		$list_items_markup
+ 	);
++	return null;
+ }
+ 
+ /**
+@@ -272,13 +275,14 @@
+  *
+  * @since 5.0.0
+  */
+-function register_block_core_latest_posts() {
++function register_block_core_latest_posts(): mixed {
+ 	register_block_type_from_metadata(
+ 		__DIR__ . '/latest-posts',
+ 		array(
+ 			'render_callback' => 'render_block_core_latest_posts',
+ 		)
+ 	);
++	return null;
+ }
+ add_action( 'init', 'register_block_core_latest_posts' );
+ 
+@@ -300,7 +304,7 @@
+  *
+  * @return array The migrated block object.
+  */
+-function block_core_latest_posts_migrate_categories( $block ) {
++function block_core_latest_posts_migrate_categories( mixed $block ): mixed {
+ 	if (
+ 		'core/latest-posts' === $block['blockName'] &&
+ 		! empty( $block['attrs']['categories'] ) &&
+@@ -312,5 +316,6 @@
+ 	}
+ 
+ 	return $block;
++	return null;
+ }
+ add_filter( 'render_block_data', 'block_core_latest_posts_migrate_categories' );

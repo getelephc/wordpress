@@ -1,0 +1,386 @@
+--- a/wp-includes/block-supports/layout.php
++++ b/wp-includes/block-supports/layout.php
+@@ -20,7 +20,7 @@
+ 		return null;
+ 	}
+ 
+-	$registered_names = array_filter( array_column( $registered_styles, 'name' ) );
++	$registered_names = \wp_aot_array_filter( array_column( $registered_styles, 'name' ) );
+ 
+ 	$prefix = 'is-style-';
+ 	$length = strlen( $prefix );
+@@ -45,15 +45,16 @@
+  * @param mixed $layout Layout object.
+  * @return array Child layout values, or an empty array.
+  */
+-function wp_get_layout_child_values( $layout ) {
++function wp_get_layout_child_values( mixed $layout ): mixed {
+ 	if ( ! is_array( $layout ) ) {
+ 		return array();
+ 	}
+ 
+-	return array_intersect_key(
++	return \wp_aot_array_intersect_key(array(
+ 		$layout,
+-		array_flip( array( 'selfStretch', 'flexSize', 'columnStart', 'columnSpan', 'rowStart', 'rowSpan' ) )
+-	);
++		\wp_aot_array_flip( array( 'selfStretch', 'flexSize', 'columnStart', 'columnSpan', 'rowStart', 'rowSpan' ) )
++	));
++	return null;
+ }
+ 
+ /**
+@@ -64,15 +65,16 @@
+  * @param mixed $layout Layout object.
+  * @return array Container layout values, or an empty array.
+  */
+-function wp_get_layout_container_values( $layout ) {
++function wp_get_layout_container_values( mixed $layout ): mixed {
+ 	if ( ! is_array( $layout ) ) {
+ 		return array();
+ 	}
+ 
+-	return array_diff_key(
++	return \wp_aot_array_diff_key(array(
+ 		$layout,
+-		array_flip( array( 'selfStretch', 'flexSize', 'columnStart', 'columnSpan', 'rowStart', 'rowSpan' ) )
+-	);
++		\wp_aot_array_flip( array( 'selfStretch', 'flexSize', 'columnStart', 'columnSpan', 'rowStart', 'rowSpan' ) )
++	));
++	return null;
+ }
+ 
+ /**
+@@ -83,16 +85,17 @@
+  * @param string|array|null $gap_value Block gap value.
+  * @return string|array|null Sanitized block gap value.
+  */
+-function wp_sanitize_block_gap_value( $gap_value ) {
++function wp_sanitize_block_gap_value( mixed $gap_value ): mixed {
+ 	if ( is_array( $gap_value ) ) {
+ 		foreach ( $gap_value as $key => $value ) {
+-			$gap_value[ $key ] = ! is_scalar( $value ) || ( $value && preg_match( '%[\\\(&=}]|/\*%', (string) $value ) ) ? null : $value;
++			$gap_value[ $key ] = ! is_scalar( $value ) || ( $value && preg_match( '%[\\\(&=}]|/\*%', \wp_aot_regex_text( (string) $value ) ) ) ? null : $value;
+ 		}
+ 
+ 		return $gap_value;
+ 	}
+ 
+-	return $gap_value && preg_match( '%[\\\(&=}]|/\*%', $gap_value ) ? null : $gap_value;
++	return $gap_value && preg_match( '%[\\\(&=}]|/\*%', \wp_aot_regex_text( $gap_value ) ) ? null : $gap_value;
++	return null;
+ }
+ 
+ /**
+@@ -106,13 +109,13 @@
+  * @param array|null $viewport_overrides Optional. Child viewport layout overrides to emit.
+  * @return array Child layout style rules.
+  */
+-function wp_get_child_layout_style_rules( $selector, $child_layout, $parent_layout = array(), $viewport_overrides = null ) {
++function wp_get_child_layout_style_rules( mixed $selector, mixed $child_layout, mixed $parent_layout = array(), mixed $viewport_overrides = null ): mixed {
+ 	$base_child_layout              = is_array( $child_layout ) ? $child_layout : array();
+ 	$viewport_overrides             = is_array( $viewport_overrides ) ? $viewport_overrides : null;
+-	$child_layout                   = null === $viewport_overrides ? $base_child_layout : array_replace( $base_child_layout, $viewport_overrides );
++	$child_layout                   = null === $viewport_overrides ? $base_child_layout : \wp_aot_array_replace(array( $base_child_layout, $viewport_overrides ));
+ 	$child_layout_declarations      = array();
+ 	$child_layout_styles            = array();
+-	$has_viewport_property_override = static function ( $property ) use ( $viewport_overrides ) {
++	$has_viewport_property_override = static function ( mixed $property ) use ( $viewport_overrides ) {
+ 		return array_key_exists( $property, $viewport_overrides );
+ 	};
+ 
+@@ -205,7 +208,7 @@
+ 		$column_start_number = floatval( $column_start );
+ 		$parent_column_width = $minimum_column_width ? $minimum_column_width : '12rem';
+ 		$parent_column_value = floatval( $parent_column_width );
+-		$parent_column_unit  = explode( $parent_column_value, $parent_column_width );
++		$parent_column_unit  = \wp_aot_mixed(explode( $parent_column_value, $parent_column_width ));
+ 
+ 		$num_cols_to_break_at = 2;
+ 		if ( $column_span_number && $column_start_number ) {
+@@ -254,6 +257,7 @@
+ 	}
+ 
+ 	return $child_layout_styles;
++	return null;
+ }
+ 
+ /**
+@@ -269,7 +273,7 @@
+  *
+  * @return array[] Layout definitions.
+  */
+-function wp_get_layout_definitions() {
++function wp_get_layout_definitions(): mixed {
+ 	$layout_definitions = array(
+ 		'default'     => array(
+ 			'name'          => 'default',
+@@ -441,6 +445,7 @@
+ 	);
+ 
+ 	return $layout_definitions;
++	return null;
+ }
+ 
+ /**
+@@ -452,7 +457,7 @@
+  *
+  * @param WP_Block_Type $block_type Block Type.
+  */
+-function wp_register_layout_support( $block_type ) {
++function wp_register_layout_support( mixed $block_type ): mixed {
+ 	$support_layout = block_has_support( $block_type, 'layout', false ) || block_has_support( $block_type, '__experimentalLayout', false );
+ 	if ( $support_layout ) {
+ 		if ( ! $block_type->attributes ) {
+@@ -465,6 +470,7 @@
+ 			);
+ 		}
+ 	}
++	return null;
+ }
+ 
+ /**
+@@ -496,10 +502,10 @@
+  * }
+  * @return string CSS styles on success. Else, empty string.
+  */
+-function wp_get_layout_style( $selector, $layout, $has_block_gap_support = false, $gap_value = null, $should_skip_gap_serialization = false, $fallback_gap_value = '0.5em', $block_spacing = null, $options = array() ) {
++function wp_get_layout_style( mixed $selector, mixed $layout, mixed $has_block_gap_support = false, mixed $gap_value = null, mixed $should_skip_gap_serialization = false, mixed $fallback_gap_value = '0.5em', mixed $block_spacing = null, mixed $options = array() ): mixed {
+ 	$base_layout             = is_array( $layout ) ? $layout : array();
+ 	$viewport_overrides      = $options['viewport_overrides'] ?? null;
+-	$layout_for_styles       = null === $viewport_overrides ? $base_layout : array_replace( $base_layout, $viewport_overrides );
++	$layout_for_styles       = null === $viewport_overrides ? $base_layout : \wp_aot_array_replace(array( $base_layout, $viewport_overrides ));
+ 	$layout_type             = $base_layout['type'] ?? 'default';
+ 	$rules_group             = $options['rules_group'] ?? null;
+ 	$has_block_gap_override  = ! empty( $options['has_block_gap_override'] );
+@@ -510,10 +516,10 @@
+ 	 * the user cleared a value inherited from the default viewport, so check
+ 	 * whether the key exists rather than whether the value is truthy.
+ 	 */
+-	$has_viewport_property_override = static function ( $property ) use ( $viewport_overrides ) {
++	$has_viewport_property_override = static function ( mixed $property ) use ( $viewport_overrides ) {
+ 		return array_key_exists( $property, $viewport_overrides );
+ 	};
+-	$layout_styles                  = array();
++	$layout_styles                  = \wp_aot_mixed(array());
+ 
+ 	if ( 'default' === $layout_type ) {
+ 		if ( $has_block_gap_support && $should_output_block_gap ) {
+@@ -528,8 +534,8 @@
+ 					$gap_value       = "var(--wp--preset--spacing--$slug)";
+ 				}
+ 
+-				array_push(
+-					$layout_styles,
++				\wp_aot_array_push(
++					$layout_styles,array(
+ 					array(
+ 						'selector'     => "$selector > *",
+ 						'declarations' => array(
+@@ -544,7 +550,7 @@
+ 							'margin-block-end'   => '0',
+ 						),
+ 					)
+-				);
++				));
+ 			}
+ 		}
+ 	} elseif ( 'constrained' === $layout_type ) {
+@@ -593,8 +599,8 @@
+ 				$content_size_declarations['margin-right'] = $margin_right;
+ 			}
+ 
+-			array_push(
+-				$layout_styles,
++			\wp_aot_array_push(
++				$layout_styles,array(
+ 				array(
+ 					'selector'     => "$selector > :where(:not(.alignleft):not(.alignright):not(.alignfull))",
+ 					'declarations' => $content_size_declarations,
+@@ -607,7 +613,7 @@
+ 					'selector'     => "$selector .alignfull",
+ 					'declarations' => array( 'max-width' => 'none' ),
+ 				)
+-			);
++			));
+ 		}
+ 
+ 		if ( null === $viewport_overrides && isset( $block_spacing ) ) {
+@@ -681,8 +687,8 @@
+ 					$gap_value       = "var(--wp--preset--spacing--$slug)";
+ 				}
+ 
+-				array_push(
+-					$layout_styles,
++				\wp_aot_array_push(
++					$layout_styles,array(
+ 					array(
+ 						'selector'     => "$selector > *",
+ 						'declarations' => array(
+@@ -697,7 +703,7 @@
+ 							'margin-block-end'   => '0',
+ 						),
+ 					)
+-				);
++				));
+ 			}
+ 		}
+ 	} elseif ( 'flex' === $layout_type ) {
+@@ -937,6 +943,7 @@
+ 	}
+ 
+ 	return '';
++	return null;
+ }
+ 
+ /**
+@@ -952,8 +959,9 @@
+  * @param array  $block         Block object.
+  * @return string Filtered block content.
+  */
+-function wp_render_layout_support_flag( $block_content, $block ) {
+-	static $global_styles = null;
++function wp_render_layout_support_flag( mixed $block_content, mixed $block ): mixed {
++	static $global_styles_aot_cell = new \WordPressStaticValueCell();
++	$global_styles =& $global_styles_aot_cell->value;
+ 
+ 	$block_type            = WP_Block_Type_Registry::get_instance()->get_registered( $block['blockName'] );
+ 	$block_supports_layout = block_has_support( $block_type, 'layout', false ) || block_has_support( $block_type, '__experimentalLayout', false );
+@@ -1016,10 +1024,10 @@
+ 		 */
+ 		$container_content_hash_input = array(
+ 			'layout'       => $base_child_layout,
+-			'parentLayout' => array_intersect_key(
++			'parentLayout' => \wp_aot_array_intersect_key(array(
+ 				$parent_layout,
+-				array_flip( array( 'minimumColumnWidth', 'columnCount' ) )
+-			),
++				\wp_aot_array_flip( array( 'minimumColumnWidth', 'columnCount' ) )
++			)),
+ 		);
+ 
+ 		foreach ( $viewport_child_layouts as $breakpoint => $viewport_data ) {
+@@ -1049,7 +1057,7 @@
+ 				$viewport_child_styles[ $index ]['rules_group'] = $viewport_data['media_query'];
+ 			}
+ 
+-			$child_layout_styles = array_merge( $child_layout_styles, $viewport_child_styles );
++			$child_layout_styles = \wp_aot_array_merge(array( $child_layout_styles, $viewport_child_styles ));
+ 		}
+ 
+ 		/*
+@@ -1181,7 +1189,7 @@
+ 		if ( $block_class_name && str_contains( $block_class_name, 'is-style-' ) && $block_name ) {
+ 			$styles_registry   = WP_Block_Styles_Registry::get_instance();
+ 			$registered_styles = $styles_registry->get_registered_styles_for_block( $block_name );
+-			$variation_name    = wp_get_block_style_variation_name_from_registered_style( $block_class_name, $registered_styles );
++			$variation_name    = wp_get_block_style_variation_name_from_registered_style( $block_class_name, \wp_aot_array_input($registered_styles ));
+ 			if ( $variation_name ) {
+ 				$variation_block_gap_value = $global_styles['blocks'][ $block_name ]['variations'][ $variation_name ]['spacing']['blockGap'] ?? null;
+ 			}
+@@ -1269,7 +1277,7 @@
+ 				: $gap_value;
+ 
+ 			$viewport_block_spacing = is_array( $viewport_style['spacing'] ?? null )
+-				? array_replace( is_array( $block_spacing ) ? $block_spacing : array(), $viewport_style['spacing'] )
++				? \wp_aot_array_replace(array( is_array( $block_spacing ) ? $block_spacing : array(), $viewport_style['spacing'] ))
+ 				: $block_spacing;
+ 
+ 			$viewport_styles = wp_get_layout_style(
+@@ -1375,12 +1383,12 @@
+ 		$tag_stack = array();
+ 		while ( $first_chunk_processor->next_tag( array( 'tag_closers' => 'visit' ) ) ) {
+ 			if ( $first_chunk_processor->is_tag_closer() ) {
+-				array_pop( $tag_stack );
++				\wp_aot_array_pop( $tag_stack );
+ 			} elseif ( ! WP_HTML_Processor::is_void( $first_chunk_processor->get_tag() ) ) {
+ 				$tag_stack[] = $first_chunk_processor->get_attribute( 'class' );
+ 			}
+ 		}
+-		foreach ( array_reverse( $tag_stack ) as $class_attribute ) {
++		foreach ( \wp_aot_array_reverse( $tag_stack ) as $class_attribute ) {
+ 			if ( is_string( $class_attribute ) && ! empty( $class_attribute ) ) {
+ 				$inner_block_wrapper_classes = $class_attribute;
+ 				break;
+@@ -1417,6 +1425,7 @@
+ 	}
+ 
+ 	return $processor->get_updated_html();
++	return null;
+ }
+ 
+ /**
+@@ -1431,11 +1440,12 @@
+  * @param WP_Block $parent_block The parent block.
+  * @return array The parsed block with parent layout attribute if it exists.
+  */
+-function wp_add_parent_layout_to_parsed_block( $parsed_block, $source_block, $parent_block ) {
++function wp_add_parent_layout_to_parsed_block( mixed $parsed_block, mixed $source_block, mixed $parent_block ): mixed {
+ 	if ( $parent_block && isset( $parent_block->parsed_block['attrs']['layout'] ) ) {
+ 		$parsed_block['parentLayout'] = $parent_block->parsed_block['attrs']['layout'];
+ 	}
+ 	return $parsed_block;
++	return null;
+ }
+ 
+ add_filter( 'render_block_data', 'wp_add_parent_layout_to_parsed_block', 10, 3 );
+@@ -1462,16 +1472,16 @@
+  * @param array  $block         Block object.
+  * @return string Filtered block content.
+  */
+-function wp_restore_group_inner_container( $block_content, $block ) {
++function wp_restore_group_inner_container( mixed $block_content, mixed $block ): mixed {
+ 	$tag_name                         = $block['attrs']['tagName'] ?? 'div';
+ 	$group_with_inner_container_regex = sprintf(
+ 		'/(^\s*<%1$s\b[^>]*wp-block-group(\s|")[^>]*>)(\s*<div\b[^>]*wp-block-group__inner-container(\s|")[^>]*>)((.|\S|\s)*)/U',
+-		preg_quote( $tag_name, '/' )
++		preg_quote( \wp_aot_regex_text( $tag_name ), '/' )
+ 	);
+ 
+ 	if (
+ 		wp_theme_has_theme_json() ||
+-		1 === preg_match( $group_with_inner_container_regex, $block_content ) ||
++		1 === preg_match( \wp_aot_regex_text( $group_with_inner_container_regex ), \wp_aot_regex_text( $block_content ) ) ||
+ 		( isset( $block['attrs']['layout']['type'] ) && ( 'flex' === $block['attrs']['layout']['type'] || 'grid' === $block['attrs']['layout']['type'] ) )
+ 	) {
+ 		return $block_content;
+@@ -1496,11 +1506,11 @@
+ 	$content_without_layout_classes = $processor->get_updated_html();
+ 	$replace_regex                  = sprintf(
+ 		'/(^\s*<%1$s\b[^>]*wp-block-group[^>]*>)(.*)(<\/%1$s>\s*$)/ms',
+-		preg_quote( $tag_name, '/' )
++		preg_quote( \wp_aot_regex_text( $tag_name ), '/' )
+ 	);
+-	$updated_content                = preg_replace_callback(
++	$updated_content                = \wp_aot_preg_replace_callback(
+ 		$replace_regex,
+-		static function ( $matches ) {
++		static function ( mixed $matches ) {
+ 			return $matches[1] . '<div class="wp-block-group__inner-container">' . $matches[2] . '</div>' . $matches[3];
+ 		},
+ 		$content_without_layout_classes
+@@ -1517,6 +1527,7 @@
+ 		$updated_content = $processor->get_updated_html();
+ 	}
+ 	return $updated_content;
++	return null;
+ }
+ 
+ add_filter( 'render_block_core/group', 'wp_restore_group_inner_container', 10, 2 );
+@@ -1533,7 +1544,7 @@
+  * @param  array  $block        Block object.
+  * @return string Filtered block content.
+  */
+-function wp_restore_image_outer_container( $block_content, $block ) {
++function wp_restore_image_outer_container( mixed $block_content, mixed $block ): mixed {
+ 	if ( wp_theme_has_theme_json() ) {
+ 		return $block_content;
+ 	}
+@@ -1581,6 +1592,7 @@
+ 	}
+ 
+ 	return "{$wrapper_processor->get_updated_html()}{$figure_processor->get_updated_html()}</div>";
++	return null;
+ }
+ 
+ add_filter( 'render_block_core/image', 'wp_restore_image_outer_container', 10, 2 );

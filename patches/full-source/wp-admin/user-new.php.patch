@@ -1,0 +1,54 @@
+--- a/wp-admin/user-new.php
++++ b/wp-admin/user-new.php
+@@ -42,13 +42,13 @@
+ 			$user_details = get_user_by( 'login', $user_email );
+ 		} else {
+ 			wp_redirect( add_query_arg( array( 'update' => 'enter_email' ), 'user-new.php' ) );
+-			die();
++			\wp_aot_exit();
+ 		}
+ 	}
+ 
+ 	if ( ! $user_details ) {
+ 		wp_redirect( add_query_arg( array( 'update' => 'does_not_exist' ), 'user-new.php' ) );
+-		die();
++		\wp_aot_exit();
+ 	}
+ 
+ 	if ( ! current_user_can( 'promote_user', $user_details->ID ) ) {
+@@ -185,7 +185,7 @@
+ 	}
+ 
+ 	wp_redirect( $redirect );
+-	die();
++	\wp_aot_exit();
+ } elseif ( isset( $_REQUEST['action'] ) && 'createuser' === $_REQUEST['action'] ) {
+ 	check_admin_referer( 'create-user', '_wpnonce_create-user' );
+ 
+@@ -210,7 +210,7 @@
+ 			}
+ 
+ 			wp_redirect( $redirect );
+-			die();
++			\wp_aot_exit();
+ 		}
+ 	} else {
+ 		// Adding a new user to this site.
+@@ -240,7 +240,7 @@
+ 			);
+ 
+ 			if ( isset( $_POST['noconfirmation'] ) && current_user_can( 'manage_network_users' ) ) {
+-				$key      = $wpdb->get_var( $wpdb->prepare( "SELECT activation_key FROM {$wpdb->signups} WHERE user_login = %s AND user_email = %s", $new_user_login, $new_user_email ) );
++				$key      = \wp_aot_require_wpdb( $wpdb )->get_var( \wp_aot_require_wpdb( $wpdb )->prepare( "SELECT activation_key FROM {$wpdb->signups} WHERE user_login = %s AND user_email = %s", $new_user_login, $new_user_email ) );
+ 				$new_user = wpmu_activate_signup( $key );
+ 				if ( is_wp_error( $new_user ) ) {
+ 					$redirect = add_query_arg( array( 'update' => 'addnoconfirmation' ), 'user-new.php' );
+@@ -260,7 +260,7 @@
+ 			}
+ 
+ 			wp_redirect( $redirect );
+-			die();
++			\wp_aot_exit();
+ 		}
+ 	}
+ }

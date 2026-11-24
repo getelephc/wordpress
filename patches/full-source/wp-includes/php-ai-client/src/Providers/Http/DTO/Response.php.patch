@@ -1,0 +1,37 @@
+--- a/wp-includes/php-ai-client/src/Providers/Http/DTO/Response.php
++++ b/wp-includes/php-ai-client/src/Providers/Http/DTO/Response.php
+@@ -20,7 +20,7 @@
+  *     body?: string|null
+  * }
+  *
+- * @extends AbstractDataTransferObject<ResponseArrayShape>
++ * @phpstan-extends AbstractDataTransferObject<ResponseArrayShape>
+  */
+ class Response extends AbstractDataTransferObject
+ {
+@@ -165,14 +165,14 @@
+     public function getData(): ?array
+     {
+         if ($this->body === null || $this->body === '') {
+-            return null;
++            return \wp_aot_require_nullable_array( null );
+         }
+         $data = json_decode($this->body, \true);
+         if (json_last_error() !== \JSON_ERROR_NONE) {
+-            return null;
++            return \wp_aot_require_nullable_array( null );
+         }
+         /** @var array<string, mixed>|null $data */
+-        return is_array($data) ? $data : null;
++        return \wp_aot_require_nullable_array( is_array($data) ? $data : null );
+     }
+     /**
+      * {@inheritDoc}
+@@ -206,6 +206,6 @@
+     public static function fromArray(array $array): self
+     {
+         static::validateFromArrayData($array, [self::KEY_STATUS_CODE, self::KEY_HEADERS]);
+-        return new self($array[self::KEY_STATUS_CODE], $array[self::KEY_HEADERS], $array[self::KEY_BODY] ?? null);
++        return new self($array[self::KEY_STATUS_CODE], \wp_aot_require_array( $array[self::KEY_HEADERS] ), $array[self::KEY_BODY] ?? null);
+     }
+ }

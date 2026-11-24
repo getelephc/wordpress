@@ -1,0 +1,27 @@
+--- a/wp-includes/php-ai-client/src/Providers/Http/Abstracts/AbstractClientDiscoveryStrategy.php
++++ b/wp-includes/php-ai-client/src/Providers/Http/Abstracts/AbstractClientDiscoveryStrategy.php
+@@ -41,12 +41,13 @@
+      * @param string $type The type of discovery.
+      * @return array<array<string, mixed>> The discovery candidates.
+      */
+-    public static function getCandidates($type)
++    public static function getCandidates(mixed $type): mixed
+     {
+         if (ClientInterface::class === $type) {
+-            return [['class' => static function () {
++            $createClient = static::createClient(...);
++            return [['class' => static function () use ($createClient) {
+                 $psr17Factory = new Psr17Factory();
+-                return static::createClient($psr17Factory);
++                return $createClient($psr17Factory);
+             }]];
+         }
+         $psr17Factories = ['WordPress\AiClientDependencies\Psr\Http\Message\RequestFactoryInterface', 'WordPress\AiClientDependencies\Psr\Http\Message\ResponseFactoryInterface', 'WordPress\AiClientDependencies\Psr\Http\Message\ServerRequestFactoryInterface', 'WordPress\AiClientDependencies\Psr\Http\Message\StreamFactoryInterface', 'WordPress\AiClientDependencies\Psr\Http\Message\UploadedFileFactoryInterface', 'WordPress\AiClientDependencies\Psr\Http\Message\UriFactoryInterface'];
+@@ -54,6 +55,7 @@
+             return [['class' => Psr17Factory::class]];
+         }
+         return [];
++    	return null;
+     }
+     /**
+      * Creates an instance of the HTTP client.

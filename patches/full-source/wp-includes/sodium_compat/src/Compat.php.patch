@@ -1,0 +1,40 @@
+--- a/wp-includes/sodium_compat/src/Compat.php
++++ b/wp-includes/sodium_compat/src/Compat.php
+@@ -210,7 +210,7 @@
+ 
+         // Just strip before decoding
+         if (!empty($ignore)) {
+-            $encoded = str_replace($ignore, '', $encoded);
++            $encoded = \wp_aot_str_replace($ignore, '', $encoded);
+         }
+ 
+         try {
+@@ -2353,7 +2353,7 @@
+ 
+         // Just grab the first 4 pieces.
+         $pieces = explode('$', (string) $hash);
+-        $prefix = implode('$', array_slice($pieces, 0, 4));
++        $prefix = implode('$', \wp_aot_array_slice($pieces, 0, 4));
+ 
+         // Rebuild the expected header.
+         /** @var int $ops */
+@@ -4490,7 +4490,8 @@
+      */
+     protected static function use_fallback($sodium_func_name = '')
+     {
+-        static $res = null;
++        static $res_aot_cell = new \WordPressStaticValueCell();
++        $res =& $res_aot_cell->value;
+         if ($res === null) {
+             $res = extension_loaded('libsodium') && PHP_VERSION_ID >= 50300;
+         }
+@@ -4517,7 +4518,8 @@
+      */
+     protected static function useNewSodiumAPI()
+     {
+-        static $res = null;
++        static $res_aot_cell = new \WordPressStaticValueCell();
++        $res =& $res_aot_cell->value;
+         if ($res === null) {
+             $res = PHP_VERSION_ID >= 70000 && extension_loaded('sodium');
+         }

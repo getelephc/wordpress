@@ -1,0 +1,269 @@
+--- a/wp-includes/customize/class-wp-customize-nav-menu-setting.php
++++ b/wp-includes/customize/class-wp-customize-nav-menu-setting.php
+@@ -132,12 +132,12 @@
+ 	 *                                      Can be a theme mod or option name.
+ 	 * @param array                $args    Optional. Setting arguments.
+ 	 */
+-	public function __construct( WP_Customize_Manager $manager, $id, array $args = array() ) {
++	public function __construct( WP_Customize_Manager $manager, mixed $id, array $args = array() ) {
+ 		if ( empty( $manager->nav_menus ) ) {
+ 			throw new Exception( 'Expected WP_Customize_Manager::$nav_menus to be set.' );
+ 		}
+ 
+-		if ( ! preg_match( self::ID_PATTERN, $id, $matches ) ) {
++		if ( ! preg_match( \wp_aot_regex_text( self::ID_PATTERN ), \wp_aot_regex_text( $id ), $matches ) ) {
+ 			throw new Exception( "Illegal widget setting ID: $id" );
+ 		}
+ 
+@@ -155,7 +155,7 @@
+ 	 *
+ 	 * @return array Instance data.
+ 	 */
+-	public function value() {
++	public function value(): mixed {
+ 		if ( $this->is_previewed && get_current_blog_id() === $this->_previewed_blog_id ) {
+ 			$undefined  = new stdClass(); // Symbol.
+ 			$post_value = $this->post_value( $undefined );
+@@ -190,6 +190,7 @@
+ 		}
+ 
+ 		return $value;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -202,7 +203,7 @@
+ 	 *
+ 	 * @return bool False if method short-circuited due to no-op.
+ 	 */
+-	public function preview() {
++	public function preview(): mixed {
+ 		if ( $this->is_previewed ) {
+ 			return false;
+ 		}
+@@ -224,6 +225,7 @@
+ 		add_filter( 'option_nav_menu_options', array( $this, 'filter_nav_menu_options' ) );
+ 
+ 		return true;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -237,7 +239,7 @@
+ 	 * @param array     $args  An array of arguments used to retrieve menu objects.
+ 	 * @return WP_Term[] Array of menu objects.
+ 	 */
+-	public function filter_wp_get_nav_menus( $menus, $args ) {
++	public function filter_wp_get_nav_menus( mixed $menus, mixed $args ): mixed {
+ 		if ( get_current_blog_id() !== $this->_previewed_blog_id ) {
+ 			return $menus;
+ 		}
+@@ -257,11 +259,11 @@
+ 		if ( $is_delete ) {
+ 			// Handle deleted menu by removing it from the list.
+ 			if ( -1 !== $index ) {
+-				array_splice( $menus, $index, 1 );
++				\wp_aot_array_splice_values( $menus, $index, 1 );
+ 			}
+ 		} else {
+ 			// Handle menus being updated or inserted.
+-			$menu_obj = (object) array_merge(
++			$menu_obj = (object) \wp_aot_array_merge(array(
+ 				array(
+ 					'term_id'          => $this->term_id,
+ 					'term_taxonomy_id' => $this->term_id,
+@@ -272,9 +274,9 @@
+ 					'filter'           => 'raw',
+ 				),
+ 				$setting_value
+-			);
+-
+-			array_splice( $menus, $index, ( -1 === $index ? 0 : 1 ), array( $menu_obj ) );
++			));
++
++			\wp_aot_array_splice_values( $menus, $index, ( -1 === $index ? 0 : 1 ), array( $menu_obj ) );
+ 		}
+ 
+ 		// Make sure the menu objects get re-sorted after an update/insert.
+@@ -289,6 +291,7 @@
+ 		// @todo Add support for $args['hide_empty'] === true.
+ 
+ 		return $menus;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -316,11 +319,12 @@
+ 	 *
+ 	 * @see WP_Customize_Nav_Menu_Setting::filter_wp_get_nav_menus()
+ 	 */
+-	protected function _sort_menus_by_orderby( $menu1, $menu2 ) {
++	protected function _sort_menus_by_orderby( mixed $menu1, mixed $menu2 ): mixed {
+ 		_deprecated_function( __METHOD__, '4.7.0', 'wp_list_sort' );
+ 
+ 		$key = $this->_current_menus_sort_orderby;
+ 		return strcmp( $menu1->$key, $menu2->$key );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -336,7 +340,7 @@
+ 	 * @param string      $menu_id  ID of the nav_menu term. Requests by slug or name will be ignored.
+ 	 * @return object|null
+ 	 */
+-	public function filter_wp_get_nav_menu_object( $menu_obj, $menu_id ) {
++	public function filter_wp_get_nav_menu_object( mixed $menu_obj, mixed $menu_id ): mixed {
+ 		$ok = (
+ 			get_current_blog_id() === $this->_previewed_blog_id
+ 			&&
+@@ -360,7 +364,7 @@
+ 			return $menu_obj;
+ 		}
+ 
+-		$menu_obj = (object) array_merge(
++		$menu_obj = (object) \wp_aot_array_merge(array(
+ 			array(
+ 				'term_id'          => $this->term_id,
+ 				'term_taxonomy_id' => $this->term_id,
+@@ -371,9 +375,10 @@
+ 				'filter'           => 'raw',
+ 			),
+ 			$setting_value
+-		);
++		));
+ 
+ 		return $menu_obj;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -384,7 +389,7 @@
+ 	 * @param array $nav_menu_options Nav menu options including auto_add.
+ 	 * @return array (Maybe) modified nav menu options.
+ 	 */
+-	public function filter_nav_menu_options( $nav_menu_options ) {
++	public function filter_nav_menu_options( mixed $nav_menu_options ): mixed {
+ 		if ( get_current_blog_id() !== $this->_previewed_blog_id ) {
+ 			return $nav_menu_options;
+ 		}
+@@ -397,6 +402,7 @@
+ 		);
+ 
+ 		return $nav_menu_options;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -411,7 +417,7 @@
+ 	 * @return array|false|null Null if an input isn't valid. False if it is marked for deletion.
+ 	 *                          Otherwise the sanitized value.
+ 	 */
+-	public function sanitize( $value ) {
++	public function sanitize( mixed $value ): mixed {
+ 		// Menu is marked for deletion.
+ 		if ( false === $value ) {
+ 			return $value;
+@@ -428,7 +434,7 @@
+ 			'parent'      => 0,
+ 			'auto_add'    => false,
+ 		);
+-		$value   = array_merge( $default, $value );
++		$value   = \wp_aot_array_merge(array( $default, $value ));
+ 		$value   = wp_array_slice_assoc( $value, array_keys( $default ) );
+ 
+ 		$value['name']        = trim( esc_html( $value['name'] ) ); // This sanitization code is used in wp-admin/nav-menus.php.
+@@ -442,6 +448,7 @@
+ 
+ 		/** This filter is documented in wp-includes/class-wp-customize-setting.php */
+ 		return apply_filters( "customize_sanitize_{$this->id}", $value, $this );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -481,7 +488,7 @@
+ 	 * }
+ 	 * @return bool Whether updated.
+ 	 */
+-	protected function update( $value ) {
++	protected function update( mixed $value ): mixed {
+ 		if ( $this->is_updated ) {
+ 			return ( 'error' !== $this->update_status );
+ 		}
+@@ -552,7 +559,7 @@
+ 		if ( 'inserted' === $this->update_status ) {
+ 			// Make sure that new menus assigned to nav menu locations use their new IDs.
+ 			foreach ( $this->manager->settings() as $setting ) {
+-				if ( ! preg_match( '/^nav_menu_locations\[/', $setting->id ) ) {
++				if ( ! preg_match( '/^nav_menu_locations\[/', \wp_aot_regex_text( $setting->id ) ) ) {
+ 					continue;
+ 				}
+ 
+@@ -566,7 +573,7 @@
+ 			// Make sure that any nav_menu widgets referencing the placeholder nav menu get updated and sent back to client.
+ 			foreach ( array_keys( $this->manager->unsanitized_post_values() ) as $setting_id ) {
+ 				$nav_menu_widget_setting = $this->manager->get_setting( $setting_id );
+-				if ( ! $nav_menu_widget_setting || ! preg_match( '/^widget_nav_menu\[/', $nav_menu_widget_setting->id ) ) {
++				if ( ! $nav_menu_widget_setting || ! preg_match( '/^widget_nav_menu\[/', \wp_aot_regex_text( $nav_menu_widget_setting->id ) ) ) {
+ 					continue;
+ 				}
+ 
+@@ -585,6 +592,7 @@
+ 		}
+ 
+ 		return ( 'error' !== $this->update_status );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -600,21 +608,22 @@
+ 	 * @param bool  $auto_add         Whether to auto-add or not.
+ 	 * @return array (Maybe) modified nav_menu_options array.
+ 	 */
+-	protected function filter_nav_menu_options_value( $nav_menu_options, $menu_id, $auto_add ) {
++	protected function filter_nav_menu_options_value( mixed $nav_menu_options, mixed $menu_id, mixed $auto_add ): mixed {
+ 		$nav_menu_options = (array) $nav_menu_options;
+ 		if ( ! isset( $nav_menu_options['auto_add'] ) ) {
+ 			$nav_menu_options['auto_add'] = array();
+ 		}
+ 
+-		$i = array_search( $menu_id, $nav_menu_options['auto_add'], true );
++		$i = \wp_aot_array_search( $menu_id, $nav_menu_options['auto_add'], true );
+ 
+ 		if ( $auto_add && false === $i ) {
+-			array_push( $nav_menu_options['auto_add'], $this->term_id );
++			\wp_aot_array_push( $nav_menu_options['auto_add'],array( $this->term_id ));
+ 		} elseif ( ! $auto_add && false !== $i ) {
+-			array_splice( $nav_menu_options['auto_add'], $i, 1 );
++			\wp_aot_array_splice_values( $nav_menu_options['auto_add'], $i, 1 );
+ 		}
+ 
+ 		return $nav_menu_options;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -627,7 +636,7 @@
+ 	 * @param array $data Additional information passed back to the 'saved' event on `wp.customize`.
+ 	 * @return array Export data.
+ 	 */
+-	public function amend_customize_save_response( $data ) {
++	public function amend_customize_save_response( mixed $data ): mixed {
+ 		if ( ! isset( $data['nav_menu_updates'] ) ) {
+ 			$data['nav_menu_updates'] = array();
+ 		}
+@@ -643,12 +652,13 @@
+ 			'saved_value'      => 'deleted' === $this->update_status ? null : $this->value(),
+ 		);
+ 
+-		$data['widget_nav_menu_updates'] = array_merge(
++		$data['widget_nav_menu_updates'] = \wp_aot_array_merge(array(
+ 			$data['widget_nav_menu_updates'],
+ 			$this->_widget_nav_menu_updates
+-		);
++		));
+ 		$this->_widget_nav_menu_updates  = array();
+ 
+ 		return $data;
++		return null;
+ 	}
+ }

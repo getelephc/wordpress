@@ -1,0 +1,189 @@
+--- a/wp-includes/class-wp-textdomain-registry.php
++++ b/wp-includes/class-wp-textdomain-registry.php
+@@ -24,7 +24,7 @@
+ 	 *
+ 	 * @var array
+ 	 */
+-	protected $all = array();
++	protected mixed $all = array();
+ 
+ 	/**
+ 	 * List of domains and their language directory path for the current (most recent) locale.
+@@ -76,8 +76,9 @@
+ 	 *
+ 	 * @since 6.5.0
+ 	 */
+-	public function init() {
++	public function init(): mixed {
+ 		add_action( 'upgrader_process_complete', array( $this, 'invalidate_mo_files_cache' ), 10, 2 );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -90,7 +91,7 @@
+ 	 *
+ 	 * @return string|false Languages directory path or false if there is none available.
+ 	 */
+-	public function get( $domain, $locale ) {
++	public function get( mixed $domain, mixed $locale ): mixed {
+ 		$path = $this->all[ $domain ][ $locale ] ?? $this->get_path_from_lang_dir( $domain, $locale );
+ 
+ 		/**
+@@ -103,6 +104,7 @@
+ 		 * @param string       $locale Locale.
+ 		 */
+ 		return apply_filters( 'lang_dir_for_domain', $path, $domain, $locale );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -117,12 +119,13 @@
+ 	 * @param string $domain Text domain.
+ 	 * @return bool Whether any MO file paths are available for the domain.
+ 	 */
+-	public function has( $domain ) {
++	public function has( mixed $domain ): mixed {
+ 		return (
+ 			isset( $this->current[ $domain ] ) ||
+ 			empty( $this->all[ $domain ] ) ||
+ 			in_array( $domain, $this->domains_with_translations, true )
+ 		);
++		return null;
+ 	}
+ 
+ 	/**
+@@ -137,9 +140,10 @@
+ 	 * @param string       $locale Locale.
+ 	 * @param string|false $path   Language directory path or false if there is none available.
+ 	 */
+-	public function set( $domain, $locale, $path ) {
++	public function set( mixed $domain, mixed $locale, mixed $path ): mixed {
+ 		$this->all[ $domain ][ $locale ] = $path ? rtrim( $path, '/' ) . '/' : false;
+ 		$this->current[ $domain ]        = $this->all[ $domain ][ $locale ];
++		return null;
+ 	}
+ 
+ 	/**
+@@ -152,11 +156,11 @@
+ 	 * @param string $domain Text domain.
+ 	 * @param string $path   Language directory path.
+ 	 */
+-	public function set_custom_path( $domain, $path ) {
++	public function set_custom_path( mixed $domain, mixed $path ): mixed {
+ 		// If just-in-time loading was triggered before, reset the entry so it can be tried again.
+ 
+ 		if ( isset( $this->all[ $domain ] ) ) {
+-			$this->all[ $domain ] = array_filter( $this->all[ $domain ] );
++			$this->all[ $domain ] = \wp_aot_array_filter( $this->all[ $domain ] );
+ 		}
+ 
+ 		if ( empty( $this->current[ $domain ] ) ) {
+@@ -164,6 +168,7 @@
+ 		}
+ 
+ 		$this->custom_paths[ $domain ] = rtrim( $path, '/' );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -177,7 +182,7 @@
+ 	 * @param string $path The directory path to search for translation files.
+ 	 * @return array Array of translation file paths. Can contain .mo and .l10n.php files.
+ 	 */
+-	public function get_language_files_from_path( $path ) {
++	public function get_language_files_from_path( mixed $path ): mixed {
+ 		$path = rtrim( $path, '/' ) . '/';
+ 
+ 		/**
+@@ -211,13 +216,14 @@
+ 
+ 			$php_files = glob( $path . '*.l10n.php' );
+ 			if ( is_array( $php_files ) ) {
+-				$files = array_merge( $files, $php_files );
++				$files = \wp_aot_array_merge(array( $files, $php_files ));
+ 			}
+ 
+ 			wp_cache_set( $cache_key, $files, 'translation_files', HOUR_IN_SECONDS );
+ 		}
+ 
+ 		return $files;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -249,16 +255,16 @@
+ 	 *     }
+ 	 * }
+ 	 */
+-	public function invalidate_mo_files_cache( $upgrader, $hook_extra ) {
++	public function invalidate_mo_files_cache( mixed $upgrader, mixed $hook_extra ): mixed {
+ 		if (
+ 			! isset( $hook_extra['type'] ) ||
+ 			'translation' !== $hook_extra['type'] ||
+ 			array() === $hook_extra['translations']
+ 		) {
+-			return;
+-		}
+-
+-		$translation_types = array_unique( wp_list_pluck( $hook_extra['translations'], 'type' ) );
++			return null;
++		}
++
++		$translation_types = \wp_aot_array_unique( wp_list_pluck( $hook_extra['translations'], 'type' ) );
+ 
+ 		foreach ( $translation_types as $type ) {
+ 			switch ( $type ) {
+@@ -273,6 +279,7 @@
+ 					break;
+ 			}
+ 		}
++		return null;
+ 	}
+ 
+ 	/**
+@@ -283,7 +290,7 @@
+ 	 * @param string $domain Text domain.
+ 	 * @return string[] Array of language directory paths.
+ 	 */
+-	private function get_paths_for_domain( $domain ) {
++	private function get_paths_for_domain( mixed $domain ): mixed {
+ 		$locations = array(
+ 			WP_LANG_DIR . '/plugins',
+ 			WP_LANG_DIR . '/themes',
+@@ -294,6 +301,7 @@
+ 		}
+ 
+ 		return $locations;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -310,10 +318,10 @@
+ 	 * @param string $locale Locale.
+ 	 * @return string|false Language directory path or false if there is none available.
+ 	 */
+-	private function get_path_from_lang_dir( $domain, $locale ) {
++	private function get_path_from_lang_dir( mixed $domain, mixed $locale ): mixed {
+ 		$locations = $this->get_paths_for_domain( $domain );
+ 
+-		$found_location = false;
++		$found_location = \wp_aot_mixed(false);
+ 
+ 		foreach ( $locations as $location ) {
+ 			$files = $this->get_language_files_from_path( $location );
+@@ -324,7 +332,7 @@
+ 			foreach ( $files as $file_path ) {
+ 				if (
+ 					! in_array( $domain, $this->domains_with_translations, true ) &&
+-					str_starts_with( str_replace( "$location/", '', $file_path ), "$domain-" )
++					str_starts_with( \wp_aot_str_replace( "$location/", '', $file_path ), "$domain-" )
+ 				) {
+ 					$this->domains_with_translations[] = $domain;
+ 				}
+@@ -355,5 +363,6 @@
+ 		$this->set( $domain, $locale, false );
+ 
+ 		return false;
++		return null;
+ 	}
+ }

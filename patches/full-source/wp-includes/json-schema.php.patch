@@ -1,0 +1,91 @@
+--- a/wp-includes/json-schema.php
++++ b/wp-includes/json-schema.php
+@@ -34,7 +34,7 @@
+ 
+ 	$keywords_by_profile = array(
+ 		'rest-api' => $rest_keywords,
+-		'draft-04' => array_merge(
++		'draft-04' => \wp_aot_array_merge(array(
+ 			array(
+ 				'$schema',
+ 				'id',
+@@ -49,7 +49,7 @@
+ 				'dependencies',
+ 				'additionalItems',
+ 			)
+-		),
++		)),
+ 	);
+ 
+ 	$allowed_keywords = $keywords_by_profile[ $schema_profile ] ?? $rest_keywords;
+@@ -65,7 +65,7 @@
+ 	 * @param string[] $allowed_keywords Allowed JSON Schema keywords.
+ 	 * @param string   $schema_profile   The schema profile the keywords are for.
+ 	 */
+-	return apply_filters( 'wp_json_schema_allowed_keywords', $allowed_keywords, $schema_profile );
++	return \wp_aot_array_input(apply_filters( 'wp_json_schema_allowed_keywords', $allowed_keywords, $schema_profile ));
+ }
+ 
+ /**
+@@ -88,9 +88,9 @@
+  * @return array<string, mixed> The prepared schema.
+  */
+ function wp_prepare_json_schema_for_client( array $schema, string $schema_profile = 'draft-04' ): array {
+-	$allowed_keywords = array_fill_keys( wp_get_json_schema_allowed_keywords( $schema_profile ), true );
+-
+-	return _wp_prepare_json_schema_for_client_with_allowed_keywords( $schema, $allowed_keywords );
++	$allowed_keywords = \wp_aot_array_fill_keys( wp_get_json_schema_allowed_keywords( $schema_profile ), true );
++
++	return _wp_prepare_json_schema_for_client_with_allowed_keywords( $schema, \wp_aot_array_input($allowed_keywords ));
+ }
+ 
+ /**
+@@ -111,7 +111,7 @@
+ 		}
+ 	}
+ 
+-	$schema = array_intersect_key( $schema, $allowed_keywords );
++	$schema = \wp_aot_array_intersect_key(array( $schema, $allowed_keywords ));
+ 
+ 	/*
+ 	 * Collect draft-03 per-property `required: true` flags into a draft-04
+@@ -162,7 +162,7 @@
+ 		if ( isset( $schema[ $keyword ] ) && is_array( $schema[ $keyword ] ) ) {
+ 			foreach ( $schema[ $keyword ] as $key => $child_schema ) {
+ 				if ( is_array( $child_schema ) && ! wp_is_numeric_array( $child_schema ) ) {
+-					$schema[ $keyword ][ $key ] = _wp_prepare_json_schema_for_client_with_allowed_keywords( $child_schema, $allowed_keywords );
++					$schema[ $keyword ][ $key ] = _wp_prepare_json_schema_for_client_with_allowed_keywords( \wp_aot_array_input($child_schema), $allowed_keywords );
+ 				}
+ 			}
+ 		}
+@@ -171,18 +171,18 @@
+ 	// Single sub-schema keywords.
+ 	foreach ( array( 'not', 'additionalProperties', 'additionalItems' ) as $keyword ) {
+ 		if ( isset( $schema[ $keyword ] ) && is_array( $schema[ $keyword ] ) && ! wp_is_numeric_array( $schema[ $keyword ] ) ) {
+-			$schema[ $keyword ] = _wp_prepare_json_schema_for_client_with_allowed_keywords( $schema[ $keyword ], $allowed_keywords );
++			$schema[ $keyword ] = _wp_prepare_json_schema_for_client_with_allowed_keywords( \wp_aot_array_input($schema[ $keyword ]), $allowed_keywords );
+ 		}
+ 	}
+ 
+ 	// Items: single schema or tuple array of schemas.
+ 	if ( isset( $schema['items'] ) && is_array( $schema['items'] ) ) {
+ 		if ( ! wp_is_numeric_array( $schema['items'] ) ) {
+-			$schema['items'] = _wp_prepare_json_schema_for_client_with_allowed_keywords( $schema['items'], $allowed_keywords );
++			$schema['items'] = _wp_prepare_json_schema_for_client_with_allowed_keywords( \wp_aot_array_input($schema['items']), $allowed_keywords );
+ 		} else {
+ 			foreach ( $schema['items'] as $index => $item_schema ) {
+ 				if ( is_array( $item_schema ) && ! wp_is_numeric_array( $item_schema ) ) {
+-					$schema['items'][ $index ] = _wp_prepare_json_schema_for_client_with_allowed_keywords( $item_schema, $allowed_keywords );
++					$schema['items'][ $index ] = _wp_prepare_json_schema_for_client_with_allowed_keywords( \wp_aot_array_input($item_schema), $allowed_keywords );
+ 				}
+ 			}
+ 		}
+@@ -193,7 +193,7 @@
+ 		if ( isset( $schema[ $keyword ] ) && is_array( $schema[ $keyword ] ) ) {
+ 			foreach ( $schema[ $keyword ] as $index => $sub_schema ) {
+ 				if ( is_array( $sub_schema ) && ! wp_is_numeric_array( $sub_schema ) ) {
+-					$schema[ $keyword ][ $index ] = _wp_prepare_json_schema_for_client_with_allowed_keywords( $sub_schema, $allowed_keywords );
++					$schema[ $keyword ][ $index ] = _wp_prepare_json_schema_for_client_with_allowed_keywords( \wp_aot_array_input($sub_schema), $allowed_keywords );
+ 				}
+ 			}
+ 		}

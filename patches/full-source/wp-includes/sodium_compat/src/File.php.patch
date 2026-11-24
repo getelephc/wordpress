@@ -1,0 +1,307 @@
+--- a/wp-includes/sodium_compat/src/File.php
++++ b/wp-includes/sodium_compat/src/File.php
+@@ -238,10 +238,10 @@
+         );
+ 
+         /** @var int $firstWrite */
+-        $firstWrite = fwrite(
++        $firstWrite = \wp_aot_fwrite(
+             $ofp,
+             $ephemeralPK,
+-            ParagonIE_Sodium_Compat::CRYPTO_BOX_PUBLICKEYBYTES
++            \wp_aot_nullable_int( ParagonIE_Sodium_Compat::CRYPTO_BOX_PUBLICKEYBYTES )
+         );
+         if (!is_int($firstWrite)) {
+             fclose($ifp);
+@@ -331,7 +331,7 @@
+             throw new SodiumException('Could not open output file for writing');
+         }
+ 
+-        $ephemeralPK = fread($ifp, ParagonIE_Sodium_Compat::CRYPTO_BOX_PUBLICKEYBYTES);
++        $ephemeralPK = \wp_aot_fread($ifp, \wp_aot_internal_int( ParagonIE_Sodium_Compat::CRYPTO_BOX_PUBLICKEYBYTES ));
+         if (!is_string($ephemeralPK)) {
+             throw new SodiumException('Could not read input file');
+         }
+@@ -436,7 +436,7 @@
+             $blockSize = $size > 64
+                 ? 64
+                 : $size;
+-            $read = fread($fp, $blockSize);
++            $read = \wp_aot_fread($fp, \wp_aot_internal_int( $blockSize ));
+             if (!is_string($read)) {
+                 throw new SodiumException('Could not read input file');
+             }
+@@ -915,7 +915,7 @@
+             return self::secretbox_encrypt_core32($ifp, $ofp, $mlen, $nonce, $key);
+         }
+ 
+-        $plaintext = fread($ifp, 32);
++        $plaintext = \wp_aot_fread($ifp, 32);
+         if (!is_string($plaintext)) {
+             throw new SodiumException('Could not read input file');
+         }
+@@ -954,7 +954,7 @@
+ 
+         // Pre-write 16 blank bytes for the Poly1305 tag
+         $start = self::ftell($ofp);
+-        fwrite($ofp, str_repeat("\x00", 16));
++        \wp_aot_fwrite($ofp, str_repeat("\x00", 16));
+ 
+         /** @var string $c */
+         $cBlock = ParagonIE_Sodium_Core_Util::substr(
+@@ -962,7 +962,7 @@
+             ParagonIE_Sodium_Crypto::secretbox_xsalsa20poly1305_ZEROBYTES
+         );
+         $state->update($cBlock);
+-        fwrite($ofp, $cBlock);
++        \wp_aot_fwrite($ofp, $cBlock);
+         $mlen -= 32;
+ 
+         /** @var int $iter */
+@@ -975,13 +975,13 @@
+          * Set the cursor to the end of the first half-block. All future bytes will
+          * generated from salsa20_xor_ic, starting from 1 (second block).
+          */
+-        fseek($ifp, $first32, SEEK_SET);
++        fseek($ifp, \wp_aot_internal_int( $first32 ), SEEK_SET);
+ 
+         while ($mlen > 0) {
+             $blockSize = $mlen > self::BUFFER_SIZE
+                 ? self::BUFFER_SIZE
+                 : $mlen;
+-            $plaintext = fread($ifp, $blockSize);
++            $plaintext = \wp_aot_fread($ifp, \wp_aot_internal_int( $blockSize ));
+             if (!is_string($plaintext)) {
+                 throw new SodiumException('Could not read input file');
+             }
+@@ -991,7 +991,7 @@
+                 $iter,
+                 $subkey
+             );
+-            fwrite($ofp, $cBlock, $blockSize);
++            \wp_aot_fwrite($ofp, $cBlock, \wp_aot_nullable_int( $blockSize ));
+             $state->update($cBlock);
+ 
+             $mlen -= $blockSize;
+@@ -1010,9 +1010,9 @@
+          * Write the Poly1305 authentication tag that provides integrity
+          * over the ciphertext (encrypt-then-MAC)
+          */
+-        fseek($ofp, $start, SEEK_SET);
+-        fwrite($ofp, $state->finish(), ParagonIE_Sodium_Compat::CRYPTO_SECRETBOX_MACBYTES);
+-        fseek($ofp, $end, SEEK_SET);
++        fseek($ofp, \wp_aot_internal_int( $start ), SEEK_SET);
++        \wp_aot_fwrite($ofp, $state->finish(), \wp_aot_nullable_int( ParagonIE_Sodium_Compat::CRYPTO_SECRETBOX_MACBYTES ));
++        fseek($ofp, \wp_aot_internal_int( $end ), SEEK_SET);
+         unset($state);
+ 
+         return true;
+@@ -1035,7 +1035,7 @@
+         if (PHP_INT_SIZE === 4) {
+             return self::secretbox_decrypt_core32($ifp, $ofp, $mlen, $nonce, $key);
+         }
+-        $tag = fread($ifp, 16);
++        $tag = \wp_aot_fread($ifp, 16);
+         if (!is_string($tag)) {
+             throw new SodiumException('Could not read input file');
+         }
+@@ -1063,12 +1063,12 @@
+          * Set the cursor to the end of the first half-block. All future bytes will
+          * generated from salsa20_xor_ic, starting from 1 (second block).
+          */
+-        $first32 = fread($ifp, 32);
++        $first32 = \wp_aot_fread($ifp, 32);
+         if (!is_string($first32)) {
+             throw new SodiumException('Could not read input file');
+         }
+         $first32len = self::strlen($first32);
+-        fwrite(
++        \wp_aot_fwrite(
+             $ofp,
+             self::xorStrings(
+                 self::substr($block0, 32, $first32len),
+@@ -1088,7 +1088,7 @@
+             $blockSize = $mlen > self::BUFFER_SIZE
+                 ? self::BUFFER_SIZE
+                 : $mlen;
+-            $ciphertext = fread($ifp, $blockSize);
++            $ciphertext = \wp_aot_fread($ifp, \wp_aot_internal_int( $blockSize ));
+             if (!is_string($ciphertext)) {
+                 throw new SodiumException('Could not read input file');
+             }
+@@ -1098,7 +1098,7 @@
+                 $iter,
+                 $subkey
+             );
+-            fwrite($ofp, $pBlock, $blockSize);
++            \wp_aot_fwrite($ofp, $pBlock, \wp_aot_nullable_int( $blockSize ));
+             $mlen -= $blockSize;
+             $iter += $incr;
+         }
+@@ -1133,7 +1133,7 @@
+             $blockSize = $mlen > self::BUFFER_SIZE
+                 ? self::BUFFER_SIZE
+                 : $mlen;
+-            $ciphertext = fread($ifp, $blockSize);
++            $ciphertext = \wp_aot_fread($ifp, \wp_aot_internal_int( $blockSize ));
+             if (!is_string($ciphertext)) {
+                 throw new SodiumException('Could not read input file');
+             }
+@@ -1143,7 +1143,7 @@
+         }
+         $res = ParagonIE_Sodium_Core_Util::verify_16($tag, $state->finish());
+ 
+-        fseek($ifp, $pos, SEEK_SET);
++        fseek($ifp, \wp_aot_internal_int( $pos ), SEEK_SET);
+         return $res;
+     }
+ 
+@@ -1190,11 +1190,11 @@
+         fseek($fp, 0, SEEK_SET);
+         for ($i = 0; $i < $size; $i += self::BUFFER_SIZE) {
+             /** @var string|bool $message */
+-            $message = fread(
++            $message = \wp_aot_fread(
+                 $fp,
+-                ($size - $i) > self::BUFFER_SIZE
++                \wp_aot_internal_int( ($size - $i) > self::BUFFER_SIZE
+                     ? $size - $i
+-                    : self::BUFFER_SIZE
++                    : self::BUFFER_SIZE )
+             );
+             if (!is_string($message)) {
+                 throw new SodiumException('Unexpected error reading from file.');
+@@ -1204,7 +1204,7 @@
+             self::hash_update($hash, $message);
+         }
+         // Reset file pointer's position
+-        fseek($fp, $originalPosition, SEEK_SET);
++        fseek($fp, \wp_aot_internal_int( $originalPosition ), SEEK_SET);
+         return $hash;
+     }
+ 
+@@ -1375,7 +1375,7 @@
+      */
+     protected static function secretbox_encrypt_core32($ifp, $ofp, $mlen, $nonce, $key)
+     {
+-        $plaintext = fread($ifp, 32);
++        $plaintext = \wp_aot_fread($ifp, 32);
+         if (!is_string($plaintext)) {
+             throw new SodiumException('Could not read input file');
+         }
+@@ -1414,7 +1414,7 @@
+ 
+         // Pre-write 16 blank bytes for the Poly1305 tag
+         $start = self::ftell($ofp);
+-        fwrite($ofp, str_repeat("\x00", 16));
++        \wp_aot_fwrite($ofp, str_repeat("\x00", 16));
+ 
+         /** @var string $c */
+         $cBlock = ParagonIE_Sodium_Core32_Util::substr(
+@@ -1422,7 +1422,7 @@
+             ParagonIE_Sodium_Crypto::secretbox_xsalsa20poly1305_ZEROBYTES
+         );
+         $state->update($cBlock);
+-        fwrite($ofp, $cBlock);
++        \wp_aot_fwrite($ofp, $cBlock);
+         $mlen -= 32;
+ 
+         /** @var int $iter */
+@@ -1435,13 +1435,13 @@
+          * Set the cursor to the end of the first half-block. All future bytes will
+          * generated from salsa20_xor_ic, starting from 1 (second block).
+          */
+-        fseek($ifp, $first32, SEEK_SET);
++        fseek($ifp, \wp_aot_internal_int( $first32 ), SEEK_SET);
+ 
+         while ($mlen > 0) {
+             $blockSize = $mlen > self::BUFFER_SIZE
+                 ? self::BUFFER_SIZE
+                 : $mlen;
+-            $plaintext = fread($ifp, $blockSize);
++            $plaintext = \wp_aot_fread($ifp, \wp_aot_internal_int( $blockSize ));
+             if (!is_string($plaintext)) {
+                 throw new SodiumException('Could not read input file');
+             }
+@@ -1451,7 +1451,7 @@
+                 $iter,
+                 $subkey
+             );
+-            fwrite($ofp, $cBlock, $blockSize);
++            \wp_aot_fwrite($ofp, $cBlock, \wp_aot_nullable_int( $blockSize ));
+             $state->update($cBlock);
+ 
+             $mlen -= $blockSize;
+@@ -1470,9 +1470,9 @@
+          * Write the Poly1305 authentication tag that provides integrity
+          * over the ciphertext (encrypt-then-MAC)
+          */
+-        fseek($ofp, $start, SEEK_SET);
+-        fwrite($ofp, $state->finish(), ParagonIE_Sodium_Compat::CRYPTO_SECRETBOX_MACBYTES);
+-        fseek($ofp, $end, SEEK_SET);
++        fseek($ofp, \wp_aot_internal_int( $start ), SEEK_SET);
++        \wp_aot_fwrite($ofp, $state->finish(), \wp_aot_nullable_int( ParagonIE_Sodium_Compat::CRYPTO_SECRETBOX_MACBYTES ));
++        fseek($ofp, \wp_aot_internal_int( $end ), SEEK_SET);
+         unset($state);
+ 
+         return true;
+@@ -1492,7 +1492,7 @@
+      */
+     protected static function secretbox_decrypt_core32($ifp, $ofp, $mlen, $nonce, $key)
+     {
+-        $tag = fread($ifp, 16);
++        $tag = \wp_aot_fread($ifp, 16);
+         if (!is_string($tag)) {
+             throw new SodiumException('Could not read input file');
+         }
+@@ -1520,12 +1520,12 @@
+          * Set the cursor to the end of the first half-block. All future bytes will
+          * generated from salsa20_xor_ic, starting from 1 (second block).
+          */
+-        $first32 = fread($ifp, 32);
++        $first32 = \wp_aot_fread($ifp, 32);
+         if (!is_string($first32)) {
+             throw new SodiumException('Could not read input file');
+         }
+         $first32len = self::strlen($first32);
+-        fwrite(
++        \wp_aot_fwrite(
+             $ofp,
+             self::xorStrings(
+                 self::substr($block0, 32, $first32len),
+@@ -1545,7 +1545,7 @@
+             $blockSize = $mlen > self::BUFFER_SIZE
+                 ? self::BUFFER_SIZE
+                 : $mlen;
+-            $ciphertext = fread($ifp, $blockSize);
++            $ciphertext = \wp_aot_fread($ifp, \wp_aot_internal_int( $blockSize ));
+             if (!is_string($ciphertext)) {
+                 throw new SodiumException('Could not read input file');
+             }
+@@ -1555,7 +1555,7 @@
+                 $iter,
+                 $subkey
+             );
+-            fwrite($ofp, $pBlock, $blockSize);
++            \wp_aot_fwrite($ofp, $pBlock, \wp_aot_nullable_int( $blockSize ));
+             $mlen -= $blockSize;
+             $iter += $incr;
+         }
+@@ -1586,7 +1586,7 @@
+             $blockSize = $mlen > self::BUFFER_SIZE
+                 ? self::BUFFER_SIZE
+                 : $mlen;
+-            $ciphertext = fread($ifp, $blockSize);
++            $ciphertext = \wp_aot_fread($ifp, \wp_aot_internal_int( $blockSize ));
+             if (!is_string($ciphertext)) {
+                 throw new SodiumException('Could not read input file');
+             }
+@@ -1595,7 +1595,7 @@
+         }
+         $res = ParagonIE_Sodium_Core32_Util::verify_16($tag, $state->finish());
+ 
+-        fseek($ifp, $pos, SEEK_SET);
++        fseek($ifp, \wp_aot_internal_int( $pos ), SEEK_SET);
+         return $res;
+     }
+ 

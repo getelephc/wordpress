@@ -1,0 +1,29 @@
+--- a/wp-content/plugins/akismet/class-akismet-compatible-plugins.php
++++ b/wp-content/plugins/akismet/class-akismet-compatible-plugins.php
+@@ -219,7 +219,7 @@
+ 
+ 			// Ensure that the plugin config read in from the API has all the required fields.
+ 			$plugin_key_count = count(
+-				array_intersect_key( $plugin, array_flip( static::COMPATIBLE_PLUGIN_FIELDS ) )
++				\wp_aot_array_intersect_key(array( $plugin, \wp_aot_array_flip( static::COMPATIBLE_PLUGIN_FIELDS ) ))
+ 			);
+ 
+ 			$does_not_have_all_required_fields = ! (
+@@ -248,7 +248,7 @@
+ 	 * @return bool
+ 	 */
+ 	private static function has_valid_plugin_path( string $path ): bool {
+-		return preg_match( '/^[a-zA-Z0-9._-]+\/[a-zA-Z0-9_-]+\.php$/', $path ) === 1;
++		return preg_match( '/^[a-zA-Z0-9._-]+\/[a-zA-Z0-9_-]+\.php$/', \wp_aot_regex_text( $path ) ) === 1;
+ 	}
+ 
+ 	/**
+@@ -259,7 +259,7 @@
+ 	 */
+ 	private static function sanitize_compatible_plugin_response( array $plugins = array() ): array {
+ 		foreach ( $plugins as $key => $plugin ) {
+-			$plugins[ $key ]             = array_map( 'sanitize_text_field', $plugin );
++			$plugins[ $key ]             = \wp_aot_array_map( 'sanitize_text_field', $plugin );
+ 			$plugins[ $key ]['help_url'] = esc_url_raw( $plugins[ $key ]['help_url'] );
+ 			$plugins[ $key ]['logo']     = esc_url_raw( $plugins[ $key ]['logo'] );
+ 		}

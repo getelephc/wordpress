@@ -1,17 +1,1641 @@
 --- a/wp-includes/rest-api.php
 +++ b/wp-includes/rest-api.php
-@@ -1048,9 +1048,11 @@
- 	if ( empty( $api_root ) ) {
- 		return;
+@@ -31,7 +31,7 @@
+  *                                false merges (with newer overriding if duplicate keys exist). Default false.
+  * @return bool True on success, false on error.
+  */
+-function register_rest_route( $route_namespace, $route, $args = array(), $override = false ) {
++function register_rest_route( mixed $route_namespace, mixed $route, mixed $args = array(), mixed $override = false ): mixed {
+ 	if ( empty( $route_namespace ) ) {
+ 		/*
+ 		 * Non-namespaced routes are not allowed, with the exception of the main
+@@ -116,8 +116,8 @@
+ 			continue;
+ 		}
+ 
+-		$arg_group         = array_merge( $defaults, $arg_group );
+-		$arg_group['args'] = array_merge( $common_args, $arg_group['args'] );
++		$arg_group         = \wp_aot_array_merge(array( $defaults, $arg_group ));
++		$arg_group['args'] = \wp_aot_array_merge(array( $common_args, $arg_group['args'] ));
+ 
+ 		if ( ! isset( $arg_group['permission_callback'] ) ) {
+ 			_doing_it_wrong(
+@@ -153,6 +153,7 @@
+ 	$full_route = '/' . $clean_namespace . '/' . trim( $route, '/' );
+ 	rest_get_server()->register_route( $clean_namespace, $full_route, $args, $override );
+ 	return true;
++	return null;
+ }
+ 
+ /**
+@@ -179,7 +180,7 @@
+  *                                          Default is 'null', no schema entry will be returned.
+  * }
+  */
+-function register_rest_field( $object_type, $attribute, $args = array() ) {
++function register_rest_field( mixed $object_type, mixed $attribute, mixed $args = array() ): mixed {
+ 	global $wp_rest_additional_fields;
+ 
+ 	$defaults = array(
+@@ -195,6 +196,7 @@
+ 	foreach ( $object_types as $object_type ) {
+ 		$wp_rest_additional_fields[ $object_type ][ $attribute ] = $args;
  	}
++	return null;
+ }
+ 
+ /**
+@@ -205,11 +207,12 @@
+  * @see rest_api_register_rewrites()
+  * @global WP $wp Current WordPress environment instance.
+  */
+-function rest_api_init() {
++function rest_api_init(): mixed {
+ 	rest_api_register_rewrites();
+ 
+ 	global $wp;
+ 	$wp->add_query_var( 'rest_route' );
++	return null;
+ }
+ 
+ /**
+@@ -220,13 +223,14 @@
+  * @see add_rewrite_rule()
+  * @global WP_Rewrite $wp_rewrite WordPress rewrite component.
+  */
+-function rest_api_register_rewrites() {
++function rest_api_register_rewrites(): mixed {
+ 	global $wp_rewrite;
+ 
+ 	add_rewrite_rule( '^' . rest_get_url_prefix() . '/?$', 'index.php?rest_route=/', 'top' );
+ 	add_rewrite_rule( '^' . rest_get_url_prefix() . '/(.*)?', 'index.php?rest_route=/$matches[1]', 'top' );
+ 	add_rewrite_rule( '^' . $wp_rewrite->index . '/' . rest_get_url_prefix() . '/?$', 'index.php?rest_route=/', 'top' );
+ 	add_rewrite_rule( '^' . $wp_rewrite->index . '/' . rest_get_url_prefix() . '/(.*)?', 'index.php?rest_route=/$matches[1]', 'top' );
++	return null;
+ }
+ 
+ /**
+@@ -237,7 +241,7 @@
+  *
+  * @since 4.4.0
+  */
+-function rest_api_default_filters() {
++function rest_api_default_filters(): mixed {
+ 	if ( wp_is_serving_rest_request() ) {
+ 		// Deprecated reporting.
+ 		add_action( 'deprecated_function_run', 'rest_handle_deprecated_function', 10, 3 );
+@@ -255,6 +259,7 @@
+ 
+ 	add_filter( 'rest_pre_dispatch', 'rest_handle_options_request', 10, 3 );
+ 	add_filter( 'rest_index', 'rest_add_application_passwords_to_index' );
++	return null;
+ }
+ 
+ /**
+@@ -262,7 +267,7 @@
+  *
+  * @since 4.7.0
+  */
+-function create_initial_rest_routes() {
++function create_initial_rest_routes(): mixed {
+ 	foreach ( get_post_types( array( 'show_in_rest' => true ), 'objects' ) as $post_type ) {
+ 		$controller = $post_type->get_rest_controller();
+ 
+@@ -341,7 +346,7 @@
+ 	 */
+ 	$search_handlers = apply_filters( 'wp_rest_search_handlers', $search_handlers );
+ 
+-	$controller = new WP_REST_Search_Controller( $search_handlers );
++	$controller = new WP_REST_Search_Controller( \wp_aot_array_input($search_handlers ));
+ 	$controller->register_routes();
+ 
+ 	// Block Renderer.
+@@ -436,6 +441,7 @@
+ 	// View Config.
+ 	$view_config_controller = new WP_REST_View_Config_Controller();
+ 	$view_config_controller->register_routes();
++	return null;
+ }
+ 
+ /**
+@@ -445,9 +451,9 @@
+  *
+  * @global WP $wp Current WordPress environment instance.
+  */
+-function rest_api_loaded() {
++function rest_api_loaded(): mixed {
+ 	if ( empty( $GLOBALS['wp']->query_vars['rest_route'] ) ) {
+-		return;
++		return null;
+ 	}
+ 
+ 	// Short-circuit before define()/die() if a REST dispatch is already in flight.
+@@ -456,7 +462,7 @@
+ 		&& $GLOBALS['wp_rest_server'] instanceof WP_REST_Server
+ 		&& $GLOBALS['wp_rest_server']->is_dispatching()
+ 	) {
+-		return;
++		return null;
+ 	}
+ 
+ 	// Return an error message if query_var is not a string.
+@@ -488,7 +494,8 @@
+ 	$server->serve_request( $route );
+ 
+ 	// We're done.
+-	die();
++	\wp_aot_exit();
++	return null;
+ }
+ 
+ /**
+@@ -498,7 +505,7 @@
+  *
+  * @return string Prefix.
+  */
+-function rest_get_url_prefix() {
++function rest_get_url_prefix(): mixed {
+ 	/**
+ 	 * Filters the REST URL prefix.
+ 	 *
+@@ -507,6 +514,7 @@
+ 	 * @param string $prefix URL prefix. Default 'wp-json'.
+ 	 */
+ 	return apply_filters( 'rest_url_prefix', 'wp-json' );
++	return null;
+ }
+ 
+ /**
+@@ -524,7 +532,7 @@
+  * @param string   $scheme  Optional. Sanitization scheme. Default 'rest'.
+  * @return string Full URL to the endpoint.
+  */
+-function get_rest_url( $blog_id = null, $path = '/', $scheme = 'rest' ) {
++function get_rest_url( mixed $blog_id = null, mixed $path = '/', mixed $scheme = 'rest' ): mixed {
+ 	if ( empty( $path ) ) {
+ 		$path = '/';
+ 	}
+@@ -583,6 +591,7 @@
+ 	 * @param string   $scheme  Sanitization scheme.
+ 	 */
+ 	return apply_filters( 'rest_url', $url, $path, $blog_id, $scheme );
++	return null;
+ }
+ 
+ /**
+@@ -596,8 +605,9 @@
+  * @param string $scheme Optional. Sanitization scheme. Default 'rest'.
+  * @return string Full URL to the endpoint.
+  */
+-function rest_url( $path = '', $scheme = 'rest' ) {
++function rest_url( mixed $path = '', mixed $scheme = 'rest' ): mixed {
+ 	return get_rest_url( null, $path, $scheme );
++	return null;
+ }
+ 
+ /**
+@@ -610,9 +620,10 @@
+  * @param WP_REST_Request|string $request Request.
+  * @return WP_REST_Response REST response.
+  */
+-function rest_do_request( $request ) {
++function rest_do_request( mixed $request ): mixed {
+ 	$request = rest_ensure_request( $request );
+ 	return rest_get_server()->dispatch( $request );
++	return null;
+ }
+ 
+ /**
+@@ -626,7 +637,7 @@
+  *
+  * @return WP_REST_Server REST server instance.
+  */
+-function rest_get_server() {
++function rest_get_server(): mixed {
+ 	/* @var WP_REST_Server $wp_rest_server */
+ 	global $wp_rest_server;
+ 
+@@ -658,6 +669,7 @@
+ 	}
+ 
+ 	return $wp_rest_server;
++	return null;
+ }
+ 
+ /**
+@@ -669,7 +681,7 @@
+  * @param array|string|WP_REST_Request $request Request to check.
+  * @return WP_REST_Request REST request instance.
+  */
+-function rest_ensure_request( $request ) {
++function rest_ensure_request( mixed $request ): mixed {
+ 	if ( $request instanceof WP_REST_Request ) {
+ 		return $request;
+ 	}
+@@ -679,6 +691,7 @@
+ 	}
+ 
+ 	return new WP_REST_Request( 'GET', '', $request );
++	return null;
+ }
+ 
+ /**
+@@ -695,7 +708,7 @@
+  *                                   is already an instance, WP_REST_Response, otherwise
+  *                                   returns a new WP_REST_Response instance.
+  */
+-function rest_ensure_response( $response ) {
++function rest_ensure_response( mixed $response ): mixed {
+ 	if ( is_wp_error( $response ) ) {
+ 		return $response;
+ 	}
+@@ -717,6 +730,7 @@
+ 	}
+ 
+ 	return new WP_REST_Response( $response );
++	return null;
+ }
+ 
+ /**
+@@ -728,9 +742,9 @@
+  * @param string $replacement   The function that should have been called.
+  * @param string $version       Version.
+  */
+-function rest_handle_deprecated_function( $function_name, $replacement, $version ) {
+-	if ( ! WP_DEBUG || headers_sent() ) {
+-		return;
++function rest_handle_deprecated_function( mixed $function_name, mixed $replacement, mixed $version ): mixed {
++	if ( ! WP_DEBUG || \wp_aot_native_headers_sent() ) {
++		return null;
+ 	}
+ 	if ( ! empty( $replacement ) ) {
+ 		/* translators: 1: Function name, 2: WordPress version number, 3: New function name. */
+@@ -741,6 +755,7 @@
+ 	}
+ 
+ 	header( sprintf( 'X-WP-DeprecatedFunction: %s', $string ) );
++	return null;
+ }
+ 
+ /**
+@@ -752,9 +767,9 @@
+  * @param string $message       A message regarding the change.
+  * @param string $version       Version.
+  */
+-function rest_handle_deprecated_argument( $function_name, $message, $version ) {
+-	if ( ! WP_DEBUG || headers_sent() ) {
+-		return;
++function rest_handle_deprecated_argument( mixed $function_name, mixed $message, mixed $version ): mixed {
++	if ( ! WP_DEBUG || \wp_aot_native_headers_sent() ) {
++		return null;
+ 	}
+ 	if ( $message ) {
+ 		/* translators: 1: Function name, 2: WordPress version number, 3: Error message. */
+@@ -765,6 +780,7 @@
+ 	}
+ 
+ 	header( sprintf( 'X-WP-DeprecatedParam: %s', $string ) );
++	return null;
+ }
+ 
+ /**
+@@ -776,9 +792,9 @@
+  * @param string      $message       A message explaining what has been done incorrectly.
+  * @param string|null $version       The version of WordPress where the message was added.
+  */
+-function rest_handle_doing_it_wrong( $function_name, $message, $version ) {
+-	if ( ! WP_DEBUG || headers_sent() ) {
+-		return;
++function rest_handle_doing_it_wrong( mixed $function_name, mixed $message, mixed $version ): mixed {
++	if ( ! WP_DEBUG || \wp_aot_native_headers_sent() ) {
++		return null;
+ 	}
+ 
+ 	if ( $version ) {
+@@ -792,6 +808,7 @@
+ 	}
+ 
+ 	header( sprintf( 'X-WP-DoingItWrong: %s', $string ) );
++	return null;
+ }
+ 
+ /**
+@@ -802,7 +819,7 @@
+  * @param mixed $value Response data.
+  * @return mixed Response data.
+  */
+-function rest_send_cors_headers( $value ) {
++function rest_send_cors_headers( mixed $value ): mixed {
+ 	$origin = get_http_origin();
+ 
+ 	if ( $origin ) {
+@@ -814,11 +831,12 @@
+ 		header( 'Access-Control-Allow-Methods: OPTIONS, GET, POST, PUT, PATCH, DELETE' );
+ 		header( 'Access-Control-Allow-Credentials: true' );
+ 		header( 'Vary: Origin', false );
+-	} elseif ( ! headers_sent() && 'GET' === $_SERVER['REQUEST_METHOD'] && ! is_user_logged_in() ) {
++	} elseif ( ! \wp_aot_native_headers_sent() && 'GET' === $_SERVER['REQUEST_METHOD'] && ! is_user_logged_in() ) {
+ 		header( 'Vary: Origin', false );
+ 	}
+ 
+ 	return $value;
++	return null;
+ }
+ 
+ /**
+@@ -834,7 +852,7 @@
+  * @param WP_REST_Request $request  The request that was used to make current response.
+  * @return WP_REST_Response Modified response, either response or `null` to indicate pass-through.
+  */
+-function rest_handle_options_request( $response, $handler, $request ) {
++function rest_handle_options_request( mixed $response, mixed $handler, mixed $request ): mixed {
+ 	if ( ! empty( $response ) || $request->get_method() !== 'OPTIONS' ) {
+ 		return $response;
+ 	}
+@@ -843,7 +861,7 @@
+ 	$data     = array();
+ 
+ 	foreach ( $handler->get_routes() as $route => $endpoints ) {
+-		$match = preg_match( '@^' . $route . '$@i', $request->get_route(), $matches );
++		$match = preg_match( \wp_aot_regex_text( '@^' . $route . '$@i' ), \wp_aot_regex_text( $request->get_route() ), $matches );
+ 
+ 		if ( ! $match ) {
+ 			continue;
+@@ -868,6 +886,7 @@
+ 
+ 	$response->set_data( $data );
+ 	return $response;
++	return null;
+ }
+ 
+ /**
+@@ -880,7 +899,7 @@
+  * @param WP_REST_Request  $request  The request that was used to make current response.
+  * @return WP_REST_Response Response to be served, with "Allow" header if route has allowed methods.
+  */
+-function rest_send_allow_header( $response, $server, $request ) {
++function rest_send_allow_header( mixed $response, mixed $server, mixed $request ): mixed {
+ 	$matched_route = $response->get_matched_route();
+ 
+ 	if ( ! $matched_route ) {
+@@ -907,13 +926,14 @@
+ 	}
+ 
+ 	// Strip out all the methods that are not allowed (false values).
+-	$allowed_methods = array_filter( $allowed_methods );
++	$allowed_methods = \wp_aot_array_filter( $allowed_methods );
+ 
+ 	if ( $allowed_methods ) {
+-		$response->header( 'Allow', implode( ', ', array_map( 'strtoupper', array_keys( $allowed_methods ) ) ) );
++		$response->header( 'Allow', implode( ', ', \wp_aot_array_map( 'strtoupper', array_keys( $allowed_methods ) ) ) );
+ 	}
+ 
+ 	return $response;
++	return null;
+ }
+ 
+ /**
+@@ -926,14 +946,15 @@
+  * @return array An associative array containing all the entries of array1 which have keys
+  *               that are present in all arguments.
+  */
+-function _rest_array_intersect_key_recursive( $array1, $array2 ) {
+-	$array1 = array_intersect_key( $array1, $array2 );
++function _rest_array_intersect_key_recursive( mixed $array1, mixed $array2 ): mixed {
++	$array1 = \wp_aot_array_intersect_key(array( $array1, $array2 ));
+ 	foreach ( $array1 as $key => $value ) {
+ 		if ( is_array( $value ) && is_array( $array2[ $key ] ) ) {
+ 			$array1[ $key ] = _rest_array_intersect_key_recursive( $value, $array2[ $key ] );
+ 		}
+ 	}
+ 	return $array1;
++	return null;
+ }
+ 
+ /**
+@@ -946,7 +967,7 @@
+  * @param WP_REST_Request  $request  The request that was used to make current response.
+  * @return WP_REST_Response Response to be served, trimmed down to contain a subset of fields.
+  */
+-function rest_filter_response_fields( $response, $server, $request ) {
++function rest_filter_response_fields( mixed $response, mixed $server, mixed $request ): mixed {
+ 	if ( ! isset( $request['_fields'] ) || $response->is_error() ) {
+ 		return $response;
+ 	}
+@@ -960,7 +981,7 @@
+ 	}
+ 
+ 	// Trim off outside whitespace from the comma delimited list.
+-	$fields = array_map( 'trim', $fields );
++	$fields = \wp_aot_array_map( 'trim', $fields );
+ 
+ 	// Create nested array of accepted field hierarchy.
+ 	$fields_as_keyed = array();
+@@ -968,7 +989,7 @@
+ 		$parts = explode( '.', $field );
+ 		$ref   = &$fields_as_keyed;
+ 		while ( count( $parts ) > 1 ) {
+-			$next = array_shift( $parts );
++			$next = \wp_aot_array_shift( $parts );
+ 			if ( isset( $ref[ $next ] ) && true === $ref[ $next ] ) {
+ 				// Skip any sub-properties if their parent prop is already marked for inclusion.
+ 				break 2;
+@@ -976,7 +997,7 @@
+ 			$ref[ $next ] = $ref[ $next ] ?? array();
+ 			$ref          = &$ref[ $next ];
+ 		}
+-		$last         = array_shift( $parts );
++		$last         = \wp_aot_array_shift( $parts );
+ 		$ref[ $last ] = true;
+ 	}
+ 
+@@ -992,6 +1013,7 @@
+ 	$response->set_data( $new_data );
+ 
+ 	return $response;
++	return null;
+ }
+ 
+ /**
+@@ -1010,7 +1032,7 @@
+  * @param array  $fields An array of string fields supported by the endpoint.
+  * @return bool Whether to include the field or not.
+  */
+-function rest_is_field_included( $field, $fields ) {
++function rest_is_field_included( mixed $field, mixed $fields ): mixed {
+ 	if ( in_array( $field, $fields, true ) ) {
+ 		return true;
+ 	}
+@@ -1033,6 +1055,7 @@
+ 	}
+ 
+ 	return false;
++	return null;
+ }
+ 
+ /**
+@@ -1042,15 +1065,18 @@
+  *
+  * @see get_rest_url()
+  */
+-function rest_output_rsd() {
++function rest_output_rsd(): mixed {
+ 	$api_root = get_rest_url();
+ 
+ 	if ( empty( $api_root ) ) {
+-		return;
+-	}
 -	?>
 -	<api name="WP-API" blogID="1" preferred="false" apiLink="<?php echo esc_url( $api_root ); ?>" />
 -	<?php
++		return null;
++	}
 +	;
 +echo '	<api name="WP-API" blogID="1" preferred="false" apiLink="';
 +echo esc_url( $api_root ); ;
 +echo '" />
 +	';
++	return null;
  }
  
  /**
+@@ -1060,11 +1086,11 @@
+  *
+  * @see get_rest_url()
+  */
+-function rest_output_link_wp_head() {
++function rest_output_link_wp_head(): mixed {
+ 	$api_root = get_rest_url();
+ 
+ 	if ( empty( $api_root ) ) {
+-		return;
++		return null;
+ 	}
+ 
+ 	printf( '<link rel="https://api.w.org/" href="%s" />', esc_url( $api_root ) );
+@@ -1078,6 +1104,7 @@
+ 			esc_url( rest_url( $resource ) )
+ 		);
+ 	}
++	return null;
+ }
+ 
+ /**
+@@ -1085,15 +1112,15 @@
+  *
+  * @since 4.4.0
+  */
+-function rest_output_link_header() {
+-	if ( headers_sent() ) {
+-		return;
++function rest_output_link_header(): mixed {
++	if ( \wp_aot_native_headers_sent() ) {
++		return null;
+ 	}
+ 
+ 	$api_root = get_rest_url();
+ 
+ 	if ( empty( $api_root ) ) {
+-		return;
++		return null;
+ 	}
+ 
+ 	header( sprintf( 'Link: <%s>; rel="https://api.w.org/"', sanitize_url( $api_root ) ), false );
+@@ -1110,6 +1137,7 @@
+ 			false
+ 		);
+ 	}
++	return null;
+ }
+ 
+ /**
+@@ -1127,7 +1155,7 @@
+  *                               null if we should handle it, or another value if not.
+  * @return WP_Error|mixed|bool WP_Error if the cookie is invalid, the $result, otherwise true.
+  */
+-function rest_cookie_check_errors( $result ) {
++function rest_cookie_check_errors( mixed $result ): mixed {
+ 	if ( ! empty( $result ) ) {
+ 		return $result;
+ 	}
+@@ -1170,6 +1198,7 @@
+ 	rest_get_server()->send_header( 'X-WP-Nonce', wp_create_nonce( 'wp_rest' ) );
+ 
+ 	return true;
++	return null;
+ }
+ 
+ /**
+@@ -1182,17 +1211,18 @@
+  * @see current_action()
+  * @global mixed $wp_rest_auth_cookie
+  */
+-function rest_cookie_collect_status() {
++function rest_cookie_collect_status(): mixed {
+ 	global $wp_rest_auth_cookie;
+ 
+ 	$status_type = current_action();
+ 
+ 	if ( 'auth_cookie_valid' !== $status_type ) {
+ 		$wp_rest_auth_cookie = substr( $status_type, 12 );
+-		return;
++		return null;
+ 	}
+ 
+ 	$wp_rest_auth_cookie = true;
++	return null;
+ }
+ 
+ /**
+@@ -1207,7 +1237,7 @@
+  * @param WP_Error $user_or_error The authenticated user or error instance.
+  * @param array    $app_password  The Application Password used to authenticate.
+  */
+-function rest_application_password_collect_status( $user_or_error, $app_password = array() ) {
++function rest_application_password_collect_status( mixed $user_or_error, mixed $app_password = array() ): mixed {
+ 	global $wp_rest_application_password_status, $wp_rest_application_password_uuid;
+ 
+ 	$wp_rest_application_password_status = $user_or_error;
+@@ -1217,6 +1247,7 @@
+ 	} else {
+ 		$wp_rest_application_password_uuid = $app_password['uuid'];
+ 	}
++	return null;
+ }
+ 
+ /**
+@@ -1228,10 +1259,11 @@
+  *
+  * @return string|null The Application Password UUID, or null if Application Passwords was not used.
+  */
+-function rest_get_authenticated_app_password() {
++function rest_get_authenticated_app_password(): mixed {
+ 	global $wp_rest_application_password_uuid;
+ 
+ 	return $wp_rest_application_password_uuid;
++	return null;
+ }
+ 
+ /**
+@@ -1245,7 +1277,7 @@
+  *                                   null if we should handle it, or another value if not.
+  * @return WP_Error|null|true WP_Error if the application password is invalid, the $result, otherwise true.
+  */
+-function rest_application_password_check_errors( $result ) {
++function rest_application_password_check_errors( mixed $result ): mixed {
+ 	global $wp_rest_application_password_status;
+ 
+ 	if ( ! empty( $result ) ) {
+@@ -1269,6 +1301,7 @@
+ 	}
+ 
+ 	return $result;
++	return null;
+ }
+ 
+ /**
+@@ -1279,7 +1312,7 @@
+  * @param WP_REST_Response $response The index response object.
+  * @return WP_REST_Response
+  */
+-function rest_add_application_passwords_to_index( $response ) {
++function rest_add_application_passwords_to_index( mixed $response ): mixed {
+ 	if ( ! wp_is_application_passwords_available() ) {
+ 		return $response;
+ 	}
+@@ -1291,6 +1324,7 @@
+ 	);
+ 
+ 	return $response;
++	return null;
+ }
+ 
+ /**
+@@ -1304,7 +1338,7 @@
+  *                           user email, WP_User object, WP_Post object, or WP_Comment object.
+  * @return (string|false)[] Avatar URLs keyed by size. Each value can be a URL string or boolean false.
+  */
+-function rest_get_avatar_urls( $id_or_email ) {
++function rest_get_avatar_urls( mixed $id_or_email ): mixed {
+ 	$avatar_sizes = rest_get_avatar_sizes();
+ 
+ 	$urls = array();
+@@ -1313,6 +1347,7 @@
+ 	}
+ 
+ 	return $urls;
++	return null;
+ }
+ 
+ /**
+@@ -1322,7 +1357,7 @@
+  *
+  * @return int[] List of pixel sizes for avatars. Default `[ 24, 48, 96 ]`.
+  */
+-function rest_get_avatar_sizes() {
++function rest_get_avatar_sizes(): mixed {
+ 	/**
+ 	 * Filters the REST avatar sizes.
+ 	 *
+@@ -1335,6 +1370,7 @@
+ 	 *                     Default `[ 24, 48, 96 ]`.
+ 	 */
+ 	return apply_filters( 'rest_avatar_sizes', array( 24, 48, 96 ) );
++	return null;
+ }
+ 
+ /**
+@@ -1350,18 +1386,19 @@
+  *                          the timestamp's timezone. Default false.
+  * @return int|false Unix timestamp on success, false on failure.
+  */
+-function rest_parse_date( $date, $force_utc = false ) {
++function rest_parse_date( mixed $date, mixed $force_utc = false ): mixed {
+ 	if ( $force_utc ) {
+-		$date = preg_replace( '/[+-]\d+:?\d+$/', '+00:00', $date );
++		$date = \wp_aot_preg_replace( '/[+-]\d+:?\d+$/', '+00:00', $date );
+ 	}
+ 
+ 	$regex = '#^\d{4}-\d{2}-\d{2}[Tt ]\d{2}:\d{2}:\d{2}(?:\.\d+)?(?:Z|[+-]\d{2}(?::\d{2})?)?$#';
+ 
+-	if ( ! preg_match( $regex, $date, $matches ) ) {
++	if ( ! preg_match( \wp_aot_regex_text( $regex ), \wp_aot_regex_text( $date ), $matches ) ) {
+ 		return false;
+ 	}
+ 
+ 	return strtotime( $date );
++	return null;
+ }
+ 
+ /**
+@@ -1372,13 +1409,14 @@
+  * @param string $color 3 or 6 digit hex color (with #).
+  * @return string|false Color value on success, false on failure.
+  */
+-function rest_parse_hex_color( $color ) {
++function rest_parse_hex_color( mixed $color ): mixed {
+ 	$regex = '|^#([A-Fa-f0-9]{3}){1,2}$|';
+-	if ( ! preg_match( $regex, $color, $matches ) ) {
++	if ( ! preg_match( \wp_aot_regex_text( $regex ), \wp_aot_regex_text( $color ), $matches ) ) {
+ 		return false;
+ 	}
+ 
+ 	return $color;
++	return null;
+ }
+ 
+ /**
+@@ -1398,13 +1436,13 @@
+  *     @type string $1 UTC datetime string.
+  * }
+  */
+-function rest_get_date_with_gmt( $date, $is_utc = false ) {
++function rest_get_date_with_gmt( mixed $date, mixed $is_utc = false ): mixed {
+ 	/*
+ 	 * Whether or not the original date actually has a timezone string
+ 	 * changes the way we need to do timezone conversion.
+ 	 * Store this info before parsing the date, and use it later.
+ 	 */
+-	$has_timezone = preg_match( '#(Z|[+-]\d{2}(:\d{2})?)$#', $date );
++	$has_timezone = preg_match( '#(Z|[+-]\d{2}(:\d{2})?)$#', \wp_aot_regex_text( $date ) );
+ 
+ 	$date = rest_parse_date( $date );
+ 
+@@ -1418,14 +1456,15 @@
+ 	 * Timezone conversion needs to be handled differently between these two cases.
+ 	 */
+ 	if ( ! $is_utc && ! $has_timezone ) {
+-		$local = gmdate( 'Y-m-d H:i:s', $date );
++		$local = \wp_aot_gmdate( 'Y-m-d H:i:s', $date );
+ 		$utc   = get_gmt_from_date( $local );
+ 	} else {
+-		$utc   = gmdate( 'Y-m-d H:i:s', $date );
++		$utc   = \wp_aot_gmdate( 'Y-m-d H:i:s', $date );
+ 		$local = get_date_from_gmt( $utc );
+ 	}
+ 
+ 	return array( $local, $utc );
++	return null;
+ }
+ 
+ /**
+@@ -1435,8 +1474,9 @@
+  *
+  * @return int 401 if the user is not logged in, 403 if the user is logged in.
+  */
+-function rest_authorization_required_code() {
++function rest_authorization_required_code(): mixed {
+ 	return is_user_logged_in() ? 403 : 401;
++	return null;
+ }
+ 
+ /**
+@@ -1449,7 +1489,7 @@
+  * @param string          $param
+  * @return true|WP_Error
+  */
+-function rest_validate_request_arg( $value, $request, $param ) {
++function rest_validate_request_arg( mixed $value, mixed $request, mixed $param ): mixed {
+ 	$attributes = $request->get_attributes();
+ 	if ( ! isset( $attributes['args'][ $param ] ) || ! is_array( $attributes['args'][ $param ] ) ) {
+ 		return true;
+@@ -1457,6 +1497,7 @@
+ 	$args = $attributes['args'][ $param ];
+ 
+ 	return rest_validate_value_from_schema( $value, $args, $param );
++	return null;
+ }
+ 
+ /**
+@@ -1469,7 +1510,7 @@
+  * @param string          $param
+  * @return mixed
+  */
+-function rest_sanitize_request_arg( $value, $request, $param ) {
++function rest_sanitize_request_arg( mixed $value, mixed $request, mixed $param ): mixed {
+ 	$attributes = $request->get_attributes();
+ 	if ( ! isset( $attributes['args'][ $param ] ) || ! is_array( $attributes['args'][ $param ] ) ) {
+ 		return $value;
+@@ -1477,6 +1518,7 @@
+ 	$args = $attributes['args'][ $param ];
+ 
+ 	return rest_sanitize_value_from_schema( $value, $args, $param );
++	return null;
+ }
+ 
+ /**
+@@ -1492,7 +1534,7 @@
+  * @param string          $param
+  * @return mixed
+  */
+-function rest_parse_request_arg( $value, $request, $param ) {
++function rest_parse_request_arg( mixed $value, mixed $request, mixed $param ): mixed {
+ 	$is_valid = rest_validate_request_arg( $value, $request, $param );
+ 
+ 	if ( is_wp_error( $is_valid ) ) {
+@@ -1502,6 +1544,7 @@
+ 	$value = rest_sanitize_request_arg( $value, $request, $param );
+ 
+ 	return $value;
++	return null;
+ }
+ 
+ /**
+@@ -1514,14 +1557,15 @@
+  * @param string $ip IP address.
+  * @return string|false The valid IP address, otherwise false.
+  */
+-function rest_is_ip_address( $ip ) {
++function rest_is_ip_address( mixed $ip ): mixed {
+ 	$ipv4_pattern = '/^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/';
+ 
+-	if ( ! preg_match( $ipv4_pattern, $ip ) && ! WpOrg\Requests\Ipv6::check_ipv6( $ip ) ) {
++	if ( ! preg_match( \wp_aot_regex_text( $ipv4_pattern ), \wp_aot_regex_text( $ip ) ) && ! WpOrg\Requests\Ipv6::check_ipv6( $ip ) ) {
+ 		return false;
+ 	}
+ 
+ 	return $ip;
++	return null;
+ }
+ 
+ /**
+@@ -1532,7 +1576,7 @@
+  * @param bool|string|int $value The value being evaluated.
+  * @return bool Returns the proper associated boolean value.
+  */
+-function rest_sanitize_boolean( $value ) {
++function rest_sanitize_boolean( mixed $value ): mixed {
+ 	// String values are translated to `true`; make sure 'false' is false.
+ 	if ( is_string( $value ) ) {
+ 		$value = strtolower( $value );
+@@ -1543,6 +1587,7 @@
+ 
+ 	// Everything else will map nicely to boolean.
+ 	return (bool) $value;
++	return null;
+ }
+ 
+ /**
+@@ -1553,7 +1598,7 @@
+  * @param bool|string $maybe_bool The value being evaluated.
+  * @return bool True if a boolean, otherwise false.
+  */
+-function rest_is_boolean( $maybe_bool ) {
++function rest_is_boolean( mixed $maybe_bool ): mixed {
+ 	if ( is_bool( $maybe_bool ) ) {
+ 		return true;
+ 	}
+@@ -1576,6 +1621,7 @@
+ 	}
+ 
+ 	return false;
++	return null;
+ }
+ 
+ /**
+@@ -1595,13 +1641,13 @@
+  * @param mixed $maybe_integer The value being evaluated.
+  * @return bool True if an integer, otherwise false.
+  */
+-function rest_is_integer( $maybe_integer ): bool {
++function rest_is_integer( mixed $maybe_integer ): bool {
+ 	if ( is_int( $maybe_integer ) ) {
+ 		return true;
+ 	}
+ 
+ 	// A canonical integer string of any magnitude — verified without float conversion.
+-	if ( is_string( $maybe_integer ) && preg_match( '/^\s*[+-]?[0-9]+\s*$/', $maybe_integer ) ) {
++	if ( is_string( $maybe_integer ) && preg_match( '/^\s*[+-]?[0-9]+\s*$/', \wp_aot_regex_text( $maybe_integer ) ) ) {
+ 		return true;
+ 	}
+ 
+@@ -1628,12 +1674,13 @@
+  * @param mixed $maybe_array The value being evaluated.
+  * @return bool
+  */
+-function rest_is_array( $maybe_array ) {
++function rest_is_array( mixed $maybe_array ): mixed {
+ 	if ( is_scalar( $maybe_array ) ) {
+ 		$maybe_array = wp_parse_list( $maybe_array );
+ 	}
+ 
+ 	return wp_is_numeric_array( $maybe_array );
++	return null;
+ }
+ 
+ /**
+@@ -1644,7 +1691,7 @@
+  * @param mixed $maybe_array The value being evaluated.
+  * @return array Returns the array extracted from the value.
+  */
+-function rest_sanitize_array( $maybe_array ) {
++function rest_sanitize_array( mixed $maybe_array ): mixed {
+ 	if ( is_scalar( $maybe_array ) ) {
+ 		return wp_parse_list( $maybe_array );
+ 	}
+@@ -1655,6 +1702,7 @@
+ 
+ 	// Normalize to numeric array so nothing unexpected is in the keys.
+ 	return array_values( $maybe_array );
++	return null;
+ }
+ 
+ /**
+@@ -1665,7 +1713,7 @@
+  * @param mixed $maybe_object The value being evaluated.
+  * @return bool True if object like, otherwise false.
+  */
+-function rest_is_object( $maybe_object ) {
++function rest_is_object( mixed $maybe_object ): mixed {
+ 	if ( '' === $maybe_object ) {
+ 		return true;
+ 	}
+@@ -1679,6 +1727,7 @@
+ 	}
+ 
+ 	return is_array( $maybe_object );
++	return null;
+ }
+ 
+ /**
+@@ -1689,7 +1738,7 @@
+  * @param mixed $maybe_object The value being evaluated.
+  * @return array Returns the object extracted from the value as an associative array.
+  */
+-function rest_sanitize_object( $maybe_object ) {
++function rest_sanitize_object( mixed $maybe_object ): mixed {
+ 	if ( '' === $maybe_object ) {
+ 		return array();
+ 	}
+@@ -1707,6 +1756,7 @@
+ 	}
+ 
+ 	return $maybe_object;
++	return null;
+ }
+ 
+ /**
+@@ -1718,7 +1768,7 @@
+  * @param string[] $types The list of possible types.
+  * @return string The best matching type, an empty string if no types match.
+  */
+-function rest_get_best_type_for_value( $value, $types ) {
++function rest_get_best_type_for_value( mixed $value, mixed $types ): mixed {
+ 	static $checks = array(
+ 		'array'   => 'rest_is_array',
+ 		'object'  => 'rest_is_object',
+@@ -1744,6 +1794,7 @@
+ 	}
+ 
+ 	return '';
++	return null;
+ }
+ 
+ /**
+@@ -1759,9 +1810,9 @@
+  * @param string $param The parameter name, used in error messages.
+  * @return string
+  */
+-function rest_handle_multi_type_schema( $value, $args, $param = '' ) {
++function rest_handle_multi_type_schema( mixed $value, mixed $args, mixed $param = '' ): mixed {
+ 	$allowed_types = array( 'array', 'object', 'string', 'number', 'integer', 'boolean', 'null' );
+-	$invalid_types = array_diff( $args['type'], $allowed_types );
++	$invalid_types = \wp_aot_array_diff(array( $args['type'], $allowed_types ));
+ 
+ 	if ( $invalid_types ) {
+ 		_doing_it_wrong(
+@@ -1784,6 +1835,7 @@
+ 	}
+ 
+ 	return $best_type;
++	return null;
+ }
+ 
+ /**
+@@ -1794,7 +1846,7 @@
+  * @param array $input_array The array to check.
+  * @return bool True if the array contains unique items, false otherwise.
+  */
+-function rest_validate_array_contains_unique_items( $input_array ) {
++function rest_validate_array_contains_unique_items( mixed $input_array ): mixed {
+ 	$seen = array();
+ 
+ 	foreach ( $input_array as $item ) {
+@@ -1811,6 +1863,7 @@
+ 	}
+ 
+ 	return true;
++	return null;
+ }
+ 
+ /**
+@@ -1823,7 +1876,7 @@
+  * @param mixed $value The value to stabilize. Must already be sanitized. Objects should have been converted to arrays.
+  * @return mixed The stabilized value.
+  */
+-function rest_stabilize_value( $value ) {
++function rest_stabilize_value( mixed $value ): mixed {
+ 	if ( is_scalar( $value ) || is_null( $value ) ) {
+ 		return $value;
+ 	}
+@@ -1834,13 +1887,14 @@
+ 		return $value;
+ 	}
+ 
+-	ksort( $value );
++	\wp_aot_ksort( $value );
+ 
+ 	foreach ( $value as $k => $v ) {
+ 		$value[ $k ] = rest_stabilize_value( $v );
+ 	}
+ 
+ 	return $value;
++	return null;
+ }
+ 
+ /**
+@@ -1852,10 +1906,11 @@
+  * @param string $value   The value to check.
+  * @return bool           True if the pattern matches the given value, false otherwise.
+  */
+-function rest_validate_json_schema_pattern( $pattern, $value ) {
+-	$escaped_pattern = str_replace( '#', '\\#', $pattern );
+-
+-	return 1 === preg_match( '#' . $escaped_pattern . '#u', $value );
++function rest_validate_json_schema_pattern( mixed $pattern, mixed $value ): mixed {
++	$escaped_pattern = \wp_aot_str_replace( '#', '\\#', $pattern );
++
++	return 1 === preg_match( \wp_aot_regex_text( '#' . $escaped_pattern . '#u' ), \wp_aot_regex_text( $value ) );
++	return null;
+ }
+ 
+ /**
+@@ -1867,7 +1922,7 @@
+  * @param array  $args     The schema array to use.
+  * @return array|null      The schema of matching pattern property, or null if no patterns match.
+  */
+-function rest_find_matching_pattern_property_schema( $property, $args ) {
++function rest_find_matching_pattern_property_schema( mixed $property, mixed $args ): mixed {
+ 	if ( isset( $args['patternProperties'] ) ) {
+ 		foreach ( $args['patternProperties'] as $pattern => $child_schema ) {
+ 			if ( rest_validate_json_schema_pattern( $pattern, $property ) ) {
+@@ -1877,6 +1932,7 @@
+ 	}
+ 
+ 	return null;
++	return null;
+ }
+ 
+ /**
+@@ -1888,7 +1944,7 @@
+  * @param array $error  The error details.
+  * @return WP_Error
+  */
+-function rest_format_combining_operation_error( $param, $error ) {
++function rest_format_combining_operation_error( mixed $param, mixed $error ): mixed {
+ 	$position = $error['index'];
+ 	$reason   = $error['error_object']->get_error_message();
+ 
+@@ -1909,6 +1965,7 @@
+ 		sprintf( __( '%1$s does not match the expected format. Reason: %2$s' ), $param, $reason ),
+ 		array( 'position' => $position )
+ 	);
++	return null;
+ }
+ 
+ /**
+@@ -1921,7 +1978,7 @@
+  * @param array  $errors The errors array, to search for possible error.
+  * @return WP_Error      The combining operation error.
+  */
+-function rest_get_combining_operation_error( $value, $param, $errors ) {
++function rest_get_combining_operation_error( mixed $value, mixed $param, mixed $errors ): mixed {
+ 	// If there is only one error, simply return it.
+ 	if ( 1 === count( $errors ) ) {
+ 		return rest_format_combining_operation_error( $param, $errors[0] );
+@@ -1950,7 +2007,7 @@
+ 
+ 		foreach ( $filtered_errors as $error ) {
+ 			if ( isset( $error['schema']['properties'] ) ) {
+-				$n = count( array_intersect_key( $error['schema']['properties'], $value ) );
++				$n = count( \wp_aot_array_intersect_key(array( $error['schema']['properties'], $value )) );
+ 				if ( $n > $number ) {
+ 					$result = $error;
+ 					$number = $n;
+@@ -1978,6 +2035,7 @@
+ 
+ 	/* translators: %s: Parameter. */
+ 	return new WP_Error( 'rest_no_matching_schema', sprintf( __( '%s does not match any of the expected formats.' ), $param ) );
++	return null;
+ }
+ 
+ /**
+@@ -1990,7 +2048,7 @@
+  * @param string $param   The parameter name, used in error messages.
+  * @return array|WP_Error The matching schema or WP_Error instance if all schemas do not match.
+  */
+-function rest_find_any_matching_schema( $value, $args, $param ) {
++function rest_find_any_matching_schema( mixed $value, mixed $args, mixed $param ): mixed {
+ 	$errors = array();
+ 
+ 	foreach ( $args['anyOf'] as $index => $schema ) {
+@@ -2011,6 +2069,7 @@
+ 	}
+ 
+ 	return rest_get_combining_operation_error( $value, $param, $errors );
++	return null;
+ }
+ 
+ /**
+@@ -2024,7 +2083,7 @@
+  * @param bool   $stop_after_first_match Optional. Whether the process should stop after the first successful match.
+  * @return array|WP_Error                The matching schema or WP_Error instance if the number of matching schemas is not equal to one.
+  */
+-function rest_find_one_matching_schema( $value, $args, $param, $stop_after_first_match = false ) {
++function rest_find_one_matching_schema( mixed $value, mixed $args, mixed $param, mixed $stop_after_first_match = false ): mixed {
+ 	$matching_schemas = array();
+ 	$errors           = array();
+ 
+@@ -2087,6 +2146,7 @@
+ 	}
+ 
+ 	return $matching_schemas[0]['schema_object'];
++	return null;
+ }
+ 
+ /**
+@@ -2102,7 +2162,7 @@
+  * @param mixed $value2 The second value to check.
+  * @return bool True if the values are equal or false otherwise.
+  */
+-function rest_are_values_equal( $value1, $value2 ) {
++function rest_are_values_equal( mixed $value1, mixed $value2 ): mixed {
+ 	if ( is_array( $value1 ) && is_array( $value2 ) ) {
+ 		if ( count( $value1 ) !== count( $value2 ) ) {
+ 			return false;
+@@ -2110,7 +2170,7 @@
+ 
+ 		return array_all(
+ 			$value1,
+-			fn( $value, $index ) => array_key_exists( $index, $value2 ) && rest_are_values_equal( $value, $value2[ $index ] )
++			fn( mixed $value, mixed $index ) => array_key_exists( $index, $value2 ) && rest_are_values_equal( $value, $value2[ $index ] )
+ 		);
+ 	}
+ 
+@@ -2121,6 +2181,7 @@
+ 	}
+ 
+ 	return $value1 === $value2;
++	return null;
+ }
+ 
+ /**
+@@ -2133,7 +2194,7 @@
+  * @param string $param  The parameter name, used in error messages.
+  * @return true|WP_Error True if the "enum" contains the value or a WP_Error instance otherwise.
+  */
+-function rest_validate_enum( $value, $args, $param ) {
++function rest_validate_enum( mixed $value, mixed $args, mixed $param ): mixed {
+ 	$sanitized_value = rest_sanitize_value_from_schema( $value, $args, $param );
+ 	if ( is_wp_error( $sanitized_value ) ) {
+ 		return $sanitized_value;
+@@ -2157,6 +2218,7 @@
+ 
+ 	/* translators: 1: Parameter, 2: List of valid values. */
+ 	return new WP_Error( 'rest_not_in_enum', wp_sprintf( __( '%1$s is not one of %2$l.' ), $param, $encoded_enum_values ) );
++	return null;
+ }
+ 
+ /**
+@@ -2166,7 +2228,7 @@
+  *
+  * @return string[] All valid JSON schema properties.
+  */
+-function rest_get_allowed_schema_keywords() {
++function rest_get_allowed_schema_keywords(): mixed {
+ 	return array(
+ 		'title',
+ 		'description',
+@@ -2194,6 +2256,7 @@
+ 		'anyOf',
+ 		'oneOf',
+ 	);
++	return null;
+ }
+ 
+ /**
+@@ -2218,7 +2281,7 @@
+  * @param string $param The parameter name, used in error messages.
+  * @return true|WP_Error
+  */
+-function rest_validate_value_from_schema( $value, $args, $param = '' ) {
++function rest_validate_value_from_schema( mixed $value, mixed $args, mixed $param = '' ): mixed {
+ 	if ( isset( $args['anyOf'] ) ) {
+ 		$matching_schema = rest_find_any_matching_schema( $value, $args, $param );
+ 		if ( is_wp_error( $matching_schema ) ) {
+@@ -2351,6 +2414,7 @@
+ 	}
+ 
+ 	return true;
++	return null;
+ }
+ 
+ /**
+@@ -2362,7 +2426,7 @@
+  * @param string $param The parameter name, used in error messages.
+  * @return true|WP_Error
+  */
+-function rest_validate_null_value_from_schema( $value, $param ) {
++function rest_validate_null_value_from_schema( mixed $value, mixed $param ): mixed {
+ 	if ( null !== $value ) {
+ 		return new WP_Error(
+ 			'rest_invalid_type',
+@@ -2373,6 +2437,7 @@
+ 	}
+ 
+ 	return true;
++	return null;
+ }
+ 
+ /**
+@@ -2384,7 +2449,7 @@
+  * @param string $param The parameter name, used in error messages.
+  * @return true|WP_Error
+  */
+-function rest_validate_boolean_value_from_schema( $value, $param ) {
++function rest_validate_boolean_value_from_schema( mixed $value, mixed $param ): mixed {
+ 	if ( ! rest_is_boolean( $value ) ) {
+ 		return new WP_Error(
+ 			'rest_invalid_type',
+@@ -2395,6 +2460,7 @@
+ 	}
+ 
+ 	return true;
++	return null;
+ }
+ 
+ /**
+@@ -2407,7 +2473,7 @@
+  * @param string $param The parameter name, used in error messages.
+  * @return true|WP_Error
+  */
+-function rest_validate_object_value_from_schema( $value, $args, $param ) {
++function rest_validate_object_value_from_schema( mixed $value, mixed $args, mixed $param ): mixed {
+ 	if ( ! rest_is_object( $value ) ) {
+ 		return new WP_Error(
+ 			'rest_invalid_type',
+@@ -2510,6 +2576,7 @@
+ 	}
+ 
+ 	return true;
++	return null;
+ }
+ 
+ /**
+@@ -2522,7 +2589,7 @@
+  * @param string $param The parameter name, used in error messages.
+  * @return true|WP_Error
+  */
+-function rest_validate_array_value_from_schema( $value, $args, $param ) {
++function rest_validate_array_value_from_schema( mixed $value, mixed $args, mixed $param ): mixed {
+ 	if ( ! rest_is_array( $value ) ) {
+ 		return new WP_Error(
+ 			'rest_invalid_type',
+@@ -2581,6 +2648,7 @@
+ 	}
+ 
+ 	return true;
++	return null;
+ }
+ 
+ /**
+@@ -2593,7 +2661,7 @@
+  * @param string $param The parameter name, used in error messages.
+  * @return true|WP_Error
+  */
+-function rest_validate_number_value_from_schema( $value, $args, $param ) {
++function rest_validate_number_value_from_schema( mixed $value, mixed $args, mixed $param ): mixed {
+ 	if ( ! is_numeric( $value ) ) {
+ 		return new WP_Error(
+ 			'rest_invalid_type',
+@@ -2710,6 +2778,7 @@
+ 	}
+ 
+ 	return true;
++	return null;
+ }
+ 
+ /**
+@@ -2722,7 +2791,7 @@
+  * @param string $param The parameter name, used in error messages.
+  * @return true|WP_Error
+  */
+-function rest_validate_string_value_from_schema( $value, $args, $param ) {
++function rest_validate_string_value_from_schema( mixed $value, mixed $args, mixed $param ): mixed {
+ 	if ( ! is_string( $value ) ) {
+ 		return new WP_Error(
+ 			'rest_invalid_type',
+@@ -2773,6 +2842,7 @@
+ 	}
+ 
+ 	return true;
++	return null;
+ }
+ 
+ /**
+@@ -2785,7 +2855,7 @@
+  * @param string $param The parameter name, used in error messages.
+  * @return true|WP_Error
+  */
+-function rest_validate_integer_value_from_schema( $value, $args, $param ) {
++function rest_validate_integer_value_from_schema( mixed $value, mixed $args, mixed $param ): mixed {
+ 	$is_valid_number = rest_validate_number_value_from_schema( $value, $args, $param );
+ 	if ( is_wp_error( $is_valid_number ) ) {
+ 		return $is_valid_number;
+@@ -2801,6 +2871,7 @@
+ 	}
+ 
+ 	return true;
++	return null;
+ }
+ 
+ /**
+@@ -2816,7 +2887,7 @@
+  * @param string $param The parameter name, used in error messages.
+  * @return mixed|WP_Error The sanitized value or a WP_Error instance if the value cannot be safely sanitized.
+  */
+-function rest_sanitize_value_from_schema( $value, $args, $param = '' ) {
++function rest_sanitize_value_from_schema( mixed $value, mixed $args, mixed $param = '' ): mixed {
+ 	if ( isset( $args['anyOf'] ) ) {
+ 		$matching_schema = rest_find_any_matching_schema( $value, $args, $param );
+ 		if ( is_wp_error( $matching_schema ) ) {
+@@ -2966,6 +3037,7 @@
+ 	}
+ 
+ 	return $value;
++	return null;
+ }
+ 
+ /**
+@@ -2978,7 +3050,7 @@
+  * @param string $path REST API path to preload.
+  * @return array Modified reduce accumulator.
+  */
+-function rest_preload_api_request( $memo, $path ) {
++function rest_preload_api_request( mixed $memo, mixed $path ): mixed {
+ 	/*
+ 	 * array_reduce() doesn't support passing an array in PHP 5.2,
+ 	 * so we need to make sure we start with one.
+@@ -3048,6 +3120,7 @@
+ 	}
+ 
+ 	return $memo;
++	return null;
+ }
+ 
+ /**
+@@ -3058,7 +3131,7 @@
+  * @param string|array $embed Raw "_embed" parameter value.
+  * @return true|string[] Either true to embed all embeds, or a list of relations to embed.
+  */
+-function rest_parse_embed_param( $embed ) {
++function rest_parse_embed_param( mixed $embed ): mixed {
+ 	if ( ! $embed || 'true' === $embed || '1' === $embed ) {
+ 		return true;
+ 	}
+@@ -3070,6 +3143,7 @@
+ 	}
+ 
+ 	return $rels;
++	return null;
+ }
+ 
+ /**
+@@ -3084,7 +3158,7 @@
+  * @param string       $context       The requested context.
+  * @return array|object The filtered response data.
+  */
+-function rest_filter_response_by_context( $response_data, $schema, $context ) {
++function rest_filter_response_by_context( mixed $response_data, mixed $schema, mixed $context ): mixed {
+ 	if ( isset( $schema['anyOf'] ) ) {
+ 		$matching_schema = rest_find_any_matching_schema( $response_data, $schema, '' );
+ 		if ( ! is_wp_error( $matching_schema ) ) {
+@@ -3132,7 +3206,8 @@
+ 
+ 	$has_additional_properties = $is_object_type && isset( $schema['additionalProperties'] ) && is_array( $schema['additionalProperties'] );
+ 
+-	foreach ( $response_data as $key => $value ) {
++	$wp_aot_context_values = is_object( $response_data ) ? get_object_vars( $response_data ) : $response_data;
++	foreach ( $wp_aot_context_values as $key => $value ) {
+ 		$check = array();
+ 
+ 		if ( $is_array_type ) {
+@@ -3162,15 +3237,19 @@
+ 			}
+ 
+ 			if ( is_object( $response_data ) ) {
+-				unset( $response_data->$key );
++				$wp_aot_response_record = \wp_aot_json_record( $response_data );
++				$wp_aot_response_field = (string) $key;
++				unset( $wp_aot_response_record->$wp_aot_response_field );
+ 			} else {
+-				unset( $response_data[ $key ] );
++				$response_data = \wp_aot_array_without_key( $response_data, $key );
+ 			}
+ 		} elseif ( is_array( $value ) || is_object( $value ) ) {
+ 			$new_value = rest_filter_response_by_context( $value, $check, $context );
+ 
+ 			if ( is_object( $response_data ) ) {
+-				$response_data->$key = $new_value;
++				$wp_aot_response_record = \wp_aot_json_record( $response_data );
++				$wp_aot_response_field = (string) $key;
++				$wp_aot_response_record->$wp_aot_response_field = $new_value;
+ 			} else {
+ 				$response_data[ $key ] = $new_value;
+ 			}
+@@ -3178,6 +3257,7 @@
+ 	}
+ 
+ 	return $response_data;
++	return null;
+ }
+ 
+ /**
+@@ -3189,7 +3269,7 @@
+  * @param array $schema The schema to modify.
+  * @return array The modified schema.
+  */
+-function rest_default_additional_properties_to_false( $schema ) {
++function rest_default_additional_properties_to_false( mixed $schema ): mixed {
+ 	$type = (array) $schema['type'];
+ 
+ 	if ( in_array( 'object', $type, true ) ) {
+@@ -3217,6 +3297,7 @@
+ 	}
+ 
+ 	return $schema;
++	return null;
+ }
+ 
+ /**
+@@ -3228,7 +3309,7 @@
+  * @return string The route path with a leading slash for the given post,
+  *                or an empty string if there is not a route.
+  */
+-function rest_get_route_for_post( $post ) {
++function rest_get_route_for_post( mixed $post ): mixed {
+ 	$post = get_post( $post );
+ 
+ 	if ( ! $post instanceof WP_Post ) {
+@@ -3251,6 +3332,7 @@
+ 	 * @param WP_Post $post  The post object.
+ 	 */
+ 	return apply_filters( 'rest_route_for_post', $route, $post );
++	return null;
+ }
+ 
+ /**
+@@ -3262,7 +3344,7 @@
+  * @return string The route path with a leading slash for the given post type,
+  *                or an empty string if there is not a route.
+  */
+-function rest_get_route_for_post_type_items( $post_type ) {
++function rest_get_route_for_post_type_items( mixed $post_type ): mixed {
+ 	$post_type = get_post_type_object( $post_type );
+ 	if ( ! $post_type ) {
+ 		return '';
+@@ -3285,6 +3367,7 @@
+ 	 * @param WP_Post_Type $post_type  The post type object.
+ 	 */
+ 	return apply_filters( 'rest_route_for_post_type_items', $route, $post_type );
++	return null;
+ }
+ 
+ /**
+@@ -3296,7 +3379,7 @@
+  * @return string The route path with a leading slash for the given term,
+  *                or an empty string if there is not a route.
+  */
+-function rest_get_route_for_term( $term ) {
++function rest_get_route_for_term( mixed $term ): mixed {
+ 	$term = get_term( $term );
+ 
+ 	if ( ! $term instanceof WP_Term ) {
+@@ -3319,6 +3402,7 @@
+ 	 * @param WP_Term $term  The term object.
+ 	 */
+ 	return apply_filters( 'rest_route_for_term', $route, $term );
++	return null;
+ }
+ 
+ /**
+@@ -3329,7 +3413,7 @@
+  * @param string $taxonomy Name of taxonomy.
+  * @return string The route path with a leading slash for the given taxonomy.
+  */
+-function rest_get_route_for_taxonomy_items( $taxonomy ) {
++function rest_get_route_for_taxonomy_items( mixed $taxonomy ): mixed {
+ 	$taxonomy = get_taxonomy( $taxonomy );
+ 	if ( ! $taxonomy ) {
+ 		return '';
+@@ -3352,6 +3436,7 @@
+ 	 * @param WP_Taxonomy $taxonomy The taxonomy object.
+ 	 */
+ 	return apply_filters( 'rest_route_for_taxonomy_items', $route, $taxonomy );
++	return null;
+ }
+ 
+ /**
+@@ -3361,7 +3446,7 @@
+  *
+  * @return string The REST route of the resource, or an empty string if no resource identified.
+  */
+-function rest_get_queried_resource_route() {
++function rest_get_queried_resource_route(): mixed {
+ 	if ( is_singular() ) {
+ 		$route = rest_get_route_for_post( get_queried_object() );
+ 	} elseif ( is_category() || is_tag() || is_tax() ) {
+@@ -3380,6 +3465,7 @@
+ 	 * @param string $link The route with a leading slash, or an empty string.
+ 	 */
+ 	return apply_filters( 'rest_queried_resource_route', $route );
++	return null;
+ }
+ 
+ /**
+@@ -3393,12 +3479,12 @@
+  *                       on `EDITABLE` endpoints. Default WP_REST_Server::CREATABLE.
+  * @return array The endpoint arguments.
+  */
+-function rest_get_endpoint_args_for_schema( $schema, $method = WP_REST_Server::CREATABLE ) {
++function rest_get_endpoint_args_for_schema( mixed $schema, mixed $method = WP_REST_Server::CREATABLE ): mixed {
+ 
+ 	$schema_properties       = ! empty( $schema['properties'] ) ? $schema['properties'] : array();
+ 	$endpoint_args           = array();
+ 	$valid_schema_properties = rest_get_allowed_schema_keywords();
+-	$valid_schema_properties = array_diff( $valid_schema_properties, array( 'default', 'required' ) );
++	$valid_schema_properties = \wp_aot_array_diff(array( $valid_schema_properties, array( 'default', 'required' ) ));
+ 
+ 	foreach ( $schema_properties as $field_id => $params ) {
+ 
+@@ -3431,20 +3517,21 @@
+ 
+ 			// Only use required / default from arg_options on CREATABLE endpoints.
+ 			if ( WP_REST_Server::CREATABLE !== $method ) {
+-				$params['arg_options'] = array_diff_key(
++				$params['arg_options'] = \wp_aot_array_diff_key(array(
+ 					$params['arg_options'],
+ 					array(
+ 						'required' => '',
+ 						'default'  => '',
+ 					)
+-				);
++				));
+ 			}
+ 
+-			$endpoint_args[ $field_id ] = array_merge( $endpoint_args[ $field_id ], $params['arg_options'] );
++			$endpoint_args[ $field_id ] = \wp_aot_array_merge(array( $endpoint_args[ $field_id ], $params['arg_options'] ));
+ 		}
+ 	}
+ 
+ 	return $endpoint_args;
++	return null;
+ }
+ 
+ 
+@@ -3461,14 +3548,14 @@
+  *
+  * @return WP_REST_Response List of associative arrays with code and message keys.
+  */
+-function rest_convert_error_to_response( $error ) {
++function rest_convert_error_to_response( mixed $error ): mixed {
+ 	$status = array_reduce(
+ 		$error->get_all_error_data(),
+ 		/**
+ 		 * @param int   $status     Status.
+ 		 * @param mixed $error_data Error data.
+ 		 */
+-		static function ( int $status, $error_data ): int {
++		static function ( int $status, mixed $error_data ): int {
+ 			if ( is_array( $error_data ) && isset( $error_data['status'] ) && is_numeric( $error_data['status'] ) ) {
+ 				$status = (int) $error_data['status'];
+ 			}
+@@ -3481,7 +3568,7 @@
+ 
+ 	foreach ( (array) $error->errors as $code => $messages ) {
+ 		$all_data  = $error->get_all_error_data( $code );
+-		$last_data = array_pop( $all_data );
++		$last_data = \wp_aot_array_pop( $all_data );
+ 
+ 		foreach ( (array) $messages as $message ) {
+ 			$formatted = array(
+@@ -3501,11 +3588,12 @@
+ 	$data = $errors[0];
+ 	if ( count( $errors ) > 1 ) {
+ 		// Remove the primary error.
+-		array_shift( $errors );
++		\wp_aot_array_shift( $errors );
+ 		$data['additional_errors'] = $errors;
+ 	}
+ 
+ 	return new WP_REST_Response( $data, $status );
++	return null;
+ }
+ 
+ /**
+@@ -3519,7 +3607,7 @@
+  *
+  * @return bool True if a REST endpoint request is currently being handled, false otherwise.
+  */
+-function wp_is_rest_endpoint() {
++function wp_is_rest_endpoint(): mixed {
+ 	/* @var WP_REST_Server $wp_rest_server */
+ 	global $wp_rest_server;
+ 
+@@ -3541,4 +3629,5 @@
+ 	 * @param bool $is_request_endpoint Whether a REST endpoint request is currently being handled.
+ 	 */
+ 	return (bool) apply_filters( 'wp_is_rest_endpoint', $is_rest_endpoint );
+-}
++	return null;
++}

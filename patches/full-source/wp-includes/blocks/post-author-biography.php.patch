@@ -1,0 +1,34 @@
+--- a/wp-includes/blocks/post-author-biography.php
++++ b/wp-includes/blocks/post-author-biography.php
+@@ -15,7 +15,7 @@
+  * @param  WP_Block $block      Block instance.
+  * @return string Returns the rendered post author biography block.
+  */
+-function render_block_core_post_author_biography( $attributes, $content, $block ) {
++function render_block_core_post_author_biography( mixed $attributes, mixed $content, mixed $block ): mixed {
+ 	if ( isset( $block->context['postId'] ) ) {
+ 		$author_id = get_post_field( 'post_author', $block->context['postId'] );
+ 	} else {
+@@ -35,6 +35,7 @@
+ 	$wrapper_attributes = get_block_wrapper_attributes( array( 'class' => $align_class_name ) );
+ 
+ 	return sprintf( '<div %1$s>', $wrapper_attributes ) . $author_biography . '</div>';
++	return null;
+ }
+ 
+ /**
+@@ -42,12 +43,13 @@
+  *
+  * @since 6.0.0
+  */
+-function register_block_core_post_author_biography() {
++function register_block_core_post_author_biography(): mixed {
+ 	register_block_type_from_metadata(
+ 		__DIR__ . '/post-author-biography',
+ 		array(
+ 			'render_callback' => 'render_block_core_post_author_biography',
+ 		)
+ 	);
++	return null;
+ }
+ add_action( 'init', 'register_block_core_post_author_biography' );

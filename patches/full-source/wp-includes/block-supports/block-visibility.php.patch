@@ -1,0 +1,28 @@
+--- a/wp-includes/block-supports/block-visibility.php
++++ b/wp-includes/block-supports/block-visibility.php
+@@ -17,7 +17,7 @@
+  * @param array  $block         Block object.
+  * @return string Filtered block content.
+  */
+-function wp_render_block_visibility_support( $block_content, $block ) {
++function wp_render_block_visibility_support( mixed $block_content, mixed $block ): mixed {
+ 	$block_type = WP_Block_Type_Registry::get_instance()->get_registered( $block['blockName'] );
+ 
+ 	if ( ! $block_type ) {
+@@ -78,7 +78,7 @@
+ 		}
+ 
+ 		// Maintain consistent order of viewport sizes for class name generation.
+-		sort( $hidden_on );
++		\wp_aot_sort( $hidden_on );
+ 
+ 		$css_rules   = array();
+ 		$class_names = array();
+@@ -127,6 +127,7 @@
+ 	}
+ 
+ 	return $block_content;
++	return null;
+ }
+ 
+ add_filter( 'render_block', 'wp_render_block_visibility_support', 10, 2 );

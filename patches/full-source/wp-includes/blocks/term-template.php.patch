@@ -1,0 +1,52 @@
+--- a/wp-includes/blocks/term-template.php
++++ b/wp-includes/blocks/term-template.php
+@@ -16,7 +16,7 @@
+  *
+  * @return string Returns the output of the term template.
+  */
+-function render_block_core_term_template( $attributes, $content, $block ) {
++function render_block_core_term_template( mixed $attributes, mixed $content, mixed $block ): mixed {
+ 	if ( ! isset( $block->context ) || empty( $block->context['termQuery'] ) ) {
+ 		return '';
+ 	}
+@@ -56,7 +56,7 @@
+ 
+ 		// If we are including specific terms we ignore `showNested` argument.
+ 		if ( ! empty( $query['include'] ) ) {
+-			$query_args['include'] = array_unique( array_map( 'intval', $query['include'] ) );
++			$query_args['include'] = \wp_aot_array_unique( \wp_aot_array_map( 'intval', $query['include'] ) );
+ 			$query_args['orderby'] = 'include';
+ 			$query_args['order']   = 'asc';
+ 		} elseif ( is_taxonomy_hierarchical( $query['taxonomy'] ) && empty( $query['showNested'] ) ) {
+@@ -85,7 +85,7 @@
+ 		$term_id  = $term->term_id;
+ 		$taxonomy = $term->taxonomy;
+ 
+-		$filter_block_context = static function ( $context ) use ( $term_id, $taxonomy ) {
++		$filter_block_context = static function ( mixed $context ) use ( $term_id, $taxonomy ) {
+ 			$context['termId']   = $term_id;
+ 			$context['taxonomy'] = $taxonomy;
+ 			return $context;
+@@ -119,6 +119,7 @@
+ 		$wrapper_attributes,
+ 		$content
+ 	);
++	return null;
+ }
+ 
+ /**
+@@ -126,12 +127,13 @@
+  *
+  * @since 6.9.0
+  */
+-function register_block_core_term_template() {
++function register_block_core_term_template(): mixed {
+ 	register_block_type_from_metadata(
+ 		__DIR__ . '/term-template',
+ 		array(
+ 			'render_callback' => 'render_block_core_term_template',
+ 		)
+ 	);
++	return null;
+ }
+ add_action( 'init', 'register_block_core_term_template' );

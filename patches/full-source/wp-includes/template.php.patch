@@ -1,38 +1,442 @@
 --- a/wp-includes/template.php
 +++ b/wp-includes/template.php
-@@ -877,9 +877,33 @@
+@@ -20,8 +20,8 @@
+  * @param string[] $templates An optional list of template candidates.
+  * @return string Full path to template file.
+  */
+-function get_query_template( $type, $templates = array() ) {
+-	$type = preg_replace( '|[^a-z0-9-]+|', '', $type );
++function get_query_template( mixed $type, mixed $templates = array() ): mixed {
++	$type = \wp_aot_preg_replace( '|[^a-z0-9-]+|', '', $type );
+ 
+ 	if ( empty( $templates ) ) {
+ 		$templates = array( "{$type}.php" );
+@@ -63,7 +63,7 @@
+ 
+ 	$template = locate_template( $templates );
+ 
+-	$template = locate_block_template( $template, $type, $templates );
++	$template = locate_block_template( $template, $type, \wp_aot_array_input($templates ));
+ 
+ 	/**
+ 	 * Filters the path of the queried template by type.
+@@ -101,6 +101,7 @@
+ 	 * @param string[] $templates A list of template candidates, in descending order of priority.
+ 	 */
+ 	return apply_filters( "{$type}_template", $template, $type, $templates );
++	return null;
+ }
+ 
+ /**
+@@ -115,8 +116,9 @@
+  *
+  * @return string Full path to index template file.
+  */
+-function get_index_template() {
++function get_index_template(): mixed {
+ 	return get_query_template( 'index' );
++	return null;
+ }
+ 
+ /**
+@@ -131,8 +133,9 @@
+  *
+  * @return string Full path to 404 template file.
+  */
+-function get_404_template() {
++function get_404_template(): mixed {
+ 	return get_query_template( '404' );
++	return null;
+ }
+ 
+ /**
+@@ -147,8 +150,8 @@
+  *
+  * @return string Full path to archive template file.
+  */
+-function get_archive_template() {
+-	$post_types = array_filter( (array) get_query_var( 'post_type' ) );
++function get_archive_template(): mixed {
++	$post_types = \wp_aot_array_filter( (array) get_query_var( 'post_type' ) );
+ 
+ 	$templates = array();
+ 
+@@ -159,6 +162,7 @@
+ 	$templates[] = 'archive.php';
+ 
+ 	return get_query_template( 'archive', $templates );
++	return null;
+ }
+ 
+ /**
+@@ -173,7 +177,7 @@
+  *
+  * @return string Full path to archive template file.
+  */
+-function get_post_type_archive_template() {
++function get_post_type_archive_template(): mixed {
+ 	$post_type = get_query_var( 'post_type' );
+ 	if ( is_array( $post_type ) ) {
+ 		$post_type = reset( $post_type );
+@@ -185,6 +189,7 @@
+ 	}
+ 
+ 	return get_archive_template();
++	return null;
+ }
+ 
+ /**
+@@ -211,7 +216,7 @@
+  *
+  * @return string Full path to author template file.
+  */
+-function get_author_template() {
++function get_author_template(): mixed {
+ 	$author = get_queried_object();
+ 
+ 	$templates = array();
+@@ -223,6 +228,7 @@
+ 	$templates[] = 'author.php';
+ 
+ 	return get_query_template( 'author', $templates );
++	return null;
+ }
+ 
+ /**
+@@ -251,7 +257,7 @@
+  *
+  * @return string Full path to category template file.
+  */
+-function get_category_template() {
++function get_category_template(): mixed {
+ 	$category = get_queried_object();
+ 
+ 	$templates = array();
+@@ -269,6 +275,7 @@
+ 	$templates[] = 'category.php';
+ 
+ 	return get_query_template( 'category', $templates );
++	return null;
+ }
+ 
+ /**
+@@ -297,7 +304,7 @@
+  *
+  * @return string Full path to tag template file.
+  */
+-function get_tag_template() {
++function get_tag_template(): mixed {
+ 	$tag = get_queried_object();
+ 
+ 	$templates = array();
+@@ -315,6 +322,7 @@
+ 	$templates[] = 'tag.php';
+ 
+ 	return get_query_template( 'tag', $templates );
++	return null;
+ }
+ 
+ /**
+@@ -346,7 +354,7 @@
+  *
+  * @return string Full path to custom taxonomy term template file.
+  */
+-function get_taxonomy_template() {
++function get_taxonomy_template(): mixed {
+ 	$term = get_queried_object();
+ 
+ 	$templates = array();
+@@ -366,6 +374,7 @@
+ 	$templates[] = 'taxonomy.php';
+ 
+ 	return get_query_template( 'taxonomy', $templates );
++	return null;
+ }
+ 
+ /**
+@@ -380,8 +389,9 @@
+  *
+  * @return string Full path to date template file.
+  */
+-function get_date_template() {
++function get_date_template(): mixed {
+ 	return get_query_template( 'date' );
++	return null;
+ }
+ 
+ /**
+@@ -396,10 +406,11 @@
+  *
+  * @return string Full path to home template file.
+  */
+-function get_home_template() {
++function get_home_template(): mixed {
+ 	$templates = array( 'home.php', 'index.php' );
+ 
+ 	return get_query_template( 'home', $templates );
++	return null;
+ }
+ 
+ /**
+@@ -414,10 +425,11 @@
+  *
+  * @return string Full path to front page template file.
+  */
+-function get_front_page_template() {
++function get_front_page_template(): mixed {
+ 	$templates = array( 'front-page.php' );
+ 
+ 	return get_query_template( 'frontpage', $templates );
++	return null;
+ }
+ 
+ /**
+@@ -432,10 +444,11 @@
+  *
+  * @return string Full path to privacy policy template file.
+  */
+-function get_privacy_policy_template() {
++function get_privacy_policy_template(): mixed {
+ 	$templates = array( 'privacy-policy.php' );
+ 
+ 	return get_query_template( 'privacypolicy', $templates );
++	return null;
+ }
+ 
+ /**
+@@ -468,7 +481,7 @@
+  *
+  * @return string Full path to page template file.
+  */
+-function get_page_template() {
++function get_page_template(): mixed {
+ 	$id       = get_queried_object_id();
+ 	$template = get_page_template_slug();
+ 	$pagename = get_query_var( 'pagename' );
+@@ -501,6 +514,7 @@
+ 	$templates[] = 'page.php';
+ 
+ 	return get_query_template( 'page', $templates );
++	return null;
+ }
+ 
+ /**
+@@ -515,8 +529,9 @@
+  *
+  * @return string Full path to search template file.
+  */
+-function get_search_template() {
++function get_search_template(): mixed {
+ 	return get_query_template( 'search' );
++	return null;
+ }
+ 
+ /**
+@@ -550,7 +565,7 @@
+  *
+  * @return string Full path to single template file.
+  */
+-function get_single_template() {
++function get_single_template(): mixed {
+ 	$object = get_queried_object();
+ 
+ 	$templates = array();
+@@ -573,6 +588,7 @@
+ 	$templates[] = 'single.php';
+ 
+ 	return get_query_template( 'single', $templates );
++	return null;
+ }
+ 
+ /**
+@@ -599,7 +615,7 @@
+  *
+  * @return string Full path to embed template file.
+  */
+-function get_embed_template() {
++function get_embed_template(): mixed {
+ 	$object = get_queried_object();
+ 
+ 	$templates = array();
+@@ -615,6 +631,7 @@
+ 	$templates[] = 'embed.php';
+ 
+ 	return get_query_template( 'embed', $templates );
++	return null;
+ }
+ 
+ /**
+@@ -629,8 +646,9 @@
+  *
+  * @return string Full path to singular template file.
+  */
+-function get_singular_template() {
++function get_singular_template(): mixed {
+ 	return get_query_template( 'singular' );
++	return null;
+ }
+ 
+ /**
+@@ -660,7 +678,7 @@
+  *
+  * @return string Full path to attachment template file.
+  */
+-function get_attachment_template() {
++function get_attachment_template(): mixed {
+ 	$attachment = get_queried_object();
+ 
+ 	$templates = array();
+@@ -681,6 +699,7 @@
+ 	$templates[] = 'attachment.php';
+ 
+ 	return get_query_template( 'attachment', $templates );
++	return null;
+ }
+ 
+ /**
+@@ -691,11 +710,12 @@
+  * @global string $wp_stylesheet_path Path to current theme's stylesheet directory.
+  * @global string $wp_template_path   Path to current theme's template directory.
+  */
+-function wp_set_template_globals() {
++function wp_set_template_globals(): mixed {
+ 	global $wp_stylesheet_path, $wp_template_path;
+ 
+ 	$wp_stylesheet_path = get_stylesheet_directory();
+ 	$wp_template_path   = get_template_directory();
++	return null;
+ }
+ 
+ /**
+@@ -710,11 +730,11 @@
+  * @param string $path Path to an existing template file.
+  * @return bool Whether the template may be loaded.
+  */
+-function _wp_is_template_path_allowed( $path ) {
++function _wp_is_template_path_allowed( mixed $path ): mixed {
+ 	global $wp_stylesheet_path, $wp_template_path;
+ 
+ 	// A file path that exists and does not contain `..` is allowed.
+-	if ( 0 === preg_match( '#(?:^|/)\.\.[. ]*(?:/|$)#', wp_normalize_path( $path ) ) ) {
++	if ( 0 === preg_match( '#(?:^|/)\.\.[. ]*(?:/|$)#', \wp_aot_regex_text( wp_normalize_path( $path ) ) ) ) {
+ 		return true;
+ 	}
+ 
+@@ -757,6 +777,7 @@
+ 	}
+ 
+ 	return false;
++	return null;
+ }
+ 
+ /**
+@@ -781,7 +802,7 @@
+  *                                     Default empty array.
+  * @return string The template filename if one is located.
+  */
+-function locate_template( $template_names, $load = false, $load_once = true, $args = array() ) {
++function locate_template( mixed $template_names, mixed $load = false, mixed $load_once = true, mixed $args = array() ): mixed {
+ 	global $wp_stylesheet_path, $wp_template_path;
+ 
+ 	if ( ! isset( $wp_stylesheet_path ) || ! isset( $wp_template_path ) ) {
+@@ -816,6 +837,7 @@
+ 	}
+ 
+ 	return $located;
++	return null;
+ }
+ 
+ /**
+@@ -845,7 +867,7 @@
+  * @param array  $args           Optional. Additional arguments passed to the template.
+  *                               Default empty array.
+  */
+-function load_template( $_template_file, $load_once = true, $args = array() ) {
++function load_template( mixed $_template_file, mixed $load_once = true, mixed $args = array() ): mixed {
+ 	global $posts, $post, $wp_did_header, $wp_query, $wp_rewrite, $wpdb, $wp_version, $wp, $id, $comment, $user_ID;
+ 
+ 	if ( is_array( $wp_query->query_vars ) ) {
+@@ -877,9 +899,33 @@
  	do_action( 'wp_before_load_template', $_template_file, $load_once, $args );
  
  	if ( $load_once ) {
 -		require_once $_template_file;
 +		switch ( $_template_file ) {
-+            case ABSPATH . WPINC . '/template-canvas.php': require_once ABSPATH . WPINC . '/template-canvas.php'; break;
-+            case ABSPATH . WPINC . '/theme-compat/comments.php': require_once ABSPATH . WPINC . '/theme-compat/comments.php'; break;
-+            case ABSPATH . WPINC . '/theme-compat/embed-404.php': require_once ABSPATH . WPINC . '/theme-compat/embed-404.php'; break;
-+            case ABSPATH . WPINC . '/theme-compat/embed-content.php': require_once ABSPATH . WPINC . '/theme-compat/embed-content.php'; break;
-+            case ABSPATH . WPINC . '/theme-compat/embed.php': require_once ABSPATH . WPINC . '/theme-compat/embed.php'; break;
-+            case ABSPATH . WPINC . '/theme-compat/footer-embed.php': require_once ABSPATH . WPINC . '/theme-compat/footer-embed.php'; break;
-+            case ABSPATH . WPINC . '/theme-compat/footer.php': require_once ABSPATH . WPINC . '/theme-compat/footer.php'; break;
-+            case ABSPATH . WPINC . '/theme-compat/header-embed.php': require_once ABSPATH . WPINC . '/theme-compat/header-embed.php'; break;
-+            case ABSPATH . WPINC . '/theme-compat/header.php': require_once ABSPATH . WPINC . '/theme-compat/header.php'; break;
-+            case ABSPATH . WPINC . '/theme-compat/sidebar.php': require_once ABSPATH . WPINC . '/theme-compat/sidebar.php'; break;
++            case ABSPATH . WPINC . '/template-canvas.php': require_once __DIR__ . '/template-canvas.php'; break;
++            case ABSPATH . WPINC . '/theme-compat/comments.php': require_once __DIR__ . '/theme-compat/comments.php'; break;
++            case ABSPATH . WPINC . '/theme-compat/embed-404.php': require_once __DIR__ . '/theme-compat/embed-404.php'; break;
++            case ABSPATH . WPINC . '/theme-compat/embed-content.php': require_once __DIR__ . '/theme-compat/embed-content.php'; break;
++            case ABSPATH . WPINC . '/theme-compat/embed.php': require_once __DIR__ . '/theme-compat/embed.php'; break;
++            case ABSPATH . WPINC . '/theme-compat/footer-embed.php': require_once __DIR__ . '/theme-compat/footer-embed.php'; break;
++            case ABSPATH . WPINC . '/theme-compat/footer.php': require_once __DIR__ . '/theme-compat/footer.php'; break;
++            case ABSPATH . WPINC . '/theme-compat/header-embed.php': require_once __DIR__ . '/theme-compat/header-embed.php'; break;
++            case ABSPATH . WPINC . '/theme-compat/header.php': require_once __DIR__ . '/theme-compat/header.php'; break;
++            case ABSPATH . WPINC . '/theme-compat/sidebar.php': require_once __DIR__ . '/theme-compat/sidebar.php'; break;
 +            default: throw new RuntimeException( 'PHP templates outside the fixed WordPress manifest are unavailable.' );
 +        }
  	} else {
 -		require $_template_file;
 +		switch ( $_template_file ) {
-+            case ABSPATH . WPINC . '/template-canvas.php': require ABSPATH . WPINC . '/template-canvas.php'; break;
-+            case ABSPATH . WPINC . '/theme-compat/comments.php': require ABSPATH . WPINC . '/theme-compat/comments.php'; break;
-+            case ABSPATH . WPINC . '/theme-compat/embed-404.php': require ABSPATH . WPINC . '/theme-compat/embed-404.php'; break;
-+            case ABSPATH . WPINC . '/theme-compat/embed-content.php': require ABSPATH . WPINC . '/theme-compat/embed-content.php'; break;
-+            case ABSPATH . WPINC . '/theme-compat/embed.php': require ABSPATH . WPINC . '/theme-compat/embed.php'; break;
-+            case ABSPATH . WPINC . '/theme-compat/footer-embed.php': require ABSPATH . WPINC . '/theme-compat/footer-embed.php'; break;
-+            case ABSPATH . WPINC . '/theme-compat/footer.php': require ABSPATH . WPINC . '/theme-compat/footer.php'; break;
-+            case ABSPATH . WPINC . '/theme-compat/header-embed.php': require ABSPATH . WPINC . '/theme-compat/header-embed.php'; break;
-+            case ABSPATH . WPINC . '/theme-compat/header.php': require ABSPATH . WPINC . '/theme-compat/header.php'; break;
-+            case ABSPATH . WPINC . '/theme-compat/sidebar.php': require ABSPATH . WPINC . '/theme-compat/sidebar.php'; break;
++            case ABSPATH . WPINC . '/template-canvas.php': require __DIR__ . '/template-canvas.php'; break;
++            case ABSPATH . WPINC . '/theme-compat/comments.php': require __DIR__ . '/theme-compat/comments.php'; break;
++            case ABSPATH . WPINC . '/theme-compat/embed-404.php': require __DIR__ . '/theme-compat/embed-404.php'; break;
++            case ABSPATH . WPINC . '/theme-compat/embed-content.php': require __DIR__ . '/theme-compat/embed-content.php'; break;
++            case ABSPATH . WPINC . '/theme-compat/embed.php': require __DIR__ . '/theme-compat/embed.php'; break;
++            case ABSPATH . WPINC . '/theme-compat/footer-embed.php': require __DIR__ . '/theme-compat/footer-embed.php'; break;
++            case ABSPATH . WPINC . '/theme-compat/footer.php': require __DIR__ . '/theme-compat/footer.php'; break;
++            case ABSPATH . WPINC . '/theme-compat/header-embed.php': require __DIR__ . '/theme-compat/header-embed.php'; break;
++            case ABSPATH . WPINC . '/theme-compat/header.php': require __DIR__ . '/theme-compat/header.php'; break;
++            case ABSPATH . WPINC . '/theme-compat/sidebar.php': require __DIR__ . '/theme-compat/sidebar.php'; break;
 +            default: throw new RuntimeException( 'PHP templates outside the fixed WordPress manifest are unavailable.' );
 +        }
  	}
  
  	/**
+@@ -892,6 +938,7 @@
+ 	 * @param array  $args           Additional arguments passed to the template.
+ 	 */
+ 	do_action( 'wp_after_load_template', $_template_file, $load_once, $args );
++	return null;
+ }
+ 
+ /**
+@@ -996,7 +1043,7 @@
+ 	// Detect if the response is an HTML content type.
+ 	$is_html_content_type = null;
+ 	$html_content_types   = array( 'text/html', 'application/xhtml+xml' );
+-	foreach ( headers_list() as $header ) {
++	foreach ( \wp_aot_native_api('headers_list', array()) as $header ) {
+ 		$header_parts = explode( ':', strtolower( $header ), 2 );
+ 		if (
+ 			count( $header_parts ) === 2 &&
+@@ -1048,7 +1095,7 @@
+ 
+ 			// Capture a reported error to be displayed by appending to the processed output buffer if display_errors is enabled.
+ 			if ( error_reporting() & $level ) {
+-				$error_log[] = compact( 'level', 'message', 'file', 'line' );
++				$error_log[] = \wp_aot_compact(get_defined_vars(), array( 'level', 'message', 'file', 'line' ));
+ 			}
+ 			return false;
+ 		}
+@@ -1139,7 +1186,7 @@
+ 	// Append any errors to be displayed before returning flushing the buffer.
+ 	if ( $original_display_errors && 'stderr' !== $original_display_errors ) {
+ 		foreach ( $error_log as $error ) {
+-			switch ( $error['level'] ) {
++			switch ( \wp_aot_mixed($error)['level'] ) {
+ 				case E_USER_NOTICE:
+ 					$type = 'Notice';
+ 					break;
+@@ -1167,9 +1214,9 @@
+ 				$format,
+ 				ini_get( 'error_prepend_string' ),
+ 				$type,
+-				$error['message'],
+-				$error['file'],
+-				$error['line'],
++				\wp_aot_mixed($error)['message'],
++				\wp_aot_mixed($error)['file'],
++				\wp_aot_mixed($error)['line'],
+ 				ini_get( 'error_append_string' )
+ 			);
+ 		}

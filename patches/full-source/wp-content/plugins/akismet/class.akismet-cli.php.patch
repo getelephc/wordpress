@@ -1,0 +1,20 @@
+--- a/wp-content/plugins/akismet/class.akismet-cli.php
++++ b/wp-content/plugins/akismet/class.akismet-cli.php
+@@ -79,14 +79,14 @@
+ 		} while ( $result_counts['processed'] > 0 );
+ 
+ 		/* translators: %d: Number of comments. */
+-		WP_CLI::line( sprintf( _n( 'Processed %d comment.', 'Processed %d comments.', $total_counts['processed'], 'akismet' ), number_format( $total_counts['processed'] ) ) );
++		WP_CLI::line( sprintf( _n( 'Processed %d comment.', 'Processed %d comments.', $total_counts['processed'], 'akismet' ), \wp_aot_number_format( $total_counts['processed'] ) ) );
+ 
+ 		/* translators: %d: Number of comments. */
+-		WP_CLI::line( sprintf( _n( '%d comment moved to Spam.', '%d comments moved to Spam.', $total_counts['spam'], 'akismet' ), number_format( $total_counts['spam'] ) ) );
++		WP_CLI::line( sprintf( _n( '%d comment moved to Spam.', '%d comments moved to Spam.', $total_counts['spam'], 'akismet' ), \wp_aot_number_format( $total_counts['spam'] ) ) );
+ 
+ 		if ( $total_counts['error'] ) {
+ 			/* translators: %d: Number of comments. */
+-			WP_CLI::line( sprintf( _n( '%d comment could not be checked.', '%d comments could not be checked.', $total_counts['error'], 'akismet' ), number_format( $total_counts['error'] ) ) );
++			WP_CLI::line( sprintf( _n( '%d comment could not be checked.', '%d comments could not be checked.', $total_counts['error'], 'akismet' ), \wp_aot_number_format( $total_counts['error'] ) ) );
+ 		}
+ 	}
+ 

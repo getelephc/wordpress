@@ -1,0 +1,73 @@
+--- a/wp-includes/class-wp-feed-cache-transient.php
++++ b/wp-includes/class-wp-feed-cache-transient.php
+@@ -55,7 +55,7 @@
+ 	 * @param Base::TYPE_FEED|Base::TYPE_IMAGE $type     Either `TYPE_FEED` ('spc') for SimplePie data,
+ 	 *                                                   or `TYPE_IMAGE` ('spi') for image data.
+ 	 */
+-	public function __construct( $location, $name, $type ) {
++	public function __construct( mixed $location, mixed $name, mixed $type ) {
+ 		$this->name     = 'feed_' . $name;
+ 		$this->mod_name = 'feed_mod_' . $name;
+ 
+@@ -80,7 +80,7 @@
+ 	 *                                        only cache the `$data` property.
+ 	 * @return true Always true.
+ 	 */
+-	public function save( $data ) {
++	public function save( mixed $data ): mixed {
+ 		if ( $data instanceof SimplePie\SimplePie ) {
+ 			$data = $data->data;
+ 		}
+@@ -88,6 +88,7 @@
+ 		set_site_transient( $this->name, $data, $this->lifetime );
+ 		set_site_transient( $this->mod_name, time(), $this->lifetime );
+ 		return true;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -97,8 +98,9 @@
+ 	 *
+ 	 * @return array Data for `SimplePie::$data`.
+ 	 */
+-	public function load() {
++	public function load(): mixed {
+ 		return get_site_transient( $this->name );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -108,8 +110,9 @@
+ 	 *
+ 	 * @return int Timestamp.
+ 	 */
+-	public function mtime() {
++	public function mtime(): mixed {
+ 		return get_site_transient( $this->mod_name );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -119,8 +122,9 @@
+ 	 *
+ 	 * @return bool False if value was not set and true if value was set.
+ 	 */
+-	public function touch() {
++	public function touch(): mixed {
+ 		return set_site_transient( $this->mod_name, time(), $this->lifetime );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -130,9 +134,10 @@
+ 	 *
+ 	 * @return true Always true.
+ 	 */
+-	public function unlink() {
++	public function unlink(): mixed {
+ 		delete_site_transient( $this->name );
+ 		delete_site_transient( $this->mod_name );
+ 		return true;
++		return null;
+ 	}
+ }

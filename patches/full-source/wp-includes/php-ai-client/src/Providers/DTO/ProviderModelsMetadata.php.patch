@@ -1,0 +1,28 @@
+--- a/wp-includes/php-ai-client/src/Providers/DTO/ProviderModelsMetadata.php
++++ b/wp-includes/php-ai-client/src/Providers/DTO/ProviderModelsMetadata.php
+@@ -22,7 +22,7 @@
+  *     models: list<ModelMetadataArrayShape>
+  * }
+  *
+- * @extends AbstractDataTransferObject<ProviderModelsMetadataArrayShape>
++ * @phpstan-extends AbstractDataTransferObject<ProviderModelsMetadataArrayShape>
+  */
+ class ProviderModelsMetadata extends AbstractDataTransferObject
+ {
+@@ -113,7 +113,7 @@
+      */
+     public function toArray(): array
+     {
+-        return [self::KEY_PROVIDER => $this->provider->toArray(), self::KEY_MODELS => array_map(static fn(ModelMetadata $model): array => $model->toArray(), $this->models)];
++        return [self::KEY_PROVIDER => $this->provider->toArray(), self::KEY_MODELS => \wp_aot_array_map(static fn(ModelMetadata $model): array => $model->toArray(), $this->models)];
+     }
+     /**
+      * {@inheritDoc}
+@@ -123,6 +123,6 @@
+     public static function fromArray(array $array): self
+     {
+         static::validateFromArrayData($array, [self::KEY_PROVIDER, self::KEY_MODELS]);
+-        return new self(\WordPress\AiClient\Providers\DTO\ProviderMetadata::fromArray($array[self::KEY_PROVIDER]), array_map(static fn(array $modelData): ModelMetadata => ModelMetadata::fromArray($modelData), $array[self::KEY_MODELS]));
++        return new self(\WordPress\AiClient\Providers\DTO\ProviderMetadata::fromArray(\wp_aot_require_array( $array[self::KEY_PROVIDER] )), \wp_aot_array_map(static fn(array $modelData): ModelMetadata => ModelMetadata::fromArray($modelData), \wp_aot_require_array( $array[self::KEY_MODELS] )));
+     }
+ }

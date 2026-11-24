@@ -1,0 +1,166 @@
+--- a/wp-includes/Text/Diff/Engine/native.php
++++ b/wp-includes/Text/Diff/Engine/native.php
+@@ -28,17 +28,17 @@
+  */
+ class Text_Diff_Engine_native {
+ 
+-    public $xchanged;
+-    public $ychanged;
++    public mixed $xchanged = null;
++    public mixed $ychanged = null;
+     public $xv;
+     public $yv;
+     public $xind;
+     public $yind;
+-    public $seq;
+-    public $in_seq;
++    public mixed $seq = null;
++    public mixed $in_seq = null;
+     public $lcs;
+ 
+-    function diff($from_lines, $to_lines)
++    function diff(mixed $from_lines, mixed $to_lines): mixed
+     {
+         array_walk($from_lines, array('Text_Diff', 'trimNewlines'));
+         array_walk($to_lines, array('Text_Diff', 'trimNewlines'));
+@@ -138,6 +138,7 @@
+         }
+ 
+         return $edits;
++    	return null;
+     }
+ 
+     /**
+@@ -156,7 +157,7 @@
+      * match.  The caller must trim matching lines from the beginning and end
+      * of the portions it is going to specify.
+      */
+-    function _diag ($xoff, $xlim, $yoff, $ylim, $nchunks)
++    function _diag (mixed $xoff, mixed $xlim, mixed $yoff, mixed $ylim, mixed $nchunks): mixed
+     {
+         $flip = false;
+ 
+@@ -168,6 +169,7 @@
+                 = array($yoff, $ylim, $xoff, $xlim);
+         }
+ 
++        $ymatches = \wp_aot_mixed(array());
+         if ($flip) {
+             for ($i = $ylim - 1; $i >= $yoff; $i--) {
+                 $ymatches[$this->xv[$i]][] = $i;
+@@ -179,6 +181,7 @@
+         }
+ 
+         $this->lcs = 0;
++        if (!isset($this->seq)) $this->seq = \wp_aot_empty_request_array();
+         $this->seq[0]= $yoff - 1;
+         $this->in_seq = array();
+         $ymids[0] = array();
+@@ -188,7 +191,7 @@
+         for ($chunk = 0; $chunk < $nchunks; $chunk++) {
+             if ($chunk > 0) {
+                 for ($i = 0; $i <= $this->lcs; $i++) {
+-                    $ymids[$i][$chunk - 1] = $this->seq[$i];
++                    $ymids[$i][$chunk - 1] = \wp_aot_mixed($this->seq)[$i];
+                 }
+             }
+ 
+@@ -198,7 +201,7 @@
+                 if (empty($ymatches[$line])) {
+                     continue;
+                 }
+-                $matches = $ymatches[$line];
++                $matches = \wp_aot_mixed($ymatches)[$line];
+                 reset($matches);
+                 while ($y = current($matches)) {
+                     if (empty($this->in_seq[$y])) {
+@@ -210,11 +213,11 @@
+                     next($matches);
+                 }
+                 while ($y = current($matches)) {
+-                    if ($y > $this->seq[$k - 1]) {
+-                        assert($y <= $this->seq[$k]);
++                    if ($y > \wp_aot_mixed($this->seq)[$k - 1]) {
++                        assert($y <= \wp_aot_mixed($this->seq)[$k]);
+                         /* Optimization: this is a common case: next match is
+                          * just replacing previous match. */
+-                        $this->in_seq[$this->seq[$k]] = false;
++                        $this->in_seq[\wp_aot_mixed($this->seq)[$k]] = false;
+                         $this->seq[$k] = $y;
+                         $this->in_seq[$y] = 1;
+                     } elseif (empty($this->in_seq[$y])) {
+@@ -237,12 +240,13 @@
+         $seps[] = $flip ? array($ylim, $xlim) : array($xlim, $ylim);
+ 
+         return array($this->lcs, $seps);
++    	return null;
+     }
+ 
+-    function _lcsPos($ypos)
++    function _lcsPos(mixed $ypos): mixed
+     {
+         $end = $this->lcs;
+-        if ($end == 0 || $ypos > $this->seq[$end]) {
++        if ($end == 0 || $ypos > \wp_aot_mixed($this->seq)[$end]) {
+             $this->seq[++$this->lcs] = $ypos;
+             $this->in_seq[$ypos] = 1;
+             return $this->lcs;
+@@ -251,19 +255,20 @@
+         $beg = 1;
+         while ($beg < $end) {
+             $mid = (int)(($beg + $end) / 2);
+-            if ($ypos > $this->seq[$mid]) {
++            if ($ypos > \wp_aot_mixed($this->seq)[$mid]) {
+                 $beg = $mid + 1;
+             } else {
+                 $end = $mid;
+             }
+         }
+ 
+-        assert($ypos != $this->seq[$end]);
+-
+-        $this->in_seq[$this->seq[$end]] = false;
++        assert($ypos != \wp_aot_mixed($this->seq)[$end]);
++
++        $this->in_seq[\wp_aot_mixed($this->seq)[$end]] = false;
+         $this->seq[$end] = $ypos;
+         $this->in_seq[$ypos] = 1;
+         return $end;
++    	return null;
+     }
+ 
+     /**
+@@ -278,7 +283,7 @@
+      * Note that XLIM, YLIM are exclusive bounds.  All line numbers are
+      * origin-0 and discarded lines are not counted.
+      */
+-    function _compareseq ($xoff, $xlim, $yoff, $ylim)
++    function _compareseq (mixed $xoff, mixed $xlim, mixed $yoff, mixed $ylim): mixed
+     {
+         /* Slide down the bottom initial diagonal. */
+         while ($xoff < $xlim && $yoff < $ylim
+@@ -323,6 +328,7 @@
+                 $pt1 = $pt2;
+             }
+         }
++    	return null;
+     }
+ 
+     /**
+@@ -337,7 +343,7 @@
+      *
+      * This is extracted verbatim from analyze.c (GNU diffutils-2.7).
+      */
+-    function _shiftBoundaries($lines, &$changed, $other_changed)
++    function _shiftBoundaries(mixed $lines, mixed &$changed, mixed $other_changed): mixed
+     {
+         $i = 0;
+         $j = 0;
+@@ -443,6 +449,7 @@
+                 assert($j >= 0 && !$other_changed[$j]);
+             }
+         }
++    	return null;
+     }
+ 
+ }

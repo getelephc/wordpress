@@ -1,0 +1,88 @@
+--- a/wp-includes/Requests/src/Proxy/Http.php
++++ b/wp-includes/Requests/src/Proxy/Http.php
+@@ -64,7 +64,7 @@
+ 	 * @throws \WpOrg\Requests\Exception\InvalidArgument When the passed argument is not an array, a string or null.
+ 	 * @throws \WpOrg\Requests\Exception\ArgumentCount On incorrect number of arguments (`proxyhttpbadargs`)
+ 	 */
+-	public function __construct($args = null) {
++	public function __construct(mixed $args = null) {
+ 		if (is_string($args)) {
+ 			$this->proxy = $args;
+ 		} elseif (is_array($args)) {
+@@ -95,7 +95,7 @@
+ 	 * @see \WpOrg\Requests\Proxy\Http::fsockopen_header()
+ 	 * @param \WpOrg\Requests\Hooks $hooks Hook system
+ 	 */
+-	public function register(Hooks $hooks) {
++	public function register(Hooks $hooks): mixed {
+ 		$hooks->register('curl.before_send', [$this, 'curl_before_send']);
+ 
+ 		$hooks->register('fsockopen.remote_socket', [$this, 'fsockopen_remote_socket']);
+@@ -103,6 +103,7 @@
+ 		if ($this->use_authentication) {
+ 			$hooks->register('fsockopen.after_headers', [$this, 'fsockopen_header']);
+ 		}
++		return null;
+ 	}
+ 
+ 	/**
+@@ -111,7 +112,7 @@
+ 	 * @since 1.6
+ 	 * @param resource|\CurlHandle $handle cURL handle
+ 	 */
+-	public function curl_before_send(&$handle) {
++	public function curl_before_send(mixed &$handle): mixed {
+ 		curl_setopt($handle, CURLOPT_PROXYTYPE, CURLPROXY_HTTP);
+ 		curl_setopt($handle, CURLOPT_PROXY, $this->proxy);
+ 
+@@ -119,6 +120,7 @@
+ 			curl_setopt($handle, CURLOPT_PROXYAUTH, CURLAUTH_ANY);
+ 			curl_setopt($handle, CURLOPT_PROXYUSERPWD, $this->get_auth_string());
+ 		}
++		return null;
+ 	}
+ 
+ 	/**
+@@ -127,8 +129,9 @@
+ 	 * @since 1.6
+ 	 * @param string $remote_socket Socket connection string
+ 	 */
+-	public function fsockopen_remote_socket(&$remote_socket) {
++	public function fsockopen_remote_socket(mixed &$remote_socket): mixed {
+ 		$remote_socket = $this->proxy;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -138,8 +141,9 @@
+ 	 * @param string $path Path to send in HTTP request string ("GET ...")
+ 	 * @param string $url Full URL we're requesting
+ 	 */
+-	public function fsockopen_remote_host_path(&$path, $url) {
++	public function fsockopen_remote_host_path(mixed &$path, mixed $url): mixed {
+ 		$path = $url;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -148,8 +152,9 @@
+ 	 * @since 1.6
+ 	 * @param string $out HTTP header string
+ 	 */
+-	public function fsockopen_header(&$out) {
++	public function fsockopen_header(mixed &$out): mixed {
+ 		$out .= sprintf("Proxy-Authorization: Basic %s\r\n", base64_encode($this->get_auth_string()));
++		return null;
+ 	}
+ 
+ 	/**
+@@ -158,7 +163,8 @@
+ 	 * @since 1.6
+ 	 * @return string
+ 	 */
+-	public function get_auth_string() {
++	public function get_auth_string(): mixed {
+ 		return $this->user . ':' . $this->pass;
++		return null;
+ 	}
+ }

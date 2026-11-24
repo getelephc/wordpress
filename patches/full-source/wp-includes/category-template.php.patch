@@ -1,0 +1,556 @@
+--- a/wp-includes/category-template.php
++++ b/wp-includes/category-template.php
+@@ -17,7 +17,7 @@
+  * @param int|object $category Category ID or object.
+  * @return string Link on success, empty string if category does not exist.
+  */
+-function get_category_link( $category ) {
++function get_category_link( mixed $category ): mixed {
+ 	if ( ! is_object( $category ) ) {
+ 		$category = (int) $category;
+ 	}
+@@ -29,6 +29,7 @@
+ 	}
+ 
+ 	return $category;
++	return null;
+ }
+ 
+ /**
+@@ -44,7 +45,7 @@
+  * @param array  $deprecated  Not used.
+  * @return string|WP_Error A list of category parents on success, WP_Error on failure.
+  */
+-function get_category_parents( $category_id, $link = false, $separator = '/', $nicename = false, $deprecated = array() ) {
++function get_category_parents( mixed $category_id, mixed $link = false, mixed $separator = '/', mixed $nicename = false, mixed $deprecated = array() ): mixed {
+ 
+ 	if ( ! empty( $deprecated ) ) {
+ 		_deprecated_argument( __FUNCTION__, '4.8.0' );
+@@ -59,6 +60,7 @@
+ 	);
+ 
+ 	return get_term_parents_list( $category_id, 'category', $args );
++	return null;
+ }
+ 
+ /**
+@@ -74,7 +76,7 @@
+  * @param int|false $post_id Optional. The post ID. Defaults to current post ID.
+  * @return WP_Term[] Array of WP_Term objects, one for each category assigned to the post.
+  */
+-function get_the_category( $post_id = false ) {
++function get_the_category( mixed $post_id = false ): mixed {
+ 	$categories = get_the_terms( $post_id, 'category' );
+ 	if ( ! $categories || is_wp_error( $categories ) ) {
+ 		$categories = array();
+@@ -96,6 +98,7 @@
+ 	 * @param int|false $post_id    The post ID.
+ 	 */
+ 	return apply_filters( 'get_the_categories', $categories, $post_id );
++	return null;
+ }
+ 
+ /**
+@@ -106,7 +109,7 @@
+  * @param int $cat_id Category ID.
+  * @return string|WP_Error Category name on success, WP_Error on failure.
+  */
+-function get_the_category_by_ID( $cat_id ) { // phpcs:ignore WordPress.NamingConventions.ValidFunctionName.FunctionNameInvalid
++function get_the_category_by_ID( mixed $cat_id ): mixed { // phpcs:ignore WordPress.NamingConventions.ValidFunctionName.FunctionNameInvalid
+ 	$cat_id   = (int) $cat_id;
+ 	$category = get_term( $cat_id );
+ 
+@@ -115,6 +118,7 @@
+ 	}
+ 
+ 	return ( $category ) ? $category->name : '';
++	return null;
+ }
+ 
+ /**
+@@ -138,7 +142,7 @@
+  * @param int|false $post_id   Optional. ID of the post to retrieve categories for. Defaults to the current post.
+  * @return string Category list for a post.
+  */
+-function get_the_category_list( $separator = '', $parents = '', $post_id = false ) {
++function get_the_category_list( mixed $separator = '', mixed $parents = '', mixed $post_id = false ): mixed {
+ 	global $wp_rewrite;
+ 
+ 	if ( ! is_object_in_taxonomy( get_post_type( $post_id ), 'category' ) ) {
+@@ -228,6 +232,7 @@
+ 	 *                          'single', or empty.
+ 	 */
+ 	return apply_filters( 'the_category', $thelist, $separator, $parents );
++	return null;
+ }
+ 
+ /**
+@@ -254,12 +259,13 @@
+  * @param int|null|WP_Post          $post     Optional. Post to check. Defaults to the current post.
+  * @return bool True if the current post is in any of the given categories.
+  */
+-function in_category( $category, $post = null ) {
++function in_category( mixed $category, mixed $post = null ): mixed {
+ 	if ( empty( $category ) ) {
+ 		return false;
+ 	}
+ 
+ 	return has_category( $category, $post );
++	return null;
+ }
+ 
+ /**
+@@ -273,8 +279,9 @@
+  *                             Default empty string.
+  * @param int|false $post_id   Optional. ID of the post to retrieve categories for. Defaults to the current post.
+  */
+-function the_category( $separator = '', $parents = '', $post_id = false ) {
++function the_category( mixed $separator = '', mixed $parents = '', mixed $post_id = false ): mixed {
+ 	echo get_the_category_list( $separator, $parents, $post_id );
++	return null;
+ }
+ 
+ /**
+@@ -285,8 +292,9 @@
+  * @param int $category Optional. Category ID. Defaults to the current category ID.
+  * @return string Category description, if available.
+  */
+-function category_description( $category = 0 ) {
++function category_description( mixed $category = 0 ): mixed {
+ 	return term_description( $category );
++	return null;
+ }
+ 
+ /**
+@@ -341,7 +349,7 @@
+  * }
+  * @return string HTML dropdown list of categories.
+  */
+-function wp_dropdown_categories( $args = '' ) {
++function wp_dropdown_categories( mixed $args = '' ): mixed {
+ 	$defaults = array(
+ 		'show_option_all'   => '',
+ 		'show_option_none'  => '',
+@@ -483,6 +491,7 @@
+ 	}
+ 
+ 	return $output;
++	return null;
+ }
+ 
+ /**
+@@ -535,7 +544,7 @@
+  * @return void|string|false Void if 'echo' argument is true, HTML list of categories if 'echo' is false.
+  *                           False if the taxonomy does not exist.
+  */
+-function wp_list_categories( $args = '' ) {
++function wp_list_categories( mixed $args = '' ): mixed {
+ 	$defaults = array(
+ 		'child_of'            => 0,
+ 		'current_category'    => 0,
+@@ -569,14 +578,14 @@
+ 
+ 	// Descendants of exclusions should be excluded too.
+ 	if ( $parsed_args['hierarchical'] ) {
+-		$exclude_tree = array();
++		$exclude_tree = \wp_aot_mixed(array());
+ 
+ 		if ( $parsed_args['exclude_tree'] ) {
+-			$exclude_tree = array_merge( $exclude_tree, wp_parse_id_list( $parsed_args['exclude_tree'] ) );
++			$exclude_tree = \wp_aot_array_merge(array( $exclude_tree, wp_parse_id_list( $parsed_args['exclude_tree'] ) ));
+ 		}
+ 
+ 		if ( $parsed_args['exclude'] ) {
+-			$exclude_tree = array_merge( $exclude_tree, wp_parse_id_list( $parsed_args['exclude'] ) );
++			$exclude_tree = \wp_aot_array_merge(array( $exclude_tree, wp_parse_id_list( $parsed_args['exclude'] ) ));
+ 		}
+ 
+ 		$parsed_args['exclude_tree'] = $exclude_tree;
+@@ -685,6 +694,7 @@
+ 	} else {
+ 		return $html;
+ 	}
++	return null;
+ }
+ 
+ /**
+@@ -713,7 +723,7 @@
+  * @return void|string|string[] Void if 'echo' argument is true, or on failure. Otherwise, tag cloud
+  *                              as a string or an array, depending on 'format' argument.
+  */
+-function wp_tag_cloud( $args = '' ) {
++function wp_tag_cloud( mixed $args = '' ): mixed {
+ 	$defaults = array(
+ 		'smallest'   => 8,
+ 		'largest'    => 22,
+@@ -735,17 +745,17 @@
+ 	$args = wp_parse_args( $args, $defaults );
+ 
+ 	$tags = get_terms(
+-		array_merge(
++		\wp_aot_array_merge(array(
+ 			$args,
+ 			array(
+ 				'orderby' => 'count',
+ 				'order'   => 'DESC',
+ 			)
+-		)
++		))
+ 	); // Always query top tags.
+ 
+ 	if ( empty( $tags ) || is_wp_error( $tags ) ) {
+-		return;
++		return null;
+ 	}
+ 
+ 	foreach ( $tags as $key => $tag ) {
+@@ -756,7 +766,7 @@
+ 		}
+ 
+ 		if ( is_wp_error( $link ) ) {
+-			return;
++			return null;
+ 		}
+ 
+ 		$tags[ $key ]->link = $link;
+@@ -782,6 +792,7 @@
+ 	}
+ 
+ 	echo $return;
++	return null;
+ }
+ 
+ /**
+@@ -792,8 +803,9 @@
+  * @param int $count Number of posts with that tag.
+  * @return int Scaled count.
+  */
+-function default_topic_count_scale( $count ) {
++function default_topic_count_scale( mixed $count ): mixed {
+ 	return (int) round( log10( $count + 1 ) * 100 );
++	return null;
+ }
+ 
+ /**
+@@ -842,7 +854,7 @@
+  * }
+  * @return string|string[] Tag cloud as a string or an array, depending on 'format' argument.
+  */
+-function wp_generate_tag_cloud( $tags, $args = '' ) {
++function wp_generate_tag_cloud( mixed $tags, mixed $args = '' ): mixed {
+ 	$defaults = array(
+ 		'smallest'                   => 8,
+ 		'largest'                    => 22,
+@@ -907,23 +919,23 @@
+ 		unset( $tags_sorted );
+ 	} else {
+ 		if ( 'RAND' === $args['order'] ) {
+-			shuffle( $tags );
++			\wp_aot_shuffle( $tags );
+ 		} else {
+ 			// SQL cannot save you; this is a second (potentially different) sort on a subset of data.
+ 			if ( 'name' === $args['orderby'] ) {
+-				uasort( $tags, '_wp_object_name_sort_cb' );
++				\wp_aot_uasort( $tags, '_wp_object_name_sort_cb' );
+ 			} else {
+-				uasort( $tags, '_wp_object_count_sort_cb' );
++				\wp_aot_uasort( $tags, '_wp_object_count_sort_cb' );
+ 			}
+ 
+ 			if ( 'DESC' === $args['order'] ) {
+-				$tags = array_reverse( $tags, true );
++				$tags = \wp_aot_array_reverse( $tags, true );
+ 			}
+ 		}
+ 	}
+ 
+ 	if ( $args['number'] > 0 ) {
+-		$tags = array_slice( $tags, 0, $args['number'] );
++		$tags = \wp_aot_array_slice( $tags, 0, $args['number'] );
+ 	}
+ 
+ 	$counts      = array();
+@@ -1008,7 +1020,7 @@
+ 			esc_url( $tag_data['url'] ),
+ 			$tag_data['role'],
+ 			esc_attr( $class ),
+-			esc_attr( str_replace( ',', '.', $tag_data['font_size'] ) . $args['unit'] ),
++			esc_attr( \wp_aot_str_replace( ',', '.', $tag_data['font_size'] ) . $args['unit'] ),
+ 			$tag_data['aria_label'],
+ 			esc_html( $tag_data['name'] ),
+ 			$tag_data['show_count']
+@@ -1055,6 +1067,7 @@
+ 	} else {
+ 		return $return;
+ 	}
++	return null;
+ }
+ 
+ /**
+@@ -1070,8 +1083,9 @@
+  * @return int Negative number if `$a->name` is less than `$b->name`, zero if they are equal,
+  *             or greater than zero if `$a->name` is greater than `$b->name`.
+  */
+-function _wp_object_name_sort_cb( $a, $b ) {
++function _wp_object_name_sort_cb( mixed $a, mixed $b ): mixed {
+ 	return strnatcasecmp( $a->name, $b->name );
++	return null;
+ }
+ 
+ /**
+@@ -1087,8 +1101,9 @@
+  * @return int Negative number if `$a->count` is less than `$b->count`, zero if they are equal,
+  *             or greater than zero if `$a->count` is greater than `$b->count`.
+  */
+-function _wp_object_count_sort_cb( $a, $b ) {
++function _wp_object_count_sort_cb( mixed $a, mixed $b ): mixed {
+ 	return ( $a->count - $b->count );
++	return null;
+ }
+ 
+ //
+@@ -1108,7 +1123,7 @@
+  * @param mixed ...$args Elements array, maximum hierarchical depth and optional additional arguments.
+  * @return string
+  */
+-function walk_category_tree( ...$args ) {
++function walk_category_tree( mixed ...$args ): mixed {
+ 	// The user's options are the third parameter.
+ 	if ( empty( $args[2]['walker'] ) || ! ( $args[2]['walker'] instanceof Walker ) ) {
+ 		$walker = new Walker_Category();
+@@ -1119,6 +1134,7 @@
+ 		$walker = $args[2]['walker'];
+ 	}
+ 	return $walker->walk( ...$args );
++	return null;
+ }
+ 
+ /**
+@@ -1134,7 +1150,7 @@
+  * @param mixed ...$args Elements array, maximum hierarchical depth and optional additional arguments.
+  * @return string
+  */
+-function walk_category_dropdown_tree( ...$args ) {
++function walk_category_dropdown_tree( mixed ...$args ): mixed {
+ 	// The user's options are the third parameter.
+ 	if ( empty( $args[2]['walker'] ) || ! ( $args[2]['walker'] instanceof Walker ) ) {
+ 		$walker = new Walker_CategoryDropdown();
+@@ -1145,6 +1161,7 @@
+ 		$walker = $args[2]['walker'];
+ 	}
+ 	return $walker->walk( ...$args );
++	return null;
+ }
+ 
+ //
+@@ -1161,8 +1178,9 @@
+  * @param int|object $tag Tag ID or object.
+  * @return string Link on success, empty string if tag does not exist.
+  */
+-function get_tag_link( $tag ) {
++function get_tag_link( mixed $tag ): mixed {
+ 	return get_category_link( $tag );
++	return null;
+ }
+ 
+ /**
+@@ -1174,7 +1192,7 @@
+  * @return WP_Term[]|false|WP_Error Array of WP_Term objects on success, false if there are no terms
+  *                                  or the post does not exist, WP_Error on failure.
+  */
+-function get_the_tags( $post = 0 ) {
++function get_the_tags( mixed $post = 0 ): mixed {
+ 	$terms = get_the_terms( $post, 'post_tag' );
+ 
+ 	/**
+@@ -1188,6 +1206,7 @@
+ 	 *                                        or the post does not exist, WP_Error on failure.
+ 	 */
+ 	return apply_filters( 'get_the_tags', $terms );
++	return null;
+ }
+ 
+ /**
+@@ -1202,7 +1221,7 @@
+  * @return string|false|WP_Error A list of tags on success, false if there are no terms,
+  *                               WP_Error on failure.
+  */
+-function get_the_tag_list( $before = '', $sep = '', $after = '', $post_id = 0 ) {
++function get_the_tag_list( mixed $before = '', mixed $sep = '', mixed $after = '', mixed $post_id = 0 ): mixed {
+ 	$tag_list = get_the_term_list( $post_id, 'post_tag', $before, $sep, $after );
+ 
+ 	/**
+@@ -1217,6 +1236,7 @@
+ 	 * @param int    $post_id  Post ID.
+ 	 */
+ 	return apply_filters( 'the_tags', $tag_list, $before, $sep, $after, $post_id );
++	return null;
+ }
+ 
+ /**
+@@ -1228,7 +1248,7 @@
+  * @param string $sep    Optional. String to use between the tags. Default ', '.
+  * @param string $after  Optional. String to use after the tags. Default empty.
+  */
+-function the_tags( $before = null, $sep = ', ', $after = '' ) {
++function the_tags( mixed $before = null, mixed $sep = ', ', mixed $after = '' ): mixed {
+ 	if ( null === $before ) {
+ 		$before = __( 'Tags:' ) . ' ';
+ 	}
+@@ -1238,6 +1258,7 @@
+ 	if ( ! is_wp_error( $the_tags ) ) {
+ 		echo $the_tags;
+ 	}
++	return null;
+ }
+ 
+ /**
+@@ -1248,8 +1269,9 @@
+  * @param int $tag Optional. Tag ID. Defaults to the current tag ID.
+  * @return string Tag description, if available.
+  */
+-function tag_description( $tag = 0 ) {
++function tag_description( mixed $tag = 0 ): mixed {
+ 	return term_description( $tag );
++	return null;
+ }
+ 
+ /**
+@@ -1262,7 +1284,7 @@
+  * @param mixed $deprecated Not used.
+  * @return string Term description, if available.
+  */
+-function term_description( $term = 0, $deprecated = null ) {
++function term_description( mixed $term = 0, mixed $deprecated = null ): mixed {
+ 	if ( ! $term && ( is_tax() || is_tag() || is_category() ) ) {
+ 		$term = get_queried_object();
+ 		if ( $term ) {
+@@ -1273,6 +1295,7 @@
+ 	$description = get_term_field( 'description', $term );
+ 
+ 	return is_wp_error( $description ) ? '' : $description;
++	return null;
+ }
+ 
+ /**
+@@ -1285,7 +1308,7 @@
+  * @return WP_Term[]|false|WP_Error Array of WP_Term objects on success, false if there are no terms
+  *                                  or the post does not exist, WP_Error on failure.
+  */
+-function get_the_terms( $post, $taxonomy ) {
++function get_the_terms( mixed $post, mixed $taxonomy ): mixed {
+ 	$post = get_post( $post );
+ 
+ 	if ( ! $post ) {
+@@ -1318,6 +1341,7 @@
+ 	}
+ 
+ 	return $terms;
++	return null;
+ }
+ 
+ /**
+@@ -1335,7 +1359,7 @@
+  * @return string|false|WP_Error A list of terms on success, false if there are no terms,
+  *                               WP_Error on failure.
+  */
+-function get_the_term_list( $post_id, $taxonomy, $before = '', $sep = '', $after = '' ) {
++function get_the_term_list( mixed $post_id, mixed $taxonomy, mixed $before = '', mixed $sep = '', mixed $after = '' ): mixed {
+ 	$terms = get_the_terms( $post_id, $taxonomy );
+ 
+ 	if ( is_wp_error( $terms ) ) {
+@@ -1375,6 +1399,7 @@
+ 	$term_links = apply_filters( "term_links-{$taxonomy}", $links );  // phpcs:ignore WordPress.NamingConventions.ValidHookName.UseUnderscores
+ 
+ 	return $before . implode( $sep, $term_links ) . $after;
++	return null;
+ }
+ 
+ /**
+@@ -1395,7 +1420,7 @@
+  * }
+  * @return string|WP_Error A list of term parents on success, WP_Error or empty string on failure.
+  */
+-function get_term_parents_list( $term_id, $taxonomy, $args = array() ) {
++function get_term_parents_list( mixed $term_id, mixed $taxonomy, mixed $args = array() ): mixed {
+ 	$list = '';
+ 	$term = get_term( $term_id, $taxonomy );
+ 
+@@ -1425,10 +1450,10 @@
+ 	$parents = get_ancestors( $term_id, $taxonomy, 'taxonomy' );
+ 
+ 	if ( $args['inclusive'] ) {
+-		array_unshift( $parents, $term_id );
+-	}
+-
+-	foreach ( array_reverse( $parents ) as $term_id ) {
++		\wp_aot_array_unshift( $parents,array( $term_id ));
++	}
++
++	foreach ( \wp_aot_array_reverse( $parents ) as $term_id ) {
+ 		$parent = get_term( $term_id, $taxonomy );
+ 		$name   = ( 'slug' === $args['format'] ) ? $parent->slug : $parent->name;
+ 
+@@ -1440,6 +1465,7 @@
+ 	}
+ 
+ 	return $list;
++	return null;
+ }
+ 
+ /**
+@@ -1454,7 +1480,7 @@
+  * @param string $after    Optional. String to use after the terms. Default empty.
+  * @return void|false Void on success, false on failure.
+  */
+-function the_terms( $post_id, $taxonomy, $before = '', $sep = ', ', $after = '' ) {
++function the_terms( mixed $post_id, mixed $taxonomy, mixed $before = '', mixed $sep = ', ', mixed $after = '' ): mixed {
+ 	$term_list = get_the_term_list( $post_id, $taxonomy, $before, $sep, $after );
+ 
+ 	if ( is_wp_error( $term_list ) ) {
+@@ -1473,6 +1499,7 @@
+ 	 * @param string $after     String to use after the terms.
+ 	 */
+ 	echo apply_filters( 'the_terms', $term_list, $taxonomy, $before, $sep, $after );
++	return null;
+ }
+ 
+ /**
+@@ -1491,8 +1518,9 @@
+  * @return bool True if the current post has any of the given categories
+  *              (or any category, if no category specified). False otherwise.
+  */
+-function has_category( $category = '', $post = null ) {
++function has_category( mixed $category = '', mixed $post = null ): mixed {
+ 	return has_term( $category, 'category', $post );
++	return null;
+ }
+ 
+ /**
+@@ -1518,8 +1546,9 @@
+  * @return bool True if the current post has any of the given tags
+  *              (or any tag, if no tag specified). False otherwise.
+  */
+-function has_tag( $tag = '', $post = null ) {
++function has_tag( mixed $tag = '', mixed $post = null ): mixed {
+ 	return has_term( $tag, 'post_tag', $post );
++	return null;
+ }
+ 
+ /**
+@@ -1539,7 +1568,7 @@
+  * @return bool True if the current post has any of the given terms
+  *              (or any term, if no term specified). False otherwise.
+  */
+-function has_term( $term = '', $taxonomy = '', $post = null ) {
++function has_term( mixed $term = '', mixed $taxonomy = '', mixed $post = null ): mixed {
+ 	$post = get_post( $post );
+ 
+ 	if ( ! $post ) {
+@@ -1552,4 +1581,5 @@
+ 	}
+ 
+ 	return $r;
+-}
++	return null;
++}

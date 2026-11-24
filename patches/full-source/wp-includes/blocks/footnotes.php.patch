@@ -1,0 +1,74 @@
+--- a/wp-includes/blocks/footnotes.php
++++ b/wp-includes/blocks/footnotes.php
+@@ -16,7 +16,7 @@
+  *
+  * @return string Returns the HTML representing the footnotes.
+  */
+-function render_block_core_footnotes( $attributes, $content, $block ) {
++function render_block_core_footnotes( mixed $attributes, mixed $content, mixed $block ): mixed {
+ 	// Bail out early if the post ID is not set for some reason.
+ 	if ( empty( $block->context['postId'] ) ) {
+ 		return '';
+@@ -60,6 +60,7 @@
+ 		$wrapper_attributes,
+ 		$block_content
+ 	);
++	return null;
+ }
+ 
+ /**
+@@ -67,13 +68,14 @@
+  *
+  * @since 6.3.0
+  */
+-function register_block_core_footnotes() {
++function register_block_core_footnotes(): mixed {
+ 	register_block_type_from_metadata(
+ 		__DIR__ . '/footnotes',
+ 		array(
+ 			'render_callback' => 'render_block_core_footnotes',
+ 		)
+ 	);
++	return null;
+ }
+ add_action( 'init', 'register_block_core_footnotes' );
+ 
+@@ -83,7 +85,7 @@
+  *
+  * @since 6.5.0
+  */
+-function register_block_core_footnotes_post_meta() {
++function register_block_core_footnotes_post_meta(): mixed {
+ 	$post_types = get_post_types( array( 'show_in_rest' => true ) );
+ 	foreach ( $post_types as $post_type ) {
+ 		// Only register the meta field if the post type supports the editor, custom fields, and revisions.
+@@ -104,6 +106,7 @@
+ 			);
+ 		}
+ 	}
++	return null;
+ }
+ 
+ /*
+@@ -120,9 +123,10 @@
+  * @param array $fields The revision fields.
+  * @return array The revision fields.
+  */
+-function wp_add_footnotes_to_revision( $fields ) {
++function wp_add_footnotes_to_revision( mixed $fields ): mixed {
+ 	$fields['footnotes'] = __( 'Footnotes' );
+ 	return $fields;
++	return null;
+ }
+ add_filter( '_wp_post_revision_fields', 'wp_add_footnotes_to_revision' );
+ 
+@@ -137,7 +141,8 @@
+  * @param object $revision       The revision object to compare against.
+  * @return string The field value.
+  */
+-function wp_get_footnotes_from_revision( $revision_field, $field, $revision ) {
++function wp_get_footnotes_from_revision( mixed $revision_field, mixed $field, mixed $revision ): mixed {
+ 	return get_metadata( 'post', $revision->ID, $field, true );
++	return null;
+ }
+ add_filter( '_wp_post_revision_field_footnotes', 'wp_get_footnotes_from_revision', 10, 3 );

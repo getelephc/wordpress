@@ -1,7 +1,138 @@
 --- a/wp-includes/widgets/class-wp-widget-media-image.php
 +++ b/wp-includes/widgets/class-wp-widget-media-image.php
-@@ -350,19 +350,21 @@
- 	public function render_control_template_scripts() {
+@@ -32,7 +32,7 @@
+ 			)
+ 		);
+ 
+-		$this->l10n = array_merge(
++		$this->l10n = \wp_aot_array_merge(array(
+ 			$this->l10n,
+ 			array(
+ 				'no_media_selected'          => __( 'No image selected' ),
+@@ -48,7 +48,7 @@
+ 				'media_library_state_multi'  => _n_noop( 'Image Widget (%d)', 'Image Widget (%d)' ),
+ 				'media_library_state_single' => __( 'Image Widget' ),
+ 			)
+-		);
++		));
+ 	}
+ 
+ 	/**
+@@ -62,12 +62,12 @@
+ 	 *
+ 	 * @return array Schema for properties.
+ 	 */
+-	public function get_instance_schema() {
+-		return array_merge(
++	public function get_instance_schema(): mixed {
++		return \wp_aot_array_merge(array(
+ 			array(
+ 				'size'              => array(
+ 					'type'        => 'string',
+-					'enum'        => array_merge( get_intermediate_image_sizes(), array( 'full', 'custom' ) ),
++					'enum'        => \wp_aot_array_merge(array( get_intermediate_image_sizes(), array( 'full', 'custom' ) )),
+ 					'default'     => 'medium',
+ 					'description' => __( 'Size' ),
+ 				),
+@@ -164,7 +164,8 @@
+ 				 */
+ 			),
+ 			parent::get_instance_schema()
+-		);
++		));
++		return null;
+ 	}
+ 
+ 	/**
+@@ -174,8 +175,8 @@
+ 	 *
+ 	 * @param array $instance Widget instance props.
+ 	 */
+-	public function render_media( $instance ) {
+-		$instance = array_merge( wp_list_pluck( $this->get_instance_schema(), 'default' ), $instance );
++	public function render_media( mixed $instance ): mixed {
++		$instance = \wp_aot_array_merge(array( wp_list_pluck( $this->get_instance_schema(), 'default' ), $instance ));
+ 		$instance = wp_parse_args(
+ 			$instance,
+ 			array(
+@@ -211,7 +212,7 @@
+ 
+ 			$size = $instance['size'];
+ 
+-			if ( 'custom' === $size || ! in_array( $size, array_merge( get_intermediate_image_sizes(), array( 'full' ) ), true ) ) {
++			if ( 'custom' === $size || ! in_array( $size, \wp_aot_array_merge(array( get_intermediate_image_sizes(), array( 'full' ) )), true ) ) {
+ 				$size  = array( $instance['width'], $instance['height'] );
+ 				$width = $instance['width'];
+ 			} else {
+@@ -225,7 +226,7 @@
+ 
+ 		} else {
+ 			if ( empty( $instance['url'] ) ) {
+-				return;
++				return null;
+ 			}
+ 
+ 			$instance['size'] = 'custom';
+@@ -239,13 +240,13 @@
+ 				$instance['height'] = '';
+ 			}
+ 
+-			$attr = array(
++			$attr = \wp_aot_mixed(array(
+ 				'class'  => $classes,
+ 				'src'    => $instance['url'],
+ 				'alt'    => $instance['alt'],
+ 				'width'  => $instance['width'],
+ 				'height' => $instance['height'],
+-			);
++			));
+ 
+ 			$loading_optimization_attr = wp_get_loading_optimization_attributes(
+ 				'img',
+@@ -253,9 +254,9 @@
+ 				'widget_media_image'
+ 			);
+ 
+-			$attr = array_merge( $attr, $loading_optimization_attr );
+-
+-			$attr  = array_map( 'esc_attr', $attr );
++			$attr = \wp_aot_array_merge(array( $attr, $loading_optimization_attr ));
++
++			$attr  = \wp_aot_array_map( 'esc_attr', $attr );
+ 			$image = '<img';
+ 
+ 			foreach ( $attr as $name => $value ) {
+@@ -302,6 +303,7 @@
+ 		}
+ 
+ 		echo $image;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -309,7 +311,7 @@
+ 	 *
+ 	 * @since 4.8.0
+ 	 */
+-	public function enqueue_admin_scripts() {
++	public function enqueue_admin_scripts(): mixed {
+ 		parent::enqueue_admin_scripts();
+ 
+ 		$handle = 'media-image-widget';
+@@ -340,6 +342,7 @@
+ 				wp_json_encode( $this->l10n, JSON_HEX_TAG | JSON_UNESCAPED_SLASHES )
+ 			)
+ 		);
++		return null;
+ 	}
+ 
+ 	/**
+@@ -347,22 +350,24 @@
+ 	 *
+ 	 * @since 4.8.0
+ 	 */
+-	public function render_control_template_scripts() {
++	public function render_control_template_scripts(): mixed {
  		parent::render_control_template_scripts();
  
 -		?>
@@ -29,7 +160,7 @@
  				wp_admin_notice(
  					$this->l10n['missing_attachment'],
  					array(
-@@ -370,9 +372,9 @@
+@@ -370,9 +375,9 @@
  						'additional_classes' => array( 'notice-alt', 'notice-missing-attachment' ),
  					)
  				);
@@ -42,7 +173,7 @@
  				wp_admin_notice(
  					__( 'Unable to preview media due to an unknown error.' ),
  					array(
-@@ -380,12 +382,12 @@
+@@ -380,12 +385,12 @@
  						'additional_classes' => array( 'notice-alt' ),
  					)
  				);
@@ -58,7 +189,7 @@
  						echo esc_attr(
  							sprintf(
  								/* translators: %s: The image file name. */
-@@ -393,12 +395,12 @@
+@@ -393,12 +398,13 @@
  								'{{ data.currentFilename }}'
  							)
  						);
@@ -72,5 +203,6 @@
  		</script>
 -		<?php
 +		';
++		return null;
  	}
  }

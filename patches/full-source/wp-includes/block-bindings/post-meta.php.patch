@@ -1,0 +1,43 @@
+--- a/wp-includes/block-bindings/post-meta.php
++++ b/wp-includes/block-bindings/post-meta.php
+@@ -18,7 +18,7 @@
+  * @param WP_Block $block_instance The block instance.
+  * @return mixed The value computed for the source.
+  */
+-function _block_bindings_post_meta_get_value( array $source_args, $block_instance ) {
++function _block_bindings_post_meta_get_value( array $source_args, mixed $block_instance ): mixed {
+ 	if ( empty( $source_args['key'] ) ) {
+ 		return null;
+ 	}
+@@ -42,12 +42,13 @@
+ 	// Check if the meta field is registered to be shown in REST.
+ 	$meta_keys = get_registered_meta_keys( 'post', $block_instance->context['postType'] );
+ 	// Add fields registered for all subtypes.
+-	$meta_keys = array_merge( $meta_keys, get_registered_meta_keys( 'post', '' ) );
++	$meta_keys = \wp_aot_array_merge(array( $meta_keys, get_registered_meta_keys( 'post', '' ) ));
+ 	if ( empty( $meta_keys[ $source_args['key'] ]['show_in_rest'] ) ) {
+ 		return null;
+ 	}
+ 
+ 	return get_post_meta( $post_id, $source_args['key'], true );
++	return null;
+ }
+ 
+ /**
+@@ -56,7 +57,7 @@
+  * @since 6.5.0
+  * @access private
+  */
+-function _register_block_bindings_post_meta_source() {
++function _register_block_bindings_post_meta_source(): mixed {
+ 	register_block_bindings_source(
+ 		'core/post-meta',
+ 		array(
+@@ -65,6 +66,7 @@
+ 			'uses_context'       => array( 'postId', 'postType' ),
+ 		)
+ 	);
++	return null;
+ }
+ 
+ add_action( 'init', '_register_block_bindings_post_meta_source' );

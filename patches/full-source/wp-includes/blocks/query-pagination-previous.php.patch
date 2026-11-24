@@ -1,0 +1,34 @@
+--- a/wp-includes/blocks/query-pagination-previous.php
++++ b/wp-includes/blocks/query-pagination-previous.php
+@@ -16,7 +16,7 @@
+  *
+  * @return string Returns the previous posts link for the query.
+  */
+-function render_block_core_query_pagination_previous( $attributes, $content, $block ) {
++function render_block_core_query_pagination_previous( mixed $attributes, mixed $content, mixed $block ): mixed {
+ 	$page_key            = isset( $block->context['queryId'] ) ? 'query-' . $block->context['queryId'] . '-page' : 'query-page';
+ 	$enhanced_pagination = (bool) ( $block->context['enhancedPagination'] ?? false );
+ 	$max_page            = (int) ( $block->context['query']['pages'] ?? 0 );
+@@ -77,6 +77,7 @@
+ 	}
+ 
+ 	return $content;
++	return null;
+ }
+ 
+ /**
+@@ -84,12 +85,13 @@
+  *
+  * @since 5.8.0
+  */
+-function register_block_core_query_pagination_previous() {
++function register_block_core_query_pagination_previous(): mixed {
+ 	register_block_type_from_metadata(
+ 		__DIR__ . '/query-pagination-previous',
+ 		array(
+ 			'render_callback' => 'render_block_core_query_pagination_previous',
+ 		)
+ 	);
++	return null;
+ }
+ add_action( 'init', 'register_block_core_query_pagination_previous' );

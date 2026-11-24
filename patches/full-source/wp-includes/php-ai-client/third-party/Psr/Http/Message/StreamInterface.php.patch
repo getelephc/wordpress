@@ -1,0 +1,18 @@
+--- a/wp-includes/php-ai-client/third-party/Psr/Http/Message/StreamInterface.php
++++ b/wp-includes/php-ai-client/third-party/Psr/Http/Message/StreamInterface.php
+@@ -39,7 +39,7 @@
+      *
+      * @return resource|null Underlying PHP stream, if any
+      */
+-    public function detach();
++    public function detach(): mixed;
+     /**
+      * Get the size of the stream if known.
+      *
+@@ -140,5 +140,5 @@
+      *     provided. Returns a specific key value if a key is provided and the
+      *     value is found, or null if the key is not found.
+      */
+-    public function getMetadata(?string $key = null);
++    public function getMetadata(?string $key = null): mixed;
+ }

@@ -1,0 +1,12 @@
+--- a/wp-includes/class-wp-feed-cache.php
++++ b/wp-includes/class-wp-feed-cache.php
+@@ -33,7 +33,8 @@
+ 	 * @param string $extension 'spi' or 'spc'.
+ 	 * @return WP_Feed_Cache_Transient Feed cache handler object that uses transients.
+ 	 */
+-	public function create( $location, $filename, $extension ) {
++	public function create( mixed $location, mixed $filename, mixed $extension ): mixed {
+ 		return new WP_Feed_Cache_Transient( $location, $filename, $extension );
++		return null;
+ 	}
+ }

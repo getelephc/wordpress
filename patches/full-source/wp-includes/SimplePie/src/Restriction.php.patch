@@ -1,0 +1,52 @@
+--- a/wp-includes/SimplePie/src/Restriction.php
++++ b/wp-includes/SimplePie/src/Restriction.php
+@@ -74,13 +74,14 @@
+      *
+      * @return ?self::RELATIONSHIP_*
+      */
+-    public function get_relationship()
++    public function get_relationship(): mixed
+     {
+         if ($this->relationship !== null) {
+             return $this->relationship;
+         }
+ 
+         return null;
++    	return null;
+     }
+ 
+     /**
+@@ -88,13 +89,14 @@
+      *
+      * @return string|null
+      */
+-    public function get_type()
++    public function get_type(): mixed
+     {
+         if ($this->type !== null) {
+             return $this->type;
+         }
+ 
+         return null;
++    	return null;
+     }
+ 
+     /**
+@@ -102,14 +104,15 @@
+      *
+      * @return string|null
+      */
+-    public function get_value()
++    public function get_value(): mixed
+     {
+         if ($this->value !== null) {
+             return $this->value;
+         }
+ 
+         return null;
++    	return null;
+     }
+ }
+ 
+-class_alias('SimplePie\Restriction', 'SimplePie_Restriction');
++(!defined('WP_AOT_NATIVE_RUNTIME') && (bool) \wp_aot_native_api('class_alias', array('SimplePie\Restriction', 'SimplePie_Restriction')));

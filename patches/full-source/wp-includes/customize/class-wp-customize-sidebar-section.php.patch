@@ -1,0 +1,25 @@
+--- a/wp-includes/customize/class-wp-customize-sidebar-section.php
++++ b/wp-includes/customize/class-wp-customize-sidebar-section.php
+@@ -39,10 +39,11 @@
+ 	 *
+ 	 * @return array The array to be exported to the client as JSON.
+ 	 */
+-	public function json() {
++	public function json(): mixed {
+ 		$json              = parent::json();
+ 		$json['sidebarId'] = $this->sidebar_id;
+ 		return $json;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -52,7 +53,8 @@
+ 	 *
+ 	 * @return bool Whether sidebar is rendered.
+ 	 */
+-	public function active_callback() {
++	public function active_callback(): mixed {
+ 		return $this->manager->widgets->is_sidebar_rendered( $this->sidebar_id );
++		return null;
+ 	}
+ }

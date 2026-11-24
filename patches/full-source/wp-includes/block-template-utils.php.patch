@@ -1,20 +1,188 @@
 --- a/wp-includes/block-template-utils.php
 +++ b/wp-includes/block-template-utils.php
-@@ -547,24 +547,48 @@
- function _flatten_blocks( &$blocks ) {
+@@ -39,7 +39,7 @@
+  *     @type string $wp_template_part Theme-relative directory name for block template parts.
+  * }
+  */
+-function get_block_theme_folders( $theme_stylesheet = null ) {
++function get_block_theme_folders( mixed $theme_stylesheet = null ): mixed {
+ 	$theme = wp_get_theme( (string) $theme_stylesheet );
+ 	if ( ! $theme->exists() ) {
+ 		// Return the default folders if the theme doesn't exist.
+@@ -49,6 +49,7 @@
+ 		);
+ 	}
+ 	return $theme->get_block_template_folders();
++	return null;
+ }
+ 
+ /**
+@@ -70,7 +71,7 @@
+  *     }
+  * }
+  */
+-function get_allowed_block_template_part_areas() {
++function get_allowed_block_template_part_areas(): mixed {
+ 	$default_area_definitions = array(
+ 		array(
+ 			'area'        => WP_TEMPLATE_PART_AREA_UNCATEGORIZED,
+@@ -130,6 +131,7 @@
+ 	 * }
+ 	 */
+ 	return apply_filters( 'default_wp_template_part_areas', $default_area_definitions );
++	return null;
+ }
+ 
+ 
+@@ -150,7 +152,7 @@
+  *    }
+  * }
+  */
+-function get_default_block_template_types() {
++function get_default_block_template_types(): mixed {
+ 	$default_template_types = array(
+ 		'index'          => array(
+ 			'title'       => _x( 'Index', 'Template name' ),
+@@ -252,6 +254,7 @@
+ 	 * }
+ 	 */
+ 	return apply_filters( 'default_template_types', $default_template_types );
++	return null;
+ }
+ 
+ /**
+@@ -264,9 +267,9 @@
+  * @param string $type Template part area name.
+  * @return string Input if supported, else the uncategorized value.
+  */
+-function _filter_block_template_part_area( $type ) {
+-	$allowed_areas = array_map(
+-		static function ( $item ) {
++function _filter_block_template_part_area( mixed $type ): mixed {
++	$allowed_areas = \wp_aot_array_map(
++		static function ( mixed $item ) {
+ 			return $item['area'];
+ 		},
+ 		get_allowed_block_template_part_areas()
+@@ -283,6 +286,7 @@
+ 	);
+ 	wp_trigger_error( __FUNCTION__, $warning_message );
+ 	return WP_TEMPLATE_PART_AREA_UNCATEGORIZED;
++	return null;
+ }
+ 
+ /**
+@@ -294,8 +298,9 @@
+  * @param string $base_directory The theme's file path.
+  * @return string[] A list of paths to all template part files.
+  */
+-function _get_block_templates_paths( $base_directory ) {
+-	static $template_path_list = array();
++function _get_block_templates_paths( mixed $base_directory ): mixed {
++	static $template_path_list_aot_cell = new \WordPressStaticArrayCell();
++	$template_path_list =& $template_path_list_aot_cell->value;
+ 	if ( isset( $template_path_list[ $base_directory ] ) ) {
+ 		return $template_path_list[ $base_directory ];
+ 	}
+@@ -309,6 +314,7 @@
+ 	}
+ 	$template_path_list[ $base_directory ] = $path_list;
+ 	return $path_list;
++	return null;
+ }
+ 
+ /**
+@@ -332,7 +338,7 @@
+  *     @type string[] $postTypes Optional. List of post types that the template supports. Only for 'wp_template'.
+  * }
+  */
+-function _get_block_template_file( $template_type, $slug ) {
++function _get_block_template_file( mixed $template_type, mixed $slug ): mixed {
+ 	if ( 'wp_template' !== $template_type && 'wp_template_part' !== $template_type ) {
+ 		return null;
+ 	}
+@@ -373,6 +379,7 @@
+ 	}
+ 
+ 	return null;
++	return null;
+ }
+ 
+ /**
+@@ -394,7 +401,7 @@
+  *
+  * @return array|null Template files on success, null if `$template_type` is not matched.
+  */
+-function _get_block_templates_files( $template_type, $query = array() ) {
++function _get_block_templates_files( mixed $template_type, mixed $query = array() ): mixed {
+ 	if ( 'wp_template' !== $template_type && 'wp_template_part' !== $template_type ) {
+ 		return null;
+ 	}
+@@ -485,6 +492,7 @@
+ 	}
+ 
+ 	return array_values( $template_files );
++	return null;
+ }
+ 
+ /**
+@@ -496,7 +504,7 @@
+  * @param array $template_item Template to add information to (requires 'slug' field).
+  * @return array Template item.
+  */
+-function _add_block_template_info( $template_item ) {
++function _add_block_template_info( mixed $template_item ): mixed {
+ 	if ( ! wp_theme_has_theme_json() ) {
+ 		return $template_item;
+ 	}
+@@ -508,6 +516,7 @@
+ 	}
+ 
+ 	return $template_item;
++	return null;
+ }
+ 
+ /**
+@@ -519,7 +528,7 @@
+  * @param array $template_info Template to add information to (requires 'type' and 'slug' fields).
+  * @return array Template info.
+  */
+-function _add_block_template_part_area_info( $template_info ) {
++function _add_block_template_part_area_info( mixed $template_info ): mixed {
+ 	if ( wp_theme_has_theme_json() ) {
+ 		$theme_data = wp_get_theme_data_template_parts();
+ 	}
+@@ -532,6 +541,7 @@
+ 	}
+ 
+ 	return $template_info;
++	return null;
+ }
+ 
+ /**
+@@ -544,27 +554,53 @@
+  * @param array $blocks array of blocks.
+  * @return array block references to the passed blocks and their inner blocks.
+  */
+-function _flatten_blocks( &$blocks ) {
++function _flatten_blocks( mixed &$blocks ): mixed {
  	$all_blocks = array();
  	$queue      = array();
 -	foreach ( $blocks as &$block ) {
 -		$queue[] = &$block;
+-	}
+-
+-	while ( count( $queue ) > 0 ) {
+-		$block = &$queue[0];
+-		array_shift( $queue );
+-		$all_blocks[] = &$block;
 +	foreach ( $blocks as $block ) {
 +		$queue[] = $block;
- 	}
- 
- 	while ( count( $queue ) > 0 ) {
--		$block = &$queue[0];
++	}
++
++	while ( \wp_aot_count( $queue ) > 0 ) {
 +		$block = $queue[0];
- 		array_shift( $queue );
--		$all_blocks[] = &$block;
++		\wp_aot_array_shift( $queue );
 +		$all_blocks[] = $block;
  
  		if ( ! empty( $block['innerBlocks'] ) ) {
@@ -27,17 +195,19 @@
  	}
  
  	return $all_blocks;
- }
+-}
++	return null;
++}
 +
 +/** AOT path queue replacing the private reference-array interface. */
-+function _wp_aot_flatten_block_paths( $blocks ) {
++function _wp_aot_flatten_block_paths( mixed $blocks ): mixed {
 +    $queue = array();
 +    foreach ( array_keys( $blocks ) as $key ) {
 +        $queue[] = array( $key );
 +    }
 +    $paths = array();
-+    while ( count( $queue ) > 0 ) {
-+        $path = array_shift( $queue );
++    while ( \wp_aot_count( $queue ) > 0 ) {
++        $path = \wp_aot_array_shift( $queue );
 +        $paths[] = $path;
 +        $block = _wp_array_get( $blocks, $path );
 +        if ( ! empty( $block['innerBlocks'] ) ) {
@@ -50,8 +220,443 @@
 +        }
 +    }
 +    return $paths;
++	return null;
 +}
 +
  
  /**
   * Injects the active theme's stylesheet as a `theme` attribute
+@@ -575,13 +611,14 @@
+  *
+  * @param array $block a parsed block.
+  */
+-function _inject_theme_attribute_in_template_part_block( &$block ) {
++function _inject_theme_attribute_in_template_part_block( mixed &$block ): mixed {
+ 	if (
+ 		'core/template-part' === $block['blockName'] &&
+ 		! isset( $block['attrs']['theme'] )
+ 	) {
+ 		$block['attrs']['theme'] = get_stylesheet();
+ 	}
++	return null;
+ }
+ 
+ /**
+@@ -592,13 +629,14 @@
+  *
+  * @param array $block a parsed block.
+  */
+-function _remove_theme_attribute_from_template_part_block( &$block ) {
++function _remove_theme_attribute_from_template_part_block( mixed &$block ): mixed {
+ 	if (
+ 		'core/template-part' === $block['blockName'] &&
+ 		isset( $block['attrs']['theme'] )
+ 	) {
+ 		unset( $block['attrs']['theme'] );
+ 	}
++	return null;
+ }
+ 
+ /**
+@@ -613,7 +651,7 @@
+  * @param string $template_type Template type. Either 'wp_template' or 'wp_template_part'.
+  * @return WP_Block_Template Template.
+  */
+-function _build_block_template_result_from_file( $template_file, $template_type ) {
++function _build_block_template_result_from_file( mixed $template_file, mixed $template_type ): mixed {
+ 	$default_template_types = get_default_block_template_types();
+ 	$theme                  = get_stylesheet();
+ 
+@@ -679,6 +717,7 @@
+ 	}
+ 
+ 	return $template;
++	return null;
+ }
+ 
+ /**
+@@ -694,7 +733,7 @@
+  * @param WP_Block_Template $template  Template to mutate adding the description and title computed.
+  * @return bool Returns true if the referenced post was found and false otherwise.
+  */
+-function _wp_build_title_and_description_for_single_post_type_block_template( $post_type, $slug, WP_Block_Template $template ) {
++function _wp_build_title_and_description_for_single_post_type_block_template( mixed $post_type, mixed $slug, WP_Block_Template $template ): mixed {
+ 	$post_type_object = get_post_type_object( $post_type );
+ 
+ 	$default_args = array(
+@@ -725,7 +764,7 @@
+ 		return false;
+ 	}
+ 
+-	$post_title = $posts_query->posts[0]->post_title;
++	$post_title = \wp_aot_mixed($posts_query->posts)[0]->post_title;
+ 
+ 	$template->title = sprintf(
+ 		/* translators: Custom template title in the Site Editor. 1: Post type singular name, 2: Post title. */
+@@ -747,7 +786,7 @@
+ 
+ 	$posts_with_same_title_query = new WP_Query( $args );
+ 
+-	if ( count( $posts_with_same_title_query->posts ) > 1 ) {
++	if ( \wp_aot_count( $posts_with_same_title_query->posts ) > 1 ) {
+ 		$template->title = sprintf(
+ 			/* translators: Custom template title in the Site Editor. 1: Template title, 2: Post type slug. */
+ 			__( '%1$s (%2$s)' ),
+@@ -757,6 +796,7 @@
+ 	}
+ 
+ 	return true;
++	return null;
+ }
+ 
+ /**
+@@ -772,7 +812,7 @@
+  * @param WP_Block_Template $template Template to mutate adding the description and title computed.
+  * @return bool True if the term referenced was found and false otherwise.
+  */
+-function _wp_build_title_and_description_for_taxonomy_block_template( $taxonomy, $slug, WP_Block_Template $template ) {
++function _wp_build_title_and_description_for_taxonomy_block_template( mixed $taxonomy, mixed $slug, WP_Block_Template $template ): mixed {
+ 	$taxonomy_object = get_taxonomy( $taxonomy );
+ 
+ 	$default_args = array(
+@@ -826,7 +866,7 @@
+ 
+ 	$terms_with_same_title_query = $term_query->query( $args );
+ 
+-	if ( count( $terms_with_same_title_query ) > 1 ) {
++	if ( \wp_aot_count( $terms_with_same_title_query ) > 1 ) {
+ 		$template->title = sprintf(
+ 			/* translators: Custom template title in the Site Editor. 1: Template title, 2: Term slug. */
+ 			__( '%1$s (%2$s)' ),
+@@ -836,6 +876,7 @@
+ 	}
+ 
+ 	return true;
++	return null;
+ }
+ 
+ /**
+@@ -853,7 +894,7 @@
+  * @param array   $meta  Additional meta fields to inform the template object.
+  * @return WP_Block_Template|WP_Error Template or error object.
+  */
+-function _build_block_template_object_from_post_object( $post, $terms = array(), $meta = array() ) {
++function _build_block_template_object_from_post_object( mixed $post, mixed $terms = array(), mixed $meta = array() ): mixed {
+ 	if ( empty( $terms['wp_theme'] ) ) {
+ 		return new WP_Error( 'template_missing_theme', __( 'No theme is defined for this template.' ) );
+ 	}
+@@ -895,6 +936,7 @@
+ 	}
+ 
+ 	return $template;
++	return null;
+ }
+ 
+ /**
+@@ -908,7 +950,7 @@
+  * @param WP_Post $post Template post.
+  * @return WP_Block_Template|WP_Error Template or error object.
+  */
+-function _build_block_template_result_from_post( $post ) {
++function _build_block_template_result_from_post( mixed $post ): mixed {
+ 	$post_id = wp_is_post_revision( $post );
+ 	if ( ! $post_id ) {
+ 		$post_id = $post;
+@@ -954,7 +996,7 @@
+ 		$matches = array();
+ 
+ 		// Check for a block template for a single author, page, post, tag, category, custom post type, or custom taxonomy.
+-		if ( preg_match( '/(author|page|single|tag|category|taxonomy)-(.+)/', $template->slug, $matches ) ) {
++		if ( preg_match( '/(author|page|single|tag|category|taxonomy)-(.+)/', \wp_aot_regex_text( $template->slug ), $matches ) ) {
+ 			$type           = $matches[1];
+ 			$slug_remaining = $matches[2];
+ 
+@@ -1000,7 +1042,7 @@
+ 							)
+ 						);
+ 
+-						if ( count( $users_with_same_name ) > 1 ) {
++						if ( \wp_aot_count( $users_with_same_name ) > 1 ) {
+ 							$template->title = sprintf(
+ 								/* translators: Custom template title in the Site Editor. 1: Template title of an author template, 2: Author nicename. */
+ 								__( '%1$s (%2$s)' ),
+@@ -1098,6 +1140,7 @@
+ 	}
+ 
+ 	return $template;
++	return null;
+ }
+ 
+ /**
+@@ -1116,7 +1159,7 @@
+  * @param string $template_type Template type. Either 'wp_template' or 'wp_template_part'.
+  * @return WP_Block_Template[] Array of block templates.
+  */
+-function get_block_templates( $query = array(), $template_type = 'wp_template' ) {
++function get_block_templates( mixed $query = array(), mixed $template_type = 'wp_template' ): mixed {
+ 	/**
+ 	 * Filters the block templates array before the query takes place.
+ 	 *
+@@ -1168,7 +1211,7 @@
+ 
+ 	if ( ! empty( $query['slug__in'] ) ) {
+ 		$wp_query_args['post_name__in']  = $query['slug__in'];
+-		$wp_query_args['posts_per_page'] = count( array_unique( $query['slug__in'] ) );
++		$wp_query_args['posts_per_page'] = \wp_aot_count( \wp_aot_array_unique( $query['slug__in'] ) );
+ 	}
+ 
+ 	// This is only needed for the regular templates/template parts post type listing and editor.
+@@ -1242,9 +1285,9 @@
+ 		if ( 'wp_template' === $template_type ) {
+ 			// Add templates registered in the template registry. Filtering out the ones which have a theme file.
+ 			$registered_templates          = WP_Block_Templates_Registry::get_instance()->get_by_query( $query );
+-			$matching_registered_templates = array_filter(
++			$matching_registered_templates = \wp_aot_array_filter(
+ 				$registered_templates,
+-				function ( $registered_template ) use ( $template_files ) {
++				function ( mixed $registered_template ) use ( $template_files ) {
+ 					foreach ( $template_files as $template_file ) {
+ 						if ( $template_file['slug'] === $registered_template->slug ) {
+ 							return false;
+@@ -1254,8 +1297,8 @@
+ 				}
+ 			);
+ 
+-			$matching_registered_templates = array_map(
+-				function ( $template ) {
++			$matching_registered_templates = \wp_aot_array_map(
++				function ( mixed $template ) {
+ 					$template->content = apply_block_hooks_to_content(
+ 						$template->content,
+ 						$template,
+@@ -1266,7 +1309,7 @@
+ 				$matching_registered_templates
+ 			);
+ 
+-			$query_result = array_merge( $query_result, $matching_registered_templates );
++			$query_result = \wp_aot_array_merge(array( $query_result, $matching_registered_templates ));
+ 		}
+ 	}
+ 
+@@ -1287,6 +1330,7 @@
+ 	 * @param string              $template_type wp_template or wp_template_part.
+ 	 */
+ 	return apply_filters( 'get_block_templates', $query_result, $query, $template_type );
++	return null;
+ }
+ 
+ /**
+@@ -1299,7 +1343,7 @@
+  *                              Default 'wp_template'.
+  * @return WP_Block_Template|null Template.
+  */
+-function get_block_template( $id, $template_type = 'wp_template' ) {
++function get_block_template( mixed $id, mixed $template_type = 'wp_template' ): mixed {
+ 	/**
+ 	 * Filters the block template object before the query takes place.
+ 	 *
+@@ -1318,7 +1362,7 @@
+ 	}
+ 
+ 	$parts = explode( '//', $id, 2 );
+-	if ( count( $parts ) < 2 ) {
++	if ( \wp_aot_count( $parts ) < 2 ) {
+ 		return null;
+ 	}
+ 	list( $theme, $slug ) = $parts;
+@@ -1339,8 +1383,8 @@
+ 	$template_query       = new WP_Query( $wp_query_args );
+ 	$posts                = $template_query->posts;
+ 
+-	if ( count( $posts ) > 0 ) {
+-		$template = _build_block_template_result_from_post( $posts[0] );
++	if ( \wp_aot_count( $posts ) > 0 ) {
++		$template = _build_block_template_result_from_post( \wp_aot_mixed($posts)[0] );
+ 
+ 		if ( ! is_wp_error( $template ) ) {
+ 			return $template;
+@@ -1359,6 +1403,7 @@
+ 	 * @param string                 $template_type  Template type. Either 'wp_template' or 'wp_template_part'.
+ 	 */
+ 	return apply_filters( 'get_block_template', $block_template, $id, $template_type );
++	return null;
+ }
+ 
+ /**
+@@ -1374,7 +1419,7 @@
+  *                              Default 'wp_template'.
+  * @return WP_Block_Template|null The found block template, or null if there isn't one.
+  */
+-function get_block_file_template( $id, $template_type = 'wp_template' ) {
++function get_block_file_template( mixed $id, mixed $template_type = 'wp_template' ): mixed {
+ 	/**
+ 	 * Filters the block template object before the theme file discovery takes place.
+ 	 *
+@@ -1393,7 +1438,7 @@
+ 	}
+ 
+ 	$parts = explode( '//', $id, 2 );
+-	if ( count( $parts ) < 2 ) {
++	if ( \wp_aot_count( $parts ) < 2 ) {
+ 		/** This filter is documented in wp-includes/block-template-utils.php */
+ 		return apply_filters( 'get_block_file_template', null, $id, $template_type );
+ 	}
+@@ -1429,6 +1474,7 @@
+ 	 * @param string                 $template_type  Template type. Either 'wp_template' or 'wp_template_part'.
+ 	 */
+ 	return apply_filters( 'get_block_file_template', $block_template, $id, $template_type );
++	return null;
+ }
+ 
+ /**
+@@ -1438,12 +1484,13 @@
+  *
+  * @param string $part The block template part to print, for example 'header' or 'footer'.
+  */
+-function block_template_part( $part ) {
++function block_template_part( mixed $part ): mixed {
+ 	$template_part = get_block_template( get_stylesheet() . '//' . $part, 'wp_template_part' );
+ 	if ( ! $template_part || empty( $template_part->content ) ) {
+-		return;
++		return null;
+ 	}
+ 	echo do_blocks( $template_part->content );
++	return null;
+ }
+ 
+ /**
+@@ -1451,8 +1498,9 @@
+  *
+  * @since 5.9.0
+  */
+-function block_header_area() {
++function block_header_area(): mixed {
+ 	block_template_part( 'header' );
++	return null;
+ }
+ 
+ /**
+@@ -1460,8 +1508,9 @@
+  *
+  * @since 5.9.0
+  */
+-function block_footer_area() {
++function block_footer_area(): mixed {
+ 	block_template_part( 'footer' );
++	return null;
+ }
+ 
+ /**
+@@ -1472,10 +1521,11 @@
+  * @param string $path The path of the file in the theme.
+  * @return bool Whether this file is in an ignored directory.
+  */
+-function wp_is_theme_directory_ignored( $path ) {
++function wp_is_theme_directory_ignored( mixed $path ): mixed {
+ 	$directories_to_ignore = array( '.DS_Store', '.svn', '.git', '.hg', '.bzr', 'node_modules', 'vendor' );
+ 
+-	return array_any( $directories_to_ignore, fn( $directory ) => str_starts_with( $path, $directory ) );
++	return array_any( $directories_to_ignore, fn( mixed $directory ) => str_starts_with( $path, $directory ) );
++	return null;
+ }
+ 
+ /**
+@@ -1488,7 +1538,7 @@
+  *
+  * @return WP_Error|string Path of the ZIP file or error on failure.
+  */
+-function wp_generate_block_templates_export_file() {
++function wp_generate_block_templates_export_file(): mixed {
+ 	$wp_version = wp_get_wp_version();
+ 
+ 	if ( ! class_exists( 'ZipArchive' ) ) {
+@@ -1499,8 +1549,8 @@
+ 	$theme_name = basename( get_stylesheet() );
+ 	$filename   = get_temp_dir() . $theme_name . $obscura . '.zip';
+ 
+-	$zip = new ZipArchive();
+-	if ( true !== $zip->open( $filename, ZipArchive::CREATE | ZipArchive::OVERWRITE ) ) {
++	$zip = \wp_aot_native_new('ZipArchive', array());
++	if ( true !== $zip->open( $filename, \wp_aot_metadata_constant('ZipArchive::CREATE') | (int) \wp_aot_metadata_constant('ZipArchive::OVERWRITE') ) ) {
+ 		return new WP_Error( 'unable_to_create_zip', __( 'Unable to open export file (archive) for writing.' ) );
+ 	}
+ 
+@@ -1563,14 +1613,14 @@
+ 	if ( $theme_json_raw['version'] ) {
+ 		$theme_json_version = 'wp/' . substr( $wp_version, 0, 3 );
+ 		$schema             = array( '$schema' => 'https://schemas.wp.org/' . $theme_json_version . '/theme.json' );
+-		$theme_json_raw     = array_merge( $schema, $theme_json_raw );
++		$theme_json_raw     = \wp_aot_array_merge(array( $schema, $theme_json_raw ));
+ 	}
+ 
+ 	// Convert to a string.
+ 	$theme_json_encoded = wp_json_encode( $theme_json_raw, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE );
+ 
+ 	// Replace 4 spaces with a tab.
+-	$theme_json_tabbed = preg_replace( '~(?:^|\G)\h{4}~m', "\t", $theme_json_encoded );
++	$theme_json_tabbed = \wp_aot_preg_replace( '~(?:^|\G)\h{4}~m', "\t", $theme_json_encoded );
+ 
+ 	// Add the theme.json file to the zip.
+ 	$zip->addFromString(
+@@ -1582,6 +1632,7 @@
+ 	$zip->close();
+ 
+ 	return $filename;
++	return null;
+ }
+ 
+ /**
+@@ -1600,7 +1651,7 @@
+  *                                Default empty string.
+  * @return string[] The template hierarchy.
+  */
+-function get_template_hierarchy( $slug, $is_custom = false, $template_prefix = '' ) {
++function get_template_hierarchy( mixed $slug, mixed $is_custom = false, mixed $template_prefix = '' ): mixed {
+ 	if ( 'index' === $slug ) {
+ 		/** This filter is documented in wp-includes/template.php */
+ 		return apply_filters( 'index_template_hierarchy', array( 'index' ) );
+@@ -1627,9 +1678,9 @@
+ 		if ( $slug !== $type ) {
+ 			$template_hierarchy[] = $type;
+ 		}
+-	} elseif ( preg_match( '/^(author|category|archive|tag|page)-.+$/', $slug, $matches ) ) {
++	} elseif ( preg_match( '/^(author|category|archive|tag|page)-.+$/', \wp_aot_regex_text( $slug ), $matches ) ) {
+ 		$template_hierarchy[] = $matches[1];
+-	} elseif ( preg_match( '/^(taxonomy|single)-(.+)$/', $slug, $matches ) ) {
++	} elseif ( preg_match( '/^(taxonomy|single)-(.+)$/', \wp_aot_regex_text( $slug ), $matches ) ) {
+ 		$type           = $matches[1];
+ 		$slug_remaining = $matches[2];
+ 
+@@ -1690,6 +1741,7 @@
+ 		return apply_filters( "{$template_type}_template_hierarchy", $template_hierarchy );
+ 	}
+ 	return $template_hierarchy;
++	return null;
+ }
+ 
+ /**
+@@ -1708,7 +1760,7 @@
+  * @param WP_REST_Request $deprecated Deprecated. Not used.
+  * @return stdClass|WP_Error The updated object representing a template or template part.
+  */
+-function inject_ignored_hooked_blocks_metadata_attributes( $changes, $deprecated = null ) {
++function inject_ignored_hooked_blocks_metadata_attributes( mixed $changes, mixed $deprecated = null ): mixed {
+ 	if ( null !== $deprecated ) {
+ 		_deprecated_argument( __FUNCTION__, '6.5.3' );
+ 	}
+@@ -1741,7 +1793,7 @@
+ 		}
+ 
+ 		// Apply the changes to the existing post object.
+-		$post = (object) array_merge( (array) $post, (array) $changes );
++		$post = (object) \wp_aot_array_merge(array( (array) $post, (array) $changes ));
+ 
+ 		$type_terms        = get_the_terms( $changes->ID, 'wp_theme' );
+ 		$terms['wp_theme'] = ! is_wp_error( $type_terms ) && ! empty( $type_terms ) ? $type_terms[0]->name : null;
+@@ -1804,4 +1856,5 @@
+ 	}
+ 
+ 	return $changes;
+-}
++	return null;
++}

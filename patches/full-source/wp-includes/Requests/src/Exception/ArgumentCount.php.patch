@@ -1,0 +1,11 @@
+--- a/wp-includes/Requests/src/Exception/ArgumentCount.php
++++ b/wp-includes/Requests/src/Exception/ArgumentCount.php
+@@ -29,7 +29,7 @@
+ 	 *
+ 	 * @return \WpOrg\Requests\Exception\ArgumentCount
+ 	 */
+-	public static function create($expected, $received, $type) {
++	public static function create(mixed $expected, mixed $received, mixed $type): self {
+ 		// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_debug_backtrace
+ 		$stack = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 2);
+ 

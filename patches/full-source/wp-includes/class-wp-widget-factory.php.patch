@@ -1,0 +1,100 @@
+--- a/wp-includes/class-wp-widget-factory.php
++++ b/wp-includes/class-wp-widget-factory.php
+@@ -55,9 +55,10 @@
+ 	 *
+ 	 * @see WP_Widget_Factory::__construct()
+ 	 */
+-	public function WP_Widget_Factory() {
++	public function WP_Widget_Factory(): mixed {
+ 		_deprecated_constructor( 'WP_Widget_Factory', '4.3.0' );
+ 		self::__construct();
++		return null;
+ 	}
+ 
+ 	/**
+@@ -70,12 +71,13 @@
+ 	 *
+ 	 * @param string|WP_Widget $widget Either the name of a `WP_Widget` subclass or an instance of a `WP_Widget` subclass.
+ 	 */
+-	public function register( $widget ) {
++	public function register( mixed $widget ): mixed {
+ 		if ( $widget instanceof WP_Widget ) {
+-			$this->widgets[ self::INSTANCE_KEY_PREFIX . spl_object_id( $widget ) ] = $widget;
++			$this->widgets[ self::INSTANCE_KEY_PREFIX . \wp_aot_object_id( $widget ) ] = $widget;
+ 		} else {
+ 			$this->widgets[ $widget ] = new $widget();
+ 		}
++		return null;
+ 	}
+ 
+ 	/**
+@@ -88,12 +90,13 @@
+ 	 *
+ 	 * @param string|WP_Widget $widget Either the name of a `WP_Widget` subclass or an instance of a `WP_Widget` subclass.
+ 	 */
+-	public function unregister( $widget ) {
++	public function unregister( mixed $widget ): mixed {
+ 		if ( $widget instanceof WP_Widget ) {
+-			unset( $this->widgets[ self::INSTANCE_KEY_PREFIX . spl_object_id( $widget ) ] );
++			unset( $this->widgets[ self::INSTANCE_KEY_PREFIX . \wp_aot_object_id( $widget ) ] );
+ 		} else {
+ 			unset( $this->widgets[ $widget ] );
+ 		}
++		return null;
+ 	}
+ 
+ 	/**
+@@ -103,11 +106,11 @@
+ 	 *
+ 	 * @global array $wp_registered_widgets
+ 	 */
+-	public function _register_widgets() {
++	public function _register_widgets(): mixed {
+ 		global $wp_registered_widgets;
+ 		$keys       = array_keys( $this->widgets );
+ 		$registered = array_keys( $wp_registered_widgets );
+-		$registered = array_map( '_get_widget_id_base', $registered );
++		$registered = \wp_aot_array_map( '_get_widget_id_base', $registered );
+ 
+ 		foreach ( $keys as $key ) {
+ 			// Don't register new widget if old widget with the same id is already registered.
+@@ -118,6 +121,7 @@
+ 
+ 			$this->widgets[ $key ]->_register();
+ 		}
++		return null;
+ 	}
+ 
+ 	/**
+@@ -128,13 +132,14 @@
+ 	 * @param string $id_base Widget type ID.
+ 	 * @return WP_Widget|null
+ 	 */
+-	public function get_widget_object( $id_base ) {
++	public function get_widget_object( mixed $id_base ): mixed {
+ 		$key = $this->get_widget_key( $id_base );
+ 		if ( '' === $key ) {
+ 			return null;
+ 		}
+ 
+ 		return $this->widgets[ $key ];
++		return null;
+ 	}
+ 
+ 	/**
+@@ -145,7 +150,7 @@
+ 	 * @param string $id_base Widget type ID.
+ 	 * @return string
+ 	 */
+-	public function get_widget_key( $id_base ) {
++	public function get_widget_key( mixed $id_base ): mixed {
+ 		foreach ( $this->widgets as $key => $widget_object ) {
+ 			if ( $widget_object->id_base === $id_base ) {
+ 				return $key;
+@@ -153,5 +158,6 @@
+ 		}
+ 
+ 		return '';
++		return null;
+ 	}
+ }

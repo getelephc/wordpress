@@ -1,15 +1,690 @@
 --- a/wp-includes/class-wp-query.php
 +++ b/wp-includes/class-wp-query.php
-@@ -1161,7 +1161,7 @@
+@@ -66,7 +66,7 @@
+ 	 * @since 1.5.0
+ 	 * @var WP_Term|WP_Post_Type|WP_Post|WP_User|null
+ 	 */
+-	public $queried_object;
++	public mixed $queried_object = null;
+ 
+ 	/**
+ 	 * The ID of the queried object.
+@@ -74,7 +74,7 @@
+ 	 * @since 1.5.0
+ 	 * @var ?int
+ 	 */
+-	public $queried_object_id;
++	public mixed $queried_object_id = null;
+ 
+ 	/**
+ 	 * SQL for the database query.
+@@ -90,7 +90,7 @@
+ 	 * @since 1.5.0
+ 	 * @var WP_Post[]|int[]|null
+ 	 */
+-	public $posts;
++	public mixed $posts = null;
+ 
+ 	/**
+ 	 * The number of posts for the current query.
+@@ -133,7 +133,7 @@
+ 	 * @since 1.5.0
+ 	 * @var WP_Post|null
+ 	 */
+-	public $post;
++	public mixed $post = null;
+ 
+ 	/**
+ 	 * The list of comments for current post.
+@@ -141,7 +141,10 @@
+ 	 * @since 2.2.0
+ 	 * @var ?WP_Comment[]
+ 	 */
+-	public $comments;
++	public mixed $comments = null;
++
++	// Native references need a declared slot for the original template-created property.
++	public mixed $comments_by_type = null;
+ 
+ 	/**
+ 	 * The number of comments for the posts.
+@@ -165,7 +168,7 @@
+ 	 * @since 2.2.0
+ 	 * @var ?WP_Comment
+ 	 */
+-	public $comment;
++	public mixed $comment = null;
+ 
+ 	/**
+ 	 * The number of found posts for the current query.
+@@ -499,7 +502,7 @@
+ 	 *
+ 	 * @since 2.0.0
+ 	 */
+-	private function init_query_flags() {
++	private function init_query_flags(): mixed {
+ 		$this->is_single            = false;
+ 		$this->is_preview           = false;
+ 		$this->is_page              = false;
+@@ -529,6 +532,7 @@
+ 		$this->is_sitemap           = false;
+ 		$this->is_posts_page        = false;
+ 		$this->is_post_type_archive = false;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -536,7 +540,7 @@
+ 	 *
+ 	 * @since 1.5.0
+ 	 */
+-	public function init() {
++	public function init(): mixed {
+ 		unset( $this->posts );
+ 		unset( $this->query );
+ 		$this->query_vars = array();
+@@ -557,6 +561,7 @@
+ 		$this->max_num_comment_pages = 0;
+ 
+ 		$this->init_query_flags();
++		return null;
+ 	}
+ 
+ 	/**
+@@ -564,8 +569,9 @@
+ 	 *
+ 	 * @since 1.5.0
+ 	 */
+-	public function parse_query_vars() {
++	public function parse_query_vars(): mixed {
+ 		$this->parse_query();
++		return null;
+ 	}
+ 
+ 	/**
+@@ -577,7 +583,7 @@
+ 	 * @param array $query_vars Defined query variables.
+ 	 * @return array Complete query variables with undefined ones filled in empty.
+ 	 */
+-	public function fill_query_vars( $query_vars ) {
++	public function fill_query_vars( mixed $query_vars ): mixed {
+ 		$keys = array(
+ 			'error',
+ 			'm',
+@@ -649,6 +655,7 @@
+ 		}
+ 
+ 		return $query_vars;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -808,7 +815,7 @@
+ 	 *     @type int             $year                   The four-digit year. Default empty. Accepts any four-digit year.
+ 	 * }
+ 	 */
+-	public function parse_query( $query = '' ) {
++	public function parse_query( mixed $query = '' ): mixed {
+ 		if ( ! empty( $query ) ) {
+ 			$this->init();
+ 			$this->query      = wp_parse_args( $query );
+@@ -841,10 +848,10 @@
+ 		$query_vars['monthnum'] = is_scalar( $query_vars['monthnum'] ) ? absint( $query_vars['monthnum'] ) : 0;
+ 		$query_vars['day']      = is_scalar( $query_vars['day'] ) ? absint( $query_vars['day'] ) : 0;
+ 		$query_vars['w']        = is_scalar( $query_vars['w'] ) ? absint( $query_vars['w'] ) : 0;
+-		$query_vars['m']        = is_scalar( $query_vars['m'] ) ? preg_replace( '|[^0-9]|', '', $query_vars['m'] ) : '';
++		$query_vars['m']        = is_scalar( $query_vars['m'] ) ? \wp_aot_preg_replace( '|[^0-9]|', '', $query_vars['m'] ) : '';
+ 		$query_vars['paged']    = is_scalar( $query_vars['paged'] ) ? absint( $query_vars['paged'] ) : 0;
+-		$query_vars['cat']      = preg_replace( '|[^0-9,-]|', '', $query_vars['cat'] ); // Array or comma-separated list of positive or negative integers.
+-		$query_vars['author']   = is_scalar( $query_vars['author'] ) ? preg_replace( '|[^0-9,-]|', '', $query_vars['author'] ) : ''; // Comma-separated list of positive or negative integers.
++		$query_vars['cat']      = \wp_aot_preg_replace( '|[^0-9,-]|', '', $query_vars['cat'] ); // Array or comma-separated list of positive or negative integers.
++		$query_vars['author']   = is_scalar( $query_vars['author'] ) ? \wp_aot_preg_replace( '|[^0-9,-]|', '', $query_vars['author'] ) : ''; // Comma-separated list of positive or negative integers.
+ 		$query_vars['pagename'] = is_scalar( $query_vars['pagename'] ) ? trim( $query_vars['pagename'] ) : '';
+ 		$query_vars['name']     = is_scalar( $query_vars['name'] ) ? trim( $query_vars['name'] ) : '';
+ 		$query_vars['title']    = is_scalar( $query_vars['title'] ) ? trim( $query_vars['title'] ) : '';
+@@ -1038,7 +1045,7 @@
+ 		}
+ 
+ 		if ( str_contains( $query_vars['feed'], 'comments-' ) ) {
+-			$query_vars['feed']         = str_replace( 'comments-', '', $query_vars['feed'] );
++			$query_vars['feed']         = \wp_aot_str_replace( 'comments-', '', $query_vars['feed'] );
+ 			$query_vars['withcomments'] = 1;
+ 		}
+ 
+@@ -1064,7 +1071,7 @@
+ 
+ 			unset( $_query['embed'] );
+ 
+-			if ( empty( $_query ) || ! array_diff( array_keys( $_query ), array( 'preview', 'page', 'paged', 'cpage' ) ) ) {
++			if ( empty( $_query ) || ! \wp_aot_array_diff(array( array_keys( $_query ), array( 'preview', 'page', 'paged', 'cpage' ) )) ) {
+ 				$this->is_page         = true;
+ 				$this->is_home         = false;
+ 				$query_vars['page_id'] = get_option( 'page_on_front' );
+@@ -1080,7 +1087,7 @@
+ 			$this->queried_object = get_page_by_path( $query_vars['pagename'] );
+ 
+ 			if ( $this->queried_object && 'attachment' === $this->queried_object->post_type ) {
+-				if ( preg_match( '/^[^%]*%(?:postname)%/', get_option( 'permalink_structure' ) ) ) {
++				if ( preg_match( '/^[^%]*%(?:postname)%/', \wp_aot_regex_text( get_option( 'permalink_structure' ) ) ) ) {
+ 					// See if we also have a post with the same slug.
+ 					$post = get_page_by_path( $query_vars['pagename'], OBJECT, 'post' );
+ 					if ( $post ) {
+@@ -1122,8 +1129,8 @@
+ 
+ 		if ( ! empty( $query_vars['post_type'] ) ) {
+ 			if ( is_array( $query_vars['post_type'] ) ) {
+-				$query_vars['post_type'] = array_map( 'sanitize_key', array_unique( $query_vars['post_type'] ) );
+-				sort( $query_vars['post_type'] );
++				$query_vars['post_type'] = \wp_aot_array_map( 'sanitize_key', \wp_aot_array_unique( $query_vars['post_type'] ) );
++				\wp_aot_sort( $query_vars['post_type'] );
+ 			} else {
+ 				$query_vars['post_type'] = sanitize_key( $query_vars['post_type'] );
+ 			}
+@@ -1131,10 +1138,10 @@
+ 
+ 		if ( ! empty( $query_vars['post_status'] ) ) {
+ 			if ( is_array( $query_vars['post_status'] ) ) {
+-				$query_vars['post_status'] = array_map( 'sanitize_key', array_unique( $query_vars['post_status'] ) );
+-				sort( $query_vars['post_status'] );
++				$query_vars['post_status'] = \wp_aot_array_map( 'sanitize_key', \wp_aot_array_unique( $query_vars['post_status'] ) );
++				\wp_aot_sort( $query_vars['post_status'] );
+ 			} else {
+-				$query_vars['post_status'] = preg_replace( '|[^a-z0-9_,-]|', '', $query_vars['post_status'] );
++				$query_vars['post_status'] = \wp_aot_preg_replace( '|[^a-z0-9_,-]|', '', $query_vars['post_status'] );
+ 			}
+ 		}
+ 
+@@ -1161,7 +1168,8 @@
  		 *
  		 * @param WP_Query $query The WP_Query instance (passed by reference).
  		 */
 -		do_action_ref_array( 'parse_query', array( &$this ) );
 +		do_action_ref_array( 'parse_query', array( $this ) );
++		return null;
  	}
  
  	/**
-@@ -1913,7 +1913,7 @@
+@@ -1173,7 +1181,7 @@
+ 	 *
+ 	 * @param array $query_vars The query variables. Passed by reference.
+ 	 */
+-	public function parse_tax_query( &$query_vars ) {
++	public function parse_tax_query( mixed &$query_vars ): mixed {
+ 		if ( ! empty( $query_vars['tax_query'] ) && is_array( $query_vars['tax_query'] ) ) {
+ 			$tax_query = $query_vars['tax_query'];
+ 		} else {
+@@ -1207,28 +1215,28 @@
+ 
+ 				if ( ! is_array( $term ) ) {
+ 					$term = explode( ',', $term );
+-					$term = array_map( 'trim', $term );
+-				}
+-				sort( $term );
++					$term = \wp_aot_array_map( 'trim', $term );
++				}
++				\wp_aot_sort( $term );
+ 				$term = implode( ',', $term );
+ 
+ 				if ( str_contains( $term, '+' ) ) {
+-					$terms = preg_split( '/[+]+/', $term );
++					$terms = \wp_aot_preg_split( '/[+]+/', \wp_aot_regex_text( $term ) );
+ 					foreach ( $terms as $term ) {
+-						$tax_query[] = array_merge(
++						$tax_query[] = \wp_aot_array_merge(array(
+ 							$tax_query_defaults,
+ 							array(
+ 								'terms' => array( $term ),
+ 							)
+-						);
++						));
+ 					}
+ 				} else {
+-					$tax_query[] = array_merge(
++					$tax_query[] = \wp_aot_array_merge(array(
+ 						$tax_query_defaults,
+ 						array(
+-							'terms' => preg_split( '/[,]+/', $term ),
++							'terms' => \wp_aot_preg_split( '/[,]+/', \wp_aot_regex_text( $term ) ),
+ 						)
+-					);
++					));
+ 				}
+ 			}
+ 		}
+@@ -1244,9 +1252,9 @@
+ 			$cat_in     = array();
+ 			$cat_not_in = array();
+ 
+-			$cat_array = preg_split( '/[,\s]+/', urldecode( $query_vars['cat'] ) );
+-			$cat_array = array_map( 'intval', $cat_array );
+-			sort( $cat_array );
++			$cat_array = \wp_aot_mixed(\wp_aot_preg_split( '/[,\s]+/', \wp_aot_regex_text( urldecode( $query_vars['cat'] ) ) ));
++			$cat_array = \wp_aot_array_map( 'intval', $cat_array );
++			\wp_aot_sort( $cat_array );
+ 			$query_vars['cat'] = implode( ',', $cat_array );
+ 
+ 			foreach ( $cat_array as $cat ) {
+@@ -1283,13 +1291,13 @@
+ 			if ( ! isset( $query_vars['category__in'] ) ) {
+ 				$query_vars['category__in'] = array();
+ 			}
+-			$query_vars['category__in'][] = absint( reset( $query_vars['category__and'] ) );
++			$query_vars['category__in'][] = absint( wp_aot_array_first( $query_vars['category__and'] ) );
+ 			unset( $query_vars['category__and'] );
+ 		}
+ 
+ 		if ( ! empty( $query_vars['category__in'] ) ) {
+-			$query_vars['category__in'] = array_map( 'absint', array_unique( (array) $query_vars['category__in'] ) );
+-			sort( $query_vars['category__in'] );
++			$query_vars['category__in'] = \wp_aot_array_map( 'absint', \wp_aot_array_unique( (array) $query_vars['category__in'] ) );
++			\wp_aot_sort( $query_vars['category__in'] );
+ 			$tax_query[] = array(
+ 				'taxonomy'         => 'category',
+ 				'terms'            => $query_vars['category__in'],
+@@ -1299,8 +1307,8 @@
+ 		}
+ 
+ 		if ( ! empty( $query_vars['category__not_in'] ) ) {
+-			$query_vars['category__not_in'] = array_map( 'absint', array_unique( (array) $query_vars['category__not_in'] ) );
+-			sort( $query_vars['category__not_in'] );
++			$query_vars['category__not_in'] = \wp_aot_array_map( 'absint', \wp_aot_array_unique( (array) $query_vars['category__not_in'] ) );
++			\wp_aot_sort( $query_vars['category__not_in'] );
+ 			$tax_query[] = array(
+ 				'taxonomy'         => 'category',
+ 				'terms'            => $query_vars['category__not_in'],
+@@ -1310,8 +1318,8 @@
+ 		}
+ 
+ 		if ( ! empty( $query_vars['category__and'] ) ) {
+-			$query_vars['category__and'] = array_map( 'absint', array_unique( (array) $query_vars['category__and'] ) );
+-			sort( $query_vars['category__and'] );
++			$query_vars['category__and'] = \wp_aot_array_map( 'absint', \wp_aot_array_unique( (array) $query_vars['category__and'] ) );
++			\wp_aot_sort( $query_vars['category__and'] );
+ 			$tax_query[] = array(
+ 				'taxonomy'         => 'category',
+ 				'terms'            => $query_vars['category__and'],
+@@ -1331,14 +1339,14 @@
+ 		if ( '' !== $query_vars['tag'] && ! $this->is_singular && $this->query_vars_changed ) {
+ 			if ( str_contains( $query_vars['tag'], ',' ) ) {
+ 				// @todo Handle normalizing `tag` query string.
+-				$tags = preg_split( '/[,\r\n\t ]+/', $query_vars['tag'] );
++				$tags = \wp_aot_preg_split( '/[,\r\n\t ]+/', \wp_aot_regex_text( $query_vars['tag'] ) );
+ 				foreach ( (array) $tags as $tag ) {
+ 					$tag                          = sanitize_term_field( 'slug', $tag, 0, 'post_tag', 'db' );
+ 					$query_vars['tag_slug__in'][] = $tag;
+-					sort( $query_vars['tag_slug__in'] );
+-				}
+-			} elseif ( preg_match( '/[+\r\n\t ]+/', $query_vars['tag'] ) || ! empty( $query_vars['cat'] ) ) {
+-				$tags = preg_split( '/[+\r\n\t ]+/', $query_vars['tag'] );
++					\wp_aot_sort( $query_vars['tag_slug__in'] );
++				}
++			} elseif ( preg_match( '/[+\r\n\t ]+/', \wp_aot_regex_text( $query_vars['tag'] ) ) || ! empty( $query_vars['cat'] ) ) {
++				$tags = \wp_aot_preg_split( '/[+\r\n\t ]+/', \wp_aot_regex_text( $query_vars['tag'] ) );
+ 				foreach ( (array) $tags as $tag ) {
+ 					$tag                           = sanitize_term_field( 'slug', $tag, 0, 'post_tag', 'db' );
+ 					$query_vars['tag_slug__and'][] = $tag;
+@@ -1346,7 +1354,7 @@
+ 			} else {
+ 				$query_vars['tag']            = sanitize_term_field( 'slug', $query_vars['tag'], 0, 'post_tag', 'db' );
+ 				$query_vars['tag_slug__in'][] = $query_vars['tag'];
+-				sort( $query_vars['tag_slug__in'] );
++				\wp_aot_sort( $query_vars['tag_slug__in'] );
+ 			}
+ 		}
+ 
+@@ -1359,8 +1367,8 @@
+ 		}
+ 
+ 		if ( ! empty( $query_vars['tag__in'] ) ) {
+-			$query_vars['tag__in'] = array_map( 'absint', array_unique( (array) $query_vars['tag__in'] ) );
+-			sort( $query_vars['tag__in'] );
++			$query_vars['tag__in'] = \wp_aot_array_map( 'absint', \wp_aot_array_unique( (array) $query_vars['tag__in'] ) );
++			\wp_aot_sort( $query_vars['tag__in'] );
+ 			$tax_query[] = array(
+ 				'taxonomy' => 'post_tag',
+ 				'terms'    => $query_vars['tag__in'],
+@@ -1368,8 +1376,8 @@
+ 		}
+ 
+ 		if ( ! empty( $query_vars['tag__not_in'] ) ) {
+-			$query_vars['tag__not_in'] = array_map( 'absint', array_unique( (array) $query_vars['tag__not_in'] ) );
+-			sort( $query_vars['tag__not_in'] );
++			$query_vars['tag__not_in'] = \wp_aot_array_map( 'absint', \wp_aot_array_unique( (array) $query_vars['tag__not_in'] ) );
++			\wp_aot_sort( $query_vars['tag__not_in'] );
+ 			$tax_query[] = array(
+ 				'taxonomy' => 'post_tag',
+ 				'terms'    => $query_vars['tag__not_in'],
+@@ -1378,8 +1386,8 @@
+ 		}
+ 
+ 		if ( ! empty( $query_vars['tag__and'] ) ) {
+-			$query_vars['tag__and'] = array_map( 'absint', array_unique( (array) $query_vars['tag__and'] ) );
+-			sort( $query_vars['tag__and'] );
++			$query_vars['tag__and'] = \wp_aot_array_map( 'absint', \wp_aot_array_unique( (array) $query_vars['tag__and'] ) );
++			\wp_aot_sort( $query_vars['tag__and'] );
+ 			$tax_query[] = array(
+ 				'taxonomy' => 'post_tag',
+ 				'terms'    => $query_vars['tag__and'],
+@@ -1388,8 +1396,8 @@
+ 		}
+ 
+ 		if ( ! empty( $query_vars['tag_slug__in'] ) ) {
+-			$query_vars['tag_slug__in'] = array_map( 'sanitize_title_for_query', array_unique( (array) $query_vars['tag_slug__in'] ) );
+-			sort( $query_vars['tag_slug__in'] );
++			$query_vars['tag_slug__in'] = \wp_aot_array_map( 'sanitize_title_for_query', \wp_aot_array_unique( (array) $query_vars['tag_slug__in'] ) );
++			\wp_aot_sort( $query_vars['tag_slug__in'] );
+ 			$tax_query[] = array(
+ 				'taxonomy' => 'post_tag',
+ 				'terms'    => $query_vars['tag_slug__in'],
+@@ -1398,8 +1406,8 @@
+ 		}
+ 
+ 		if ( ! empty( $query_vars['tag_slug__and'] ) ) {
+-			$query_vars['tag_slug__and'] = array_map( 'sanitize_title_for_query', array_unique( (array) $query_vars['tag_slug__and'] ) );
+-			sort( $query_vars['tag_slug__and'] );
++			$query_vars['tag_slug__and'] = \wp_aot_array_map( 'sanitize_title_for_query', \wp_aot_array_unique( (array) $query_vars['tag_slug__and'] ) );
++			\wp_aot_sort( $query_vars['tag_slug__and'] );
+ 			$tax_query[] = array(
+ 				'taxonomy' => 'post_tag',
+ 				'terms'    => $query_vars['tag_slug__and'],
+@@ -1418,6 +1426,7 @@
+ 		 * @param WP_Query $query The WP_Query instance.
+ 		 */
+ 		do_action( 'parse_tax_query', $this );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1430,7 +1439,7 @@
+ 	 * @param array $query_vars Query variables.
+ 	 * @return string WHERE clause.
+ 	 */
+-	protected function parse_search( &$query_vars ) {
++	protected function parse_search( mixed &$query_vars ): mixed {
+ 		global $wpdb;
+ 
+ 		$search = '';
+@@ -1441,12 +1450,12 @@
+ 			$query_vars['s'] = urldecode( $query_vars['s'] );
+ 		}
+ 		// There are no line breaks in <input /> fields.
+-		$query_vars['s']                  = str_replace( array( "\r", "\n" ), '', $query_vars['s'] );
++		$query_vars['s']                  = \wp_aot_str_replace( array( "\r", "\n" ), '', $query_vars['s'] );
+ 		$query_vars['search_terms_count'] = 1;
+ 		if ( ! empty( $query_vars['sentence'] ) ) {
+ 			$query_vars['search_terms'] = array( $query_vars['s'] );
+ 		} else {
+-			if ( preg_match_all( '/".*?("|$)|((?<=[\t ",+])|^)[^\t ",+]+/', $query_vars['s'], $matches ) ) {
++			if ( preg_match_all( '/".*?("|$)|((?<=[\t ",+])|^)[^\t ",+]+/', \wp_aot_regex_text( $query_vars['s'] ), $matches ) ) {
+ 				$query_vars['search_terms_count'] = count( $matches[0] );
+ 				$query_vars['search_terms']       = $this->parse_search_terms( $matches[0] );
+ 				// If the search string has only short terms or stopwords, or is 10+ terms long, match it as sentence.
+@@ -1483,7 +1492,7 @@
+ 		$search_columns = (array) apply_filters( 'post_search_columns', $search_columns, $query_vars['s'], $this );
+ 
+ 		// Use only supported search columns.
+-		$search_columns = array_intersect( $search_columns, $default_search_columns );
++		$search_columns = \wp_aot_array_intersect(array( $search_columns, $default_search_columns ));
+ 		if ( empty( $search_columns ) ) {
+ 			$search_columns = $default_search_columns;
+ 		}
+@@ -1511,19 +1520,19 @@
+ 			}
+ 
+ 			if ( $n && ! $exclude ) {
+-				$like                                 = '%' . $wpdb->esc_like( $term ) . '%';
+-				$query_vars['search_orderby_title'][] = $wpdb->prepare( "{$wpdb->posts}.post_title LIKE %s", $like );
+-			}
+-
+-			$like = $n . $wpdb->esc_like( $term ) . $n;
++				$like                                 = '%' . \wp_aot_require_wpdb( $wpdb )->esc_like( $term ) . '%';
++				$query_vars['search_orderby_title'][] = \wp_aot_require_wpdb( $wpdb )->prepare( "{$wpdb->posts}.post_title LIKE %s", $like );
++			}
++
++			$like = $n . \wp_aot_require_wpdb( $wpdb )->esc_like( $term ) . $n;
+ 
+ 			$search_columns_parts = array();
+ 			foreach ( $search_columns as $search_column ) {
+-				$search_columns_parts[ $search_column ] = $wpdb->prepare( "({$wpdb->posts}.$search_column $like_op %s)", $like );
++				$search_columns_parts[ $search_column ] = \wp_aot_require_wpdb( $wpdb )->prepare( "({$wpdb->posts}.$search_column $like_op %s)", $like );
+ 			}
+ 
+ 			if ( ! empty( $this->allow_query_attachment_by_filename ) ) {
+-				$search_columns_parts['attachment'] = $wpdb->prepare( "(sq1.meta_value $like_op %s)", $like );
++				$search_columns_parts['attachment'] = \wp_aot_require_wpdb( $wpdb )->prepare( "(sq1.meta_value $like_op %s)", $like );
+ 			}
+ 
+ 			$search .= "$searchand(" . implode( " $andor_op ", $search_columns_parts ) . ')';
+@@ -1539,6 +1548,7 @@
+ 		}
+ 
+ 		return $search;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1553,7 +1563,7 @@
+ 	 * @param string[] $terms Array of terms to check.
+ 	 * @return string[] Terms that are not stopwords.
+ 	 */
+-	protected function parse_search_terms( $terms ) {
++	protected function parse_search_terms( mixed $terms ): mixed {
+ 		$strtolower = function_exists( 'mb_strtolower' ) ? 'mb_strtolower' : 'strtolower';
+ 		$checked    = array();
+ 
+@@ -1561,14 +1571,14 @@
+ 
+ 		foreach ( $terms as $term ) {
+ 			// Keep before/after spaces when term is for exact match.
+-			if ( preg_match( '/^".+"$/', $term ) ) {
++			if ( preg_match( '/^".+"$/', \wp_aot_regex_text( $term ) ) ) {
+ 				$term = trim( $term, "\"'" );
+ 			} else {
+ 				$term = trim( $term, "\"' " );
+ 			}
+ 
+ 			// Avoid single A-Z and single dashes.
+-			if ( ! $term || ( 1 === strlen( $term ) && preg_match( '/^[a-z\-]$/i', $term ) ) ) {
++			if ( ! $term || ( 1 === strlen( $term ) && preg_match( '/^[a-z\-]$/i', \wp_aot_regex_text( $term ) ) ) ) {
+ 				continue;
+ 			}
+ 
+@@ -1580,6 +1590,7 @@
+ 		}
+ 
+ 		return $checked;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1589,7 +1600,7 @@
+ 	 *
+ 	 * @return string[] Stopwords.
+ 	 */
+-	protected function get_search_stopwords() {
++	protected function get_search_stopwords(): mixed {
+ 		if ( isset( $this->stopwords ) ) {
+ 			return $this->stopwords;
+ 		}
+@@ -1624,6 +1635,7 @@
+ 		 */
+ 		$this->stopwords = apply_filters( 'wp_search_stopwords', $stopwords );
+ 		return $this->stopwords;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1636,7 +1648,7 @@
+ 	 * @param array $query_vars Query variables.
+ 	 * @return string ORDER BY clause.
+ 	 */
+-	protected function parse_search_order( &$query_vars ) {
++	protected function parse_search_order( mixed &$query_vars ): mixed {
+ 		global $wpdb;
+ 
+ 		if ( $query_vars['search_terms_count'] > 1 ) {
+@@ -1644,15 +1656,15 @@
+ 
+ 			// If the search terms contain negative queries, don't bother ordering by sentence matches.
+ 			$like = '';
+-			if ( ! preg_match( '/(?:\s|^)\-/', $query_vars['s'] ) ) {
+-				$like = '%' . $wpdb->esc_like( $query_vars['s'] ) . '%';
++			if ( ! preg_match( '/(?:\s|^)\-/', \wp_aot_regex_text( $query_vars['s'] ) ) ) {
++				$like = '%' . \wp_aot_require_wpdb( $wpdb )->esc_like( $query_vars['s'] ) . '%';
+ 			}
+ 
+ 			$search_orderby = '';
+ 
+ 			// Sentence match in 'post_title'.
+ 			if ( $like ) {
+-				$search_orderby .= $wpdb->prepare( "WHEN {$wpdb->posts}.post_title LIKE %s THEN 1 ", $like );
++				$search_orderby .= \wp_aot_require_wpdb( $wpdb )->prepare( "WHEN {$wpdb->posts}.post_title LIKE %s THEN 1 ", $like );
+ 			}
+ 
+ 			/*
+@@ -1670,8 +1682,8 @@
+ 
+ 			// Sentence match in 'post_content' and 'post_excerpt'.
+ 			if ( $like ) {
+-				$search_orderby .= $wpdb->prepare( "WHEN {$wpdb->posts}.post_excerpt LIKE %s THEN 4 ", $like );
+-				$search_orderby .= $wpdb->prepare( "WHEN {$wpdb->posts}.post_content LIKE %s THEN 5 ", $like );
++				$search_orderby .= \wp_aot_require_wpdb( $wpdb )->prepare( "WHEN {$wpdb->posts}.post_excerpt LIKE %s THEN 4 ", $like );
++				$search_orderby .= \wp_aot_require_wpdb( $wpdb )->prepare( "WHEN {$wpdb->posts}.post_content LIKE %s THEN 5 ", $like );
+ 			}
+ 
+ 			if ( $search_orderby ) {
+@@ -1679,10 +1691,11 @@
+ 			}
+ 		} else {
+ 			// Single word or sentence search.
+-			$search_orderby = reset( $query_vars['search_orderby_title'] ) . ' DESC';
++			$search_orderby = wp_aot_array_first( $query_vars['search_orderby_title'] ) . ' DESC';
+ 		}
+ 
+ 		return $search_orderby;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1695,7 +1708,7 @@
+ 	 * @param string $orderby Alias for the field to order by.
+ 	 * @return string|false Table-prefixed value to used in the ORDER clause. False otherwise.
+ 	 */
+-	protected function parse_orderby( $orderby ) {
++	protected function parse_orderby( mixed $orderby ): mixed {
+ 		global $wpdb;
+ 
+ 		// Used to filter values.
+@@ -1736,12 +1749,12 @@
+ 
+ 			$allowed_keys[] = 'meta_value';
+ 			$allowed_keys[] = 'meta_value_num';
+-			$allowed_keys   = array_merge( $allowed_keys, array_keys( $meta_clauses ) );
++			$allowed_keys   = \wp_aot_array_merge(array( $allowed_keys, array_keys( $meta_clauses ) ));
+ 		}
+ 
+ 		// If RAND() contains a seed value, sanitize and add to allowed keys.
+ 		$rand_with_seed = false;
+-		if ( preg_match( '/RAND\(([0-9]+)\)/i', $orderby, $matches ) ) {
++		if ( preg_match( '/RAND\(([0-9]+)\)/i', \wp_aot_regex_text( $orderby ), $matches ) ) {
+ 			$orderby        = sprintf( 'RAND(%s)', (int) $matches[1] );
+ 			$allowed_keys[] = $orderby;
+ 			$rand_with_seed = true;
+@@ -1782,17 +1795,17 @@
+ 				break;
+ 			case 'post__in':
+ 				if ( ! empty( $this->query_vars['post__in'] ) ) {
+-					$orderby_clause = "FIELD({$wpdb->posts}.ID," . implode( ',', array_map( 'absint', $this->query_vars['post__in'] ) ) . ')';
++					$orderby_clause = "FIELD({$wpdb->posts}.ID," . implode( ',', \wp_aot_array_map( 'absint', $this->query_vars['post__in'] ) ) . ')';
+ 				}
+ 				break;
+ 			case 'post_parent__in':
+ 				if ( ! empty( $this->query_vars['post_parent__in'] ) ) {
+-					$orderby_clause = "FIELD( {$wpdb->posts}.post_parent," . implode( ', ', array_map( 'absint', $this->query_vars['post_parent__in'] ) ) . ' )';
++					$orderby_clause = "FIELD( {$wpdb->posts}.post_parent," . implode( ', ', \wp_aot_array_map( 'absint', $this->query_vars['post_parent__in'] ) ) . ' )';
+ 				}
+ 				break;
+ 			case 'post_name__in':
+ 				if ( ! empty( $this->query_vars['post_name__in'] ) ) {
+-					$post_name__in        = array_map( 'sanitize_title_for_query', $this->query_vars['post_name__in'] );
++					$post_name__in        = \wp_aot_array_map( 'sanitize_title_for_query', $this->query_vars['post_name__in'] );
+ 					$post_name__in_string = "'" . implode( "','", $post_name__in ) . "'";
+ 					$orderby_clause       = "FIELD( {$wpdb->posts}.post_name," . $post_name__in_string . ' )';
+ 				}
+@@ -1813,6 +1826,7 @@
+ 		}
+ 
+ 		return $orderby_clause;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1823,7 +1837,7 @@
+ 	 * @param string $order The 'order' query variable.
+ 	 * @return string The sanitized 'order' query variable.
+ 	 */
+-	protected function parse_order( $order ) {
++	protected function parse_order( mixed $order ): mixed {
+ 		if ( ! is_string( $order ) || empty( $order ) ) {
+ 			return 'DESC';
+ 		}
+@@ -1833,6 +1847,7 @@
+ 		} else {
+ 			return 'DESC';
+ 		}
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1840,7 +1855,7 @@
+ 	 *
+ 	 * @since 2.0.0
+ 	 */
+-	public function set_404() {
++	public function set_404(): mixed {
+ 		$is_feed = $this->is_feed;
+ 
+ 		$this->init_query_flags();
+@@ -1856,6 +1871,7 @@
+ 		 * @param WP_Query $query The WP_Query instance (passed by reference).
+ 		 */
+ 		do_action_ref_array( 'set_404', array( $this ) );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1869,8 +1885,9 @@
+ 	 *                              Default empty string.
+ 	 * @return mixed Contents of the query variable.
+ 	 */
+-	public function get( $query_var, $default_value = '' ) {
++	public function get( mixed $query_var, mixed $default_value = '' ): mixed {
+ 		return $this->query_vars[ $query_var ] ?? $default_value;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1881,8 +1898,9 @@
+ 	 * @param string $query_var Query variable key.
+ 	 * @param mixed  $value     Query variable value.
+ 	 */
+-	public function set( $query_var, $value ) {
++	public function set( mixed $query_var, mixed $value ): mixed {
+ 		$this->query_vars[ $query_var ] = $value;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1897,7 +1915,7 @@
+ 	 *
+ 	 * @return WP_Post[]|int[] Array of post objects or post IDs.
+ 	 */
+-	public function get_posts() {
++	public function get_posts(): mixed {
+ 		global $wpdb;
+ 
+ 		$this->parse_query();
+@@ -1913,7 +1931,7 @@
  		 *
  		 * @param WP_Query $query The WP_Query instance (passed by reference).
  		 */
@@ -18,7 +693,70 @@
  
  		// Locally scoped reference for easy of use.
  		$query_vars = &$this->query_vars;
-@@ -2294,7 +2294,7 @@
+@@ -2176,7 +2194,7 @@
+ 		}
+ 
+ 		if ( '' !== $query_vars['title'] ) {
+-			$where .= $wpdb->prepare( " AND {$wpdb->posts}.post_title = %s", stripslashes( $query_vars['title'] ) );
++			$where .= \wp_aot_require_wpdb( $wpdb )->prepare( " AND {$wpdb->posts}.post_title = %s", stripslashes( $query_vars['title'] ) );
+ 		}
+ 
+ 		// Parameters related to 'post_name'.
+@@ -2229,10 +2247,10 @@
+ 			$query_vars['name']       = $query_vars['attachment'];
+ 			$where                   .= " AND {$wpdb->posts}.post_name = '" . $query_vars['attachment'] . "'";
+ 		} elseif ( is_array( $query_vars['post_name__in'] ) && ! empty( $query_vars['post_name__in'] ) ) {
+-			$query_vars['post_name__in'] = array_map( 'sanitize_title_for_query', $query_vars['post_name__in'] );
++			$query_vars['post_name__in'] = \wp_aot_array_map( 'sanitize_title_for_query', $query_vars['post_name__in'] );
+ 			// Duplicate array before sorting to allow for the orderby clause.
+-			$post_name__in_for_where = array_unique( $query_vars['post_name__in'] );
+-			sort( $post_name__in_for_where );
++			$post_name__in_for_where = \wp_aot_array_unique( $query_vars['post_name__in'] );
++			\wp_aot_sort( $post_name__in_for_where );
+ 			$post_name__in = "'" . implode( "','", $post_name__in_for_where ) . "'";
+ 			$where        .= " AND {$wpdb->posts}.post_name IN ($post_name__in)";
+ 		}
+@@ -2248,28 +2266,28 @@
+ 		} elseif ( $query_vars['post__in'] ) {
+ 			// Duplicate array before sorting to allow for the orderby clause.
+ 			$post__in_for_where = $query_vars['post__in'];
+-			$post__in_for_where = array_unique( array_map( 'absint', $post__in_for_where ) );
+-			sort( $post__in_for_where );
+-			$post__in = implode( ',', array_map( 'absint', $post__in_for_where ) );
++			$post__in_for_where = \wp_aot_array_unique( \wp_aot_array_map( 'absint', $post__in_for_where ) );
++			\wp_aot_sort( $post__in_for_where );
++			$post__in = implode( ',', \wp_aot_array_map( 'absint', $post__in_for_where ) );
+ 			$where   .= " AND {$wpdb->posts}.ID IN ($post__in)";
+ 		} elseif ( $query_vars['post__not_in'] ) {
+-			sort( $query_vars['post__not_in'] );
+-			$post__not_in = implode( ',', array_map( 'absint', $query_vars['post__not_in'] ) );
++			\wp_aot_sort( $query_vars['post__not_in'] );
++			$post__not_in = implode( ',', \wp_aot_array_map( 'absint', $query_vars['post__not_in'] ) );
+ 			$where       .= " AND {$wpdb->posts}.ID NOT IN ($post__not_in)";
+ 		}
+ 
+ 		if ( is_numeric( $query_vars['post_parent'] ) ) {
+-			$where .= $wpdb->prepare( " AND {$wpdb->posts}.post_parent = %d ", $query_vars['post_parent'] );
++			$where .= \wp_aot_require_wpdb( $wpdb )->prepare( " AND {$wpdb->posts}.post_parent = %d ", $query_vars['post_parent'] );
+ 		} elseif ( $query_vars['post_parent__in'] ) {
+ 			// Duplicate array before sorting to allow for the orderby clause.
+ 			$post_parent__in_for_where = $query_vars['post_parent__in'];
+-			$post_parent__in_for_where = array_unique( array_map( 'absint', $post_parent__in_for_where ) );
+-			sort( $post_parent__in_for_where );
+-			$post_parent__in = implode( ',', array_map( 'absint', $post_parent__in_for_where ) );
++			$post_parent__in_for_where = \wp_aot_array_unique( \wp_aot_array_map( 'absint', $post_parent__in_for_where ) );
++			\wp_aot_sort( $post_parent__in_for_where );
++			$post_parent__in = implode( ',', \wp_aot_array_map( 'absint', $post_parent__in_for_where ) );
+ 			$where          .= " AND {$wpdb->posts}.post_parent IN ($post_parent__in)";
+ 		} elseif ( $query_vars['post_parent__not_in'] ) {
+-			sort( $query_vars['post_parent__not_in'] );
+-			$post_parent__not_in = implode( ',', array_map( 'absint', $query_vars['post_parent__not_in'] ) );
++			\wp_aot_sort( $query_vars['post_parent__not_in'] );
++			$post_parent__not_in = implode( ',', \wp_aot_array_map( 'absint', $query_vars['post_parent__not_in'] ) );
+ 			$where              .= " AND {$wpdb->posts}.post_parent NOT IN ($post_parent__not_in)";
+ 		}
+ 
+@@ -2294,7 +2312,7 @@
  			 * @param string   $search Search SQL for WHERE clause.
  			 * @param WP_Query $query  The current WP_Query object.
  			 */
@@ -27,7 +765,171 @@
  		}
  
  		// Taxonomies.
-@@ -2793,7 +2793,7 @@
+@@ -2314,7 +2332,7 @@
+ 				$taxonomies = array_keys( $this->tax_query->queried_terms );
+ 				foreach ( get_post_types( array( 'exclude_from_search' => false ) ) as $pt ) {
+ 					$object_taxonomies = 'attachment' === $pt ? get_taxonomies_for_attachments() : get_object_taxonomies( $pt );
+-					if ( array_intersect( $taxonomies, $object_taxonomies ) ) {
++					if ( \wp_aot_array_intersect(array( $taxonomies, $object_taxonomies )) ) {
+ 						$post_type[] = $pt;
+ 					}
+ 				}
+@@ -2324,7 +2342,7 @@
+ 					$post_type = $post_type[0];
+ 				} else {
+ 					// Sort post types to ensure same cache key generation.
+-					sort( $post_type );
++					\wp_aot_sort( $post_type );
+ 				}
+ 
+ 				$post_status_join = true;
+@@ -2397,8 +2415,8 @@
+ 
+ 		if ( ! empty( $query_vars['author'] ) && '0' != $query_vars['author'] ) {
+ 			$query_vars['author'] = wp_slash( '' . urldecode( $query_vars['author'] ) );
+-			$authors              = array_unique( array_map( 'intval', preg_split( '/[,\s]+/', $query_vars['author'] ) ) );
+-			sort( $authors );
++			$authors              = \wp_aot_array_unique( \wp_aot_array_map( 'intval', \wp_aot_preg_split( '/[,\s]+/', \wp_aot_regex_text( $query_vars['author'] ) ) ) );
++			\wp_aot_sort( $authors );
+ 			foreach ( $authors as $author ) {
+ 				$key                  = $author > 0 ? 'author__in' : 'author__not_in';
+ 				$query_vars[ $key ][] = abs( $author );
+@@ -2409,7 +2427,7 @@
+ 		if ( ! empty( $query_vars['author__not_in'] ) ) {
+ 			$author__not_in_id_list = wp_parse_id_list( $query_vars['author__not_in'] );
+ 			if ( count( $author__not_in_id_list ) > 0 ) {
+-				sort( $author__not_in_id_list );
++				\wp_aot_sort( $author__not_in_id_list );
+ 				$where .= sprintf(
+ 					" AND {$wpdb->posts}.post_author NOT IN (%s) ",
+ 					implode( ',', $author__not_in_id_list )
+@@ -2419,10 +2437,10 @@
+ 			}
+ 		} elseif ( ! empty( $query_vars['author__in'] ) ) {
+ 			if ( is_array( $query_vars['author__in'] ) ) {
+-				$query_vars['author__in'] = array_unique( array_map( 'absint', $query_vars['author__in'] ) );
+-				sort( $query_vars['author__in'] );
+-			}
+-			$author__in = implode( ',', array_map( 'absint', array_unique( (array) $query_vars['author__in'] ) ) );
++				$query_vars['author__in'] = \wp_aot_array_unique( \wp_aot_array_map( 'absint', $query_vars['author__in'] ) );
++				\wp_aot_sort( $query_vars['author__in'] );
++			}
++			$author__in = implode( ',', \wp_aot_array_map( 'absint', \wp_aot_array_unique( (array) $query_vars['author__in'] ) ) );
+ 			$where     .= " AND {$wpdb->posts}.post_author IN ($author__in) ";
+ 		}
+ 
+@@ -2457,12 +2475,12 @@
+ 			}
+ 
+ 			if ( isset( $query_vars['comment_count']['value'] ) ) {
+-				$query_vars['comment_count'] = array_merge(
++				$query_vars['comment_count'] = \wp_aot_array_merge(array(
+ 					array(
+ 						'compare' => '=',
+ 					),
+ 					$query_vars['comment_count']
+-				);
++				));
+ 
+ 				// Fallback for invalid compare operators is '='.
+ 				$compare_operators = array( '=', '!=', '>', '>=', '<', '<=' );
+@@ -2470,7 +2488,7 @@
+ 					$query_vars['comment_count']['compare'] = '=';
+ 				}
+ 
+-				$where .= $wpdb->prepare( " AND {$wpdb->posts}.comment_count {$query_vars['comment_count']['compare']} %d", $query_vars['comment_count']['value'] );
++				$where .= \wp_aot_require_wpdb( $wpdb )->prepare( " AND {$wpdb->posts}.comment_count {$query_vars['comment_count']['compare']} %d", $query_vars['comment_count']['value'] );
+ 			}
+ 		}
+ 
+@@ -2592,7 +2610,7 @@
+ 		}
+ 
+ 		if ( isset( $query_vars['post_password'] ) ) {
+-			$where .= $wpdb->prepare( " AND {$wpdb->posts}.post_password = %s", $query_vars['post_password'] );
++			$where .= \wp_aot_require_wpdb( $wpdb )->prepare( " AND {$wpdb->posts}.post_password = %s", $query_vars['post_password'] );
+ 			if ( empty( $query_vars['perm'] ) ) {
+ 				$query_vars['perm'] = 'readable';
+ 			}
+@@ -2601,11 +2619,11 @@
+ 		}
+ 
+ 		if ( ! empty( $query_vars['comment_status'] ) ) {
+-			$where .= $wpdb->prepare( " AND {$wpdb->posts}.comment_status = %s ", $query_vars['comment_status'] );
++			$where .= \wp_aot_require_wpdb( $wpdb )->prepare( " AND {$wpdb->posts}.comment_status = %s ", $query_vars['comment_status'] );
+ 		}
+ 
+ 		if ( ! empty( $query_vars['ping_status'] ) ) {
+-			$where .= $wpdb->prepare( " AND {$wpdb->posts}.ping_status = %s ", $query_vars['ping_status'] );
++			$where .= \wp_aot_require_wpdb( $wpdb )->prepare( " AND {$wpdb->posts}.ping_status = %s ", $query_vars['ping_status'] );
+ 		}
+ 
+ 		$skip_post_status = false;
+@@ -2615,14 +2633,14 @@
+ 				$post_type_where  = ' AND 1=0 ';
+ 				$skip_post_status = true;
+ 			} else {
+-				$post_type_where = " AND {$wpdb->posts}.post_type IN ('" . implode( "', '", array_map( 'esc_sql', $in_search_post_types ) ) . "')";
++				$post_type_where = " AND {$wpdb->posts}.post_type IN ('" . implode( "', '", \wp_aot_array_map( 'esc_sql', $in_search_post_types ) ) . "')";
+ 			}
+ 		} elseif ( ! empty( $post_type ) && is_array( $post_type ) ) {
+ 			// Sort post types to ensure same cache key generation.
+-			sort( $post_type );
++			\wp_aot_sort( $post_type );
+ 			$post_type_where = " AND {$wpdb->posts}.post_type IN ('" . implode( "', '", esc_sql( $post_type ) ) . "')";
+ 		} elseif ( ! empty( $post_type ) ) {
+-			$post_type_where  = $wpdb->prepare( " AND {$wpdb->posts}.post_type = %s", $post_type );
++			$post_type_where  = \wp_aot_require_wpdb( $wpdb )->prepare( " AND {$wpdb->posts}.post_type = %s", $post_type );
+ 			$post_type_object = get_post_type_object( $post_type );
+ 		} elseif ( $this->is_attachment ) {
+ 			$post_type_where  = " AND {$wpdb->posts}.post_type = 'attachment'";
+@@ -2660,8 +2678,8 @@
+ 			if ( ! is_array( $q_status ) ) {
+ 				$q_status = explode( ',', $q_status );
+ 			}
+-			sort( $q_status );
+-			$r_status = array();
++			\wp_aot_sort( $q_status );
++			$r_status = \wp_aot_mixed(array());
+ 			$p_status = array();
+ 			$e_status = array();
+ 			if ( in_array( 'any', $q_status, true ) ) {
+@@ -2683,7 +2701,7 @@
+ 			}
+ 
+ 			if ( empty( $query_vars['perm'] ) || 'readable' !== $query_vars['perm'] ) {
+-				$r_status = array_merge( $r_status, $p_status );
++				$r_status = \wp_aot_array_merge(array( $r_status, $p_status ));
+ 				unset( $p_status );
+ 			}
+ 
+@@ -2707,7 +2725,7 @@
+ 			if ( $post_status_join ) {
+ 				$join .= " LEFT JOIN {$wpdb->posts} AS p2 ON ({$wpdb->posts}.post_parent = p2.ID) ";
+ 				foreach ( $statuswheres as $index => $statuswhere ) {
+-					$statuswheres[ $index ] = "($statuswhere OR ({$wpdb->posts}.post_status = 'inherit' AND " . str_replace( $wpdb->posts, 'p2', $statuswhere ) . '))';
++					$statuswheres[ $index ] = "($statuswhere OR ({$wpdb->posts}.post_status = 'inherit' AND " . \wp_aot_str_replace( $wpdb->posts, 'p2', $statuswhere ) . '))';
+ 				}
+ 			}
+ 			$where_status = implode( ' OR ', $statuswheres );
+@@ -2726,14 +2744,14 @@
+ 			}
+ 
+ 			if ( ! empty( $queried_post_types ) ) {
+-				sort( $queried_post_types );
++				\wp_aot_sort( $queried_post_types );
+ 				$status_type_clauses = array();
+ 
+ 				foreach ( $queried_post_types as $queried_post_type ) {
+ 
+ 					$queried_post_type_object = get_post_type_object( $queried_post_type );
+ 
+-					$type_where = '(' . $wpdb->prepare( "{$wpdb->posts}.post_type = %s AND (", $queried_post_type );
++					$type_where = '(' . \wp_aot_require_wpdb( $wpdb )->prepare( "{$wpdb->posts}.post_type = %s AND (", $queried_post_type );
+ 
+ 					// Public statuses.
+ 					$public_statuses = get_post_stati( array( 'public' => true ) );
+@@ -2793,7 +2811,7 @@
  			 * @param string   $where The WHERE clause of the query.
  			 * @param WP_Query $query The WP_Query instance (passed by reference).
  			 */
@@ -36,7 +938,7 @@
  
  			/**
  			 * Filters the JOIN clause of the query.
-@@ -2803,7 +2803,7 @@
+@@ -2803,7 +2821,7 @@
  			 * @param string   $join  The JOIN clause of the query.
  			 * @param WP_Query $query The WP_Query instance (passed by reference).
  			 */
@@ -45,7 +947,7 @@
  		}
  
  		// Paging.
-@@ -2844,7 +2844,7 @@
+@@ -2844,7 +2862,7 @@
  				 * @param string   $cjoin The JOIN clause of the query.
  				 * @param WP_Query $query The WP_Query instance (passed by reference).
  				 */
@@ -54,7 +956,7 @@
  
  				/**
  				 * Filters the WHERE clause of the comments feed query before sending.
-@@ -2854,7 +2854,7 @@
+@@ -2854,7 +2872,7 @@
  				 * @param string   $cwhere The WHERE clause of the query.
  				 * @param WP_Query $query  The WP_Query instance (passed by reference).
  				 */
@@ -63,7 +965,7 @@
  
  				/**
  				 * Filters the GROUP BY clause of the comments feed query before sending.
-@@ -2864,7 +2864,7 @@
+@@ -2864,7 +2882,7 @@
  				 * @param string   $cgroupby The GROUP BY clause of the query.
  				 * @param WP_Query $query    The WP_Query instance (passed by reference).
  				 */
@@ -72,7 +974,7 @@
  
  				/**
  				 * Filters the ORDER BY clause of the comments feed query before sending.
-@@ -2874,7 +2874,7 @@
+@@ -2874,7 +2892,7 @@
  				 * @param string   $corderby The ORDER BY clause of the query.
  				 * @param WP_Query $query    The WP_Query instance (passed by reference).
  				 */
@@ -81,7 +983,7 @@
  
  				/**
  				 * Filters the LIMIT clause of the comments feed query before sending.
-@@ -2884,7 +2884,7 @@
+@@ -2884,7 +2902,7 @@
  				 * @param string   $climits The JOIN clause of the query.
  				 * @param WP_Query $query   The WP_Query instance (passed by reference).
  				 */
@@ -90,7 +992,28 @@
  			}
  
  			$cgroupby = ( ! empty( $cgroupby ) ) ? 'GROUP BY ' . $cgroupby : '';
-@@ -2944,7 +2944,7 @@
+@@ -2902,17 +2920,17 @@
+ 			$cache_key   = "comment_feed:$key";
+ 			$comment_ids = wp_cache_get_salted( $cache_key, 'comment-queries', $last_changed );
+ 			if ( false === $comment_ids ) {
+-				$comment_ids = $wpdb->get_col( $comments_request );
++				$comment_ids = \wp_aot_require_wpdb( $wpdb )->get_col( $comments_request );
+ 				wp_cache_set_salted( $cache_key, $comment_ids, 'comment-queries', $last_changed );
+ 			}
+ 			_prime_comment_caches( $comment_ids );
+ 
+ 			// Convert to WP_Comment.
+ 			/** @var WP_Comment[] */
+-			$this->comments      = array_map( 'get_comment', $comment_ids );
++			$this->comments      = \wp_aot_array_map( 'get_comment', $comment_ids );
+ 			$this->comment_count = count( $this->comments );
+ 
+-			$post_ids = array();
++			$post_ids = \wp_aot_mixed(array());
+ 
+ 			foreach ( $this->comments as $comment ) {
+ 				$post_ids[] = (int) $comment->comment_post_ID;
+@@ -2944,7 +2962,7 @@
  			 * @param string   $where The WHERE clause of the query.
  			 * @param WP_Query $query The WP_Query instance (passed by reference).
  			 */
@@ -99,7 +1022,7 @@
  
  			/**
  			 * Filters the GROUP BY clause of the query.
-@@ -2954,7 +2954,7 @@
+@@ -2954,7 +2972,7 @@
  			 * @param string   $groupby The GROUP BY clause of the query.
  			 * @param WP_Query $query   The WP_Query instance (passed by reference).
  			 */
@@ -108,7 +1031,7 @@
  
  			/**
  			 * Filters the JOIN clause of the query.
-@@ -2966,7 +2966,7 @@
+@@ -2966,7 +2984,7 @@
  			 * @param string   $join  The JOIN clause of the query.
  			 * @param WP_Query $query The WP_Query instance (passed by reference).
  			 */
@@ -117,7 +1040,7 @@
  
  			/**
  			 * Filters the ORDER BY clause of the query.
-@@ -2976,7 +2976,7 @@
+@@ -2976,7 +2994,7 @@
  			 * @param string   $orderby The ORDER BY clause of the query.
  			 * @param WP_Query $query   The WP_Query instance (passed by reference).
  			 */
@@ -126,7 +1049,7 @@
  
  			/**
  			 * Filters the DISTINCT clause of the query.
-@@ -2986,7 +2986,7 @@
+@@ -2986,7 +3004,7 @@
  			 * @param string   $distinct The DISTINCT clause of the query.
  			 * @param WP_Query $query    The WP_Query instance (passed by reference).
  			 */
@@ -135,7 +1058,7 @@
  
  			/**
  			 * Filters the LIMIT clause of the query.
-@@ -2996,7 +2996,7 @@
+@@ -2996,7 +3014,7 @@
  			 * @param string   $limits The LIMIT clause of the query.
  			 * @param WP_Query $query  The WP_Query instance (passed by reference).
  			 */
@@ -144,7 +1067,7 @@
  
  			/**
  			 * Filters the SELECT clause of the query.
-@@ -3006,7 +3006,7 @@
+@@ -3006,7 +3024,7 @@
  			 * @param string   $fields The SELECT clause of the query.
  			 * @param WP_Query $query  The WP_Query instance (passed by reference).
  			 */
@@ -153,16 +1076,16 @@
  
  			/**
  			 * Filters all query clauses at once, for convenience.
-@@ -3029,7 +3029,7 @@
+@@ -3029,7 +3047,7 @@
  			 * }
  			 * @param WP_Query $query   The WP_Query instance (passed by reference).
  			 */
 -			$clauses = (array) apply_filters_ref_array( 'posts_clauses', array( compact( $pieces ), &$this ) );
-+			$clauses = (array) apply_filters_ref_array( 'posts_clauses', array( compact( $pieces ), $this ) );
++			$clauses = (array) apply_filters_ref_array( 'posts_clauses', array( \wp_aot_compact(get_defined_vars(), array( $pieces )), $this ) );
  
  			$where    = $clauses['where'] ?? '';
  			$groupby  = $clauses['groupby'] ?? '';
-@@ -3066,7 +3066,7 @@
+@@ -3066,7 +3084,7 @@
  			 * @param string   $where The WHERE clause of the query.
  			 * @param WP_Query $query The WP_Query instance (passed by reference).
  			 */
@@ -171,7 +1094,7 @@
  
  			/**
  			 * Filters the GROUP BY clause of the query.
-@@ -3078,7 +3078,7 @@
+@@ -3078,7 +3096,7 @@
  			 * @param string   $groupby The GROUP BY clause of the query.
  			 * @param WP_Query $query   The WP_Query instance (passed by reference).
  			 */
@@ -180,7 +1103,7 @@
  
  			/**
  			 * Filters the JOIN clause of the query.
-@@ -3090,7 +3090,7 @@
+@@ -3090,7 +3108,7 @@
  			 * @param string   $join  The JOIN clause of the query.
  			 * @param WP_Query $query The WP_Query instance (passed by reference).
  			 */
@@ -189,7 +1112,7 @@
  
  			/**
  			 * Filters the ORDER BY clause of the query.
-@@ -3102,7 +3102,7 @@
+@@ -3102,7 +3120,7 @@
  			 * @param string   $orderby The ORDER BY clause of the query.
  			 * @param WP_Query $query   The WP_Query instance (passed by reference).
  			 */
@@ -198,7 +1121,7 @@
  
  			/**
  			 * Filters the DISTINCT clause of the query.
-@@ -3114,7 +3114,7 @@
+@@ -3114,7 +3132,7 @@
  			 * @param string   $distinct The DISTINCT clause of the query.
  			 * @param WP_Query $query    The WP_Query instance (passed by reference).
  			 */
@@ -207,7 +1130,7 @@
  
  			/**
  			 * Filters the SELECT clause of the query.
-@@ -3126,7 +3126,7 @@
+@@ -3126,7 +3144,7 @@
  			 * @param string   $fields The SELECT clause of the query.
  			 * @param WP_Query $query  The WP_Query instance (passed by reference).
  			 */
@@ -216,7 +1139,7 @@
  
  			/**
  			 * Filters the LIMIT clause of the query.
-@@ -3138,7 +3138,7 @@
+@@ -3138,7 +3156,7 @@
  			 * @param string   $limits The LIMIT clause of the query.
  			 * @param WP_Query $query  The WP_Query instance (passed by reference).
  			 */
@@ -225,16 +1148,16 @@
  
  			/**
  			 * Filters all query clauses at once, for convenience.
-@@ -3163,7 +3163,7 @@
+@@ -3163,7 +3181,7 @@
  			 * }
  			 * @param WP_Query $query  The WP_Query instance (passed by reference).
  			 */
 -			$clauses = (array) apply_filters_ref_array( 'posts_clauses_request', array( compact( $pieces ), &$this ) );
-+			$clauses = (array) apply_filters_ref_array( 'posts_clauses_request', array( compact( $pieces ), $this ) );
++			$clauses = (array) apply_filters_ref_array( 'posts_clauses_request', array( \wp_aot_compact(get_defined_vars(), array( $pieces )), $this ) );
  
  			$where    = $clauses['where'] ?? '';
  			$groupby  = $clauses['groupby'] ?? '';
-@@ -3216,7 +3216,7 @@
+@@ -3216,7 +3234,7 @@
  			 * @param string   $request The complete SQL query.
  			 * @param WP_Query $query   The WP_Query instance (passed by reference).
  			 */
@@ -243,7 +1166,7 @@
  		}
  
  		/**
-@@ -3235,7 +3235,7 @@
+@@ -3235,7 +3253,7 @@
  		 *                                    or null to allow WP to run its normal queries.
  		 * @param WP_Query             $query The WP_Query instance (passed by reference).
  		 */
@@ -252,7 +1175,113 @@
  
  		/*
  		 * Ensure the ID database query is able to be cached.
-@@ -3481,7 +3481,7 @@
+@@ -3267,8 +3285,8 @@
+ 		}
+ 
+ 		if ( $query_vars['cache_results'] && $id_query_is_cacheable ) {
+-			$new_request = str_replace( $fields, "{$wpdb->posts}.*", $this->request );
+-			$cache_key   = $this->generate_cache_key( $query_vars, $new_request );
++			$new_request = \wp_aot_str_replace( $fields, "{$wpdb->posts}.*", $this->request );
++			$cache_key   = $this->generate_cache_key( \wp_aot_array_input($query_vars), $new_request );
+ 
+ 			$cache_found = false;
+ 			if ( null === $this->posts ) {
+@@ -3277,7 +3295,7 @@
+ 				if ( $cached_results ) {
+ 					$cache_found = true;
+ 					/** @var int[] */
+-					$post_ids = array_map( 'intval', $cached_results['posts'] );
++					$post_ids = \wp_aot_array_map( 'intval', $cached_results['posts'] );
+ 
+ 					$this->post_count    = count( $post_ids );
+ 					$this->found_posts   = $cached_results['found_posts'];
+@@ -3288,7 +3306,7 @@
+ 
+ 						return $this->posts;
+ 					} elseif ( 'id=>parent' === $query_vars['fields'] ) {
+-						_prime_post_parent_id_caches( $post_ids );
++						_prime_post_parent_id_caches( \wp_aot_array_input($post_ids ));
+ 
+ 						$post_parent_cache_keys = array();
+ 						foreach ( $post_ids as $post_id ) {
+@@ -3300,7 +3318,7 @@
+ 
+ 						foreach ( $post_parents as $cache_key => $post_parent ) {
+ 							$obj              = new stdClass();
+-							$obj->ID          = (int) str_replace( 'post_parent:', '', $cache_key );
++							$obj->ID          = (int) \wp_aot_str_replace( 'post_parent:', '', $cache_key );
+ 							$obj->post_parent = (int) $post_parent;
+ 
+ 							$this->posts[] = $obj;
+@@ -3310,7 +3328,7 @@
+ 					} else {
+ 						_prime_post_caches( $post_ids, $query_vars['update_post_term_cache'], $query_vars['update_post_meta_cache'] );
+ 						/** @var WP_Post[] */
+-						$this->posts = array_map( 'get_post', $post_ids );
++						$this->posts = \wp_aot_array_map( 'get_post', $post_ids );
+ 					}
+ 				}
+ 			}
+@@ -3318,11 +3336,11 @@
+ 
+ 		if ( 'ids' === $query_vars['fields'] ) {
+ 			if ( null === $this->posts ) {
+-				$this->posts = $wpdb->get_col( $this->request );
++				$this->posts = \wp_aot_require_wpdb( $wpdb )->get_col( $this->request );
+ 			}
+ 
+ 			/** @var int[] */
+-			$this->posts      = array_map( 'intval', $this->posts );
++			$this->posts      = \wp_aot_array_map( 'intval', $this->posts );
+ 			$this->post_count = count( $this->posts );
+ 			$this->set_found_posts( $query_vars, $limits );
+ 
+@@ -3341,7 +3359,7 @@
+ 
+ 		if ( 'id=>parent' === $query_vars['fields'] ) {
+ 			if ( null === $this->posts ) {
+-				$this->posts = $wpdb->get_results( $this->request );
++				$this->posts = \wp_aot_require_wpdb( $wpdb )->get_results( $this->request );
+ 			}
+ 
+ 			$this->post_count = count( $this->posts );
+@@ -3413,7 +3431,7 @@
+ 			 *     @type string $limits   The LIMIT clause of the query.
+ 			 * }
+ 			 */
+-			$split_the_query = apply_filters( 'split_the_query', $split_the_query, $this, $old_request, compact( $pieces ) );
++			$split_the_query = apply_filters( 'split_the_query', $split_the_query, $this, $old_request, \wp_aot_compact(get_defined_vars(), array( $pieces )) );
+ 
+ 			if ( $split_the_query ) {
+ 				// First get the IDs and then fill in the objects.
+@@ -3437,7 +3455,7 @@
+ 				 */
+ 				$this->request = apply_filters( 'posts_request_ids', $this->request, $this );
+ 
+-				$post_ids = $wpdb->get_col( $this->request );
++				$post_ids = \wp_aot_require_wpdb( $wpdb )->get_col( $this->request );
+ 
+ 				if ( $post_ids ) {
+ 					$this->posts = $post_ids;
+@@ -3447,7 +3465,7 @@
+ 					$this->posts = array();
+ 				}
+ 			} else {
+-				$this->posts = $wpdb->get_results( $this->request );
++				$this->posts = \wp_aot_require_wpdb( $wpdb )->get_results( $this->request );
+ 				$this->set_found_posts( $query_vars, $limits );
+ 			}
+ 		}
+@@ -3455,7 +3473,7 @@
+ 		// Convert to WP_Post objects.
+ 		if ( $this->posts ) {
+ 			/** @var WP_Post[] */
+-			$this->posts = array_map( 'get_post', $this->posts );
++			$this->posts = \wp_aot_array_map( 'get_post', $this->posts );
+ 		}
+ 
+ 		$unfiltered_posts = $this->posts;
+@@ -3481,7 +3499,7 @@
  			 * @param WP_Post[] $posts Array of post objects.
  			 * @param WP_Query  $query The WP_Query instance (passed by reference).
  			 */
@@ -261,7 +1290,7 @@
  		}
  
  		// Check post status to determine if post should be displayed.
-@@ -3538,27 +3538,27 @@
+@@ -3538,27 +3556,27 @@
  				 * @param WP_Post  $post_preview  The Post object.
  				 * @param WP_Query $query         The WP_Query instance (passed by reference).
  				 */
@@ -295,7 +1324,41 @@
  
  			$comments_request = "SELECT {$wpdb->comments}.comment_ID FROM {$wpdb->comments} $cjoin $cwhere $cgroupby $corderby $climits";
  
-@@ -3638,7 +3638,7 @@
+@@ -3568,14 +3586,14 @@
+ 			$comment_cache_key = "comment_feed:$comment_key";
+ 			$comment_ids       = wp_cache_get_salted( $comment_cache_key, 'comment-queries', $comment_last_changed );
+ 			if ( false === $comment_ids ) {
+-				$comment_ids = $wpdb->get_col( $comments_request );
++				$comment_ids = \wp_aot_require_wpdb( $wpdb )->get_col( $comments_request );
+ 				wp_cache_set_salted( $comment_cache_key, $comment_ids, 'comment-queries', $comment_last_changed );
+ 			}
+ 			_prime_comment_caches( $comment_ids );
+ 
+ 			// Convert to WP_Comment.
+ 			/** @var WP_Comment[] */
+-			$this->comments      = array_map( 'get_comment', $comment_ids );
++			$this->comments      = \wp_aot_array_map( 'get_comment', $comment_ids );
+ 			$this->comment_count = count( $this->comments );
+ 		}
+ 
+@@ -3595,14 +3613,14 @@
+ 					// Increment the sticky offset. The next sticky will be placed at this offset.
+ 					++$sticky_offset;
+ 					// Remove post from sticky posts array.
+-					$offset = array_search( $sticky_post->ID, $sticky_posts, true );
++					$offset = \wp_aot_array_search( $sticky_post->ID, $sticky_posts, true );
+ 					unset( $sticky_posts[ $offset ] );
+ 				}
+ 			}
+ 
+ 			// If any posts have been excluded specifically, Ignore those that are sticky.
+ 			if ( ! empty( $sticky_posts ) && ! empty( $query_vars['post__not_in'] ) ) {
+-				$sticky_posts = array_diff( $sticky_posts, $query_vars['post__not_in'] );
++				$sticky_posts = \wp_aot_array_diff(array( $sticky_posts, $query_vars['post__not_in'] ));
+ 			}
+ 
+ 			// Fetch sticky posts that weren't in the query results.
+@@ -3638,7 +3656,7 @@
  			 * @param WP_Post[] $posts Array of post objects.
  			 * @param WP_Query  $query The WP_Query instance (passed by reference).
  			 */
@@ -304,16 +1367,64 @@
  		}
  
  		/*
-@@ -3709,7 +3709,7 @@
+@@ -3649,7 +3667,7 @@
+ 			$this->post_count = count( $this->posts );
+ 
+ 			/** @var WP_Post[] */
+-			$this->posts = array_map( 'get_post', $this->posts );
++			$this->posts = \wp_aot_array_map( 'get_post', $this->posts );
+ 
+ 			if ( $query_vars['cache_results'] ) {
+ 				if ( $is_unfiltered_query && $unfiltered_posts === $this->posts ) {
+@@ -3661,7 +3679,7 @@
+ 			}
+ 
+ 			/** @var WP_Post */
+-			$this->post = reset( $this->posts );
++			$this->post = wp_aot_array_first( $this->posts );
+ 		} else {
+ 			$this->post_count = 0;
+ 			$this->posts      = array();
+@@ -3676,6 +3694,7 @@
+ 		}
+ 
+ 		return $this->posts;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -3689,7 +3708,7 @@
+ 	 * @param array  $query_vars Query variables.
+ 	 * @param string $limits     LIMIT clauses of the query.
+ 	 */
+-	private function set_found_posts( $query_vars, $limits ) {
++	private function set_found_posts( mixed $query_vars, mixed $limits ): mixed {
+ 		global $wpdb;
+ 
+ 		/*
+@@ -3697,7 +3716,7 @@
+ 		 * null, or false to accommodate caching plugins that fill posts later.
+ 		 */
+ 		if ( $query_vars['no_found_rows'] || ( is_array( $this->posts ) && ! $this->posts ) ) {
+-			return;
++			return null;
+ 		}
+ 
+ 		if ( ! empty( $limits ) ) {
+@@ -3709,9 +3728,9 @@
  			 * @param string   $found_posts_query The query to run to find the found posts.
  			 * @param WP_Query $query             The WP_Query instance (passed by reference).
  			 */
 -			$found_posts_query = apply_filters_ref_array( 'found_posts_query', array( 'SELECT FOUND_ROWS()', &$this ) );
+-
+-			$this->found_posts = (int) $wpdb->get_var( $found_posts_query );
 +			$found_posts_query = apply_filters_ref_array( 'found_posts_query', array( 'SELECT FOUND_ROWS()', $this ) );
- 
- 			$this->found_posts = (int) $wpdb->get_var( $found_posts_query );
++
++			$this->found_posts = (int) \wp_aot_require_wpdb( $wpdb )->get_var( $found_posts_query );
  		} else {
-@@ -3732,7 +3732,7 @@
+ 			if ( is_array( $this->posts ) ) {
+ 				$this->found_posts = count( $this->posts );
+@@ -3732,11 +3751,12 @@
  		 * @param int      $found_posts The number of posts found.
  		 * @param WP_Query $query       The WP_Query instance (passed by reference).
  		 */
@@ -322,7 +1433,55 @@
  
  		if ( ! empty( $limits ) ) {
  			$this->max_num_pages = (int) ceil( $this->found_posts / $query_vars['posts_per_page'] );
-@@ -3807,7 +3807,7 @@
+ 		}
++		return null;
+ 	}
+ 
+ 	/**
+@@ -3746,13 +3766,14 @@
+ 	 *
+ 	 * @return WP_Post Next post.
+ 	 */
+-	public function next_post() {
++	public function next_post(): mixed {
+ 
+ 		++$this->current_post;
+ 
+ 		/** @var WP_Post */
+ 		$this->post = $this->posts[ $this->current_post ];
+ 		return $this->post;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -3765,7 +3786,7 @@
+ 	 *
+ 	 * @global WP_Post $post Global post object.
+ 	 */
+-	public function the_post() {
++	public function the_post(): mixed {
+ 		global $post;
+ 
+ 		if ( ! $this->in_the_loop ) {
+@@ -3780,7 +3801,7 @@
+ 					// Only partial objects queried, need to prime the cache for the loop.
+ 					$post_ids = array_reduce(
+ 						$this->posts,
+-						function ( $carry, $post ) {
++						function ( mixed $carry, mixed $post ) {
+ 							if ( isset( $post->ID ) ) {
+ 								$carry[] = $post->ID;
+ 							}
+@@ -3791,7 +3812,7 @@
+ 					);
+ 				}
+ 				_prime_post_caches( $post_ids, $this->query_vars['update_post_term_cache'], $this->query_vars['update_post_meta_cache'] );
+-				$post_objects = array_map( 'get_post', $post_ids );
++				$post_objects = \wp_aot_array_map( 'get_post', $post_ids );
+ 			}
+ 			update_post_author_caches( $post_objects );
+ 		}
+@@ -3807,7 +3828,7 @@
  			 *
  			 * @param WP_Query $query The WP_Query instance (passed by reference).
  			 */
@@ -331,7 +1490,24 @@
  		}
  
  		$post = $this->next_post();
-@@ -3852,7 +3852,7 @@
+@@ -3830,6 +3851,7 @@
+ 
+ 		// Set up the global post object for the loop.
+ 		$this->setup_postdata( $post );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -3841,7 +3863,7 @@
+ 	 *
+ 	 * @return bool True if posts are available, false if end of the loop.
+ 	 */
+-	public function have_posts() {
++	public function have_posts(): mixed {
+ 		if ( $this->current_post + 1 < $this->post_count ) {
+ 			return true;
+ 		} elseif ( $this->current_post + 1 === $this->post_count && $this->post_count > 0 ) {
+@@ -3852,7 +3874,7 @@
  			 *
  			 * @param WP_Query $query The WP_Query instance (passed by reference).
  			 */
@@ -340,7 +1516,654 @@
  
  			// Do some cleaning up after the loop.
  			$this->rewind_posts();
-@@ -4888,7 +4888,7 @@
+@@ -3871,6 +3893,7 @@
+ 
+ 		$this->in_the_loop = false;
+ 		return false;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -3878,11 +3901,12 @@
+ 	 *
+ 	 * @since 1.5.0
+ 	 */
+-	public function rewind_posts() {
++	public function rewind_posts(): mixed {
+ 		$this->current_post = -1;
+ 		if ( $this->post_count > 0 ) {
+ 			$this->post = $this->posts[0];
+ 		}
++		return null;
+ 	}
+ 
+ 	/**
+@@ -3892,12 +3916,13 @@
+ 	 *
+ 	 * @return WP_Comment Comment object.
+ 	 */
+-	public function next_comment() {
++	public function next_comment(): mixed {
+ 		++$this->current_comment;
+ 
+ 		/** @var WP_Comment */
+ 		$this->comment = $this->comments[ $this->current_comment ];
+ 		return $this->comment;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -3907,7 +3932,7 @@
+ 	 *
+ 	 * @global WP_Comment $comment Global comment object.
+ 	 */
+-	public function the_comment() {
++	public function the_comment(): mixed {
+ 		global $comment;
+ 
+ 		$comment = $this->next_comment();
+@@ -3920,6 +3945,7 @@
+ 			 */
+ 			do_action( 'comment_loop_start' );
+ 		}
++		return null;
+ 	}
+ 
+ 	/**
+@@ -3931,7 +3957,7 @@
+ 	 *
+ 	 * @return bool True if comments are available, false if no more comments.
+ 	 */
+-	public function have_comments() {
++	public function have_comments(): mixed {
+ 		if ( $this->current_comment + 1 < $this->comment_count ) {
+ 			return true;
+ 		} elseif ( $this->current_comment + 1 === $this->comment_count ) {
+@@ -3939,6 +3965,7 @@
+ 		}
+ 
+ 		return false;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -3946,11 +3973,12 @@
+ 	 *
+ 	 * @since 2.2.0
+ 	 */
+-	public function rewind_comments() {
++	public function rewind_comments(): mixed {
+ 		$this->current_comment = -1;
+ 		if ( $this->comment_count > 0 ) {
+ 			$this->comment = $this->comments[0];
+ 		}
++		return null;
+ 	}
+ 
+ 	/**
+@@ -3967,11 +3995,12 @@
+ 	 *     $query is array{ fields: 'ids', ... } ? int[] : WP_Post[]
+ 	 * )
+ 	 */
+-	public function query( $query ) {
++	public function query( mixed $query ): mixed {
+ 		$this->init();
+ 		$this->query      = wp_parse_args( $query );
+ 		$this->query_vars = $this->query;
+ 		return $this->get_posts();
++		return null;
+ 	}
+ 
+ 	/**
+@@ -3985,7 +4014,7 @@
+ 	 *
+ 	 * @return WP_Term|WP_Post_Type|WP_Post|WP_User|null The queried object.
+ 	 */
+-	public function get_queried_object() {
++	public function get_queried_object(): mixed {
+ 		if ( isset( $this->queried_object ) ) {
+ 			return $this->queried_object;
+ 		}
+@@ -4021,9 +4050,9 @@
+ 
+ 					if ( ! empty( $query['terms'] ) ) {
+ 						if ( 'term_id' === $query['field'] ) {
+-							$term = get_term( reset( $query['terms'] ), $matched_taxonomy );
++							$term = get_term( wp_aot_array_first( $query['terms'] ), $matched_taxonomy );
+ 						} else {
+-							$term = get_term_by( $query['field'], reset( $query['terms'] ), $matched_taxonomy );
++							$term = get_term_by( $query['field'], wp_aot_array_first( $query['terms'] ), $matched_taxonomy );
+ 						}
+ 					}
+ 				}
+@@ -4075,6 +4104,7 @@
+ 		}
+ 
+ 		return $this->queried_object;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -4084,9 +4114,10 @@
+ 	 *
+ 	 * @return int
+ 	 */
+-	public function get_queried_object_id() {
++	public function get_queried_object_id(): mixed {
+ 		$this->get_queried_object();
+ 		return $this->queried_object_id ?? 0;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -4100,7 +4131,7 @@
+ 	 *
+ 	 * @param string|array $query URL query string or array of vars.
+ 	 */
+-	public function __construct( $query = '' ) {
++	public function __construct( mixed $query = '' ) {
+ 		if ( ! empty( $query ) ) {
+ 			$this->query( $query );
+ 		}
+@@ -4145,11 +4176,12 @@
+ 	 * @param array  $arguments Arguments to pass when calling.
+ 	 * @return mixed|false Return value of the callback, false otherwise.
+ 	 */
+-	public function __call( $name, $arguments ) {
++	public function __call( $name, $arguments ): mixed {
+ 		if ( in_array( $name, $this->compat_methods, true ) ) {
+ 			return $this->$name( ...$arguments );
+ 		}
+ 		return false;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -4169,8 +4201,9 @@
+ 	 *
+ 	 * @return bool Whether the query is for an existing archive page.
+ 	 */
+-	public function is_archive() {
++	public function is_archive(): mixed {
+ 		return (bool) $this->is_archive;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -4182,7 +4215,7 @@
+ 	 *                                    to check against. Default empty.
+ 	 * @return bool Whether the query is for an existing post type archive page.
+ 	 */
+-	public function is_post_type_archive( $post_types = '' ) {
++	public function is_post_type_archive( mixed $post_types = '' ): mixed {
+ 		if ( empty( $post_types ) || ! $this->is_post_type_archive ) {
+ 			return (bool) $this->is_post_type_archive;
+ 		}
+@@ -4198,6 +4231,7 @@
+ 		}
+ 
+ 		return in_array( $post_type_object->name, (array) $post_types, true );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -4209,7 +4243,7 @@
+ 	 *                                              to check against. Default empty.
+ 	 * @return bool Whether the query is for an existing attachment page.
+ 	 */
+-	public function is_attachment( $attachment = '' ) {
++	public function is_attachment( mixed $attachment = '' ): mixed {
+ 		if ( ! $this->is_attachment ) {
+ 			return false;
+ 		}
+@@ -4218,7 +4252,7 @@
+ 			return true;
+ 		}
+ 
+-		$attachment = array_map( 'strval', (array) $attachment );
++		$attachment = \wp_aot_array_map( 'strval', (array) $attachment );
+ 
+ 		$post_obj = $this->get_queried_object();
+ 		if ( ! $post_obj ) {
+@@ -4233,6 +4267,7 @@
+ 			return true;
+ 		}
+ 		return false;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -4247,7 +4282,7 @@
+ 	 *                                          to check against. Default empty.
+ 	 * @return bool Whether the query is for an existing author archive page.
+ 	 */
+-	public function is_author( $author = '' ) {
++	public function is_author( mixed $author = '' ): mixed {
+ 		if ( ! $this->is_author ) {
+ 			return false;
+ 		}
+@@ -4261,7 +4296,7 @@
+ 			return false;
+ 		}
+ 
+-		$author = array_map( 'strval', (array) $author );
++		$author = \wp_aot_array_map( 'strval', (array) $author );
+ 
+ 		if ( in_array( (string) $author_obj->ID, $author, true ) ) {
+ 			return true;
+@@ -4272,6 +4307,7 @@
+ 		}
+ 
+ 		return false;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -4286,7 +4322,7 @@
+ 	 *                                            to check against. Default empty.
+ 	 * @return bool Whether the query is for an existing category archive page.
+ 	 */
+-	public function is_category( $category = '' ) {
++	public function is_category( mixed $category = '' ): mixed {
+ 		if ( ! $this->is_category ) {
+ 			return false;
+ 		}
+@@ -4300,7 +4336,7 @@
+ 			return false;
+ 		}
+ 
+-		$category = array_map( 'strval', (array) $category );
++		$category = \wp_aot_array_map( 'strval', (array) $category );
+ 
+ 		if ( in_array( (string) $cat_obj->term_id, $category, true ) ) {
+ 			return true;
+@@ -4311,6 +4347,7 @@
+ 		}
+ 
+ 		return false;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -4325,7 +4362,7 @@
+ 	 *                                       to check against. Default empty.
+ 	 * @return bool Whether the query is for an existing tag archive page.
+ 	 */
+-	public function is_tag( $tag = '' ) {
++	public function is_tag( mixed $tag = '' ): mixed {
+ 		if ( ! $this->is_tag ) {
+ 			return false;
+ 		}
+@@ -4339,7 +4376,7 @@
+ 			return false;
+ 		}
+ 
+-		$tag = array_map( 'strval', (array) $tag );
++		$tag = \wp_aot_array_map( 'strval', (array) $tag );
+ 
+ 		if ( in_array( (string) $tag_obj->term_id, $tag, true ) ) {
+ 			return true;
+@@ -4350,6 +4387,7 @@
+ 		}
+ 
+ 		return false;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -4374,7 +4412,7 @@
+ 	 *              True for custom taxonomy archive pages, false for built-in taxonomies
+ 	 *              (category and tag archives).
+ 	 */
+-	public function is_tax( $taxonomy = '', $term = '' ) {
++	public function is_tax( mixed $taxonomy = '', mixed $term = '' ): mixed {
+ 		global $wp_taxonomies;
+ 
+ 		if ( ! $this->is_tax ) {
+@@ -4386,7 +4424,7 @@
+ 		}
+ 
+ 		$queried_object = $this->get_queried_object();
+-		$tax_array      = array_intersect( array_keys( $wp_taxonomies ), (array) $taxonomy );
++		$tax_array      = \wp_aot_array_intersect(array( array_keys( $wp_taxonomies ), (array) $taxonomy ));
+ 		$term_array     = (array) $term;
+ 
+ 		// Check that the taxonomy matches.
+@@ -4401,11 +4439,12 @@
+ 
+ 		return isset( $queried_object->term_id ) &&
+ 			count(
+-				array_intersect(
++				\wp_aot_array_intersect(array(
+ 					array( $queried_object->term_id, $queried_object->name, $queried_object->slug ),
+ 					$term_array
+-				)
++				))
+ 			);
++		return null;
+ 	}
+ 
+ 	/**
+@@ -4416,10 +4455,11 @@
+ 	 *
+ 	 * @return false Always returns false.
+ 	 */
+-	public function is_comments_popup() {
++	public function is_comments_popup(): mixed {
+ 		_deprecated_function( __FUNCTION__, '4.5.0' );
+ 
+ 		return false;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -4429,8 +4469,9 @@
+ 	 *
+ 	 * @return bool Whether the query is for an existing date archive.
+ 	 */
+-	public function is_date() {
++	public function is_date(): mixed {
+ 		return (bool) $this->is_date;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -4440,8 +4481,9 @@
+ 	 *
+ 	 * @return bool Whether the query is for an existing day archive.
+ 	 */
+-	public function is_day() {
++	public function is_day(): mixed {
+ 		return (bool) $this->is_day;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -4453,7 +4495,7 @@
+ 	 *                                         to check against. Default empty.
+ 	 * @return bool Whether the query is for a feed.
+ 	 */
+-	public function is_feed( $feeds = '' ) {
++	public function is_feed( mixed $feeds = '' ): mixed {
+ 		if ( empty( $feeds ) || ! $this->is_feed ) {
+ 			return (bool) $this->is_feed;
+ 		}
+@@ -4464,6 +4506,7 @@
+ 		}
+ 
+ 		return in_array( $query_var, (array) $feeds, true );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -4473,8 +4516,9 @@
+ 	 *
+ 	 * @return bool Whether the query is for a comments feed.
+ 	 */
+-	public function is_comment_feed() {
++	public function is_comment_feed(): mixed {
+ 		return (bool) $this->is_comment_feed;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -4493,7 +4537,7 @@
+ 	 *
+ 	 * @return bool Whether the query is for the front page of the site.
+ 	 */
+-	public function is_front_page() {
++	public function is_front_page(): mixed {
+ 		// Most likely case.
+ 		if ( 'posts' === get_option( 'show_on_front' ) && $this->is_home() ) {
+ 			return true;
+@@ -4504,6 +4548,7 @@
+ 		} else {
+ 			return false;
+ 		}
++		return null;
+ 	}
+ 
+ 	/**
+@@ -4522,8 +4567,9 @@
+ 	 *
+ 	 * @return bool Whether the query is for the blog homepage.
+ 	 */
+-	public function is_home() {
++	public function is_home(): mixed {
+ 		return (bool) $this->is_home;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -4539,7 +4585,7 @@
+ 	 *
+ 	 * @return bool Whether the query is for the Privacy Policy page.
+ 	 */
+-	public function is_privacy_policy() {
++	public function is_privacy_policy(): mixed {
+ 		if ( get_option( 'wp_page_for_privacy_policy' )
+ 			&& $this->is_page( get_option( 'wp_page_for_privacy_policy' ) )
+ 		) {
+@@ -4547,6 +4593,7 @@
+ 		} else {
+ 			return false;
+ 		}
++		return null;
+ 	}
+ 
+ 	/**
+@@ -4556,8 +4603,9 @@
+ 	 *
+ 	 * @return bool Whether the query is for an existing month archive.
+ 	 */
+-	public function is_month() {
++	public function is_month(): mixed {
+ 		return (bool) $this->is_month;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -4575,7 +4623,7 @@
+ 	 *                                        to check against. Default empty.
+ 	 * @return bool Whether the query is for an existing single page.
+ 	 */
+-	public function is_page( $page = '' ) {
++	public function is_page( mixed $page = '' ): mixed {
+ 		if ( ! $this->is_page ) {
+ 			return false;
+ 		}
+@@ -4589,7 +4637,7 @@
+ 			return false;
+ 		}
+ 
+-		$page = array_map( 'strval', (array) $page );
++		$page = \wp_aot_array_map( 'strval', (array) $page );
+ 
+ 		if ( in_array( (string) $page_obj->ID, $page, true ) ) {
+ 			return true;
+@@ -4612,6 +4660,7 @@
+ 		}
+ 
+ 		return false;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -4621,8 +4670,9 @@
+ 	 *
+ 	 * @return bool Whether the query is for a paged result.
+ 	 */
+-	public function is_paged() {
++	public function is_paged(): mixed {
+ 		return (bool) $this->is_paged;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -4632,8 +4682,9 @@
+ 	 *
+ 	 * @return bool Whether the query is for a post or page preview.
+ 	 */
+-	public function is_preview() {
++	public function is_preview(): mixed {
+ 		return (bool) $this->is_preview;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -4643,8 +4694,9 @@
+ 	 *
+ 	 * @return bool Whether the query is for the robots.txt file.
+ 	 */
+-	public function is_robots() {
++	public function is_robots(): mixed {
+ 		return (bool) $this->is_robots;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -4654,8 +4706,9 @@
+ 	 *
+ 	 * @return bool Whether the query is for the favicon.ico file.
+ 	 */
+-	public function is_favicon() {
++	public function is_favicon(): mixed {
+ 		return (bool) $this->is_favicon;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -4676,8 +4729,9 @@
+ 	 *
+ 	 * @return bool Whether the query is for a search.
+ 	 */
+-	public function is_search() {
++	public function is_search(): mixed {
+ 		return (bool) $this->is_search;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -4697,7 +4751,7 @@
+ 	 *                                        to check against. Default empty.
+ 	 * @return bool Whether the query is for an existing single post.
+ 	 */
+-	public function is_single( $post = '' ) {
++	public function is_single( mixed $post = '' ): mixed {
+ 		if ( ! $this->is_single ) {
+ 			return false;
+ 		}
+@@ -4711,7 +4765,7 @@
+ 			return false;
+ 		}
+ 
+-		$post = array_map( 'strval', (array) $post );
++		$post = \wp_aot_array_map( 'strval', (array) $post );
+ 
+ 		if ( in_array( (string) $post_obj->ID, $post, true ) ) {
+ 			return true;
+@@ -4733,6 +4787,7 @@
+ 			}
+ 		}
+ 		return false;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -4752,7 +4807,7 @@
+ 	 * @return bool Whether the query is for an existing single post
+ 	 *              or any of the given post types.
+ 	 */
+-	public function is_singular( $post_types = '' ) {
++	public function is_singular( mixed $post_types = '' ): mixed {
+ 		if ( empty( $post_types ) || ! $this->is_singular ) {
+ 			return (bool) $this->is_singular;
+ 		}
+@@ -4763,6 +4818,7 @@
+ 		}
+ 
+ 		return in_array( $post_obj->post_type, (array) $post_types, true );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -4772,8 +4828,9 @@
+ 	 *
+ 	 * @return bool Whether the query is for a specific time.
+ 	 */
+-	public function is_time() {
++	public function is_time(): mixed {
+ 		return (bool) $this->is_time;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -4783,8 +4840,9 @@
+ 	 *
+ 	 * @return bool Whether the query is for a trackback endpoint call.
+ 	 */
+-	public function is_trackback() {
++	public function is_trackback(): mixed {
+ 		return (bool) $this->is_trackback;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -4794,8 +4852,9 @@
+ 	 *
+ 	 * @return bool Whether the query is for an existing year archive.
+ 	 */
+-	public function is_year() {
++	public function is_year(): mixed {
+ 		return (bool) $this->is_year;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -4805,8 +4864,9 @@
+ 	 *
+ 	 * @return bool Whether the query is a 404 error.
+ 	 */
+-	public function is_404() {
++	public function is_404(): mixed {
+ 		return (bool) $this->is_404;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -4816,8 +4876,9 @@
+ 	 *
+ 	 * @return bool Whether the query is for an embedded post.
+ 	 */
+-	public function is_embed() {
++	public function is_embed(): mixed {
+ 		return (bool) $this->is_embed;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -4829,9 +4890,10 @@
+ 	 *
+ 	 * @return bool Whether the query is the main query.
+ 	 */
+-	public function is_main_query() {
++	public function is_main_query(): mixed {
+ 		global $wp_the_query;
+ 		return $wp_the_query === $this;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -4853,7 +4915,7 @@
+ 	 * @param WP_Post|object|int $post WP_Post instance or Post ID/object.
+ 	 * @return bool True on success, false on failure.
+ 	 */
+-	public function setup_postdata( $post ) {
++	public function setup_postdata( mixed $post ): mixed {
+ 		global $id, $authordata, $currentday, $currentmonth, $page, $pages, $multipage, $more, $numpages;
+ 
+ 		if ( ! ( $post instanceof WP_Post ) ) {
+@@ -4888,9 +4950,10 @@
  		 * @param WP_Post  $post  The Post object (passed by reference).
  		 * @param WP_Query $query The current Query object (passed by reference).
  		 */
@@ -348,4 +2171,178 @@
 +		do_action_ref_array( 'the_post', array( $post, $this ) );
  
  		return true;
++		return null;
  	}
+ 
+ 	/**
+@@ -4901,7 +4964,7 @@
+ 	 * @param WP_Post|object|int $post WP_Post instance or Post ID/object.
+ 	 * @return array|false Elements of post or false on failure.
+ 	 */
+-	public function generate_postdata( $post ) {
++	public function generate_postdata( mixed $post ): mixed {
+ 
+ 		if ( ! ( $post instanceof WP_Post ) ) {
+ 			$post = get_post( $post );
+@@ -4915,8 +4978,8 @@
+ 
+ 		$authordata = get_userdata( $post->post_author );
+ 
+-		$currentday   = false;
+-		$currentmonth = false;
++		$currentday   = \wp_aot_mixed(false);
++		$currentmonth = \wp_aot_mixed(false);
+ 
+ 		$post_date = $post->post_date;
+ 		if ( ! empty( $post_date ) && '0000-00-00 00:00:00' !== $post_date ) {
+@@ -4949,13 +5012,13 @@
+ 
+ 		$content = $post->post_content;
+ 		if ( str_contains( $content, '<!--nextpage-->' ) ) {
+-			$content = str_replace( "\n<!--nextpage-->\n", '<!--nextpage-->', $content );
+-			$content = str_replace( "\n<!--nextpage-->", '<!--nextpage-->', $content );
+-			$content = str_replace( "<!--nextpage-->\n", '<!--nextpage-->', $content );
++			$content = \wp_aot_str_replace( "\n<!--nextpage-->\n", '<!--nextpage-->', $content );
++			$content = \wp_aot_str_replace( "\n<!--nextpage-->", '<!--nextpage-->', $content );
++			$content = \wp_aot_str_replace( "<!--nextpage-->\n", '<!--nextpage-->', $content );
+ 
+ 			// Remove the nextpage block delimiters, to avoid invalid block structures in the split content.
+-			$content = str_replace( '<!-- wp:nextpage -->', '', $content );
+-			$content = str_replace( '<!-- /wp:nextpage -->', '', $content );
++			$content = \wp_aot_str_replace( '<!-- wp:nextpage -->', '', $content );
++			$content = \wp_aot_str_replace( '<!-- /wp:nextpage -->', '', $content );
+ 
+ 			// Ignore nextpage at the beginning of the content.
+ 			if ( str_starts_with( $content, '<!--nextpage-->' ) ) {
+@@ -4991,9 +5054,10 @@
+ 			$multipage = 0;
+ 		}
+ 
+-		$elements = compact( 'id', 'authordata', 'currentday', 'currentmonth', 'page', 'pages', 'multipage', 'more', 'numpages' );
++		$elements = \wp_aot_compact(get_defined_vars(), array( 'id', 'authordata', 'currentday', 'currentmonth', 'page', 'pages', 'multipage', 'more', 'numpages' ));
+ 
+ 		return $elements;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -5007,7 +5071,7 @@
+ 	 * @param string $sql  SQL statement.
+ 	 * @return string Cache key.
+ 	 */
+-	protected function generate_cache_key( array $args, $sql ) {
++	protected function generate_cache_key( array $args, mixed $sql ): mixed {
+ 		global $wpdb;
+ 
+ 		unset(
+@@ -5033,7 +5097,7 @@
+ 		}
+ 		$args['post_type'] = (array) $args['post_type'];
+ 		// Sort post types to ensure same cache key generation.
+-		sort( $args['post_type'] );
++		\wp_aot_sort( $args['post_type'] );
+ 
+ 		/*
+ 		 * Sort arrays that can be used for ordering prior to cache key generation.
+@@ -5051,21 +5115,21 @@
+ 		);
+ 		foreach ( $sortable_arrays_with_int_values as $key ) {
+ 			if ( isset( $args[ $key ] ) && is_array( $args[ $key ] ) ) {
+-				$args[ $key ] = array_unique( array_map( 'absint', $args[ $key ] ) );
+-				sort( $args[ $key ] );
++				$args[ $key ] = \wp_aot_array_unique( \wp_aot_array_map( 'absint', $args[ $key ] ) );
++				\wp_aot_sort( $args[ $key ] );
+ 			}
+ 		}
+ 
+ 		// Sort and unique the 'post_name__in' for cache key generation.
+ 		if ( isset( $args['post_name__in'] ) && is_array( $args['post_name__in'] ) ) {
+-			$args['post_name__in'] = array_unique( $args['post_name__in'] );
+-			sort( $args['post_name__in'] );
++			$args['post_name__in'] = \wp_aot_array_unique( $args['post_name__in'] );
++			\wp_aot_sort( $args['post_name__in'] );
+ 		}
+ 
+ 		if ( isset( $args['post_status'] ) ) {
+ 			$args['post_status'] = (array) $args['post_status'];
+ 			// Sort post status to ensure same cache key generation.
+-			sort( $args['post_status'] );
++			\wp_aot_sort( $args['post_status'] );
+ 		}
+ 
+ 		// Add a default orderby value of date to ensure same cache key generation.
+@@ -5073,7 +5137,8 @@
+ 			$args['orderby'] = 'date';
+ 		}
+ 
+-		$placeholder = $wpdb->placeholder_escape();
++		$placeholder = \wp_aot_require_wpdb( $wpdb )->placeholder_escape();
++		$query_placeholder_database = $wpdb;
+ 		array_walk_recursive(
+ 			$args,
+ 			/*
+@@ -5084,21 +5149,23 @@
+ 			 * $value is passed by reference to allow it to be modified.
+ 			 * array_walk_recursive() does not return an array.
+ 			 */
+-			static function ( &$value ) use ( $wpdb, $placeholder ) {
++			static function ( mixed &$value ) use ( $query_placeholder_database, $placeholder ) {
+ 				if ( is_string( $value ) && str_contains( $value, $placeholder ) ) {
+-					$value = $wpdb->remove_placeholder_escape( $value );
++					$value = \wp_aot_require_wpdb( $query_placeholder_database )->remove_placeholder_escape( $value );
+ 				}
+ 			}
+ 		);
+ 
+-		ksort( $args );
++		unset( $query_placeholder_database );
++		\wp_aot_ksort( $args );
+ 
+ 		// Replace wpdb placeholder in the SQL statement used by the cache key.
+-		$sql = $wpdb->remove_placeholder_escape( $sql );
++		$sql = \wp_aot_require_wpdb( $wpdb )->remove_placeholder_escape( $sql );
+ 		$key = md5( serialize( $args ) . $sql );
+ 
+ 		$this->query_cache_key = "wp_query:$key";
+ 		return $this->query_cache_key;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -5109,11 +5176,12 @@
+ 	 *
+ 	 * @global WP_Post $post Global post object.
+ 	 */
+-	public function reset_postdata() {
++	public function reset_postdata(): mixed {
+ 		if ( ! empty( $this->post ) ) {
+ 			$GLOBALS['post'] = $this->post;
+ 			$this->setup_postdata( $this->post );
+ 		}
++		return null;
+ 	}
+ 
+ 	/**
+@@ -5126,9 +5194,10 @@
+ 	 * @param int   $term_id
+ 	 * @return mixed
+ 	 */
+-	public function lazyload_term_meta( $check, $term_id ) {
++	public function lazyload_term_meta( mixed $check, mixed $term_id ): mixed {
+ 		_deprecated_function( __METHOD__, '4.5.0' );
+ 		return $check;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -5141,8 +5210,9 @@
+ 	 * @param int   $comment_id
+ 	 * @return mixed
+ 	 */
+-	public function lazyload_comment_meta( $check, $comment_id ) {
++	public function lazyload_comment_meta( mixed $check, mixed $comment_id ): mixed {
+ 		_deprecated_function( __METHOD__, '4.5.0' );
+ 		return $check;
++		return null;
+ 	}
+ }

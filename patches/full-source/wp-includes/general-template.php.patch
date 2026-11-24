@@ -1,6 +1,92 @@
 --- a/wp-includes/general-template.php
 +++ b/wp-includes/general-template.php
-@@ -307,7 +307,7 @@
+@@ -24,7 +24,7 @@
+  *                          Default empty array.
+  * @return void|false Void on success, false if the template does not exist.
+  */
+-function get_header( $name = null, $args = array() ) {
++function get_header( mixed $name = null, mixed $args = array() ): mixed {
+ 	/**
+ 	 * Fires before the header template file is loaded.
+ 	 *
+@@ -48,6 +48,7 @@
+ 	if ( ! locate_template( $templates, true, true, $args ) ) {
+ 		return false;
+ 	}
++	return null;
+ }
+ 
+ /**
+@@ -68,7 +69,7 @@
+  *                          Default empty array.
+  * @return void|false Void on success, false if the template does not exist.
+  */
+-function get_footer( $name = null, $args = array() ) {
++function get_footer( mixed $name = null, mixed $args = array() ): mixed {
+ 	/**
+ 	 * Fires before the footer template file is loaded.
+ 	 *
+@@ -92,6 +93,7 @@
+ 	if ( ! locate_template( $templates, true, true, $args ) ) {
+ 		return false;
+ 	}
++	return null;
+ }
+ 
+ /**
+@@ -112,7 +114,7 @@
+  *                          Default empty array.
+  * @return void|false Void on success, false if the template does not exist.
+  */
+-function get_sidebar( $name = null, $args = array() ) {
++function get_sidebar( mixed $name = null, mixed $args = array() ): mixed {
+ 	/**
+ 	 * Fires before the sidebar template file is loaded.
+ 	 *
+@@ -136,6 +138,7 @@
+ 	if ( ! locate_template( $templates, true, true, $args ) ) {
+ 		return false;
+ 	}
++	return null;
+ }
+ 
+ /**
+@@ -164,7 +167,7 @@
+  *                          Default empty array.
+  * @return void|false Void on success, false if the template does not exist.
+  */
+-function get_template_part( $slug, $name = null, $args = array() ) {
++function get_template_part( mixed $slug, mixed $name = null, mixed $args = array() ): mixed {
+ 	/**
+ 	 * Fires before the specified template part file is loaded.
+ 	 *
+@@ -206,6 +209,7 @@
+ 	if ( ! locate_template( $templates, true, false, $args ) ) {
+ 		return false;
+ 	}
++	return null;
+ }
+ 
+ /**
+@@ -238,7 +242,7 @@
+  * }
+  * @return void|string Void if 'echo' argument is true, search form HTML if 'echo' is false.
+  */
+-function get_search_form( $args = array() ) {
++function get_search_form( mixed $args = array() ): mixed {
+ 	/**
+ 	 * Fires before the search form is retrieved, at the start of get_search_form().
+ 	 *
+@@ -286,7 +290,7 @@
+ 	$args = apply_filters( 'search_form_args', $args );
+ 
+ 	// Ensure that the filtered arguments contain all required default values.
+-	$args = array_merge( $defaults, $args );
++	$args = \wp_aot_array_merge(array( $defaults, $args ));
+ 
+ 	$format = current_theme_supports( 'html5', 'search-form' ) ? 'html5' : 'xhtml';
+ 
+@@ -307,7 +311,7 @@
  
  	if ( '' !== $search_form_template ) {
  		ob_start();
@@ -9,20 +95,1940 @@
  		$form = ob_get_clean();
  	} else {
  		// Build a string containing an aria-label to use for the search form.
-@@ -3804,9 +3804,9 @@
-  * @since 5.7.0
+@@ -367,6 +371,7 @@
+ 	} else {
+ 		return $result;
+ 	}
++	return null;
+ }
+ 
+ 
+@@ -395,9 +400,10 @@
+  * }
+  * @return string Tooltip HTML markup, or an empty string when no content is provided.
   */
- function wp_strict_cross_origin_referrer() {
--	?>
--	<meta name='referrer' content='strict-origin-when-cross-origin' />
--	<?php
-+	;
-+echo '	<meta name=\'referrer\' content=\'strict-origin-when-cross-origin\' />
-+	';
+-function wp_get_tooltip( $content, $args = array() ) {
++function wp_get_tooltip( mixed $content, mixed $args = array() ): mixed {
+ 	$args['type'] = 'tooltip';
+ 	return wp_get_tooltip_helper( $content, $args );
++	return null;
  }
  
  /**
-@@ -5577,7 +5577,7 @@
+@@ -427,9 +433,10 @@
+  * }
+  * @return string Toggletip HTML markup, or an empty string when no content is provided.
+  */
+-function wp_get_toggletip( $content, $args = array() ) {
++function wp_get_toggletip( mixed $content, mixed $args = array() ): mixed {
+ 	$args['type'] = 'toggletip';
+ 	return wp_get_tooltip_helper( $content, $args );
++	return null;
+ }
+ 
+ /**
+@@ -464,7 +471,7 @@
+  * }
+  * @return string Tooltip HTML markup, or an empty string when no content is provided.
+  */
+-function wp_get_tooltip_helper( $content, $args = array() ) {
++function wp_get_tooltip_helper( mixed $content, mixed $args = array() ): mixed {
+ 	$content = trim( (string) $content );
+ 
+ 	if ( '' === $content ) {
+@@ -597,6 +604,7 @@
+ 	}
+ 
+ 	return $markup;
++	return null;
+ }
+ 
+ /**
+@@ -611,7 +619,7 @@
+  * @param bool   $display  Default to echo and not return the link.
+  * @return void|string Void if `$display` argument is true, log in/out link if `$display` is false.
+  */
+-function wp_loginout( $redirect = '', $display = true ) {
++function wp_loginout( mixed $redirect = '', mixed $display = true ): mixed {
+ 	if ( ! is_user_logged_in() ) {
+ 		$link = '<a href="' . esc_url( wp_login_url( $redirect ) ) . '">' . __( 'Log in' ) . '</a>';
+ 	} else {
+@@ -631,6 +639,7 @@
+ 		/** This filter is documented in wp-includes/general-template.php */
+ 		return apply_filters( 'loginout', $link );
+ 	}
++	return null;
+ }
+ 
+ /**
+@@ -643,7 +652,7 @@
+  * @param string $redirect Path to redirect to on logout.
+  * @return string The logout URL. Note: HTML-encoded via esc_html() in wp_nonce_url().
+  */
+-function wp_logout_url( $redirect = '' ) {
++function wp_logout_url( mixed $redirect = '' ): mixed {
+ 	$args = array();
+ 	if ( ! empty( $redirect ) ) {
+ 		$args['redirect_to'] = urlencode( $redirect );
+@@ -661,6 +670,7 @@
+ 	 * @param string $redirect   Path to redirect to on logout.
+ 	 */
+ 	return apply_filters( 'logout_url', $logout_url, $redirect );
++	return null;
+ }
+ 
+ /**
+@@ -673,7 +683,7 @@
+  *                             Default false.
+  * @return string The login URL. Not HTML-encoded.
+  */
+-function wp_login_url( $redirect = '', $force_reauth = false ) {
++function wp_login_url( mixed $redirect = '', mixed $force_reauth = false ): mixed {
+ 	$login_url = site_url( 'wp-login.php', 'login' );
+ 
+ 	if ( ! empty( $redirect ) ) {
+@@ -695,6 +705,7 @@
+ 	 * @param bool   $force_reauth Whether to force reauthorization, even if a cookie is present.
+ 	 */
+ 	return apply_filters( 'login_url', $login_url, $redirect, $force_reauth );
++	return null;
+ }
+ 
+ /**
+@@ -704,7 +715,7 @@
+  *
+  * @return string User registration URL.
+  */
+-function wp_registration_url() {
++function wp_registration_url(): mixed {
+ 	/**
+ 	 * Filters the user registration URL.
+ 	 *
+@@ -713,6 +724,7 @@
+ 	 * @param string $register The user registration URL.
+ 	 */
+ 	return apply_filters( 'register_url', site_url( 'wp-login.php?action=register', 'login' ) );
++	return null;
+ }
+ 
+ /**
+@@ -751,7 +763,7 @@
+  * }
+  * @return void|string Void if 'echo' argument is true, login form HTML if 'echo' is false.
+  */
+-function wp_login_form( $args = array() ) {
++function wp_login_form( mixed $args = array() ): mixed {
+ 	$defaults = array(
+ 		'echo'              => true,
+ 		// Default 'redirect' value takes the user back to the request URI.
+@@ -879,6 +891,7 @@
+ 	} else {
+ 		return $form;
+ 	}
++	return null;
+ }
+ 
+ /**
+@@ -889,7 +902,7 @@
+  * @param string $redirect Path to redirect to on login.
+  * @return string Lost password URL.
+  */
+-function wp_lostpassword_url( $redirect = '' ) {
++function wp_lostpassword_url( mixed $redirect = '' ): mixed {
+ 	$args = array(
+ 		'action' => 'lostpassword',
+ 	);
+@@ -916,6 +929,7 @@
+ 	 * @param string $redirect         The path to redirect to on login.
+ 	 */
+ 	return apply_filters( 'lostpassword_url', $lostpassword_url, $redirect );
++	return null;
+ }
+ 
+ /**
+@@ -932,7 +946,7 @@
+  * @return void|string Void if `$display` argument is true, registration or admin link
+  *                     if `$display` is false.
+  */
+-function wp_register( $before = '<li>', $after = '</li>', $display = true ) {
++function wp_register( mixed $before = '<li>', mixed $after = '</li>', mixed $display = true ): mixed {
+ 	if ( ! is_user_logged_in() ) {
+ 		if ( get_option( 'users_can_register' ) ) {
+ 			$link = $before . '<a href="' . esc_url( wp_registration_url() ) . '">' . __( 'Register' ) . '</a>' . $after;
+@@ -962,6 +976,7 @@
+ 	} else {
+ 		return $link;
+ 	}
++	return null;
+ }
+ 
+ /**
+@@ -974,13 +989,14 @@
+  *
+  * @link https://core.trac.wordpress.org/ticket/1458 Explanation of 'wp_meta' action.
+  */
+-function wp_meta() {
++function wp_meta(): mixed {
+ 	/**
+ 	 * Fires before displaying echoed content in the sidebar.
+ 	 *
+ 	 * @since 1.5.0
+ 	 */
+ 	do_action( 'wp_meta' );
++	return null;
+ }
+ 
+ /**
+@@ -992,8 +1008,9 @@
+  *
+  * @param string $show Optional. Site information to display. Default empty.
+  */
+-function bloginfo( $show = '' ) {
++function bloginfo( mixed $show = '' ): mixed {
+ 	echo get_bloginfo( $show, 'display' );
++	return null;
+ }
+ 
+ /**
+@@ -1043,7 +1060,7 @@
+  * @param string $filter Optional. How to filter what is retrieved. Default 'raw'.
+  * @return string Mostly string values, might be empty.
+  */
+-function get_bloginfo( $show = '', $filter = 'raw' ) {
++function get_bloginfo( mixed $show = '', mixed $filter = 'raw' ): mixed {
+ 	switch ( $show ) {
+ 		case 'home':    // Deprecated.
+ 		case 'siteurl': // Deprecated.
+@@ -1122,9 +1139,9 @@
+ 			 * Do not translate into your own language.
+ 			 */
+ 			$output = __( 'html_lang_attribute' );
+-			if ( 'html_lang_attribute' === $output || preg_match( '/[^a-zA-Z0-9-]/', $output ) ) {
++			if ( 'html_lang_attribute' === $output || preg_match( '/[^a-zA-Z0-9-]/', \wp_aot_regex_text( $output ) ) ) {
+ 				$output = determine_locale();
+-				$output = str_replace( '_', '-', $output );
++				$output = \wp_aot_str_replace( '_', '-', $output );
+ 			}
+ 			break;
+ 		case 'text_direction':
+@@ -1180,6 +1197,7 @@
+ 	}
+ 
+ 	return $output;
++	return null;
+ }
+ 
+ /**
+@@ -1192,7 +1210,7 @@
+  * @param int    $blog_id Optional. ID of the blog to get the site icon for. Default current blog.
+  * @return string Site Icon URL.
+  */
+-function get_site_icon_url( $size = 512, $url = '', $blog_id = 0 ) {
++function get_site_icon_url( mixed $size = 512, mixed $url = '', mixed $blog_id = 0 ): mixed {
+ 	$switched_blog = false;
+ 
+ 	if ( is_multisite() && ! empty( $blog_id ) && get_current_blog_id() !== (int) $blog_id ) {
+@@ -1204,7 +1222,7 @@
+ 
+ 	if ( $site_icon_id ) {
+ 		if ( $size >= 512 ) {
+-			$size_data = 'full';
++			$size_data = \wp_aot_mixed('full');
+ 		} else {
+ 			$size_data = array( $size, $size );
+ 		}
+@@ -1228,6 +1246,7 @@
+ 	 * @param int    $blog_id ID of the blog to get the site icon for.
+ 	 */
+ 	return apply_filters( 'get_site_icon_url', $url, $size, $blog_id );
++	return null;
+ }
+ 
+ /**
+@@ -1239,8 +1258,9 @@
+  * @param string $url     Optional. Fallback url if no site icon is found. Default empty.
+  * @param int    $blog_id Optional. ID of the blog to get the site icon for. Default current blog.
+  */
+-function site_icon_url( $size = 512, $url = '', $blog_id = 0 ) {
++function site_icon_url( mixed $size = 512, mixed $url = '', mixed $blog_id = 0 ): mixed {
+ 	echo esc_url( get_site_icon_url( $size, $url, $blog_id ) );
++	return null;
+ }
+ 
+ /**
+@@ -1251,8 +1271,9 @@
+  * @param int $blog_id Optional. ID of the blog in question. Default current blog.
+  * @return bool Whether the site has a site icon or not.
+  */
+-function has_site_icon( $blog_id = 0 ) {
++function has_site_icon( mixed $blog_id = 0 ): mixed {
+ 	return (bool) get_site_icon_url( 512, '', $blog_id );
++	return null;
+ }
+ 
+ /**
+@@ -1263,7 +1284,7 @@
+  * @param int $blog_id Optional. ID of the blog in question. Default is the ID of the current blog.
+  * @return bool Whether the site has a custom logo or not.
+  */
+-function has_custom_logo( $blog_id = 0 ) {
++function has_custom_logo( mixed $blog_id = 0 ): mixed {
+ 	$switched_blog = false;
+ 
+ 	if ( is_multisite() && ! empty( $blog_id ) && get_current_blog_id() !== (int) $blog_id ) {
+@@ -1279,6 +1300,7 @@
+ 	}
+ 
+ 	return $is_image;
++	return null;
+ }
+ 
+ /**
+@@ -1292,7 +1314,7 @@
+  * @param int $blog_id Optional. ID of the blog in question. Default is the ID of the current blog.
+  * @return string Custom logo markup.
+  */
+-function get_custom_logo( $blog_id = 0 ) {
++function get_custom_logo( mixed $blog_id = 0 ): mixed {
+ 	$html          = '';
+ 	$switched_blog = false;
+ 
+@@ -1387,6 +1409,7 @@
+ 	 * @param int    $blog_id ID of the blog to get the custom logo for.
+ 	 */
+ 	return apply_filters( 'get_custom_logo', $html, $blog_id );
++	return null;
+ }
+ 
+ /**
+@@ -1396,8 +1419,9 @@
+  *
+  * @param int $blog_id Optional. ID of the blog in question. Default is the ID of the current blog.
+  */
+-function the_custom_logo( $blog_id = 0 ) {
++function the_custom_logo( mixed $blog_id = 0 ): mixed {
+ 	echo get_custom_logo( $blog_id );
++	return null;
+ }
+ 
+ /**
+@@ -1410,7 +1434,7 @@
+  *
+  * @return string Tag with the document title.
+  */
+-function wp_get_document_title() {
++function wp_get_document_title(): mixed {
+ 
+ 	/**
+ 	 * Filters the document title before it is generated.
+@@ -1519,7 +1543,7 @@
+ 	 */
+ 	$title = apply_filters( 'document_title_parts', $title );
+ 
+-	$title = implode( " $sep ", array_filter( $title ) );
++	$title = implode( " $sep ", \wp_aot_array_filter( $title ) );
+ 
+ 	/**
+ 	 * Filters the document title.
+@@ -1531,6 +1555,7 @@
+ 	$title = apply_filters( 'document_title', $title );
+ 
+ 	return $title;
++	return null;
+ }
+ 
+ /**
+@@ -1540,12 +1565,13 @@
+  * @since 4.4.0 Improved title output replaced `wp_title()`.
+  * @access private
+  */
+-function _wp_render_title_tag() {
++function _wp_render_title_tag(): mixed {
+ 	if ( ! current_theme_supports( 'title-tag' ) ) {
+-		return;
++		return null;
+ 	}
+ 
+ 	echo '<title>' . wp_get_document_title() . '</title>' . "\n";
++	return null;
+ }
+ 
+ /**
+@@ -1573,7 +1599,7 @@
+  * @param string $seplocation Optional. Location of the separator (either 'left' or 'right').
+  * @return string|null String when `$display` is false, null otherwise.
+  */
+-function wp_title( $sep = '&raquo;', $display = true, $seplocation = '' ) {
++function wp_title( mixed $sep = '&raquo;', mixed $display = true, mixed $seplocation = '' ): mixed {
+ 	global $wp_locale;
+ 
+ 	$m        = get_query_var( 'm' );
+@@ -1683,7 +1709,7 @@
+ 
+ 	// Determines position of the separator and direction of the breadcrumb.
+ 	if ( 'right' === $seplocation ) { // Separator on right, so reverse the order.
+-		$title_array = array_reverse( $title_array );
++		$title_array = \wp_aot_array_reverse( $title_array );
+ 		$title       = implode( " $sep ", $title_array ) . $prefix;
+ 	} else {
+ 		$title = $prefix . implode( " $sep ", $title_array );
+@@ -1706,6 +1732,7 @@
+ 	} else {
+ 		return $title;
+ 	}
++	return null;
+ }
+ 
+ /**
+@@ -1724,7 +1751,7 @@
+  * @param bool   $display Optional. Whether to display or retrieve title. Default true.
+  * @return string|null Title when retrieving.
+  */
+-function single_post_title( $prefix = '', $display = true ) {
++function single_post_title( mixed $prefix = '', mixed $display = true ): mixed {
+ 	$_post = get_queried_object();
+ 
+ 	if ( ! isset( $_post->post_title ) ) {
+@@ -1745,6 +1772,7 @@
+ 	} else {
+ 		return $prefix . $title;
+ 	}
++	return null;
+ }
+ 
+ /**
+@@ -1759,7 +1787,7 @@
+  * @param bool   $display Optional. Whether to display or retrieve title. Default true.
+  * @return string|null Title when retrieving, null when displaying or on failure.
+  */
+-function post_type_archive_title( $prefix = '', $display = true ) {
++function post_type_archive_title( mixed $prefix = '', mixed $display = true ): mixed {
+ 	if ( ! is_post_type_archive() ) {
+ 		return null;
+ 	}
+@@ -1786,6 +1814,7 @@
+ 	} else {
+ 		return $prefix . $title;
+ 	}
++	return null;
+ }
+ 
+ /**
+@@ -1801,8 +1830,9 @@
+  * @param bool   $display Optional. Whether to display or retrieve title. Default true.
+  * @return string|null Title when retrieving.
+  */
+-function single_cat_title( $prefix = '', $display = true ) {
++function single_cat_title( mixed $prefix = '', mixed $display = true ): mixed {
+ 	return single_term_title( $prefix, $display );
++	return null;
+ }
+ 
+ /**
+@@ -1818,8 +1848,9 @@
+  * @param bool   $display Optional. Whether to display or retrieve title. Default true.
+  * @return string|null Title when retrieving.
+  */
+-function single_tag_title( $prefix = '', $display = true ) {
++function single_tag_title( mixed $prefix = '', mixed $display = true ): mixed {
+ 	return single_term_title( $prefix, $display );
++	return null;
+ }
+ 
+ /**
+@@ -1835,7 +1866,7 @@
+  * @param bool   $display Optional. Whether to display or retrieve title. Default true.
+  * @return string|null Title when retrieving.
+  */
+-function single_term_title( $prefix = '', $display = true ) {
++function single_term_title( mixed $prefix = '', mixed $display = true ): mixed {
+ 	$term = get_queried_object();
+ 
+ 	if ( ! $term ) {
+@@ -1882,6 +1913,7 @@
+ 	} else {
+ 		return $prefix . $term_name;
+ 	}
++	return null;
+ }
+ 
+ /**
+@@ -1900,7 +1932,7 @@
+  * @param bool   $display Optional. Whether to display or retrieve title. Default true.
+  * @return string|false|null False if there's no valid title for the month. Title when retrieving.
+  */
+-function single_month_title( $prefix = '', $display = true ) {
++function single_month_title( mixed $prefix = '', mixed $display = true ): mixed {
+ 	global $wp_locale;
+ 
+ 	$m        = get_query_var( 'm' );
+@@ -1925,6 +1957,7 @@
+ 		return $result;
+ 	}
+ 	echo $result;
++	return null;
+ }
+ 
+ /**
+@@ -1937,12 +1970,13 @@
+  * @param string $before Optional. Content to prepend to the title. Default empty.
+  * @param string $after  Optional. Content to append to the title. Default empty.
+  */
+-function the_archive_title( $before = '', $after = '' ) {
++function the_archive_title( mixed $before = '', mixed $after = '' ): mixed {
+ 	$title = get_the_archive_title();
+ 
+ 	if ( ! empty( $title ) ) {
+ 		echo $before . $title . $after;
+ 	}
++	return null;
+ }
+ 
+ /**
+@@ -1953,7 +1987,7 @@
+  *
+  * @return string Archive title.
+  */
+-function get_the_archive_title() {
++function get_the_archive_title(): mixed {
+ 	$title  = __( 'Archives' );
+ 	$prefix = '';
+ 
+@@ -2044,6 +2078,7 @@
+ 	 * @param string $prefix         Archive title prefix.
+ 	 */
+ 	return apply_filters( 'get_the_archive_title', $title, $original_title, $prefix );
++	return null;
+ }
+ 
+ /**
+@@ -2056,11 +2091,12 @@
+  * @param string $before Optional. Content to prepend to the description. Default empty.
+  * @param string $after  Optional. Content to append to the description. Default empty.
+  */
+-function the_archive_description( $before = '', $after = '' ) {
++function the_archive_description( mixed $before = '', mixed $after = '' ): mixed {
+ 	$description = get_the_archive_description();
+ 	if ( $description ) {
+ 		echo $before . $description . $after;
+ 	}
++	return null;
+ }
+ 
+ /**
+@@ -2074,7 +2110,7 @@
+  *
+  * @return string Archive description.
+  */
+-function get_the_archive_description() {
++function get_the_archive_description(): mixed {
+ 	if ( is_author() ) {
+ 		$description = get_the_author_meta( 'description' );
+ 	} elseif ( is_post_type_archive() ) {
+@@ -2091,6 +2127,7 @@
+ 	 * @param string $description Archive description to be displayed.
+ 	 */
+ 	return apply_filters( 'get_the_archive_description', $description );
++	return null;
+ }
+ 
+ /**
+@@ -2100,7 +2137,7 @@
+  *
+  * @return string The post type description.
+  */
+-function get_the_post_type_description() {
++function get_the_post_type_description(): mixed {
+ 	$post_type = get_query_var( 'post_type' );
+ 
+ 	if ( is_array( $post_type ) ) {
+@@ -2121,6 +2158,7 @@
+ 	 * @param WP_Post_Type $post_type_obj The post type object.
+ 	 */
+ 	return apply_filters( 'get_the_post_type_description', $description, $post_type_obj );
++	return null;
+ }
+ 
+ /**
+@@ -2158,7 +2196,7 @@
+  * @param bool   $selected Optional. Set to true if the current page is the selected archive page. Default false.
+  * @return string HTML link content for archive.
+  */
+-function get_archives_link( $url, $text, $format = 'html', $before = '', $after = '', $selected = false ) {
++function get_archives_link( mixed $url, mixed $text, mixed $format = 'html', mixed $before = '', mixed $after = '', mixed $selected = false ): mixed {
+ 	$text         = wptexturize( $text );
+ 	$url          = esc_url( $url );
+ 	$aria_current = $selected ? ' aria-current="page"' : '';
+@@ -2190,6 +2228,7 @@
+ 	 * @param bool   $selected  True if the current page is the selected archive.
+ 	 */
+ 	return apply_filters( 'get_archives_link', $link_html, $url, $text, $format, $before, $after, $selected );
++	return null;
+ }
+ 
+ /**
+@@ -2232,7 +2271,7 @@
+  * }
+  * @return void|string Void if 'echo' argument is true, archive links if 'echo' is false.
+  */
+-function wp_get_archives( $args = '' ) {
++function wp_get_archives( mixed $args = '' ): mixed {
+ 	global $wpdb, $wp_locale;
+ 
+ 	$defaults = array(
+@@ -2266,7 +2305,7 @@
+ 
+ 	$post_type_object = get_post_type_object( $parsed_args['post_type'] );
+ 	if ( ! is_post_type_viewable( $post_type_object ) ) {
+-		return;
++		return null;
+ 	}
+ 
+ 	$parsed_args['post_type'] = $post_type_object->name;
+@@ -2288,7 +2327,7 @@
+ 	// This is what will separate dates on weekly archive links.
+ 	$archive_week_separator = '&#8211;';
+ 
+-	$sql_where = $wpdb->prepare( "WHERE post_type = %s AND post_status = 'publish'", $parsed_args['post_type'] );
++	$sql_where = \wp_aot_require_wpdb( $wpdb )->prepare( "WHERE post_type = %s AND post_status = 'publish'", $parsed_args['post_type'] );
+ 
+ 	/**
+ 	 * Filters the SQL WHERE clause for retrieving archives.
+@@ -2322,7 +2361,7 @@
+ 		$key     = "wp_get_archives:$key";
+ 		$results = wp_cache_get_salted( $key, 'post-queries', $last_changed );
+ 		if ( ! $results ) {
+-			$results = $wpdb->get_results( $query );
++			$results = \wp_aot_require_wpdb( $wpdb )->get_results( $query );
+ 			wp_cache_set_salted( $key, $results, 'post-queries', $last_changed );
+ 		}
+ 		if ( $results ) {
+@@ -2347,7 +2386,7 @@
+ 		$key     = "wp_get_archives:$key";
+ 		$results = wp_cache_get_salted( $key, 'post-queries', $last_changed );
+ 		if ( ! $results ) {
+-			$results = $wpdb->get_results( $query );
++			$results = \wp_aot_require_wpdb( $wpdb )->get_results( $query );
+ 			wp_cache_set_salted( $key, $results, 'post-queries', $last_changed );
+ 		}
+ 		if ( $results ) {
+@@ -2371,7 +2410,7 @@
+ 		$key     = "wp_get_archives:$key";
+ 		$results = wp_cache_get_salted( $key, 'post-queries', $last_changed );
+ 		if ( ! $results ) {
+-			$results = $wpdb->get_results( $query );
++			$results = \wp_aot_require_wpdb( $wpdb )->get_results( $query );
+ 			wp_cache_set_salted( $key, $results, 'post-queries', $last_changed );
+ 		}
+ 		if ( $results ) {
+@@ -2397,7 +2436,7 @@
+ 		$key     = "wp_get_archives:$key";
+ 		$results = wp_cache_get_salted( $key, 'post-queries', $last_changed );
+ 		if ( ! $results ) {
+-			$results = $wpdb->get_results( $query );
++			$results = \wp_aot_require_wpdb( $wpdb )->get_results( $query );
+ 			wp_cache_set_salted( $key, $results, 'post-queries', $last_changed );
+ 		}
+ 		$arc_w_last = '';
+@@ -2436,7 +2475,7 @@
+ 		$key     = "wp_get_archives:$key";
+ 		$results = wp_cache_get_salted( $key, 'post-queries', $last_changed );
+ 		if ( ! $results ) {
+-			$results = $wpdb->get_results( $query );
++			$results = \wp_aot_require_wpdb( $wpdb )->get_results( $query );
+ 			wp_cache_set_salted( $key, $results, 'post-queries', $last_changed );
+ 		}
+ 		if ( $results ) {
+@@ -2461,6 +2500,7 @@
+ 	} else {
+ 		return $output;
+ 	}
++	return null;
+ }
+ 
+ /**
+@@ -2471,9 +2511,10 @@
+  * @param int $num Number of day.
+  * @return float Days since the start of the week.
+  */
+-function calendar_week_mod( $num ) {
++function calendar_week_mod( mixed $num ): mixed {
+ 	$base = 7;
+ 	return ( $num - $base * floor( $num / $base ) );
++	return null;
+ }
+ 
+ /**
+@@ -2502,7 +2543,7 @@
+  * }
+  * @return void|string Void if `$display` argument is true, calendar HTML if `$display` is false.
+  */
+-function get_calendar( $args = array() ) {
++function get_calendar( mixed $args = array() ): mixed {
+ 	global $wpdb, $m, $monthnum, $year, $wp_locale, $posts;
+ 
+ 	$defaults = array(
+@@ -2583,7 +2624,7 @@
+ 
+ 		if ( $args['display'] ) {
+ 			echo $output;
+-			return;
++			return null;
+ 		}
+ 
+ 		return $output;
+@@ -2597,8 +2638,8 @@
+ 
+ 	// Quick check. If we have no posts at all, abort!
+ 	if ( ! $posts ) {
+-		$gotsome = $wpdb->get_var(
+-			$wpdb->prepare(
++		$gotsome = \wp_aot_require_wpdb( $wpdb )->get_var(
++			\wp_aot_require_wpdb( $wpdb )->prepare(
+ 				"SELECT 1 as test
+ 				FROM $wpdb->posts
+ 				WHERE post_type = %s
+@@ -2611,7 +2652,7 @@
+ 		if ( ! $gotsome ) {
+ 			$cache[ $key ] = '';
+ 			wp_cache_set( 'get_calendar', $cache, 'calendar' );
+-			return;
++			return null;
+ 		}
+ 	}
+ 
+@@ -2627,8 +2668,8 @@
+ 		$thisyear = (int) substr( $m, 0, 4 );
+ 		// It seems MySQL's weeks disagree with PHP's.
+ 		$d         = ( ( $w - 1 ) * 7 ) + 6;
+-		$thismonth = (int) $wpdb->get_var(
+-			$wpdb->prepare(
++		$thismonth = (int) \wp_aot_require_wpdb( $wpdb )->get_var(
++			\wp_aot_require_wpdb( $wpdb )->prepare(
+ 				"SELECT DATE_FORMAT((DATE_ADD('%d0101', INTERVAL %d DAY) ), '%%m')",
+ 				$thisyear,
+ 				$d
+@@ -2646,12 +2687,12 @@
+ 		$thismonth = (int) current_time( 'm' );
+ 	}
+ 
+-	$unixmonth = mktime( 0, 0, 0, $thismonth, 1, $thisyear );
+-	$last_day  = gmdate( 't', $unixmonth );
++	$unixmonth = mktime( 0, 0, 0, \wp_aot_calendar_component( $thismonth ), 1, \wp_aot_calendar_component( $thisyear ) );
++	$last_day  = \wp_aot_gmdate( 't', $unixmonth );
+ 
+ 	// Get the next and previous month and year with at least one post.
+-	$previous = $wpdb->get_row(
+-		$wpdb->prepare(
++	$previous = \wp_aot_require_wpdb( $wpdb )->get_row(
++		\wp_aot_require_wpdb( $wpdb )->prepare(
+ 			"SELECT MONTH(post_date) AS month, YEAR(post_date) AS year
+ 			FROM $wpdb->posts
+ 			WHERE post_date < '%d-%d-01'
+@@ -2664,8 +2705,8 @@
+ 		)
+ 	);
+ 
+-	$next = $wpdb->get_row(
+-		$wpdb->prepare(
++	$next = \wp_aot_require_wpdb( $wpdb )->get_row(
++		\wp_aot_require_wpdb( $wpdb )->prepare(
+ 			"SELECT MONTH(post_date) AS month, YEAR(post_date) AS year
+ 			FROM $wpdb->posts
+ 			WHERE post_date > '%d-%d-%d 23:59:59'
+@@ -2685,7 +2726,7 @@
+ 	<caption>' . sprintf(
+ 		$calendar_caption,
+ 		$wp_locale->get_month( $thismonth ),
+-		gmdate( 'Y', $unixmonth )
++		\wp_aot_gmdate( 'Y', $unixmonth )
+ 	) . '</caption>
+ 	<thead>
+ 	<tr>';
+@@ -2711,8 +2752,8 @@
+ 	$daywithpost = array();
+ 
+ 	// Get days with posts.
+-	$dayswithposts = $wpdb->get_results(
+-		$wpdb->prepare(
++	$dayswithposts = \wp_aot_require_wpdb( $wpdb )->get_results(
++		\wp_aot_require_wpdb( $wpdb )->prepare(
+ 			"SELECT DISTINCT DAYOFMONTH(post_date)
+ 			FROM $wpdb->posts WHERE post_date >= '%d-%d-01 00:00:00'
+ 			AND post_type = %s AND post_status = 'publish'
+@@ -2734,13 +2775,13 @@
+ 	}
+ 
+ 	// See how much we should pad in the beginning.
+-	$pad = calendar_week_mod( (int) gmdate( 'w', $unixmonth ) - $week_begins );
++	$pad = calendar_week_mod( (int) \wp_aot_gmdate( 'w', $unixmonth ) - $week_begins );
+ 	if ( $pad > 0 ) {
+ 		$calendar_output .= "\n\t\t" . '<td colspan="' . esc_attr( $pad ) . '" class="pad">&nbsp;</td>';
+ 	}
+ 
+ 	$newrow      = false;
+-	$daysinmonth = (int) gmdate( 't', $unixmonth );
++	$daysinmonth = (int) \wp_aot_gmdate( 't', $unixmonth );
+ 
+ 	for ( $day = 1; $day <= $daysinmonth; ++$day ) {
+ 		if ( $newrow ) {
+@@ -2760,7 +2801,7 @@
+ 
+ 		if ( in_array( $day, $daywithpost, true ) ) {
+ 			// Any posts today?
+-			$date_format = gmdate( _x( 'F j, Y', 'daily archives date format' ), strtotime( "{$thisyear}-{$thismonth}-{$day}" ) );
++			$date_format = \wp_aot_gmdate( _x( 'F j, Y', 'daily archives date format' ), strtotime( "{$thisyear}-{$thismonth}-{$day}" ) );
+ 			/* translators: Post calendar label. %s: Date. */
+ 			$label            = sprintf( __( 'Posts published on %s' ), $date_format );
+ 			$calendar_output .= sprintf(
+@@ -2775,12 +2816,12 @@
+ 
+ 		$calendar_output .= '</td>';
+ 
+-		if ( 6 === (int) calendar_week_mod( (int) gmdate( 'w', mktime( 0, 0, 0, $thismonth, $day, $thisyear ) ) - $week_begins ) ) {
++		if ( 6 === (int) calendar_week_mod( (int) \wp_aot_gmdate( 'w', mktime( 0, 0, 0, \wp_aot_calendar_component( $thismonth ), \wp_aot_calendar_component( $day ), \wp_aot_calendar_component( $thisyear ) ) ) - $week_begins ) ) {
+ 			$newrow = true;
+ 		}
+ 	}
+ 
+-	$pad = 7 - calendar_week_mod( (int) gmdate( 'w', mktime( 0, 0, 0, $thismonth, $day, $thisyear ) ) - $week_begins );
++	$pad = 7 - calendar_week_mod( (int) \wp_aot_gmdate( 'w', mktime( 0, 0, 0, \wp_aot_calendar_component( $thismonth ), \wp_aot_calendar_component( $day ), \wp_aot_calendar_component( $thisyear ) ) ) - $week_begins );
+ 	if ( 0 < $pad && $pad < 7 ) {
+ 		$calendar_output .= "\n\t\t" . '<td class="pad" colspan="' . esc_attr( $pad ) . '">&nbsp;</td>';
+ 	}
+@@ -2838,10 +2879,11 @@
+ 
+ 	if ( $args['display'] ) {
+ 		echo $calendar_output;
+-		return;
++		return null;
+ 	}
+ 
+ 	return $calendar_output;
++	return null;
+ }
+ 
+ /**
+@@ -2850,8 +2892,9 @@
+  * @see get_calendar()
+  * @since 2.1.0
+  */
+-function delete_get_calendar_cache() {
++function delete_get_calendar_cache(): mixed {
+ 	wp_cache_delete( 'get_calendar', 'calendar' );
++	return null;
+ }
+ 
+ /**
+@@ -2867,7 +2910,7 @@
+  *
+  * @return string HTML allowed tags entity encoded.
+  */
+-function allowed_tags() {
++function allowed_tags(): mixed {
+ 	global $allowedtags;
+ 	$allowed = '';
+ 	foreach ( (array) $allowedtags as $tag => $attributes ) {
+@@ -2880,6 +2923,7 @@
+ 		$allowed .= '> ';
+ 	}
+ 	return htmlentities( $allowed );
++	return null;
+ }
+ 
+ /***** Date/Time tags */
+@@ -2889,8 +2933,9 @@
+  *
+  * @since 1.0.0
+  */
+-function the_date_xml() {
++function the_date_xml(): mixed {
+ 	echo mysql2date( 'Y-m-d', get_post()->post_date, false );
++	return null;
+ }
+ 
+ /**
+@@ -2916,7 +2961,7 @@
+  * @param bool   $display Optional. Whether to echo the date or return it. Default true.
+  * @return string|null String if retrieving.
+  */
+-function the_date( $format = '', $before = '', $after = '', $display = true ) {
++function the_date( mixed $format = '', mixed $before = '', mixed $after = '', mixed $display = true ): mixed {
+ 	global $currentday, $previousday;
+ 
+ 	$the_date = '';
+@@ -2943,6 +2988,7 @@
+ 	} else {
+ 		return $the_date;
+ 	}
++	return null;
+ }
+ 
+ /**
+@@ -2957,7 +3003,7 @@
+  * @param int|WP_Post|null $post   Optional. Post ID or WP_Post object. Default current post.
+  * @return string|int|false Date the current post was written. False on failure.
+  */
+-function get_the_date( $format = '', $post = null ) {
++function get_the_date( mixed $format = '', mixed $post = null ): mixed {
+ 	$post = get_post( $post );
+ 
+ 	if ( ! $post ) {
+@@ -2978,6 +3024,7 @@
+ 	 * @param WP_Post    $post     The post object.
+ 	 */
+ 	return apply_filters( 'get_the_date', $the_date, $format, $post );
++	return null;
+ }
+ 
+ /**
+@@ -2991,7 +3038,7 @@
+  * @param bool   $display Optional. Whether to echo the date or return it. Default true.
+  * @return string|null String if retrieving.
+  */
+-function the_modified_date( $format = '', $before = '', $after = '', $display = true ) {
++function the_modified_date( mixed $format = '', mixed $before = '', mixed $after = '', mixed $display = true ): mixed {
+ 	$the_modified_date = $before . get_the_modified_date( $format ) . $after;
+ 
+ 	/**
+@@ -3011,6 +3058,7 @@
+ 	} else {
+ 		return $the_modified_date;
+ 	}
++	return null;
+ }
+ 
+ /**
+@@ -3023,7 +3071,7 @@
+  * @param int|WP_Post|null $post   Optional. Post ID or WP_Post object. Default current post.
+  * @return string|int|false Date the current post was modified. False on failure.
+  */
+-function get_the_modified_date( $format = '', $post = null ) {
++function get_the_modified_date( mixed $format = '', mixed $post = null ): mixed {
+ 	$post = get_post( $post );
+ 
+ 	if ( ! $post ) {
+@@ -3046,6 +3094,7 @@
+ 	 * @param WP_Post|null     $post     WP_Post object or null if no post is found.
+ 	 */
+ 	return apply_filters( 'get_the_modified_date', $the_time, $format, $post );
++	return null;
+ }
+ 
+ /**
+@@ -3057,7 +3106,7 @@
+  *                       was written. Accepts 'G', 'U', or PHP date format.
+  *                       Defaults to the 'time_format' option.
+  */
+-function the_time( $format = '' ) {
++function the_time( mixed $format = '' ): mixed {
+ 	/**
+ 	 * Filters the time of the post, for display.
+ 	 *
+@@ -3068,6 +3117,7 @@
+ 	 *                             was written. Accepts 'G', 'U', or PHP date format.
+ 	 */
+ 	echo apply_filters( 'the_time', get_the_time( $format ), $format );
++	return null;
+ }
+ 
+ /**
+@@ -3082,7 +3132,7 @@
+  * @return string|int|false Formatted date string or Unix timestamp if `$format` is 'U' or 'G'.
+  *                          False on failure.
+  */
+-function get_the_time( $format = '', $post = null ) {
++function get_the_time( mixed $format = '', mixed $post = null ): mixed {
+ 	$post = get_post( $post );
+ 
+ 	if ( ! $post ) {
+@@ -3104,6 +3154,7 @@
+ 	 * @param WP_Post    $post     Post object.
+ 	 */
+ 	return apply_filters( 'get_the_time', $the_time, $format, $post );
++	return null;
+ }
+ 
+ /**
+@@ -3119,7 +3170,7 @@
+  * @return string|int|false Formatted date string or Unix timestamp if `$format` is 'U' or 'G'.
+  *                          False on failure.
+  */
+-function get_post_time( $format = 'U', $gmt = false, $post = null, $translate = false ) {
++function get_post_time( mixed $format = 'U', mixed $gmt = false, mixed $post = null, mixed $translate = false ): mixed {
+ 	$post = get_post( $post );
+ 
+ 	if ( ! $post ) {
+@@ -3161,6 +3212,7 @@
+ 	 * @param bool       $gmt    Whether to retrieve the GMT time.
+ 	 */
+ 	return apply_filters( 'get_post_time', $time, $format, $gmt );
++	return null;
+ }
+ 
+ /**
+@@ -3182,7 +3234,7 @@
+  *                                 Default 'local'.
+  * @return DateTimeImmutable|false Time object on success, false on failure.
+  */
+-function get_post_datetime( $post = null, $field = 'date', $source = 'local' ) {
++function get_post_datetime( mixed $post = null, mixed $field = 'date', mixed $source = 'local' ): mixed {
+ 	$post = get_post( $post );
+ 
+ 	if ( ! $post ) {
+@@ -3210,6 +3262,7 @@
+ 	}
+ 
+ 	return $datetime->setTimezone( $wp_timezone );
++	return null;
+ }
+ 
+ /**
+@@ -3225,7 +3278,7 @@
+  *                                Default 'date'.
+  * @return int|false Unix timestamp on success, false on failure.
+  */
+-function get_post_timestamp( $post = null, $field = 'date' ) {
++function get_post_timestamp( mixed $post = null, mixed $field = 'date' ): mixed {
+ 	$datetime = get_post_datetime( $post, $field );
+ 
+ 	if ( false === $datetime ) {
+@@ -3233,6 +3286,7 @@
+ 	}
+ 
+ 	return $datetime->getTimestamp();
++	return null;
+ }
+ 
+ /**
+@@ -3244,7 +3298,7 @@
+  *                       was modified. Accepts 'G', 'U', or PHP date format.
+  *                       Defaults to the 'time_format' option.
+  */
+-function the_modified_time( $format = '' ) {
++function the_modified_time( mixed $format = '' ): mixed {
+ 	/**
+ 	 * Filters the localized time a post was last modified, for display.
+ 	 *
+@@ -3255,6 +3309,7 @@
+ 	 *                                            was modified. Accepts 'G', 'U', or PHP date format.
+ 	 */
+ 	echo apply_filters( 'the_modified_time', get_the_modified_time( $format ), $format );
++	return null;
+ }
+ 
+ /**
+@@ -3269,7 +3324,7 @@
+  * @param int|WP_Post|null $post   Optional. Post ID or WP_Post object. Default current post.
+  * @return string|int|false Formatted date string or Unix timestamp. False on failure.
+  */
+-function get_the_modified_time( $format = '', $post = null ) {
++function get_the_modified_time( mixed $format = '', mixed $post = null ): mixed {
+ 	$post = get_post( $post );
+ 
+ 	if ( ! $post ) {
+@@ -3293,6 +3348,7 @@
+ 	 * @param WP_Post|null     $post     WP_Post object or null if no post is found.
+ 	 */
+ 	return apply_filters( 'get_the_modified_time', $the_time, $format, $post );
++	return null;
+ }
+ 
+ /**
+@@ -3308,7 +3364,7 @@
+  * @return string|int|false Formatted date string or Unix timestamp if `$format` is 'U' or 'G'.
+  *                          False on failure.
+  */
+-function get_post_modified_time( $format = 'U', $gmt = false, $post = null, $translate = false ) {
++function get_post_modified_time( mixed $format = 'U', mixed $gmt = false, mixed $post = null, mixed $translate = false ): mixed {
+ 	$post = get_post( $post );
+ 
+ 	if ( ! $post ) {
+@@ -3350,6 +3406,7 @@
+ 	 * @param bool       $gmt    Whether to retrieve the GMT time. Default false.
+ 	 */
+ 	return apply_filters( 'get_post_modified_time', $time, $format, $gmt );
++	return null;
+ }
+ 
+ /**
+@@ -3359,13 +3416,13 @@
+  *
+  * @global WP_Locale $wp_locale WordPress date and time locale object.
+  */
+-function the_weekday() {
++function the_weekday(): mixed {
+ 	global $wp_locale;
+ 
+ 	$post = get_post();
+ 
+ 	if ( ! $post ) {
+-		return;
++		return null;
+ 	}
+ 
+ 	$the_weekday = $wp_locale->get_weekday( get_post_time( 'w', false, $post ) );
+@@ -3378,6 +3435,7 @@
+ 	 * @param string $the_weekday
+ 	 */
+ 	echo apply_filters( 'the_weekday', $the_weekday );
++	return null;
+ }
+ 
+ /**
+@@ -3395,13 +3453,13 @@
+  * @param string $before Optional. Output before the date. Default empty.
+  * @param string $after  Optional. Output after the date. Default empty.
+  */
+-function the_weekday_date( $before = '', $after = '' ) {
++function the_weekday_date( mixed $before = '', mixed $after = '' ): mixed {
+ 	global $wp_locale, $currentday, $previousweekday;
+ 
+ 	$post = get_post();
+ 
+ 	if ( ! $post ) {
+-		return;
++		return null;
+ 	}
+ 
+ 	$the_weekday_date = '';
+@@ -3423,6 +3481,7 @@
+ 	 * @param string $after            The HTML to output after the date.
+ 	 */
+ 	echo apply_filters( 'the_weekday_date', $the_weekday_date, $before, $after );
++	return null;
+ }
+ 
+ /**
+@@ -3432,13 +3491,14 @@
+  *
+  * @since 1.2.0
+  */
+-function wp_head() {
++function wp_head(): mixed {
+ 	/**
+ 	 * Prints scripts or data in the head tag on the front end.
+ 	 *
+ 	 * @since 1.5.0
+ 	 */
+ 	do_action( 'wp_head' );
++	return null;
+ }
+ 
+ /**
+@@ -3448,13 +3508,14 @@
+  *
+  * @since 1.5.1
+  */
+-function wp_footer() {
++function wp_footer(): mixed {
+ 	/**
+ 	 * Prints scripts or data before the closing body tag on the front end.
+ 	 *
+ 	 * @since 1.5.1
+ 	 */
+ 	do_action( 'wp_footer' );
++	return null;
+ }
+ 
+ /**
+@@ -3464,13 +3525,14 @@
+  *
+  * @since 5.2.0
+  */
+-function wp_body_open() {
++function wp_body_open(): mixed {
+ 	/**
+ 	 * Triggered after the opening body tag.
+ 	 *
+ 	 * @since 5.2.0
+ 	 */
+ 	do_action( 'wp_body_open' );
++	return null;
+ }
+ 
+ /**
+@@ -3480,9 +3542,9 @@
+  *
+  * @param array $args Optional arguments.
+  */
+-function feed_links( $args = array() ) {
++function feed_links( mixed $args = array() ): mixed {
+ 	if ( ! current_theme_supports( 'automatic-feed-links' ) ) {
+-		return;
++		return null;
+ 	}
+ 
+ 	$defaults = array(
+@@ -3536,6 +3598,7 @@
+ 			esc_url( get_feed_link( 'comments_' . get_default_feed() ) )
+ 		);
+ 	}
++	return null;
+ }
+ 
+ /**
+@@ -3545,7 +3608,7 @@
+  *
+  * @param array $args Optional arguments.
+  */
+-function feed_links_extra( $args = array() ) {
++function feed_links_extra( mixed $args = array() ): mixed {
+ 	$defaults = array(
+ 		/* translators: Separator between site name and feed type in feed links. */
+ 		'separator'     => _x( '&raquo;', 'feed link' ),
+@@ -3776,6 +3839,7 @@
+ 			esc_url( $href )
+ 		);
+ 	}
++	return null;
+ }
+ 
+ /**
+@@ -3784,11 +3848,12 @@
+  * @link http://archipelago.phrasewise.com/rsd
+  * @since 2.0.0
+  */
+-function rsd_link() {
++function rsd_link(): mixed {
+ 	printf(
+ 		'<link rel="EditURI" type="application/rsd+xml" title="RSD" href="%s" />' . "\n",
+ 		esc_url( site_url( 'xmlrpc.php?rsd', 'rpc' ) )
+ 	);
++	return null;
+ }
+ 
+ /**
+@@ -3803,10 +3868,11 @@
+  *
+  * @since 5.7.0
+  */
+-function wp_strict_cross_origin_referrer() {
+-	?>
+-	<meta name='referrer' content='strict-origin-when-cross-origin' />
+-	<?php
++function wp_strict_cross_origin_referrer(): mixed {
++	;
++echo '	<meta name=\'referrer\' content=\'strict-origin-when-cross-origin\' />
++	';
++	return null;
+ }
+ 
+ /**
+@@ -3816,9 +3882,9 @@
+  *
+  * @link https://www.whatwg.org/specs/web-apps/current-work/multipage/links.html#rel-icon HTML5 specification link icon.
+  */
+-function wp_site_icon() {
++function wp_site_icon(): mixed {
+ 	if ( ! has_site_icon() && ! is_customize_preview() ) {
+-		return;
++		return null;
+ 	}
+ 
+ 	$meta_tags = array();
+@@ -3850,11 +3916,12 @@
+ 	 * @param string[] $meta_tags Array of Site Icon meta tags.
+ 	 */
+ 	$meta_tags = apply_filters( 'site_icon_meta_tags', $meta_tags );
+-	$meta_tags = array_filter( $meta_tags );
++	$meta_tags = \wp_aot_array_filter( $meta_tags );
+ 
+ 	foreach ( $meta_tags as $meta_tag ) {
+ 		echo "$meta_tag\n";
+ 	}
++	return null;
+ }
+ 
+ /**
+@@ -3869,7 +3936,7 @@
+  *
+  * @since 4.6.0
+  */
+-function wp_resource_hints() {
++function wp_resource_hints(): mixed {
+ 	$hints = array(
+ 		'dns-prefetch' => wp_dependencies_unique_hosts(),
+ 		'preconnect'   => array(),
+@@ -3974,6 +4041,7 @@
+ 			echo "<link $html />\n";
+ 		}
+ 	}
++	return null;
+ }
+ 
+ /**
+@@ -3992,7 +4060,7 @@
+  *
+  * @since 6.1.0
+  */
+-function wp_preload_resources() {
++function wp_preload_resources(): mixed {
+ 	/**
+ 	 * Filters domains and URLs for resource preloads.
+ 	 *
+@@ -4020,7 +4088,7 @@
+ 	$preload_resources = apply_filters( 'wp_preload_resources', array() );
+ 
+ 	if ( ! is_array( $preload_resources ) ) {
+-		return;
++		return null;
+ 	}
+ 
+ 	$unique_resources = array();
+@@ -4090,6 +4158,7 @@
+ 
+ 		printf( "<link rel='preload' %s />\n", $html );
+ 	}
++	return null;
+ }
+ 
+ /**
+@@ -4102,7 +4171,7 @@
+  *
+  * @return string[] A list of unique hosts of enqueued scripts and styles.
+  */
+-function wp_dependencies_unique_hosts() {
++function wp_dependencies_unique_hosts(): mixed {
+ 	global $wp_scripts, $wp_styles;
+ 
+ 	$unique_hosts = array();
+@@ -4128,6 +4197,7 @@
+ 	}
+ 
+ 	return $unique_hosts;
++	return null;
+ }
+ 
+ /**
+@@ -4147,7 +4217,7 @@
+  *
+  * @return bool True if the user can access the visual editor, false otherwise.
+  */
+-function user_can_richedit() {
++function user_can_richedit(): mixed {
+ 	global $wp_rich_edit, $is_gecko, $is_opera, $is_safari, $is_chrome, $is_IE, $is_edge;
+ 
+ 	if ( ! isset( $wp_rich_edit ) ) {
+@@ -4155,7 +4225,7 @@
+ 
+ 		if ( 'true' === get_user_option( 'rich_editing' ) || ! is_user_logged_in() ) { // Default to 'true' for logged out users.
+ 			if ( $is_safari ) {
+-				$wp_rich_edit = ! wp_is_mobile() || ( preg_match( '!AppleWebKit/(\d+)!', $_SERVER['HTTP_USER_AGENT'], $match ) && (int) $match[1] >= 534 );
++				$wp_rich_edit = ! wp_is_mobile() || ( preg_match( '!AppleWebKit/(\d+)!', \wp_aot_regex_text( $_SERVER['HTTP_USER_AGENT'] ), $match ) && (int) $match[1] >= 534 );
+ 			} elseif ( $is_IE ) {
+ 				$wp_rich_edit = str_contains( $_SERVER['HTTP_USER_AGENT'], 'Trident/7.0;' );
+ 			} elseif ( $is_gecko || $is_chrome || $is_edge || ( $is_opera && ! wp_is_mobile() ) ) {
+@@ -4172,6 +4242,7 @@
+ 	 * @param bool $wp_rich_edit Whether the user can access the visual editor.
+ 	 */
+ 	return apply_filters( 'user_can_richedit', $wp_rich_edit );
++	return null;
+ }
+ 
+ /**
+@@ -4184,7 +4255,7 @@
+  *
+  * @return string Either 'tinymce', 'html', or 'test'
+  */
+-function wp_default_editor() {
++function wp_default_editor(): mixed {
+ 	$r = user_can_richedit() ? 'tinymce' : 'html'; // Defaults.
+ 	if ( wp_get_current_user() ) { // Look for cookie.
+ 		$ed = get_user_setting( 'editor', 'tinymce' );
+@@ -4199,6 +4270,7 @@
+ 	 * @param string $r Which editor should be displayed by default. Either 'tinymce', 'html', or 'test'.
+ 	 */
+ 	return apply_filters( 'wp_default_editor', $r );
++	return null;
+ }
+ 
+ /**
+@@ -4222,11 +4294,12 @@
+  *                          Should not contain square brackets.
+  * @param array  $settings  See _WP_Editors::parse_settings() for description.
+  */
+-function wp_editor( $content, $editor_id, $settings = array() ) {
++function wp_editor( mixed $content, mixed $editor_id, mixed $settings = array() ): mixed {
+ 	if ( ! class_exists( '_WP_Editors', false ) ) {
+-		require ABSPATH . WPINC . '/class-wp-editor.php';
++		require_once __DIR__ . '/class-wp-editor.php';
+ 	}
+ 	_WP_Editors::editor( $content, $editor_id, $settings );
++	return null;
+ }
+ 
+ /**
+@@ -4238,12 +4311,13 @@
+  * @uses _WP_Editors
+  * @since 4.8.0
+  */
+-function wp_enqueue_editor() {
++function wp_enqueue_editor(): mixed {
+ 	if ( ! class_exists( '_WP_Editors', false ) ) {
+-		require ABSPATH . WPINC . '/class-wp-editor.php';
++		require_once __DIR__ . '/class-wp-editor.php';
+ 	}
+ 
+ 	_WP_Editors::enqueue_default_editor();
++	return null;
+ }
+ 
+ /**
+@@ -4269,7 +4343,7 @@
+  * }
+  * @return array|false Settings for the enqueued code editor, or false if the editor was not enqueued.
+  */
+-function wp_enqueue_code_editor( $args ) {
++function wp_enqueue_code_editor( mixed $args ): mixed {
+ 	if ( is_user_logged_in() && 'false' === wp_get_current_user()->syntax_highlighting ) {
+ 		return false;
+ 	}
+@@ -4335,6 +4409,7 @@
+ 	do_action( 'wp_enqueue_code_editor', $settings );
+ 
+ 	return $settings;
++	return null;
+ }
+ 
+ /**
+@@ -4358,7 +4433,7 @@
+  * }
+  * @return array|false Settings for the code editor.
+  */
+-function wp_get_code_editor_settings( $args ) {
++function wp_get_code_editor_settings( mixed $args ): mixed {
+ 	$settings = array(
+ 		'codemirror' => array(
+ 			'indentUnit'       => 4,
+@@ -4454,7 +4529,7 @@
+ 	} elseif ( isset( $args['file'] ) && str_contains( basename( $args['file'] ), '.' ) ) {
+ 		$extension = strtolower( pathinfo( $args['file'], PATHINFO_EXTENSION ) );
+ 		foreach ( wp_get_mime_types() as $exts => $mime ) {
+-			if ( preg_match( '!^(' . $exts . ')$!i', $extension ) ) {
++			if ( preg_match( \wp_aot_regex_text( '!^(' . $exts . ')$!i' ), \wp_aot_regex_text( $extension ) ) ) {
+ 				$type = $mime;
+ 				break;
+ 			}
+@@ -4537,7 +4612,7 @@
+ 	}
+ 
+ 	if ( in_array( $type, array( 'text/css', 'text/x-scss', 'text/x-less', 'text/x-sass' ), true ) ) {
+-		$settings['codemirror'] = array_merge(
++		$settings['codemirror'] = \wp_aot_array_merge(array(
+ 			$settings['codemirror'],
+ 			array(
+ 				'mode'              => $type,
+@@ -4545,16 +4620,16 @@
+ 				'autoCloseBrackets' => true,
+ 				'matchBrackets'     => true,
+ 			)
+-		);
++		));
+ 	} elseif ( 'text/x-diff' === $type ) {
+-		$settings['codemirror'] = array_merge(
++		$settings['codemirror'] = \wp_aot_array_merge(array(
+ 			$settings['codemirror'],
+ 			array(
+ 				'mode' => 'diff',
+ 			)
+-		);
++		));
+ 	} elseif ( 'text/html' === $type ) {
+-		$settings['codemirror'] = array_merge(
++		$settings['codemirror'] = \wp_aot_array_merge(array(
+ 			$settings['codemirror'],
+ 			array(
+ 				'mode'              => 'htmlmixed',
+@@ -4565,21 +4640,21 @@
+ 					'bothTags' => true,
+ 				),
+ 			)
+-		);
++		));
+ 
+ 		if ( ! current_user_can( 'unfiltered_html' ) ) {
+ 			$settings['htmlhint']['kses'] = wp_kses_allowed_html( 'post' );
+ 		}
+ 	} elseif ( 'text/x-gfm' === $type ) {
+-		$settings['codemirror'] = array_merge(
++		$settings['codemirror'] = \wp_aot_array_merge(array(
+ 			$settings['codemirror'],
+ 			array(
+ 				'mode'                => 'gfm',
+ 				'highlightFormatting' => true,
+ 			)
+-		);
++		));
+ 	} elseif ( 'application/javascript' === $type || 'text/javascript' === $type ) {
+-		$settings['codemirror'] = array_merge(
++		$settings['codemirror'] = \wp_aot_array_merge(array(
+ 			$settings['codemirror'],
+ 			array(
+ 				'mode'              => 'javascript',
+@@ -4587,9 +4662,9 @@
+ 				'autoCloseBrackets' => true,
+ 				'matchBrackets'     => true,
+ 			)
+-		);
++		));
+ 	} elseif ( str_contains( $type, 'json' ) ) {
+-		$settings['codemirror'] = array_merge(
++		$settings['codemirror'] = \wp_aot_array_merge(array(
+ 			$settings['codemirror'],
+ 			array(
+ 				'mode'              => array(
+@@ -4599,38 +4674,38 @@
+ 				'autoCloseBrackets' => true,
+ 				'matchBrackets'     => true,
+ 			)
+-		);
++		));
+ 		if ( 'application/ld+json' === $type ) {
+ 			$settings['codemirror']['mode']['jsonld'] = true;
+ 		} else {
+ 			$settings['codemirror']['mode']['json'] = true;
+ 		}
+ 	} elseif ( str_contains( $type, 'jsx' ) ) {
+-		$settings['codemirror'] = array_merge(
++		$settings['codemirror'] = \wp_aot_array_merge(array(
+ 			$settings['codemirror'],
+ 			array(
+ 				'mode'              => 'jsx',
+ 				'autoCloseBrackets' => true,
+ 				'matchBrackets'     => true,
+ 			)
+-		);
++		));
+ 	} elseif ( 'text/x-markdown' === $type ) {
+-		$settings['codemirror'] = array_merge(
++		$settings['codemirror'] = \wp_aot_array_merge(array(
+ 			$settings['codemirror'],
+ 			array(
+ 				'mode'                => 'markdown',
+ 				'highlightFormatting' => true,
+ 			)
+-		);
++		));
+ 	} elseif ( 'text/nginx' === $type ) {
+-		$settings['codemirror'] = array_merge(
++		$settings['codemirror'] = \wp_aot_array_merge(array(
+ 			$settings['codemirror'],
+ 			array(
+ 				'mode' => 'nginx',
+ 			)
+-		);
++		));
+ 	} elseif ( 'application/x-httpd-php' === $type ) {
+-		$settings['codemirror'] = array_merge(
++		$settings['codemirror'] = \wp_aot_array_merge(array(
+ 			$settings['codemirror'],
+ 			array(
+ 				'mode'              => 'php',
+@@ -4641,18 +4716,18 @@
+ 					'bothTags' => true,
+ 				),
+ 			)
+-		);
++		));
+ 	} elseif ( 'text/x-sql' === $type || 'text/x-mysql' === $type ) {
+-		$settings['codemirror'] = array_merge(
++		$settings['codemirror'] = \wp_aot_array_merge(array(
+ 			$settings['codemirror'],
+ 			array(
+ 				'mode'              => 'sql',
+ 				'autoCloseBrackets' => true,
+ 				'matchBrackets'     => true,
+ 			)
+-		);
++		));
+ 	} elseif ( str_contains( $type, 'xml' ) ) {
+-		$settings['codemirror'] = array_merge(
++		$settings['codemirror'] = \wp_aot_array_merge(array(
+ 			$settings['codemirror'],
+ 			array(
+ 				'mode'              => 'xml',
+@@ -4662,14 +4737,14 @@
+ 					'bothTags' => true,
+ 				),
+ 			)
+-		);
++		));
+ 	} elseif ( 'text/x-yaml' === $type ) {
+-		$settings['codemirror'] = array_merge(
++		$settings['codemirror'] = \wp_aot_array_merge(array(
+ 			$settings['codemirror'],
+ 			array(
+ 				'mode' => 'yaml',
+ 			)
+-		);
++		));
+ 	} else {
+ 		$settings['codemirror']['mode'] = $type;
+ 	}
+@@ -4680,10 +4755,10 @@
+ 
+ 	// Let settings supplied via args override any defaults.
+ 	foreach ( wp_array_slice_assoc( $args, array( 'codemirror', 'csslint', 'jshint', 'htmlhint' ) ) as $key => $value ) {
+-		$settings[ $key ] = array_merge(
++		$settings[ $key ] = \wp_aot_array_merge(array(
+ 			$settings[ $key ],
+ 			$value
+-		);
++		));
+ 	}
+ 
+ 	/**
+@@ -4709,6 +4784,7 @@
+ 	 * }
+ 	 */
+ 	return apply_filters( 'wp_code_editor_settings', $settings, $args );
++	return null;
+ }
+ 
+ /**
+@@ -4723,7 +4799,7 @@
+  *                      Only use when you are later escaping it. Do not use unescaped.
+  * @return string
+  */
+-function get_search_query( $escaped = true ) {
++function get_search_query( mixed $escaped = true ): mixed {
+ 	/**
+ 	 * Filters the contents of the search query variable.
+ 	 *
+@@ -4737,6 +4813,7 @@
+ 		$query = esc_attr( $query );
+ 	}
+ 	return $query;
++	return null;
+ }
+ 
+ /**
+@@ -4747,7 +4824,7 @@
+  *
+  * @since 2.1.0
+  */
+-function the_search_query() {
++function the_search_query(): mixed {
+ 	/**
+ 	 * Filters the contents of the search query variable, for display.
+ 	 *
+@@ -4756,6 +4833,7 @@
+ 	 * @param mixed $search Contents of the search query variable.
+ 	 */
+ 	echo esc_attr( apply_filters( 'the_search_query', get_search_query( false ) ) );
++	return null;
+ }
+ 
+ /**
+@@ -4769,7 +4847,7 @@
+  * @param string $doctype Optional. The type of HTML document. Accepts 'xhtml' or 'html'. Default 'html'.
+  * @return string A space-separated list of language attributes.
+  */
+-function get_language_attributes( $doctype = 'html' ) {
++function get_language_attributes( mixed $doctype = 'html' ): mixed {
+ 	$attributes = array();
+ 
+ 	if ( function_exists( 'is_rtl' ) && is_rtl() ) {
+@@ -4802,6 +4880,7 @@
+ 	 * @param string $doctype The type of HTML document (xhtml|html).
+ 	 */
+ 	return apply_filters( 'language_attributes', $output, $doctype );
++	return null;
+ }
+ 
+ /**
+@@ -4815,8 +4894,9 @@
+  *
+  * @param string $doctype Optional. The type of HTML document. Accepts 'xhtml' or 'html'. Default 'html'.
+  */
+-function language_attributes( $doctype = 'html' ) {
++function language_attributes( mixed $doctype = 'html' ): mixed {
+ 	echo get_language_attributes( $doctype );
++	return null;
+ }
+ 
+ /**
+@@ -4898,11 +4978,11 @@
+  * @return string|string[]|null String of page links or array of page links, depending on 'type' argument.
+  *                              Null if total number of pages is less than 2.
+  */
+-function paginate_links( $args = '' ) {
++function paginate_links( mixed $args = '' ): mixed {
+ 	global $wp_query, $wp_rewrite;
+ 
+ 	// Setting up default values based on the current URL.
+-	$pagenum_link = html_entity_decode( get_pagenum_link() );
++	$pagenum_link = \wp_aot_html_entity_decode( get_pagenum_link() );
+ 	$url_parts    = explode( '?', $pagenum_link );
+ 
+ 	// Get max pages and current page out of the current query, if available.
+@@ -4924,7 +5004,7 @@
+ 	$pagenum_link .= '%_%';
+ 
+ 	// URL base depends on permalink settings.
+-	$format  = $wp_rewrite->using_index_permalinks() && ! strpos( $pagenum_link, 'index.php' ) ? 'index.php/' : '';
++	$format  = \wp_aot_mixed($wp_rewrite->using_index_permalinks() && ! strpos( $pagenum_link, 'index.php' ) ? 'index.php/' : '');
+ 	$format .= $wp_rewrite->using_permalinks() ? user_trailingslashit( $wp_rewrite->pagination_base . '/%#%', 'paged' ) : '?paged=%#%';
+ 	if ( $wp_rewrite->using_permalinks() && ! $wp_rewrite->use_trailing_slashes ) {
+ 		$format = '/' . ltrim( $format, '/' );
+@@ -4958,7 +5038,7 @@
+ 	// Merge additional query vars found in the original URL into 'add_args' array.
+ 	if ( isset( $url_parts[1] ) ) {
+ 		// Find the format argument.
+-		$format       = explode( '?', str_replace( '%_%', $args['format'], $args['base'] ) );
++		$format       = explode( '?', \wp_aot_str_replace( '%_%', $args['format'], $args['base'] ) );
+ 		$format_query = $format[1] ?? '';
+ 		wp_parse_str( $format_query, $format_args );
+ 
+@@ -4970,7 +5050,7 @@
+ 			unset( $url_query_args[ $format_arg ] );
+ 		}
+ 
+-		$args['add_args'] = array_merge( $args['add_args'], urlencode_deep( $url_query_args ) );
++		$args['add_args'] = \wp_aot_array_merge(array( $args['add_args'], urlencode_deep( $url_query_args ) ));
+ 	}
+ 
+ 	// Who knows what else people pass in $args.
+@@ -4994,8 +5074,8 @@
+ 	$dots       = false;
+ 
+ 	if ( $args['prev_next'] && $current && 1 < $current ) :
+-		$link = str_replace( '%_%', 2 === $current ? '' : $args['format'], $args['base'] );
+-		$link = str_replace( '%#%', $current - 1, $link );
++		$link = \wp_aot_str_replace( '%_%', 2 === $current ? '' : $args['format'], $args['base'] );
++		$link = \wp_aot_str_replace( '%#%', $current - 1, $link );
+ 		if ( $add_args ) {
+ 			$link = add_query_arg( $add_args, $link );
+ 		}
+@@ -5026,8 +5106,8 @@
+ 			$dots = true;
+ 		else :
+ 			if ( $args['show_all'] || ( $n <= $end_size || ( $current && $n >= $current - $mid_size && $n <= $current + $mid_size ) || $n > $total - $end_size ) ) :
+-				$link = str_replace( '%_%', 1 === $n ? '' : $args['format'], $args['base'] );
+-				$link = str_replace( '%#%', $n, $link );
++				$link = \wp_aot_str_replace( '%_%', 1 === $n ? '' : $args['format'], $args['base'] );
++				$link = \wp_aot_str_replace( '%#%', $n, $link );
+ 				if ( $add_args ) {
+ 					$link = add_query_arg( $add_args, $link );
+ 				}
+@@ -5050,8 +5130,8 @@
+ 	endfor;
+ 
+ 	if ( $args['prev_next'] && $current && $current < $total ) :
+-		$link = str_replace( '%_%', $args['format'], $args['base'] );
+-		$link = str_replace( '%#%', $current + 1, $link );
++		$link = \wp_aot_str_replace( '%_%', $args['format'], $args['base'] );
++		$link = \wp_aot_str_replace( '%#%', $current + 1, $link );
+ 		if ( $add_args ) {
+ 			$link = add_query_arg( $add_args, $link );
+ 		}
+@@ -5092,6 +5172,7 @@
+ 	$r = apply_filters( 'paginate_links_output', $r, $args );
+ 
+ 	return $r;
++	return null;
+ }
+ 
+ /**
+@@ -5120,7 +5201,7 @@
+  *     @type string $current SVG icon color of current admin menu link.
+  * }
+  */
+-function wp_admin_css_color( $key, $name, $url, $colors = array(), $icons = array() ) {
++function wp_admin_css_color( mixed $key, mixed $name, mixed $url, mixed $colors = array(), mixed $icons = array() ): mixed {
+ 	global $_wp_admin_css_colors;
+ 
+ 	if ( ! isset( $_wp_admin_css_colors ) ) {
+@@ -5133,6 +5214,7 @@
+ 		'colors'      => $colors,
+ 		'icon_colors' => $icons,
+ 	);
++	return null;
+ }
+ 
+ /**
+@@ -5145,7 +5227,7 @@
+  *
+  * @since 3.0.0
+  */
+-function register_admin_color_schemes() {
++function register_admin_color_schemes(): mixed {
+ 	$suffix  = is_rtl() ? '-rtl' : '';
+ 	$suffix .= SCRIPT_DEBUG ? '' : '.min';
+ 
+@@ -5256,6 +5338,7 @@
+ 			'current' => '#fff',
+ 		)
+ 	);
++	return null;
+ }
+ 
+ /**
+@@ -5268,7 +5351,7 @@
+  * @param string $file file relative to wp-admin/ without its ".css" extension.
+  * @return string
+  */
+-function wp_admin_css_uri( $file = 'wp-admin' ) {
++function wp_admin_css_uri( mixed $file = 'wp-admin' ): mixed {
+ 	if ( defined( 'WP_INSTALLING' ) ) {
+ 		$_file = "./$file.css";
+ 	} else {
+@@ -5285,6 +5368,7 @@
+ 	 * @param string $file  Relative path to the file, minus its ".css" extension.
+ 	 */
+ 	return apply_filters( 'wp_admin_css_uri', $_file, $file );
++	return null;
+ }
+ 
+ /**
+@@ -5307,7 +5391,7 @@
+  *                           to wp-admin/. Defaults to 'wp-admin'.
+  * @param bool   $force_echo Optional. Force the stylesheet link to be printed rather than enqueued.
+  */
+-function wp_admin_css( $file = 'wp-admin', $force_echo = false ) {
++function wp_admin_css( mixed $file = 'wp-admin', mixed $force_echo = false ): mixed {
+ 	// For backward compatibility.
+ 	$handle = str_starts_with( $file, 'css/' ) ? substr( $file, 4 ) : $file;
+ 
+@@ -5319,7 +5403,7 @@
+ 			// Add to style queue.
+ 			wp_enqueue_style( $handle );
+ 		}
+-		return;
++		return null;
+ 	}
+ 
+ 	$stylesheet_link = sprintf(
+@@ -5349,6 +5433,7 @@
+ 		/** This filter is documented in wp-includes/general-template.php */
+ 		echo apply_filters( 'wp_admin_css', $rtl_stylesheet_link, "$file-rtl" );
+ 	}
++	return null;
+ }
+ 
+ /**
+@@ -5360,13 +5445,14 @@
+  *
+  * @since 2.5.0
+  */
+-function add_thickbox() {
++function add_thickbox(): mixed {
+ 	wp_enqueue_script( 'thickbox' );
+ 	wp_enqueue_style( 'thickbox' );
+ 
+ 	if ( is_network_admin() ) {
+ 		add_action( 'admin_head', '_thickbox_path_admin_subfolder' );
+ 	}
++	return null;
+ }
+ 
+ /**
+@@ -5376,7 +5462,7 @@
+  *
+  * @since 2.5.0
+  */
+-function wp_generator() {
++function wp_generator(): mixed {
+ 	/**
+ 	 * Filters the output of the XHTML generator tag.
+ 	 *
+@@ -5385,6 +5471,7 @@
+ 	 * @param string $generator_type The XHTML generator.
+ 	 */
+ 	the_generator( apply_filters( 'wp_generator_type', 'xhtml' ) );
++	return null;
+ }
+ 
+ /**
+@@ -5397,7 +5484,7 @@
+  *
+  * @param string $type The type of generator to output - (html|xhtml|atom|rss2|rdf|comment|export).
+  */
+-function the_generator( $type ) {
++function the_generator( mixed $type ): mixed {
+ 	/**
+ 	 * Filters the output of the XHTML generator tag, for display.
+ 	 *
+@@ -5408,6 +5495,7 @@
+ 	 *                               'xhtml', 'atom', 'rss2', 'rdf', 'comment', 'export'.
+ 	 */
+ 	echo apply_filters( 'the_generator', get_the_generator( $type ), $type ) . "\n";
++	return null;
+ }
+ 
+ /**
+@@ -5422,7 +5510,7 @@
+  * @param string $type The type of generator to return - (html|xhtml|atom|rss2|rdf|comment|export).
+  * @return string|null The HTML content for the generator.
+  */
+-function get_the_generator( $type = '' ) {
++function get_the_generator( mixed $type = '' ): mixed {
+ 	if ( empty( $type ) ) {
+ 
+ 		$current_filter = current_filter();
+@@ -5470,7 +5558,7 @@
+ 			$gen = '<!-- generator="WordPress/' . esc_attr( get_bloginfo( 'version' ) ) . '" -->';
+ 			break;
+ 		case 'export':
+-			$gen = '<!-- generator="WordPress/' . esc_attr( get_bloginfo_rss( 'version' ) ) . '" created="' . gmdate( 'Y-m-d H:i' ) . '" -->';
++			$gen = '<!-- generator="WordPress/' . esc_attr( get_bloginfo_rss( 'version' ) ) . '" created="' . \wp_aot_gmdate( 'Y-m-d H:i' ) . '" -->';
+ 			break;
+ 	}
+ 
+@@ -5496,6 +5584,7 @@
+ 	 *                     'rss2', 'rdf', 'comment', 'export'.
+ 	 */
+ 	return apply_filters( "get_the_generator_{$type}", $gen, $type );
++	return null;
+ }
+ 
+ /**
+@@ -5512,8 +5601,9 @@
+  *                       Default true.
+  * @return string HTML attribute or empty string.
+  */
+-function checked( $checked, $current = true, $display = true ) {
++function checked( mixed $checked, mixed $current = true, mixed $display = true ): mixed {
+ 	return __checked_selected_helper( $checked, $current, $display, 'checked' );
++	return null;
+ }
+ 
+ /**
+@@ -5530,8 +5620,9 @@
+  *                        Default true.
+  * @return string HTML attribute or empty string.
+  */
+-function selected( $selected, $current = true, $display = true ) {
++function selected( mixed $selected, mixed $current = true, mixed $display = true ): mixed {
+ 	return __checked_selected_helper( $selected, $current, $display, 'selected' );
++	return null;
+ }
+ 
+ /**
+@@ -5548,8 +5639,9 @@
+  *                        Default true.
+  * @return string HTML attribute or empty string.
+  */
+-function disabled( $disabled, $current = true, $display = true ) {
++function disabled( mixed $disabled, mixed $current = true, mixed $display = true ): mixed {
+ 	return __checked_selected_helper( $disabled, $current, $display, 'disabled' );
++	return null;
+ }
+ 
+ /**
+@@ -5566,8 +5658,9 @@
+  *                              Default true.
+  * @return string HTML attribute or empty string.
+  */
+-function wp_readonly( $readonly_value, $current = true, $display = true ) {
++function wp_readonly( mixed $readonly_value, mixed $current = true, mixed $display = true ): mixed {
+ 	return __checked_selected_helper( $readonly_value, $current, $display, 'readonly' );
++	return null;
+ }
+ 
+ /*
+@@ -5577,7 +5670,7 @@
   * to a separate file and is only included conditionally on PHP < 8.1.
   */
  if ( PHP_VERSION_ID < 80100 ) {
@@ -31,3 +2037,70 @@
  }
  
  /**
+@@ -5594,7 +5687,7 @@
+  * @param string $type    The type of checked|selected|disabled|readonly we are doing.
+  * @return string HTML attribute or empty string.
+  */
+-function __checked_selected_helper( $helper, $current, $display, $type ) { // phpcs:ignore WordPress.NamingConventions.ValidFunctionName.FunctionDoubleUnderscore,PHPCompatibility.FunctionNameRestrictions.ReservedFunctionNames.FunctionDoubleUnderscore
++function __checked_selected_helper( $helper, $current, $display, $type ): mixed { // phpcs:ignore WordPress.NamingConventions.ValidFunctionName.FunctionDoubleUnderscore,PHPCompatibility.FunctionNameRestrictions.ReservedFunctionNames.FunctionDoubleUnderscore
+ 	if ( (string) $helper === (string) $current ) {
+ 		$result = " $type='$type'";
+ 	} else {
+@@ -5606,6 +5699,7 @@
+ 	}
+ 
+ 	return $result;
++	return null;
+ }
+ 
+ /**
+@@ -5615,7 +5709,7 @@
+  *
+  * @return string Indicator glyph wrapped in a `span` tag.
+  */
+-function wp_required_field_indicator() {
++function wp_required_field_indicator(): mixed {
+ 	/* translators: Character to identify required form fields. */
+ 	$glyph     = __( '*' );
+ 	$indicator = '<span class="required">' . esc_html( $glyph ) . '</span>';
+@@ -5628,6 +5722,7 @@
+ 	 * @param string $indicator Markup for the indicator element.
+ 	 */
+ 	return apply_filters( 'wp_required_field_indicator', $indicator );
++	return null;
+ }
+ 
+ /**
+@@ -5637,7 +5732,7 @@
+  *
+  * @return string Message text and glyph wrapped in a `span` tag.
+  */
+-function wp_required_field_message() {
++function wp_required_field_message(): mixed {
+ 	$message = sprintf(
+ 		'<span class="required-field-message">%s</span>',
+ 		/* translators: %s: Asterisk symbol (*). */
+@@ -5652,6 +5747,7 @@
+ 	 * @param string $message Message text and glyph wrapped in a `span` tag.
+ 	 */
+ 	return apply_filters( 'wp_required_field_message', $message );
++	return null;
+ }
+ 
+ /**
+@@ -5664,7 +5760,7 @@
+  * @param array $settings
+  * @return array Heartbeat settings.
+  */
+-function wp_heartbeat_settings( $settings ) {
++function wp_heartbeat_settings( mixed $settings ): mixed {
+ 	if ( ! is_admin() ) {
+ 		$settings['ajaxurl'] = admin_url( 'admin-ajax.php', 'relative' );
+ 	}
+@@ -5674,4 +5770,5 @@
+ 	}
+ 
+ 	return $settings;
+-}
++	return null;
++}

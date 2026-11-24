@@ -1,0 +1,70 @@
+--- a/wp-includes/php-ai-client/src/Files/DTO/File.php
++++ b/wp-includes/php-ai-client/src/Files/DTO/File.php
+@@ -23,7 +23,7 @@
+  *     base64Data?: string
+  * }
+  *
+- * @extends AbstractDataTransferObject<FileArrayShape>
++ * @phpstan-extends AbstractDataTransferObject<FileArrayShape>
+  */
+ class File extends AbstractDataTransferObject
+ {
+@@ -74,7 +74,7 @@
+     {
+         // Check if it's a URL
+         if ($this->isUrl($file)) {
+-            $this->fileType = FileTypeEnum::remote();
++            $this->fileType = \wp_aot_require_WordPress_AiClient_Files_Enums_FileTypeEnum( FileTypeEnum::remote() );
+             $this->url = $file;
+             $this->mimeType = $this->determineMimeType($providedMimeType, null, $file);
+             return;
+@@ -82,8 +82,8 @@
+         // Data URI pattern.
+         $dataUriPattern = '/^data:(?:([a-zA-Z0-9][a-zA-Z0-9!#$&\-\^_+.]*\/[a-zA-Z0-9][a-zA-Z0-9!#$&\-\^_+.]*' . '(?:;[a-zA-Z0-9\-]+=[a-zA-Z0-9\-]+)*)?;)?base64,([A-Za-z0-9+\/]*={0,2})$/';
+         // Check if it's a data URI.
+-        if (preg_match($dataUriPattern, $file, $matches)) {
+-            $this->fileType = FileTypeEnum::inline();
++        if (preg_match(\wp_aot_regex_text( (string) ($dataUriPattern) ), \wp_aot_regex_text( (string) ($file) ), $matches)) {
++            $this->fileType = \wp_aot_require_WordPress_AiClient_Files_Enums_FileTypeEnum( FileTypeEnum::inline() );
+             $this->base64Data = $matches[2];
+             // Extract just the base64 data
+             $extractedMimeType = empty($matches[1]) ? null : $matches[1];
+@@ -92,17 +92,17 @@
+         }
+         // Check if it's a local file path (before base64 check)
+         if (file_exists($file) && is_file($file)) {
+-            $this->fileType = FileTypeEnum::inline();
++            $this->fileType = \wp_aot_require_WordPress_AiClient_Files_Enums_FileTypeEnum( FileTypeEnum::inline() );
+             $this->base64Data = $this->convertFileToBase64($file);
+             $this->mimeType = $this->determineMimeType($providedMimeType, null, $file);
+             return;
+         }
+         // Check if it's plain base64
+-        if (preg_match('/^[A-Za-z0-9+\/]*={0,2}$/', $file)) {
++        if (preg_match('/^[A-Za-z0-9+\/]*={0,2}$/', \wp_aot_regex_text( (string) ($file) ))) {
+             if ($providedMimeType === null) {
+                 throw new InvalidArgumentException('MIME type is required when providing plain base64 data without data URI format.');
+             }
+-            $this->fileType = FileTypeEnum::inline();
++            $this->fileType = \wp_aot_require_WordPress_AiClient_Files_Enums_FileTypeEnum( FileTypeEnum::inline() );
+             $this->base64Data = $file;
+             $this->mimeType = new MimeType($providedMimeType);
+             return;
+@@ -119,7 +119,7 @@
+      */
+     private function isUrl(string $string): bool
+     {
+-        return filter_var($string, \FILTER_VALIDATE_URL) !== \false && preg_match('/^https?:\/\//i', $string);
++        return filter_var($string, \FILTER_VALIDATE_URL) !== \false && preg_match('/^https?:\/\//i', \wp_aot_regex_text( (string) ($string) ));
+     }
+     /**
+      * Converts a local file to base64.
+@@ -323,7 +323,7 @@
+             $parsedUrl = parse_url($pathOrUrl);
+             $path = $parsedUrl['path'] ?? $pathOrUrl;
+             // Remove query string and fragment if present
+-            $cleanPath = strtok($path, '?#');
++            $cleanPath = \wp_aot_strtok($path, '?#');
+             if ($cleanPath === \false) {
+                 $cleanPath = $path;
+             }

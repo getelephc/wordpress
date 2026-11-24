@@ -1,0 +1,78 @@
+--- a/wp-admin/export.php
++++ b/wp-admin/export.php
+@@ -24,7 +24,7 @@
+  *
+  * @since 3.5.0
+  */
+-function export_add_js() {
++function export_add_js(): mixed {
+ 	?>
+ <script>
+ 	jQuery( function($) {
+@@ -42,6 +42,7 @@
+ 	} );
+ </script>
+ 	<?php
++	return null;
+ }
+ add_action( 'admin_head', 'export_add_js' );
+ 
+@@ -121,7 +122,7 @@
+ 	$args = apply_filters( 'export_args', $args );
+ 
+ 	export_wp( $args );
+-	die();
++	\wp_aot_exit();
+ }
+ 
+ require_once ABSPATH . 'wp-admin/admin-header.php';
+@@ -136,11 +137,11 @@
+  *
+  * @param string $post_type The post type. Default 'post'.
+  */
+-function export_date_options( $post_type = 'post' ) {
++function export_date_options( mixed $post_type = 'post' ): mixed {
+ 	global $wpdb, $wp_locale;
+ 
+-	$months = $wpdb->get_results(
+-		$wpdb->prepare(
++	$months = \wp_aot_require_wpdb( $wpdb )->get_results(
++		\wp_aot_require_wpdb( $wpdb )->prepare(
+ 			"SELECT DISTINCT YEAR( post_date ) AS year, MONTH( post_date ) AS month
+ 			FROM $wpdb->posts
+ 			WHERE post_type = %s AND post_status != 'auto-draft'
+@@ -151,7 +152,7 @@
+ 
+ 	$month_count = count( $months );
+ 	if ( ! $month_count || ( 1 === $month_count && 0 === (int) $months[0]->month ) ) {
+-		return;
++		return null;
+ 	}
+ 
+ 	foreach ( $months as $date ) {
+@@ -167,6 +168,7 @@
+ 			$wp_locale->get_month( $month ) . ' ' . $date->year
+ 		);
+ 	}
++	return null;
+ }
+ ?>
+ 
+@@ -200,7 +202,7 @@
+ 	<li>
+ 		<label><span class="label-responsive"><?php _e( 'Authors:' ); ?></span>
+ 		<?php
+-		$authors = $wpdb->get_col( "SELECT DISTINCT post_author FROM {$wpdb->posts} WHERE post_type = 'post'" );
++		$authors = \wp_aot_require_wpdb( $wpdb )->get_col( "SELECT DISTINCT post_author FROM {$wpdb->posts} WHERE post_type = 'post'" );
+ 		wp_dropdown_users(
+ 			array(
+ 				'include'         => $authors,
+@@ -252,7 +254,7 @@
+ 	<li>
+ 		<label><span class="label-responsive"><?php _e( 'Authors:' ); ?></span>
+ 		<?php
+-		$authors = $wpdb->get_col( "SELECT DISTINCT post_author FROM {$wpdb->posts} WHERE post_type = 'page'" );
++		$authors = \wp_aot_require_wpdb( $wpdb )->get_col( "SELECT DISTINCT post_author FROM {$wpdb->posts} WHERE post_type = 'page'" );
+ 		wp_dropdown_users(
+ 			array(
+ 				'include'         => $authors,

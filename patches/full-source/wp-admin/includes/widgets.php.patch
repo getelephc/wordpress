@@ -1,6 +1,48 @@
 --- a/wp-admin/includes/widgets.php
 +++ b/wp-admin/includes/widgets.php
-@@ -97,23 +97,31 @@
+@@ -14,11 +14,11 @@
+  * @global array $wp_registered_widgets
+  * @global array $wp_registered_widget_controls
+  */
+-function wp_list_widgets() {
++function wp_list_widgets(): mixed {
+ 	global $wp_registered_widgets, $wp_registered_widget_controls;
+ 
+ 	$sort = $wp_registered_widgets;
+-	usort( $sort, '_sort_name_callback' );
++	\wp_aot_usort( $sort, '_sort_name_callback' );
+ 	$done = array();
+ 
+ 	foreach ( $sort as $widget ) {
+@@ -59,6 +59,7 @@
+ 
+ 		wp_widget_control( ...$sidebar_args );
+ 	}
++	return null;
+ }
+ 
+ /**
+@@ -71,8 +72,9 @@
+  * @param array $b Second array.
+  * @return int Comparison result.
+  */
+-function _sort_name_callback( $a, $b ) {
++function _sort_name_callback( mixed $a, mixed $b ): mixed {
+ 	return strnatcasecmp( $a['name'], $b['name'] );
++	return null;
+ }
+ 
+ /**
+@@ -84,7 +86,7 @@
+  * @param string $sidebar      Sidebar ID.
+  * @param string $sidebar_name Optional. Sidebar name. Default empty.
+  */
+-function wp_list_widget_controls( $sidebar, $sidebar_name = '' ) {
++function wp_list_widget_controls( mixed $sidebar, mixed $sidebar_name = '' ): mixed {
+ 	add_filter( 'dynamic_sidebar_params', 'wp_list_widget_controls_dynamic_sidebar' );
+ 
+ 	$description = wp_sidebar_description( $sidebar );
+@@ -97,28 +99,37 @@
  			__( 'Add to: %s' ),
  			$sidebar_name
  		);
@@ -41,7 +83,67 @@
  	}
  
  	dynamic_sidebar( $sidebar );
-@@ -241,37 +249,49 @@
+ 
+ 	echo '</div>';
++	return null;
+ }
+ 
+ /**
+@@ -131,7 +142,7 @@
+  * @param array $params
+  * @return array Widget control arguments.
+  */
+-function wp_list_widget_controls_dynamic_sidebar( $params ) {
++function wp_list_widget_controls_dynamic_sidebar( mixed $params ): mixed {
+ 	global $wp_registered_widgets;
+ 	static $i = 0;
+ 	++$i;
+@@ -151,6 +162,7 @@
+ 	}
+ 
+ 	return $params;
++	return null;
+ }
+ 
+ /**
+@@ -159,18 +171,19 @@
+  * @param string $id_base
+  * @return int Next available widget ID number.
+  */
+-function next_widget_id_number( $id_base ) {
++function next_widget_id_number( mixed $id_base ): mixed {
+ 	global $wp_registered_widgets;
+ 	$number = 1;
+ 
+ 	foreach ( $wp_registered_widgets as $widget_id => $widget ) {
+-		if ( preg_match( '/' . preg_quote( $id_base, '/' ) . '-([0-9]+)$/', $widget_id, $matches ) ) {
++		if ( preg_match( \wp_aot_regex_text( '/' . preg_quote( \wp_aot_regex_text( $id_base ), '/' ) . '-([0-9]+)$/' ), \wp_aot_regex_text( $widget_id ), $matches ) ) {
+ 			$number = max( $number, $matches[1] );
+ 		}
+ 	}
+ 	++$number;
+ 
+ 	return $number;
++	return null;
+ }
+ 
+ /**
+@@ -187,12 +200,12 @@
+  * @param array $sidebar_args
+  * @return array Passed through value of `$sidebar_args` param.
+  */
+-function wp_widget_control( $sidebar_args ) {
++function wp_widget_control( mixed $sidebar_args ): mixed {
+ 	global $wp_registered_widgets, $wp_registered_widget_controls, $sidebars_widgets;
+ 
+ 	$widget_id  = $sidebar_args['widget_id'];
+ 	$sidebar_id = $sidebar_args['id'] ?? false;
+-	$key        = $sidebar_id ? array_search( $widget_id, $sidebars_widgets[ $sidebar_id ], true ) : '-1'; // Position of widget in sidebar.
++	$key        = $sidebar_id ? \wp_aot_array_search( $widget_id, $sidebars_widgets[ $sidebar_id ], true ) : '-1'; // Position of widget in sidebar.
+ 	$control    = $wp_registered_widget_controls[ $widget_id ] ?? array();
+ 	$widget     = $wp_registered_widgets[ $widget_id ];
+ 
+@@ -241,37 +254,49 @@
  	$has_form     = 'noform';
  
  	echo $sidebar_args['before_widget'];
@@ -107,7 +209,7 @@
  	if ( isset( $control['callback'] ) ) {
  		$has_form = call_user_func_array( $control['callback'], $control['params'] );
  	} else {
-@@ -282,38 +302,61 @@
+@@ -282,47 +307,72 @@
  	if ( 'noform' === $has_form ) {
  		$noform_class = ' widget-control-noform';
  	}
@@ -189,3 +291,16 @@
  	echo $sidebar_args['after_widget'];
  
  	return $sidebar_args;
++	return null;
+ }
+ 
+ /**
+  * @param string $classes
+  * @return string Modified body classes.
+  */
+-function wp_widgets_access_body_class( $classes ) {
++function wp_widgets_access_body_class( mixed $classes ): mixed {
+ 	return "$classes widgets_access ";
+-}
++	return null;
++}

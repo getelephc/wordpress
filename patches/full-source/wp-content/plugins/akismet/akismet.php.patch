@@ -1,0 +1,11 @@
+--- a/wp-content/plugins/akismet/akismet.php
++++ b/wp-content/plugins/akismet/akismet.php
+@@ -36,7 +36,7 @@
+ // Make sure we don't expose any info if called directly
+ if ( ! function_exists( 'add_action' ) ) {
+ 	echo 'Hi there!  I\'m just a plugin, not much I can do when called directly.';
+-	exit;
++	\wp_aot_exit();
+ }
+ 
+ define( 'AKISMET_VERSION', '5.7.2' );

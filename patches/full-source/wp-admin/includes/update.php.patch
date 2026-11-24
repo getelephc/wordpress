@@ -1,17 +1,356 @@
 --- a/wp-admin/includes/update.php
 +++ b/wp-admin/includes/update.php
-@@ -912,8 +912,8 @@
+@@ -13,7 +13,7 @@
+  *
+  * @return object|array|false The response from the API on success, false on failure.
+  */
+-function get_preferred_from_update_core() {
++function get_preferred_from_update_core(): mixed {
+ 	$updates = get_core_updates();
+ 
+ 	if ( ! is_array( $updates ) ) {
+@@ -25,6 +25,7 @@
+ 	}
+ 
+ 	return $updates[0];
++	return null;
+ }
+ 
+ /**
+@@ -36,14 +37,14 @@
+  *                       set $options['available'] to false to skip not-dismissed updates.
+  * @return array<object>|false Array of the update objects on success, false on failure.
+  */
+-function get_core_updates( $options = array() ) {
+-	$options = array_merge(
++function get_core_updates( mixed $options = array() ): mixed {
++	$options = \wp_aot_array_merge(array(
+ 		array(
+ 			'available' => true,
+ 			'dismissed' => false,
+ 		),
+ 		$options
+-	);
++	));
+ 
+ 	$dismissed = get_site_option( 'dismissed_update_core' );
+ 
+@@ -79,6 +80,7 @@
+ 	}
+ 
+ 	return $result;
++	return null;
+ }
+ 
+ /**
+@@ -90,7 +92,7 @@
+  *
+  * @return object|false The core update offering on success, false on failure.
+  */
+-function find_core_auto_update() {
++function find_core_auto_update(): mixed {
+ 	$updates = get_site_transient( 'update_core' );
+ 
+ 	if ( ! $updates || empty( $updates->updates ) ) {
+@@ -111,12 +113,13 @@
+ 			continue;
+ 		}
+ 
+-		if ( ! $auto_update || version_compare( $update->current, $auto_update->current, '>' ) ) {
++		if ( ! $auto_update || version_compare( $update->current, \wp_aot_mixed($auto_update)->current, '>' ) ) {
+ 			$auto_update = $update;
+ 		}
+ 	}
+ 
+ 	return $auto_update;
++	return null;
+ }
+ 
+ /**
+@@ -128,8 +131,8 @@
+  * @param string $locale  Locale to query.
+  * @return array<string, string>|false An array of checksums on success, false on failure.
+  */
+-function get_core_checksums( $version, $locale ) {
+-	$http_url = 'http://api.wordpress.org/core/checksums/1.0/?' . http_build_query( compact( 'version', 'locale' ), '', '&' );
++function get_core_checksums( mixed $version, mixed $locale ): mixed {
++	$http_url = 'http://api.wordpress.org/core/checksums/1.0/?' . http_build_query( \wp_aot_compact(get_defined_vars(), array( 'version', 'locale' )), '', '&' );
+ 	$url      = $http_url;
+ 
+ 	$ssl = wp_http_supports( array( 'ssl' ) );
+@@ -152,7 +155,7 @@
+ 				__( 'An unexpected error occurred. Something may be wrong with WordPress.org or this server&#8217;s configuration. If you continue to have problems, please try the <a href="%s">support forums</a>.' ),
+ 				__( 'https://wordpress.org/support/forums/' )
+ 			) . ' ' . __( '(WordPress could not establish a secure connection to WordPress.org. Please contact your server administrator.)' ),
+-			headers_sent() || WP_DEBUG ? E_USER_WARNING : E_USER_NOTICE
++			\wp_aot_native_headers_sent() || WP_DEBUG ? E_USER_WARNING : E_USER_NOTICE
+ 		);
+ 
+ 		$response = wp_remote_get( $http_url, $options );
+@@ -170,6 +173,7 @@
+ 	}
+ 
+ 	return $body['checksums'];
++	return null;
+ }
+ 
+ /**
+@@ -180,11 +184,12 @@
+  * @param object $update
+  * @return bool True if the option was updated, false otherwise.
+  */
+-function dismiss_core_update( $update ) {
++function dismiss_core_update( mixed $update ): mixed {
+ 	$dismissed = get_site_option( 'dismissed_update_core' );
+ 	$dismissed[ $update->current . '|' . $update->locale ] = true;
+ 
+ 	return update_site_option( 'dismissed_update_core', $dismissed );
++	return null;
+ }
+ 
+ /**
+@@ -196,7 +201,7 @@
+  * @param string $locale
+  * @return bool True if the option was updated, false otherwise.
+  */
+-function undismiss_core_update( $version, $locale ) {
++function undismiss_core_update( mixed $version, mixed $locale ): mixed {
+ 	$dismissed = get_site_option( 'dismissed_update_core' );
+ 	$key       = $version . '|' . $locale;
+ 
+@@ -207,6 +212,7 @@
+ 	unset( $dismissed[ $key ] );
+ 
+ 	return update_site_option( 'dismissed_update_core', $dismissed );
++	return null;
+ }
+ 
+ /**
+@@ -218,7 +224,7 @@
+  * @param string $locale  Locale to find the update for.
+  * @return object|false The core update offering on success, false on failure.
+  */
+-function find_core_update( $version, $locale ) {
++function find_core_update( mixed $version, mixed $locale ): mixed {
+ 	$from_api = get_site_transient( 'update_core' );
+ 
+ 	if ( ! isset( $from_api->updates ) || ! is_array( $from_api->updates ) ) {
+@@ -234,6 +240,7 @@
+ 	}
+ 
+ 	return false;
++	return null;
+ }
+ 
+ /**
+@@ -244,7 +251,7 @@
+  * @param string $msg
+  * @return string The core update footer message.
+  */
+-function core_update_footer( $msg = '' ) {
++function core_update_footer( mixed $msg = '' ): mixed {
+ 	if ( ! current_user_can( 'update_core' ) ) {
+ 		/* translators: %s: WordPress version. */
+ 		return sprintf( __( 'Version %s' ), get_bloginfo( 'version', 'display' ) );
+@@ -264,7 +271,7 @@
+ 		$cur->response = '';
+ 	}
+ 
+-	$is_development_version = preg_match( '/alpha|beta|RC/', wp_get_wp_version() );
++	$is_development_version = preg_match( '/alpha|beta|RC/', \wp_aot_regex_text( wp_get_wp_version() ) );
+ 
+ 	if ( $is_development_version ) {
+ 		return sprintf(
+@@ -289,6 +296,7 @@
+ 			/* translators: %s: WordPress version. */
+ 			return sprintf( __( 'Version %s' ), get_bloginfo( 'version', 'display' ) );
+ 	}
++	return null;
+ }
+ 
+ /**
+@@ -299,7 +307,7 @@
+  * @global string $pagenow The filename of the current screen.
+  * @return void|false Void on success, false if the update nag should not be displayed.
+  */
+-function update_nag() {
++function update_nag(): mixed {
+ 	global $pagenow;
+ 
+ 	if ( is_multisite() && ! current_user_can( 'update_core' ) ) {
+@@ -307,7 +315,7 @@
+ 	}
+ 
+ 	if ( 'update-core.php' === $pagenow ) {
+-		return;
++		return null;
+ 	}
+ 
+ 	$cur = get_preferred_from_update_core();
+@@ -348,6 +356,7 @@
+ 			'paragraph_wrap'     => false,
+ 		)
+ 	);
++	return null;
+ }
+ 
+ /**
+@@ -355,7 +364,7 @@
+  *
+  * @since 2.5.0
+  */
+-function update_right_now_message() {
++function update_right_now_message(): mixed {
+ 	$theme_name = wp_get_theme();
+ 
+ 	if ( current_user_can( 'switch_themes' ) ) {
+@@ -392,6 +401,7 @@
+ 	}
+ 
+ 	echo "<p id='wp-version-message'>$msg</p>";
++	return null;
+ }
+ 
+ /**
+@@ -401,7 +411,7 @@
+  *
+  * @return array<string, object> Array of plugin objects with available updates.
+  */
+-function get_plugin_updates() {
++function get_plugin_updates(): mixed {
+ 	$all_plugins     = get_plugins();
+ 	$upgrade_plugins = array();
+ 	$current         = get_site_transient( 'update_plugins' );
+@@ -414,6 +424,7 @@
+ 	}
+ 
+ 	return $upgrade_plugins;
++	return null;
+ }
+ 
+ /**
+@@ -421,9 +432,9 @@
+  *
+  * @since 2.9.0
+  */
+-function wp_plugin_update_rows() {
++function wp_plugin_update_rows(): mixed {
+ 	if ( ! current_user_can( 'update_plugins' ) ) {
+-		return;
++		return null;
+ 	}
+ 
+ 	$plugins = get_site_transient( 'update_plugins' );
+@@ -435,6 +446,7 @@
+ 			add_action( "after_plugin_row_{$plugin_file}", 'wp_plugin_update_row', 10, 2 );
+ 		}
+ 	}
++	return null;
+ }
+ 
+ /**
+@@ -446,7 +458,7 @@
+  * @param array  $plugin_data Plugin information.
+  * @return void|false Void on success, false if the plugin update is not available.
+  */
+-function wp_plugin_update_row( $file, $plugin_data ) {
++function wp_plugin_update_row( mixed $file, mixed $plugin_data ): mixed {
+ 	$current = get_site_transient( 'update_plugins' );
+ 
+ 	if ( ! isset( $current->response[ $file ] ) ) {
+@@ -615,6 +627,7 @@
+ 
+ 		echo '</p></div></td></tr>';
+ 	}
++	return null;
+ }
+ 
+ /**
+@@ -624,7 +637,7 @@
+  *
+  * @return array<string, WP_Theme> Array of theme objects with available updates.
+  */
+-function get_theme_updates() {
++function get_theme_updates(): mixed {
+ 	$current = get_site_transient( 'update_themes' );
+ 
+ 	if ( ! isset( $current->response ) ) {
+@@ -639,6 +652,7 @@
+ 	}
+ 
+ 	return $update_themes;
++	return null;
+ }
+ 
+ /**
+@@ -646,9 +660,9 @@
+  *
+  * @since 3.1.0
+  */
+-function wp_theme_update_rows() {
++function wp_theme_update_rows(): mixed {
+ 	if ( ! current_user_can( 'update_themes' ) ) {
+-		return;
++		return null;
+ 	}
+ 
+ 	$themes = get_site_transient( 'update_themes' );
+@@ -660,6 +674,7 @@
+ 			add_action( "after_theme_row_{$theme}", 'wp_theme_update_row', 10, 2 );
+ 		}
+ 	}
++	return null;
+ }
+ 
+ /**
+@@ -671,7 +686,7 @@
+  * @param WP_Theme $theme     Theme object.
+  * @return void|false Void on success, false if the theme update is not available.
+  */
+-function wp_theme_update_row( $theme_key, $theme ) {
++function wp_theme_update_row( mixed $theme_key, mixed $theme ): mixed {
+ 	$current = get_site_transient( 'update_themes' );
+ 
+ 	if ( ! isset( $current->response[ $theme_key ] ) ) {
+@@ -837,6 +852,7 @@
+ 	do_action( "in_theme_update_message-{$theme_key}", $theme, $response ); // phpcs:ignore WordPress.NamingConventions.ValidHookName.UseUnderscores
+ 
+ 	echo '</p></div></td></tr>';
++	return null;
+ }
+ 
+ /**
+@@ -848,7 +864,7 @@
+  *
+  * @return void|false Void on success, false if the maintenance nag should not be displayed.
+  */
+-function maintenance_nag() {
++function maintenance_nag(): mixed {
+ 	global $upgrading;
+ 
+ 	$nag = isset( $upgrading );
+@@ -893,6 +909,7 @@
+ 			'paragraph_wrap'     => false,
+ 		)
+ 	);
++	return null;
+ }
+ 
+ /**
+@@ -911,9 +928,9 @@
+  *         @type string type      The type of update the notice is for. Either 'plugin' or 'theme'.
   *     }
   */
- function wp_print_admin_notice_templates() {
+-function wp_print_admin_notice_templates() {
 -	?>
 -	<script id="tmpl-wp-updates-admin-notice" type="text/html">
++function wp_print_admin_notice_templates(): mixed {
 +	;
 +echo '	<script id="tmpl-wp-updates-admin-notice" type="text/html">
  		<div <# if ( data.id ) { #>id="{{ data.id }}"<# } #> class="notice {{ data.className }}"><p>{{{ data.message }}}</p></div>
  	</script>
  	<script id="tmpl-wp-bulk-updates-admin-notice" type="text/html">
-@@ -926,11 +926,11 @@
+@@ -926,11 +943,11 @@
  					<button class="button-link bulk-action-errors-collapsed" aria-expanded="false">
  						{{{ data.errorMessage }}}
  						<span class="screen-reader-text">
@@ -26,27 +365,30 @@
  						<span class="toggle-indicator" aria-hidden="true"></span>
  					</button>
  				<# } #>
-@@ -944,7 +944,7 @@
+@@ -944,7 +961,8 @@
  			<# } #>
  		</div>
  	</script>
 -	<?php
 +	';
++	return null;
  }
  
  /**
-@@ -975,8 +975,8 @@
+@@ -974,9 +992,9 @@
+  *         @type string colspan The number of table columns this row spans.
   *     }
   */
- function wp_print_update_row_templates() {
+-function wp_print_update_row_templates() {
 -	?>
 -	<script id="tmpl-item-update-row" type="text/template">
++function wp_print_update_row_templates(): mixed {
 +	;
 +echo '	<script id="tmpl-item-update-row" type="text/template">
  		<tr class="plugin-update-tr update" id="{{ data.slug }}-update" data-slug="{{ data.slug }}" <# if ( data.plugin ) { #>data-plugin="{{ data.plugin }}"<# } #>>
  			<td colspan="{{ data.colspan }}" class="plugin-update colspanchange">
  				{{{ data.content }}}
-@@ -987,26 +987,26 @@
+@@ -987,26 +1005,27 @@
  		<tr class="plugin-deleted-tr inactive deleted" id="{{ data.slug }}-deleted" data-slug="{{ data.slug }}" <# if ( data.plugin ) { #>data-plugin="{{ data.plugin }}"<# } #>>
  			<td colspan="{{ data.colspan }}" class="plugin-update colspanchange">
  				<# if ( data.plugin ) { #>
@@ -77,6 +419,72 @@
  	</script>
 -	<?php
 +	';
++	return null;
  }
  
  /**
+@@ -1014,9 +1033,9 @@
+  *
+  * @since 5.2.0
+  */
+-function wp_recovery_mode_nag() {
++function wp_recovery_mode_nag(): mixed {
+ 	if ( ! wp_is_recovery_mode() ) {
+-		return;
++		return null;
+ 	}
+ 
+ 	$url = wp_login_url();
+@@ -1029,6 +1048,7 @@
+ 		esc_url( $url )
+ 	);
+ 	wp_admin_notice( $message, array( 'type' => 'info' ) );
++	return null;
+ }
+ 
+ /**
+@@ -1039,7 +1059,7 @@
+  * @param string $type The type of update being checked: Either 'theme' or 'plugin'.
+  * @return bool True if auto-updates are enabled for `$type`, false otherwise.
+  */
+-function wp_is_auto_update_enabled_for_type( $type ) {
++function wp_is_auto_update_enabled_for_type( mixed $type ): mixed {
+ 	if ( ! class_exists( 'WP_Automatic_Updater' ) ) {
+ 		require_once ABSPATH . 'wp-admin/includes/class-wp-automatic-updater.php';
+ 	}
+@@ -1069,6 +1089,7 @@
+ 	}
+ 
+ 	return false;
++	return null;
+ }
+ 
+ /**
+@@ -1082,9 +1103,10 @@
+  * @param object    $item   The update offer.
+  * @return bool True if auto-updates are forced for `$item`, false otherwise.
+  */
+-function wp_is_auto_update_forced_for_item( $type, $update, $item ) {
++function wp_is_auto_update_forced_for_item( mixed $type, mixed $update, mixed $item ): mixed {
+ 	/** This filter is documented in wp-admin/includes/class-wp-automatic-updater.php */
+ 	return apply_filters( "auto_update_{$type}", $update, $item );
++	return null;
+ }
+ 
+ /**
+@@ -1094,7 +1116,7 @@
+  *
+  * @return string The update message to be shown.
+  */
+-function wp_get_auto_update_message() {
++function wp_get_auto_update_message(): mixed {
+ 	$next_update_time = wp_next_scheduled( 'wp_version_check' );
+ 
+ 	// Check if the event exists.
+@@ -1122,4 +1144,5 @@
+ 	}
+ 
+ 	return $message;
+-}
++	return null;
++}

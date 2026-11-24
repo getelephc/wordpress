@@ -1,0 +1,56 @@
+--- a/wp-includes/Requests/src/Hooks.php
++++ b/wp-includes/Requests/src/Hooks.php
+@@ -22,7 +22,7 @@
+ 	 *
+ 	 * @var array
+ 	 */
+-	protected $hooks = [];
++	protected mixed $hooks = [];
+ 
+ 	/**
+ 	 * Register a callback for a hook
+@@ -34,7 +34,7 @@
+ 	 * @throws \WpOrg\Requests\Exception\InvalidArgument When the passed $callback argument is not callable.
+ 	 * @throws \WpOrg\Requests\Exception\InvalidArgument When the passed $priority argument is not an integer.
+ 	 */
+-	public function register($hook, $callback, $priority = 0) {
++	public function register(mixed $hook, mixed $callback, mixed $priority = 0): mixed {
+ 		if (is_string($hook) === false) {
+ 			throw InvalidArgument::create(1, '$hook', 'string', gettype($hook));
+ 		}
+@@ -56,6 +56,7 @@
+ 		}
+ 
+ 		$this->hooks[$hook][$priority][] = $callback;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -67,7 +68,7 @@
+ 	 * @throws \WpOrg\Requests\Exception\InvalidArgument When the passed $hook argument is not a string.
+ 	 * @throws \WpOrg\Requests\Exception\InvalidArgument When the passed $parameters argument is not an array.
+ 	 */
+-	public function dispatch($hook, $parameters = []) {
++	public function dispatch(mixed $hook, mixed $parameters = []): mixed {
+ 		if (is_string($hook) === false) {
+ 			throw InvalidArgument::create(1, '$hook', 'string', gettype($hook));
+ 		}
+@@ -86,7 +87,9 @@
+ 			$parameters = array_values($parameters);
+ 		}
+ 
+-		ksort($this->hooks[$hook]);
++		$wp_aot_hook_callbacks =& $this->hooks[$hook];
++        \wp_aot_ksort($wp_aot_hook_callbacks);
++        unset($wp_aot_hook_callbacks);
+ 
+ 		foreach ($this->hooks[$hook] as $priority => $hooked) {
+ 			foreach ($hooked as $callback) {
+@@ -95,6 +98,7 @@
+ 		}
+ 
+ 		return true;
++		return null;
+ 	}
+ 
+ 	public function __wakeup() {

@@ -1,0 +1,96 @@
+--- a/wp-includes/SimplePie/src/Cache/Memcached.php
++++ b/wp-includes/SimplePie/src/Cache/Memcached.php
+@@ -48,7 +48,7 @@
+      * @param string $name Unique ID for the cache
+      * @param Base::TYPE_FEED|Base::TYPE_IMAGE $type Either TYPE_FEED for SimplePie data, or TYPE_IMAGE for image data
+      */
+-    public function __construct(string $location, string $name, $type)
++    public function __construct(string $location, string $name, mixed $type)
+     {
+         $this->options = [
+             'host'   => '127.0.0.1',
+@@ -58,7 +58,7 @@
+                 'prefix'  => 'simplepie_',
+             ],
+         ];
+-        $this->options = array_replace_recursive($this->options, \SimplePie\Cache::parse_URL($location));
++        $this->options = \wp_aot_array_replace_recursive(array($this->options, \SimplePie\Cache::parse_URL($location)));
+ 
+         $this->name = $this->options['extras']['prefix'] . md5("$name:$type");
+ 
+@@ -71,20 +71,21 @@
+      * @param array<mixed>|\SimplePie\SimplePie $data Data to store in the cache. If passed a SimplePie object, only cache the $data property
+      * @return bool Successfulness
+      */
+-    public function save($data)
++    public function save(mixed $data): mixed
+     {
+         if ($data instanceof \SimplePie\SimplePie) {
+             $data = $data->data;
+         }
+ 
+         return $this->setData(serialize($data));
++    	return null;
+     }
+ 
+     /**
+      * Retrieve the data saved to the cache
+      * @return array<mixed>|false Data for SimplePie::$data
+      */
+-    public function load()
++    public function load(): mixed
+     {
+         $data = $this->cache->get($this->name);
+ 
+@@ -92,35 +93,39 @@
+             return unserialize($data);
+         }
+         return false;
++    	return null;
+     }
+ 
+     /**
+      * Retrieve the last modified time for the cache
+      * @return int Timestamp
+      */
+-    public function mtime()
++    public function mtime(): mixed
+     {
+         $data = $this->cache->get($this->name . '_mtime');
+         return (int) $data;
++    	return null;
+     }
+ 
+     /**
+      * Set the last modified time to the current time
+      * @return bool Success status
+      */
+-    public function touch()
++    public function touch(): mixed
+     {
+         $data = $this->cache->get($this->name);
+         return $this->setData($data);
++    	return null;
+     }
+ 
+     /**
+      * Remove the cache
+      * @return bool Success status
+      */
+-    public function unlink()
++    public function unlink(): mixed
+     {
+         return $this->cache->delete($this->name, 0);
++    	return null;
+     }
+ 
+     /**
+@@ -128,7 +133,7 @@
+      * @param string|false $data
+      * @return bool Success status
+      */
+-    private function setData($data): bool
++    private function setData(mixed $data): bool
+     {
+         if ($data !== false) {
+             $this->cache->set($this->name . '_mtime', time(), (int)$this->options['extras']['timeout']);

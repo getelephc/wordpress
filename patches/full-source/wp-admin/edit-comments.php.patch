@@ -1,0 +1,39 @@
+--- a/wp-admin/edit-comments.php
++++ b/wp-admin/edit-comments.php
+@@ -32,8 +32,8 @@
+ 
+ 		$comment_status = wp_unslash( $_REQUEST['comment_status'] );
+ 		$delete_time    = wp_unslash( $_REQUEST['pagegen_timestamp'] );
+-		$comment_ids    = $wpdb->get_col(
+-			$wpdb->prepare(
++		$comment_ids    = \wp_aot_require_wpdb( $wpdb )->get_col(
++			\wp_aot_require_wpdb( $wpdb )->prepare(
+ 				"SELECT comment_ID FROM $wpdb->comments
+ 				WHERE comment_approved = %s AND %s > comment_date_gmt",
+ 				$comment_status,
+@@ -45,10 +45,10 @@
+ 		$comment_ids = $_REQUEST['delete_comments'];
+ 		$doaction    = $_REQUEST['action'];
+ 	} elseif ( isset( $_REQUEST['ids'] ) ) {
+-		$comment_ids = array_map( 'absint', explode( ',', $_REQUEST['ids'] ) );
++		$comment_ids = \wp_aot_array_map( 'absint', explode( ',', $_REQUEST['ids'] ) );
+ 	} elseif ( wp_get_referer() ) {
+ 		wp_safe_redirect( wp_get_referer() );
+-		exit;
++		\wp_aot_exit();
+ 	}
+ 
+ 	$approved   = 0;
+@@ -148,10 +148,10 @@
+ 	}
+ 
+ 	wp_safe_redirect( $redirect_to );
+-	exit;
++	\wp_aot_exit();
+ } elseif ( ! empty( $_GET['_wp_http_referer'] ) ) {
+ 	wp_redirect( remove_query_arg( array( '_wp_http_referer', '_wpnonce' ), wp_unslash( $_SERVER['REQUEST_URI'] ) ) );
+-	exit;
++	\wp_aot_exit();
+ }
+ 
+ $wp_list_table->prepare_items();

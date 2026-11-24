@@ -1,6 +1,63 @@
 --- a/wp-includes/admin-bar.php
 +++ b/wp-includes/admin-bar.php
-@@ -94,7 +94,7 @@
+@@ -20,7 +20,7 @@
+  *
+  * @return bool Whether the admin bar was successfully initialized.
+  */
+-function _wp_admin_bar_init() {
++function _wp_admin_bar_init(): mixed {
+ 	global $wp_admin_bar;
+ 
+ 	if ( ! is_admin_bar_showing() ) {
+@@ -28,7 +28,7 @@
+ 	}
+ 
+ 	/* Load the admin bar class code ready for instantiation */
+-	require_once ABSPATH . WPINC . '/class-wp-admin-bar.php';
++	require_once __DIR__ . '/class-wp-admin-bar.php';
+ 
+ 	/* Instantiate the admin bar */
+ 
+@@ -40,7 +40,7 @@
+ 	 * @param string $wp_admin_bar_class Admin bar class to use. Default 'WP_Admin_Bar'.
+ 	 */
+ 	$admin_bar_class = apply_filters( 'wp_admin_bar_class', 'WP_Admin_Bar' );
+-	if ( class_exists( $admin_bar_class ) ) {
++	if ( \wp_aot_metadata_class_exists( $admin_bar_class ) ) {
+ 		$wp_admin_bar = new $admin_bar_class();
+ 	} else {
+ 		return false;
+@@ -50,6 +50,7 @@
+ 	$wp_admin_bar->add_menus();
+ 
+ 	return true;
++	return null;
+ }
+ 
+ /**
+@@ -70,16 +71,17 @@
+  *
+  * @global WP_Admin_Bar $wp_admin_bar
+  */
+-function wp_admin_bar_render() {
++function wp_admin_bar_render(): mixed {
+ 	global $wp_admin_bar;
+-	static $rendered = false;
++	static $rendered_aot_cell = new \WordPressStaticFalseCell();
++	$rendered =& $rendered_aot_cell->value;
+ 
+ 	if ( $rendered ) {
+-		return;
++		return null;
+ 	}
+ 
+ 	if ( ! is_admin_bar_showing() || ! is_object( $wp_admin_bar ) ) {
+-		return;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -94,7 +96,7 @@
  	 *
  	 * @param WP_Admin_Bar $wp_admin_bar The WP_Admin_Bar instance, passed by reference.
  	 */
@@ -9,3 +66,530 @@
  
  	/**
  	 * Fires before the admin bar is rendered.
+@@ -113,6 +115,7 @@
+ 	do_action( 'wp_after_admin_bar_render' );
+ 
+ 	$rendered = true;
++	return null;
+ }
+ 
+ /**
+@@ -122,7 +125,7 @@
+  *
+  * @param WP_Admin_Bar $wp_admin_bar The WP_Admin_Bar instance.
+  */
+-function wp_admin_bar_wp_menu( $wp_admin_bar ) {
++function wp_admin_bar_wp_menu( mixed $wp_admin_bar ): mixed {
+ 	if ( current_user_can( 'read' ) ) {
+ 		$about_url      = self_admin_url( 'about.php' );
+ 		$contribute_url = self_admin_url( 'contribute.php' );
+@@ -228,6 +231,7 @@
+ 			'href'   => __( 'https://wordpress.org/support/forum/requests-and-feedback' ),
+ 		)
+ 	);
++	return null;
+ }
+ 
+ /**
+@@ -237,7 +241,7 @@
+  *
+  * @param WP_Admin_Bar $wp_admin_bar The WP_Admin_Bar instance.
+  */
+-function wp_admin_bar_sidebar_toggle( $wp_admin_bar ) {
++function wp_admin_bar_sidebar_toggle( mixed $wp_admin_bar ): mixed {
+ 	if ( is_admin() ) {
+ 		$wp_admin_bar->add_node(
+ 			array(
+@@ -250,6 +254,7 @@
+ 			)
+ 		);
+ 	}
++	return null;
+ }
+ 
+ /**
+@@ -259,10 +264,10 @@
+  *
+  * @param WP_Admin_Bar $wp_admin_bar The WP_Admin_Bar instance.
+  */
+-function wp_admin_bar_my_account_item( $wp_admin_bar ) {
++function wp_admin_bar_my_account_item( mixed $wp_admin_bar ): mixed {
+ 	$user_id = get_current_user_id();
+ 	if ( ! $user_id ) {
+-		return;
++		return null;
+ 	}
+ 
+ 	if ( current_user_can( 'read' ) ) {
+@@ -290,6 +295,7 @@
+ 			),
+ 		)
+ 	);
++	return null;
+ }
+ 
+ /**
+@@ -299,12 +305,12 @@
+  *
+  * @param WP_Admin_Bar $wp_admin_bar The WP_Admin_Bar instance.
+  */
+-function wp_admin_bar_my_account_menu( $wp_admin_bar ) {
++function wp_admin_bar_my_account_menu( mixed $wp_admin_bar ): mixed {
+ 	$user_id      = get_current_user_id();
+ 	$current_user = wp_get_current_user();
+ 
+ 	if ( ! $user_id ) {
+-		return;
++		return null;
+ 	}
+ 
+ 	if ( current_user_can( 'read' ) ) {
+@@ -350,6 +356,7 @@
+ 			'href'   => wp_logout_url(),
+ 		)
+ 	);
++	return null;
+ }
+ 
+ /**
+@@ -359,21 +366,21 @@
+  *
+  * @param WP_Admin_Bar $wp_admin_bar The WP_Admin_Bar instance.
+  */
+-function wp_admin_bar_site_menu( $wp_admin_bar ) {
++function wp_admin_bar_site_menu( mixed $wp_admin_bar ): mixed {
+ 	// Don't show for logged out users.
+ 	if ( ! is_user_logged_in() ) {
+-		return;
++		return null;
+ 	}
+ 
+ 	// Show only when the user is a member of this site, or they're a super admin.
+ 	if ( ! is_user_member_of_blog() && ! current_user_can( 'manage_network' ) ) {
+-		return;
++		return null;
+ 	}
+ 
+ 	$blogname = get_bloginfo( 'name' );
+ 
+ 	if ( ! $blogname ) {
+-		$blogname = preg_replace( '#^(https?://)?(www\.)?#', '', get_home_url() );
++		$blogname = \wp_aot_preg_replace( '#^(https?://)?(www\.)?#', '', get_home_url() );
+ 	}
+ 
+ 	if ( is_network_admin() ) {
+@@ -466,6 +473,7 @@
+ 			);
+ 		}
+ 	}
++	return null;
+ }
+ 
+ /**
+@@ -479,17 +487,17 @@
+  *
+  * @param WP_Admin_Bar $wp_admin_bar The WP_Admin_Bar instance.
+  */
+-function wp_admin_bar_edit_site_menu( $wp_admin_bar ) {
++function wp_admin_bar_edit_site_menu( mixed $wp_admin_bar ): mixed {
+ 	global $_wp_current_template_id;
+ 
+ 	// Don't show if a block theme is not activated.
+ 	if ( ! wp_is_block_theme() ) {
+-		return;
++		return null;
+ 	}
+ 
+ 	// Don't show for users who can't edit theme options or when in the admin.
+ 	if ( ! current_user_can( 'edit_theme_options' ) || is_admin() ) {
+-		return;
++		return null;
+ 	}
+ 
+ 	$wp_admin_bar->add_node(
+@@ -506,6 +514,7 @@
+ 			),
+ 		)
+ 	);
++	return null;
+ }
+ 
+ /**
+@@ -517,24 +526,24 @@
+  *
+  * @param WP_Admin_Bar $wp_admin_bar The WP_Admin_Bar instance.
+  */
+-function wp_admin_bar_customize_menu( $wp_admin_bar ) {
++function wp_admin_bar_customize_menu( mixed $wp_admin_bar ): mixed {
+ 	global $wp_customize;
+ 
+ 	// Don't show if a block theme is activated and no plugins use the customizer.
+ 	if ( wp_is_block_theme() && ! has_action( 'customize_register' ) ) {
+-		return;
++		return null;
+ 	}
+ 
+ 	// Don't show for users who can't access the customizer or when in the admin.
+ 	if ( ! current_user_can( 'customize' ) || is_admin() ) {
+-		return;
++		return null;
+ 	}
+ 
+ 	// Don't show if the user cannot edit a given customize_changeset post currently being previewed.
+ 	if ( is_customize_preview() && $wp_customize->changeset_post_id()
+ 		&& ! current_user_can( get_post_type_object( 'customize_changeset' )->cap->edit_post, $wp_customize->changeset_post_id() )
+ 	) {
+-		return;
++		return null;
+ 	}
+ 
+ 	$current_url = ( is_ssl() ? 'https://' : 'http://' ) . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'];
+@@ -558,6 +567,7 @@
+ 		)
+ 	);
+ 	add_action( 'wp_before_admin_bar_render', 'wp_customize_support_script' );
++	return null;
+ }
+ 
+ /**
+@@ -567,15 +577,15 @@
+  *
+  * @param WP_Admin_Bar $wp_admin_bar The WP_Admin_Bar instance.
+  */
+-function wp_admin_bar_my_sites_menu( $wp_admin_bar ) {
++function wp_admin_bar_my_sites_menu( mixed $wp_admin_bar ): mixed {
+ 	// Don't show for logged out users or single site mode.
+ 	if ( ! is_user_logged_in() || ! is_multisite() ) {
+-		return;
++		return null;
+ 	}
+ 
+ 	// Show only when the user has at least one site, or they're a super admin.
+ 	if ( count( $wp_admin_bar->user->blogs ) < 1 && ! current_user_can( 'manage_network' ) ) {
+-		return;
++		return null;
+ 	}
+ 
+ 	if ( $wp_admin_bar->user->active_blog ) {
+@@ -714,7 +724,7 @@
+ 		$blogname = $blog->blogname;
+ 
+ 		if ( ! $blogname ) {
+-			$blogname = preg_replace( '#^(https?://)?(www\.)?#', '', get_home_url() );
++			$blogname = \wp_aot_preg_replace( '#^(https?://)?(www\.)?#', '', get_home_url() );
+ 		}
+ 
+ 		$menu_id = 'blog-' . $blog->userblog_id;
+@@ -781,6 +791,7 @@
+ 
+ 		restore_current_blog();
+ 	}
++	return null;
+ }
+ 
+ /**
+@@ -790,12 +801,12 @@
+  *
+  * @param WP_Admin_Bar $wp_admin_bar The WP_Admin_Bar instance.
+  */
+-function wp_admin_bar_shortlink_menu( $wp_admin_bar ) {
++function wp_admin_bar_shortlink_menu( mixed $wp_admin_bar ): mixed {
+ 	$short = wp_get_shortlink( 0, 'query' );
+ 	$id    = 'get-shortlink';
+ 
+ 	if ( empty( $short ) ) {
+-		return;
++		return null;
+ 	}
+ 
+ 	$html = '<input class="shortlink-input" type="text" readonly="readonly" value="' . esc_attr( $short ) . '" aria-label="' . __( 'Shortlink' ) . '" />';
+@@ -808,6 +819,7 @@
+ 			'meta'  => array( 'html' => $html ),
+ 		)
+ 	);
++	return null;
+ }
+ 
+ /**
+@@ -824,7 +836,7 @@
+  *
+  * @param WP_Admin_Bar $wp_admin_bar The WP_Admin_Bar instance.
+  */
+-function wp_admin_bar_edit_menu( $wp_admin_bar ) {
++function wp_admin_bar_edit_menu( mixed $wp_admin_bar ): mixed {
+ 	global $tag, $wp_the_query, $user_id, $post_id;
+ 
+ 	if ( is_admin() ) {
+@@ -909,7 +921,7 @@
+ 		$current_object = $wp_the_query->get_queried_object();
+ 
+ 		if ( empty( $current_object ) ) {
+-			return;
++			return null;
+ 		}
+ 
+ 		if ( ! empty( $current_object->post_type ) ) {
+@@ -952,6 +964,7 @@
+ 			}
+ 		}
+ 	}
++	return null;
+ }
+ 
+ /**
+@@ -974,7 +987,7 @@
+ 		'default' => _x( 'Ctrl+K', 'keyboard shortcut to open the command palette' ),
+ 	);
+ 	$apple_pattern   = 'Macintosh|Mac OS X|Mac_PowerPC';
+-	$is_apple_os     = (bool) preg_match( "/{$apple_pattern}/i", $_SERVER['HTTP_USER_AGENT'] ?? '' );
++	$is_apple_os     = (bool) preg_match( \wp_aot_regex_text( "/{$apple_pattern}/i" ), \wp_aot_regex_text( $_SERVER['HTTP_USER_AGENT'] ?? '' ) );
+ 	$shortcut_label  = $is_apple_os ? $shortcut_labels['appleOS'] : $shortcut_labels['default'];
+ 	$title           = sprintf(
+ 		'<span class="ab-icon" aria-hidden="true"></span><span class="ab-label"><kbd>%s</kbd><span class="screen-reader-text"> %s</span></span>',
+@@ -1029,7 +1042,7 @@
+  *
+  * @param WP_Admin_Bar $wp_admin_bar The WP_Admin_Bar instance.
+  */
+-function wp_admin_bar_new_content_menu( $wp_admin_bar ) {
++function wp_admin_bar_new_content_menu( mixed $wp_admin_bar ): mixed {
+ 	$actions = array();
+ 
+ 	$cpts = (array) get_post_types( array( 'show_in_admin_bar' => true ), 'objects' );
+@@ -1071,7 +1084,7 @@
+ 	}
+ 
+ 	if ( ! $actions ) {
+-		return;
++		return null;
+ 	}
+ 
+ 	$title = '<span class="ab-icon" aria-hidden="true"></span><span class="ab-label">' . _x( 'New', 'admin bar menu group label' ) . '</span>';
+@@ -1110,6 +1123,7 @@
+ 			)
+ 		);
+ 	}
++	return null;
+ }
+ 
+ /**
+@@ -1119,9 +1133,9 @@
+  *
+  * @param WP_Admin_Bar $wp_admin_bar The WP_Admin_Bar instance.
+  */
+-function wp_admin_bar_comments_menu( $wp_admin_bar ) {
++function wp_admin_bar_comments_menu( mixed $wp_admin_bar ): mixed {
+ 	if ( ! current_user_can( 'edit_posts' ) ) {
+-		return;
++		return null;
+ 	}
+ 
+ 	$awaiting_mod  = wp_count_comments();
+@@ -1143,6 +1157,7 @@
+ 			'href'  => admin_url( 'edit-comments.php' ),
+ 		)
+ 	);
++	return null;
+ }
+ 
+ /**
+@@ -1152,7 +1167,7 @@
+  *
+  * @param WP_Admin_Bar $wp_admin_bar The WP_Admin_Bar instance.
+  */
+-function wp_admin_bar_appearance_menu( $wp_admin_bar ) {
++function wp_admin_bar_appearance_menu( mixed $wp_admin_bar ): mixed {
+ 	$wp_admin_bar->add_group(
+ 		array(
+ 			'parent' => 'site-name',
+@@ -1172,7 +1187,7 @@
+ 	}
+ 
+ 	if ( ! current_user_can( 'edit_theme_options' ) ) {
+-		return;
++		return null;
+ 	}
+ 
+ 	if ( current_theme_supports( 'widgets' ) ) {
+@@ -1224,6 +1239,7 @@
+ 			)
+ 		);
+ 	}
++	return null;
+ }
+ 
+ /**
+@@ -1233,12 +1249,12 @@
+  *
+  * @param WP_Admin_Bar $wp_admin_bar The WP_Admin_Bar instance.
+  */
+-function wp_admin_bar_updates_menu( $wp_admin_bar ) {
++function wp_admin_bar_updates_menu( mixed $wp_admin_bar ): mixed {
+ 
+ 	$update_data = wp_get_update_data();
+ 
+ 	if ( ! $update_data['counts']['total'] ) {
+-		return;
++		return null;
+ 	}
+ 
+ 	$updates_text = sprintf(
+@@ -1258,6 +1274,7 @@
+ 			'href'  => network_admin_url( 'update-core.php' ),
+ 		)
+ 	);
++	return null;
+ }
+ 
+ /**
+@@ -1267,9 +1284,9 @@
+  *
+  * @param WP_Admin_Bar $wp_admin_bar The WP_Admin_Bar instance.
+  */
+-function wp_admin_bar_search_menu( $wp_admin_bar ) {
++function wp_admin_bar_search_menu( mixed $wp_admin_bar ): mixed {
+ 	if ( is_admin() ) {
+-		return;
++		return null;
+ 	}
+ 
+ 	$form  = '<form action="' . esc_url( home_url( '/' ) ) . '" method="get" id="adminbarsearch">';
+@@ -1292,6 +1309,7 @@
+ 			),
+ 		)
+ 	);
++	return null;
+ }
+ 
+ /**
+@@ -1301,9 +1319,9 @@
+  *
+  * @param WP_Admin_Bar $wp_admin_bar The WP_Admin_Bar instance.
+  */
+-function wp_admin_bar_recovery_mode_menu( $wp_admin_bar ) {
++function wp_admin_bar_recovery_mode_menu( mixed $wp_admin_bar ): mixed {
+ 	if ( ! wp_is_recovery_mode() ) {
+-		return;
++		return null;
+ 	}
+ 
+ 	$url = wp_login_url();
+@@ -1318,6 +1336,7 @@
+ 			'href'   => $url,
+ 		)
+ 	);
++	return null;
+ }
+ 
+ /**
+@@ -1327,7 +1346,7 @@
+  *
+  * @param WP_Admin_Bar $wp_admin_bar The WP_Admin_Bar instance.
+  */
+-function wp_admin_bar_add_secondary_groups( $wp_admin_bar ) {
++function wp_admin_bar_add_secondary_groups( mixed $wp_admin_bar ): mixed {
+ 	$wp_admin_bar->add_group(
+ 		array(
+ 			'id'   => 'top-secondary',
+@@ -1346,6 +1365,7 @@
+ 			),
+ 		)
+ 	);
++	return null;
+ }
+ 
+ /**
+@@ -1353,15 +1373,16 @@
+  *
+  * @since 6.4.0
+  */
+-function wp_enqueue_admin_bar_header_styles() {
++function wp_enqueue_admin_bar_header_styles(): mixed {
+ 	// Back-compat for plugins that disable functionality by unhooking this action.
+ 	$action = is_admin() ? 'admin_head' : 'wp_head';
+ 	if ( ! has_action( $action, 'wp_admin_bar_header' ) ) {
+-		return;
++		return null;
+ 	}
+ 	remove_action( $action, 'wp_admin_bar_header' );
+ 
+ 	wp_add_inline_style( 'admin-bar', '@media print { #wpadminbar { display:none; } }' );
++	return null;
+ }
+ 
+ /**
+@@ -1369,7 +1390,7 @@
+  *
+  * @since 6.4.0
+  */
+-function wp_enqueue_admin_bar_bump_styles() {
++function wp_enqueue_admin_bar_bump_styles(): mixed {
+ 	if ( current_theme_supports( 'admin-bar' ) ) {
+ 		$admin_bar_args  = get_theme_support( 'admin-bar' );
+ 		$header_callback = $admin_bar_args[0]['callback'];
+@@ -1380,12 +1401,12 @@
+ 	}
+ 
+ 	if ( '_admin_bar_bump_cb' !== $header_callback ) {
+-		return;
++		return null;
+ 	}
+ 
+ 	// Back-compat for plugins that disable functionality by unhooking this action.
+ 	if ( ! has_action( 'wp_head', $header_callback ) ) {
+-		return;
++		return null;
+ 	}
+ 	remove_action( 'wp_head', $header_callback );
+ 
+@@ -1394,6 +1415,7 @@
+ 		@media screen and ( max-width: 782px ) { html { margin-top: 46px !important; } }
+ 	';
+ 	wp_add_inline_style( 'admin-bar', $css );
++	return null;
+ }
+ 
+ /**
+@@ -1408,9 +1430,10 @@
+  *
+  * @param bool $show Whether to allow the admin bar to show.
+  */
+-function show_admin_bar( $show ) {
++function show_admin_bar( mixed $show ): mixed {
+ 	global $show_admin_bar;
+ 	$show_admin_bar = (bool) $show;
++	return null;
+ }
+ 
+ /**
+@@ -1427,7 +1450,7 @@
+  *
+  * @return bool Whether the admin bar should be showing.
+  */
+-function is_admin_bar_showing() {
++function is_admin_bar_showing(): mixed {
+ 	global $show_admin_bar, $pagenow;
+ 
+ 	// For all these types of requests, we never want an admin bar.
+@@ -1465,6 +1488,7 @@
+ 	$show_admin_bar = apply_filters( 'show_admin_bar', $show_admin_bar );
+ 
+ 	return $show_admin_bar;
++	return null;
+ }
+ 
+ /**
+@@ -1478,11 +1502,12 @@
+  * @param int    $user    Optional. ID of the user to check, defaults to 0 for current user.
+  * @return bool Whether the admin bar should be showing for this user.
+  */
+-function _get_admin_bar_pref( $context = 'front', $user = 0 ) {
++function _get_admin_bar_pref( mixed $context = 'front', mixed $user = 0 ): mixed {
+ 	$pref = get_user_option( "show_admin_bar_{$context}", $user );
+ 	if ( false === $pref ) {
+ 		return true;
+ 	}
+ 
+ 	return 'true' === $pref;
+-}
++	return null;
++}

@@ -1,0 +1,502 @@
+--- a/wp-includes/rest-api/endpoints/class-wp-rest-users-controller.php
++++ b/wp-includes/rest-api/endpoints/class-wp-rest-users-controller.php
+@@ -51,7 +51,7 @@
+ 	 *
+ 	 * @see register_rest_route()
+ 	 */
+-	public function register_routes() {
++	public function register_routes(): mixed {
+ 
+ 		register_rest_route(
+ 			$this->namespace,
+@@ -160,6 +160,7 @@
+ 				'schema' => array( $this, 'get_public_item_schema' ),
+ 			)
+ 		);
++		return null;
+ 	}
+ 
+ 	/**
+@@ -174,7 +175,7 @@
+ 	 * @param string          $param   The parameter that is being sanitized.
+ 	 * @return int|bool|WP_Error
+ 	 */
+-	public function check_reassign( $value, $request, $param ) {
++	public function check_reassign( mixed $value, mixed $request, mixed $param ): mixed {
+ 		if ( is_numeric( $value ) ) {
+ 			return $value;
+ 		}
+@@ -188,6 +189,7 @@
+ 			__( 'Invalid user parameter(s).' ),
+ 			array( 'status' => 400 )
+ 		);
++		return null;
+ 	}
+ 
+ 	/**
+@@ -198,7 +200,7 @@
+ 	 * @param WP_REST_Request $request Full details about the request.
+ 	 * @return true|WP_Error True if the request has read access, otherwise WP_Error object.
+ 	 */
+-	public function get_items_permissions_check( $request ) {
++	public function get_items_permissions_check( mixed $request ): mixed {
+ 		// Check if roles is specified in GET request and if user can list users.
+ 		if ( ! empty( $request['roles'] ) && ! current_user_can( 'list_users' ) ) {
+ 			return new WP_Error(
+@@ -251,6 +253,7 @@
+ 		}
+ 
+ 		return true;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -262,7 +265,7 @@
+ 	 * @param WP_REST_Request $request Full details about the request.
+ 	 * @return WP_REST_Response|WP_Error Response object on success, or WP_Error object on failure.
+ 	 */
+-	public function get_items( $request ) {
++	public function get_items( mixed $request ): mixed {
+ 
+ 		// Retrieve the list of registered collection query parameters.
+ 		$registered = $this->get_collection_params();
+@@ -341,13 +344,13 @@
+ 				'email'    => 'user_email',
+ 				'name'     => 'display_name',
+ 			);
+-			$search_columns         = array_map(
+-				static function ( $column ) use ( $search_columns_mapping ) {
++			$search_columns         = \wp_aot_array_map(
++				static function ( mixed $column ) use ( $search_columns_mapping ) {
+ 					return $search_columns_mapping[ $column ];
+ 				},
+ 				$search_columns
+ 			);
+-			$search_columns         = array_intersect( $search_columns, $valid_columns );
++			$search_columns         = \wp_aot_array_intersect(array( $search_columns, $valid_columns ));
+ 			if ( ! empty( $search_columns ) ) {
+ 				$prepared_args['search_columns'] = $search_columns;
+ 			}
+@@ -431,6 +434,7 @@
+ 		}
+ 
+ 		return $response;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -441,7 +445,7 @@
+ 	 * @param int $id Supplied ID.
+ 	 * @return WP_User|WP_Error True if ID is valid, WP_Error otherwise.
+ 	 */
+-	protected function get_user( $id ) {
++	protected function get_user( mixed $id ): mixed {
+ 		$error = new WP_Error(
+ 			'rest_user_invalid_id',
+ 			__( 'Invalid user ID.' ),
+@@ -462,6 +466,7 @@
+ 		}
+ 
+ 		return $user;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -472,7 +477,7 @@
+ 	 * @param WP_REST_Request $request Full details about the request.
+ 	 * @return true|WP_Error True if the request has read access for the item, otherwise WP_Error object.
+ 	 */
+-	public function get_item_permissions_check( $request ) {
++	public function get_item_permissions_check( mixed $request ): mixed {
+ 		$user = $this->get_user( $request['id'] );
+ 		if ( is_wp_error( $user ) ) {
+ 			return $user;
+@@ -501,6 +506,7 @@
+ 		}
+ 
+ 		return true;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -511,7 +517,7 @@
+ 	 * @param WP_REST_Request $request Full details about the request.
+ 	 * @return WP_REST_Response|WP_Error Response object on success, or WP_Error object on failure.
+ 	 */
+-	public function get_item( $request ) {
++	public function get_item( mixed $request ): mixed {
+ 		$user = $this->get_user( $request['id'] );
+ 		if ( is_wp_error( $user ) ) {
+ 			return $user;
+@@ -521,6 +527,7 @@
+ 		$response = rest_ensure_response( $user );
+ 
+ 		return $response;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -531,7 +538,7 @@
+ 	 * @param WP_REST_Request $request Full details about the request.
+ 	 * @return WP_REST_Response|WP_Error Response object on success, or WP_Error object on failure.
+ 	 */
+-	public function get_current_item( $request ) {
++	public function get_current_item( mixed $request ): mixed {
+ 		$current_user_id = get_current_user_id();
+ 
+ 		if ( empty( $current_user_id ) ) {
+@@ -547,6 +554,7 @@
+ 		$response = rest_ensure_response( $response );
+ 
+ 		return $response;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -557,7 +565,7 @@
+ 	 * @param WP_REST_Request $request Full details about the request.
+ 	 * @return true|WP_Error True if the request has access to create items, WP_Error object otherwise.
+ 	 */
+-	public function create_item_permissions_check( $request ) {
++	public function create_item_permissions_check( mixed $request ): mixed {
+ 
+ 		if ( ! current_user_can( 'create_users' ) ) {
+ 			return new WP_Error(
+@@ -568,6 +576,7 @@
+ 		}
+ 
+ 		return true;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -578,7 +587,7 @@
+ 	 * @param WP_REST_Request $request Full details about the request.
+ 	 * @return WP_REST_Response|WP_Error Response object on success, or WP_Error object on failure.
+ 	 */
+-	public function create_item( $request ) {
++	public function create_item( mixed $request ): mixed {
+ 		if ( ! empty( $request['id'] ) ) {
+ 			return new WP_Error(
+ 				'rest_user_exists',
+@@ -668,7 +677,7 @@
+ 		do_action( 'rest_insert_user', $user, $request, true );
+ 
+ 		if ( ! empty( $request['roles'] ) && ! empty( $schema['properties']['roles'] ) ) {
+-			array_map( array( $user, 'add_role' ), $request['roles'] );
++			\wp_aot_array_map( array( $user, 'add_role' ), $request['roles'] );
+ 		}
+ 
+ 		if ( ! empty( $schema['properties']['meta'] ) && isset( $request['meta'] ) ) {
+@@ -706,6 +715,7 @@
+ 		$response->header( 'Location', rest_url( sprintf( '%s/%s/%d', $this->namespace, $this->rest_base, $user_id ) ) );
+ 
+ 		return $response;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -716,7 +726,7 @@
+ 	 * @param WP_REST_Request $request Full details about the request.
+ 	 * @return true|WP_Error True if the request has access to update the item, WP_Error object otherwise.
+ 	 */
+-	public function update_item_permissions_check( $request ) {
++	public function update_item_permissions_check( mixed $request ): mixed {
+ 		$user = $this->get_user( $request['id'] );
+ 		if ( is_wp_error( $user ) ) {
+ 			return $user;
+@@ -732,7 +742,7 @@
+ 			}
+ 
+ 			$request_params = array_keys( $request->get_params() );
+-			sort( $request_params );
++			\wp_aot_sort( $request_params );
+ 			/*
+ 			 * If only 'id' and 'roles' are specified (we are only trying to
+ 			 * edit roles), then only the 'promote_user' cap is required.
+@@ -751,6 +761,7 @@
+ 		}
+ 
+ 		return true;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -761,7 +772,7 @@
+ 	 * @param WP_REST_Request $request Full details about the request.
+ 	 * @return WP_REST_Response|WP_Error Response object on success, or WP_Error object on failure.
+ 	 */
+-	public function update_item( $request ) {
++	public function update_item( mixed $request ): mixed {
+ 		$user = $this->get_user( $request['id'] );
+ 		if ( is_wp_error( $user ) ) {
+ 			return $user;
+@@ -823,7 +834,7 @@
+ 		do_action( 'rest_insert_user', $user, $request, false );
+ 
+ 		if ( ! empty( $request['roles'] ) ) {
+-			array_map( array( $user, 'add_role' ), $request['roles'] );
++			\wp_aot_array_map( array( $user, 'add_role' ), $request['roles'] );
+ 		}
+ 
+ 		$schema = $this->get_item_schema();
+@@ -852,6 +863,7 @@
+ 		$response = rest_ensure_response( $response );
+ 
+ 		return $response;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -862,10 +874,11 @@
+ 	 * @param WP_REST_Request $request Full details about the request.
+ 	 * @return true|WP_Error True if the request has access to update the item, WP_Error object otherwise.
+ 	 */
+-	public function update_current_item_permissions_check( $request ) {
++	public function update_current_item_permissions_check( mixed $request ): mixed {
+ 		$request['id'] = get_current_user_id();
+ 
+ 		return $this->update_item_permissions_check( $request );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -876,10 +889,11 @@
+ 	 * @param WP_REST_Request $request Full details about the request.
+ 	 * @return WP_REST_Response|WP_Error Response object on success, or WP_Error object on failure.
+ 	 */
+-	public function update_current_item( $request ) {
++	public function update_current_item( mixed $request ): mixed {
+ 		$request['id'] = get_current_user_id();
+ 
+ 		return $this->update_item( $request );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -890,7 +904,7 @@
+ 	 * @param WP_REST_Request $request Full details about the request.
+ 	 * @return true|WP_Error True if the request has access to delete the item, WP_Error object otherwise.
+ 	 */
+-	public function delete_item_permissions_check( $request ) {
++	public function delete_item_permissions_check( mixed $request ): mixed {
+ 		$user = $this->get_user( $request['id'] );
+ 		if ( is_wp_error( $user ) ) {
+ 			return $user;
+@@ -905,6 +919,7 @@
+ 		}
+ 
+ 		return true;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -915,7 +930,7 @@
+ 	 * @param WP_REST_Request $request Full details about the request.
+ 	 * @return WP_REST_Response|WP_Error Response object on success, or WP_Error object on failure.
+ 	 */
+-	public function delete_item( $request ) {
++	public function delete_item( mixed $request ): mixed {
+ 		// We don't support delete requests in multisite.
+ 		if ( is_multisite() ) {
+ 			return new WP_Error(
+@@ -992,6 +1007,7 @@
+ 		do_action( 'rest_delete_user', $user, $response, $request );
+ 
+ 		return $response;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1002,10 +1018,11 @@
+ 	 * @param WP_REST_Request $request Full details about the request.
+ 	 * @return true|WP_Error True if the request has access to delete the item, WP_Error object otherwise.
+ 	 */
+-	public function delete_current_item_permissions_check( $request ) {
++	public function delete_current_item_permissions_check( mixed $request ): mixed {
+ 		$request['id'] = get_current_user_id();
+ 
+ 		return $this->delete_item_permissions_check( $request );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1016,10 +1033,11 @@
+ 	 * @param WP_REST_Request $request Full details about the request.
+ 	 * @return WP_REST_Response|WP_Error Response object on success, or WP_Error object on failure.
+ 	 */
+-	public function delete_current_item( $request ) {
++	public function delete_current_item( mixed $request ): mixed {
+ 		$request['id'] = get_current_user_id();
+ 
+ 		return $this->delete_item( $request );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1032,7 +1050,7 @@
+ 	 * @param WP_REST_Request $request Request object.
+ 	 * @return WP_REST_Response Response object.
+ 	 */
+-	public function prepare_item_for_response( $item, $request ) {
++	public function prepare_item_for_response( mixed $item, mixed $request ): mixed {
+ 		// Restores the more descriptive, specific name for use within this method.
+ 		$user = $item;
+ 
+@@ -1099,7 +1117,7 @@
+ 		}
+ 
+ 		if ( in_array( 'registered_date', $fields, true ) ) {
+-			$data['registered_date'] = gmdate( 'c', strtotime( $user->user_registered ) );
++			$data['registered_date'] = \wp_aot_gmdate( 'c', strtotime( $user->user_registered ) );
+ 		}
+ 
+ 		if ( in_array( 'capabilities', $fields, true ) ) {
+@@ -1140,6 +1158,7 @@
+ 		 * @param WP_REST_Request  $request  Request object.
+ 		 */
+ 		return apply_filters( 'rest_prepare_user', $response, $user, $request );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1150,7 +1169,7 @@
+ 	 * @param WP_User $user User object.
+ 	 * @return array Links for the given user.
+ 	 */
+-	protected function prepare_links( $user ) {
++	protected function prepare_links( mixed $user ): mixed {
+ 		$links = array(
+ 			'self'       => array(
+ 				'href' => rest_url( sprintf( '%s/%s/%d', $this->namespace, $this->rest_base, $user->ID ) ),
+@@ -1161,6 +1180,7 @@
+ 		);
+ 
+ 		return $links;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1171,7 +1191,7 @@
+ 	 * @param WP_REST_Request $request Request object.
+ 	 * @return object User object.
+ 	 */
+-	protected function prepare_item_for_database( $request ) {
++	protected function prepare_item_for_database( mixed $request ): mixed {
+ 		$prepared_user = new stdClass();
+ 
+ 		$schema = $this->get_item_schema();
+@@ -1240,6 +1260,7 @@
+ 		 * @param WP_REST_Request $request       Request object.
+ 		 */
+ 		return apply_filters( 'rest_pre_insert_user', $prepared_user, $request );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1254,7 +1275,7 @@
+ 	 * @return true|WP_Error True if the current user is allowed to make the role change,
+ 	 *                       otherwise a WP_Error object.
+ 	 */
+-	protected function check_role_update( $user_id, $roles ) {
++	protected function check_role_update( mixed $user_id, mixed $roles ): mixed {
+ 		global $wp_roles;
+ 
+ 		foreach ( $roles as $role ) {
+@@ -1302,6 +1323,7 @@
+ 		}
+ 
+ 		return true;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1316,7 +1338,7 @@
+ 	 * @param string          $param   The parameter name.
+ 	 * @return string|WP_Error The sanitized username, if valid, otherwise an error.
+ 	 */
+-	public function check_username( $value, $request, $param ) {
++	public function check_username( mixed $value, mixed $request, mixed $param ): mixed {
+ 		$username = (string) $value;
+ 
+ 		if ( ! validate_username( $username ) ) {
+@@ -1330,7 +1352,7 @@
+ 		/** This filter is documented in wp-includes/user.php */
+ 		$illegal_logins = (array) apply_filters( 'illegal_user_logins', array() );
+ 
+-		if ( in_array( strtolower( $username ), array_map( 'strtolower', $illegal_logins ), true ) ) {
++		if ( in_array( strtolower( $username ), \wp_aot_array_map( 'strtolower', $illegal_logins ), true ) ) {
+ 			return new WP_Error(
+ 				'rest_user_invalid_username',
+ 				__( 'Sorry, that username is not allowed.' ),
+@@ -1339,6 +1361,7 @@
+ 		}
+ 
+ 		return $username;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1356,9 +1379,9 @@
+ 	public function check_user_password(
+ 		#[\SensitiveParameter]
+ 		$value,
+-		$request,
+-		$param
+-	) {
++		mixed $request,
++		mixed $param
++	): mixed {
+ 		$password = (string) $value;
+ 
+ 		if ( empty( $password ) ) {
+@@ -1382,6 +1405,7 @@
+ 		}
+ 
+ 		return $password;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1391,7 +1415,7 @@
+ 	 *
+ 	 * @return array Item schema data.
+ 	 */
+-	public function get_item_schema() {
++	public function get_item_schema(): mixed {
+ 		if ( $this->schema ) {
+ 			return $this->add_additional_fields_schema( $this->schema );
+ 		}
+@@ -1468,7 +1492,7 @@
+ 				'locale'             => array(
+ 					'description' => __( 'Locale for the user.' ),
+ 					'type'        => 'string',
+-					'enum'        => array_merge( array( '', 'en_US' ), get_available_languages() ),
++					'enum'        => \wp_aot_array_merge(array( array( '', 'en_US' ), get_available_languages() )),
+ 					'context'     => array( 'edit' ),
+ 				),
+ 				'nickname'           => array(
+@@ -1555,6 +1579,7 @@
+ 		$this->schema = $schema;
+ 
+ 		return $this->add_additional_fields_schema( $this->schema );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1564,7 +1589,7 @@
+ 	 *
+ 	 * @return array Collection parameters.
+ 	 */
+-	public function get_collection_params() {
++	public function get_collection_params(): mixed {
+ 		$query_params = parent::get_collection_params();
+ 
+ 		$query_params['context']['default'] = 'view';
+@@ -1678,5 +1703,6 @@
+ 		 * @param array $query_params JSON Schema-formatted collection parameters.
+ 		 */
+ 		return apply_filters( 'rest_user_collection_params', $query_params );
++		return null;
+ 	}
+ }

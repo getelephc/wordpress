@@ -1,0 +1,18 @@
+--- a/wp-includes/customize/class-wp-customize-upload-control.php
++++ b/wp-includes/customize/class-wp-customize-upload-control.php
+@@ -50,7 +50,7 @@
+ 	 *
+ 	 * @uses WP_Customize_Media_Control::to_json()
+ 	 */
+-	public function to_json() {
++	public function to_json(): mixed {
+ 		parent::to_json();
+ 
+ 		$value = $this->value();
+@@ -61,5 +61,6 @@
+ 				$this->json['attachment'] = wp_prepare_attachment_for_js( $attachment_id );
+ 			}
+ 		}
++		return null;
+ 	}
+ }

@@ -1,0 +1,14 @@
+--- a/wp-includes/class-wp-url-pattern-prefixer.php
++++ b/wp-includes/class-wp-url-pattern-prefixer.php
+@@ -36,9 +36,9 @@
+ 	 */
+ 	public function __construct( array $contexts = array() ) {
+ 		if ( count( $contexts ) > 0 ) {
+-			$this->contexts = array_map(
++			$this->contexts = \wp_aot_array_map(
+ 				static function ( string $str ): string {
+-					return self::escape_pattern_string( trailingslashit( $str ) );
++					return WP_URL_Pattern_Prefixer::escape_pattern_string( trailingslashit( $str ) );
+ 				},
+ 				$contexts
+ 			);

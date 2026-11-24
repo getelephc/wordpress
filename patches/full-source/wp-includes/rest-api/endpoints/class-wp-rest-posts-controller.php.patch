@@ -1,0 +1,768 @@
+--- a/wp-includes/rest-api/endpoints/class-wp-rest-posts-controller.php
++++ b/wp-includes/rest-api/endpoints/class-wp-rest-posts-controller.php
+@@ -54,7 +54,7 @@
+ 	 *
+ 	 * @param string $post_type Post type.
+ 	 */
+-	public function __construct( $post_type ) {
++	public function __construct( mixed $post_type ) {
+ 		$this->post_type = $post_type;
+ 		$obj             = get_post_type_object( $post_type );
+ 		$this->rest_base = ! empty( $obj->rest_base ) ? $obj->rest_base : $obj->name;
+@@ -70,7 +70,7 @@
+ 	 *
+ 	 * @see register_rest_route()
+ 	 */
+-	public function register_routes() {
++	public function register_routes(): mixed {
+ 
+ 		register_rest_route(
+ 			$this->namespace,
+@@ -147,6 +147,7 @@
+ 				'schema'      => array( $this, 'get_public_item_schema' ),
+ 			)
+ 		);
++		return null;
+ 	}
+ 
+ 	/**
+@@ -157,7 +158,7 @@
+ 	 * @param WP_REST_Request $request Full details about the request.
+ 	 * @return true|WP_Error True if the request has read access, WP_Error object otherwise.
+ 	 */
+-	public function get_items_permissions_check( $request ) {
++	public function get_items_permissions_check( mixed $request ): mixed {
+ 
+ 		$post_type = get_post_type_object( $this->post_type );
+ 
+@@ -170,6 +171,7 @@
+ 		}
+ 
+ 		return true;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -185,7 +187,7 @@
+ 	 * @param WP_Post $post     The post been password checked.
+ 	 * @return bool Result of password check taking into account REST API considerations.
+ 	 */
+-	public function check_password_required( $required, $post ) {
++	public function check_password_required( mixed $required, mixed $post ): mixed {
+ 		if ( ! $required ) {
+ 			return $required;
+ 		}
+@@ -202,6 +204,7 @@
+ 		}
+ 
+ 		return ! current_user_can( 'edit_post', $post->ID );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -212,7 +215,7 @@
+ 	 * @param WP_REST_Request $request Full details about the request.
+ 	 * @return WP_REST_Response|WP_Error Response object on success, or WP_Error object on failure.
+ 	 */
+-	public function get_items( $request ) {
++	public function get_items( mixed $request ): mixed {
+ 
+ 		// Ensure a search string is set in case the orderby is set to 'relevance'.
+ 		if ( ! empty( $request['orderby'] ) && 'relevance' === $request['orderby'] && empty( $request['search'] ) ) {
+@@ -318,7 +321,7 @@
+ 				 * we have to support the case where post__in was already
+ 				 * specified.
+ 				 */
+-				$args['post__in'] = $args['post__in'] ? array_intersect( $sticky_posts, $args['post__in'] ) : $sticky_posts;
++				$args['post__in'] = $args['post__in'] ? \wp_aot_array_intersect(array( $sticky_posts, $args['post__in'] )) : $sticky_posts;
+ 
+ 				/*
+ 				 * If we intersected, but there are no post IDs in common,
+@@ -334,7 +337,7 @@
+ 				 * are not sticky, we have to support the case where post__not_in
+ 				 * was already specified.
+ 				 */
+-				$args['post__not_in'] = array_merge( $args['post__not_in'], $sticky_posts );
++				$args['post__not_in'] = \wp_aot_array_merge(array( $args['post__not_in'], $sticky_posts ));
+ 			}
+ 		}
+ 
+@@ -376,14 +379,14 @@
+ 					'operator' => 'NOT EXISTS',
+ 				);
+ 				// Remove the `standard` format, since it cannot be queried.
+-				unset( $formats[ array_search( 'standard', $formats, true ) ] );
++				unset( $formats[ \wp_aot_array_search( 'standard', $formats, true ) ] );
+ 			}
+ 
+ 			// Add any remaining formats to the formats query.
+ 			if ( ! empty( $formats ) ) {
+ 				// Add the `post-format-` prefix.
+-				$terms = array_map(
+-					static function ( $format ) {
++				$terms = \wp_aot_array_map(
++					static function ( mixed $format ) {
+ 						return "post-format-$format";
+ 					},
+ 					$formats
+@@ -540,6 +543,7 @@
+ 		}
+ 
+ 		return $response;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -550,7 +554,7 @@
+ 	 * @param int $id Supplied ID.
+ 	 * @return WP_Post|WP_Error Post object if ID is valid, WP_Error otherwise.
+ 	 */
+-	protected function get_post( $id ) {
++	protected function get_post( mixed $id ): mixed {
+ 		$error = new WP_Error(
+ 			'rest_post_invalid_id',
+ 			__( 'Invalid post ID.' ),
+@@ -567,6 +571,7 @@
+ 		}
+ 
+ 		return $post;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -577,7 +582,7 @@
+ 	 * @param WP_REST_Request $request Full details about the request.
+ 	 * @return bool|WP_Error True if the request has read access for the item, WP_Error object or false otherwise.
+ 	 */
+-	public function get_item_permissions_check( $request ) {
++	public function get_item_permissions_check( mixed $request ): mixed {
+ 		$post = $this->get_post( $request['id'] );
+ 		if ( is_wp_error( $post ) ) {
+ 			return $post;
+@@ -612,6 +617,7 @@
+ 		}
+ 
+ 		return true;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -626,7 +632,7 @@
+ 	 * @param WP_REST_Request $request Request data to check.
+ 	 * @return bool True if the user can access password-protected content, otherwise false.
+ 	 */
+-	public function can_access_password_content( $post, $request ) {
++	public function can_access_password_content( mixed $post, mixed $request ): mixed {
+ 		if ( empty( $post->post_password ) ) {
+ 			// No filter required.
+ 			return false;
+@@ -650,6 +656,7 @@
+ 
+ 		// Double-check the request password.
+ 		return hash_equals( $post->post_password, $request['password'] );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -660,7 +667,7 @@
+ 	 * @param WP_REST_Request $request Full details about the request.
+ 	 * @return WP_REST_Response|WP_Error Response object on success, or WP_Error object on failure.
+ 	 */
+-	public function get_item( $request ) {
++	public function get_item( mixed $request ): mixed {
+ 		$post = $this->get_post( $request['id'] );
+ 		if ( is_wp_error( $post ) ) {
+ 			return $post;
+@@ -674,6 +681,7 @@
+ 		}
+ 
+ 		return $response;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -684,7 +692,7 @@
+ 	 * @param WP_REST_Request $request Full details about the request.
+ 	 * @return true|WP_Error True if the request has access to create items, WP_Error object otherwise.
+ 	 */
+-	public function create_item_permissions_check( $request ) {
++	public function create_item_permissions_check( mixed $request ): mixed {
+ 		if ( ! empty( $request['id'] ) ) {
+ 			return new WP_Error(
+ 				'rest_post_exists',
+@@ -728,6 +736,7 @@
+ 		}
+ 
+ 		return true;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -738,7 +747,7 @@
+ 	 * @param WP_REST_Request $request Full details about the request.
+ 	 * @return WP_REST_Response|WP_Error Response object on success, or WP_Error object on failure.
+ 	 */
+-	public function create_item( $request ) {
++	public function create_item( mixed $request ): mixed {
+ 		if ( ! empty( $request['id'] ) ) {
+ 			return new WP_Error(
+ 				'rest_post_exists',
+@@ -880,6 +889,7 @@
+ 		$response->header( 'Location', rest_url( rest_get_route_for_post( $post ) ) );
+ 
+ 		return $response;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -890,7 +900,7 @@
+ 	 * @param WP_REST_Request $request Full details about the request.
+ 	 * @return true|WP_Error True if the request has access to update the item, WP_Error object otherwise.
+ 	 */
+-	public function update_item_permissions_check( $request ) {
++	public function update_item_permissions_check( mixed $request ): mixed {
+ 		$post = $this->get_post( $request['id'] );
+ 		if ( is_wp_error( $post ) ) {
+ 			return $post;
+@@ -931,6 +941,7 @@
+ 		}
+ 
+ 		return true;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -941,7 +952,7 @@
+ 	 * @param WP_REST_Request $request Full details about the request.
+ 	 * @return WP_REST_Response|WP_Error Response object on success, or WP_Error object on failure.
+ 	 */
+-	public function update_item( $request ) {
++	public function update_item( mixed $request ): mixed {
+ 		$valid_check = $this->get_post( $request['id'] );
+ 		if ( is_wp_error( $valid_check ) ) {
+ 			return $valid_check;
+@@ -1052,6 +1063,7 @@
+ 		$response = $this->prepare_item_for_response( $post, $request );
+ 
+ 		return rest_ensure_response( $response );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1062,7 +1074,7 @@
+ 	 * @param WP_REST_Request $request Full details about the request.
+ 	 * @return true|WP_Error True if the request has access to delete the item, WP_Error object otherwise.
+ 	 */
+-	public function delete_item_permissions_check( $request ) {
++	public function delete_item_permissions_check( mixed $request ): mixed {
+ 		$post = $this->get_post( $request['id'] );
+ 		if ( is_wp_error( $post ) ) {
+ 			return $post;
+@@ -1077,6 +1089,7 @@
+ 		}
+ 
+ 		return true;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1087,7 +1100,7 @@
+ 	 * @param WP_REST_Request $request Full details about the request.
+ 	 * @return WP_REST_Response|WP_Error Response object on success, or WP_Error object on failure.
+ 	 */
+-	public function delete_item( $request ) {
++	public function delete_item( mixed $request ): mixed {
+ 		$post = $this->get_post( $request['id'] );
+ 		if ( is_wp_error( $post ) ) {
+ 			return $post;
+@@ -1200,6 +1213,7 @@
+ 		do_action( "rest_delete_{$this->post_type}", $post, $response, $request );
+ 
+ 		return $response;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1212,7 +1226,7 @@
+ 	 * @param WP_REST_Request $request       Optional. Full details about the request.
+ 	 * @return array Items query arguments.
+ 	 */
+-	protected function prepare_items_query( $prepared_args = array(), $request = null ) {
++	protected function prepare_items_query( mixed $prepared_args = array(), mixed $request = null ): mixed {
+ 		$query_args = array();
+ 		if ( ! is_array( $prepared_args ) ) {
+ 			$prepared_args = array();
+@@ -1250,6 +1264,7 @@
+ 		}
+ 
+ 		return $query_args;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1262,7 +1277,7 @@
+ 	 * @param string|null $date     Optional. Local publication time. Default null.
+ 	 * @return string|null ISO8601/RFC3339 formatted datetime.
+ 	 */
+-	protected function prepare_date_response( $date_gmt, $date = null ) {
++	protected function prepare_date_response( mixed $date_gmt, mixed $date = null ): mixed {
+ 		// Use the date if passed.
+ 		if ( isset( $date ) ) {
+ 			return mysql_to_rfc3339( $date );
+@@ -1275,6 +1290,7 @@
+ 
+ 		// Return the formatted datetime.
+ 		return mysql_to_rfc3339( $date_gmt );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1285,7 +1301,7 @@
+ 	 * @param WP_REST_Request $request Request object.
+ 	 * @return stdClass|WP_Error Post object or WP_Error.
+ 	 */
+-	protected function prepare_item_for_database( $request ) {
++	protected function prepare_item_for_database( mixed $request ): mixed {
+ 		$prepared_post  = new stdClass();
+ 		$current_status = '';
+ 
+@@ -1529,6 +1545,7 @@
+ 		 * @param WP_REST_Request $request       Request object.
+ 		 */
+ 		return apply_filters( "rest_pre_insert_{$this->post_type}", $prepared_post, $request );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1543,7 +1560,7 @@
+ 	 * @param string          $param   The parameter name.
+ 	 * @return true|WP_Error True if the status is valid, or WP_Error if not.
+ 	 */
+-	public function check_status( $status, $request, $param ) {
++	public function check_status( mixed $status, mixed $request, mixed $param ): mixed {
+ 		if ( $request['id'] ) {
+ 			$post = $this->get_post( $request['id'] );
+ 
+@@ -1555,6 +1572,7 @@
+ 		$args = $request->get_attributes()['args'][ $param ];
+ 
+ 		return rest_validate_value_from_schema( $status, $args, $param );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1566,7 +1584,7 @@
+ 	 * @param WP_Post_Type $post_type   Post type.
+ 	 * @return string|WP_Error Post status or WP_Error if lacking the proper permission.
+ 	 */
+-	protected function handle_status_param( $post_status, $post_type ) {
++	protected function handle_status_param( mixed $post_status, mixed $post_type ): mixed {
+ 
+ 		switch ( $post_status ) {
+ 			case 'draft':
+@@ -1599,6 +1617,7 @@
+ 		}
+ 
+ 		return $post_status;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1610,7 +1629,7 @@
+ 	 * @param int $post_id        Post ID.
+ 	 * @return bool|WP_Error Whether the post thumbnail was successfully deleted, otherwise WP_Error.
+ 	 */
+-	protected function handle_featured_media( $featured_media, $post_id ) {
++	protected function handle_featured_media( mixed $featured_media, mixed $post_id ): mixed {
+ 
+ 		$featured_media = (int) $featured_media;
+ 		if ( $featured_media ) {
+@@ -1627,6 +1646,7 @@
+ 		} else {
+ 			return delete_post_thumbnail( $post_id );
+ 		}
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1638,7 +1658,7 @@
+ 	 * @param WP_REST_Request $request  Request.
+ 	 * @return true|WP_Error True if template is still valid or if the same as existing value, or a WP_Error if template not supported.
+ 	 */
+-	public function check_template( $template, $request ) {
++	public function check_template( mixed $template, mixed $request ): mixed {
+ 
+ 		if ( ! $template ) {
+ 			return true;
+@@ -1669,6 +1689,7 @@
+ 			/* translators: 1: Parameter, 2: List of valid values. */
+ 			sprintf( __( '%1$s is not one of %2$s.' ), 'template', implode( ', ', array_keys( $allowed_templates ) ) )
+ 		);
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1681,13 +1702,14 @@
+ 	 * @param int    $post_id  Post ID.
+ 	 * @param bool   $validate Whether to validate that the template selected is valid.
+ 	 */
+-	public function handle_template( $template, $post_id, $validate = false ) {
++	public function handle_template( mixed $template, mixed $post_id, mixed $validate = false ): mixed {
+ 
+ 		if ( $validate && ! array_key_exists( $template, wp_get_theme()->get_page_templates( get_post( $post_id ) ) ) ) {
+ 			$template = '';
+ 		}
+ 
+ 		update_post_meta( $post_id, '_wp_page_template', $template );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1699,7 +1721,7 @@
+ 	 * @param WP_REST_Request $request The request object with post and terms data.
+ 	 * @return null|WP_Error WP_Error on an error assigning any of the terms, otherwise null.
+ 	 */
+-	protected function handle_terms( $post_id, $request ) {
++	protected function handle_terms( mixed $post_id, mixed $request ): mixed {
+ 		$taxonomies = wp_list_filter( get_object_taxonomies( $this->post_type, 'objects' ), array( 'show_in_rest' => true ) );
+ 
+ 		foreach ( $taxonomies as $taxonomy ) {
+@@ -1717,6 +1739,7 @@
+ 		}
+ 
+ 		return null;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1727,7 +1750,7 @@
+ 	 * @param WP_REST_Request $request The request object with post and terms data.
+ 	 * @return bool Whether the current user can assign the provided terms.
+ 	 */
+-	protected function check_assign_terms_permission( $request ) {
++	protected function check_assign_terms_permission( mixed $request ): mixed {
+ 		$taxonomies = wp_list_filter( get_object_taxonomies( $this->post_type, 'objects' ), array( 'show_in_rest' => true ) );
+ 		foreach ( $taxonomies as $taxonomy ) {
+ 			$base = ! empty( $taxonomy->rest_base ) ? $taxonomy->rest_base : $taxonomy->name;
+@@ -1749,6 +1772,7 @@
+ 		}
+ 
+ 		return true;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1759,7 +1783,7 @@
+ 	 * @param WP_Post_Type|string $post_type Post type name or object.
+ 	 * @return bool Whether the post type is allowed in REST.
+ 	 */
+-	protected function check_is_post_type_allowed( $post_type ) {
++	protected function check_is_post_type_allowed( mixed $post_type ): mixed {
+ 		if ( ! is_object( $post_type ) ) {
+ 			$post_type = get_post_type_object( $post_type );
+ 		}
+@@ -1769,6 +1793,7 @@
+ 		}
+ 
+ 		return false;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1781,7 +1806,7 @@
+ 	 * @param WP_Post $post Post object.
+ 	 * @return bool Whether the post can be read.
+ 	 */
+-	public function check_read_permission( $post ) {
++	public function check_read_permission( mixed $post ): mixed {
+ 		$post_type = get_post_type_object( $post->post_type );
+ 		if ( ! $this->check_is_post_type_allowed( $post_type ) ) {
+ 			return false;
+@@ -1814,6 +1839,7 @@
+ 		}
+ 
+ 		return false;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1824,7 +1850,7 @@
+ 	 * @param WP_Post $post Post object.
+ 	 * @return bool Whether the post can be edited.
+ 	 */
+-	protected function check_update_permission( $post ) {
++	protected function check_update_permission( mixed $post ): mixed {
+ 		$post_type = get_post_type_object( $post->post_type );
+ 
+ 		if ( ! $this->check_is_post_type_allowed( $post_type ) ) {
+@@ -1832,6 +1858,7 @@
+ 		}
+ 
+ 		return current_user_can( 'edit_post', $post->ID );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1842,7 +1869,7 @@
+ 	 * @param WP_Post $post Post object.
+ 	 * @return bool Whether the post can be created.
+ 	 */
+-	protected function check_create_permission( $post ) {
++	protected function check_create_permission( mixed $post ): mixed {
+ 		$post_type = get_post_type_object( $post->post_type );
+ 
+ 		if ( ! $this->check_is_post_type_allowed( $post_type ) ) {
+@@ -1850,6 +1877,7 @@
+ 		}
+ 
+ 		return current_user_can( $post_type->cap->create_posts );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1860,7 +1888,7 @@
+ 	 * @param WP_Post $post Post object.
+ 	 * @return bool Whether the post can be deleted.
+ 	 */
+-	protected function check_delete_permission( $post ) {
++	protected function check_delete_permission( mixed $post ): mixed {
+ 		$post_type = get_post_type_object( $post->post_type );
+ 
+ 		if ( ! $this->check_is_post_type_allowed( $post_type ) ) {
+@@ -1868,6 +1896,7 @@
+ 		}
+ 
+ 		return current_user_can( 'delete_post', $post->ID );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1882,7 +1911,7 @@
+ 	 * @param WP_REST_Request $request Request object.
+ 	 * @return WP_REST_Response Response object.
+ 	 */
+-	public function prepare_item_for_response( $item, $request ) {
++	public function prepare_item_for_response( mixed $item, mixed $request ): mixed {
+ 		// Restores the more descriptive, specific name for use within this method.
+ 		$post = $item;
+ 
+@@ -1943,7 +1972,7 @@
+ 			 * with the site's timezone offset applied.
+ 			 */
+ 			if ( '0000-00-00 00:00:00' === $post->post_modified_gmt ) {
+-				$post_modified_gmt = gmdate( 'Y-m-d H:i:s', strtotime( $post->post_modified ) - (int) ( (float) get_option( 'gmt_offset' ) * HOUR_IN_SECONDS ) );
++				$post_modified_gmt = \wp_aot_gmdate( 'Y-m-d H:i:s', strtotime( $post->post_modified ) - (int) ( (float) get_option( 'gmt_offset' ) * HOUR_IN_SECONDS ) );
+ 			} else {
+ 				$post_modified_gmt = $post->post_modified_gmt;
+ 			}
+@@ -2197,6 +2226,7 @@
+ 		 * @param WP_REST_Request  $request  Request object.
+ 		 */
+ 		return apply_filters( "rest_prepare_{$this->post_type}", $response, $post, $request );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -2210,8 +2240,9 @@
+ 	 *
+ 	 * @return string Title format.
+ 	 */
+-	public function protected_title_format() {
++	public function protected_title_format(): mixed {
+ 		return '%s';
++		return null;
+ 	}
+ 
+ 	/**
+@@ -2222,7 +2253,7 @@
+ 	 * @param WP_Post $post Post object.
+ 	 * @return array Links for the given post.
+ 	 */
+-	protected function prepare_links( $post ) {
++	protected function prepare_links( mixed $post ): mixed {
+ 		// Entity meta.
+ 		$links = array(
+ 			'self'       => array(
+@@ -2328,6 +2359,7 @@
+ 		}
+ 
+ 		return $links;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -2339,7 +2371,7 @@
+ 	 * @param WP_REST_Request $request Request object.
+ 	 * @return array List of link relations.
+ 	 */
+-	protected function get_available_actions( $post, $request ) {
++	protected function get_available_actions( mixed $post, mixed $request ): mixed {
+ 
+ 		if ( 'edit' !== $request['context'] ) {
+ 			return array();
+@@ -2385,6 +2417,7 @@
+ 		}
+ 
+ 		return $rels;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -2401,7 +2434,7 @@
+ 	 *     ...
+ 	 * }
+ 	 */
+-	public function get_item_schema() {
++	public function get_item_schema(): mixed {
+ 		if ( $this->schema ) {
+ 			return $this->add_additional_fields_schema( $this->schema );
+ 		}
+@@ -2818,7 +2851,7 @@
+ 		$schema = apply_filters( "rest_{$this->post_type}_item_schema", $schema );
+ 
+ 		// Emit a _doing_it_wrong warning if user tries to add new properties using this filter.
+-		$new_fields = array_diff( array_keys( $schema['properties'] ), $schema_fields );
++		$new_fields = \wp_aot_array_diff(array( array_keys( $schema['properties'] ), $schema_fields ));
+ 		if ( count( $new_fields ) > 0 ) {
+ 			_doing_it_wrong(
+ 				__METHOD__,
+@@ -2834,6 +2867,7 @@
+ 		$this->schema = $schema;
+ 
+ 		return $this->add_additional_fields_schema( $this->schema );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -2843,7 +2877,7 @@
+ 	 *
+ 	 * @return array
+ 	 */
+-	protected function get_schema_links() {
++	protected function get_schema_links(): mixed {
+ 
+ 		$href = rest_url( "{$this->namespace}/{$this->rest_base}/{id}" );
+ 
+@@ -2960,6 +2994,7 @@
+ 		}
+ 
+ 		return $links;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -2971,7 +3006,7 @@
+ 	 *
+ 	 * @return array Collection parameters.
+ 	 */
+-	public function get_collection_params() {
++	public function get_collection_params(): mixed {
+ 		$query_params = parent::get_collection_params();
+ 
+ 		$query_params['context']['default'] = 'view';
+@@ -3128,13 +3163,13 @@
+ 			'description'       => __( 'Limit result set to posts assigned one or more statuses.' ),
+ 			'type'              => 'array',
+ 			'items'             => array(
+-				'enum' => array_merge( array_keys( get_post_stati() ), array( 'any' ) ),
++				'enum' => \wp_aot_array_merge(array( array_keys( get_post_stati() ), array( 'any' ) )),
+ 				'type' => 'string',
+ 			),
+ 			'sanitize_callback' => array( $this, 'sanitize_post_statuses' ),
+ 		);
+ 
+-		$query_params = $this->prepare_taxonomy_limit_schema( $query_params );
++		$query_params = $this->prepare_taxonomy_limit_schema( \wp_aot_array_input($query_params ));
+ 
+ 		if ( 'post' === $this->post_type ) {
+ 			$query_params['sticky'] = array(
+@@ -3177,6 +3212,7 @@
+ 		 * @param WP_Post_Type $post_type    Post type object.
+ 		 */
+ 		return apply_filters( "rest_{$this->post_type}_collection_params", $query_params, $post_type );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -3190,7 +3226,7 @@
+ 	 * @param string          $parameter Additional parameter to pass to validation.
+ 	 * @return array|WP_Error A list of valid statuses, otherwise WP_Error object.
+ 	 */
+-	public function sanitize_post_statuses( $statuses, $request, $parameter ) {
++	public function sanitize_post_statuses( mixed $statuses, mixed $request, mixed $parameter ): mixed {
+ 		$statuses = wp_parse_slug_list( $statuses );
+ 
+ 		// The default status is different in WP_REST_Attachments_Controller.
+@@ -3219,6 +3255,7 @@
+ 		}
+ 
+ 		return $statuses;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -3230,7 +3267,7 @@
+ 	 * @param WP_REST_Request $request Full details about the request.
+ 	 * @return array Updated query arguments.
+ 	 */
+-	private function prepare_tax_query( array $args, WP_REST_Request $request ) {
++	private function prepare_tax_query( array $args, WP_REST_Request $request ): mixed {
+ 		$relation = $request['tax_relation'];
+ 
+ 		if ( $relation ) {
+@@ -3299,6 +3336,7 @@
+ 		}
+ 
+ 		return $args;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -3309,7 +3347,7 @@
+ 	 * @param array $query_params Collection schema.
+ 	 * @return array Updated schema.
+ 	 */
+-	private function prepare_taxonomy_limit_schema( array $query_params ) {
++	private function prepare_taxonomy_limit_schema( array $query_params ): mixed {
+ 		$taxonomies = wp_list_filter( get_object_taxonomies( $this->post_type, 'objects' ), array( 'show_in_rest' => true ) );
+ 
+ 		if ( ! $taxonomies ) {
+@@ -3357,13 +3395,13 @@
+ 			),
+ 		);
+ 
+-		$include_schema = array_merge(
++		$include_schema = \wp_aot_array_merge(array(
+ 			array(
+ 				/* translators: %s: Taxonomy name. */
+ 				'description' => __( 'Limit result set to items with specific terms assigned in the %s taxonomy.' ),
+ 			),
+ 			$limit_schema
+-		);
++		));
+ 		// 'operator' is supported only for 'include' queries.
+ 		$include_schema['oneOf'][1]['properties']['operator'] = array(
+ 			'description' => __( 'Whether items must be assigned all or any of the specified terms.' ),
+@@ -3372,13 +3410,13 @@
+ 			'default'     => 'OR',
+ 		);
+ 
+-		$exclude_schema = array_merge(
++		$exclude_schema = \wp_aot_array_merge(array(
+ 			array(
+ 				/* translators: %s: Taxonomy name. */
+ 				'description' => __( 'Limit result set to items except those with specific terms assigned in the %s taxonomy.' ),
+ 			),
+ 			$limit_schema
+-		);
++		));
+ 
+ 		foreach ( $taxonomies as $taxonomy ) {
+ 			$base         = ! empty( $taxonomy->rest_base ) ? $taxonomy->rest_base : $taxonomy->name;
+@@ -3397,5 +3435,6 @@
+ 		}
+ 
+ 		return $query_params;
++		return null;
+ 	}
+ }

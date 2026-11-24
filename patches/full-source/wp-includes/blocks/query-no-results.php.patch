@@ -1,0 +1,34 @@
+--- a/wp-includes/blocks/query-no-results.php
++++ b/wp-includes/blocks/query-no-results.php
+@@ -18,7 +18,7 @@
+  *
+  * @return string Returns the wrapper for the no results block.
+  */
+-function render_block_core_query_no_results( $attributes, $content, $block ) {
++function render_block_core_query_no_results( mixed $attributes, mixed $content, mixed $block ): mixed {
+ 	if ( empty( trim( $content ) ) ) {
+ 		return '';
+ 	}
+@@ -47,6 +47,7 @@
+ 		$wrapper_attributes,
+ 		$content
+ 	);
++	return null;
+ }
+ 
+ /**
+@@ -54,12 +55,13 @@
+  *
+  * @since 6.0.0
+  */
+-function register_block_core_query_no_results() {
++function register_block_core_query_no_results(): mixed {
+ 	register_block_type_from_metadata(
+ 		__DIR__ . '/query-no-results',
+ 		array(
+ 			'render_callback' => 'render_block_core_query_no_results',
+ 		)
+ 	);
++	return null;
+ }
+ add_action( 'init', 'register_block_core_query_no_results' );

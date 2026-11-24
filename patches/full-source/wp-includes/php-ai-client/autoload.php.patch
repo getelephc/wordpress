@@ -1,35 +1,183 @@
 --- a/wp-includes/php-ai-client/autoload.php
 +++ b/wp-includes/php-ai-client/autoload.php
-@@ -27,7 +27,15 @@
+@@ -11,7 +11,7 @@
+  */
+ 
+ spl_autoload_register(
+-	static function ( $class_name ) {
++	static function ( mixed $class_name ) {
+ 		// Namespace prefix for the AI client.
+ 		$client_prefix     = 'WordPress\\AiClient\\';
+ 		$client_prefix_len = 19; // strlen( 'WordPress\\AiClient\\' )
+@@ -25,9 +25,112 @@
+ 		// 1. WordPress\AiClient\* → src/
+ 		if ( 0 === strncmp( $class_name, $client_prefix, $client_prefix_len ) ) {
  			$relative_class = substr( $class_name, $client_prefix_len );
- 			$file           = $base_dir . '/src/' . str_replace( '\\', '/', $relative_class ) . '.php';
+-			$file           = $base_dir . '/src/' . str_replace( '\\', '/', $relative_class ) . '.php';
++			$file           = $base_dir . '/src/' . \wp_aot_str_replace( '\\', '/', $relative_class ) . '.php';
  			if ( file_exists( $file ) ) {
 -				require $file;
 +				switch ( $file ) {
-+					case __DIR__ . '/src/Providers/Http/Contracts/ClientWithOptionsInterface.php': require __DIR__ . '/src/Providers/Http/Contracts/ClientWithOptionsInterface.php'; break;
-+					case __DIR__ . '/src/Providers/Http/Abstracts/AbstractClientDiscoveryStrategy.php': require __DIR__ . '/src/Providers/Http/Abstracts/AbstractClientDiscoveryStrategy.php'; break;
-+					case __DIR__ . '/src/AiClient.php': require __DIR__ . '/src/AiClient.php'; break;
-+					case __DIR__ . '/src/Providers/ProviderRegistry.php': require __DIR__ . '/src/Providers/ProviderRegistry.php'; break;
-+					case __DIR__ . '/src/Providers/Http/Traits/WithHttpTransporterTrait.php': require __DIR__ . '/src/Providers/Http/Traits/WithHttpTransporterTrait.php'; break;
-+					case __DIR__ . '/src/Providers/Http/Contracts/WithHttpTransporterInterface.php': require __DIR__ . '/src/Providers/Http/Contracts/WithHttpTransporterInterface.php'; break;
-+					default: throw new \RuntimeException( 'AI client class is outside the finite source manifest: ' . $class_name );
++					case __DIR__ . '/src/AiClient.php': require_once __DIR__ . '/src/AiClient.php'; break;
++					case __DIR__ . '/src/Builders/MessageBuilder.php': require_once __DIR__ . '/src/Builders/MessageBuilder.php'; break;
++					case __DIR__ . '/src/Builders/PromptBuilder.php': require_once __DIR__ . '/src/Builders/PromptBuilder.php'; break;
++					case __DIR__ . '/src/Common/AbstractDataTransferObject.php': require_once __DIR__ . '/src/Common/AbstractDataTransferObject.php'; break;
++					case __DIR__ . '/src/Common/AbstractEnum.php': require_once __DIR__ . '/src/Common/AbstractEnum.php'; break;
++					case __DIR__ . '/src/Common/Contracts/AiClientExceptionInterface.php': require_once __DIR__ . '/src/Common/Contracts/AiClientExceptionInterface.php'; break;
++					case __DIR__ . '/src/Common/Contracts/CachesDataInterface.php': require_once __DIR__ . '/src/Common/Contracts/CachesDataInterface.php'; break;
++					case __DIR__ . '/src/Common/Contracts/WithArrayTransformationInterface.php': require_once __DIR__ . '/src/Common/Contracts/WithArrayTransformationInterface.php'; break;
++					case __DIR__ . '/src/Common/Contracts/WithJsonSchemaInterface.php': require_once __DIR__ . '/src/Common/Contracts/WithJsonSchemaInterface.php'; break;
++					case __DIR__ . '/src/Common/Exception/InvalidArgumentException.php': require_once __DIR__ . '/src/Common/Exception/InvalidArgumentException.php'; break;
++					case __DIR__ . '/src/Common/Exception/RuntimeException.php': require_once __DIR__ . '/src/Common/Exception/RuntimeException.php'; break;
++					case __DIR__ . '/src/Common/Exception/TokenLimitReachedException.php': require_once __DIR__ . '/src/Common/Exception/TokenLimitReachedException.php'; break;
++					case __DIR__ . '/src/Common/Traits/WithDataCachingTrait.php': require_once __DIR__ . '/src/Common/Traits/WithDataCachingTrait.php'; break;
++					case __DIR__ . '/src/Events/AfterGenerateResultEvent.php': require_once __DIR__ . '/src/Events/AfterGenerateResultEvent.php'; break;
++					case __DIR__ . '/src/Events/BeforeGenerateResultEvent.php': require_once __DIR__ . '/src/Events/BeforeGenerateResultEvent.php'; break;
++					case __DIR__ . '/src/Files/DTO/File.php': require_once __DIR__ . '/src/Files/DTO/File.php'; break;
++					case __DIR__ . '/src/Files/Enums/FileTypeEnum.php': require_once __DIR__ . '/src/Files/Enums/FileTypeEnum.php'; break;
++					case __DIR__ . '/src/Files/Enums/MediaOrientationEnum.php': require_once __DIR__ . '/src/Files/Enums/MediaOrientationEnum.php'; break;
++					case __DIR__ . '/src/Files/ValueObjects/MimeType.php': require_once __DIR__ . '/src/Files/ValueObjects/MimeType.php'; break;
++					case __DIR__ . '/src/Messages/DTO/Message.php': require_once __DIR__ . '/src/Messages/DTO/Message.php'; break;
++					case __DIR__ . '/src/Messages/DTO/MessagePart.php': require_once __DIR__ . '/src/Messages/DTO/MessagePart.php'; break;
++					case __DIR__ . '/src/Messages/DTO/ModelMessage.php': require_once __DIR__ . '/src/Messages/DTO/ModelMessage.php'; break;
++					case __DIR__ . '/src/Messages/DTO/UserMessage.php': require_once __DIR__ . '/src/Messages/DTO/UserMessage.php'; break;
++					case __DIR__ . '/src/Messages/Enums/MessagePartChannelEnum.php': require_once __DIR__ . '/src/Messages/Enums/MessagePartChannelEnum.php'; break;
++					case __DIR__ . '/src/Messages/Enums/MessagePartTypeEnum.php': require_once __DIR__ . '/src/Messages/Enums/MessagePartTypeEnum.php'; break;
++					case __DIR__ . '/src/Messages/Enums/MessageRoleEnum.php': require_once __DIR__ . '/src/Messages/Enums/MessageRoleEnum.php'; break;
++					case __DIR__ . '/src/Messages/Enums/ModalityEnum.php': require_once __DIR__ . '/src/Messages/Enums/ModalityEnum.php'; break;
++					case __DIR__ . '/src/Operations/Contracts/OperationInterface.php': require_once __DIR__ . '/src/Operations/Contracts/OperationInterface.php'; break;
++					case __DIR__ . '/src/Operations/DTO/GenerativeAiOperation.php': require_once __DIR__ . '/src/Operations/DTO/GenerativeAiOperation.php'; break;
++					case __DIR__ . '/src/Operations/Enums/OperationStateEnum.php': require_once __DIR__ . '/src/Operations/Enums/OperationStateEnum.php'; break;
++					case __DIR__ . '/src/Providers/AbstractProvider.php': require_once __DIR__ . '/src/Providers/AbstractProvider.php'; break;
++					case __DIR__ . '/src/Providers/ApiBasedImplementation/AbstractApiBasedModel.php': require_once __DIR__ . '/src/Providers/ApiBasedImplementation/AbstractApiBasedModel.php'; break;
++					case __DIR__ . '/src/Providers/ApiBasedImplementation/AbstractApiBasedModelMetadataDirectory.php': require_once __DIR__ . '/src/Providers/ApiBasedImplementation/AbstractApiBasedModelMetadataDirectory.php'; break;
++					case __DIR__ . '/src/Providers/ApiBasedImplementation/AbstractApiProvider.php': require_once __DIR__ . '/src/Providers/ApiBasedImplementation/AbstractApiProvider.php'; break;
++					case __DIR__ . '/src/Providers/ApiBasedImplementation/Contracts/ApiBasedModelInterface.php': require_once __DIR__ . '/src/Providers/ApiBasedImplementation/Contracts/ApiBasedModelInterface.php'; break;
++					case __DIR__ . '/src/Providers/ApiBasedImplementation/GenerateTextApiBasedProviderAvailability.php': require_once __DIR__ . '/src/Providers/ApiBasedImplementation/GenerateTextApiBasedProviderAvailability.php'; break;
++					case __DIR__ . '/src/Providers/ApiBasedImplementation/ListModelsApiBasedProviderAvailability.php': require_once __DIR__ . '/src/Providers/ApiBasedImplementation/ListModelsApiBasedProviderAvailability.php'; break;
++					case __DIR__ . '/src/Providers/Contracts/ModelMetadataDirectoryInterface.php': require_once __DIR__ . '/src/Providers/Contracts/ModelMetadataDirectoryInterface.php'; break;
++					case __DIR__ . '/src/Providers/Contracts/ProviderAvailabilityInterface.php': require_once __DIR__ . '/src/Providers/Contracts/ProviderAvailabilityInterface.php'; break;
++					case __DIR__ . '/src/Providers/Contracts/ProviderInterface.php': require_once __DIR__ . '/src/Providers/Contracts/ProviderInterface.php'; break;
++					case __DIR__ . '/src/Providers/Contracts/ProviderOperationsHandlerInterface.php': require_once __DIR__ . '/src/Providers/Contracts/ProviderOperationsHandlerInterface.php'; break;
++					case __DIR__ . '/src/Providers/Contracts/ProviderWithOperationsHandlerInterface.php': require_once __DIR__ . '/src/Providers/Contracts/ProviderWithOperationsHandlerInterface.php'; break;
++					case __DIR__ . '/src/Providers/DTO/ProviderMetadata.php': require_once __DIR__ . '/src/Providers/DTO/ProviderMetadata.php'; break;
++					case __DIR__ . '/src/Providers/DTO/ProviderModelsMetadata.php': require_once __DIR__ . '/src/Providers/DTO/ProviderModelsMetadata.php'; break;
++					case __DIR__ . '/src/Providers/Enums/ProviderTypeEnum.php': require_once __DIR__ . '/src/Providers/Enums/ProviderTypeEnum.php'; break;
++					case __DIR__ . '/src/Providers/Enums/ToolTypeEnum.php': require_once __DIR__ . '/src/Providers/Enums/ToolTypeEnum.php'; break;
++					case __DIR__ . '/src/Providers/Http/Abstracts/AbstractClientDiscoveryStrategy.php': require_once __DIR__ . '/src/Providers/Http/Abstracts/AbstractClientDiscoveryStrategy.php'; break;
++					case __DIR__ . '/src/Providers/Http/Collections/HeadersCollection.php': require_once __DIR__ . '/src/Providers/Http/Collections/HeadersCollection.php'; break;
++					case __DIR__ . '/src/Providers/Http/Contracts/ClientWithOptionsInterface.php': require_once __DIR__ . '/src/Providers/Http/Contracts/ClientWithOptionsInterface.php'; break;
++					case __DIR__ . '/src/Providers/Http/Contracts/HttpTransporterInterface.php': require_once __DIR__ . '/src/Providers/Http/Contracts/HttpTransporterInterface.php'; break;
++					case __DIR__ . '/src/Providers/Http/Contracts/RequestAuthenticationInterface.php': require_once __DIR__ . '/src/Providers/Http/Contracts/RequestAuthenticationInterface.php'; break;
++					case __DIR__ . '/src/Providers/Http/Contracts/WithHttpTransporterInterface.php': require_once __DIR__ . '/src/Providers/Http/Contracts/WithHttpTransporterInterface.php'; break;
++					case __DIR__ . '/src/Providers/Http/Contracts/WithRequestAuthenticationInterface.php': require_once __DIR__ . '/src/Providers/Http/Contracts/WithRequestAuthenticationInterface.php'; break;
++					case __DIR__ . '/src/Providers/Http/DTO/ApiKeyRequestAuthentication.php': require_once __DIR__ . '/src/Providers/Http/DTO/ApiKeyRequestAuthentication.php'; break;
++					case __DIR__ . '/src/Providers/Http/DTO/Request.php': require_once __DIR__ . '/src/Providers/Http/DTO/Request.php'; break;
++					case __DIR__ . '/src/Providers/Http/DTO/RequestOptions.php': require_once __DIR__ . '/src/Providers/Http/DTO/RequestOptions.php'; break;
++					case __DIR__ . '/src/Providers/Http/DTO/Response.php': require_once __DIR__ . '/src/Providers/Http/DTO/Response.php'; break;
++					case __DIR__ . '/src/Providers/Http/Enums/HttpMethodEnum.php': require_once __DIR__ . '/src/Providers/Http/Enums/HttpMethodEnum.php'; break;
++					case __DIR__ . '/src/Providers/Http/Enums/RequestAuthenticationMethod.php': require_once __DIR__ . '/src/Providers/Http/Enums/RequestAuthenticationMethod.php'; break;
++					case __DIR__ . '/src/Providers/Http/Exception/ClientException.php': require_once __DIR__ . '/src/Providers/Http/Exception/ClientException.php'; break;
++					case __DIR__ . '/src/Providers/Http/Exception/NetworkException.php': require_once __DIR__ . '/src/Providers/Http/Exception/NetworkException.php'; break;
++					case __DIR__ . '/src/Providers/Http/Exception/RedirectException.php': require_once __DIR__ . '/src/Providers/Http/Exception/RedirectException.php'; break;
++					case __DIR__ . '/src/Providers/Http/Exception/ResponseException.php': require_once __DIR__ . '/src/Providers/Http/Exception/ResponseException.php'; break;
++					case __DIR__ . '/src/Providers/Http/Exception/ServerException.php': require_once __DIR__ . '/src/Providers/Http/Exception/ServerException.php'; break;
++					case __DIR__ . '/src/Providers/Http/HttpTransporter.php': require_once __DIR__ . '/src/Providers/Http/HttpTransporter.php'; break;
++					case __DIR__ . '/src/Providers/Http/HttpTransporterFactory.php': require_once __DIR__ . '/src/Providers/Http/HttpTransporterFactory.php'; break;
++					case __DIR__ . '/src/Providers/Http/Traits/WithHttpTransporterTrait.php': require_once __DIR__ . '/src/Providers/Http/Traits/WithHttpTransporterTrait.php'; break;
++					case __DIR__ . '/src/Providers/Http/Traits/WithRequestAuthenticationTrait.php': require_once __DIR__ . '/src/Providers/Http/Traits/WithRequestAuthenticationTrait.php'; break;
++					case __DIR__ . '/src/Providers/Http/Util/ErrorMessageExtractor.php': require_once __DIR__ . '/src/Providers/Http/Util/ErrorMessageExtractor.php'; break;
++					case __DIR__ . '/src/Providers/Http/Util/ResponseUtil.php': require_once __DIR__ . '/src/Providers/Http/Util/ResponseUtil.php'; break;
++					case __DIR__ . '/src/Providers/Models/Contracts/ModelInterface.php': require_once __DIR__ . '/src/Providers/Models/Contracts/ModelInterface.php'; break;
++					case __DIR__ . '/src/Providers/Models/DTO/ModelConfig.php': require_once __DIR__ . '/src/Providers/Models/DTO/ModelConfig.php'; break;
++					case __DIR__ . '/src/Providers/Models/DTO/ModelMetadata.php': require_once __DIR__ . '/src/Providers/Models/DTO/ModelMetadata.php'; break;
++					case __DIR__ . '/src/Providers/Models/DTO/ModelRequirements.php': require_once __DIR__ . '/src/Providers/Models/DTO/ModelRequirements.php'; break;
++					case __DIR__ . '/src/Providers/Models/DTO/RequiredOption.php': require_once __DIR__ . '/src/Providers/Models/DTO/RequiredOption.php'; break;
++					case __DIR__ . '/src/Providers/Models/DTO/SupportedOption.php': require_once __DIR__ . '/src/Providers/Models/DTO/SupportedOption.php'; break;
++					case __DIR__ . '/src/Providers/Models/Enums/CapabilityEnum.php': require_once __DIR__ . '/src/Providers/Models/Enums/CapabilityEnum.php'; break;
++					case __DIR__ . '/src/Providers/Models/Enums/OptionEnum.php': require_once __DIR__ . '/src/Providers/Models/Enums/OptionEnum.php'; break;
++					case __DIR__ . '/src/Providers/Models/ImageGeneration/Contracts/ImageGenerationModelInterface.php': require_once __DIR__ . '/src/Providers/Models/ImageGeneration/Contracts/ImageGenerationModelInterface.php'; break;
++					case __DIR__ . '/src/Providers/Models/ImageGeneration/Contracts/ImageGenerationOperationModelInterface.php': require_once __DIR__ . '/src/Providers/Models/ImageGeneration/Contracts/ImageGenerationOperationModelInterface.php'; break;
++					case __DIR__ . '/src/Providers/Models/SpeechGeneration/Contracts/SpeechGenerationModelInterface.php': require_once __DIR__ . '/src/Providers/Models/SpeechGeneration/Contracts/SpeechGenerationModelInterface.php'; break;
++					case __DIR__ . '/src/Providers/Models/SpeechGeneration/Contracts/SpeechGenerationOperationModelInterface.php': require_once __DIR__ . '/src/Providers/Models/SpeechGeneration/Contracts/SpeechGenerationOperationModelInterface.php'; break;
++					case __DIR__ . '/src/Providers/Models/TextGeneration/Contracts/TextGenerationModelInterface.php': require_once __DIR__ . '/src/Providers/Models/TextGeneration/Contracts/TextGenerationModelInterface.php'; break;
++					case __DIR__ . '/src/Providers/Models/TextGeneration/Contracts/TextGenerationOperationModelInterface.php': require_once __DIR__ . '/src/Providers/Models/TextGeneration/Contracts/TextGenerationOperationModelInterface.php'; break;
++					case __DIR__ . '/src/Providers/Models/TextToSpeechConversion/Contracts/TextToSpeechConversionModelInterface.php': require_once __DIR__ . '/src/Providers/Models/TextToSpeechConversion/Contracts/TextToSpeechConversionModelInterface.php'; break;
++					case __DIR__ . '/src/Providers/Models/TextToSpeechConversion/Contracts/TextToSpeechConversionOperationModelInterface.php': require_once __DIR__ . '/src/Providers/Models/TextToSpeechConversion/Contracts/TextToSpeechConversionOperationModelInterface.php'; break;
++					case __DIR__ . '/src/Providers/Models/VideoGeneration/Contracts/VideoGenerationModelInterface.php': require_once __DIR__ . '/src/Providers/Models/VideoGeneration/Contracts/VideoGenerationModelInterface.php'; break;
++					case __DIR__ . '/src/Providers/Models/VideoGeneration/Contracts/VideoGenerationOperationModelInterface.php': require_once __DIR__ . '/src/Providers/Models/VideoGeneration/Contracts/VideoGenerationOperationModelInterface.php'; break;
++					case __DIR__ . '/src/Providers/OpenAiCompatibleImplementation/AbstractOpenAiCompatibleImageGenerationModel.php': require_once __DIR__ . '/src/Providers/OpenAiCompatibleImplementation/AbstractOpenAiCompatibleImageGenerationModel.php'; break;
++					case __DIR__ . '/src/Providers/OpenAiCompatibleImplementation/AbstractOpenAiCompatibleModelMetadataDirectory.php': require_once __DIR__ . '/src/Providers/OpenAiCompatibleImplementation/AbstractOpenAiCompatibleModelMetadataDirectory.php'; break;
++					case __DIR__ . '/src/Providers/OpenAiCompatibleImplementation/AbstractOpenAiCompatibleTextGenerationModel.php': require_once __DIR__ . '/src/Providers/OpenAiCompatibleImplementation/AbstractOpenAiCompatibleTextGenerationModel.php'; break;
++					case __DIR__ . '/src/Providers/ProviderRegistry.php': require_once __DIR__ . '/src/Providers/ProviderRegistry.php'; break;
++					case __DIR__ . '/src/Results/Contracts/ResultInterface.php': require_once __DIR__ . '/src/Results/Contracts/ResultInterface.php'; break;
++					case __DIR__ . '/src/Results/DTO/Candidate.php': require_once __DIR__ . '/src/Results/DTO/Candidate.php'; break;
++					case __DIR__ . '/src/Results/DTO/GenerativeAiResult.php': require_once __DIR__ . '/src/Results/DTO/GenerativeAiResult.php'; break;
++					case __DIR__ . '/src/Results/DTO/TokenUsage.php': require_once __DIR__ . '/src/Results/DTO/TokenUsage.php'; break;
++					case __DIR__ . '/src/Results/Enums/FinishReasonEnum.php': require_once __DIR__ . '/src/Results/Enums/FinishReasonEnum.php'; break;
++					case __DIR__ . '/src/Tools/DTO/FunctionCall.php': require_once __DIR__ . '/src/Tools/DTO/FunctionCall.php'; break;
++					case __DIR__ . '/src/Tools/DTO/FunctionDeclaration.php': require_once __DIR__ . '/src/Tools/DTO/FunctionDeclaration.php'; break;
++					case __DIR__ . '/src/Tools/DTO/FunctionResponse.php': require_once __DIR__ . '/src/Tools/DTO/FunctionResponse.php'; break;
++					case __DIR__ . '/src/Tools/DTO/WebSearch.php': require_once __DIR__ . '/src/Tools/DTO/WebSearch.php'; break;
++					default: throw new \RuntimeException( 'AI client class is outside the pinned source inventory: ' . $class_name );
 +				}
  			}
  			return;
  		}
-@@ -37,7 +45,15 @@
+@@ -35,9 +138,55 @@
+ 		// 2. WordPress\AiClientDependencies\* → third-party/ (strip prefix).
+ 		if ( 0 === strncmp( $class_name, $scoped_prefix, $scoped_prefix_len ) ) {
  			$relative_class = substr( $class_name, $scoped_prefix_len );
- 			$file           = $base_dir . '/third-party/' . str_replace( '\\', '/', $relative_class ) . '.php';
+-			$file           = $base_dir . '/third-party/' . str_replace( '\\', '/', $relative_class ) . '.php';
++			$file           = $base_dir . '/third-party/' . \wp_aot_str_replace( '\\', '/', $relative_class ) . '.php';
  			if ( file_exists( $file ) ) {
 -				require $file;
 +				switch ( $file ) {
-+					case __DIR__ . '/third-party/Psr/Http/Client/ClientInterface.php': require __DIR__ . '/third-party/Psr/Http/Client/ClientInterface.php'; break;
-+					case __DIR__ . '/third-party/Psr/SimpleCache/CacheInterface.php': require __DIR__ . '/third-party/Psr/SimpleCache/CacheInterface.php'; break;
-+					case __DIR__ . '/third-party/Http/Discovery/Strategy/DiscoveryStrategy.php': require __DIR__ . '/third-party/Http/Discovery/Strategy/DiscoveryStrategy.php'; break;
-+					case __DIR__ . '/third-party/Psr/EventDispatcher/EventDispatcherInterface.php': require __DIR__ . '/third-party/Psr/EventDispatcher/EventDispatcherInterface.php'; break;
-+					case __DIR__ . '/third-party/Http/Discovery/Psr18ClientDiscovery.php': require __DIR__ . '/third-party/Http/Discovery/Psr18ClientDiscovery.php'; break;
-+					case __DIR__ . '/third-party/Http/Discovery/ClassDiscovery.php': require __DIR__ . '/third-party/Http/Discovery/ClassDiscovery.php'; break;
-+					default: throw new \RuntimeException( 'AI client class is outside the finite source manifest: ' . $class_name );
++					case __DIR__ . '/third-party/Http/Discovery/ClassDiscovery.php': require_once __DIR__ . '/third-party/Http/Discovery/ClassDiscovery.php'; break;
++					case __DIR__ . '/third-party/Http/Discovery/Exception.php': require_once __DIR__ . '/third-party/Http/Discovery/Exception.php'; break;
++					case __DIR__ . '/third-party/Http/Discovery/Exception/ClassInstantiationFailedException.php': require_once __DIR__ . '/third-party/Http/Discovery/Exception/ClassInstantiationFailedException.php'; break;
++					case __DIR__ . '/third-party/Http/Discovery/Exception/DiscoveryFailedException.php': require_once __DIR__ . '/third-party/Http/Discovery/Exception/DiscoveryFailedException.php'; break;
++					case __DIR__ . '/third-party/Http/Discovery/Exception/NoCandidateFoundException.php': require_once __DIR__ . '/third-party/Http/Discovery/Exception/NoCandidateFoundException.php'; break;
++					case __DIR__ . '/third-party/Http/Discovery/Exception/NotFoundException.php': require_once __DIR__ . '/third-party/Http/Discovery/Exception/NotFoundException.php'; break;
++					case __DIR__ . '/third-party/Http/Discovery/Exception/PuliUnavailableException.php': require_once __DIR__ . '/third-party/Http/Discovery/Exception/PuliUnavailableException.php'; break;
++					case __DIR__ . '/third-party/Http/Discovery/Exception/StrategyUnavailableException.php': require_once __DIR__ . '/third-party/Http/Discovery/Exception/StrategyUnavailableException.php'; break;
++					case __DIR__ . '/third-party/Http/Discovery/Psr17FactoryDiscovery.php': require_once __DIR__ . '/third-party/Http/Discovery/Psr17FactoryDiscovery.php'; break;
++					case __DIR__ . '/third-party/Http/Discovery/Psr18ClientDiscovery.php': require_once __DIR__ . '/third-party/Http/Discovery/Psr18ClientDiscovery.php'; break;
++					case __DIR__ . '/third-party/Http/Discovery/Strategy/CommonClassesStrategy.php': require_once __DIR__ . '/third-party/Http/Discovery/Strategy/CommonClassesStrategy.php'; break;
++					case __DIR__ . '/third-party/Http/Discovery/Strategy/CommonPsr17ClassesStrategy.php': require_once __DIR__ . '/third-party/Http/Discovery/Strategy/CommonPsr17ClassesStrategy.php'; break;
++					case __DIR__ . '/third-party/Http/Discovery/Strategy/DiscoveryStrategy.php': require_once __DIR__ . '/third-party/Http/Discovery/Strategy/DiscoveryStrategy.php'; break;
++					case __DIR__ . '/third-party/Http/Discovery/Strategy/PuliBetaStrategy.php': require_once __DIR__ . '/third-party/Http/Discovery/Strategy/PuliBetaStrategy.php'; break;
++					case __DIR__ . '/third-party/Nyholm/Psr7/Factory/HttplugFactory.php': throw new \LogicException( 'You cannot use "Nyholm\Psr7\Factory\HttplugFactory" as the "php-http/message-factory" package is not installed. Try running "composer require php-http/message-factory". Note that this package is deprecated, use "psr/http-factory" instead' );
++					case __DIR__ . '/third-party/Nyholm/Psr7/Factory/Psr17Factory.php': require_once __DIR__ . '/third-party/Nyholm/Psr7/Factory/Psr17Factory.php'; break;
++					case __DIR__ . '/third-party/Nyholm/Psr7/MessageTrait.php': require_once __DIR__ . '/third-party/Nyholm/Psr7/MessageTrait.php'; break;
++					case __DIR__ . '/third-party/Nyholm/Psr7/Request.php': require_once __DIR__ . '/third-party/Nyholm/Psr7/Request.php'; break;
++					case __DIR__ . '/third-party/Nyholm/Psr7/RequestTrait.php': require_once __DIR__ . '/third-party/Nyholm/Psr7/RequestTrait.php'; break;
++					case __DIR__ . '/third-party/Nyholm/Psr7/Response.php': require_once __DIR__ . '/third-party/Nyholm/Psr7/Response.php'; break;
++					case __DIR__ . '/third-party/Nyholm/Psr7/ServerRequest.php': require_once __DIR__ . '/third-party/Nyholm/Psr7/ServerRequest.php'; break;
++					case __DIR__ . '/third-party/Nyholm/Psr7/Stream.php': require_once __DIR__ . '/third-party/Nyholm/Psr7/Stream.php'; break;
++					case __DIR__ . '/third-party/Nyholm/Psr7/StreamTrait.php': require_once __DIR__ . '/third-party/Nyholm/Psr7/StreamTrait.php'; break;
++					case __DIR__ . '/third-party/Nyholm/Psr7/UploadedFile.php': require_once __DIR__ . '/third-party/Nyholm/Psr7/UploadedFile.php'; break;
++					case __DIR__ . '/third-party/Nyholm/Psr7/Uri.php': require_once __DIR__ . '/third-party/Nyholm/Psr7/Uri.php'; break;
++					case __DIR__ . '/third-party/Psr/EventDispatcher/EventDispatcherInterface.php': require_once __DIR__ . '/third-party/Psr/EventDispatcher/EventDispatcherInterface.php'; break;
++					case __DIR__ . '/third-party/Psr/Http/Client/ClientExceptionInterface.php': require_once __DIR__ . '/third-party/Psr/Http/Client/ClientExceptionInterface.php'; break;
++					case __DIR__ . '/third-party/Psr/Http/Client/ClientInterface.php': require_once __DIR__ . '/third-party/Psr/Http/Client/ClientInterface.php'; break;
++					case __DIR__ . '/third-party/Psr/Http/Client/NetworkExceptionInterface.php': require_once __DIR__ . '/third-party/Psr/Http/Client/NetworkExceptionInterface.php'; break;
++					case __DIR__ . '/third-party/Psr/Http/Client/RequestExceptionInterface.php': require_once __DIR__ . '/third-party/Psr/Http/Client/RequestExceptionInterface.php'; break;
++					case __DIR__ . '/third-party/Psr/Http/Message/MessageInterface.php': require_once __DIR__ . '/third-party/Psr/Http/Message/MessageInterface.php'; break;
++					case __DIR__ . '/third-party/Psr/Http/Message/RequestFactoryInterface.php': require_once __DIR__ . '/third-party/Psr/Http/Message/RequestFactoryInterface.php'; break;
++					case __DIR__ . '/third-party/Psr/Http/Message/RequestInterface.php': require_once __DIR__ . '/third-party/Psr/Http/Message/RequestInterface.php'; break;
++					case __DIR__ . '/third-party/Psr/Http/Message/ResponseFactoryInterface.php': require_once __DIR__ . '/third-party/Psr/Http/Message/ResponseFactoryInterface.php'; break;
++					case __DIR__ . '/third-party/Psr/Http/Message/ResponseInterface.php': require_once __DIR__ . '/third-party/Psr/Http/Message/ResponseInterface.php'; break;
++					case __DIR__ . '/third-party/Psr/Http/Message/ServerRequestFactoryInterface.php': require_once __DIR__ . '/third-party/Psr/Http/Message/ServerRequestFactoryInterface.php'; break;
++					case __DIR__ . '/third-party/Psr/Http/Message/ServerRequestInterface.php': require_once __DIR__ . '/third-party/Psr/Http/Message/ServerRequestInterface.php'; break;
++					case __DIR__ . '/third-party/Psr/Http/Message/StreamFactoryInterface.php': require_once __DIR__ . '/third-party/Psr/Http/Message/StreamFactoryInterface.php'; break;
++					case __DIR__ . '/third-party/Psr/Http/Message/StreamInterface.php': require_once __DIR__ . '/third-party/Psr/Http/Message/StreamInterface.php'; break;
++					case __DIR__ . '/third-party/Psr/Http/Message/UploadedFileFactoryInterface.php': require_once __DIR__ . '/third-party/Psr/Http/Message/UploadedFileFactoryInterface.php'; break;
++					case __DIR__ . '/third-party/Psr/Http/Message/UploadedFileInterface.php': require_once __DIR__ . '/third-party/Psr/Http/Message/UploadedFileInterface.php'; break;
++					case __DIR__ . '/third-party/Psr/Http/Message/UriFactoryInterface.php': require_once __DIR__ . '/third-party/Psr/Http/Message/UriFactoryInterface.php'; break;
++					case __DIR__ . '/third-party/Psr/Http/Message/UriInterface.php': require_once __DIR__ . '/third-party/Psr/Http/Message/UriInterface.php'; break;
++					case __DIR__ . '/third-party/Psr/SimpleCache/CacheInterface.php': require_once __DIR__ . '/third-party/Psr/SimpleCache/CacheInterface.php'; break;
++					default: throw new \RuntimeException( 'AI client class is outside the pinned source inventory: ' . $class_name );
 +				}
  			}
  			return;

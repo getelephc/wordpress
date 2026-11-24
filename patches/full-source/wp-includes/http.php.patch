@@ -1,0 +1,479 @@
+--- a/wp-includes/http.php
++++ b/wp-includes/http.php
+@@ -17,13 +17,14 @@
+  *
+  * @return WP_Http HTTP Transport object.
+  */
+-function _wp_http_get_object() {
++function _wp_http_get_object(): mixed {
+ 	static $http = null;
+ 
+ 	if ( is_null( $http ) ) {
+ 		$http = new WP_Http();
+ 	}
+ 	return $http;
++	return null;
+ }
+ 
+ /**
+@@ -49,10 +50,11 @@
+  * @return array|WP_Error The response or WP_Error on failure.
+  *                        See WP_Http::request() for information on return value.
+  */
+-function wp_safe_remote_request( $url, $args = array() ) {
++function wp_safe_remote_request( mixed $url, mixed $args = array() ): mixed {
+ 	$args['reject_unsafe_urls'] = true;
+ 	$http                       = _wp_http_get_object();
+ 	return $http->request( $url, $args );
++	return null;
+ }
+ 
+ /**
+@@ -78,10 +80,11 @@
+  * @return array|WP_Error The response or WP_Error on failure.
+  *                        See WP_Http::request() for information on return value.
+  */
+-function wp_safe_remote_get( $url, $args = array() ) {
++function wp_safe_remote_get( mixed $url, mixed $args = array() ): mixed {
+ 	$args['reject_unsafe_urls'] = true;
+ 	$http                       = _wp_http_get_object();
+ 	return $http->get( $url, $args );
++	return null;
+ }
+ 
+ /**
+@@ -107,10 +110,11 @@
+  * @return array|WP_Error The response or WP_Error on failure.
+  *                        See WP_Http::request() for information on return value.
+  */
+-function wp_safe_remote_post( $url, $args = array() ) {
++function wp_safe_remote_post( mixed $url, mixed $args = array() ): mixed {
+ 	$args['reject_unsafe_urls'] = true;
+ 	$http                       = _wp_http_get_object();
+ 	return $http->post( $url, $args );
++	return null;
+ }
+ 
+ /**
+@@ -136,10 +140,11 @@
+  * @return array|WP_Error The response or WP_Error on failure.
+  *                        See WP_Http::request() for information on return value.
+  */
+-function wp_safe_remote_head( $url, $args = array() ) {
++function wp_safe_remote_head( mixed $url, mixed $args = array() ): mixed {
+ 	$args['reject_unsafe_urls'] = true;
+ 	$http                       = _wp_http_get_object();
+ 	return $http->head( $url, $args );
++	return null;
+ }
+ 
+ /**
+@@ -163,9 +168,10 @@
+  * @return array|WP_Error The response array or a WP_Error on failure.
+  *                        See WP_Http::request() for information on return value.
+  */
+-function wp_remote_request( $url, $args = array() ) {
++function wp_remote_request( mixed $url, mixed $args = array() ): mixed {
+ 	$http = _wp_http_get_object();
+ 	return $http->request( $url, $args );
++	return null;
+ }
+ 
+ /**
+@@ -184,9 +190,10 @@
+  * @return array|WP_Error The response or WP_Error on failure.
+  *                        See WP_Http::request() for information on return value.
+  */
+-function wp_remote_get( $url, $args = array() ) {
++function wp_remote_get( mixed $url, mixed $args = array() ): mixed {
+ 	$http = _wp_http_get_object();
+ 	return $http->get( $url, $args );
++	return null;
+ }
+ 
+ /**
+@@ -205,9 +212,10 @@
+  * @return array|WP_Error The response or WP_Error on failure.
+  *                        See WP_Http::request() for information on return value.
+  */
+-function wp_remote_post( $url, $args = array() ) {
++function wp_remote_post( mixed $url, mixed $args = array() ): mixed {
+ 	$http = _wp_http_get_object();
+ 	return $http->post( $url, $args );
++	return null;
+ }
+ 
+ /**
+@@ -226,9 +234,10 @@
+  * @return array|WP_Error The response or WP_Error on failure.
+  *                        See WP_Http::request() for information on return value.
+  */
+-function wp_remote_head( $url, $args = array() ) {
++function wp_remote_head( mixed $url, mixed $args = array() ): mixed {
+ 	$http = _wp_http_get_object();
+ 	return $http->head( $url, $args );
++	return null;
+ }
+ 
+ /**
+@@ -243,12 +252,13 @@
+  * @return \WpOrg\Requests\Utility\CaseInsensitiveDictionary|array The headers of the response, or empty array
+  *                                                                 if incorrect parameter given.
+  */
+-function wp_remote_retrieve_headers( $response ) {
++function wp_remote_retrieve_headers( mixed $response ): mixed {
+ 	if ( is_wp_error( $response ) || ! isset( $response['headers'] ) ) {
+ 		return array();
+ 	}
+ 
+ 	return $response['headers'];
++	return null;
+ }
+ 
+ /**
+@@ -261,12 +271,13 @@
+  * @return array|string The header(s) value(s). Array if multiple headers with the same name are retrieved.
+  *                      Empty string if incorrect parameter given, or if the header doesn't exist.
+  */
+-function wp_remote_retrieve_header( $response, $header ) {
++function wp_remote_retrieve_header( mixed $response, mixed $header ): mixed {
+ 	if ( is_wp_error( $response ) || ! isset( $response['headers'] ) ) {
+ 		return '';
+ 	}
+ 
+ 	return $response['headers'][ $header ] ?? '';
++	return null;
+ }
+ 
+ /**
+@@ -279,12 +290,13 @@
+  * @param array|WP_Error $response HTTP response.
+  * @return int|string The response code as an integer. Empty string if incorrect parameter given.
+  */
+-function wp_remote_retrieve_response_code( $response ) {
++function wp_remote_retrieve_response_code( mixed $response ): mixed {
+ 	if ( is_wp_error( $response ) || ! isset( $response['response'] ) || ! is_array( $response['response'] ) ) {
+ 		return '';
+ 	}
+ 
+ 	return $response['response']['code'];
++	return null;
+ }
+ 
+ /**
+@@ -297,12 +309,13 @@
+  * @param array|WP_Error $response HTTP response.
+  * @return string The response message. Empty string if incorrect parameter given.
+  */
+-function wp_remote_retrieve_response_message( $response ) {
++function wp_remote_retrieve_response_message( mixed $response ): mixed {
+ 	if ( is_wp_error( $response ) || ! isset( $response['response'] ) || ! is_array( $response['response'] ) ) {
+ 		return '';
+ 	}
+ 
+ 	return $response['response']['message'];
++	return null;
+ }
+ 
+ /**
+@@ -313,12 +326,13 @@
+  * @param array|WP_Error $response HTTP response.
+  * @return string The body of the response. Empty string if no body or incorrect parameter given.
+  */
+-function wp_remote_retrieve_body( $response ) {
++function wp_remote_retrieve_body( mixed $response ): mixed {
+ 	if ( is_wp_error( $response ) || ! isset( $response['body'] ) ) {
+ 		return '';
+ 	}
+ 
+ 	return $response['body'];
++	return null;
+ }
+ 
+ /**
+@@ -330,12 +344,13 @@
+  * @return WP_Http_Cookie[] An array of `WP_Http_Cookie` objects from the response.
+  *                          Empty array if there are none, or the response is a WP_Error.
+  */
+-function wp_remote_retrieve_cookies( $response ) {
++function wp_remote_retrieve_cookies( mixed $response ): mixed {
+ 	if ( is_wp_error( $response ) || empty( $response['cookies'] ) ) {
+ 		return array();
+ 	}
+ 
+ 	return $response['cookies'];
++	return null;
+ }
+ 
+ /**
+@@ -348,7 +363,7 @@
+  * @return WP_Http_Cookie|string The `WP_Http_Cookie` object, or empty string
+  *                               if the cookie is not present in the response.
+  */
+-function wp_remote_retrieve_cookie( $response, $name ) {
++function wp_remote_retrieve_cookie( mixed $response, mixed $name ): mixed {
+ 	$cookies = wp_remote_retrieve_cookies( $response );
+ 
+ 	if ( empty( $cookies ) ) {
+@@ -362,6 +377,7 @@
+ 	}
+ 
+ 	return '';
++	return null;
+ }
+ 
+ /**
+@@ -374,7 +390,7 @@
+  * @return string The value of the cookie, or empty string
+  *                if the cookie is not present in the response.
+  */
+-function wp_remote_retrieve_cookie_value( $response, $name ) {
++function wp_remote_retrieve_cookie_value( mixed $response, mixed $name ): mixed {
+ 	$cookie = wp_remote_retrieve_cookie( $response, $name );
+ 
+ 	if ( ! ( $cookie instanceof WP_Http_Cookie ) ) {
+@@ -382,6 +398,7 @@
+ 	}
+ 
+ 	return $cookie->value;
++	return null;
+ }
+ 
+ /**
+@@ -395,14 +412,14 @@
+  *
+  * @return bool
+  */
+-function wp_http_supports( $capabilities = array(), $url = null ) {
++function wp_http_supports( mixed $capabilities = array(), mixed $url = null ): mixed {
+ 	$capabilities = wp_parse_args( $capabilities );
+ 
+ 	$count = count( $capabilities );
+ 
+ 	// If we have a numeric $capabilities array, spoof a wp_remote_request() associative $args array.
+-	if ( $count && count( array_filter( array_keys( $capabilities ), 'is_numeric' ) ) === $count ) {
+-		$capabilities = array_combine( array_values( $capabilities ), array_fill( 0, $count, true ) );
++	if ( $count && count( \wp_aot_array_filter( array_keys( $capabilities ), 'is_numeric' ) ) === $count ) {
++		$capabilities = \wp_aot_array_combine( array_values( $capabilities ), array_fill( 0, $count, true ) );
+ 	}
+ 
+ 	if ( $url && ! isset( $capabilities['ssl'] ) ) {
+@@ -412,7 +429,8 @@
+ 		}
+ 	}
+ 
+-	return WpOrg\Requests\Requests::has_capabilities( $capabilities );
++	return WpOrg\Requests\Requests::has_capabilities( \wp_aot_array_input($capabilities ));
++	return null;
+ }
+ 
+ /**
+@@ -422,7 +440,7 @@
+  *
+  * @return string URL of the origin. Empty string if no origin.
+  */
+-function get_http_origin() {
++function get_http_origin(): mixed {
+ 	$origin = '';
+ 	if ( ! empty( $_SERVER['HTTP_ORIGIN'] ) ) {
+ 		$origin = $_SERVER['HTTP_ORIGIN'];
+@@ -436,6 +454,7 @@
+ 	 * @param string $origin The HTTP origin for the request.
+ 	 */
+ 	return apply_filters( 'http_origin', $origin );
++	return null;
+ }
+ 
+ /**
+@@ -445,12 +464,12 @@
+  *
+  * @return string[] Array of origin URLs.
+  */
+-function get_allowed_http_origins() {
++function get_allowed_http_origins(): mixed {
+ 	$admin_origin = parse_url( admin_url() );
+ 	$home_origin  = parse_url( home_url() );
+ 
+ 	// @todo Preserve port?
+-	$allowed_origins = array_unique(
++	$allowed_origins = \wp_aot_array_unique(
+ 		array(
+ 			'http://' . $admin_origin['host'],
+ 			'https://' . $admin_origin['host'],
+@@ -467,6 +486,7 @@
+ 	 * @param string[] $allowed_origins Array of allowed HTTP origins.
+ 	 */
+ 	return apply_filters( 'allowed_http_origins', $allowed_origins );
++	return null;
+ }
+ 
+ /**
+@@ -477,7 +497,7 @@
+  * @param string|null $origin Origin URL. If not provided, the value of get_http_origin() is used.
+  * @return string Origin URL if allowed, empty string if not.
+  */
+-function is_allowed_http_origin( $origin = null ) {
++function is_allowed_http_origin( mixed $origin = null ): mixed {
+ 	$origin_arg = $origin;
+ 
+ 	if ( null === $origin ) {
+@@ -497,6 +517,7 @@
+ 	 * @param string $origin_arg Original origin string passed into is_allowed_http_origin function.
+ 	 */
+ 	return apply_filters( 'allowed_http_origin', $origin, $origin_arg );
++	return null;
+ }
+ 
+ /**
+@@ -512,24 +533,25 @@
+  * @return string|false Returns the origin URL if headers are sent. Returns false
+  *                      if headers are not sent.
+  */
+-function send_origin_headers() {
++function send_origin_headers(): mixed {
+ 	$origin = get_http_origin();
+ 
+ 	if ( is_allowed_http_origin( $origin ) ) {
+ 		header( 'Access-Control-Allow-Origin: ' . $origin );
+ 		header( 'Access-Control-Allow-Credentials: true' );
+ 		if ( 'OPTIONS' === $_SERVER['REQUEST_METHOD'] ) {
+-			exit;
++			\wp_aot_exit();
+ 		}
+ 		return $origin;
+ 	}
+ 
+ 	if ( 'OPTIONS' === $_SERVER['REQUEST_METHOD'] ) {
+ 		status_header( 403 );
+-		exit;
++		\wp_aot_exit();
+ 	}
+ 
+ 	return false;
++	return null;
+ }
+ 
+ /**
+@@ -556,7 +578,7 @@
+  * @param string $url Request URL.
+  * @return string|false Returns false if the URL is not safe, or the original URL if it is safe.
+  */
+-function wp_http_validate_url( $url ) {
++function wp_http_validate_url( mixed $url ): mixed {
+ 	if ( ! is_string( $url ) || '' === $url || is_numeric( $url ) ) {
+ 		return false;
+ 	}
+@@ -585,7 +607,7 @@
+ 	$host        = trim( $parsed_url['host'], '.' );
+ 
+ 	if ( ! $same_host ) {
+-		if ( preg_match( '#^(([1-9]?\d|1\d\d|25[0-5]|2[0-4]\d)\.){3}([1-9]?\d|1\d\d|25[0-5]|2[0-4]\d)$#', $host ) ) {
++		if ( preg_match( '#^(([1-9]?\d|1\d\d|25[0-5]|2[0-4]\d)\.){3}([1-9]?\d|1\d\d|25[0-5]|2[0-4]\d)$#', \wp_aot_regex_text( $host ) ) ) {
+ 			$ip = $host;
+ 		} else {
+ 			$ip = gethostbyname( $host );
+@@ -594,7 +616,7 @@
+ 			}
+ 		}
+ 		if ( $ip ) {
+-			$parts = array_map( 'intval', explode( '.', $ip ) );
++			$parts = \wp_aot_array_map( 'intval', explode( '.', $ip ) );
+ 
+ 			/*
+ 			 * These IP address ranges are not considered valid external hosts for HTTP requests.
+@@ -667,6 +689,7 @@
+ 	}
+ 
+ 	return false;
++	return null;
+ }
+ 
+ /**
+@@ -680,11 +703,12 @@
+  * @param string $host
+  * @return bool
+  */
+-function allowed_http_request_hosts( $is_external, $host ) {
++function allowed_http_request_hosts( mixed $is_external, mixed $host ): mixed {
+ 	if ( ! $is_external && wp_validate_redirect( 'http://' . $host ) ) {
+ 		$is_external = true;
+ 	}
+ 	return $is_external;
++	return null;
+ }
+ 
+ /**
+@@ -701,9 +725,10 @@
+  * @param string $host
+  * @return bool
+  */
+-function ms_allowed_http_request_hosts( $is_external, $host ) {
++function ms_allowed_http_request_hosts( mixed $is_external, mixed $host ): mixed {
+ 	global $wpdb;
+-	static $queried = array();
++	static $queried_aot_cell = new \WordPressStaticArrayCell();
++	$queried =& $queried_aot_cell->value;
+ 	if ( $is_external ) {
+ 		return $is_external;
+ 	}
+@@ -713,8 +738,9 @@
+ 	if ( isset( $queried[ $host ] ) ) {
+ 		return $queried[ $host ];
+ 	}
+-	$queried[ $host ] = (bool) $wpdb->get_var( $wpdb->prepare( "SELECT domain FROM $wpdb->blogs WHERE domain = %s LIMIT 1", $host ) );
++	$queried[ $host ] = (bool) \wp_aot_require_wpdb( $wpdb )->get_var( \wp_aot_require_wpdb( $wpdb )->prepare( "SELECT domain FROM $wpdb->blogs WHERE domain = %s LIMIT 1", $host ) );
+ 	return $queried[ $host ];
++	return null;
+ }
+ 
+ /**
+@@ -758,7 +784,7 @@
+  *         )
+  * )
+  */
+-function wp_parse_url( $url, $component = -1 ) {
++function wp_parse_url( mixed $url, mixed $component = -1 ): mixed {
+ 	$to_unset = array();
+ 	$url      = (string) $url;
+ 
+@@ -784,6 +810,7 @@
+ 	}
+ 
+ 	return _get_component_from_parsed_url_array( $parts, $component );
++	return null;
+ }
+ 
+ /**
+@@ -835,7 +862,7 @@
+  *         )
+  * )
+  */
+-function _get_component_from_parsed_url_array( $url_parts, $component = -1 ) {
++function _get_component_from_parsed_url_array( mixed $url_parts, mixed $component = -1 ): mixed {
+ 	if ( -1 === $component ) {
+ 		return $url_parts;
+ 	}
+@@ -846,6 +873,7 @@
+ 	} else {
+ 		return null;
+ 	}
++	return null;
+ }
+ 
+ /**
+@@ -864,7 +892,7 @@
+  * @phpstan-param int<-1, 7> $constant
+  * @phpstan-return 'scheme'|'host'|'port'|'user'|'pass'|'path'|'query'|'fragment'|false
+  */
+-function _wp_translate_php_url_constant_to_key( $constant ) {
++function _wp_translate_php_url_constant_to_key( mixed $constant ): mixed {
+ 	$translation = array(
+ 		PHP_URL_SCHEME   => 'scheme',
+ 		PHP_URL_HOST     => 'host',
+@@ -877,4 +905,5 @@
+ 	);
+ 
+ 	return $translation[ $constant ] ?? false;
+-}
++	return null;
++}

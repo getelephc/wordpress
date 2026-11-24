@@ -1,0 +1,36 @@
+--- a/wp-includes/class-walker-page-dropdown.php
++++ b/wp-includes/class-walker-page-dropdown.php
+@@ -24,7 +24,7 @@
+ 	 *
+ 	 * @see Walker::$tree_type
+ 	 */
+-	public $tree_type = 'page';
++	public mixed $tree_type = 'page';
+ 
+ 	/**
+ 	 * Database fields to use.
+@@ -35,7 +35,7 @@
+ 	 * @see Walker::$db_fields
+ 	 * @todo Decouple this
+ 	 */
+-	public $db_fields = array(
++	public mixed $db_fields = array(
+ 		'parent' => 'post_parent',
+ 		'id'     => 'ID',
+ 	);
+@@ -59,7 +59,7 @@
+ 	 *                                   See wp_dropdown_pages(). Default empty array.
+ 	 * @param int     $current_object_id Optional. ID of the current page. Default 0.
+ 	 */
+-	public function start_el( &$output, $data_object, $depth = 0, $args = array(), $current_object_id = 0 ) {
++	public function start_el( mixed &$output, mixed $data_object, mixed $depth = 0, mixed $args = array(), mixed $current_object_id = 0 ): mixed {
+ 		// Restores the more descriptive, specific name for use within this method.
+ 		$page = $data_object;
+ 
+@@ -93,5 +93,6 @@
+ 
+ 		$output .= $pad . esc_html( $title );
+ 		$output .= "</option>\n";
++		return null;
+ 	}
+ }

@@ -1,0 +1,178 @@
+--- a/wp-admin/includes/class-bulk-upgrader-skin.php
++++ b/wp-admin/includes/class-bulk-upgrader-skin.php
+@@ -42,7 +42,7 @@
+ 	 *
+ 	 * @param array $args
+ 	 */
+-	public function __construct( $args = array() ) {
++	public function __construct( mixed $args = array() ) {
+ 		$defaults = array(
+ 			'url'   => '',
+ 			'nonce' => '',
+@@ -57,7 +57,7 @@
+ 	 *
+ 	 * @since 3.0.0
+ 	 */
+-	public function add_strings() {
++	public function add_strings(): mixed {
+ 		$this->upgrader->strings['skin_upgrade_start'] = __( 'The update process is starting. This process may take a while on some hosts, so please be patient.' );
+ 		/* translators: 1: Title of an update, 2: Error message. */
+ 		$this->upgrader->strings['skin_update_failed_error'] = __( 'An error occurred while updating %1$s: %2$s' );
+@@ -66,6 +66,7 @@
+ 		/* translators: %s: Title of an update. */
+ 		$this->upgrader->strings['skin_update_successful'] = __( '%s updated successfully.' );
+ 		$this->upgrader->strings['skin_upgrade_end']       = __( 'All updates have been completed.' );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -77,26 +78,27 @@
+ 	 * @param string $feedback Message data.
+ 	 * @param mixed  ...$args  Optional text replacements.
+ 	 */
+-	public function feedback( $feedback, ...$args ) {
++	public function feedback( mixed $feedback, mixed ...$args ): mixed {
+ 		if ( isset( $this->upgrader->strings[ $feedback ] ) ) {
+ 			$feedback = $this->upgrader->strings[ $feedback ];
+ 		}
+ 
+ 		if ( str_contains( $feedback, '%' ) ) {
+ 			if ( $args ) {
+-				$args     = array_map( 'strip_tags', $args );
+-				$args     = array_map( 'esc_html', $args );
++				$args     = \wp_aot_array_map( 'strip_tags', $args );
++				$args     = \wp_aot_array_map( 'esc_html', $args );
+ 				$feedback = vsprintf( $feedback, $args );
+ 			}
+ 		}
+ 		if ( empty( $feedback ) ) {
+-			return;
++			return null;
+ 		}
+ 		if ( $this->in_loop ) {
+ 			echo "$feedback<br />\n";
+ 		} else {
+ 			echo "<p>$feedback</p>\n";
+ 		}
++		return null;
+ 	}
+ 
+ 	/**
+@@ -104,8 +106,9 @@
+ 	 *
+ 	 * @since 3.0.0
+ 	 */
+-	public function header() {
++	public function header(): mixed {
+ 		// Nothing. This will be displayed within an iframe.
++		return null;
+ 	}
+ 
+ 	/**
+@@ -113,8 +116,9 @@
+ 	 *
+ 	 * @since 3.0.0
+ 	 */
+-	public function footer() {
++	public function footer(): mixed {
+ 		// Nothing. This will be displayed within an iframe.
++		return null;
+ 	}
+ 
+ 	/**
+@@ -125,7 +129,7 @@
+ 	 *
+ 	 * @param string|WP_Error $errors Errors.
+ 	 */
+-	public function error( $errors ) {
++	public function error( mixed $errors, mixed ...$args ): mixed {
+ 		if ( is_string( $errors ) && isset( $this->upgrader->strings[ $errors ] ) ) {
+ 			$this->error = $this->upgrader->strings[ $errors ];
+ 		}
+@@ -142,6 +146,7 @@
+ 			$this->error = implode( ', ', $messages );
+ 		}
+ 		echo '<script>jQuery(\'.waiting-' . esc_js( $this->upgrader->update_current ) . '\').hide();</script>';
++		return null;
+ 	}
+ 
+ 	/**
+@@ -149,8 +154,9 @@
+ 	 *
+ 	 * @since 3.0.0
+ 	 */
+-	public function bulk_header() {
++	public function bulk_header(): mixed {
+ 		$this->feedback( 'skin_upgrade_start' );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -158,8 +164,9 @@
+ 	 *
+ 	 * @since 3.0.0
+ 	 */
+-	public function bulk_footer() {
++	public function bulk_footer(): mixed {
+ 		$this->feedback( 'skin_upgrade_end' );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -169,13 +176,14 @@
+ 	 *
+ 	 * @param string $title
+ 	 */
+-	public function before( $title = '' ) {
++	public function before( mixed $title = '' ): mixed {
+ 		$this->in_loop = true;
+ 		printf( '<h2>' . $this->upgrader->strings['skin_before_update_header'] . ' <span class="spinner waiting-' . $this->upgrader->update_current . '"></span></h2>', $title, $this->upgrader->update_current, $this->upgrader->update_count );
+ 		echo '<script>jQuery(\'.waiting-' . esc_js( $this->upgrader->update_current ) . '\').css("display", "inline-block");</script>';
+ 		// This progress messages div gets moved via JavaScript when clicking on "More details.".
+ 		echo '<div class="update-messages hide-if-js" id="progress-' . esc_attr( $this->upgrader->update_current ) . '"><p>';
+ 		$this->flush_output();
++		return null;
+ 	}
+ 
+ 	/**
+@@ -185,7 +193,7 @@
+ 	 *
+ 	 * @param string $title
+ 	 */
+-	public function after( $title = '' ) {
++	public function after( mixed $title = '' ): mixed {
+ 		echo '</p></div>';
+ 		if ( $this->error || ! $this->result ) {
+ 			if ( $this->error ) {
+@@ -215,6 +223,7 @@
+ 
+ 		$this->reset();
+ 		$this->flush_output();
++		return null;
+ 	}
+ 
+ 	/**
+@@ -222,9 +231,10 @@
+ 	 *
+ 	 * @since 3.0.0
+ 	 */
+-	public function reset() {
++	public function reset(): mixed {
+ 		$this->in_loop = false;
+ 		$this->error   = false;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -232,8 +242,9 @@
+ 	 *
+ 	 * @since 3.0.0
+ 	 */
+-	public function flush_output() {
++	public function flush_output(): mixed {
+ 		wp_ob_end_flush_all();
+-		flush();
++		\wp_aot_native_api('flush', array());
++		return null;
+ 	}
+ }

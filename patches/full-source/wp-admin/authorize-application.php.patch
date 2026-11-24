@@ -1,0 +1,20 @@
+--- a/wp-admin/authorize-application.php
++++ b/wp-admin/authorize-application.php
+@@ -58,7 +58,7 @@
+ 	if ( $redirect ) {
+ 		// Explicitly not using wp_safe_redirect b/c sends to arbitrary domain.
+ 		wp_redirect( $redirect );
+-		exit;
++		\wp_aot_exit();
+ 	}
+ }
+ 
+@@ -79,7 +79,7 @@
+ 
+ $user = wp_get_current_user();
+ 
+-$request  = compact( 'app_name', 'app_id', 'success_url', 'reject_url' );
++$request  = \wp_aot_compact(get_defined_vars(), array( 'app_name', 'app_id', 'success_url', 'reject_url' ));
+ $is_valid = wp_is_authorize_application_password_request_valid( $request, $user );
+ 
+ if ( is_wp_error( $is_valid ) ) {

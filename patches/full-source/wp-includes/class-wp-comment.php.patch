@@ -1,0 +1,91 @@
+--- a/wp-includes/class-wp-comment.php
++++ b/wp-includes/class-wp-comment.php
+@@ -253,7 +253,7 @@
+ 	 * @phpstan-param int|numeric-string $id
+ 	 * @return WP_Comment|false Comment object, otherwise false.
+ 	 */
+-	public static function get_instance( $id ) {
++	public static function get_instance( mixed $id ): mixed {
+ 		global $wpdb;
+ 
+ 		$comment_id = (int) $id;
+@@ -265,7 +265,7 @@
+ 
+ 		if ( ! is_object( $_comment ) ) {
+ 			/** @var object{ comment_ID: string, comment_post_ID: string, comment_author: string, comment_author_email: string, comment_author_url: string, comment_author_IP: string, comment_date: string, comment_date_gmt: string, comment_content: string, comment_karma: string, comment_approved: string, comment_agent: string, comment_type: string, comment_parent: string, user_id: string }|null $_comment */
+-			$_comment = $wpdb->get_row( $wpdb->prepare( "SELECT * FROM $wpdb->comments WHERE comment_ID = %d LIMIT 1", $comment_id ) );
++			$_comment = \wp_aot_require_wpdb( $wpdb )->get_row( \wp_aot_require_wpdb( $wpdb )->prepare( "SELECT * FROM $wpdb->comments WHERE comment_ID = %d LIMIT 1", $comment_id ) );
+ 
+ 			if ( ! $_comment ) {
+ 				return false;
+@@ -275,6 +275,7 @@
+ 		}
+ 
+ 		return new WP_Comment( $_comment );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -286,7 +287,7 @@
+ 	 *
+ 	 * @param object $comment Comment object.
+ 	 */
+-	public function __construct( $comment ) {
++	public function __construct( mixed $comment ) {
+ 		foreach ( get_object_vars( $comment ) as $key => $value ) {
+ 			$this->$key = $value;
+ 		}
+@@ -382,7 +383,7 @@
+ 	 *     )
+ 	 * )
+ 	 */
+-	public function get_children( $args = array() ) {
++	public function get_children( mixed $args = array() ): mixed {
+ 		$defaults = array(
+ 			'format'       => 'tree',
+ 			'status'       => 'all',
+@@ -429,13 +430,14 @@
+ 				// get_children() resets this value automatically.
+ 				unset( $child_args['parent'] );
+ 
+-				$children = array_merge( $children, array( $child ), $child->get_children( $child_args ) );
++				$children = \wp_aot_array_merge(array( $children, array( $child ), $child->get_children( $child_args ) ));
+ 			}
+ 		} else {
+ 			$children = $this->children;
+ 		}
+ 
+ 		return $children;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -459,8 +461,9 @@
+ 	 * @param int $child_id ID of the child.
+ 	 * @return WP_Comment|false Returns the comment object if found, otherwise false.
+ 	 */
+-	public function get_child( $child_id ) {
++	public function get_child( mixed $child_id ): mixed {
+ 		return $this->children[ $child_id ] ?? false;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -473,7 +476,7 @@
+ 	 *
+ 	 * @param bool $set Whether the comment's children have already been populated.
+ 	 */
+-	public function populated_children( $set ): void {
++	public function populated_children( mixed $set ): void {
+ 		$this->populated_children = (bool) $set;
+ 	}
+ 
+@@ -491,7 +494,7 @@
+ 	public function __isset( $name ) {
+ 		if ( in_array( $name, $this->post_fields, true ) && 0 !== (int) $this->comment_post_ID ) {
+ 			$post = get_post( (int) $this->comment_post_ID );
+-			return $post && property_exists( $post, $name );
++			return $post && \wp_aot_property_exists( $post, $name );
+ 		}
+ 
+ 		return false;

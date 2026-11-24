@@ -1,0 +1,117 @@
+--- a/wp-includes/class-walker-category.php
++++ b/wp-includes/class-walker-category.php
+@@ -24,7 +24,7 @@
+ 	 *
+ 	 * @see Walker::$tree_type
+ 	 */
+-	public $tree_type = 'category';
++	public mixed $tree_type = 'category';
+ 
+ 	/**
+ 	 * Database fields to use.
+@@ -35,7 +35,7 @@
+ 	 * @see Walker::$db_fields
+ 	 * @todo Decouple this
+ 	 */
+-	public $db_fields = array(
++	public mixed $db_fields = array(
+ 		'parent' => 'parent',
+ 		'id'     => 'term_id',
+ 	);
+@@ -52,13 +52,14 @@
+ 	 * @param array  $args   Optional. An array of arguments. Will only append content if style argument
+ 	 *                       value is 'list'. See wp_list_categories(). Default empty array.
+ 	 */
+-	public function start_lvl( &$output, $depth = 0, $args = array() ) {
++	public function start_lvl( mixed &$output, mixed $depth = 0, mixed $args = array() ): mixed {
+ 		if ( 'list' !== $args['style'] ) {
+-			return;
++			return null;
+ 		}
+ 
+ 		$indent  = str_repeat( "\t", $depth );
+ 		$output .= "$indent<ul class='children'>\n";
++		return null;
+ 	}
+ 
+ 	/**
+@@ -73,13 +74,14 @@
+ 	 * @param array  $args   Optional. An array of arguments. Will only append content if style argument
+ 	 *                       value is 'list'. See wp_list_categories(). Default empty array.
+ 	 */
+-	public function end_lvl( &$output, $depth = 0, $args = array() ) {
++	public function end_lvl( mixed &$output, mixed $depth = 0, mixed $args = array() ): mixed {
+ 		if ( 'list' !== $args['style'] ) {
+-			return;
++			return null;
+ 		}
+ 
+ 		$indent  = str_repeat( "\t", $depth );
+ 		$output .= "$indent</ul>\n";
++		return null;
+ 	}
+ 
+ 	/**
+@@ -98,7 +100,7 @@
+ 	 *                                   Default empty array.
+ 	 * @param int     $current_object_id Optional. ID of the current category. Default 0.
+ 	 */
+-	public function start_el( &$output, $data_object, $depth = 0, $args = array(), $current_object_id = 0 ) {
++	public function start_el( mixed &$output, mixed $data_object, mixed $depth = 0, mixed $args = array(), mixed $current_object_id = 0 ): mixed {
+ 		// Restores the more descriptive, specific name for use within this method.
+ 		$category = $data_object;
+ 
+@@ -107,7 +109,7 @@
+ 
+ 		// Don't generate an element if the category name is empty.
+ 		if ( '' === $cat_name ) {
+-			return;
++			return null;
+ 		}
+ 
+ 		$atts         = array();
+@@ -196,10 +198,10 @@
+ 
+ 		if ( 'list' === $args['style'] ) {
+ 			$output     .= "\t<li";
+-			$css_classes = array(
++			$css_classes = \wp_aot_mixed(array(
+ 				'cat-item',
+ 				'cat-item-' . $category->term_id,
+-			);
++			));
+ 
+ 			if ( ! empty( $args['current_category'] ) ) {
+ 				// 'current_category' can be an array, so we use `get_terms()`.
+@@ -214,7 +216,7 @@
+ 				foreach ( $_current_terms as $_current_term ) {
+ 					if ( $category->term_id === $_current_term->term_id ) {
+ 						$css_classes[] = 'current-cat';
+-						$link          = str_replace( '<a', '<a aria-current="page"', $link );
++						$link          = \wp_aot_str_replace( '<a', '<a aria-current="page"', $link );
+ 					} elseif ( $category->term_id === $_current_term->parent ) {
+ 						$css_classes[] = 'current-cat-parent';
+ 					}
+@@ -252,6 +254,7 @@
+ 		} else {
+ 			$output .= "\t$link<br />\n";
+ 		}
++		return null;
+ 	}
+ 
+ 	/**
+@@ -268,11 +271,12 @@
+ 	 * @param array  $args        Optional. An array of arguments. Only uses 'list' for whether should
+ 	 *                            append to output. See wp_list_categories(). Default empty array.
+ 	 */
+-	public function end_el( &$output, $data_object, $depth = 0, $args = array() ) {
++	public function end_el( mixed &$output, mixed $data_object, mixed $depth = 0, mixed $args = array() ): mixed {
+ 		if ( 'list' !== $args['style'] ) {
+-			return;
++			return null;
+ 		}
+ 
+ 		$output .= "</li>\n";
++		return null;
+ 	}
+ }

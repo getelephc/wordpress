@@ -1,0 +1,384 @@
+--- a/wp-includes/php-ai-client/src/Builders/PromptBuilder.php
++++ b/wp-includes/php-ai-client/src/Builders/PromptBuilder.php
+@@ -92,7 +92,7 @@
+      * @param EventDispatcherInterface|null $eventDispatcher Optional event dispatcher for lifecycle events.
+      */
+     // phpcs:enable Generic.Files.LineLength.TooLong
+-    public function __construct(ProviderRegistry $registry, $prompt = null, ?EventDispatcherInterface $eventDispatcher = null)
++    public function __construct(ProviderRegistry $registry, mixed $prompt = null, ?EventDispatcherInterface $eventDispatcher = null)
+     {
+         $this->registry = $registry;
+         $this->modelConfig = new ModelConfig();
+@@ -102,11 +102,11 @@
+         }
+         // Check if it's a list of Messages - set as messages
+         if ($this->isMessagesList($prompt)) {
+-            $this->messages = $prompt;
++            $this->messages = \wp_aot_require_array( $prompt );
+             return;
+         }
+         // Parse it as a user message
+-        $userMessage = $this->parseMessage($prompt, MessageRoleEnum::user());
++        $userMessage = $this->parseMessage($prompt, \wp_aot_require_WordPress_AiClient_Messages_Enums_MessageRoleEnum( MessageRoleEnum::user() ));
+         $this->messages[] = $userMessage;
+     }
+     /**
+@@ -166,9 +166,9 @@
+      * @return self
+      * @throws InvalidArgumentException If the file is invalid or MIME type cannot be determined.
+      */
+-    public function withFile($file, ?string $mimeType = null): self
+-    {
+-        $file = $file instanceof File ? $file : new File($file, $mimeType);
++    public function withFile(mixed $file, ?string $mimeType = null): self
++    {
++        $file = $file instanceof File ? $file : new File(\wp_aot_require_string( $file ), $mimeType);
+         $part = new MessagePart($file);
+         $this->appendPartToMessages($part);
+         return $this;
+@@ -216,7 +216,7 @@
+     public function withHistory(Message ...$messages): self
+     {
+         // Prepend the history messages to the beginning of the messages array
+-        $this->messages = array_merge($messages, $this->messages);
++        $this->messages = \wp_aot_array_merge(array($messages, $this->messages));
+         return $this;
+     }
+     /**
+@@ -236,7 +236,7 @@
+         // Merge model's config with builder's config, with builder's config taking precedence
+         $modelConfigArray = $model->getConfig()->toArray();
+         $builderConfigArray = $this->modelConfig->toArray();
+-        $mergedConfigArray = array_merge($modelConfigArray, $builderConfigArray);
++        $mergedConfigArray = \wp_aot_array_merge(array($modelConfigArray, $builderConfigArray));
+         $this->modelConfig = ModelConfig::fromArray($mergedConfigArray);
+         return $this;
+     }
+@@ -253,7 +253,7 @@
+      *
+      * @throws InvalidArgumentException When a preferred model has an invalid type or identifier.
+      */
+-    public function usingModelPreference(...$preferredModels): self
++    public function usingModelPreference(mixed ...$preferredModels): self
+     {
+         if ($preferredModels === []) {
+             throw new InvalidArgumentException('At least one model preference must be provided.');
+@@ -304,7 +304,7 @@
+         $builderConfigArray = $this->modelConfig->toArray();
+         $providedConfigArray = $config->toArray();
+         // Merge arrays with builder config taking precedence
+-        $mergedArray = array_merge($providedConfigArray, $builderConfigArray);
++        $mergedArray = \wp_aot_array_merge(array($providedConfigArray, $builderConfigArray));
+         // Create new config from merged array
+         $this->modelConfig = ModelConfig::fromArray($mergedArray);
+         return $this;
+@@ -626,23 +626,23 @@
+         $outputModalities = $this->modelConfig->getOutputModalities();
+         // Default to text if no output modality is specified
+         if ($outputModalities === null || empty($outputModalities)) {
+-            return CapabilityEnum::textGeneration();
++            return \wp_aot_require_WordPress_AiClient_Providers_Models_Enums_CapabilityEnum( CapabilityEnum::textGeneration() );
+         }
+         // Multi-modal output (multiple modalities) defaults to text generation. This is temporary
+         // as a multi-modal interface will be implemented in the future.
+         if (count($outputModalities) > 1) {
+-            return CapabilityEnum::textGeneration();
++            return \wp_aot_require_WordPress_AiClient_Providers_Models_Enums_CapabilityEnum( CapabilityEnum::textGeneration() );
+         }
+         // Infer capability from single output modality
+         $outputModality = $outputModalities[0];
+         if ($outputModality->isText()) {
+-            return CapabilityEnum::textGeneration();
++            return \wp_aot_require_WordPress_AiClient_Providers_Models_Enums_CapabilityEnum( CapabilityEnum::textGeneration() );
+         } elseif ($outputModality->isImage()) {
+-            return CapabilityEnum::imageGeneration();
++            return \wp_aot_require_WordPress_AiClient_Providers_Models_Enums_CapabilityEnum( CapabilityEnum::imageGeneration() );
+         } elseif ($outputModality->isAudio()) {
+-            return CapabilityEnum::speechGeneration();
++            return \wp_aot_require_WordPress_AiClient_Providers_Models_Enums_CapabilityEnum( CapabilityEnum::speechGeneration() );
+         } elseif ($outputModality->isVideo()) {
+-            return CapabilityEnum::videoGeneration();
++            return \wp_aot_require_WordPress_AiClient_Providers_Models_Enums_CapabilityEnum( CapabilityEnum::videoGeneration() );
+         } else {
+             // For unsupported modalities, provide a clear error message
+             throw new RuntimeException(sprintf('Output modality "%s" is not yet supported.', $outputModality->value));
+@@ -660,22 +660,22 @@
+     {
+         // Check model interfaces in order of preference
+         if ($model instanceof TextGenerationModelInterface) {
+-            return CapabilityEnum::textGeneration();
++            return \wp_aot_require_nullable_WordPress_AiClient_Providers_Models_Enums_CapabilityEnum( CapabilityEnum::textGeneration() );
+         }
+         if ($model instanceof ImageGenerationModelInterface) {
+-            return CapabilityEnum::imageGeneration();
++            return \wp_aot_require_nullable_WordPress_AiClient_Providers_Models_Enums_CapabilityEnum( CapabilityEnum::imageGeneration() );
+         }
+         if ($model instanceof TextToSpeechConversionModelInterface) {
+-            return CapabilityEnum::textToSpeechConversion();
++            return \wp_aot_require_nullable_WordPress_AiClient_Providers_Models_Enums_CapabilityEnum( CapabilityEnum::textToSpeechConversion() );
+         }
+         if ($model instanceof SpeechGenerationModelInterface) {
+-            return CapabilityEnum::speechGeneration();
++            return \wp_aot_require_nullable_WordPress_AiClient_Providers_Models_Enums_CapabilityEnum( CapabilityEnum::speechGeneration() );
+         }
+         if ($model instanceof VideoGenerationModelInterface) {
+-            return CapabilityEnum::videoGeneration();
++            return \wp_aot_require_nullable_WordPress_AiClient_Providers_Models_Enums_CapabilityEnum( CapabilityEnum::videoGeneration() );
+         }
+         // No supported interface found
+-        return null;
++        return \wp_aot_require_nullable_WordPress_AiClient_Providers_Models_Enums_CapabilityEnum( null );
+     }
+     /**
+      * Checks if the current prompt is supported by the selected model.
+@@ -726,7 +726,7 @@
+      */
+     public function isSupportedForTextGeneration(): bool
+     {
+-        return $this->isSupported(CapabilityEnum::textGeneration());
++        return $this->isSupported(\wp_aot_require_nullable_WordPress_AiClient_Providers_Models_Enums_CapabilityEnum( CapabilityEnum::textGeneration() ));
+     }
+     /**
+      * Checks if the prompt is supported for image generation.
+@@ -737,7 +737,7 @@
+      */
+     public function isSupportedForImageGeneration(): bool
+     {
+-        return $this->isSupported(CapabilityEnum::imageGeneration());
++        return $this->isSupported(\wp_aot_require_nullable_WordPress_AiClient_Providers_Models_Enums_CapabilityEnum( CapabilityEnum::imageGeneration() ));
+     }
+     /**
+      * Checks if the prompt is supported for text to speech conversion.
+@@ -748,7 +748,7 @@
+      */
+     public function isSupportedForTextToSpeechConversion(): bool
+     {
+-        return $this->isSupported(CapabilityEnum::textToSpeechConversion());
++        return $this->isSupported(\wp_aot_require_nullable_WordPress_AiClient_Providers_Models_Enums_CapabilityEnum( CapabilityEnum::textToSpeechConversion() ));
+     }
+     /**
+      * Checks if the prompt is supported for video generation.
+@@ -759,7 +759,7 @@
+      */
+     public function isSupportedForVideoGeneration(): bool
+     {
+-        return $this->isSupported(CapabilityEnum::videoGeneration());
++        return $this->isSupported(\wp_aot_require_nullable_WordPress_AiClient_Providers_Models_Enums_CapabilityEnum( CapabilityEnum::videoGeneration() ));
+     }
+     /**
+      * Checks if the prompt is supported for speech generation.
+@@ -770,7 +770,7 @@
+      */
+     public function isSupportedForSpeechGeneration(): bool
+     {
+-        return $this->isSupported(CapabilityEnum::speechGeneration());
++        return $this->isSupported(\wp_aot_require_nullable_WordPress_AiClient_Providers_Models_Enums_CapabilityEnum( CapabilityEnum::speechGeneration() ));
+     }
+     /**
+      * Checks if the prompt is supported for music generation.
+@@ -781,7 +781,7 @@
+      */
+     public function isSupportedForMusicGeneration(): bool
+     {
+-        return $this->isSupported(CapabilityEnum::musicGeneration());
++        return $this->isSupported(\wp_aot_require_nullable_WordPress_AiClient_Providers_Models_Enums_CapabilityEnum( CapabilityEnum::musicGeneration() ));
+     }
+     /**
+      * Checks if the prompt is supported for embedding generation.
+@@ -792,7 +792,7 @@
+      */
+     public function isSupportedForEmbeddingGeneration(): bool
+     {
+-        return $this->isSupported(CapabilityEnum::embeddingGeneration());
++        return $this->isSupported(\wp_aot_require_nullable_WordPress_AiClient_Providers_Models_Enums_CapabilityEnum( CapabilityEnum::embeddingGeneration() ));
+     }
+     /**
+      * Generates a result from the prompt.
+@@ -893,9 +893,9 @@
+     public function generateTextResult(): GenerativeAiResult
+     {
+         // Include text in output modalities
+-        $this->includeOutputModalities(ModalityEnum::text());
++        $this->includeOutputModalities(\wp_aot_require_WordPress_AiClient_Messages_Enums_ModalityEnum( ModalityEnum::text() ));
+         // Generate and return the result with text generation capability
+-        return $this->generateResult(CapabilityEnum::textGeneration());
++        return $this->generateResult(\wp_aot_require_nullable_WordPress_AiClient_Providers_Models_Enums_CapabilityEnum( CapabilityEnum::textGeneration() ));
+     }
+     /**
+      * Generates an image result from the prompt.
+@@ -909,9 +909,9 @@
+     public function generateImageResult(): GenerativeAiResult
+     {
+         // Include image in output modalities
+-        $this->includeOutputModalities(ModalityEnum::image());
++        $this->includeOutputModalities(\wp_aot_require_WordPress_AiClient_Messages_Enums_ModalityEnum( ModalityEnum::image() ));
+         // Generate and return the result with image generation capability
+-        return $this->generateResult(CapabilityEnum::imageGeneration());
++        return $this->generateResult(\wp_aot_require_nullable_WordPress_AiClient_Providers_Models_Enums_CapabilityEnum( CapabilityEnum::imageGeneration() ));
+     }
+     /**
+      * Generates a speech result from the prompt.
+@@ -925,9 +925,9 @@
+     public function generateSpeechResult(): GenerativeAiResult
+     {
+         // Include audio in output modalities
+-        $this->includeOutputModalities(ModalityEnum::audio());
++        $this->includeOutputModalities(\wp_aot_require_WordPress_AiClient_Messages_Enums_ModalityEnum( ModalityEnum::audio() ));
+         // Generate and return the result with speech generation capability
+-        return $this->generateResult(CapabilityEnum::speechGeneration());
++        return $this->generateResult(\wp_aot_require_nullable_WordPress_AiClient_Providers_Models_Enums_CapabilityEnum( CapabilityEnum::speechGeneration() ));
+     }
+     /**
+      * Converts text to speech and returns the result.
+@@ -941,9 +941,9 @@
+     public function convertTextToSpeechResult(): GenerativeAiResult
+     {
+         // Include audio in output modalities
+-        $this->includeOutputModalities(ModalityEnum::audio());
++        $this->includeOutputModalities(\wp_aot_require_WordPress_AiClient_Messages_Enums_ModalityEnum( ModalityEnum::audio() ));
+         // Generate and return the result with text-to-speech conversion capability
+-        return $this->generateResult(CapabilityEnum::textToSpeechConversion());
++        return $this->generateResult(\wp_aot_require_nullable_WordPress_AiClient_Providers_Models_Enums_CapabilityEnum( CapabilityEnum::textToSpeechConversion() ));
+     }
+     /**
+      * Generates a video result from the prompt.
+@@ -957,9 +957,9 @@
+     public function generateVideoResult(): GenerativeAiResult
+     {
+         // Include video in output modalities
+-        $this->includeOutputModalities(ModalityEnum::video());
++        $this->includeOutputModalities(\wp_aot_require_WordPress_AiClient_Messages_Enums_ModalityEnum( ModalityEnum::video() ));
+         // Generate and return the result with video generation capability
+-        return $this->generateResult(CapabilityEnum::videoGeneration());
++        return $this->generateResult(\wp_aot_require_nullable_WordPress_AiClient_Providers_Models_Enums_CapabilityEnum( CapabilityEnum::videoGeneration() ));
+     }
+     /**
+      * Generates text from the prompt.
+@@ -1123,10 +1123,10 @@
+      */
+     protected function appendPartToMessages(MessagePart $part): void
+     {
+-        $lastMessage = end($this->messages);
++        $lastMessage = \wp_aot_array_last($this->messages);
+         if ($lastMessage instanceof Message && $lastMessage->getRole()->isUser()) {
+             // Replace the last message with a new one containing the appended part
+-            array_pop($this->messages);
++            \wp_aot_array_pop($this->messages);
+             $this->messages[] = $lastMessage->withPart($part);
+             return;
+         }
+@@ -1168,7 +1168,7 @@
+         // Check if any preferred models match the candidates, in priority order.
+         if (!empty($this->modelPreferenceKeys)) {
+             // Find preferences that match available candidates, preserving preference order.
+-            $matchingPreferences = array_intersect_key(array_flip($this->modelPreferenceKeys), $candidateMap);
++            $matchingPreferences = \wp_aot_intersect_keys(\wp_aot_require_array( \wp_aot_array_flip($this->modelPreferenceKeys) ), $candidateMap);
+             if (!empty($matchingPreferences)) {
+                 // Get the first matching preference key
+                 $firstMatchKey = key($matchingPreferences);
+@@ -1216,17 +1216,17 @@
+             $candidateMap = [];
+             foreach ($providerModelsMetadata as $providerModels) {
+                 $providerId = $providerModels->getProvider()->getId();
+-                $providerMap = $this->generateMapFromCandidates($providerId, $providerModels->getModels());
++                $providerMap = $this->generateMapFromCandidates($providerId, \wp_aot_require_array( $providerModels->getModels() ));
+                 // Use + operator to merge, preserving keys from $candidateMap (first provider wins for model-only keys)
+-                $candidateMap = $candidateMap + $providerMap;
+-            }
+-            return $candidateMap;
++                $candidateMap = \wp_aot_array_union(\wp_aot_require_array( $candidateMap ), $providerMap);
++            }
++            return \wp_aot_require_array( $candidateMap );
+         }
+         // Provider set, only consider models from that provider.
+         $modelsMetadata = $this->registry->findProviderModelsMetadataForSupport($this->providerIdOrClassName, $requirements);
+         // Ensure we pass the provider ID, not the class name
+-        $providerId = $this->registry->getProviderId($this->providerIdOrClassName);
+-        return $this->generateMapFromCandidates($providerId, $modelsMetadata);
++        $providerId = $this->registry->getProviderId(\wp_aot_require_string( $this->providerIdOrClassName ));
++        return \wp_aot_require_array( $this->generateMapFromCandidates($providerId, $modelsMetadata) );
+     }
+     /**
+      * Generates a candidate map from model metadata with both provider-specific and model-only keys.
+@@ -1262,7 +1262,7 @@
+      *
+      * @throws InvalidArgumentException If the value is not a non-empty string.
+      */
+-    private function normalizePreferenceIdentifier($value, string $emptyMessage = 'Model preference identifiers cannot be empty.'): string
++    private function normalizePreferenceIdentifier(mixed $value, string $emptyMessage = 'Model preference identifiers cannot be empty.'): string
+     {
+         if (!is_string($value)) {
+             throw new InvalidArgumentException($emptyMessage);
+@@ -1308,7 +1308,7 @@
+      * @return Message The parsed message.
+      * @throws InvalidArgumentException If the input type is not supported or results in empty message.
+      */
+-    private function parseMessage($input, MessageRoleEnum $defaultRole): Message
++    private function parseMessage(mixed $input, MessageRoleEnum $defaultRole): Message
+     {
+         // Handle Message input directly
+         if ($input instanceof Message) {
+@@ -1330,12 +1330,12 @@
+             throw new InvalidArgumentException('Input must be a string, MessagePart, MessagePartArrayShape, ' . 'a list of string|MessagePart|MessagePartArrayShape, or a Message instance.');
+         }
+         // Handle MessageArrayShape input
+-        if (Message::isArrayShape($input)) {
+-            return Message::fromArray($input);
++        if (Message::isArrayShape(\wp_aot_require_array( $input ))) {
++            return Message::fromArray(\wp_aot_require_array( $input ));
+         }
+         // Check if it's a MessagePartArrayShape
+-        if (MessagePart::isArrayShape($input)) {
+-            return new Message($defaultRole, [MessagePart::fromArray($input)]);
++        if (MessagePart::isArrayShape(\wp_aot_require_array( $input ))) {
++            return new Message($defaultRole, [MessagePart::fromArray(\wp_aot_require_array( $input ))]);
+         }
+         // It should be a list of string|MessagePart|MessagePartArrayShape
+         if (!array_is_list($input)) {
+@@ -1351,8 +1351,8 @@
+                 $parts[] = new MessagePart($item);
+             } elseif ($item instanceof MessagePart) {
+                 $parts[] = $item;
+-            } elseif (is_array($item) && MessagePart::isArrayShape($item)) {
+-                $parts[] = MessagePart::fromArray($item);
++            } elseif (is_array($item) && MessagePart::isArrayShape(\wp_aot_require_array( $item ))) {
++                $parts[] = MessagePart::fromArray(\wp_aot_require_array( $item ));
+             } else {
+                 throw new InvalidArgumentException('Array items must be strings, MessagePart instances, or MessagePartArrayShape.');
+             }
+@@ -1377,11 +1377,11 @@
+         if (empty($this->messages)) {
+             throw new InvalidArgumentException('Cannot generate from an empty prompt. Add content using withText() or similar methods.');
+         }
+-        $firstMessage = reset($this->messages);
++        $firstMessage = \wp_aot_array_first($this->messages);
+         if (!$firstMessage->getRole()->isUser()) {
+             throw new InvalidArgumentException('The first message must be from a user role, not from ' . $firstMessage->getRole()->value);
+         }
+-        $lastMessage = end($this->messages);
++        $lastMessage = \wp_aot_array_last($this->messages);
+         if (!$lastMessage->getRole()->isUser()) {
+             throw new InvalidArgumentException('The last message must be from a user role, not from ' . $lastMessage->getRole()->value);
+         }
+@@ -1399,9 +1399,9 @@
+      *
+      * @phpstan-assert-if-true list<Message> $value
+      */
+-    private function isMessagesList($value): bool
+-    {
+-        if (!is_array($value) || empty($value) || !array_is_list($value)) {
++    private function isMessagesList(mixed $value): bool
++    {
++        if (!is_array($value) || empty($value) || !array_is_list(\wp_aot_require_array( $value ))) {
+             return \false;
+         }
+         // Check if all items are Messages
+@@ -1446,7 +1446,7 @@
+         }
+         // Update if we have new modalities to add
+         if (!empty($toAdd)) {
+-            $this->modelConfig->setOutputModalities(array_merge($existing, $toAdd));
++            $this->modelConfig->setOutputModalities(\wp_aot_array_merge(array($existing, $toAdd)));
+         }
+     }
+     /**

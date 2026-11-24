@@ -1,0 +1,29 @@
+--- a/wp-includes/php-ai-client/third-party/Nyholm/Psr7/UploadedFile.php
++++ b/wp-includes/php-ai-client/third-party/Nyholm/Psr7/UploadedFile.php
+@@ -37,7 +37,7 @@
+      * @param string|null $clientFilename
+      * @param string|null $clientMediaType
+      */
+-    public function __construct($streamOrFile, $size, $errorStatus, $clientFilename = null, $clientMediaType = null)
++    public function __construct(mixed $streamOrFile, mixed $size, mixed $errorStatus, mixed $clientFilename = null, mixed $clientMediaType = null)
+     {
+         if (\false === \is_int($errorStatus) || !isset(self::ERRORS[$errorStatus])) {
+             throw new \InvalidArgumentException('Upload file error status must be an integer value and one of the "UPLOAD_ERR_*" constants');
+@@ -91,7 +91,7 @@
+         }
+         return Stream::create($resource);
+     }
+-    public function moveTo($targetPath): void
++    public function moveTo(mixed $targetPath): void
+     {
+         $this->validateActive();
+         if (!\is_string($targetPath) || '' === $targetPath) {
+@@ -121,7 +121,7 @@
+     }
+     public function getSize(): int
+     {
+-        return $this->size;
++        return \wp_aot_require_int( $this->size );
+     }
+     public function getError(): int
+     {

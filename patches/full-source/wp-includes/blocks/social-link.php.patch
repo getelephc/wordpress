@@ -1,0 +1,117 @@
+--- a/wp-includes/blocks/social-link.php
++++ b/wp-includes/blocks/social-link.php
+@@ -16,7 +16,7 @@
+  *
+  * @return string Rendered HTML of the referenced block.
+  */
+-function render_block_core_social_link( $attributes, $content, $block ) {
++function render_block_core_social_link( mixed $attributes, mixed $content, mixed $block ): mixed {
+ 	$open_in_new_tab = $block->context['openInNewTab'] ?? false;
+ 
+ 	$text = ! empty( $attributes['label'] ) ? trim( $attributes['label'] ) : '';
+@@ -71,6 +71,7 @@
+ 		$processor->set_attribute( 'rel', trim( $rel ) );
+ 	}
+ 	return $processor->get_updated_html();
++	return null;
+ }
+ 
+ /**
+@@ -78,13 +79,14 @@
+  *
+  * @since 5.4.0
+  */
+-function register_block_core_social_link() {
++function register_block_core_social_link(): mixed {
+ 	register_block_type_from_metadata(
+ 		__DIR__ . '/social-link',
+ 		array(
+ 			'render_callback' => 'render_block_core_social_link',
+ 		)
+ 	);
++	return null;
+ }
+ add_action( 'init', 'register_block_core_social_link' );
+ 
+@@ -98,13 +100,14 @@
+  *
+  * @return string SVG Element for service icon.
+  */
+-function block_core_social_link_get_icon( $service ) {
++function block_core_social_link_get_icon( mixed $service ): mixed {
+ 	$services = block_core_social_link_services();
+ 	if ( isset( $services[ $service ] ) && isset( $services[ $service ]['icon'] ) ) {
+ 		return $services[ $service ]['icon'];
+ 	}
+ 
+ 	return $services['share']['icon'];
++	return null;
+ }
+ 
+ /**
+@@ -116,13 +119,14 @@
+  *
+  * @return string Brand label.
+  */
+-function block_core_social_link_get_name( $service ) {
++function block_core_social_link_get_name( mixed $service ): mixed {
+ 	$services = block_core_social_link_services();
+ 	if ( isset( $services[ $service ] ) && isset( $services[ $service ]['name'] ) ) {
+ 		return $services[ $service ]['name'];
+ 	}
+ 
+ 	return $services['share']['name'];
++	return null;
+ }
+ 
+ /**
+@@ -135,7 +139,7 @@
+  *
+  * @return array|string
+  */
+-function block_core_social_link_services( $service = '', $field = '' ) {
++function block_core_social_link_services( mixed $service = '', mixed $field = '' ): mixed {
+ 	$services_data = array(
+ 		'fivehundredpx' => array(
+ 			'name' => _x( '500px', 'social link block variation name' ),
+@@ -359,6 +363,7 @@
+ 	}
+ 
+ 	return $services_data;
++	return null;
+ }
+ 
+ /**
+@@ -370,7 +375,7 @@
+  *
+  * @return string Inline CSS styles for link's icon and background colors.
+  */
+-function block_core_social_link_get_color_styles( $context ) {
++function block_core_social_link_get_color_styles( mixed $context ): mixed {
+ 	$styles = array();
+ 
+ 	if ( array_key_exists( 'iconColorValue', $context ) ) {
+@@ -382,6 +387,7 @@
+ 	}
+ 
+ 	return implode( '', $styles );
++	return null;
+ }
+ 
+ /**
+@@ -393,7 +399,7 @@
+  *
+  * @return string CSS classes for link's icon and background colors.
+  */
+-function block_core_social_link_get_color_classes( $context ) {
++function block_core_social_link_get_color_classes( mixed $context ): mixed {
+ 	$classes = array();
+ 
+ 	if ( array_key_exists( 'iconColor', $context ) ) {
+@@ -405,4 +411,5 @@
+ 	}
+ 
+ 	return ' ' . implode( ' ', $classes );
+-}
++	return null;
++}

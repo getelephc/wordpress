@@ -1,6 +1,30 @@
 --- a/wp-includes/customize/class-wp-customize-nav-menu-location-control.php
 +++ b/wp-includes/customize/class-wp-customize-nav-menu-location-control.php
-@@ -64,26 +64,50 @@
+@@ -41,9 +41,10 @@
+ 	 *
+ 	 * @see WP_Customize_Control::to_json()
+ 	 */
+-	public function to_json() {
++	public function to_json(): mixed {
+ 		parent::to_json();
+ 		$this->json['locationId'] = $this->location_id;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -52,9 +53,9 @@
+ 	 * @since 4.3.0
+ 	 * @since 4.9.0 Added a button to create menus.
+ 	 */
+-	public function render_content() {
++	public function render_content(): mixed {
+ 		if ( empty( $this->choices ) ) {
+-			return;
++			return null;
+ 		}
+ 
+ 		$value_hidden_class    = '';
+@@ -64,26 +65,51 @@
  		} else {
  			$no_value_hidden_class = ' hidden';
  		}
@@ -66,5 +90,6 @@
 +_e( 'Edit Menu' ); ;
 +echo '</button>
 +		';
++		return null;
  	}
  }

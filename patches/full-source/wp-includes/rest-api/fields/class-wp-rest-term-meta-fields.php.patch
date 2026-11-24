@@ -1,0 +1,43 @@
+--- a/wp-includes/rest-api/fields/class-wp-rest-term-meta-fields.php
++++ b/wp-includes/rest-api/fields/class-wp-rest-term-meta-fields.php
+@@ -31,7 +31,7 @@
+ 	 *
+ 	 * @param string $taxonomy Taxonomy to register fields for.
+ 	 */
+-	public function __construct( $taxonomy ) {
++	public function __construct( mixed $taxonomy ) {
+ 		$this->taxonomy = $taxonomy;
+ 	}
+ 
+@@ -42,8 +42,9 @@
+ 	 *
+ 	 * @return string The meta type.
+ 	 */
+-	protected function get_meta_type() {
++	protected function get_meta_type(): mixed {
+ 		return 'term';
++		return null;
+ 	}
+ 
+ 	/**
+@@ -53,8 +54,9 @@
+ 	 *
+ 	 * @return string Subtype for the meta type, or empty string if no specific subtype.
+ 	 */
+-	protected function get_meta_subtype() {
++	protected function get_meta_subtype(): mixed {
+ 		return $this->taxonomy;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -64,7 +66,8 @@
+ 	 *
+ 	 * @return string The REST field type.
+ 	 */
+-	public function get_rest_field_type() {
++	public function get_rest_field_type(): mixed {
+ 		return 'post_tag' === $this->taxonomy ? 'tag' : $this->taxonomy;
++		return null;
+ 	}
+ }

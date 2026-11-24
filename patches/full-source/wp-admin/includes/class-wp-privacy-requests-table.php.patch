@@ -1,0 +1,304 @@
+--- a/wp-admin/includes/class-wp-privacy-requests-table.php
++++ b/wp-admin/includes/class-wp-privacy-requests-table.php
+@@ -37,7 +37,7 @@
+ 	 *
+ 	 * @return string[] Array of column titles keyed by their column name.
+ 	 */
+-	public function get_columns() {
++	public function get_columns(): mixed {
+ 		$columns = array(
+ 			'cb'                => '<input type="checkbox" />',
+ 			'email'             => __( 'Requester' ),
+@@ -46,6 +46,7 @@
+ 			'next_steps'        => __( 'Next steps' ),
+ 		);
+ 		return $columns;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -55,14 +56,15 @@
+ 	 *
+ 	 * @return string URL to the current admin page.
+ 	 */
+-	protected function get_admin_url() {
+-		$pagenow = str_replace( '_', '-', $this->request_type );
++	protected function get_admin_url(): mixed {
++		$pagenow = \wp_aot_str_replace( '_', '-', $this->request_type );
+ 
+ 		if ( 'remove-personal-data' === $pagenow ) {
+ 			$pagenow = 'erase-personal-data';
+ 		}
+ 
+ 		return admin_url( $pagenow . '.php' );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -72,7 +74,7 @@
+ 	 *
+ 	 * @return array Default sortable columns.
+ 	 */
+-	protected function get_sortable_columns() {
++	protected function get_sortable_columns(): mixed {
+ 		/*
+ 		 * The initial sorting is by 'Requested' (post_date) and descending.
+ 		 * With initial sorting, the first click on 'Requested' should be ascending.
+@@ -84,6 +86,7 @@
+ 			'email'             => 'requester',
+ 			'created_timestamp' => array( 'requested', $desc_first ),
+ 		);
++		return null;
+ 	}
+ 
+ 	/**
+@@ -93,8 +96,9 @@
+ 	 *
+ 	 * @return string Default primary column name.
+ 	 */
+-	protected function get_default_primary_column_name() {
++	protected function get_default_primary_column_name(): mixed {
+ 		return 'email';
++		return null;
+ 	}
+ 
+ 	/**
+@@ -106,7 +110,7 @@
+ 	 *
+ 	 * @return object Number of posts for each status.
+ 	 */
+-	protected function get_request_counts() {
++	protected function get_request_counts(): mixed {
+ 		global $wpdb;
+ 
+ 		$cache_key = $this->post_type . '-' . $this->request_type;
+@@ -116,8 +120,8 @@
+ 			return $counts;
+ 		}
+ 
+-		$results = (array) $wpdb->get_results(
+-			$wpdb->prepare(
++		$results = (array) \wp_aot_require_wpdb( $wpdb )->get_results(
++			\wp_aot_require_wpdb( $wpdb )->prepare(
+ 				"SELECT post_status, COUNT( * ) AS num_posts
+ 				FROM {$wpdb->posts}
+ 				WHERE post_type = %s
+@@ -129,7 +133,7 @@
+ 			ARRAY_A
+ 		);
+ 
+-		$counts = array_fill_keys( get_post_stati(), 0 );
++		$counts = \wp_aot_array_fill_keys( get_post_stati(), 0 );
+ 
+ 		foreach ( $results as $row ) {
+ 			$counts[ $row['post_status'] ] = $row['num_posts'];
+@@ -139,6 +143,7 @@
+ 		wp_cache_set( $cache_key, $counts, 'counts' );
+ 
+ 		return $counts;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -148,7 +153,7 @@
+ 	 *
+ 	 * @return string[] An array of HTML links keyed by their view.
+ 	 */
+-	protected function get_views() {
++	protected function get_views(): mixed {
+ 		$current_status = isset( $_REQUEST['filter-status'] ) ? sanitize_text_field( $_REQUEST['filter-status'] ) : '';
+ 		$statuses       = _wp_privacy_statuses();
+ 		$views          = array();
+@@ -202,6 +207,7 @@
+ 		}
+ 
+ 		return $this->get_views_links( $views );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -211,12 +217,13 @@
+ 	 *
+ 	 * @return array Array of bulk action labels keyed by their action.
+ 	 */
+-	protected function get_bulk_actions() {
++	protected function get_bulk_actions(): mixed {
+ 		return array(
+ 			'resend'   => __( 'Resend confirmation requests' ),
+ 			'complete' => __( 'Mark requests as completed' ),
+ 			'delete'   => __( 'Delete requests' ),
+ 		);
++		return null;
+ 	}
+ 
+ 	/**
+@@ -225,12 +232,12 @@
+ 	 * @since 4.9.6
+ 	 * @since 5.6.0 Added support for the `complete` action.
+ 	 */
+-	public function process_bulk_action() {
++	public function process_bulk_action(): mixed {
+ 		$action      = $this->current_action();
+ 		$request_ids = isset( $_REQUEST['request_id'] ) ? wp_parse_id_list( wp_unslash( $_REQUEST['request_id'] ) ) : array();
+ 
+ 		if ( empty( $request_ids ) ) {
+-			return;
++			return null;
+ 		}
+ 
+ 		$count    = 0;
+@@ -356,6 +363,7 @@
+ 
+ 				break;
+ 		}
++		return null;
+ 	}
+ 
+ 	/**
+@@ -364,7 +372,7 @@
+ 	 * @since 4.9.6
+ 	 * @since 5.1.0 Added support for column sorting.
+ 	 */
+-	public function prepare_items() {
++	public function prepare_items(): mixed {
+ 		$this->items    = array();
+ 		$posts_per_page = $this->get_items_per_page( $this->request_type . '_requests_per_page' );
+ 		$args           = array(
+@@ -401,7 +409,7 @@
+ 			$this->items[] = wp_get_user_request( $request->ID );
+ 		}
+ 
+-		$this->items = array_filter( $this->items );
++		$this->items = \wp_aot_array_filter( $this->items );
+ 
+ 		$this->set_pagination_args(
+ 			array(
+@@ -409,6 +417,7 @@
+ 				'per_page'    => $posts_per_page,
+ 			)
+ 		);
++		return null;
+ 	}
+ 
+ 	/**
+@@ -419,7 +428,7 @@
+ 	 * @param WP_User_Request $item Item being shown.
+ 	 * @return string Checkbox column markup.
+ 	 */
+-	public function column_cb( $item ) {
++	public function column_cb( mixed $item ): mixed {
+ 		return sprintf(
+ 			'<input type="checkbox" name="request_id[]" id="requester_%1$s" value="%1$s" />' .
+ 			'<label for="requester_%1$s"><span class="screen-reader-text">%2$s</span></label><span class="spinner"></span>',
+@@ -427,6 +436,7 @@
+ 			/* translators: Hidden accessibility text. %s: Email address. */
+ 			sprintf( __( 'Select %s' ), esc_html( $item->email ) )
+ 		);
++		return null;
+ 	}
+ 
+ 	/**
+@@ -438,7 +448,7 @@
+ 	 * @return string|null Status column markup. Returns a string if no status is found,
+ 	 *                     otherwise it displays the markup.
+ 	 */
+-	public function column_status( $item ) {
++	public function column_status( mixed $item ): mixed {
+ 		$status        = get_post_status( $item->ID );
+ 		$status_object = get_post_status_object( $status );
+ 
+@@ -466,6 +476,7 @@
+ 
+ 		echo '</span>';
+ 		return null;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -476,7 +487,7 @@
+ 	 * @param int $timestamp Event timestamp.
+ 	 * @return string Human readable date.
+ 	 */
+-	protected function get_timestamp_as_date( $timestamp ) {
++	protected function get_timestamp_as_date( mixed $timestamp ): mixed {
+ 		if ( empty( $timestamp ) ) {
+ 			return '';
+ 		}
+@@ -496,6 +507,7 @@
+ 			/* translators: privacy request time format. See https://www.php.net/manual/en/datetime.format.php */
+ 			date_i18n( __( 'g:i a' ), $timestamp )
+ 		);
++		return null;
+ 	}
+ 
+ 	/**
+@@ -507,7 +519,7 @@
+ 	 * @param WP_User_Request $item        Item being shown.
+ 	 * @param string          $column_name Name of column being shown.
+ 	 */
+-	public function column_default( $item, $column_name ) {
++	public function column_default( mixed $item, mixed $column_name ): mixed {
+ 		/**
+ 		 * Fires for each custom column of a specific request type in the Privacy Requests list table.
+ 		 *
+@@ -528,6 +540,7 @@
+ 		 * @param WP_User_Request $item        The item being shown.
+ 		 */
+ 		do_action( "manage_{$this->screen->id}_custom_column", $column_name, $item );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -538,8 +551,9 @@
+ 	 * @param WP_User_Request $item Item being shown.
+ 	 * @return string Human readable date.
+ 	 */
+-	public function column_created_timestamp( $item ) {
++	public function column_created_timestamp( mixed $item ): mixed {
+ 		return $this->get_timestamp_as_date( $item->created_timestamp );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -550,8 +564,9 @@
+ 	 * @param WP_User_Request $item Item being shown.
+ 	 * @return string Email column markup.
+ 	 */
+-	public function column_email( $item ) {
++	public function column_email( mixed $item ): mixed {
+ 		return sprintf( '<a href="%1$s">%2$s</a> %3$s', esc_url( 'mailto:' . $item->email ), esc_html( $item->email ), $this->row_actions( array() ) );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -561,7 +576,7 @@
+ 	 *
+ 	 * @param WP_User_Request $item Item being shown.
+ 	 */
+-	public function column_next_steps( $item ) {}
++	public function column_next_steps( mixed $item ): mixed { return null; }
+ 
+ 	/**
+ 	 * Generates content for a single row of the table,
+@@ -570,12 +585,13 @@
+ 	 *
+ 	 * @param WP_User_Request $item The current item.
+ 	 */
+-	public function single_row( $item ) {
++	public function single_row( mixed $item, mixed $wp_aot_unused_2 = null, mixed $wp_aot_unused_3 = null, mixed $wp_aot_unused_4 = null ): mixed {
+ 		$status = $item->status;
+ 
+ 		echo '<tr id="request-' . esc_attr( $item->ID ) . '" class="status-' . esc_attr( $status ) . '">';
+ 		$this->single_row_columns( $item );
+ 		echo '</tr>';
++		return null;
+ 	}
+ 
+ 	/**
+@@ -583,5 +599,5 @@
+ 	 *
+ 	 * @since 4.9.6
+ 	 */
+-	public function embed_scripts() {}
++	public function embed_scripts(): mixed { return null; }
+ }

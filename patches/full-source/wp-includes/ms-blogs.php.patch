@@ -1,0 +1,579 @@
+--- a/wp-includes/ms-blogs.php
++++ b/wp-includes/ms-blogs.php
+@@ -10,18 +10,18 @@
+ 
+ // Don't load directly.
+ if ( ! defined( 'ABSPATH' ) ) {
+-	exit;
+-}
+-
+-require_once ABSPATH . WPINC . '/ms-site.php';
+-require_once ABSPATH . WPINC . '/ms-network.php';
++	\wp_aot_exit();
++}
++
++require_once __DIR__ . '/ms-site.php';
++require_once __DIR__ . '/ms-network.php';
+ 
+ /**
+  * Updates the last_updated field for the current site.
+  *
+  * @since MU (3.0.0)
+  */
+-function wpmu_update_blogs_date() {
++function wpmu_update_blogs_date(): mixed {
+ 	$site_id = get_current_blog_id();
+ 
+ 	update_blog_details( $site_id, array( 'last_updated' => current_time( 'mysql', true ) ) );
+@@ -33,6 +33,7 @@
+ 	 * @param int $blog_id Site ID.
+ 	 */
+ 	do_action( 'wpmu_blog_updated', $site_id );
++	return null;
+ }
+ 
+ /**
+@@ -43,7 +44,7 @@
+  * @param int $blog_id Site ID.
+  * @return string Full site URL if found. Empty string if not.
+  */
+-function get_blogaddress_by_id( $blog_id ) {
++function get_blogaddress_by_id( mixed $blog_id ): mixed {
+ 	$bloginfo = get_site( (int) $blog_id );
+ 
+ 	if ( empty( $bloginfo ) ) {
+@@ -54,6 +55,7 @@
+ 	$scheme = empty( $scheme ) ? 'http' : $scheme;
+ 
+ 	return esc_url( $scheme . '://' . $bloginfo->domain . $bloginfo->path );
++	return null;
+ }
+ 
+ /**
+@@ -64,19 +66,20 @@
+  * @param string $blogname Name of the subdomain or directory.
+  * @return string
+  */
+-function get_blogaddress_by_name( $blogname ) {
++function get_blogaddress_by_name( mixed $blogname ): mixed {
+ 	if ( is_subdomain_install() ) {
+ 		if ( 'main' === $blogname ) {
+ 			$blogname = 'www';
+ 		}
+ 		$url = rtrim( network_home_url(), '/' );
+ 		if ( ! empty( $blogname ) ) {
+-			$url = preg_replace( '|^([^\.]+://)|', '${1}' . $blogname . '.', $url );
++			$url = \wp_aot_preg_replace( '|^([^\.]+://)|', '${1}' . $blogname . '.', $url );
+ 		}
+ 	} else {
+ 		$url = network_home_url( $blogname );
+ 	}
+ 	return esc_url( $url . '/' );
++	return null;
+ }
+ 
+ /**
+@@ -88,12 +91,12 @@
+  * @param string $slug A site's slug.
+  * @return int|null The site ID, or null if no site is found for the given slug.
+  */
+-function get_id_from_blogname( $slug ) {
++function get_id_from_blogname( mixed $slug ): mixed {
+ 	$current_network = get_network();
+ 	$slug            = trim( $slug, '/' );
+ 
+ 	if ( is_subdomain_install() ) {
+-		$domain = $slug . '.' . preg_replace( '|^www\.|', '', $current_network->domain );
++		$domain = $slug . '.' . \wp_aot_preg_replace( '|^www\.|', '', $current_network->domain );
+ 		$path   = $current_network->path;
+ 	} else {
+ 		$domain = $current_network->domain;
+@@ -114,7 +117,8 @@
+ 		return null;
+ 	}
+ 
+-	return array_shift( $site_ids );
++	return \wp_aot_array_shift( $site_ids );
++	return null;
+ }
+ 
+ /**
+@@ -130,7 +134,7 @@
+  *                                  Default is true.
+  * @return WP_Site|false Blog details on success. False on failure.
+  */
+-function get_blog_details( $fields = null, $get_all = true ) {
++function get_blog_details( mixed $fields = null, mixed $get_all = true ): mixed {
+ 	global $wpdb;
+ 
+ 	if ( is_array( $fields ) ) {
+@@ -144,9 +148,9 @@
+ 			}
+ 			if ( str_starts_with( $fields['domain'], 'www.' ) ) {
+ 				$nowww = substr( $fields['domain'], 4 );
+-				$blog  = $wpdb->get_row( $wpdb->prepare( "SELECT * FROM $wpdb->blogs WHERE domain IN (%s,%s) AND path = %s ORDER BY CHAR_LENGTH(domain) DESC", $nowww, $fields['domain'], $fields['path'] ) );
++				$blog  = \wp_aot_require_wpdb( $wpdb )->get_row( \wp_aot_require_wpdb( $wpdb )->prepare( "SELECT * FROM $wpdb->blogs WHERE domain IN (%s,%s) AND path = %s ORDER BY CHAR_LENGTH(domain) DESC", $nowww, $fields['domain'], $fields['path'] ) );
+ 			} else {
+-				$blog = $wpdb->get_row( $wpdb->prepare( "SELECT * FROM $wpdb->blogs WHERE domain = %s AND path = %s", $fields['domain'], $fields['path'] ) );
++				$blog = \wp_aot_require_wpdb( $wpdb )->get_row( \wp_aot_require_wpdb( $wpdb )->prepare( "SELECT * FROM $wpdb->blogs WHERE domain = %s AND path = %s", $fields['domain'], $fields['path'] ) );
+ 			}
+ 			if ( $blog ) {
+ 				wp_cache_set( $blog->blog_id . 'short', $blog, 'blog-details' );
+@@ -162,9 +166,9 @@
+ 			}
+ 			if ( str_starts_with( $fields['domain'], 'www.' ) ) {
+ 				$nowww = substr( $fields['domain'], 4 );
+-				$blog  = $wpdb->get_row( $wpdb->prepare( "SELECT * FROM $wpdb->blogs WHERE domain IN (%s,%s) ORDER BY CHAR_LENGTH(domain) DESC", $nowww, $fields['domain'] ) );
++				$blog  = \wp_aot_require_wpdb( $wpdb )->get_row( \wp_aot_require_wpdb( $wpdb )->prepare( "SELECT * FROM $wpdb->blogs WHERE domain IN (%s,%s) ORDER BY CHAR_LENGTH(domain) DESC", $nowww, $fields['domain'] ) );
+ 			} else {
+-				$blog = $wpdb->get_row( $wpdb->prepare( "SELECT * FROM $wpdb->blogs WHERE domain = %s", $fields['domain'] ) );
++				$blog = \wp_aot_require_wpdb( $wpdb )->get_row( \wp_aot_require_wpdb( $wpdb )->prepare( "SELECT * FROM $wpdb->blogs WHERE domain = %s", $fields['domain'] ) );
+ 			}
+ 			if ( $blog ) {
+ 				wp_cache_set( $blog->blog_id . 'short', $blog, 'blog-details' );
+@@ -275,6 +279,7 @@
+ 	wp_cache_set( $key, $details, 'blog-lookup' );
+ 
+ 	return $details;
++	return null;
+ }
+ 
+ /**
+@@ -284,13 +289,14 @@
+  *
+  * @param int $blog_id Optional. Blog ID. Defaults to current blog.
+  */
+-function refresh_blog_details( $blog_id = 0 ) {
++function refresh_blog_details( mixed $blog_id = 0 ): mixed {
+ 	$blog_id = (int) $blog_id;
+ 	if ( ! $blog_id ) {
+ 		$blog_id = get_current_blog_id();
+ 	}
+ 
+ 	clean_blog_cache( $blog_id );
++	return null;
+ }
+ 
+ /**
+@@ -302,7 +308,7 @@
+  * @param array $details Array of details keyed by blogs table field names.
+  * @return bool True if update succeeds, false otherwise.
+  */
+-function update_blog_details( $blog_id, $details = array() ) {
++function update_blog_details( mixed $blog_id, mixed $details = array() ): mixed {
+ 	if ( empty( $details ) ) {
+ 		return false;
+ 	}
+@@ -311,13 +317,14 @@
+ 		$details = get_object_vars( $details );
+ 	}
+ 
+-	$site = wp_update_site( $blog_id, $details );
++	$site = wp_update_site( $blog_id, \wp_aot_array_input($details ));
+ 
+ 	if ( is_wp_error( $site ) ) {
+ 		return false;
+ 	}
+ 
+ 	return true;
++	return null;
+ }
+ 
+ /**
+@@ -327,7 +334,7 @@
+  *
+  * @param int $site_id Optional. Site ID. Default is the current site ID.
+  */
+-function clean_site_details_cache( $site_id = 0 ) {
++function clean_site_details_cache( mixed $site_id = 0 ): mixed {
+ 	$site_id = (int) $site_id;
+ 	if ( ! $site_id ) {
+ 		$site_id = get_current_blog_id();
+@@ -335,6 +342,7 @@
+ 
+ 	wp_cache_delete( $site_id, 'site-details' );
+ 	wp_cache_delete( $site_id, 'blog-details' );
++	return null;
+ }
+ 
+ /**
+@@ -354,7 +362,7 @@
+  * @param mixed  $default_value Optional. Default value to return if the option does not exist.
+  * @return mixed Value set for the option.
+  */
+-function get_blog_option( $id, $option, $default_value = false ) {
++function get_blog_option( mixed $id, mixed $option, mixed $default_value = false ): mixed {
+ 	$id = (int) $id;
+ 
+ 	if ( empty( $id ) ) {
+@@ -380,6 +388,7 @@
+ 	 * @param int     $id    Blog ID.
+ 	 */
+ 	return apply_filters( "blog_option_{$option}", $value, $id );
++	return null;
+ }
+ 
+ /**
+@@ -401,7 +410,7 @@
+  * @param mixed  $value  Option value, can be anything. Expected to not be SQL-escaped.
+  * @return bool True if the option was added, false otherwise.
+  */
+-function add_blog_option( $id, $option, $value ) {
++function add_blog_option( mixed $id, mixed $option, mixed $value ): mixed {
+ 	$id = (int) $id;
+ 
+ 	if ( empty( $id ) ) {
+@@ -417,6 +426,7 @@
+ 	restore_current_blog();
+ 
+ 	return $return;
++	return null;
+ }
+ 
+ /**
+@@ -428,7 +438,7 @@
+  * @param string $option Name of option to remove. Expected to not be SQL-escaped.
+  * @return bool True if the option was deleted, false otherwise.
+  */
+-function delete_blog_option( $id, $option ) {
++function delete_blog_option( mixed $id, mixed $option ): mixed {
+ 	$id = (int) $id;
+ 
+ 	if ( empty( $id ) ) {
+@@ -444,6 +454,7 @@
+ 	restore_current_blog();
+ 
+ 	return $return;
++	return null;
+ }
+ 
+ /**
+@@ -457,7 +468,7 @@
+  * @param mixed  $deprecated Not used.
+  * @return bool True if the value was updated, false otherwise.
+  */
+-function update_blog_option( $id, $option, $value, $deprecated = null ) {
++function update_blog_option( mixed $id, mixed $option, mixed $value, mixed $deprecated = null ): mixed {
+ 	$id = (int) $id;
+ 
+ 	if ( null !== $deprecated ) {
+@@ -473,6 +484,7 @@
+ 	restore_current_blog();
+ 
+ 	return $return;
++	return null;
+ }
+ 
+ /**
+@@ -497,7 +509,7 @@
+  * @param bool $deprecated  Not used.
+  * @return true Always returns true.
+  */
+-function switch_to_blog( $new_blog_id, $deprecated = null ) {
++function switch_to_blog( mixed $new_blog_id, mixed $deprecated = null ): mixed {
+ 	global $wpdb;
+ 
+ 	$prev_blog_id = get_current_blog_id();
+@@ -531,8 +543,8 @@
+ 		return true;
+ 	}
+ 
+-	$wpdb->set_blog_id( $new_blog_id );
+-	$GLOBALS['table_prefix'] = $wpdb->get_blog_prefix();
++	\wp_aot_require_wpdb( $wpdb )->set_blog_id( $new_blog_id );
++	$GLOBALS['table_prefix'] = \wp_aot_require_wpdb( $wpdb )->get_blog_prefix();
+ 	$GLOBALS['blog_id']      = $new_blog_id;
+ 
+ 	wp_cache_switch_to_blog( $new_blog_id );
+@@ -543,6 +555,7 @@
+ 	$GLOBALS['switched'] = true;
+ 
+ 	return true;
++	return null;
+ }
+ 
+ /**
+@@ -560,14 +573,14 @@
+  *
+  * @return bool True on success, false if we're already on the current blog.
+  */
+-function restore_current_blog() {
++function restore_current_blog(): mixed {
+ 	global $wpdb;
+ 
+ 	if ( empty( $GLOBALS['_wp_switched_stack'] ) ) {
+ 		return false;
+ 	}
+ 
+-	$new_blog_id  = array_pop( $GLOBALS['_wp_switched_stack'] );
++	$new_blog_id  = \wp_aot_array_pop( $GLOBALS['_wp_switched_stack'] );
+ 	$prev_blog_id = get_current_blog_id();
+ 
+ 	if ( $new_blog_id === $prev_blog_id ) {
+@@ -580,9 +593,9 @@
+ 		return true;
+ 	}
+ 
+-	$wpdb->set_blog_id( $new_blog_id );
++	\wp_aot_require_wpdb( $wpdb )->set_blog_id( $new_blog_id );
+ 	$GLOBALS['blog_id']      = $new_blog_id;
+-	$GLOBALS['table_prefix'] = $wpdb->get_blog_prefix();
++	$GLOBALS['table_prefix'] = \wp_aot_require_wpdb( $wpdb )->get_blog_prefix();
+ 
+ 	wp_cache_switch_to_blog( $new_blog_id );
+ 
+@@ -593,6 +606,7 @@
+ 	$GLOBALS['switched'] = ! empty( $GLOBALS['_wp_switched_stack'] );
+ 
+ 	return true;
++	return null;
+ }
+ 
+ /**
+@@ -608,11 +622,11 @@
+  *
+  * @global WP_Object_Cache $wp_object_cache Object cache global instance.
+  */
+-function wp_cache_switch_to_blog_fallback() {
++function wp_cache_switch_to_blog_fallback(): mixed {
+ 	global $wp_object_cache;
+ 
+ 	$global_groups         = false;
+-	$non_persistent_groups = false;
++	$non_persistent_groups = \wp_aot_mixed(false);
+ 
+ 	if ( is_object( $wp_object_cache ) && isset( $wp_object_cache->global_groups ) && is_array( $wp_object_cache->global_groups ) ) {
+ 
+@@ -634,7 +648,7 @@
+ 			$non_persistent_groups = $wp_object_cache->no_mc_groups;
+ 		} elseif ( isset( $wp_object_cache->cache ) && is_array( $wp_object_cache->cache ) ) {
+ 			$all_groups            = array_keys( $wp_object_cache->cache );
+-			$non_persistent_groups = array_values( array_diff( $all_groups, $global_groups ) );
++			$non_persistent_groups = array_values( \wp_aot_array_diff(array( $all_groups, $global_groups )) );
+ 		}
+ 	}
+ 
+@@ -682,6 +696,7 @@
+ 
+ 		wp_cache_add_non_persistent_groups( $non_persistent_groups );
+ 	}
++	return null;
+ }
+ 
+ /**
+@@ -692,17 +707,18 @@
+  * @param int $new_site_id New site ID.
+  * @param int $old_site_id Old site ID.
+  */
+-function wp_switch_roles_and_user( $new_site_id, $old_site_id ) {
++function wp_switch_roles_and_user( mixed $new_site_id, mixed $old_site_id ): mixed {
+ 	if ( $new_site_id === $old_site_id ) {
+-		return;
++		return null;
+ 	}
+ 
+ 	if ( ! did_action( 'init' ) ) {
+-		return;
++		return null;
+ 	}
+ 
+ 	wp_roles()->for_site( $new_site_id );
+ 	wp_get_current_user()->for_site( $new_site_id );
++	return null;
+ }
+ 
+ /**
+@@ -714,8 +730,9 @@
+  *
+  * @return bool True if switched, false otherwise.
+  */
+-function ms_is_switched() {
++function ms_is_switched(): mixed {
+ 	return ! empty( $GLOBALS['_wp_switched_stack'] );
++	return null;
+ }
+ 
+ /**
+@@ -726,8 +743,9 @@
+  * @param int $id Blog ID.
+  * @return string Whether the blog is archived or not.
+  */
+-function is_archived( $id ) {
++function is_archived( mixed $id ): mixed {
+ 	return get_blog_status( $id, 'archived' );
++	return null;
+ }
+ 
+ /**
+@@ -739,9 +757,10 @@
+  * @param string $archived The new status.
+  * @return string $archived
+  */
+-function update_archived( $id, $archived ) {
++function update_archived( mixed $id, mixed $archived ): mixed {
+ 	update_blog_status( $id, 'archived', $archived );
+ 	return $archived;
++	return null;
+ }
+ 
+ /**
+@@ -758,7 +777,7 @@
+  * @param mixed  $deprecated Not used.
+  * @return string|false $value
+  */
+-function update_blog_status( $blog_id, $pref, $value, $deprecated = null ) {
++function update_blog_status( mixed $blog_id, mixed $pref, mixed $value, mixed $deprecated = null ): mixed {
+ 	global $wpdb;
+ 
+ 	if ( null !== $deprecated ) {
+@@ -783,6 +802,7 @@
+ 	}
+ 
+ 	return $value;
++	return null;
+ }
+ 
+ /**
+@@ -796,7 +816,7 @@
+  * @param string $pref Field name.
+  * @return bool|string|null $value
+  */
+-function get_blog_status( $id, $pref ) {
++function get_blog_status( mixed $id, mixed $pref ): mixed {
+ 	global $wpdb;
+ 
+ 	$details = get_site( $id );
+@@ -804,7 +824,8 @@
+ 		return $details->$pref;
+ 	}
+ 
+-	return $wpdb->get_var( $wpdb->prepare( "SELECT %s FROM {$wpdb->blogs} WHERE blog_id = %d", $pref, $id ) );
++	return \wp_aot_require_wpdb( $wpdb )->get_var( \wp_aot_require_wpdb( $wpdb )->prepare( "SELECT %s FROM {$wpdb->blogs} WHERE blog_id = %d", $pref, $id ) );
++	return null;
+ }
+ 
+ /**
+@@ -820,14 +841,15 @@
+  * @param int   $quantity   Optional. The maximum number of blogs to retrieve. Default 40.
+  * @return array The list of blogs.
+  */
+-function get_last_updated( $deprecated = '', $start = 0, $quantity = 40 ) {
++function get_last_updated( mixed $deprecated = '', mixed $start = 0, mixed $quantity = 40 ): mixed {
+ 	global $wpdb;
+ 
+ 	if ( ! empty( $deprecated ) ) {
+ 		_deprecated_argument( __FUNCTION__, 'MU' ); // Never used.
+ 	}
+ 
+-	return $wpdb->get_results( $wpdb->prepare( "SELECT blog_id, domain, path FROM $wpdb->blogs WHERE site_id = %d AND public = '1' AND archived = '0' AND mature = '0' AND spam = '0' AND deleted = '0' AND last_updated != '0000-00-00 00:00:00' ORDER BY last_updated DESC limit %d, %d", get_current_network_id(), $start, $quantity ), ARRAY_A );
++	return \wp_aot_require_wpdb( $wpdb )->get_results( \wp_aot_require_wpdb( $wpdb )->prepare( "SELECT blog_id, domain, path FROM $wpdb->blogs WHERE site_id = %d AND public = '1' AND archived = '0' AND mature = '0' AND spam = '0' AND deleted = '0' AND last_updated != '0000-00-00 00:00:00' ORDER BY last_updated DESC limit %d, %d", get_current_network_id(), $start, $quantity ), ARRAY_A );
++	return null;
+ }
+ 
+ /**
+@@ -840,19 +862,20 @@
+  * @param string  $old_status The old post status.
+  * @param WP_Post $post       Post object.
+  */
+-function _update_blog_date_on_post_publish( $new_status, $old_status, $post ) {
++function _update_blog_date_on_post_publish( mixed $new_status, mixed $old_status, mixed $post ): mixed {
+ 	$post_type_obj = get_post_type_object( $post->post_type );
+ 	if ( ! $post_type_obj || ! $post_type_obj->public ) {
+-		return;
++		return null;
+ 	}
+ 
+ 	if ( 'publish' !== $new_status && 'publish' !== $old_status ) {
+-		return;
++		return null;
+ 	}
+ 
+ 	// Post was freshly published, published post was saved, or published post was unpublished.
+ 
+ 	wpmu_update_blogs_date();
++	return null;
+ }
+ 
+ /**
+@@ -863,19 +886,20 @@
+  *
+  * @param int $post_id Post ID
+  */
+-function _update_blog_date_on_post_delete( $post_id ) {
++function _update_blog_date_on_post_delete( mixed $post_id ): mixed {
+ 	$post = get_post( $post_id );
+ 
+ 	$post_type_obj = get_post_type_object( $post->post_type );
+ 	if ( ! $post_type_obj || ! $post_type_obj->public ) {
+-		return;
++		return null;
+ 	}
+ 
+ 	if ( 'publish' !== $post->post_status ) {
+-		return;
++		return null;
+ 	}
+ 
+ 	wpmu_update_blogs_date();
++	return null;
+ }
+ 
+ /**
+@@ -887,12 +911,13 @@
+  * @param int     $post_id Post ID.
+  * @param WP_Post $post    Post object.
+  */
+-function _update_posts_count_on_delete( $post_id, $post ) {
++function _update_posts_count_on_delete( mixed $post_id, mixed $post ): mixed {
+ 	if ( ! $post || 'publish' !== $post->post_status || 'post' !== $post->post_type ) {
+-		return;
++		return null;
+ 	}
+ 
+ 	update_posts_count();
++	return null;
+ }
+ 
+ /**
+@@ -905,20 +930,21 @@
+  * @param string       $old_status The status the post is changing from.
+  * @param WP_Post|null $post       Post object.
+  */
+-function _update_posts_count_on_transition_post_status( $new_status, $old_status, $post = null ) {
++function _update_posts_count_on_transition_post_status( mixed $new_status, mixed $old_status, mixed $post = null ): mixed {
+ 	if ( $new_status === $old_status ) {
+-		return;
++		return null;
+ 	}
+ 
+ 	if ( 'post' !== get_post_type( $post ) ) {
+-		return;
++		return null;
+ 	}
+ 
+ 	if ( 'publish' !== $new_status && 'publish' !== $old_status ) {
+-		return;
++		return null;
+ 	}
+ 
+ 	update_posts_count();
++	return null;
+ }
+ 
+ /**
+@@ -938,7 +964,7 @@
+  *     @type int $deleted  The number of deleted sites.
+  * }
+  */
+-function wp_count_sites( $network_id = null ) {
++function wp_count_sites( mixed $network_id = null ): mixed {
+ 	if ( empty( $network_id ) ) {
+ 		$network_id = get_current_network_id();
+ 	}
+@@ -966,4 +992,5 @@
+ 	}
+ 
+ 	return $counts;
+-}
++	return null;
++}

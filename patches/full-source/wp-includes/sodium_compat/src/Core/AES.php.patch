@@ -1,0 +1,11 @@
+--- a/wp-includes/sodium_compat/src/Core/AES.php
++++ b/wp-includes/sodium_compat/src/Core/AES.php
+@@ -293,7 +293,7 @@
+         }
+         for ($i = 0; $i < $nkf; $i += 4) {
+             $q = ParagonIE_Sodium_Core_AES_Block::fromArray(
+-                array_slice($skey, $i << 1, 8)
++                \wp_aot_array_slice($skey, $i << 1, 8)
+             );
+             $q->orthogonalize();
+             // We have to overwrite $skey since we're not using C pointers like BearSSL did

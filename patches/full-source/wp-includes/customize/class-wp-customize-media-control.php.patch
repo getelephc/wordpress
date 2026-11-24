@@ -1,13 +1,103 @@
 --- a/wp-includes/customize/class-wp-customize-media-control.php
 +++ b/wp-includes/customize/class-wp-customize-media-control.php
-@@ -139,10 +139,10 @@
+@@ -53,7 +53,7 @@
+ 	 *                                      See WP_Customize_Control::__construct() for information
+ 	 *                                      on accepted arguments. Default empty array.
+ 	 */
+-	public function __construct( $manager, $id, $args = array() ) {
++	public function __construct( mixed $manager, mixed $id, mixed $args = array() ) {
+ 		parent::__construct( $manager, $id, $args );
+ 
+ 		$this->button_labels = wp_parse_args( $this->button_labels, $this->get_default_button_labels() );
+@@ -65,8 +65,9 @@
+ 	 * @since 3.4.0
  	 * @since 4.2.0 Moved from WP_Customize_Upload_Control.
  	 */
- 	public function content_template() {
+-	public function enqueue() {
++	public function enqueue(): mixed {
+ 		wp_enqueue_media();
++		return null;
+ 	}
+ 
+ 	/**
+@@ -77,9 +78,9 @@
+ 	 *
+ 	 * @see WP_Customize_Control::to_json()
+ 	 */
+-	public function to_json() {
++	public function to_json(): mixed {
+ 		parent::to_json();
+-		$this->json['label']         = html_entity_decode( $this->label, ENT_QUOTES, get_bloginfo( 'charset' ) );
++		$this->json['label']         = \wp_aot_html_entity_decode( $this->label, ENT_QUOTES, get_bloginfo( 'charset' ) );
+ 		$this->json['mime_type']     = $this->mime_type;
+ 		$this->json['button_labels'] = $this->button_labels;
+ 		$this->json['canUpload']     = current_user_can( 'upload_files' );
+@@ -87,39 +88,40 @@
+ 		$value = $this->value();
+ 
+ 		if ( is_object( $this->setting ) ) {
+-			if ( $this->setting->default ) {
++			if ( \wp_aot_mixed($this->setting)->default ) {
+ 				/*
+ 				 * Fake an attachment model - needs all fields used by template.
+ 				 * Note that the default value must be a URL, NOT an attachment ID.
+ 				 */
+-				$ext       = wp_check_filetype( $this->setting->default )['ext'];
++				$ext       = wp_check_filetype( \wp_aot_mixed($this->setting)->default )['ext'];
+ 				$ext_types = wp_get_ext_types();
+ 				$type      = isset( $ext_types['image'] ) && in_array( $ext, $ext_types['image'], true ) ? 'image' : 'document';
+ 
+ 				$default_attachment = array(
+ 					'id'    => 1,
+-					'url'   => $this->setting->default,
++					'url'   => \wp_aot_mixed($this->setting)->default,
+ 					'type'  => $type,
+ 					'icon'  => wp_mime_type_icon( $type, '.svg' ),
+-					'title' => wp_basename( $this->setting->default ),
++					'title' => wp_basename( \wp_aot_mixed($this->setting)->default ),
+ 				);
+ 
+ 				if ( 'image' === $type ) {
+ 					$default_attachment['sizes'] = array(
+-						'full' => array( 'url' => $this->setting->default ),
++						'full' => array( 'url' => \wp_aot_mixed($this->setting)->default ),
+ 					);
+ 				}
+ 
+ 				$this->json['defaultAttachment'] = $default_attachment;
+ 			}
+ 
+-			if ( $value && $this->setting->default && $value === $this->setting->default ) {
++			if ( $value && \wp_aot_mixed($this->setting)->default && $value === \wp_aot_mixed($this->setting)->default ) {
+ 				// Set the default as the attachment.
+ 				$this->json['attachment'] = $this->json['defaultAttachment'];
+ 			} elseif ( $value ) {
+ 				$this->json['attachment'] = wp_prepare_attachment_for_js( $value );
+ 			}
+ 		}
++		return null;
+ 	}
+ 
+ 	/**
+@@ -130,7 +132,7 @@
+ 	 *
+ 	 * @see WP_Customize_Media_Control::content_template()
+ 	 */
+-	public function render_content() {}
++	public function render_content(): mixed { return null; }
+ 
+ 	/**
+ 	 * Render a JS template for the content of the media control.
+@@ -138,11 +140,11 @@
+ 	 * @since 4.1.0
+ 	 * @since 4.2.0 Moved from WP_Customize_Upload_Control.
+ 	 */
+-	public function content_template() {
 -		?>
 -		<#
 -		var descriptionId = _.uniqueId( 'customize-media-control-description-' );
 -		var describedByAttr = data.description ? ' aria-describedby="' + descriptionId + '" ' : '';
++	public function content_template(): mixed {
 +		;
 +echo '		<#
 +		var descriptionId = _.uniqueId( \'customize-media-control-description-\' );
@@ -15,7 +105,7 @@
  		#>
  		<# if ( data.label ) { #>
  			<span class="customize-control-title">{{ data.label }}</span>
-@@ -155,11 +155,11 @@
+@@ -155,11 +157,11 @@
  		<# if ( data.attachment && data.attachment.id ) { #>
  			<div class="attachment-media-view attachment-media-view-{{ data.attachment.type }} {{ data.attachment.orientation }}">
  				<div class="thumbnail thumbnail-{{ data.attachment.type }}">
@@ -30,7 +120,7 @@
  						<# if ( data.attachment.image && data.attachment.image.src && data.attachment.image.src !== data.attachment.icon ) { #>
  							<img src="{{ data.attachment.image.src }}" class="thumbnail" draggable="false" alt="" />
  						<# } else { #>
-@@ -175,7 +175,7 @@
+@@ -175,7 +177,7 @@
  						<audio style="visibility: hidden" controls class="wp-audio-shortcode" width="100%" preload="none">
  							<source type="{{ data.attachment.mime }}" src="{{ data.attachment.url }}" />
  						</audio>
@@ -39,7 +129,7 @@
  						<div class="wp-media-wrapper wp-video">
  							<video controls="controls" class="wp-video-shortcode" preload="metadata"
  								<# if ( data.attachment.image && data.attachment.image.src !== data.attachment.icon ) { #>poster="{{ data.attachment.image.src }}"<# } #>>
-@@ -201,12 +201,12 @@
+@@ -201,12 +203,13 @@
  				<# } #>
  				<div class="actions">
  					<# if ( data.defaultAttachment ) { #>
@@ -51,6 +141,23 @@
  		<# } #>
 -		<?php
 +		';
++		return null;
  	}
  
  	/**
+@@ -218,7 +221,7 @@
+ 	 *
+ 	 * @return string[] An associative array of default button labels keyed by the button name.
+ 	 */
+-	public function get_default_button_labels() {
++	public function get_default_button_labels(): mixed {
+ 		// Get just the mime type and strip the mime subtype if present.
+ 		$mime_type = ! empty( $this->mime_type ) ? strtok( ltrim( $this->mime_type, '/' ), '/' ) : 'default';
+ 
+@@ -265,5 +268,6 @@
+ 					'frame_button' => __( 'Choose file' ),
+ 				);
+ 		} // End switch().
++		return null;
+ 	}
+ }

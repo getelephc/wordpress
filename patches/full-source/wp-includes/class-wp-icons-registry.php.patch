@@ -1,0 +1,191 @@
+--- a/wp-includes/class-wp-icons-registry.php
++++ b/wp-includes/class-wp-icons-registry.php
+@@ -18,7 +18,7 @@
+ 	 * @since 7.0.0
+ 	 * @var array[]
+ 	 */
+-	protected $registered_icons = array();
++	protected mixed $registered_icons = array();
+ 
+ 	/**
+ 	 * Container for the main instance of the class.
+@@ -26,7 +26,7 @@
+ 	 * @since 7.0.0
+ 	 * @var WP_Icons_Registry|null
+ 	 */
+-	protected static $instance = null;
++	protected static mixed $instance = null;
+ 
+ 	/**
+ 	 * Constructor.
+@@ -60,7 +60,7 @@
+ 	 * }
+ 	 * @return bool True if the icon was registered with success and false otherwise.
+ 	 */
+-	public function register( $icon_name, $icon_properties ) {
++	public function register( mixed $icon_name, mixed $icon_properties ): mixed {
+ 		if ( ! isset( $icon_name ) || ! is_string( $icon_name ) ) {
+ 			_doing_it_wrong(
+ 				__METHOD__,
+@@ -83,7 +83,7 @@
+ 		// Split the namespaced name into a collection slug and an unqualified icon name.
+ 		list( $collection, $unqualified_name ) = explode( '/', $icon_name, 2 );
+ 
+-		if ( preg_match( '/[A-Z]/', $unqualified_name ) ) {
++		if ( preg_match( '/[A-Z]/', \wp_aot_regex_text( $unqualified_name ) ) ) {
+ 			_doing_it_wrong(
+ 				__METHOD__,
+ 				__( 'Icon names must not contain uppercase characters.' ),
+@@ -92,7 +92,7 @@
+ 			return false;
+ 		}
+ 
+-		if ( ! preg_match( '/^[a-z0-9](?:[a-z0-9_-]*[a-z0-9])?$/', $unqualified_name ) ) {
++		if ( ! preg_match( '/^[a-z0-9](?:[a-z0-9_-]*[a-z0-9])?$/', \wp_aot_regex_text( $unqualified_name ) ) ) {
+ 			_doing_it_wrong(
+ 				__METHOD__,
+ 				__( 'Icon names must start and end with a lowercase letter or digit and contain only lowercase letters, digits, hyphens, and underscores.' ),
+@@ -101,7 +101,7 @@
+ 			return false;
+ 		}
+ 
+-		$allowed_keys = array_fill_keys( array( 'label', 'content', 'file_path' ), 1 );
++		$allowed_keys = \wp_aot_array_fill_keys( array( 'label', 'content', 'file_path' ), 1 );
+ 		foreach ( array_keys( $icon_properties ) as $key ) {
+ 			if ( ! array_key_exists( $key, $allowed_keys ) ) {
+ 				_doing_it_wrong(
+@@ -185,17 +185,18 @@
+ 			return false;
+ 		}
+ 
+-		$icon = array_merge(
++		$icon = \wp_aot_array_merge(array(
+ 			$icon_properties,
+ 			array(
+ 				'name'       => $qualified_name,
+ 				'collection' => $collection,
+ 			)
+-		);
++		));
+ 
+ 		$this->registered_icons[ $qualified_name ] = $icon;
+ 
+ 		return true;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -207,7 +208,7 @@
+ 	 *                          (e.g. "core/arrow-left").
+ 	 * @return bool True if the icon was unregistered successfully, false otherwise.
+ 	 */
+-	public function unregister( $icon_name ) {
++	public function unregister( mixed $icon_name ): mixed {
+ 		if ( ! $this->is_registered( $icon_name ) ) {
+ 			_doing_it_wrong(
+ 				__METHOD__,
+@@ -223,6 +224,7 @@
+ 
+ 		unset( $this->registered_icons[ $icon_name ] );
+ 		return true;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -236,7 +238,7 @@
+ 	 * @param string $icon_content The icon SVG content to sanitize.
+ 	 * @return string The sanitized icon SVG content.
+ 	 */
+-	protected function sanitize_icon_content( $icon_content ) {
++	protected function sanitize_icon_content( mixed $icon_content ): mixed {
+ 		$allowed_tags = array(
+ 			'svg'     => array(
+ 				'class'       => true,
+@@ -263,6 +265,7 @@
+ 			),
+ 		);
+ 		return wp_kses( $icon_content, $allowed_tags );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -273,10 +276,10 @@
+ 	 * @param string $icon_name Icon name including namespace.
+ 	 * @return string|null The content of the icon, if found.
+ 	 */
+-	protected function get_content( $icon_name ) {
++	protected function get_content( mixed $icon_name ): mixed {
+ 		if ( ! isset( $this->registered_icons[ $icon_name ]['content'] ) ) {
+ 			$file_path  = $this->registered_icons[ $icon_name ]['file_path'] ?? '';
+-			$is_stringy = is_string( $file_path ) || ( is_object( $file_path ) && method_exists( $file_path, '__toString' ) );
++			$is_stringy = is_string( $file_path ) || ( is_object( $file_path ) && ($file_path instanceof \Stringable) );
+ 			$icon_path  = $is_stringy ? realpath( (string) $file_path ) : false;
+ 
+ 			if (
+@@ -305,6 +308,7 @@
+ 			$this->registered_icons[ $icon_name ]['content'] = $content;
+ 		}
+ 		return $this->registered_icons[ $icon_name ]['content'];
++		return null;
+ 	}
+ 
+ 	/**
+@@ -315,7 +319,7 @@
+ 	 * @param string $icon_name Icon name including namespace.
+ 	 * @return array|null Registered icon properties or `null` if the icon is not registered.
+ 	 */
+-	public function get_registered_icon( $icon_name ) {
++	public function get_registered_icon( mixed $icon_name ): mixed {
+ 		if ( ! $this->is_registered( $icon_name ) ) {
+ 			return null;
+ 		}
+@@ -324,6 +328,7 @@
+ 		$icon['content'] = $icon['content'] ?? $this->get_content( $icon_name );
+ 
+ 		return $icon;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -335,7 +340,7 @@
+ 	 * @param string $search Optional. Search term by which to filter the icons.
+ 	 * @return array[] Array of arrays containing the registered icon properties.
+ 	 */
+-	public function get_registered_icons( $search = '' ) {
++	public function get_registered_icons( mixed $search = '' ): mixed {
+ 		$icons = array();
+ 
+ 		foreach ( $this->registered_icons as $icon ) {
+@@ -351,6 +356,7 @@
+ 		}
+ 
+ 		return $icons;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -361,8 +367,9 @@
+ 	 * @param string $icon_name Icon name including namespace.
+ 	 * @return bool True if the icon is registered, false otherwise.
+ 	 */
+-	public function is_registered( $icon_name ) {
++	public function is_registered( mixed $icon_name ): mixed {
+ 		return isset( $this->registered_icons[ $icon_name ] );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -374,11 +381,12 @@
+ 	 *
+ 	 * @return WP_Icons_Registry The main instance.
+ 	 */
+-	public static function get_instance() {
++	public static function get_instance(): mixed {
+ 		if ( null === self::$instance ) {
+ 			self::$instance = new self();
+ 		}
+ 
+ 		return self::$instance;
++		return null;
+ 	}
+ }

@@ -1,0 +1,63 @@
+--- a/wp-includes/ms-settings.php
++++ b/wp-includes/ms-settings.php
+@@ -12,7 +12,7 @@
+ 
+ // Don't load directly.
+ if ( ! defined( 'ABSPATH' ) ) {
+-	exit;
++	\wp_aot_exit();
+ }
+ 
+ /**
+@@ -37,16 +37,16 @@
+ global $current_site, $current_blog, $domain, $path, $site_id, $public;
+ 
+ /** WP_Network class */
+-require_once ABSPATH . WPINC . '/class-wp-network.php';
++require_once __DIR__ . '/class-wp-network.php';
+ 
+ /** WP_Site class */
+-require_once ABSPATH . WPINC . '/class-wp-site.php';
++require_once __DIR__ . '/class-wp-site.php';
+ 
+ /** Multisite loader */
+-require_once ABSPATH . WPINC . '/ms-load.php';
++require_once __DIR__ . '/ms-load.php';
+ 
+ /** Default Multisite constants */
+-require_once ABSPATH . WPINC . '/ms-default-constants.php';
++require_once __DIR__ . '/ms-default-constants.php';
+ 
+ if ( defined( 'SUNRISE' ) ) {
+ 	include_once WP_CONTENT_DIR . '/sunrise.php';
+@@ -70,7 +70,7 @@
+ 
+ 	$path = stripslashes( $_SERVER['REQUEST_URI'] );
+ 	if ( is_admin() ) {
+-		$path = preg_replace( '#(.*)/wp-admin/.*#', '$1/', $path );
++		$path = \wp_aot_preg_replace( '#(.*)/wp-admin/.*#', '$1/', $path );
+ 	}
+ 	list( $path ) = explode( '?', $path );
+ 
+@@ -82,7 +82,7 @@
+ 		ms_not_installed( $domain, $path );
+ 	} else {
+ 		header( 'Location: ' . $bootstrap_result );
+-		exit;
++		\wp_aot_exit();
+ 	}
+ 	unset( $bootstrap_result );
+ 
+@@ -99,9 +99,9 @@
+ 	wp_load_core_site_options( $site_id );
+ }
+ 
+-$wpdb->set_prefix( $table_prefix, false ); // $table_prefix can be set in sunrise.php.
+-$wpdb->set_blog_id( $current_blog->blog_id, $current_blog->site_id );
+-$table_prefix       = $wpdb->get_blog_prefix();
++\wp_aot_require_wpdb( $wpdb )->set_prefix( $table_prefix, false ); // $table_prefix can be set in sunrise.php.
++\wp_aot_require_wpdb( $wpdb )->set_blog_id( $current_blog->blog_id, $current_blog->site_id );
++$table_prefix       = \wp_aot_require_wpdb( $wpdb )->get_blog_prefix();
+ $_wp_switched_stack = array();
+ $switched           = false;
+ 

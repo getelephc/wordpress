@@ -1,0 +1,49 @@
+--- a/wp-admin/options-general.php
++++ b/wp-admin/options-general.php
+@@ -315,7 +315,7 @@
+ 	 */
+ 	$excluded_roles = (array) apply_filters( 'default_role_dropdown_excluded_roles', array( 'administrator', 'editor' ) );
+ 
+-	$editable_roles = array_reverse( get_editable_roles() );
++	$editable_roles = \wp_aot_array_reverse( get_editable_roles() );
+ 
+ 	$selected = get_option( 'default_role' );
+ 
+@@ -334,8 +334,8 @@
+ 
+ $languages    = get_available_languages();
+ $translations = wp_get_available_translations();
+-if ( ! is_multisite() && defined( 'WPLANG' ) && '' !== WPLANG && 'en_US' !== WPLANG && ! in_array( WPLANG, $languages, true ) ) {
+-	$languages[] = WPLANG;
++if ( ! is_multisite() && defined( 'WPLANG' ) && '' !== \wp_aot_undefined_constant('WPLANG') && 'en_US' !== \wp_aot_undefined_constant('WPLANG') && ! in_array( \wp_aot_undefined_constant('WPLANG'), $languages, true ) ) {
++	$languages[] = \wp_aot_undefined_constant('WPLANG');
+ }
+ if ( ! empty( $languages ) || ! empty( $translations ) ) {
+ 	?>
+@@ -360,7 +360,7 @@
+ 			);
+ 
+ 			// Add note about deprecated WPLANG constant.
+-			if ( defined( 'WPLANG' ) && ( '' !== WPLANG ) && WPLANG !== $locale ) {
++			if ( defined( 'WPLANG' ) && ( '' !== \wp_aot_undefined_constant('WPLANG') ) && \wp_aot_undefined_constant('WPLANG') !== $locale ) {
+ 				_deprecated_argument(
+ 					'define()',
+ 					'4.0.0',
+@@ -495,7 +495,7 @@
+ 	 *
+ 	 * @param string[] $default_date_formats Array of default date formats.
+ 	 */
+-	$date_formats = array_unique( apply_filters( 'date_formats', array( __( 'F j, Y' ), 'Y-m-d', 'm/d/Y', 'd/m/Y', 'd.m.Y' ) ) );
++	$date_formats = \wp_aot_array_unique( apply_filters( 'date_formats', array( __( 'F j, Y' ), 'Y-m-d', 'm/d/Y', 'd/m/Y', 'd.m.Y' ) ) );
+ 
+ 	$custom = true;
+ 
+@@ -540,7 +540,7 @@
+ 	 *
+ 	 * @param string[] $default_time_formats Array of default time formats.
+ 	 */
+-	$time_formats = array_unique( apply_filters( 'time_formats', array( __( 'g:i a' ), 'g:i A', 'H:i' ) ) );
++	$time_formats = \wp_aot_array_unique( apply_filters( 'time_formats', array( __( 'g:i a' ), 'g:i A', 'H:i' ) ) );
+ 
+ 	$custom = true;
+ 

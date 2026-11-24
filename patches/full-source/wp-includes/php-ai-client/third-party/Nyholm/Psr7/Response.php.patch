@@ -1,0 +1,20 @@
+--- a/wp-includes/php-ai-client/third-party/Nyholm/Psr7/Response.php
++++ b/wp-includes/php-ai-client/third-party/Nyholm/Psr7/Response.php
+@@ -28,7 +28,7 @@
+      * @param string $version Protocol version
+      * @param string|null $reason Reason phrase (when empty a default will be used based on the status code)
+      */
+-    public function __construct(int $status = 200, array $headers = [], $body = null, string $version = '1.1', ?string $reason = null)
++    public function __construct(int $status = 200, array $headers = [], mixed $body = null, string $version = '1.1', ?string $reason = null)
+     {
+         // If we got no body, defer initialization of the stream until Response::getBody()
+         if ('' !== $body && null !== $body) {
+@@ -54,7 +54,7 @@
+     /**
+      * @return static
+      */
+-    public function withStatus($code, $reasonPhrase = ''): ResponseInterface
++    public function withStatus(mixed $code, mixed $reasonPhrase = ''): ResponseInterface
+     {
+         if (!\is_int($code) && !\is_string($code)) {
+             throw new \InvalidArgumentException('Status code has to be an integer');

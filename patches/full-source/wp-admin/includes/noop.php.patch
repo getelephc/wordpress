@@ -1,0 +1,128 @@
+--- a/wp-admin/includes/noop.php
++++ b/wp-admin/includes/noop.php
+@@ -10,98 +10,100 @@
+ /**
+  * @ignore
+  */
+-function __() {}
++function __(): mixed { return null; }
+ 
+ /**
+  * @ignore
+  */
+-function _x() {}
++function _x(): mixed { return null; }
+ 
+ /**
+  * @ignore
+  */
+-function add_filter() {}
++function add_filter(): mixed { return null; }
+ 
+ /**
+  * @ignore
+  */
+-function has_filter() {
++function has_filter(): mixed {
+ 	return false;
++	return null;
+ }
+ 
+ /**
+  * @ignore
+  */
+-function esc_attr() {}
++function esc_attr(): mixed { return null; }
+ 
+ /**
+  * @ignore
+  */
+-function apply_filters() {}
++function apply_filters(): mixed { return null; }
+ 
+ /**
+  * @ignore
+  */
+-function get_option() {}
++function get_option(): mixed { return null; }
+ 
+ /**
+  * @ignore
+  */
+-function is_lighttpd_before_150() {}
++function is_lighttpd_before_150(): mixed { return null; }
+ 
+ /**
+  * @ignore
+  */
+-function add_action() {}
++function add_action(): mixed { return null; }
+ 
+ /**
+  * @ignore
+  */
+-function did_action() {}
++function did_action(): mixed { return null; }
+ 
+ /**
+  * @ignore
+  */
+-function do_action_ref_array() {}
++function do_action_ref_array(): mixed { return null; }
+ 
+ /**
+  * @ignore
+  */
+-function get_bloginfo() {}
++function get_bloginfo(): mixed { return null; }
+ 
+ /**
+  * @ignore
+  */
+-function is_admin() {
++function is_admin(): mixed {
+ 	return true;
++	return null;
+ }
+ 
+ /**
+  * @ignore
+  */
+-function site_url() {}
++function site_url(): mixed { return null; }
+ 
+ /**
+  * @ignore
+  */
+-function admin_url() {}
++function admin_url(): mixed { return null; }
+ 
+ /**
+  * @ignore
+  */
+-function home_url() {}
++function home_url(): mixed { return null; }
+ 
+ /**
+  * @ignore
+  */
+-function includes_url() {}
++function includes_url(): mixed { return null; }
+ 
+ /**
+  * @ignore
+  */
+-function wp_guess_url() {}
++function wp_guess_url(): mixed { return null; }
+ 
+-function get_file( $path ) {
++function get_file( mixed $path ): mixed {
+ 
+ 	$path = realpath( $path );
+ 
+@@ -110,4 +112,5 @@
+ 	}
+ 
+ 	return @file_get_contents( $path );
++	return null;
+ }

@@ -1,0 +1,69 @@
+--- a/wp-includes/pomo/entry.php
++++ b/wp-includes/pomo/entry.php
+@@ -7,7 +7,6 @@
+  * @subpackage entry
+  */
+ 
+-if ( ! class_exists( 'Translation_Entry', false ) ) :
+ 	/**
+ 	 * Translation_Entry class encapsulates a translatable string.
+ 	 *
+@@ -51,7 +50,7 @@
+ 		 *     @type array  $flags               Flags like php-format.
+ 		 * }
+ 		 */
+-		public function __construct( $args = array() ) {
++		public function __construct( mixed $args = array() ) {
+ 			// If no singular -- empty object.
+ 			if ( ! isset( $args['singular'] ) ) {
+ 				return;
+@@ -82,9 +81,10 @@
+ 		 *
+ 		 * @see Translation_Entry::__construct()
+ 		 */
+-		public function Translation_Entry( $args = array() ) {
++		public function Translation_Entry( mixed $args = array() ): mixed {
+ 			_deprecated_constructor( self::class, '5.4.0', static::class );
+ 			self::__construct( $args );
++			return null;
+ 		}
+ 
+ 		/**
+@@ -94,7 +94,7 @@
+ 		 *
+ 		 * @return string|false The key or false if the entry is null.
+ 		 */
+-		public function key() {
++		public function key(): mixed {
+ 			if ( null === $this->singular ) {
+ 				return false;
+ 			}
+@@ -102,9 +102,10 @@
+ 			// Prepend context and EOT, like in MO files.
+ 			$key = ! $this->context ? $this->singular : $this->context . "\4" . $this->singular;
+ 			// Standardize on \n line endings.
+-			$key = str_replace( array( "\r\n", "\r" ), "\n", $key );
++			$key = \wp_aot_str_replace( array( "\r\n", "\r" ), "\n", $key );
+ 
+ 			return $key;
++			return null;
+ 		}
+ 
+ 		/**
+@@ -114,12 +115,12 @@
+ 		 *
+ 		 * @param Translation_Entry $other Other translation entry.
+ 		 */
+-		public function merge_with( &$other ) {
+-			$this->flags      = array_unique( array_merge( $this->flags, $other->flags ) );
+-			$this->references = array_unique( array_merge( $this->references, $other->references ) );
++		public function merge_with( mixed &$other ): mixed {
++			$this->flags      = \wp_aot_array_unique( \wp_aot_array_merge(array( $this->flags, $other->flags )) );
++			$this->references = \wp_aot_array_unique( \wp_aot_array_merge(array( $this->references, $other->references )) );
+ 			if ( $this->extracted_comments !== $other->extracted_comments ) {
+ 				$this->extracted_comments .= $other->extracted_comments;
+ 			}
++			return null;
+ 		}
+ 	}
+-endif;

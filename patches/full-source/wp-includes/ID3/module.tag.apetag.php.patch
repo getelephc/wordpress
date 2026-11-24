@@ -1,0 +1,191 @@
+--- a/wp-includes/ID3/module.tag.apetag.php
++++ b/wp-includes/ID3/module.tag.apetag.php
+@@ -15,7 +15,7 @@
+ /////////////////////////////////////////////////////////////////
+ 
+ if (!defined('GETID3_INCLUDEPATH')) { // prevent path-exposing attacks that access modules directly on public webservers
+-	exit;
++	\wp_aot_exit();
+ }
+ 
+ class getid3_apetag extends getid3_handler
+@@ -35,7 +35,7 @@
+ 	/**
+ 	 * @return bool
+ 	 */
+-	public function Analyze() {
++	public function Analyze(): mixed {
+ 		$info = &$this->getid3->info;
+ 
+ 		if (!getid3_lib::intValueSupported($info['filesize'])) {
+@@ -113,7 +113,7 @@
+ 			foreach ($info['warning'] as $key => $value) {
+ 				if ($value == 'Some ID3v1 fields do not use NULL characters for padding') {
+ 					unset($info['warning'][$key]);
+-					sort($info['warning']);
++					\wp_aot_sort($info['warning']);
+ 					break;
+ 				}
+ 			}
+@@ -170,8 +170,8 @@
+ 			switch (strtolower($item_key)) {
+ 				// http://wiki.hydrogenaud.io/index.php?title=ReplayGain#MP3Gain
+ 				case 'replaygain_track_gain':
+-					if (preg_match('#^([\\-\\+][0-9\\.,]{8})( dB)?$#', $thisfile_ape_items_current['data'][0], $matches)) {
+-						$thisfile_replaygain['track']['adjustment'] = (float) str_replace(',', '.', $matches[1]); // float casting will see "0,95" as zero!
++					if (preg_match('#^([\\-\\+][0-9\\.,]{8})( dB)?$#', \wp_aot_regex_text( $thisfile_ape_items_current['data'][0] ), $matches)) {
++						$thisfile_replaygain['track']['adjustment'] = (float) \wp_aot_str_replace(',', '.', $matches[1]); // float casting will see "0,95" as zero!
+ 						$thisfile_replaygain['track']['originator'] = 'unspecified';
+ 					} else {
+ 						$this->warning('MP3gainTrackGain value in APEtag appears invalid: "'.$thisfile_ape_items_current['data'][0].'"');
+@@ -179,8 +179,8 @@
+ 					break;
+ 
+ 				case 'replaygain_track_peak':
+-					if (preg_match('#^([0-9\\.,]{8})$#', $thisfile_ape_items_current['data'][0], $matches)) {
+-						$thisfile_replaygain['track']['peak']       = (float) str_replace(',', '.', $matches[1]); // float casting will see "0,95" as zero!
++					if (preg_match('#^([0-9\\.,]{8})$#', \wp_aot_regex_text( $thisfile_ape_items_current['data'][0] ), $matches)) {
++						$thisfile_replaygain['track']['peak']       = (float) \wp_aot_str_replace(',', '.', $matches[1]); // float casting will see "0,95" as zero!
+ 						$thisfile_replaygain['track']['originator'] = 'unspecified';
+ 						if ($thisfile_replaygain['track']['peak'] <= 0) {
+ 							$this->warning('ReplayGain Track peak from APEtag appears invalid: '.$thisfile_replaygain['track']['peak'].' (original value = "'.$thisfile_ape_items_current['data'][0].'")');
+@@ -191,8 +191,8 @@
+ 					break;
+ 
+ 				case 'replaygain_album_gain':
+-					if (preg_match('#^([\\-\\+][0-9\\.,]{8})( dB)?$#', $thisfile_ape_items_current['data'][0], $matches)) {
+-						$thisfile_replaygain['album']['adjustment'] = (float) str_replace(',', '.', $matches[1]); // float casting will see "0,95" as zero!
++					if (preg_match('#^([\\-\\+][0-9\\.,]{8})( dB)?$#', \wp_aot_regex_text( $thisfile_ape_items_current['data'][0] ), $matches)) {
++						$thisfile_replaygain['album']['adjustment'] = (float) \wp_aot_str_replace(',', '.', $matches[1]); // float casting will see "0,95" as zero!
+ 						$thisfile_replaygain['album']['originator'] = 'unspecified';
+ 					} else {
+ 						$this->warning('MP3gainAlbumGain value in APEtag appears invalid: "'.$thisfile_ape_items_current['data'][0].'"');
+@@ -200,8 +200,8 @@
+ 					break;
+ 
+ 				case 'replaygain_album_peak':
+-					if (preg_match('#^([0-9\\.,]{8})$#', $thisfile_ape_items_current['data'][0], $matches)) {
+-						$thisfile_replaygain['album']['peak']       = (float) str_replace(',', '.', $matches[1]); // float casting will see "0,95" as zero!
++					if (preg_match('#^([0-9\\.,]{8})$#', \wp_aot_regex_text( $thisfile_ape_items_current['data'][0] ), $matches)) {
++						$thisfile_replaygain['album']['peak']       = (float) \wp_aot_str_replace(',', '.', $matches[1]); // float casting will see "0,95" as zero!
+ 						$thisfile_replaygain['album']['originator'] = 'unspecified';
+ 						if ($thisfile_replaygain['album']['peak'] <= 0) {
+ 							$this->warning('ReplayGain Album peak from APEtag appears invalid: '.$thisfile_replaygain['album']['peak'].' (original value = "'.$thisfile_ape_items_current['data'][0].'")');
+@@ -212,7 +212,7 @@
+ 					break;
+ 
+ 				case 'mp3gain_undo':
+-					if (preg_match('#^[\\-\\+][0-9]{3},[\\-\\+][0-9]{3},[NW]$#', $thisfile_ape_items_current['data'][0])) {
++					if (preg_match('#^[\\-\\+][0-9]{3},[\\-\\+][0-9]{3},[NW]$#', \wp_aot_regex_text( $thisfile_ape_items_current['data'][0] ))) {
+ 						list($mp3gain_undo_left, $mp3gain_undo_right, $mp3gain_undo_wrap) = explode(',', $thisfile_ape_items_current['data'][0]);
+ 						$thisfile_replaygain['mp3gain']['undo_left']  = intval($mp3gain_undo_left);
+ 						$thisfile_replaygain['mp3gain']['undo_right'] = intval($mp3gain_undo_right);
+@@ -223,7 +223,7 @@
+ 					break;
+ 
+ 				case 'mp3gain_minmax':
+-					if (preg_match('#^[0-9]{3},[0-9]{3}$#', $thisfile_ape_items_current['data'][0])) {
++					if (preg_match('#^[0-9]{3},[0-9]{3}$#', \wp_aot_regex_text( $thisfile_ape_items_current['data'][0] ))) {
+ 						list($mp3gain_globalgain_min, $mp3gain_globalgain_max) = explode(',', $thisfile_ape_items_current['data'][0]);
+ 						$thisfile_replaygain['mp3gain']['globalgain_track_min'] = intval($mp3gain_globalgain_min);
+ 						$thisfile_replaygain['mp3gain']['globalgain_track_max'] = intval($mp3gain_globalgain_max);
+@@ -233,7 +233,7 @@
+ 					break;
+ 
+ 				case 'mp3gain_album_minmax':
+-					if (preg_match('#^[0-9]{3},[0-9]{3}$#', $thisfile_ape_items_current['data'][0])) {
++					if (preg_match('#^[0-9]{3},[0-9]{3}$#', \wp_aot_regex_text( $thisfile_ape_items_current['data'][0] ))) {
+ 						list($mp3gain_globalgain_album_min, $mp3gain_globalgain_album_max) = explode(',', $thisfile_ape_items_current['data'][0]);
+ 						$thisfile_replaygain['mp3gain']['globalgain_album_min'] = intval($mp3gain_globalgain_album_min);
+ 						$thisfile_replaygain['mp3gain']['globalgain_album_max'] = intval($mp3gain_globalgain_album_max);
+@@ -300,12 +300,12 @@
+ 						} elseif (is_int($this->inline_attachments)) {
+ 							if ($this->inline_attachments < $thisfile_ape_items_current['data_length']) {
+ 								// too big, skip
+-								$this->warning('attachment at '.$thisfile_ape_items_current['offset'].' is too large to process inline ('.number_format($thisfile_ape_items_current['data_length']).' bytes)');
++								$this->warning('attachment at '.$thisfile_ape_items_current['offset'].' is too large to process inline ('.\wp_aot_number_format($thisfile_ape_items_current['data_length']).' bytes)');
+ 								unset($thisfile_ape_items_current['data']);
+ 								break;
+ 							}
+ 						} elseif (is_string($this->inline_attachments)) {
+-							$this->inline_attachments = rtrim(str_replace(array('/', '\\'), DIRECTORY_SEPARATOR, $this->inline_attachments), DIRECTORY_SEPARATOR);
++							$this->inline_attachments = rtrim(\wp_aot_str_replace(array('/', '\\'), DIRECTORY_SEPARATOR, $this->inline_attachments), DIRECTORY_SEPARATOR);
+ 							if (!is_dir($this->inline_attachments) || !getID3::is_writable($this->inline_attachments)) {
+ 								// cannot write, skip
+ 								$this->warning('attachment at '.$thisfile_ape_items_current['offset'].' cannot be saved to "'.$this->inline_attachments.'" (not writable)');
+@@ -353,6 +353,7 @@
+ 			unset($info['replay_gain']);
+ 		}
+ 		return true;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -360,7 +361,7 @@
+ 	 *
+ 	 * @return array|false
+ 	 */
+-	public function parseAPEheaderFooter($APEheaderFooterData) {
++	public function parseAPEheaderFooter(mixed $APEheaderFooterData): mixed {
+ 		// http://www.uni-jena.de/~pfk/mpp/sv8/apeheader.html
+ 
+ 		// shortcut
+@@ -383,6 +384,7 @@
+ 			$headerfooterinfo['flags'] = $this->parseAPEtagFlags($headerfooterinfo_raw['global_flags']);
+ 		}
+ 		return $headerfooterinfo;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -390,7 +392,7 @@
+ 	 *
+ 	 * @return array
+ 	 */
+-	public function parseAPEtagFlags($rawflagint) {
++	public function parseAPEtagFlags(mixed $rawflagint): mixed {
+ 		// "Note: APE Tags 1.0 do not use any of the APE Tag flags.
+ 		// All are set to zero on creation and ignored on reading."
+ 		// http://wiki.hydrogenaud.io/index.php?title=Ape_Tags_Flags
+@@ -404,6 +406,7 @@
+ 		$flags['item_contents']     = $this->APEcontentTypeFlagLookup($flags['item_contents_raw']);
+ 
+ 		return $flags;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -411,7 +414,7 @@
+ 	 *
+ 	 * @return string
+ 	 */
+-	public function APEcontentTypeFlagLookup($contenttypeid) {
++	public function APEcontentTypeFlagLookup(mixed $contenttypeid): mixed {
+ 		static $APEcontentTypeFlagLookup = array(
+ 			0 => 'utf-8',
+ 			1 => 'binary',
+@@ -419,6 +422,7 @@
+ 			3 => 'reserved'
+ 		);
+ 		return (isset($APEcontentTypeFlagLookup[$contenttypeid]) ? $APEcontentTypeFlagLookup[$contenttypeid] : 'invalid');
++		return null;
+ 	}
+ 
+ 	/**
+@@ -426,7 +430,7 @@
+ 	 *
+ 	 * @return bool
+ 	 */
+-	public function APEtagItemIsUTF8Lookup($itemkey) {
++	public function APEtagItemIsUTF8Lookup(mixed $itemkey): mixed {
+ 		static $APEtagItemIsUTF8Lookup = array(
+ 			'title',
+ 			'subtitle',
+@@ -453,6 +457,7 @@
+ 			'bibliography'
+ 		);
+ 		return in_array(strtolower($itemkey), $APEtagItemIsUTF8Lookup);
++		return null;
+ 	}
+ 
+ }

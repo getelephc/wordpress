@@ -1,0 +1,23 @@
+--- a/wp-includes/Requests/src/Exception/Http/StatusUnknown.php
++++ b/wp-includes/Requests/src/Exception/Http/StatusUnknown.php
+@@ -21,7 +21,7 @@
+ 	 *
+ 	 * @var integer|bool Code if available, false if an error occurred
+ 	 */
+-	protected $code = 0;
++	protected $wp_aot_code = 0;
+ 
+ 	/**
+ 	 * Reason phrase
+@@ -39,9 +39,9 @@
+ 	 * @param string|null $reason Reason phrase
+ 	 * @param mixed $data Associated data
+ 	 */
+-	public function __construct($reason = null, $data = null) {
++	public function __construct(?string $reason = null, mixed $data = null) {
+ 		if ($data instanceof Response) {
+-			$this->code = (int) $data->status_code;
++			$this->wp_aot_code = (int) $data->status_code;
+ 		}
+ 
+ 		parent::__construct($reason, $data);

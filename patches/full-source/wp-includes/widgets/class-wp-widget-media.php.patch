@@ -1,6 +1,156 @@
 --- a/wp-includes/widgets/class-wp-widget-media.php
 +++ b/wp-includes/widgets/class-wp-widget-media.php
-@@ -342,16 +342,24 @@
+@@ -69,7 +69,7 @@
+ 	 * @param array  $control_options Optional. Widget control options. See wp_register_widget_control()
+ 	 *                                for information on accepted arguments. Default empty array.
+ 	 */
+-	public function __construct( $id_base, $name, $widget_options = array(), $control_options = array() ) {
++	public function __construct( mixed $id_base, mixed $name, mixed $widget_options = array(), mixed $control_options = array() ) {
+ 		$widget_opts = wp_parse_args(
+ 			$widget_options,
+ 			array(
+@@ -82,7 +82,7 @@
+ 
+ 		$control_opts = wp_parse_args( $control_options, array() );
+ 
+-		$this->l10n = array_merge( self::get_l10n_defaults(), array_filter( $this->l10n ) );
++		$this->l10n = \wp_aot_array_merge(array( self::get_l10n_defaults(), \wp_aot_array_filter( $this->l10n ) ));
+ 
+ 		parent::__construct(
+ 			$id_base,
+@@ -100,10 +100,10 @@
+ 	 * @param int $number Optional. The unique order number of this widget instance
+ 	 *                    compared to other instances of the same class. Default -1.
+ 	 */
+-	public function _register_one( $number = -1 ) {
++	public function _register_one( mixed $number = -1 ): mixed {
+ 		parent::_register_one( $number );
+ 		if ( $this->registered ) {
+-			return;
++			return null;
+ 		}
+ 		$this->registered = true;
+ 
+@@ -124,6 +124,7 @@
+ 		add_action( 'admin_footer-widgets.php', array( $this, 'render_control_template_scripts' ) );
+ 
+ 		add_filter( 'display_media_states', array( $this, 'display_media_state' ), 10, 2 );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -137,7 +138,7 @@
+ 	 *
+ 	 * @return array Schema for properties.
+ 	 */
+-	public function get_instance_schema() {
++	public function get_instance_schema(): mixed {
+ 		$schema = array(
+ 			'attachment_id' => array(
+ 				'type'        => 'integer',
+@@ -172,6 +173,7 @@
+ 		$schema = apply_filters( "widget_{$this->id_base}_instance_schema", $schema, $this );
+ 
+ 		return $schema;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -183,7 +185,7 @@
+ 	 * @param string      $mime_type  MIME type.
+ 	 * @return bool Is matching MIME type.
+ 	 */
+-	public function is_attachment_with_mime_type( $attachment, $mime_type ) {
++	public function is_attachment_with_mime_type( mixed $attachment, mixed $mime_type ): mixed {
+ 		if ( empty( $attachment ) ) {
+ 			return false;
+ 		}
+@@ -195,6 +197,7 @@
+ 			return false;
+ 		}
+ 		return wp_attachment_is( $mime_type, $attachment );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -207,13 +210,14 @@
+ 	 * @param string|array $tokens List of tokens separated by spaces, or an array of tokens.
+ 	 * @return string Sanitized token string list.
+ 	 */
+-	public function sanitize_token_list( $tokens ) {
++	public function sanitize_token_list( mixed $tokens ): mixed {
+ 		if ( is_string( $tokens ) ) {
+-			$tokens = preg_split( '/\s+/', trim( $tokens ) );
+-		}
+-		$tokens = array_map( 'sanitize_html_class', $tokens );
+-		$tokens = array_filter( $tokens );
++			$tokens = \wp_aot_preg_split( '/\s+/', \wp_aot_regex_text( trim( $tokens ) ) );
++		}
++		$tokens = \wp_aot_array_map( 'sanitize_html_class', $tokens );
++		$tokens = \wp_aot_array_filter( $tokens );
+ 		return implode( ' ', $tokens );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -226,12 +230,12 @@
+ 	 * @param array $args     Display arguments including before_title, after_title, before_widget, and after_widget.
+ 	 * @param array $instance Saved setting from the database.
+ 	 */
+-	public function widget( $args, $instance ) {
++	public function widget( mixed $args, mixed $instance ): mixed {
+ 		$instance = wp_parse_args( $instance, wp_list_pluck( $this->get_instance_schema(), 'default' ) );
+ 
+ 		// Short-circuit if no media is selected.
+ 		if ( ! $this->has_content( $instance ) ) {
+-			return;
++			return null;
+ 		}
+ 
+ 		echo $args['before_widget'];
+@@ -257,6 +261,7 @@
+ 		$this->render_media( $instance );
+ 
+ 		echo $args['after_widget'];
++		return null;
+ 	}
+ 
+ 	/**
+@@ -274,7 +279,7 @@
+ 	 * @param array $old_instance Previously saved values from database.
+ 	 * @return array Updated safe values to be saved.
+ 	 */
+-	public function update( $new_instance, $old_instance ) {
++	public function update( mixed $new_instance, mixed $old_instance ): mixed {
+ 
+ 		$schema = $this->get_instance_schema();
+ 		foreach ( $schema as $field => $field_schema ) {
+@@ -313,6 +318,7 @@
+ 		}
+ 
+ 		return $old_instance;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -322,7 +328,7 @@
+ 	 *
+ 	 * @param array $instance Widget instance props.
+ 	 */
+-	abstract public function render_media( $instance );
++	abstract public function render_media( mixed $instance ): mixed;
+ 
+ 	/**
+ 	 * Outputs the settings update form.
+@@ -335,24 +341,33 @@
+ 	 *
+ 	 * @param array $instance Current settings.
+ 	 */
+-	final public function form( $instance ) {
++	final public function form( mixed $instance ): mixed {
+ 		$instance_schema = $this->get_instance_schema();
+ 		$instance        = wp_array_slice_assoc(
+ 			wp_parse_args( (array) $instance, wp_list_pluck( $instance_schema, 'default' ) ),
  			array_keys( $instance_schema )
  		);
  
@@ -30,15 +180,56 @@
 -			<?php
 +			';
  		endforeach;
++		return null;
  	}
  
-@@ -414,34 +422,45 @@
+ 	/**
+@@ -364,7 +379,7 @@
+ 	 * @param WP_Post|null $post   The current attachment object.
+ 	 * @return array
+ 	 */
+-	public function display_media_state( $states, $post = null ) {
++	public function display_media_state( mixed $states, mixed $post = null ): mixed {
+ 		if ( ! $post ) {
+ 			$post = get_post();
+ 		}
+@@ -384,6 +399,7 @@
+ 		}
+ 
+ 		return $states;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -396,16 +412,17 @@
+ 	 *
  	 * @since 4.8.0
  	 */
- 	public function render_control_template_scripts() {
+-	public function enqueue_preview_scripts() {}
++	public function enqueue_preview_scripts(): mixed { return null; }
+ 
+ 	/**
+ 	 * Loads the required scripts and styles for the widget control.
+ 	 *
+ 	 * @since 4.8.0
+ 	 */
+-	public function enqueue_admin_scripts() {
++	public function enqueue_admin_scripts(): mixed {
+ 		wp_enqueue_media();
+ 		wp_enqueue_script( 'media-widgets' );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -413,35 +430,47 @@
+ 	 *
+ 	 * @since 4.8.0
+ 	 */
+-	public function render_control_template_scripts() {
 -		?>
 -		<script type="text/html" id="tmpl-widget-media-<?php echo esc_attr( $this->id_base ); ?>-control">
 -			<# var elementIdPrefix = 'el' + String( Math.random() ) + '_' #>
++	public function render_control_template_scripts(): mixed {
 +		;
 +echo '		<script type="text/html" id="tmpl-widget-media-';
 +echo esc_attr( $this->id_base ); ;
@@ -91,6 +282,62 @@
  		</script>
 -		<?php
 +		';
++		return null;
  	}
  
  	/**
+@@ -449,9 +478,10 @@
+ 	 *
+ 	 * @since 6.0.0
+ 	 */
+-	public static function reset_default_labels() {
++	public static function reset_default_labels(): mixed {
+ 		self::$default_description = '';
+ 		self::$l10n_defaults       = array();
++		return null;
+ 	}
+ 
+ 	/**
+@@ -462,8 +492,9 @@
+ 	 * @param array $instance Widget instance props.
+ 	 * @return bool Whether widget has content.
+ 	 */
+-	protected function has_content( $instance ) {
++	protected function has_content( mixed $instance ): mixed {
+ 		return ( $instance['attachment_id'] && 'attachment' === get_post_type( $instance['attachment_id'] ) ) || $instance['url'];
++		return null;
+ 	}
+ 
+ 	/**
+@@ -473,13 +504,14 @@
+ 	 *
+ 	 * @return string
+ 	 */
+-	protected static function get_default_description() {
++	protected static function get_default_description(): mixed {
+ 		if ( self::$default_description ) {
+ 			return self::$default_description;
+ 		}
+ 
+ 		self::$default_description = __( 'A media item.' );
+ 		return self::$default_description;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -489,7 +521,7 @@
+ 	 *
+ 	 * @return (string|array)[]
+ 	 */
+-	protected static function get_l10n_defaults() {
++	protected static function get_l10n_defaults(): mixed {
+ 		if ( ! empty( self::$l10n_defaults ) ) {
+ 			return self::$l10n_defaults;
+ 		}
+@@ -512,5 +544,6 @@
+ 		);
+ 
+ 		return self::$l10n_defaults;
++		return null;
+ 	}
+ }

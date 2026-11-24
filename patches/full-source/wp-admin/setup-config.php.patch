@@ -1,0 +1,108 @@
+--- a/wp-admin/setup-config.php
++++ b/wp-admin/setup-config.php
+@@ -30,7 +30,7 @@
+ 	define( 'ABSPATH', dirname( __DIR__ ) . '/' );
+ }
+ 
+-require ABSPATH . 'wp-settings.php';
++require_once ABSPATH . 'wp-settings.php';
+ 
+ /** Load WordPress Administration Upgrade API */
+ require_once ABSPATH . 'wp-admin/includes/upgrade.php';
+@@ -91,7 +91,7 @@
+  *
+  * @param string|string[] $body_classes Class attribute values for the body tag.
+  */
+-function setup_config_display_header( $body_classes = array() ) {
++function setup_config_display_header( mixed $body_classes = array() ): mixed {
+ 	$body_classes   = (array) $body_classes;
+ 	$body_classes[] = 'wp-core-ui';
+ 	$body_classes[] = 'admin-color-modern';
+@@ -114,6 +114,7 @@
+ <body class="<?php echo implode( ' ', $body_classes ); ?>">
+ <p id="logo"><?php _e( 'WordPress' ); ?></p>
+ 	<?php
++	return null;
+ } // End function setup_config_display_header();
+ 
+ /**
+@@ -122,7 +123,7 @@
+  */
+ $language = '';
+ if ( ! empty( $_REQUEST['language'] ) ) {
+-	$language = preg_replace( '/[^a-zA-Z0-9_]/', '', $_REQUEST['language'] );
++	$language = \wp_aot_preg_replace( '/[^a-zA-Z0-9_]/', '', $_REQUEST['language'] );
+ } elseif ( isset( $GLOBALS['wp_local_package'] ) ) {
+ 	$language = $GLOBALS['wp_local_package'];
+ }
+@@ -305,7 +306,7 @@
+ 		}
+ 
+ 		// Validate $prefix: it can only contain letters, numbers and underscores.
+-		if ( preg_match( '|[^a-z0-9_]|i', $prefix ) ) {
++		if ( preg_match( '|[^a-z0-9_]|i', \wp_aot_regex_text( $prefix ) ) ) {
+ 			wp_die( __( '<strong>Error:</strong> "Table Prefix" can only contain numbers, letters, and underscores.' ) . $tryagain_link );
+ 		}
+ 
+@@ -314,10 +315,10 @@
+ 		 *
+ 		 * @ignore
+ 		 */
+-		define( 'DB_NAME', $dbname );
+-		define( 'DB_USER', $uname );
+-		define( 'DB_PASSWORD', $pwd );
+-		define( 'DB_HOST', $dbhost );
++		\wp_aot_bootstrap_mark('DB_NAME', define( 'DB_NAME', $dbname ));
++		\wp_aot_bootstrap_mark('DB_USER', define( 'DB_USER', $uname ));
++		\wp_aot_bootstrap_mark('DB_PASSWORD', define( 'DB_PASSWORD', $pwd ));
++		\wp_aot_bootstrap_mark('DB_HOST', define( 'DB_HOST', $dbhost ));
+ 		/**#@-*/
+ 
+ 		// Re-construct $wpdb with these new values.
+@@ -328,15 +329,15 @@
+ 		* The wpdb constructor bails when WP_SETUP_CONFIG is set, so we must
+ 		* fire this manually. We'll fail here if the values are no good.
+ 		*/
+-		$wpdb->db_connect();
++		\wp_aot_require_wpdb( $wpdb )->db_connect();
+ 
+ 		if ( ! empty( $wpdb->error ) ) {
+ 			wp_die( $wpdb->error->get_error_message() . $tryagain_link );
+ 		}
+ 
+-		$errors = $wpdb->suppress_errors();
+-		$wpdb->query( "SELECT $prefix" );
+-		$wpdb->suppress_errors( $errors );
++		$errors = \wp_aot_require_wpdb( $wpdb )->suppress_errors();
++		\wp_aot_require_wpdb( $wpdb )->query( "SELECT $prefix" );
++		\wp_aot_require_wpdb( $wpdb )->suppress_errors( $errors );
+ 
+ 		if ( ! $wpdb->last_error ) {
+ 			// MySQL was able to parse the prefix as a value, which we don't want. Bail.
+@@ -381,7 +382,7 @@
+ 				continue;
+ 			}
+ 
+-			if ( ! preg_match( '/^define\(\s*\'([A-Z_]+)\',([ ]+)/', $line, $match ) ) {
++			if ( ! preg_match( '/^define\(\s*\'([A-Z_]+)\',([ ]+)/', \wp_aot_regex_text( $line ), $match ) ) {
+ 				continue;
+ 			}
+ 
+@@ -393,7 +394,7 @@
+ 				case 'DB_USER':
+ 				case 'DB_PASSWORD':
+ 				case 'DB_HOST':
+-					$config_file[ $line_num ] = "define( '" . $constant . "'," . $padding . "'" . addcslashes( constant( $constant ), "\\'" ) . "' );\r\n";
++					$config_file[ $line_num ] = "define( '" . $constant . "'," . $padding . "'" . addcslashes( \wp_aot_metadata_constant( $constant ), "\\'" ) . "' );\r\n";
+ 					break;
+ 				case 'DB_CHARSET':
+ 					if ( 'utf8mb4' === $wpdb->charset || ( ! $wpdb->charset ) ) {
+@@ -474,7 +475,7 @@
+ 			 */
+ 			if ( false !== $handle ) {
+ 				foreach ( $config_file as $line ) {
+-					fwrite( $handle, $line );
++					\wp_aot_fwrite( $handle, $line );
+ 				}
+ 				fclose( $handle );
+ 			} else {

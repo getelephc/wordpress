@@ -1,0 +1,400 @@
+--- a/wp-includes/atomlib.php
++++ b/wp-includes/atomlib.php
+@@ -21,20 +21,20 @@
+ 	 * @var array
+ 	 * @access public
+ 	 */
+-    var $links = array();
++    public $links = array();
+     /**
+      * Stores Categories
+      * @var array
+      * @access public
+      */
+-    var $categories = array();
++    public $categories = array();
+ 	/**
+ 	 * Stores Entries
+ 	 *
+ 	 * @var array
+ 	 * @access public
+ 	 */
+-    var $entries = array();
++    public $entries = array();
+ }
+ 
+ /**
+@@ -48,13 +48,13 @@
+ 	 * @var array
+ 	 * @access public
+ 	 */
+-    var $links = array();
++    public $links = array();
+     /**
+      * Stores Categories
+      * @var array
+ 	 * @access public
+      */
+-    var $categories = array();
++    public $categories = array();
+ }
+ 
+ /**
+@@ -64,32 +64,32 @@
+  */
+ class AtomParser {
+ 
+-    var $NS = 'http://www.w3.org/2005/Atom';
+-    var $ATOM_CONTENT_ELEMENTS = array('content','summary','title','subtitle','rights');
+-    var $ATOM_SIMPLE_ELEMENTS = array('id','updated','published','draft');
+-
+-    var $debug = false;
+-
+-    var $depth = 0;
+-    var $indent = 2;
+-    var $in_content;
+-    var $ns_contexts = array();
+-    var $ns_decls = array();
+-    var $content_ns_decls = array();
+-    var $content_ns_contexts = array();
+-    var $is_xhtml = false;
+-    var $is_html = false;
+-    var $is_text = true;
+-    var $skipped_div = false;
+-
+-    var $FILE = "php://input";
+-
+-    var $feed;
+-    var $current;
+-    var $map_attrs_func;
+-    var $map_xmlns_func;
+-    var $error;
+-    var $content;
++    public $NS = 'http://www.w3.org/2005/Atom';
++    public $ATOM_CONTENT_ELEMENTS = array('content','summary','title','subtitle','rights');
++    public $ATOM_SIMPLE_ELEMENTS = array('id','updated','published','draft');
++
++    public $debug = false;
++
++    public $depth = 0;
++    public $indent = 2;
++    public $in_content;
++    public $ns_contexts = array();
++    public $ns_decls = array();
++    public $content_ns_decls = array();
++    public $content_ns_contexts = array();
++    public $is_xhtml = false;
++    public $is_html = false;
++    public $is_text = true;
++    public $skipped_div = false;
++
++    public $FILE = "php://input";
++
++    public $feed;
++    public $current;
++    public $map_attrs_func;
++    public $map_xmlns_func;
++    public $error;
++    public $content;
+ 
+ 	/**
+ 	 * PHP5 constructor.
+@@ -105,8 +105,9 @@
+ 	/**
+ 	 * PHP4 constructor.
+ 	 */
+-	public function AtomParser() {
++	public function AtomParser(): mixed {
+ 		self::__construct();
++		return null;
+ 	}
+ 
+ 	/**
+@@ -116,8 +117,9 @@
+ 	 * @param string $v Value
+ 	 * @return string
+ 	 */
+-	public static function map_attrs($k, $v) {
++	public static function map_attrs(mixed $k, mixed $v): mixed {
+ 		return "$k=\"$v\"";
++		return null;
+ 	}
+ 
+ 	/**
+@@ -127,29 +129,32 @@
+ 	 * @param array $n Two-element array pair. [ 0 => {namespace}, 1 => {url} ]
+ 	 * @return string 'xmlns="{url}"' or 'xmlns:{namespace}="{url}"'
+ 	 */
+-	public static function map_xmlns($p, $n) {
++	public static function map_xmlns(mixed $p, mixed $n): mixed {
+ 		$xd = "xmlns";
+ 		if( 0 < strlen($n[0]) ) {
+ 			$xd .= ":{$n[0]}";
+ 		}
+ 		return "{$xd}=\"{$n[1]}\"";
++		return null;
+ 	}
+ 
+-    function _p($msg) {
++    function _p(mixed $msg): mixed {
+         if($this->debug) {
+             print str_repeat(" ", $this->depth * $this->indent) . $msg ."\n";
+         }
+-    }
+-
+-    function error_handler($log_level, $log_text, $error_file, $error_line) {
++    	return null;
++    }
++
++    function error_handler(mixed $log_level, mixed $log_text, mixed $error_file, mixed $error_line): mixed {
+         $this->error = $log_text;
+-    }
+-
+-    function parse() {
++    	return null;
++    }
++
++    function parse(): mixed {
+ 
+         set_error_handler(array(&$this, 'error_handler'));
+ 
+-        array_unshift($this->ns_contexts, array());
++        \wp_aot_array_unshift($this->ns_contexts,array( array()));
+ 
+         if ( ! function_exists( 'xml_parser_create_ns' ) ) {
+         	trigger_error( __( "PHP's XML extension is not available. Please contact your hosting provider to enable PHP's XML extension." ) );
+@@ -170,7 +175,7 @@
+         $ret = true;
+ 
+         $fp = fopen($this->FILE, "r");
+-        while ($data = fread($fp, 4096)) {
++        while ($data = \wp_aot_fread($fp, 4096)) {
+             if($this->debug) $this->content .= $data;
+ 
+             if(!xml_parse($parser, $data, feof($fp))) {
+@@ -193,12 +198,13 @@
+         restore_error_handler();
+ 
+         return $ret;
+-    }
+-
+-    function start_element($parser, $name, $attrs) {
++    	return null;
++    }
++
++    function start_element(mixed $parser, mixed $name, mixed $attrs): mixed {
+ 
+         $name_parts = explode(":", $name);
+-        $tag        = array_pop($name_parts);
++        $tag        = \wp_aot_array_pop($name_parts);
+ 
+         switch($name) {
+             case $this->NS . ':feed':
+@@ -213,7 +219,7 @@
+         #$this->_p(print_r($this->ns_contexts,true));
+         #$this->_p('current(' . $this->current . ')');
+ 
+-        array_unshift($this->ns_contexts, $this->ns_decls);
++        \wp_aot_array_unshift($this->ns_contexts,array( $this->ns_decls));
+ 
+         $this->depth++;
+ 
+@@ -232,7 +238,7 @@
+                 $attrs_prefix[$with_prefix[1]] = $this->xml_escape($value);
+             }
+ 
+-            $attrs_str = join(' ', array_map($this->map_attrs_func, array_keys($attrs_prefix), array_values($attrs_prefix)));
++            $attrs_str = join(' ', \wp_aot_array_map($this->map_attrs_func, array_keys($attrs_prefix), array_values($attrs_prefix)));
+             if(strlen($attrs_str) > 0) {
+                 $attrs_str = " " . $attrs_str;
+             }
+@@ -240,19 +246,19 @@
+             $with_prefix = $this->ns_to_prefix($name);
+ 
+             if(!$this->is_declared_content_ns($with_prefix[0])) {
+-                array_push($this->content_ns_decls, $with_prefix[0]);
++                \wp_aot_array_push($this->content_ns_decls,array( $with_prefix[0]));
+             }
+ 
+             $xmlns_str = '';
+             if(count($this->content_ns_decls) > 0) {
+-                array_unshift($this->content_ns_contexts, $this->content_ns_decls);
+-                $xmlns_str .= join(' ', array_map($this->map_xmlns_func, array_keys($this->content_ns_contexts[0]), array_values($this->content_ns_contexts[0])));
++                \wp_aot_array_unshift($this->content_ns_contexts,array( $this->content_ns_decls));
++                $xmlns_str .= join(' ', \wp_aot_array_map($this->map_xmlns_func, array_keys($this->content_ns_contexts[0]), array_values($this->content_ns_contexts[0])));
+                 if(strlen($xmlns_str) > 0) {
+                     $xmlns_str = " " . $xmlns_str;
+                 }
+             }
+ 
+-            array_push($this->in_content, array($tag, $this->depth, "<". $with_prefix[1] ."{$xmlns_str}{$attrs_str}" . ">"));
++            \wp_aot_array_push($this->in_content,array( array($tag, $this->depth, "<". $with_prefix[1] ."{$xmlns_str}{$attrs_str}" . ">")));
+ 
+         } else if(in_array($tag, $this->ATOM_CONTENT_ELEMENTS) || in_array($tag, $this->ATOM_SIMPLE_ELEMENTS)) {
+             $this->in_content = array();
+@@ -264,21 +270,22 @@
+             if(in_array('src',array_keys($attrs))) {
+                 $this->current->$tag = $attrs;
+             } else {
+-                array_push($this->in_content, array($tag,$this->depth, $type));
++                \wp_aot_array_push($this->in_content,array( array($tag,$this->depth, $type)));
+             }
+         } else if($tag == 'link') {
+-            array_push($this->current->links, $attrs);
++            \wp_aot_array_push($this->current->links,array( $attrs));
+         } else if($tag == 'category') {
+-            array_push($this->current->categories, $attrs);
++            \wp_aot_array_push($this->current->categories,array( $attrs));
+         }
+ 
+         $this->ns_decls = array();
+-    }
+-
+-    function end_element($parser, $name) {
++    	return null;
++    }
++
++    function end_element(mixed $parser, mixed $name): mixed {
+ 
+         $name_parts = explode(":", $name);
+-        $tag        = array_pop($name_parts);
++        $tag        = \wp_aot_array_pop($name_parts);
+ 
+         $ccount = count($this->in_content);
+ 
+@@ -289,16 +296,16 @@
+             if($this->in_content[0][0] == $tag &&
+                 $this->in_content[0][1] == $this->depth) {
+                 $origtype = $this->in_content[0][2];
+-                array_shift($this->in_content);
++                \wp_aot_array_shift($this->in_content);
+                 $newcontent = array();
+                 foreach($this->in_content as $c) {
+                     if(count($c) == 3) {
+-                        array_push($newcontent, $c[2]);
++                        \wp_aot_array_push($newcontent,array( $c[2]));
+                     } else {
+                         if($this->is_xhtml || $this->is_text) {
+-                            array_push($newcontent, $this->xml_escape($c));
++                            \wp_aot_array_push($newcontent,array( $this->xml_escape($c)));
+                         } else {
+-                            array_push($newcontent, $c);
++                            \wp_aot_array_push($newcontent,array( $c));
+                         }
+                     }
+                 }
+@@ -314,49 +321,54 @@
+             } else {
+                 # else, just finalize the current element's content
+                 $endtag = $this->ns_to_prefix($name);
+-                array_push($this->in_content, array($tag, $this->depth, "</$endtag[1]>"));
+-            }
+-        }
+-
+-        array_shift($this->ns_contexts);
++                \wp_aot_array_push($this->in_content,array( array($tag, $this->depth, "</$endtag[1]>")));
++            }
++        }
++
++        \wp_aot_array_shift($this->ns_contexts);
+ 
+         $this->depth--;
+ 
+         if($name == ($this->NS . ':entry')) {
+-            array_push($this->feed->entries, $this->current);
++            \wp_aot_array_push($this->feed->entries,array( $this->current));
+             $this->current = null;
+         }
+ 
+         $this->_p("end_element('$name')");
+-    }
+-
+-    function start_ns($parser, $prefix, $uri) {
++    	return null;
++    }
++
++    function start_ns(mixed $parser, mixed $prefix, mixed $uri): mixed {
+         $this->_p("starting: " . $prefix . ":" . $uri);
+-        array_push($this->ns_decls, array($prefix,$uri));
+-    }
+-
+-    function end_ns($parser, $prefix) {
++        \wp_aot_array_push($this->ns_decls,array( array($prefix,$uri)));
++    	return null;
++    }
++
++    function end_ns(mixed $parser, mixed $prefix): mixed {
+         $this->_p("ending: #" . $prefix . "#");
+-    }
+-
+-    function cdata($parser, $data) {
+-        $this->_p("data: #" . str_replace(array("\n"), array("\\n"), trim($data)) . "#");
++    	return null;
++    }
++
++    function cdata(mixed $parser, mixed $data): mixed {
++        $this->_p("data: #" . \wp_aot_str_replace(array("\n"), array("\\n"), trim($data)) . "#");
+         if(!empty($this->in_content)) {
+-            array_push($this->in_content, $data);
+-        }
+-    }
+-
+-    function _default($parser, $data) {
++            \wp_aot_array_push($this->in_content,array( $data));
++        }
++    	return null;
++    }
++
++    function _default(mixed $parser, mixed $data): mixed {
+         # when does this gets called?
+-    }
+-
+-
+-    function ns_to_prefix($qname, $attr=false) {
++    	return null;
++    }
++
++
++    function ns_to_prefix(mixed $qname, mixed $attr=false): mixed {
+         # split 'http://www.w3.org/1999/xhtml:div' into ('http','//www.w3.org/1999/xhtml','div')
+         $components = explode(":", $qname);
+ 
+         # grab the last one (e.g 'div')
+-        $name = array_pop($components);
++        $name = \wp_aot_array_pop($components);
+ 
+         if(!empty($components)) {
+             # re-join back the namespace component
+@@ -381,9 +393,10 @@
+                 }
+             }
+         }
+-    }
+-
+-    function is_declared_content_ns($new_mapping) {
++    	return null;
++    }
++
++    function is_declared_content_ns(mixed $new_mapping): mixed {
+         foreach($this->content_ns_contexts as $context) {
+             foreach($context as $mapping) {
+                 if($new_mapping == $mapping) {
+@@ -392,12 +405,14 @@
+             }
+         }
+         return false;
+-    }
+-
+-    function xml_escape($content)
++    	return null;
++    }
++
++    function xml_escape(mixed $content): mixed
+     {
+-             return str_replace(array('&','"',"'",'<','>'),
++             return \wp_aot_str_replace(array('&','"',"'",'<','>'),
+                 array('&amp;','&quot;','&apos;','&lt;','&gt;'),
+                 $content );
++    	return null;
+     }
+ }

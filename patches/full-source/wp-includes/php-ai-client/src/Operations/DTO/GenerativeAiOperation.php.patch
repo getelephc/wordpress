@@ -1,0 +1,22 @@
+--- a/wp-includes/php-ai-client/src/Operations/DTO/GenerativeAiOperation.php
++++ b/wp-includes/php-ai-client/src/Operations/DTO/GenerativeAiOperation.php
+@@ -19,7 +19,7 @@
+  *
+  * @phpstan-type GenerativeAiOperationArrayShape array{id: string, state: string, result?: GenerativeAiResultArrayShape}
+  *
+- * @extends AbstractDataTransferObject<GenerativeAiOperationArrayShape>
++ * @phpstan-extends AbstractDataTransferObject<GenerativeAiOperationArrayShape>
+  */
+ class GenerativeAiOperation extends AbstractDataTransferObject implements OperationInterface
+ {
+@@ -143,8 +143,8 @@
+         }
+         $result = null;
+         if (isset($array[self::KEY_RESULT])) {
+-            $result = GenerativeAiResult::fromArray($array[self::KEY_RESULT]);
++            $result = GenerativeAiResult::fromArray(\wp_aot_require_array( $array[self::KEY_RESULT] ));
+         }
+-        return new self($array[self::KEY_ID], $state, $result);
++        return new self($array[self::KEY_ID], \wp_aot_require_WordPress_AiClient_Operations_Enums_OperationStateEnum( $state ), $result);
+     }
+ }

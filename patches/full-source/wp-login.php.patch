@@ -1,0 +1,302 @@
+--- a/wp-login.php
++++ b/wp-login.php
+@@ -9,16 +9,16 @@
+  */
+ 
+ /** Make sure that the WordPress bootstrap has run before continuing. */
+-require __DIR__ . '/wp-load.php';
++require_once __DIR__ . '/wp-load.php';
+ 
+ // Redirect to HTTPS login if forced to use SSL.
+ if ( force_ssl_admin() && ! is_ssl() ) {
+ 	if ( str_starts_with( $_SERVER['REQUEST_URI'], 'http' ) ) {
+ 		wp_safe_redirect( set_url_scheme( $_SERVER['REQUEST_URI'], 'https' ) );
+-		exit;
++		\wp_aot_exit();
+ 	} else {
+ 		wp_safe_redirect( 'https://' . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'] );
+-		exit;
++		\wp_aot_exit();
+ 	}
+ }
+ 
+@@ -184,7 +184,7 @@
+ 		}
+ 	}
+ 
+-	$classes[] = 'locale-' . sanitize_html_class( strtolower( str_replace( '_', '-', get_locale() ) ) );
++	$classes[] = 'locale-' . sanitize_html_class( strtolower( \wp_aot_str_replace( '_', '-', get_locale() ) ) );
+ 
+ 	/**
+ 	 * Filters the login page body classes.
+@@ -510,7 +510,7 @@
+ 
+ if ( defined( 'RELOCATE' ) && RELOCATE ) { // Move flag is set.
+ 	if ( isset( $_SERVER['PATH_INFO'] ) && ( $_SERVER['PATH_INFO'] !== $_SERVER['PHP_SELF'] ) ) {
+-		$_SERVER['PHP_SELF'] = str_replace( $_SERVER['PATH_INFO'], '', $_SERVER['PHP_SELF'] );
++		$_SERVER['PHP_SELF'] = \wp_aot_str_replace( $_SERVER['PATH_INFO'], '', $_SERVER['PHP_SELF'] );
+ 	}
+ 
+ 	$url = dirname( set_url_scheme( 'http://' . $_SERVER['HTTP_HOST'] . $_SERVER['PHP_SELF'] ) );
+@@ -522,14 +522,14 @@
+ 
+ // Set a cookie now to see if they are supported by the browser.
+ $secure = ( 'https' === parse_url( wp_login_url(), PHP_URL_SCHEME ) );
+-setcookie( TEST_COOKIE, 'WP Cookie check', 0, COOKIEPATH, COOKIE_DOMAIN, $secure, true );
+-
+-if ( SITECOOKIEPATH !== COOKIEPATH ) {
+-	setcookie( TEST_COOKIE, 'WP Cookie check', 0, SITECOOKIEPATH, COOKIE_DOMAIN, $secure, true );
++\wp_aot_native_api('setcookie', array( \wp_aot_bootstrap_string('TEST_COOKIE'), 'WP Cookie check', 0, \wp_aot_bootstrap_string('COOKIEPATH'), COOKIE_DOMAIN, $secure, true ));
++
++if ( \wp_aot_bootstrap_string('SITECOOKIEPATH') !== \wp_aot_bootstrap_string('COOKIEPATH') ) {
++	\wp_aot_native_api('setcookie', array( \wp_aot_bootstrap_string('TEST_COOKIE'), 'WP Cookie check', 0, \wp_aot_bootstrap_string('SITECOOKIEPATH'), COOKIE_DOMAIN, $secure, true ));
+ }
+ 
+ if ( isset( $_GET['wp_lang'] ) ) {
+-	setcookie( 'wp_lang', sanitize_text_field( $_GET['wp_lang'] ), 0, COOKIEPATH, COOKIE_DOMAIN, $secure, true );
++	\wp_aot_native_api('setcookie', array( 'wp_lang', sanitize_text_field( $_GET['wp_lang'] ), 0, \wp_aot_bootstrap_string('COOKIEPATH'), COOKIE_DOMAIN, $secure, true ));
+ }
+ 
+ /**
+@@ -586,7 +586,7 @@
+ 		 */
+ 		if ( ! is_user_logged_in() ) {
+ 			wp_safe_redirect( wp_login_url() );
+-			exit;
++			\wp_aot_exit();
+ 		}
+ 
+ 		if ( ! empty( $_REQUEST['redirect_to'] ) ) {
+@@ -599,7 +599,7 @@
+ 			$admin_email = get_option( 'admin_email' );
+ 		} else {
+ 			wp_safe_redirect( $redirect_to );
+-			exit;
++			\wp_aot_exit();
+ 		}
+ 
+ 		/**
+@@ -616,7 +616,7 @@
+ 		if ( ! empty( $_GET['remind_me_later'] ) ) {
+ 			if ( ! wp_verify_nonce( $_GET['remind_me_later'], 'remind_me_later_nonce' ) ) {
+ 				wp_safe_redirect( wp_login_url() );
+-				exit;
++				\wp_aot_exit();
+ 			}
+ 
+ 			if ( $remind_interval > 0 ) {
+@@ -625,13 +625,13 @@
+ 
+ 			$redirect_to = add_query_arg( 'admin_email_remind_later', 1, $redirect_to );
+ 			wp_safe_redirect( $redirect_to );
+-			exit;
++			\wp_aot_exit();
+ 		}
+ 
+ 		if ( ! empty( $_POST['correct-admin-email'] ) ) {
+ 			if ( ! check_admin_referer( 'confirm_admin_email', 'confirm_admin_email_nonce' ) ) {
+ 				wp_safe_redirect( wp_login_url() );
+-				exit;
++				\wp_aot_exit();
+ 			}
+ 
+ 			/**
+@@ -650,7 +650,7 @@
+ 			}
+ 
+ 			wp_safe_redirect( $redirect_to );
+-			exit;
++			\wp_aot_exit();
+ 		}
+ 
+ 		login_header( __( 'Confirm your administration email' ), '', $errors );
+@@ -762,10 +762,10 @@
+ 
+ 		if ( ! isset( $_POST['post_password'] ) || ! is_string( $_POST['post_password'] ) ) {
+ 			wp_safe_redirect( $redirect_to );
+-			exit;
+-		}
+-
+-		require_once ABSPATH . WPINC . '/class-phpass.php';
++			\wp_aot_exit();
++		}
++
++		require_once __DIR__ . '/wp-includes/class-phpass.php';
+ 		$hasher = new PasswordHash( 8, true );
+ 
+ 		/**
+@@ -786,10 +786,10 @@
+ 			$secure = false;
+ 		}
+ 
+-		setcookie( 'wp-postpass_' . COOKIEHASH, $hasher->HashPassword( wp_unslash( $_POST['post_password'] ) ), $expire, COOKIEPATH, COOKIE_DOMAIN, $secure );
++		\wp_aot_native_api('setcookie', array( 'wp-postpass_' . \wp_aot_bootstrap_string('COOKIEHASH'), $hasher->HashPassword( wp_unslash( $_POST['post_password'] ) ), $expire, \wp_aot_bootstrap_string('COOKIEPATH'), COOKIE_DOMAIN, $secure ));
+ 
+ 		wp_safe_redirect( $redirect_to );
+-		exit;
++		\wp_aot_exit();
+ 
+ 	case 'logout':
+ 		check_admin_referer( 'log-out' );
+@@ -825,7 +825,7 @@
+ 		$redirect_to = apply_filters( 'logout_redirect', $redirect_to, $requested_redirect_to, $user );
+ 
+ 		wp_safe_redirect( $redirect_to );
+-		exit;
++		\wp_aot_exit();
+ 
+ 	case 'lostpassword':
+ 	case 'retrievepassword':
+@@ -835,7 +835,7 @@
+ 			if ( ! is_wp_error( $errors ) ) {
+ 				$redirect_to = ! empty( $_REQUEST['redirect_to'] ) ? $_REQUEST['redirect_to'] : 'wp-login.php?checkemail=confirm';
+ 				wp_safe_redirect( $redirect_to );
+-				exit;
++				\wp_aot_exit();
+ 			}
+ 		}
+ 
+@@ -932,14 +932,14 @@
+ 	case 'resetpass':
+ 	case 'rp':
+ 		list( $rp_path ) = explode( '?', wp_unslash( $_SERVER['REQUEST_URI'] ) );
+-		$rp_cookie       = 'wp-resetpass-' . COOKIEHASH;
++		$rp_cookie       = 'wp-resetpass-' . \wp_aot_bootstrap_string('COOKIEHASH');
+ 
+ 		if ( isset( $_GET['key'] ) && isset( $_GET['login'] ) ) {
+ 			$value = sprintf( '%s:%s', wp_unslash( $_GET['login'] ), wp_unslash( $_GET['key'] ) );
+-			setcookie( $rp_cookie, $value, 0, $rp_path, COOKIE_DOMAIN, is_ssl(), true );
++			\wp_aot_native_api('setcookie', array( $rp_cookie, $value, 0, $rp_path, COOKIE_DOMAIN, is_ssl(), true ));
+ 
+ 			wp_safe_redirect( remove_query_arg( array( 'key', 'login' ) ) );
+-			exit;
++			\wp_aot_exit();
+ 		}
+ 
+ 		if ( isset( $_COOKIE[ $rp_cookie ] ) && 0 < strpos( $_COOKIE[ $rp_cookie ], ':' ) ) {
+@@ -955,7 +955,7 @@
+ 		}
+ 
+ 		if ( ! $user || is_wp_error( $user ) ) {
+-			setcookie( $rp_cookie, ' ', time() - YEAR_IN_SECONDS, $rp_path, COOKIE_DOMAIN, is_ssl(), true );
++			\wp_aot_native_api('setcookie', array( $rp_cookie, ' ', time() - YEAR_IN_SECONDS, $rp_path, COOKIE_DOMAIN, is_ssl(), true ));
+ 
+ 			if ( $user && $user->get_error_code() === 'expired_key' ) {
+ 				wp_redirect( site_url( 'wp-login.php?action=lostpassword&error=expiredkey' ) );
+@@ -963,7 +963,7 @@
+ 				wp_redirect( site_url( 'wp-login.php?action=lostpassword&error=invalidkey' ) );
+ 			}
+ 
+-			exit;
++			\wp_aot_exit();
+ 		}
+ 
+ 		$errors = new WP_Error();
+@@ -1005,7 +1005,7 @@
+ 				)
+ 			);
+ 			login_footer();
+-			exit;
++			\wp_aot_exit();
+ 		}
+ 
+ 		wp_enqueue_script( 'utils' );
+@@ -1102,12 +1102,12 @@
+ 			 * @param string $sign_up_url The sign up URL.
+ 			 */
+ 			wp_redirect( apply_filters( 'wp_signup_location', network_site_url( 'wp-signup.php' ) ) );
+-			exit;
++			\wp_aot_exit();
+ 		}
+ 
+ 		if ( ! get_option( 'users_can_register' ) ) {
+ 			wp_redirect( site_url( 'wp-login.php?registration=disabled' ) );
+-			exit;
++			\wp_aot_exit();
+ 		}
+ 
+ 		$user_login = '';
+@@ -1127,7 +1127,7 @@
+ 			if ( ! is_wp_error( $errors ) ) {
+ 				$redirect_to = ! empty( $_POST['redirect_to'] ) ? $_POST['redirect_to'] : 'wp-login.php?checkemail=registered';
+ 				wp_safe_redirect( $redirect_to );
+-				exit;
++				\wp_aot_exit();
+ 			}
+ 		}
+ 
+@@ -1273,7 +1273,7 @@
+ 
+ 		login_header( __( 'User action confirmed.' ), $message );
+ 		login_footer();
+-		exit;
++		\wp_aot_exit();
+ 
+ 	case 'login':
+ 	default:
+@@ -1305,7 +1305,7 @@
+ 			$redirect_to = $_REQUEST['redirect_to'];
+ 			// Redirect to HTTPS if user wants SSL.
+ 			if ( $secure_cookie && str_contains( $redirect_to, 'wp-admin' ) ) {
+-				$redirect_to = preg_replace( '|^http://|', 'https://', $redirect_to );
++				$redirect_to = \wp_aot_preg_replace( '|^http://|', 'https://', $redirect_to );
+ 			}
+ 		} else {
+ 			$redirect_to = admin_url();
+@@ -1315,8 +1315,8 @@
+ 
+ 		$user = wp_signon( array(), $secure_cookie );
+ 
+-		if ( empty( $_COOKIE[ LOGGED_IN_COOKIE ] ) ) {
+-			if ( headers_sent() ) {
++		if ( empty( $_COOKIE[ \wp_aot_bootstrap_string('LOGGED_IN_COOKIE') ] ) ) {
++			if ( \wp_aot_native_headers_sent() ) {
+ 				$user = new WP_Error(
+ 					'test_cookie',
+ 					sprintf(
+@@ -1326,7 +1326,7 @@
+ 						__( 'https://wordpress.org/support/forums/' )
+ 					)
+ 				);
+-			} elseif ( isset( $_POST['testcookie'] ) && empty( $_COOKIE[ TEST_COOKIE ] ) ) {
++			} elseif ( isset( $_POST['testcookie'] ) && empty( $_COOKIE[ \wp_aot_bootstrap_string('TEST_COOKIE') ] ) ) {
+ 				// If cookies are disabled, the user can't log in even with a valid username and password.
+ 				$user = new WP_Error(
+ 					'test_cookie',
+@@ -1377,7 +1377,7 @@
+ 				</body></html>
+ 				<?php
+ 
+-				exit;
++				\wp_aot_exit();
+ 			}
+ 
+ 			// Check if it is time to add a redirect to the admin email confirmation screen.
+@@ -1413,11 +1413,11 @@
+ 				}
+ 
+ 				wp_redirect( $redirect_to );
+-				exit;
++				\wp_aot_exit();
+ 			}
+ 
+ 			wp_safe_redirect( $redirect_to );
+-			exit;
++			\wp_aot_exit();
+ 		}
+ 
+ 		$errors = $user;
+@@ -1481,11 +1481,11 @@
+ 		}
+ 
+ 		// Obtain user from password reset cookie flow before clearing the cookie.
+-		$rp_cookie = 'wp-resetpass-' . COOKIEHASH;
++		$rp_cookie = 'wp-resetpass-' . \wp_aot_bootstrap_string('COOKIEHASH');
+ 		if ( isset( $_COOKIE[ $rp_cookie ] ) && is_string( $_COOKIE[ $rp_cookie ] ) ) {
+ 			$user_login      = sanitize_user( strtok( wp_unslash( $_COOKIE[ $rp_cookie ] ), ':' ) );
+ 			list( $rp_path ) = explode( '?', wp_unslash( $_SERVER['REQUEST_URI'] ) );
+-			setcookie( $rp_cookie, ' ', time() - YEAR_IN_SECONDS, $rp_path, COOKIE_DOMAIN, is_ssl(), true );
++			\wp_aot_native_api('setcookie', array( $rp_cookie, ' ', time() - YEAR_IN_SECONDS, $rp_path, COOKIE_DOMAIN, is_ssl(), true ));
+ 		}
+ 
+ 		login_header( __( 'Log In' ), '', $errors );

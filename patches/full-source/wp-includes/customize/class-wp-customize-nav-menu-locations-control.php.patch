@@ -1,8 +1,19 @@
 --- a/wp-includes/customize/class-wp-customize-nav-menu-locations-control.php
 +++ b/wp-includes/customize/class-wp-customize-nav-menu-locations-control.php
-@@ -38,15 +38,16 @@
+@@ -29,24 +29,25 @@
+ 	 *
+ 	 * @since 4.9.0
  	 */
- 	public function content_template() {
+-	public function render_content() {}
++	public function render_content(): mixed { return null; }
+ 
+ 	/**
+ 	 * JS/Underscore template for the control UI.
+ 	 *
+ 	 * @since 4.9.0
+ 	 */
+-	public function content_template() {
++	public function content_template(): mixed {
  		if ( current_theme_supports( 'menus' ) ) :
 -			?>
 -			<# var elementId; #>
@@ -21,7 +32,7 @@
  							printf(
  								/* translators: 1: Documentation URL, 2: Additional link attributes, 3: Accessibility text. */
  								_x( '(If you plan to use a menu <a href="%1$s" %2$s>widget%3$s</a>, skip this step.)', 'menu locations' ),
-@@ -58,35 +59,42 @@
+@@ -58,35 +59,43 @@
  									__( '(opens in a new tab)' )
  								)
  							);
@@ -76,5 +87,6 @@
 +echo '			</ul>
 +			';
  		endif;
++		return null;
  	}
  }

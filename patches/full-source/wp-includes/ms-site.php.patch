@@ -1,0 +1,597 @@
+--- a/wp-includes/ms-site.php
++++ b/wp-includes/ms-site.php
+@@ -41,7 +41,7 @@
+  * }
+  * @return int|WP_Error The new site's ID on success, or error object on failure.
+  */
+-function wp_insert_site( array $data ) {
++function wp_insert_site( array $data ): mixed {
+ 	global $wpdb;
+ 
+ 	$now = current_time( 'mysql', true );
+@@ -65,7 +65,7 @@
+ 		return $prepared_data;
+ 	}
+ 
+-	if ( false === $wpdb->insert( $wpdb->blogs, $prepared_data ) ) {
++	if ( false === \wp_aot_require_wpdb( $wpdb )->insert( $wpdb->blogs, $prepared_data ) ) {
+ 		return new WP_Error( 'db_insert_error', __( 'Could not insert site into the database.' ), $wpdb->last_error );
+ 	}
+ 
+@@ -89,7 +89,7 @@
+ 	do_action( 'wp_insert_site', $new_site );
+ 
+ 	// Extract the passed arguments that may be relevant for site initialization.
+-	$args = array_diff_key( $data, $defaults );
++	$args = \wp_aot_array_diff_key(array( $data, $defaults ));
+ 	if ( isset( $args['site_id'] ) ) {
+ 		unset( $args['site_id'] );
+ 	}
+@@ -119,7 +119,7 @@
+ 		 * The `$allowed_data_fields` matches the one used in `wpmu_create_blog()`.
+ 		 */
+ 		$allowed_data_fields = array( 'public', 'archived', 'mature', 'spam', 'deleted', 'lang_id' );
+-		$meta                = array_merge( array_intersect_key( $data, array_flip( $allowed_data_fields ) ), $meta );
++		$meta                = \wp_aot_array_merge(array( \wp_aot_array_intersect_key(array( $data, \wp_aot_array_flip( $allowed_data_fields ) )), $meta ));
+ 
+ 		/**
+ 		 * Fires immediately after a new site is created.
+@@ -143,6 +143,7 @@
+ 	}
+ 
+ 	return (int) $new_site->id;
++	return null;
+ }
+ 
+ /**
+@@ -156,7 +157,7 @@
+  * @param array $data    Site data to update. See {@see wp_insert_site()} for the list of supported keys.
+  * @return int|WP_Error The updated site's ID on success, or error object on failure.
+  */
+-function wp_update_site( $site_id, array $data ) {
++function wp_update_site( mixed $site_id, array $data ): mixed {
+ 	global $wpdb;
+ 
+ 	if ( empty( $site_id ) ) {
+@@ -178,7 +179,7 @@
+ 		return $data;
+ 	}
+ 
+-	if ( false === $wpdb->update( $wpdb->blogs, $data, array( 'blog_id' => $old_site->id ) ) ) {
++	if ( false === \wp_aot_require_wpdb( $wpdb )->update( $wpdb->blogs, $data, array( 'blog_id' => $old_site->id ) ) ) {
+ 		return new WP_Error( 'db_update_error', __( 'Could not update site in the database.' ), $wpdb->last_error );
+ 	}
+ 
+@@ -197,6 +198,7 @@
+ 	do_action( 'wp_update_site', $new_site, $old_site );
+ 
+ 	return (int) $new_site->id;
++	return null;
+ }
+ 
+ /**
+@@ -209,7 +211,7 @@
+  * @param int $site_id ID of the site that should be deleted.
+  * @return WP_Site|WP_Error The deleted site object on success, or error object on failure.
+  */
+-function wp_delete_site( $site_id ) {
++function wp_delete_site( mixed $site_id ): mixed {
+ 	global $wpdb;
+ 
+ 	if ( empty( $site_id ) ) {
+@@ -261,13 +263,13 @@
+ 	do_action( 'wp_uninitialize_site', $old_site );
+ 
+ 	if ( is_site_meta_supported() ) {
+-		$blog_meta_ids = $wpdb->get_col( $wpdb->prepare( "SELECT meta_id FROM $wpdb->blogmeta WHERE blog_id = %d ", $old_site->id ) );
++		$blog_meta_ids = \wp_aot_require_wpdb( $wpdb )->get_col( \wp_aot_require_wpdb( $wpdb )->prepare( "SELECT meta_id FROM $wpdb->blogmeta WHERE blog_id = %d ", $old_site->id ) );
+ 		foreach ( $blog_meta_ids as $mid ) {
+ 			delete_metadata_by_mid( 'blog', $mid );
+ 		}
+ 	}
+ 
+-	if ( false === $wpdb->delete( $wpdb->blogs, array( 'blog_id' => $old_site->id ) ) ) {
++	if ( false === \wp_aot_require_wpdb( $wpdb )->delete( $wpdb->blogs, array( 'blog_id' => $old_site->id ) ) ) {
+ 		return new WP_Error( 'db_delete_error', __( 'Could not delete site from the database.' ), $wpdb->last_error );
+ 	}
+ 
+@@ -294,6 +296,7 @@
+ 	do_action_deprecated( 'deleted_blog', array( $old_site->id, true ), '5.1.0' );
+ 
+ 	return $old_site;
++	return null;
+ }
+ 
+ /**
+@@ -307,7 +310,7 @@
+  * @param WP_Site|int|null $site Optional. Site to retrieve. Default is the current site.
+  * @return WP_Site|null The site object or null if not found.
+  */
+-function get_site( $site = null ) {
++function get_site( mixed $site = null ): mixed {
+ 	if ( empty( $site ) ) {
+ 		$site = get_current_blog_id();
+ 	}
+@@ -334,6 +337,7 @@
+ 	$_site = apply_filters( 'get_site', $_site );
+ 
+ 	return $_site;
++	return null;
+ }
+ 
+ /**
+@@ -350,19 +354,20 @@
+  * @param array $ids               ID list.
+  * @param bool  $update_meta_cache Optional. Whether to update the meta cache. Default true.
+  */
+-function _prime_site_caches( $ids, $update_meta_cache = true ) {
++function _prime_site_caches( mixed $ids, mixed $update_meta_cache = true ): mixed {
+ 	global $wpdb;
+ 
+ 	$non_cached_ids = _get_non_cached_ids( $ids, 'sites' );
+ 	if ( ! empty( $non_cached_ids ) ) {
+-		$fresh_sites = $wpdb->get_results( sprintf( "SELECT * FROM $wpdb->blogs WHERE blog_id IN (%s)", implode( ',', array_map( 'intval', $non_cached_ids ) ) ) ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
++		$fresh_sites = \wp_aot_require_wpdb( $wpdb )->get_results( sprintf( "SELECT * FROM $wpdb->blogs WHERE blog_id IN (%s)", implode( ',', \wp_aot_array_map( 'intval', $non_cached_ids ) ) ) ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+ 
+ 		update_site_cache( $fresh_sites, false );
+ 	}
+ 
+ 	if ( $update_meta_cache ) {
+-		wp_lazyload_site_meta( $ids );
+-	}
++		wp_lazyload_site_meta( \wp_aot_array_input($ids ));
++	}
++	return null;
+ }
+ 
+ /**
+@@ -372,12 +377,13 @@
+  *
+  * @param array $site_ids List of site IDs.
+  */
+-function wp_lazyload_site_meta( array $site_ids ) {
++function wp_lazyload_site_meta( array $site_ids ): mixed {
+ 	if ( empty( $site_ids ) ) {
+-		return;
++		return null;
+ 	}
+ 	$lazyloader = wp_metadata_lazyloader();
+ 	$lazyloader->queue_objects( 'blog', $site_ids );
++	return null;
+ }
+ 
+ /**
+@@ -389,9 +395,9 @@
+  * @param array $sites             Array of site objects.
+  * @param bool  $update_meta_cache Whether to update site meta cache. Default true.
+  */
+-function update_site_cache( $sites, $update_meta_cache = true ) {
++function update_site_cache( mixed $sites, mixed $update_meta_cache = true ): mixed {
+ 	if ( ! $sites ) {
+-		return;
++		return null;
+ 	}
+ 	$site_ids          = array();
+ 	$site_data         = array();
+@@ -408,6 +414,7 @@
+ 	if ( $update_meta_cache ) {
+ 		update_sitemeta_cache( $site_ids );
+ 	}
++	return null;
+ }
+ 
+ /**
+@@ -421,12 +428,13 @@
+  * @param array $site_ids List of site IDs.
+  * @return array|false An array of metadata on success, false if there is nothing to update.
+  */
+-function update_sitemeta_cache( $site_ids ) {
++function update_sitemeta_cache( mixed $site_ids ): mixed {
+ 	// Ensure this filter is hooked in even if the function is called early.
+ 	if ( ! has_filter( 'update_blog_metadata_cache', 'wp_check_site_meta_support_prefilter' ) ) {
+ 		add_filter( 'update_blog_metadata_cache', 'wp_check_site_meta_support_prefilter' );
+ 	}
+ 	return update_meta_cache( 'blog', $site_ids );
++	return null;
+ }
+ 
+ /**
+@@ -442,10 +450,11 @@
+  * @return WP_Site[]|int[]|int List of WP_Site objects, a list of site IDs when 'fields' is set to 'ids',
+  *                             or the number of sites when 'count' is passed as a query var.
+  */
+-function get_sites( $args = array() ) {
++function get_sites( mixed $args = array() ): mixed {
+ 	$query = new WP_Site_Query();
+ 
+ 	return $query->query( $args );
++	return null;
+ }
+ 
+ /**
+@@ -461,7 +470,7 @@
+  * @return array|WP_Error Site data ready for a database transaction, or WP_Error in case a validation
+  *                        error occurred.
+  */
+-function wp_prepare_site_data( $data, $defaults, $old_site = null ) {
++function wp_prepare_site_data( mixed $data, mixed $defaults, mixed $old_site = null ): mixed {
+ 
+ 	// Maintain backward-compatibility with `$site_id` as network ID.
+ 	if ( isset( $data['site_id'] ) ) {
+@@ -482,7 +491,7 @@
+ 	$data = apply_filters( 'wp_normalize_site_data', $data );
+ 
+ 	$allowed_data_fields = array( 'domain', 'path', 'network_id', 'registered', 'last_updated', 'public', 'archived', 'mature', 'spam', 'deleted', 'lang_id' );
+-	$data                = array_intersect_key( wp_parse_args( $data, $defaults ), array_flip( $allowed_data_fields ) );
++	$data                = \wp_aot_array_intersect_key(array( wp_parse_args( $data, $defaults ), \wp_aot_array_flip( $allowed_data_fields ) ));
+ 
+ 	$errors = new WP_Error();
+ 
+@@ -510,6 +519,7 @@
+ 	unset( $data['network_id'] );
+ 
+ 	return $data;
++	return null;
+ }
+ 
+ /**
+@@ -521,10 +531,10 @@
+  *                    See {@see wp_insert_site()} for the possibly included data.
+  * @return array Normalized site data.
+  */
+-function wp_normalize_site_data( $data ) {
++function wp_normalize_site_data( mixed $data ): mixed {
+ 	// Sanitize domain if passed.
+ 	if ( array_key_exists( 'domain', $data ) ) {
+-		$data['domain'] = preg_replace( '/[^a-z0-9\-.:]+/i', '', $data['domain'] );
++		$data['domain'] = \wp_aot_preg_replace( '/[^a-z0-9\-.:]+/i', '', $data['domain'] );
+ 	}
+ 
+ 	// Sanitize path if passed.
+@@ -558,6 +568,7 @@
+ 	}
+ 
+ 	return $data;
++	return null;
+ }
+ 
+ /**
+@@ -572,7 +583,7 @@
+  * @param WP_Site|null $old_site The old site object if the data belongs to a site being updated,
+  *                               or null if it is a new site being inserted.
+  */
+-function wp_validate_site_data( $errors, $data, $old_site = null ) {
++function wp_validate_site_data( mixed $errors, mixed $data, mixed $old_site = null ): mixed {
+ 	// A domain must always be present.
+ 	if ( empty( $data['domain'] ) ) {
+ 		$errors->add( 'site_empty_domain', __( 'Site domain must not be empty.' ) );
+@@ -610,7 +621,7 @@
+ 	}
+ 
+ 	if ( ! empty( $errors->errors ) ) {
+-		return;
++		return null;
+ 	}
+ 
+ 	// If a new site, or domain/path/network ID have changed, ensure uniqueness.
+@@ -623,6 +634,7 @@
+ 			$errors->add( 'site_taken', __( 'Sorry, that site already exists!' ) );
+ 		}
+ 	}
++	return null;
+ }
+ 
+ /**
+@@ -650,7 +662,7 @@
+  * }
+  * @return true|WP_Error True on success, or error object on failure.
+  */
+-function wp_initialize_site( $site_id, array $args = array() ) {
++function wp_initialize_site( mixed $site_id, array $args = array() ): mixed {
+ 	global $wpdb, $wp_roles;
+ 
+ 	if ( empty( $site_id ) ) {
+@@ -722,7 +734,7 @@
+ 
+ 	// Populate the site's options.
+ 	populate_options(
+-		array_merge(
++		\wp_aot_array_merge(array(
+ 			array(
+ 				'home'        => untrailingslashit( $home_scheme . '://' . $site->domain . $site->path ),
+ 				'siteurl'     => untrailingslashit( $siteurl_scheme . '://' . $site->domain . $site->path ),
+@@ -733,7 +745,7 @@
+ 				'WPLANG'      => get_network_option( $network->id, 'WPLANG' ),
+ 			),
+ 			$args['options']
+-		)
++		))
+ 	);
+ 
+ 	// Clean blog cache after populating options.
+@@ -744,15 +756,15 @@
+ 	$wp_roles = new WP_Roles();
+ 
+ 	// Populate metadata for the site.
+-	populate_site_meta( $site->id, $args['meta'] );
++	populate_site_meta( $site->id, \wp_aot_array_input($args['meta'] ));
+ 
+ 	// Remove all permissions that may exist for the site.
+-	$table_prefix = $wpdb->get_blog_prefix();
++	$table_prefix = \wp_aot_require_wpdb( $wpdb )->get_blog_prefix();
+ 	delete_metadata( 'user', 0, $table_prefix . 'user_level', null, true );   // Delete all.
+ 	delete_metadata( 'user', 0, $table_prefix . 'capabilities', null, true ); // Delete all.
+ 
+ 	// Install default site content.
+-	wp_install_defaults( $args['user_id'] );
++	\wp_aot_native_api('wp_install_defaults', array( $args['user_id'] ));
+ 
+ 	// Set the site administrator.
+ 	add_user_to_blog( $site->id, $args['user_id'], 'administrator' );
+@@ -767,6 +779,7 @@
+ 	wp_installing( $orig_installing );
+ 
+ 	return true;
++	return null;
+ }
+ 
+ /**
+@@ -781,7 +794,7 @@
+  * @param int|WP_Site $site_id Site ID or object.
+  * @return true|WP_Error True on success, or error object on failure.
+  */
+-function wp_uninitialize_site( $site_id ) {
++function wp_uninitialize_site( mixed $site_id ): mixed {
+ 	global $wpdb;
+ 
+ 	if ( empty( $site_id ) ) {
+@@ -819,7 +832,7 @@
+ 
+ 	$uploads = wp_get_upload_dir();
+ 
+-	$tables = $wpdb->tables( 'blog' );
++	$tables = \wp_aot_require_wpdb( $wpdb )->tables( 'blog' );
+ 
+ 	/**
+ 	 * Filters the tables to drop when the site is deleted.
+@@ -832,7 +845,7 @@
+ 	$drop_tables = apply_filters( 'wpmu_drop_tables', $tables, $site->id );
+ 
+ 	foreach ( (array) $drop_tables as $table ) {
+-		$wpdb->query( "DROP TABLE IF EXISTS `$table`" ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
++		\wp_aot_require_wpdb( $wpdb )->query( "DROP TABLE IF EXISTS `$table`" ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+ 	}
+ 
+ 	/**
+@@ -876,7 +889,7 @@
+ 		++$index;
+ 	}
+ 
+-	$stack = array_reverse( $stack ); // Last added directories are deepest.
++	$stack = \wp_aot_array_reverse( $stack ); // Last added directories are deepest.
+ 	foreach ( (array) $stack as $dir ) {
+ 		if ( $dir !== $top_dir ) {
+ 			@rmdir( $dir );
+@@ -889,6 +902,7 @@
+ 	}
+ 
+ 	return true;
++	return null;
+ }
+ 
+ /**
+@@ -903,7 +917,7 @@
+  * @param int|WP_Site $site_id Site ID or object.
+  * @return bool True if the site is initialized, false otherwise.
+  */
+-function wp_is_site_initialized( $site_id ) {
++function wp_is_site_initialized( mixed $site_id ): mixed {
+ 	global $wpdb;
+ 
+ 	if ( is_object( $site_id ) ) {
+@@ -935,9 +949,9 @@
+ 		switch_to_blog( $site_id );
+ 	}
+ 
+-	$suppress = $wpdb->suppress_errors();
+-	$result   = (bool) $wpdb->get_results( "DESCRIBE {$wpdb->posts}" );
+-	$wpdb->suppress_errors( $suppress );
++	$suppress = \wp_aot_require_wpdb( $wpdb )->suppress_errors();
++	$result   = (bool) \wp_aot_require_wpdb( $wpdb )->get_results( "DESCRIBE {$wpdb->posts}" );
++	\wp_aot_require_wpdb( $wpdb )->suppress_errors( $suppress );
+ 
+ 	if ( $switch ) {
+ 		restore_current_blog();
+@@ -945,6 +959,7 @@
+ 	}
+ 
+ 	return $result;
++	return null;
+ }
+ 
+ /**
+@@ -956,22 +971,22 @@
+  *
+  * @param WP_Site|int $blog The site object or ID to be cleared from cache.
+  */
+-function clean_blog_cache( $blog ) {
++function clean_blog_cache( mixed $blog ): mixed {
+ 	global $_wp_suspend_cache_invalidation;
+ 
+ 	if ( ! empty( $_wp_suspend_cache_invalidation ) ) {
+-		return;
++		return null;
+ 	}
+ 
+ 	if ( empty( $blog ) ) {
+-		return;
++		return null;
+ 	}
+ 
+ 	$blog_id = $blog;
+ 	$blog    = get_site( $blog_id );
+ 	if ( ! $blog ) {
+ 		if ( ! is_numeric( $blog_id ) ) {
+-			return;
++			return null;
+ 		}
+ 
+ 		// Make sure a WP_Site object exists even when the site has been deleted.
+@@ -1017,6 +1032,7 @@
+ 	 * @param int $blog_id Blog ID.
+ 	 */
+ 	do_action_deprecated( 'refresh_blog_details', array( $blog_id ), '4.9.0', 'clean_site_cache' );
++	return null;
+ }
+ 
+ /**
+@@ -1039,8 +1055,9 @@
+  *                           Default false.
+  * @return int|false Meta ID on success, false on failure.
+  */
+-function add_site_meta( $site_id, $meta_key, $meta_value, $unique = false ) {
++function add_site_meta( mixed $site_id, mixed $meta_key, mixed $meta_value, mixed $unique = false ): mixed {
+ 	return add_metadata( 'blog', $site_id, $meta_key, $meta_value, $unique );
++	return null;
+ }
+ 
+ /**
+@@ -1061,8 +1078,9 @@
+  *                           Must be serializable if non-scalar. Default empty.
+  * @return bool True on success, false on failure.
+  */
+-function delete_site_meta( $site_id, $meta_key, $meta_value = '' ) {
++function delete_site_meta( mixed $site_id, mixed $meta_key, mixed $meta_value = '' ): mixed {
+ 	return delete_metadata( 'blog', $site_id, $meta_key, $meta_value );
++	return null;
+ }
+ 
+ /**
+@@ -1087,8 +1105,9 @@
+  *               - numbers (both integer and float) are returned as strings
+  *               Arrays and objects retain their original type.
+  */
+-function get_site_meta( $site_id, $key = '', $single = false ) {
++function get_site_meta( mixed $site_id, mixed $key = '', mixed $single = false ): mixed {
+ 	return get_metadata( 'blog', $site_id, $key, $single );
++	return null;
+ }
+ 
+ /**
+@@ -1113,8 +1132,9 @@
+  *                  false on failure or if the value passed to the function
+  *                  is the same as the one that is already in the database.
+  */
+-function update_site_meta( $site_id, $meta_key, $meta_value, $prev_value = '' ) {
++function update_site_meta( mixed $site_id, mixed $meta_key, mixed $meta_value, mixed $prev_value = '' ): mixed {
+ 	return update_metadata( 'blog', $site_id, $meta_key, $meta_value, $prev_value );
++	return null;
+ }
+ 
+ /**
+@@ -1125,8 +1145,9 @@
+  * @param string $meta_key Metadata key to search for when deleting.
+  * @return bool Whether the site meta key was deleted from the database.
+  */
+-function delete_site_meta_by_key( $meta_key ) {
++function delete_site_meta_by_key( mixed $meta_key ): mixed {
+ 	return delete_metadata( 'blog', null, $meta_key, '', true );
++	return null;
+ }
+ 
+ /**
+@@ -1138,16 +1159,17 @@
+  * @param WP_Site|null $old_site Optional. If $new_site has been updated, this must be the previous
+  *                               state of that site. Default null.
+  */
+-function wp_maybe_update_network_site_counts_on_update( $new_site, $old_site = null ) {
++function wp_maybe_update_network_site_counts_on_update( mixed $new_site, mixed $old_site = null ): mixed {
+ 	if ( null === $old_site ) {
+ 		wp_maybe_update_network_site_counts( $new_site->network_id );
+-		return;
++		return null;
+ 	}
+ 
+ 	if ( $new_site->network_id !== $old_site->network_id ) {
+ 		wp_maybe_update_network_site_counts( $new_site->network_id );
+ 		wp_maybe_update_network_site_counts( $old_site->network_id );
+ 	}
++	return null;
+ }
+ 
+ /**
+@@ -1159,7 +1181,7 @@
+  * @param WP_Site|null $old_site Optional. If $new_site has been updated, this must be the previous
+  *                               state of that site. Default null.
+  */
+-function wp_maybe_transition_site_statuses_on_update( $new_site, $old_site = null ) {
++function wp_maybe_transition_site_statuses_on_update( mixed $new_site, mixed $old_site = null ): mixed {
+ 	$site_id = $new_site->id;
+ 
+ 	// Use the default values for a site if no previous state is given.
+@@ -1276,6 +1298,7 @@
+ 		 */
+ 		do_action( 'update_blog_public', $site_id, $new_site->public );
+ 	}
++	return null;
+ }
+ 
+ /**
+@@ -1286,10 +1309,11 @@
+  * @param WP_Site $new_site The site object after the update.
+  * @param WP_Site $old_site The site object prior to the update.
+  */
+-function wp_maybe_clean_new_site_cache_on_update( $new_site, $old_site ) {
++function wp_maybe_clean_new_site_cache_on_update( mixed $new_site, mixed $old_site ): mixed {
+ 	if ( $old_site->domain !== $new_site->domain || $old_site->path !== $new_site->path ) {
+ 		clean_blog_cache( $new_site );
+ 	}
++	return null;
+ }
+ 
+ /**
+@@ -1301,14 +1325,15 @@
+  * @param string $is_public Whether the site is public. A numeric string,
+  *                          for compatibility reasons. Accepts '1' or '0'.
+  */
+-function wp_update_blog_public_option_on_site_update( $site_id, $is_public ) {
++function wp_update_blog_public_option_on_site_update( mixed $site_id, mixed $is_public ): mixed {
+ 
+ 	// Bail if the site's database tables do not exist (yet).
+ 	if ( ! wp_is_site_initialized( $site_id ) ) {
+-		return;
++		return null;
+ 	}
+ 
+ 	update_blog_option( $site_id, 'blog_public', $is_public );
++	return null;
+ }
+ 
+ /**
+@@ -1316,8 +1341,9 @@
+  *
+  * @since 5.1.0
+  */
+-function wp_cache_set_sites_last_changed() {
++function wp_cache_set_sites_last_changed(): mixed {
+ 	wp_cache_set_last_changed( 'sites' );
++	return null;
+ }
+ 
+ /**
+@@ -1330,7 +1356,7 @@
+  * @param mixed $check Skip-value for whether to proceed site meta function execution.
+  * @return mixed Original value of $check, or false if site meta is not supported.
+  */
+-function wp_check_site_meta_support_prefilter( $check ) {
++function wp_check_site_meta_support_prefilter( mixed $check ): mixed {
+ 	if ( ! is_site_meta_supported() ) {
+ 		/* translators: %s: Database table name. */
+ 		_doing_it_wrong( __FUNCTION__, sprintf( __( 'The %s table is not installed. Please run the network database upgrade.' ), $GLOBALS['wpdb']->blogmeta ), '5.1.0' );
+@@ -1338,4 +1364,5 @@
+ 	}
+ 
+ 	return $check;
+-}
++	return null;
++}

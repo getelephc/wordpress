@@ -1,0 +1,11 @@
+--- a/wp-includes/default-filters.php
++++ b/wp-includes/default-filters.php
+@@ -25,7 +25,7 @@
+ 
+ // Don't load directly.
+ if ( ! defined( 'ABSPATH' ) ) {
+-	exit;
++	\wp_aot_exit();
+ }
+ 
+ // Strip, trim, kses, special chars for string saves.

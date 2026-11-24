@@ -1,0 +1,75 @@
+--- a/wp-includes/Requests/src/Ssl.php
++++ b/wp-includes/Requests/src/Ssl.php
+@@ -32,7 +32,7 @@
+ 	 * @throws \WpOrg\Requests\Exception\InvalidArgument When the passed $host argument is not a string or a stringable object.
+ 	 * @throws \WpOrg\Requests\Exception\InvalidArgument When the passed $cert argument is not an array or array accessible.
+ 	 */
+-	public static function verify_certificate($host, $cert) {
++	public static function verify_certificate(mixed $host, mixed $cert): mixed {
+ 		if (InputValidator::is_string_or_stringable($host) === false) {
+ 			throw InvalidArgument::create(1, '$host', 'string|Stringable', gettype($host));
+ 		}
+@@ -76,6 +76,7 @@
+ 		}
+ 
+ 		return false;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -95,7 +96,7 @@
+ 	 * @return boolean Is the name valid?
+ 	 * @throws \WpOrg\Requests\Exception\InvalidArgument When the passed argument is not a string or a stringable object.
+ 	 */
+-	public static function verify_reference_name($reference) {
++	public static function verify_reference_name(mixed $reference): mixed {
+ 		if (InputValidator::is_string_or_stringable($reference) === false) {
+ 			throw InvalidArgument::create(1, '$reference', 'string|Stringable', gettype($reference));
+ 		}
+@@ -104,19 +105,19 @@
+ 			return false;
+ 		}
+ 
+-		if (preg_match('`\s`', $reference) > 0) {
++		if (preg_match('`\s`', \wp_aot_regex_text( $reference )) > 0) {
+ 			// Whitespace detected. This can never be a dNSName.
+ 			return false;
+ 		}
+ 
+ 		$parts = explode('.', $reference);
+-		if ($parts !== array_filter($parts)) {
++		if ($parts !== \wp_aot_array_filter($parts)) {
+ 			// DNSName cannot contain two dots next to each other.
+ 			return false;
+ 		}
+ 
+ 		// Check the first part of the name
+-		$first = array_shift($parts);
++		$first = \wp_aot_array_shift($parts);
+ 
+ 		if (strpos($first, '*') !== false) {
+ 			// Check that the wildcard is the full part
+@@ -139,6 +140,7 @@
+ 
+ 		// Nothing found, verified!
+ 		return true;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -149,7 +151,7 @@
+ 	 * @return boolean Does the domain match?
+ 	 * @throws \WpOrg\Requests\Exception\InvalidArgument When either of the passed arguments is not a string or a stringable object.
+ 	 */
+-	public static function match_domain($host, $reference) {
++	public static function match_domain(mixed $host, mixed $reference): mixed {
+ 		if (InputValidator::is_string_or_stringable($host) === false) {
+ 			throw InvalidArgument::create(1, '$host', 'string|Stringable', gettype($host));
+ 		}
+@@ -178,5 +180,6 @@
+ 		}
+ 
+ 		return false;
++		return null;
+ 	}
+ }

@@ -1,0 +1,58 @@
+--- a/wp-includes/blocks/widget-group.php
++++ b/wp-includes/blocks/widget-group.php
+@@ -19,7 +19,7 @@
+  *
+  * @return string Rendered block.
+  */
+-function render_block_core_widget_group( $attributes, $content, $block ) {
++function render_block_core_widget_group( mixed $attributes, mixed $content, mixed $block ): mixed {
+ 	global $wp_registered_sidebars, $_sidebar_being_rendered;
+ 
+ 	if ( isset( $wp_registered_sidebars[ $_sidebar_being_rendered ] ) ) {
+@@ -43,6 +43,7 @@
+ 	$html .= '</div>';
+ 
+ 	return $html;
++	return null;
+ }
+ 
+ /**
+@@ -50,13 +51,14 @@
+  *
+  * @since 5.9.0
+  */
+-function register_block_core_widget_group() {
++function register_block_core_widget_group(): mixed {
+ 	register_block_type_from_metadata(
+ 		__DIR__ . '/widget-group',
+ 		array(
+ 			'render_callback' => 'render_block_core_widget_group',
+ 		)
+ 	);
++	return null;
+ }
+ 
+ add_action( 'init', 'register_block_core_widget_group' );
+@@ -72,9 +74,10 @@
+  *
+  * @param int|string $index       Index, name, or ID of the dynamic sidebar.
+  */
+-function note_sidebar_being_rendered( $index ) {
++function note_sidebar_being_rendered( mixed $index ): mixed {
+ 	global $_sidebar_being_rendered;
+ 	$_sidebar_being_rendered = $index;
++	return null;
+ }
+ add_action( 'dynamic_sidebar_before', 'note_sidebar_being_rendered' );
+ 
+@@ -86,8 +89,9 @@
+  *
+  * @global int|string $_sidebar_being_rendered
+  */
+-function discard_sidebar_being_rendered() {
++function discard_sidebar_being_rendered(): mixed {
+ 	global $_sidebar_being_rendered;
+ 	unset( $_sidebar_being_rendered );
++	return null;
+ }
+ add_action( 'dynamic_sidebar_after', 'discard_sidebar_being_rendered' );

@@ -1,0 +1,19 @@
+--- a/wp-includes/SimplePie/src/Cache/Psr16.php
++++ b/wp-includes/SimplePie/src/Cache/Psr16.php
+@@ -51,7 +51,7 @@
+      * @throws InvalidArgumentException&Throwable
+      *   MUST be thrown if the $key string is not a legal value.
+      */
+-    public function get_data(string $key, $default = null)
++    public function get_data(string $key, mixed $default = null): mixed
+     {
+         $data = $this->cache->get($key, $default);
+ 
+@@ -60,6 +60,7 @@
+         }
+ 
+         return $data;
++    	return null;
+     }
+ 
+     /**

@@ -1,0 +1,276 @@
+--- a/wp-includes/class-wp-dependencies.php
++++ b/wp-includes/class-wp-dependencies.php
+@@ -33,7 +33,7 @@
+ 	 *
+ 	 * @var string[]
+ 	 */
+-	public $queue = array();
++	public mixed $queue = array();
+ 
+ 	/**
+ 	 * An array of handles of dependencies to queue.
+@@ -131,7 +131,7 @@
+ 	 * @param int|false             $group   Optional. Group level: level (int), no group (false).
+ 	 * @return string[] Array of handles of items that have been processed.
+ 	 */
+-	public function do_items( $handles = false, $group = false ) {
++	public function do_items( mixed $handles = false, mixed $group = false ): mixed {
+ 		/*
+ 		 * If nothing is passed, print the queue. If a string is passed,
+ 		 * print that item. If an array is passed, print those items.
+@@ -156,6 +156,7 @@
+ 		}
+ 
+ 		return $this->done;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -169,8 +170,9 @@
+ 	 *                          Default false.
+ 	 * @return bool True on success, false if not set.
+ 	 */
+-	public function do_item( $handle, $group = false ) {
++	public function do_item( mixed $handle, mixed $group = false ): mixed {
+ 		return isset( $this->registered[ $handle ] );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -190,7 +192,7 @@
+ 	 *                                   Default false.
+ 	 * @return bool True on success, false on failure.
+ 	 */
+-	public function all_deps( $handles, $recursion = false, $group = false ) {
++	public function all_deps( mixed $handles, mixed $recursion = false, mixed $group = false ): mixed {
+ 		$handles = (array) $handles;
+ 		if ( ! $handles ) {
+ 			return false;
+@@ -213,9 +215,9 @@
+ 			}
+ 
+ 			$keep_going           = true;
+-			$missing_dependencies = array();
++			$missing_dependencies = \wp_aot_mixed(array());
+ 			if ( isset( $this->registered[ $handle ] ) && count( $this->registered[ $handle ]->deps ) > 0 ) {
+-				$missing_dependencies = array_diff( $this->registered[ $handle ]->deps, array_keys( $this->registered ) );
++				$missing_dependencies = \wp_aot_array_diff(array( $this->registered[ $handle ]->deps, array_keys( $this->registered ) ));
+ 			}
+ 			if ( ! isset( $this->registered[ $handle ] ) ) {
+ 				$keep_going = false; // Item doesn't exist.
+@@ -253,6 +255,7 @@
+ 		}
+ 
+ 		return true;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -278,7 +281,7 @@
+ 	 *                                 Examples: $media, $in_footer.
+ 	 * @return bool Whether the item has been registered. True on success, false on failure.
+ 	 */
+-	public function add( $handle, $src, $deps = array(), $ver = false, $args = null ) {
++	public function add( mixed $handle, mixed $src, mixed $deps = array(), mixed $ver = false, mixed $args = null ): mixed {
+ 		if ( isset( $this->registered[ $handle ] ) ) {
+ 			return false;
+ 		}
+@@ -296,6 +299,7 @@
+ 		}
+ 
+ 		return true;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -310,7 +314,7 @@
+ 	 * @param mixed  $value  The data value.
+ 	 * @return bool True on success, false on failure.
+ 	 */
+-	public function add_data( $handle, $key, $value ) {
++	public function add_data( mixed $handle, mixed $key, mixed $value ): mixed {
+ 		if ( ! isset( $this->registered[ $handle ] ) ) {
+ 			return false;
+ 		}
+@@ -323,6 +327,7 @@
+ 		}
+ 
+ 		return $this->registered[ $handle ]->add_data( $key, $value );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -336,7 +341,7 @@
+ 	 * @param string $key    The data key.
+ 	 * @return mixed Extra item data (string), false otherwise.
+ 	 */
+-	public function get_data( $handle, $key ) {
++	public function get_data( mixed $handle, mixed $key ): mixed {
+ 		if ( ! isset( $this->registered[ $handle ] ) ) {
+ 			return false;
+ 		}
+@@ -346,6 +351,7 @@
+ 		}
+ 
+ 		return $this->registered[ $handle ]->extra[ $key ];
++		return null;
+ 	}
+ 
+ 	/**
+@@ -356,10 +362,11 @@
+ 	 *
+ 	 * @param string|string[] $handles Item handle (string) or item handles (array of strings).
+ 	 */
+-	public function remove( $handles ) {
++	public function remove( mixed $handles ): mixed {
+ 		foreach ( (array) $handles as $handle ) {
+ 			unset( $this->registered[ $handle ] );
+ 		}
++		return null;
+ 	}
+ 
+ 	/**
+@@ -375,7 +382,7 @@
+ 	 *
+ 	 * @param string|string[] $handles Item handle (string) or item handles (array of strings).
+ 	 */
+-	public function enqueue( $handles ) {
++	public function enqueue( mixed $handles ): mixed {
+ 		foreach ( (array) $handles as $handle ) {
+ 			$handle = explode( '?', $handle );
+ 
+@@ -396,6 +403,7 @@
+ 				}
+ 			}
+ 		}
++		return null;
+ 	}
+ 
+ 	/**
+@@ -409,10 +417,10 @@
+ 	 *
+ 	 * @param string|string[] $handles Item handle (string) or item handles (array of strings).
+ 	 */
+-	public function dequeue( $handles ) {
++	public function dequeue( mixed $handles ): mixed {
+ 		foreach ( (array) $handles as $handle ) {
+ 			$handle = explode( '?', $handle );
+-			$key    = array_search( $handle[0], $this->queue, true );
++			$key    = \wp_aot_array_search( $handle[0], $this->queue, true );
+ 
+ 			if ( false !== $key ) {
+ 				// Reset all dependencies so they must be recalculated in recurse_deps().
+@@ -424,6 +432,7 @@
+ 				unset( $this->queued_before_register[ $handle[0] ] );
+ 			}
+ 		}
++		return null;
+ 	}
+ 
+ 	/**
+@@ -435,13 +444,13 @@
+ 	 * @param string   $handle Name of the item. Should be unique.
+ 	 * @return bool Whether the handle is found after recursively searching the dependency tree.
+ 	 */
+-	protected function recurse_deps( $queue, $handle ) {
++	protected function recurse_deps( mixed $queue, mixed $handle ): mixed {
+ 		if ( isset( $this->all_queued_deps ) ) {
+ 			return isset( $this->all_queued_deps[ $handle ] );
+ 		}
+ 
+-		$all_deps = array_fill_keys( $queue, true );
+-		$queues   = array();
++		$all_deps = \wp_aot_array_fill_keys( $queue, true );
++		$queues   = \wp_aot_mixed(array());
+ 		$done     = array();
+ 
+ 		while ( $queue ) {
+@@ -449,18 +458,19 @@
+ 				if ( ! isset( $done[ $queued ] ) && isset( $this->registered[ $queued ] ) ) {
+ 					$deps = $this->registered[ $queued ]->deps;
+ 					if ( $deps ) {
+-						$all_deps += array_fill_keys( $deps, true );
+-						array_push( $queues, $deps );
++						$all_deps = \wp_aot_value_array_union($all_deps, \wp_aot_array_fill_keys( $deps, true ));
++						\wp_aot_array_push( $queues,array( $deps ));
+ 					}
+ 					$done[ $queued ] = true;
+ 				}
+ 			}
+-			$queue = array_pop( $queues );
++			$queue = \wp_aot_array_pop( $queues );
+ 		}
+ 
+ 		$this->all_queued_deps = $all_deps;
+ 
+ 		return isset( $this->all_queued_deps[ $handle ] );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -473,7 +483,7 @@
+ 	 * @param string $status Optional. Status of the item to query. Default 'registered'.
+ 	 * @return bool|_WP_Dependency Found, or object Item data.
+ 	 */
+-	public function query( $handle, $status = 'registered' ) {
++	public function query( mixed $handle, mixed $status = 'registered' ): mixed {
+ 		switch ( $status ) {
+ 			case 'registered':
+ 			case 'scripts': // Back compat.
+@@ -496,6 +506,7 @@
+ 		}
+ 
+ 		return false;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -508,7 +519,7 @@
+ 	 * @param int|false $group     Group level: level (int), no group (false).
+ 	 * @return bool Not already in the group or a lower group.
+ 	 */
+-	public function set_group( $handle, $recursion, $group ) {
++	public function set_group( mixed $handle, mixed $recursion, mixed $group = false ): mixed {
+ 		$group = (int) $group;
+ 
+ 		if ( isset( $this->groups[ $handle ] ) && $this->groups[ $handle ] <= $group ) {
+@@ -518,6 +529,7 @@
+ 		$this->groups[ $handle ] = $group;
+ 
+ 		return true;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -530,7 +542,7 @@
+ 	 * @param string[] $load Array of script or style handles to load.
+ 	 * @return string Etag header.
+ 	 */
+-	public function get_etag( $load ) {
++	public function get_etag( mixed $load ): mixed {
+ 		/*
+ 		 * Note: wp_get_wp_version() is not used here, as this file can be included
+ 		 * via wp-admin/load-scripts.php or wp-admin/load-styles.php, in which case
+@@ -556,6 +568,7 @@
+ 		 * wp_hash() function.
+ 		 */
+ 		return 'W/"' . md5( $etag ) . '"';
++		return null;
+ 	}
+ 
+ 	/**
+@@ -567,12 +580,13 @@
+ 	 * @param string[] $missing_dependency_handles Missing dependency handles.
+ 	 * @return string Formatted, localized warning message.
+ 	 */
+-	protected function get_dependency_warning_message( $handle, $missing_dependency_handles ) {
++	protected function get_dependency_warning_message( mixed $handle, mixed $missing_dependency_handles ): mixed {
+ 		return sprintf(
+ 			/* translators: 1: Handle, 2: List of missing dependency handles. */
+ 			__( 'The handle "%1$s" was enqueued with dependencies that are not registered: %2$s.' ),
+ 			$handle,
+ 			implode( wp_get_list_item_separator(), $missing_dependency_handles )
+ 		);
++		return null;
+ 	}
+ }

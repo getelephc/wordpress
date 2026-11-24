@@ -1,0 +1,103 @@
+--- a/wp-includes/rest-api/endpoints/class-wp-rest-block-patterns-controller.php
++++ b/wp-includes/rest-api/endpoints/class-wp-rest-block-patterns-controller.php
+@@ -51,7 +51,7 @@
+ 	 *
+ 	 * @since 6.0.0
+ 	 */
+-	public function register_routes() {
++	public function register_routes(): mixed {
+ 		register_rest_route(
+ 			$this->namespace,
+ 			'/' . $this->rest_base,
+@@ -64,6 +64,7 @@
+ 				'schema' => array( $this, 'get_public_item_schema' ),
+ 			)
+ 		);
++		return null;
+ 	}
+ 
+ 	/**
+@@ -74,7 +75,7 @@
+ 	 * @param WP_REST_Request $request Full details about the request.
+ 	 * @return true|WP_Error True if the request has read access, WP_Error object otherwise.
+ 	 */
+-	public function get_items_permissions_check( $request ) {
++	public function get_items_permissions_check( mixed $request ): mixed {
+ 		if ( current_user_can( 'edit_posts' ) ) {
+ 			return true;
+ 		}
+@@ -90,6 +91,7 @@
+ 			__( 'Sorry, you are not allowed to view the registered block patterns.' ),
+ 			array( 'status' => rest_authorization_required_code() )
+ 		);
++		return null;
+ 	}
+ 
+ 	/**
+@@ -101,7 +103,7 @@
+ 	 * @param WP_REST_Request $request Full details about the request.
+ 	 * @return WP_REST_Response|WP_Error Response object on success, or WP_Error object on failure.
+ 	 */
+-	public function get_items( $request ) {
++	public function get_items( mixed $request ): mixed {
+ 		if ( ! $this->remote_patterns_loaded ) {
+ 			// Load block patterns from w.org.
+ 			_load_remote_block_patterns(); // Patterns with the `core` keyword.
+@@ -119,6 +121,7 @@
+ 			$response[]       = $this->prepare_response_for_collection( $prepared_pattern );
+ 		}
+ 		return rest_ensure_response( $response );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -132,7 +135,7 @@
+ 	 * @param array $pattern Raw pattern as registered, before applying any changes.
+ 	 * @return array Migrated pattern.
+ 	 */
+-	protected function migrate_pattern_categories( $pattern ) {
++	protected function migrate_pattern_categories( mixed $pattern ): mixed {
+ 		// No categories to migrate.
+ 		if (
+ 			! isset( $pattern['categories'] ) ||
+@@ -149,6 +152,7 @@
+ 		}
+ 
+ 		return $pattern;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -161,7 +165,7 @@
+ 	 * @param WP_REST_Request $request Request object.
+ 	 * @return WP_REST_Response|WP_Error Response object on success, or WP_Error object on failure.
+ 	 */
+-	public function prepare_item_for_response( $item, $request ) {
++	public function prepare_item_for_response( mixed $item, mixed $request ): mixed {
+ 		// Resolve pattern blocks so they don't need to be resolved client-side
+ 		// in the editor, improving performance.
+ 		$blocks          = parse_blocks( $item['content'] );
+@@ -194,6 +198,7 @@
+ 		$data    = $this->add_additional_fields_to_object( $data, $request );
+ 		$data    = $this->filter_response_by_context( $data, $context );
+ 		return rest_ensure_response( $data );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -204,7 +209,7 @@
+ 	 *
+ 	 * @return array Item schema data.
+ 	 */
+-	public function get_item_schema() {
++	public function get_item_schema(): mixed {
+ 		if ( $this->schema ) {
+ 			return $this->add_additional_fields_schema( $this->schema );
+ 		}
+@@ -300,5 +305,6 @@
+ 		$this->schema = $schema;
+ 
+ 		return $this->add_additional_fields_schema( $this->schema );
++		return null;
+ 	}
+ }

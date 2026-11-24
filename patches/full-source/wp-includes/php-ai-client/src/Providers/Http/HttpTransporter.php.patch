@@ -1,0 +1,37 @@
+--- a/wp-includes/php-ai-client/src/Providers/Http/HttpTransporter.php
++++ b/wp-includes/php-ai-client/src/Providers/Http/HttpTransporter.php
+@@ -70,7 +70,7 @@
+             $hasOptions = $mergedOptions !== null;
+             if ($hasOptions && $this->client instanceof ClientWithOptionsInterface) {
+                 $psr7Response = $this->client->sendRequestWithOptions($psr7Request, $mergedOptions);
+-            } elseif ($hasOptions && $this->isGuzzleClient($this->client)) {
++            } elseif ($hasOptions && $this->isGuzzleClient(\wp_aot_require_WordPress_AiClientDependencies_Psr_Http_Client_ClientInterface( $this->client ))) {
+                 $psr7Response = $this->sendWithGuzzle($psr7Request, $mergedOptions);
+             } else {
+                 $psr7Response = $this->client->sendRequest($psr7Request);
+@@ -184,7 +184,7 @@
+         $callable = [$this->client, 'send'];
+         /** @var ResponseInterface $response */
+         $response = $callable($request, $guzzleOptions);
+-        return $response;
++        return \wp_aot_require_WordPress_AiClientDependencies_Psr_Http_Message_ResponseInterface( $response );
+     }
+     /**
+      * Converts request options to a Guzzle-compatible options array.
+@@ -234,14 +234,14 @@
+         // Add headers
+         foreach ($request->getHeaders() as $name => $values) {
+             foreach ($values as $value) {
+-                $psr7Request = $psr7Request->withAddedHeader($name, $value);
++                $psr7Request = \wp_aot_require_WordPress_AiClientDependencies_Psr_Http_Message_RequestInterface($psr7Request->withAddedHeader($name, $value));
+             }
+         }
+         // Add body if present
+         $body = $request->getBody();
+         if ($body !== null) {
+             $stream = $this->streamFactory->createStream($body);
+-            $psr7Request = $psr7Request->withBody($stream);
++            $psr7Request = \wp_aot_require_WordPress_AiClientDependencies_Psr_Http_Message_RequestInterface($psr7Request->withBody($stream));
+         }
+         return $psr7Request;
+     }

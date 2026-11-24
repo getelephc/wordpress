@@ -1,0 +1,34 @@
+--- a/wp-includes/blocks/term-count.php
++++ b/wp-includes/blocks/term-count.php
+@@ -16,7 +16,7 @@
+  *
+  * @return string Returns the count of the current taxonomy term wrapped inside a heading tag.
+  */
+-function render_block_core_term_count( $attributes, $content, $block ) {
++function render_block_core_term_count( mixed $attributes, mixed $content, mixed $block ): mixed {
+ 	// Get term from context or from the current query.
+ 	if ( isset( $block->context['termId'] ) && isset( $block->context['taxonomy'] ) ) {
+ 		$term = get_term( $block->context['termId'], $block->context['taxonomy'] );
+@@ -62,6 +62,7 @@
+ 		$wrapper_attributes,
+ 		$term_count
+ 	);
++	return null;
+ }
+ 
+ /**
+@@ -69,12 +70,13 @@
+  *
+  * @since 6.9.0
+  */
+-function register_block_core_term_count() {
++function register_block_core_term_count(): mixed {
+ 	register_block_type_from_metadata(
+ 		__DIR__ . '/term-count',
+ 		array(
+ 			'render_callback' => 'render_block_core_term_count',
+ 		)
+ 	);
++	return null;
+ }
+ add_action( 'init', 'register_block_core_term_count' );

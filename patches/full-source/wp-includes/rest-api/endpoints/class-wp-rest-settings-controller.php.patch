@@ -1,0 +1,160 @@
+--- a/wp-includes/rest-api/endpoints/class-wp-rest-settings-controller.php
++++ b/wp-includes/rest-api/endpoints/class-wp-rest-settings-controller.php
+@@ -33,7 +33,7 @@
+ 	 *
+ 	 * @see register_rest_route()
+ 	 */
+-	public function register_routes() {
++	public function register_routes(): mixed {
+ 
+ 		register_rest_route(
+ 			$this->namespace,
+@@ -54,6 +54,7 @@
+ 				'schema' => array( $this, 'get_public_item_schema' ),
+ 			)
+ 		);
++		return null;
+ 	}
+ 
+ 	/**
+@@ -64,8 +65,9 @@
+ 	 * @param WP_REST_Request $request Full details about the request.
+ 	 * @return bool True if the request has read access for the item, otherwise false.
+ 	 */
+-	public function get_item_permissions_check( $request ) {
++	public function get_item_permissions_check( mixed $request ): mixed {
+ 		return current_user_can( 'manage_options' );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -76,7 +78,7 @@
+ 	 * @param WP_REST_Request $request Full details about the request.
+ 	 * @return array|WP_Error Array on success, or WP_Error object on failure.
+ 	 */
+-	public function get_item( $request ) {
++	public function get_item( mixed $request ): mixed {
+ 		$options  = $this->get_registered_options();
+ 		$response = array();
+ 
+@@ -110,6 +112,7 @@
+ 		}
+ 
+ 		return $response;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -121,7 +124,7 @@
+ 	 * @param array $schema Schema to match.
+ 	 * @return mixed The prepared value.
+ 	 */
+-	protected function prepare_value( $value, $schema ) {
++	protected function prepare_value( mixed $value, mixed $schema ): mixed {
+ 		/*
+ 		 * If the value is not valid by the schema, set the value to null.
+ 		 * Null values are specifically non-destructive, so this will not cause
+@@ -132,6 +135,7 @@
+ 		}
+ 
+ 		return rest_sanitize_value_from_schema( $value, $schema );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -142,7 +146,7 @@
+ 	 * @param WP_REST_Request $request Full details about the request.
+ 	 * @return array|WP_Error Array on success, or error object on failure.
+ 	 */
+-	public function update_item( $request ) {
++	public function update_item( mixed $request ): mixed {
+ 		$options = $this->get_registered_options();
+ 
+ 		$params = $request->get_params();
+@@ -205,6 +209,7 @@
+ 		}
+ 
+ 		return $this->get_item( $request );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -214,7 +219,7 @@
+ 	 *
+ 	 * @return array Array of registered options.
+ 	 */
+-	protected function get_registered_options() {
++	protected function get_registered_options(): mixed {
+ 		$rest_options = array();
+ 
+ 		foreach ( get_registered_settings() as $name => $args ) {
+@@ -233,7 +238,7 @@
+ 				'schema' => array(),
+ 			);
+ 
+-			$rest_args = array_merge( $defaults, $rest_args );
++			$rest_args = \wp_aot_array_merge(array( $defaults, $rest_args ));
+ 
+ 			$default_schema = array(
+ 				'type'        => empty( $args['type'] ) ? null : $args['type'],
+@@ -242,7 +247,7 @@
+ 				'default'     => $args['default'] ?? null,
+ 			);
+ 
+-			$rest_args['schema']      = array_merge( $default_schema, $rest_args['schema'] );
++			$rest_args['schema']      = \wp_aot_array_merge(array( $default_schema, $rest_args['schema'] ));
+ 			$rest_args['option_name'] = $name;
+ 
+ 			// Skip over settings that don't have a defined type in the schema.
+@@ -264,6 +269,7 @@
+ 		}
+ 
+ 		return $rest_options;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -273,7 +279,7 @@
+ 	 *
+ 	 * @return array Item schema data.
+ 	 */
+-	public function get_item_schema() {
++	public function get_item_schema(): mixed {
+ 		if ( $this->schema ) {
+ 			return $this->add_additional_fields_schema( $this->schema );
+ 		}
+@@ -297,6 +303,7 @@
+ 		$this->schema = $schema;
+ 
+ 		return $this->add_additional_fields_schema( $this->schema );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -313,12 +320,13 @@
+ 	 * @param string          $param   The parameter name.
+ 	 * @return mixed|WP_Error
+ 	 */
+-	public function sanitize_callback( $value, $request, $param ) {
++	public function sanitize_callback( mixed $value, mixed $request, mixed $param ): mixed {
+ 		if ( is_null( $value ) ) {
+ 			return $value;
+ 		}
+ 
+ 		return rest_parse_request_arg( $value, $request, $param );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -335,9 +343,10 @@
+ 	 * @param array $schema The schema array.
+ 	 * @return array
+ 	 */
+-	protected function set_additional_properties_to_false( $schema ) {
++	protected function set_additional_properties_to_false( mixed $schema ): mixed {
+ 		_deprecated_function( __METHOD__, '6.1.0', 'rest_default_additional_properties_to_false()' );
+ 
+ 		return rest_default_additional_properties_to_false( $schema );
++		return null;
+ 	}
+ }

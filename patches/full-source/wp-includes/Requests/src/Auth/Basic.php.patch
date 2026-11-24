@@ -1,0 +1,56 @@
+--- a/wp-includes/Requests/src/Auth/Basic.php
++++ b/wp-includes/Requests/src/Auth/Basic.php
+@@ -46,7 +46,7 @@
+ 	 * @throws \WpOrg\Requests\Exception\InvalidArgument When the passed argument is not an array or null.
+ 	 * @throws \WpOrg\Requests\Exception\ArgumentCount   On incorrect number of array elements (`authbasicbadargs`).
+ 	 */
+-	public function __construct($args = null) {
++	public function __construct(mixed $args = null) {
+ 		if (is_array($args)) {
+ 			if (count($args) !== 2) {
+ 				throw ArgumentCount::create('an array with exactly two elements', count($args), 'authbasicbadargs');
+@@ -68,9 +68,10 @@
+ 	 * @see \WpOrg\Requests\Auth\Basic::fsockopen_header()
+ 	 * @param \WpOrg\Requests\Hooks $hooks Hook system
+ 	 */
+-	public function register(Hooks $hooks) {
++	public function register(Hooks $hooks): mixed {
+ 		$hooks->register('curl.before_send', [$this, 'curl_before_send']);
+ 		$hooks->register('fsockopen.after_headers', [$this, 'fsockopen_header']);
++		return null;
+ 	}
+ 
+ 	/**
+@@ -78,9 +79,10 @@
+ 	 *
+ 	 * @param resource|\CurlHandle $handle cURL handle
+ 	 */
+-	public function curl_before_send(&$handle) {
++	public function curl_before_send(mixed &$handle): mixed {
+ 		curl_setopt($handle, CURLOPT_HTTPAUTH, CURLAUTH_BASIC);
+ 		curl_setopt($handle, CURLOPT_USERPWD, $this->getAuthString());
++		return null;
+ 	}
+ 
+ 	/**
+@@ -88,8 +90,9 @@
+ 	 *
+ 	 * @param string $out HTTP header string
+ 	 */
+-	public function fsockopen_header(&$out) {
++	public function fsockopen_header(mixed &$out): mixed {
+ 		$out .= sprintf("Authorization: Basic %s\r\n", base64_encode($this->getAuthString()));
++		return null;
+ 	}
+ 
+ 	/**
+@@ -97,7 +100,8 @@
+ 	 *
+ 	 * @return string
+ 	 */
+-	public function getAuthString() {
++	public function getAuthString(): mixed {
+ 		return $this->user . ':' . $this->pass;
++		return null;
+ 	}
+ }

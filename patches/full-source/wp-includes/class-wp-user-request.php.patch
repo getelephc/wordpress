@@ -1,0 +1,11 @@
+--- a/wp-includes/class-wp-user-request.php
++++ b/wp-includes/class-wp-user-request.php
+@@ -106,7 +106,7 @@
+ 	 *
+ 	 * @param WP_Post|object $post Post object.
+ 	 */
+-	public function __construct( $post ) {
++	public function __construct( mixed $post ) {
+ 		$this->ID                  = $post->ID;
+ 		$this->user_id             = $post->post_author;
+ 		$this->email               = $post->post_title;

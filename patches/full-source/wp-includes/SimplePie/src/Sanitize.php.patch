@@ -1,0 +1,589 @@
+--- a/wp-includes/SimplePie/src/Sanitize.php
++++ b/wp-includes/SimplePie/src/Sanitize.php
+@@ -101,7 +101,7 @@
+      * array('biz' => true, 'com' => array('example' => true), 'net' => array('example' => array('www' => true)))
+      * @var true|array<string, true|array<string, true|array<string, array<string, true|array<string, true|array<string, true>>>>>>
+      */
+-    public $https_domains = [];
++    public mixed $https_domains = [];
+ 
+     /**
+      * @var Client|null
+@@ -117,30 +117,33 @@
+     /**
+      * @return void
+      */
+-    public function remove_div(bool $enable = true)
++    public function remove_div(bool $enable = true): mixed
+     {
+         $this->remove_div = (bool) $enable;
++    	return null;
+     }
+ 
+     /**
+      * @param string|false $page
+      * @return void
+      */
+-    public function set_image_handler($page = false)
++    public function set_image_handler(mixed $page = false): mixed
+     {
+         if ($page) {
+             $this->image_handler = (string) $page;
+         } else {
+             $this->image_handler = '';
+         }
+-    }
+-
+-    /**
+-     * @return void
+-     */
+-    public function set_registry(\SimplePie\Registry $registry)
++    	return null;
++    }
++
++    /**
++     * @return void
++     */
++    public function set_registry(\SimplePie\Registry $registry): mixed
+     {
+         $this->registry = $registry;
++    	return null;
+     }
+ 
+     /**
+@@ -148,7 +151,7 @@
+      * @param class-string<Cache> $cache_class
+      * @return void
+      */
+-    public function pass_cache_data(bool $enable_cache = true, string $cache_location = './cache', $cache_name_function = 'md5', string $cache_class = Cache::class, ?DataCache $cache = null)
++    public function pass_cache_data(bool $enable_cache = true, string $cache_location = './cache', mixed $cache_name_function = 'md5', string $cache_class = Cache::class, ?DataCache $cache = null): mixed
+     {
+         $this->enable_cache = $enable_cache;
+ 
+@@ -178,6 +181,7 @@
+         if ($cache !== null) {
+             $this->cache = $cache;
+         }
++    	return null;
+     }
+ 
+     /**
+@@ -186,11 +190,11 @@
+      * Allows you to use your own HTTP client implementations.
+      */
+     final public function set_http_client(
+-        ClientInterface $http_client,
+-        RequestFactoryInterface $request_factory,
+-        UriFactoryInterface $uri_factory
++        mixed $http_client,
++        mixed $request_factory,
++        mixed $uri_factory
+     ): void {
+-        $this->http_client = new Psr18Client($http_client, $request_factory, $uri_factory);
++        throw new \LogicException('The optional unscoped PSR HTTP packages are outside the bundled source manifest.');
+     }
+ 
+     /**
+@@ -199,7 +203,7 @@
+      * @param array<int, mixed> $curl_options
+      * @return void
+      */
+-    public function pass_file_data(string $file_class = File::class, int $timeout = 10, string $useragent = '', bool $force_fsockopen = false, array $curl_options = [])
++    public function pass_file_data(string $file_class = File::class, int $timeout = 10, string $useragent = '', bool $force_fsockopen = false, array $curl_options = []): mixed
+     {
+         // trigger_error(sprintf('SimplePie\Sanitize::pass_file_data() is deprecated since SimplePie 1.9.0, please use "SimplePie\Sanitize::set_http_client()" instead.'), \E_USER_DEPRECATED);
+         if ($timeout) {
+@@ -217,13 +221,14 @@
+         $this->curl_options = $curl_options;
+         // Invalidate the registered client.
+         $this->http_client = null;
++    	return null;
+     }
+ 
+     /**
+      * @param string[]|string|false $tags Set a list of tags to strip, or set empty string to use default tags, or false to strip nothing.
+      * @return void
+      */
+-    public function strip_htmltags($tags = ['base', 'blink', 'body', 'doctype', 'embed', 'font', 'form', 'frame', 'frameset', 'html', 'iframe', 'input', 'marquee', 'meta', 'noscript', 'object', 'param', 'script', 'style'])
++    public function strip_htmltags(mixed $tags = ['base', 'blink', 'body', 'doctype', 'embed', 'font', 'form', 'frame', 'frameset', 'html', 'iframe', 'input', 'marquee', 'meta', 'noscript', 'object', 'param', 'script', 'style']): mixed
+     {
+         if ($tags) {
+             if (is_array($tags)) {
+@@ -234,21 +239,23 @@
+         } else {
+             $this->strip_htmltags = [];
+         }
+-    }
+-
+-    /**
+-     * @return void
+-     */
+-    public function encode_instead_of_strip(bool $encode = false)
++    	return null;
++    }
++
++    /**
++     * @return void
++     */
++    public function encode_instead_of_strip(bool $encode = false): mixed
+     {
+         $this->encode_instead_of_strip = $encode;
++    	return null;
+     }
+ 
+     /**
+      * @param string[]|string $attribs
+      * @return void
+      */
+-    public function rename_attributes($attribs = [])
++    public function rename_attributes(mixed $attribs = []): mixed
+     {
+         if ($attribs) {
+             if (is_array($attribs)) {
+@@ -259,13 +266,14 @@
+         } else {
+             $this->rename_attributes = [];
+         }
++    	return null;
+     }
+ 
+     /**
+      * @param string[]|string $attribs
+      * @return void
+      */
+-    public function strip_attributes($attribs = ['bgsound', 'expr', 'id', 'style', 'onclick', 'onerror', 'onfinish', 'onmouseover', 'onmouseout', 'onfocus', 'onblur', 'lowsrc', 'dynsrc'])
++    public function strip_attributes(mixed $attribs = ['bgsound', 'expr', 'id', 'style', 'onclick', 'onerror', 'onfinish', 'onmouseover', 'onmouseout', 'onfocus', 'onblur', 'lowsrc', 'dynsrc']): mixed
+     {
+         if ($attribs) {
+             if (is_array($attribs)) {
+@@ -276,31 +284,35 @@
+         } else {
+             $this->strip_attributes = [];
+         }
++    	return null;
+     }
+ 
+     /**
+      * @param array<string, array<string, string>> $attribs
+      * @return void
+      */
+-    public function add_attributes(array $attribs = ['audio' => ['preload' => 'none'], 'iframe' => ['sandbox' => 'allow-scripts allow-same-origin'], 'video' => ['preload' => 'none']])
++    public function add_attributes(array $attribs = ['audio' => ['preload' => 'none'], 'iframe' => ['sandbox' => 'allow-scripts allow-same-origin'], 'video' => ['preload' => 'none']]): mixed
+     {
+         $this->add_attributes = $attribs;
+-    }
+-
+-    /**
+-     * @return void
+-     */
+-    public function strip_comments(bool $strip = false)
++    	return null;
++    }
++
++    /**
++     * @return void
++     */
++    public function strip_comments(bool $strip = false): mixed
+     {
+         $this->strip_comments = $strip;
+-    }
+-
+-    /**
+-     * @return void
+-     */
+-    public function set_output_encoding(string $encoding = 'UTF-8')
++    	return null;
++    }
++
++    /**
++     * @return void
++     */
++    public function set_output_encoding(string $encoding = 'UTF-8'): mixed
+     {
+         $this->output_encoding = $encoding;
++    	return null;
+     }
+ 
+     /**
+@@ -315,7 +327,7 @@
+      * @param array<string, string|string[]>|null $element_attribute Element/attribute key/value pairs, null for default
+      * @return void
+      */
+-    public function set_url_replacements(?array $element_attribute = null)
++    public function set_url_replacements(?array $element_attribute = null): mixed
+     {
+         if ($element_attribute === null) {
+             $element_attribute = [
+@@ -340,6 +352,7 @@
+             ];
+         }
+         $this->replace_url_attributes = $element_attribute;
++    	return null;
+     }
+ 
+     /**
+@@ -351,12 +364,12 @@
+      *
+      * @return void
+      */
+-    public function set_https_domains(array $domains)
++    public function set_https_domains(array $domains): mixed
+     {
+         $this->https_domains = [];
+         foreach ($domains as $domain) {
+             $domain = trim($domain, ". \t\n\r\0\x0B");
+-            $segments = array_reverse(explode('.', $domain));
++            $segments = \wp_aot_array_reverse(explode('.', $domain));
+             /** @var true|array<string, true|array<string, true|array<string, array<string, true|array<string, true|array<string, true>>>>>> */ // Needed for PHPStan.
+             $node = &$this->https_domains;
+             foreach ($segments as $segment) {//Build a tree
+@@ -366,10 +379,12 @@
+                 if (!isset($node[$segment])) {
+                     $node[$segment] = [];
+                 }
+-                $node = &$node[$segment];
++                $wp_aot_segment_key = (string) $segment;
++                $node = &$node[$wp_aot_segment_key];
+             }
+             $node = true;
+         }
++    	return null;
+     }
+ 
+     /**
+@@ -377,19 +392,21 @@
+      *
+      * @return bool
+      */
+-    protected function is_https_domain(string $domain)
++    protected function is_https_domain(string $domain): mixed
+     {
+         $domain = trim($domain, '. ');
+-        $segments = array_reverse(explode('.', $domain));
++        $segments = \wp_aot_array_reverse(explode('.', $domain));
+         $node = &$this->https_domains;
+         foreach ($segments as $segment) {//Explore the tree
+             if (isset($node[$segment])) {
+-                $node = &$node[$segment];
++                $wp_aot_segment_key = (string) $segment;
++                $node = &$node[$wp_aot_segment_key];
+             } else {
+                 break;
+             }
+         }
+         return $node === true;
++    	return null;
+     }
+ 
+     /**
+@@ -397,15 +414,16 @@
+      *
+      * @return string
+      */
+-    public function https_url(string $url)
++    public function https_url(string $url): mixed
+     {
+         return (
+             strtolower(substr($url, 0, 7)) === 'http://'
+             && ($parsed = parse_url($url, PHP_URL_HOST)) !== false // Malformed URL
+             && $parsed !== null // Missing host
+-            && $this->is_https_domain($parsed) // Should be forced?
++            && $this->is_https_domain(\wp_aot_require_string($parsed)) // Should be forced?
+         ) ? substr_replace($url, 's', 4, 0) // Add the 's' to HTTPS
+         : $url;
++    	return null;
+     }
+ 
+     /**
+@@ -413,12 +431,13 @@
+      * @param string $base
+      * @return string Sanitized data; false if output encoding is changed to something other than UTF-8 and conversion fails
+      */
+-    public function sanitize(string $data, int $type, string $base = '')
+-    {
+-        $data = trim($data);
+-        if ($data !== '' || $type & \SimplePie\SimplePie::CONSTRUCT_IRI) {
++    public function sanitize(string $data, int $type, string $base = ''): mixed
++    {
++        $wp_aot_data = \wp_aot_mixed($data);
++        $wp_aot_data = trim($wp_aot_data);
++        if ($wp_aot_data !== '' || $type & \SimplePie\SimplePie::CONSTRUCT_IRI) {
+             if ($type & \SimplePie\SimplePie::CONSTRUCT_MAYBE_HTML) {
+-                if (preg_match('/(&(#(x[0-9a-fA-F]+|[0-9]+)|[a-zA-Z0-9]+)|<\/[A-Za-z][^\x09\x0A\x0B\x0C\x0D\x20\x2F\x3E]*' . \SimplePie\SimplePie::PCRE_HTML_ATTRIBUTE . '>)/', $data)) {
++                if (preg_match(\wp_aot_regex_text( '/(&(#(x[0-9a-fA-F]+|[0-9]+)|[a-zA-Z0-9]+)|<\/[A-Za-z][^\x09\x0A\x0B\x0C\x0D\x20\x2F\x3E]*' . \SimplePie\SimplePie::PCRE_HTML_ATTRIBUTE . '>)/' ), \wp_aot_regex_text( $wp_aot_data ))) {
+                     $type |= \SimplePie\SimplePie::CONSTRUCT_HTML;
+                 } else {
+                     $type |= \SimplePie\SimplePie::CONSTRUCT_TEXT;
+@@ -426,7 +445,7 @@
+             }
+ 
+             if ($type & \SimplePie\SimplePie::CONSTRUCT_BASE64) {
+-                $data = base64_decode($data);
++                $wp_aot_data = base64_decode($wp_aot_data);
+             }
+ 
+             if ($type & (\SimplePie\SimplePie::CONSTRUCT_HTML | \SimplePie\SimplePie::CONSTRUCT_XHTML)) {
+@@ -434,16 +453,16 @@
+                     throw new \SimplePie\Exception('DOMDocument not found, unable to use sanitizer');
+                 }
+                 $document = new \DOMDocument();
+-                $document->encoding = 'UTF-8';
++                \wp_aot_native_set_property($document, 'encoding', 'UTF-8');
+ 
+                 // PHPStan seems to have trouble resolving int-mask because bitwise
+                 // operators are used when operators are used when passing this parameter.
+                 // https://github.com/phpstan/phpstan/issues/9384
+                 /** @var int-mask-of<SimplePie::CONSTRUCT_*> $type */
+-                $data = $this->preprocess($data, $type);
++                $wp_aot_data = $this->preprocess($wp_aot_data, $type);
+ 
+                 set_error_handler([Misc::class, 'silence_errors']);
+-                $document->loadHTML($data);
++                $document->loadHTML($wp_aot_data);
+                 restore_error_handler();
+ 
+                 $xpath = new \DOMXPath($document);
+@@ -483,7 +502,7 @@
+ 
+                 if ($this->add_attributes) {
+                     foreach ($this->add_attributes as $tag => $valuePairs) {
+-                        $this->add_attr($tag, $valuePairs, $document);
++                        $this->add_attr($tag, \wp_aot_array_input($valuePairs), $document);
+                     }
+                 }
+ 
+@@ -530,51 +549,52 @@
+                 // Get content node
+                 $div = null;
+                 if (($item = $document->getElementsByTagName('body')->item(0)) !== null) {
+-                    $div = $item->firstChild;
++                    $div = \wp_aot_native_get_property($item, 'firstChild');
+                 }
+                 // Finally, convert to a HTML string
+-                $data = trim((string) $document->saveHTML($div));
++                $wp_aot_data = trim((string) \wp_aot_native_method($document, 'saveHTML', array($div)));
+ 
+                 if ($this->remove_div) {
+-                    $data = preg_replace('/^<div' . \SimplePie\SimplePie::PCRE_XML_ATTRIBUTE . '>/', '', $data);
++                    $wp_aot_data = \wp_aot_preg_replace('/^<div' . \SimplePie\SimplePie::PCRE_XML_ATTRIBUTE . '>/', '', $wp_aot_data);
+                     // Cast for PHPStan, it is unable to validate a non-literal regex above.
+-                    $data = preg_replace('/<\/div>$/', '', (string) $data);
++                    $wp_aot_data = \wp_aot_preg_replace('/<\/div>$/', '', (string) $wp_aot_data);
+                 } else {
+-                    $data = preg_replace('/^<div' . \SimplePie\SimplePie::PCRE_XML_ATTRIBUTE . '>/', '<div>', $data);
++                    $wp_aot_data = \wp_aot_preg_replace('/^<div' . \SimplePie\SimplePie::PCRE_XML_ATTRIBUTE . '>/', '<div>', $wp_aot_data);
+                 }
+ 
+                 // Cast for PHPStan, it is unable to validate a non-literal regex above.
+-                $data = str_replace('</source>', '', (string) $data);
++                $wp_aot_data = \wp_aot_str_replace('</source>', '', (string) $wp_aot_data);
+             }
+ 
+             if ($type & \SimplePie\SimplePie::CONSTRUCT_IRI) {
+-                $absolute = $this->registry->call(Misc::class, 'absolutize_url', [$data, $base]);
++                $absolute = $this->registry->call(Misc::class, 'absolutize_url', [$wp_aot_data, $base]);
+                 if ($absolute !== false) {
+-                    $data = $absolute;
++                    $wp_aot_data = $absolute;
+                 }
+             }
+ 
+             if ($type & (\SimplePie\SimplePie::CONSTRUCT_TEXT | \SimplePie\SimplePie::CONSTRUCT_IRI)) {
+-                $data = htmlspecialchars($data, ENT_COMPAT, 'UTF-8');
++                $wp_aot_data = htmlspecialchars($wp_aot_data, ENT_COMPAT, 'UTF-8');
+             }
+ 
+             if ($this->output_encoding !== 'UTF-8') {
+                 // This really returns string|false but changing encoding is uncommon and we are going to deprecate it, so let’s just lie to PHPStan in the interest of cleaner annotations.
+                 /** @var string */
+-                $data = $this->registry->call(Misc::class, 'change_encoding', [$data, 'UTF-8', $this->output_encoding]);
+-            }
+-        }
+-        return $data;
++                $wp_aot_data = $this->registry->call(Misc::class, 'change_encoding', [$wp_aot_data, 'UTF-8', $this->output_encoding]);
++            }
++        }
++        return $wp_aot_data;
++    	return null;
+     }
+ 
+     /**
+      * @param int-mask-of<SimplePie::CONSTRUCT_*> $type
+      * @return string
+      */
+-    protected function preprocess(string $html, int $type)
++    protected function preprocess(string $html, int $type): mixed
+     {
+         $ret = '';
+-        $html = preg_replace('%</?(?:html|body)[^>]*?'.'>%is', '', $html);
++        $html = \wp_aot_preg_replace('%</?(?:html|body)[^>]*?'.'>%is', '', $html);
+         if ($type & ~\SimplePie\SimplePie::CONSTRUCT_XHTML) {
+             // Atom XHTML constructs are wrapped with a div by default
+             // Note: No protection if $html contains a stray </div>!
+@@ -590,13 +610,14 @@
+         $ret .= '<meta http-equiv="Content-Type" content="' . $content_type . '; charset=utf-8" />';
+         $ret .= '</head><body>' . $html . '</body></html>';
+         return $ret;
++    	return null;
+     }
+ 
+     /**
+      * @param array<string>|string $attributes
+      * @return void
+      */
+-    public function replace_urls(DOMDocument $document, string $tag, $attributes)
++    public function replace_urls(DOMDocument $document, string $tag, mixed $attributes): mixed
+     {
+         if (!is_array($attributes)) {
+             $attributes = [$attributes];
+@@ -616,13 +637,14 @@
+                 }
+             }
+         }
++    	return null;
+     }
+ 
+     /**
+      * @param array<int, string> $match
+      * @return string
+      */
+-    public function do_strip_htmltags(array $match)
++    public function do_strip_htmltags(array $match): mixed
+     {
+         if ($this->encode_instead_of_strip) {
+             if (isset($match[4]) && !in_array(strtolower($match[1]), ['script', 'style'])) {
+@@ -637,13 +659,14 @@
+         } else {
+             return '';
+         }
++    	return null;
+     }
+ 
+     /**
+      * @param int-mask-of<SimplePie::CONSTRUCT_*> $type
+      * @return void
+      */
+-    protected function strip_tag(string $tag, DOMDocument $document, DOMXPath $xpath, int $type)
++    protected function strip_tag(string $tag, DOMDocument $document, DOMXPath $xpath, int $type): mixed
+     {
+         $elements = $xpath->query('body//' . $tag);
+ 
+@@ -656,7 +679,7 @@
+ 
+         if ($this->encode_instead_of_strip) {
+             foreach ($elements as $element) {
+-                $fragment = $document->createDocumentFragment();
++                $fragment = \wp_aot_native_method($document, 'createDocumentFragment', array());
+ 
+                 // For elements which aren't script or style, include the tag itself
+                 if (!in_array($tag, ['script', 'style'])) {
+@@ -682,7 +705,7 @@
+                         $text .= ' ' . implode(' ', $attrs);
+                     }
+                     $text .= '>';
+-                    $fragment->appendChild(new \DOMText($text));
++                    $fragment->appendChild(\wp_aot_require_DOMText(\wp_aot_native_new('DOMText', array($text))));
+                 }
+ 
+                 $number = $element->childNodes->length;
+@@ -693,7 +716,7 @@
+                 }
+ 
+                 if (!in_array($tag, ['script', 'style'])) {
+-                    $fragment->appendChild(new \DOMText('</' . $tag . '>'));
++                    $fragment->appendChild(\wp_aot_require_DOMText(\wp_aot_native_new('DOMText', array('</' . $tag . '>'))));
+                 }
+ 
+                 if (($parentNode = $element->parentNode) !== null) {
+@@ -701,7 +724,7 @@
+                 }
+             }
+ 
+-            return;
++            return null;
+         } elseif (in_array($tag, ['script', 'style'])) {
+             foreach ($elements as $element) {
+                 if (($parentNode = $element->parentNode) !== null) {
+@@ -709,10 +732,10 @@
+                 }
+             }
+ 
+-            return;
++            return null;
+         } else {
+             foreach ($elements as $element) {
+-                $fragment = $document->createDocumentFragment();
++                $fragment = \wp_aot_native_method($document, 'createDocumentFragment', array());
+                 $number = $element->childNodes->length;
+                 for ($i = $number; $i > 0; $i--) {
+                     if (($child = $element->childNodes->item(0)) !== null) {
+@@ -725,12 +748,13 @@
+                 }
+             }
+         }
+-    }
+-
+-    /**
+-     * @return void
+-     */
+-    protected function strip_attr(string $attrib, DOMXPath $xpath)
++    	return null;
++    }
++
++    /**
++     * @return void
++     */
++    protected function strip_attr(string $attrib, DOMXPath $xpath): mixed
+     {
+         $elements = $xpath->query('//*[@' . $attrib . ']');
+ 
+@@ -745,12 +769,13 @@
+         foreach ($elements as $element) {
+             $element->removeAttribute($attrib);
+         }
+-    }
+-
+-    /**
+-     * @return void
+-     */
+-    protected function rename_attr(string $attrib, DOMXPath $xpath)
++    	return null;
++    }
++
++    /**
++     * @return void
++     */
++    protected function rename_attr(string $attrib, DOMXPath $xpath): mixed
+     {
+         $elements = $xpath->query('//*[@' . $attrib . ']');
+ 
+@@ -766,13 +791,14 @@
+             $element->setAttribute('data-sanitized-' . $attrib, $element->getAttribute($attrib));
+             $element->removeAttribute($attrib);
+         }
++    	return null;
+     }
+ 
+     /**
+      * @param array<string, string> $valuePairs
+      * @return void
+      */
+-    protected function add_attr(string $tag, array $valuePairs, DOMDocument $document)
++    protected function add_attr(string $tag, array $valuePairs, DOMDocument $document): mixed
+     {
+         $elements = $document->getElementsByTagName($tag);
+         /** @var \DOMElement $element */
+@@ -781,6 +807,7 @@
+                 $element->setAttribute($attrib, $value);
+             }
+         }
++    	return null;
+     }
+ 
+     /**
+@@ -828,4 +855,4 @@
+     }
+ }
+ 
+-class_alias('SimplePie\Sanitize', 'SimplePie_Sanitize');
++(!defined('WP_AOT_NATIVE_RUNTIME') && (bool) \wp_aot_native_api('class_alias', array('SimplePie\Sanitize', 'SimplePie_Sanitize')));

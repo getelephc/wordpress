@@ -1,5 +1,14 @@
 --- a/wp-includes/widgets/class-wp-widget-categories.php
 +++ b/wp-includes/widgets/class-wp-widget-categories.php
+@@ -42,7 +42,7 @@
+ 	 *                        'before_widget', and 'after_widget'.
+ 	 * @param array $instance Settings for the current Categories widget instance.
+ 	 */
+-	public function widget( $args, $instance ) {
++	public function widget( mixed $args, mixed $instance ): mixed {
+ 		static $first_dropdown = true;
+ 
+ 		$default_title = __( 'Categories' );
 @@ -93,14 +93,14 @@
  			echo '</form>';
  
@@ -64,7 +73,7 @@
  				$cat_args['title_li'] = '';
  
  				/**
-@@ -154,10 +156,10 @@
+@@ -154,16 +156,17 @@
  				 * @param array $instance Array of settings for the current widget.
  				 */
  				wp_list_categories( apply_filters( 'widget_categories_args', $cat_args, $instance ) );
@@ -79,7 +88,38 @@
  			if ( 'html5' === $format ) {
  				echo '</nav>';
  			}
-@@ -199,24 +201,64 @@
+ 		}
+ 
+ 		echo $args['after_widget'];
++		return null;
+ 	}
+ 
+ 	/**
+@@ -176,7 +179,7 @@
+ 	 * @param array $old_instance Old settings for this instance.
+ 	 * @return array Updated settings to save.
+ 	 */
+-	public function update( $new_instance, $old_instance ) {
++	public function update( mixed $new_instance, mixed $old_instance ): mixed {
+ 		$instance                 = $old_instance;
+ 		$instance['title']        = sanitize_text_field( $new_instance['title'] );
+ 		$instance['count']        = ! empty( $new_instance['count'] ) ? 1 : 0;
+@@ -184,6 +187,7 @@
+ 		$instance['dropdown']     = ! empty( $new_instance['dropdown'] ) ? 1 : 0;
+ 
+ 		return $instance;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -193,30 +197,71 @@
+ 	 *
+ 	 * @param array $instance Current settings.
+ 	 */
+-	public function form( $instance ) {
++	public function form( mixed $instance ): mixed {
+ 		// Defaults.
+ 		$instance     = wp_parse_args( (array) $instance, array( 'title' => '' ) );
  		$count        = isset( $instance['count'] ) ? (bool) $instance['count'] : false;
  		$hierarchical = isset( $instance['hierarchical'] ) ? (bool) $instance['hierarchical'] : false;
  		$dropdown     = isset( $instance['dropdown'] ) ? (bool) $instance['dropdown'] : false;
@@ -159,5 +199,6 @@
 -		</p>
 -		<?php
 +		';
++		return null;
  	}
  }

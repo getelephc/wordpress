@@ -1,0 +1,57 @@
+--- a/wp-includes/Requests/src/Utility/CaseInsensitiveDictionary.php
++++ b/wp-includes/Requests/src/Utility/CaseInsensitiveDictionary.php
+@@ -44,7 +44,7 @@
+ 	 * @return boolean Does the item exist?
+ 	 */
+ 	#[ReturnTypeWillChange]
+-	public function offsetExists($offset) {
++	public function offsetExists(mixed $offset): bool {
+ 		if (is_string($offset)) {
+ 			$offset = strtolower($offset);
+ 		}
+@@ -63,7 +63,7 @@
+ 	 * @return string|null Item value (null if the item key doesn't exist)
+ 	 */
+ 	#[ReturnTypeWillChange]
+-	public function offsetGet($offset) {
++	public function offsetGet(mixed $offset): mixed {
+ 		if (is_string($offset)) {
+ 			$offset = strtolower($offset);
+ 		}
+@@ -88,7 +88,7 @@
+ 	 * @throws \WpOrg\Requests\Exception On attempting to use dictionary as list (`invalidset`)
+ 	 */
+ 	#[ReturnTypeWillChange]
+-	public function offsetSet($offset, $value) {
++	public function offsetSet(mixed $offset, mixed $value): void {
+ 		if ($offset === null) {
+ 			throw new Exception('Object is a dictionary, not a list', 'invalidset');
+ 		}
+@@ -106,7 +106,7 @@
+ 	 * @param string $offset The key for the item to unset.
+ 	 */
+ 	#[ReturnTypeWillChange]
+-	public function offsetUnset($offset) {
++	public function offsetUnset(mixed $offset): void {
+ 		if (is_string($offset)) {
+ 			$offset = strtolower($offset);
+ 		}
+@@ -124,7 +124,7 @@
+ 	 * @return \ArrayIterator
+ 	 */
+ 	#[ReturnTypeWillChange]
+-	public function getIterator() {
++	public function getIterator(): \ArrayIterator {
+ 		return new ArrayIterator($this->data);
+ 	}
+ 
+@@ -133,7 +133,8 @@
+ 	 *
+ 	 * @return array Header data
+ 	 */
+-	public function getAll() {
++	public function getAll(): mixed {
+ 		return $this->data;
++		return null;
+ 	}
+ }

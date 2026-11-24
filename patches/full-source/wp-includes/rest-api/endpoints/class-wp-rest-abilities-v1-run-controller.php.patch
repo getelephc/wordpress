@@ -1,0 +1,123 @@
+--- a/wp-includes/rest-api/endpoints/class-wp-rest-abilities-v1-run-controller.php
++++ b/wp-includes/rest-api/endpoints/class-wp-rest-abilities-v1-run-controller.php
+@@ -79,7 +79,7 @@
+ 	 * @param WP_REST_Request $request Full details about the request.
+ 	 * @return WP_REST_Response|WP_Error Response object on success, or WP_Error object on failure.
+ 	 */
+-	public function execute_ability( $request ) {
++	public function execute_ability( mixed $request ): mixed {
+ 		$ability = wp_has_ability( $request['name'] ) ? wp_get_ability( $request['name'] ) : null;
+ 		if ( ! $ability ) {
+ 			return new WP_Error(
+@@ -96,6 +96,7 @@
+ 		}
+ 
+ 		return rest_ensure_response( $result );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -107,7 +108,7 @@
+ 	 * @param array<string, (null|bool)> $annotations    The ability annotations.
+ 	 * @return true|WP_Error True on success, or WP_Error object on failure.
+ 	 */
+-	public function validate_request_method( string $request_method, array $annotations ) {
++	public function validate_request_method( string $request_method, array $annotations ): mixed {
+ 		$expected_method = 'POST';
+ 		if ( ! empty( $annotations['readonly'] ) ) {
+ 			$expected_method = 'GET';
+@@ -130,6 +131,7 @@
+ 			$error_message,
+ 			array( 'status' => 405 )
+ 		);
++		return null;
+ 	}
+ 
+ 	/**
+@@ -140,7 +142,7 @@
+ 	 * @param WP_REST_Request $request Full details about the request.
+ 	 * @return true|WP_Error True if the request has execution permission, WP_Error object otherwise.
+ 	 */
+-	public function check_ability_permissions( $request ) {
++	public function check_ability_permissions( mixed $request ): mixed {
+ 		$ability = wp_has_ability( $request['name'] ) ? wp_get_ability( $request['name'] ) : null;
+ 		if ( ! $ability || ! $ability->get_meta_item( 'show_in_rest' ) ) {
+ 			return new WP_Error(
+@@ -152,8 +154,8 @@
+ 
+ 		$is_valid = $this->validate_request_method(
+ 			$request->get_method(),
+-			$ability->get_meta_item( 'annotations' )
+-		);
++			\wp_aot_array_input($ability->get_meta_item( 'annotations' )
++		));
+ 		if ( is_wp_error( $is_valid ) ) {
+ 			return $is_valid;
+ 		}
+@@ -183,6 +185,7 @@
+ 		}
+ 
+ 		return true;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -211,7 +214,7 @@
+ 	 * @param WP_REST_Request $request The request object.
+ 	 * @return mixed|null The input parameters.
+ 	 */
+-	private function get_input_from_request( $request ) {
++	private function get_input_from_request( mixed $request ): mixed {
+ 		if ( in_array( $request->get_method(), array( 'GET', 'DELETE' ), true ) ) {
+ 			// For GET and DELETE requests, look for 'input' query parameter.
+ 			$query_params = $request->get_query_params();
+@@ -221,6 +224,7 @@
+ 		// For POST requests, look for 'input' in JSON body.
+ 		$json_params = $request->get_json_params();
+ 		return $json_params['input'] ?? null;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -238,13 +242,14 @@
+ 	 * @param WP_REST_Request $request The request object.
+ 	 * @return mixed Coerced input, or the raw input when it cannot be safely coerced.
+ 	 */
+-	public function sanitize_input_for_ability( $input, $request ) {
++	public function sanitize_input_for_ability( mixed $input, mixed $request ): mixed {
+ 		$ability = wp_has_ability( $request['name'] ) ? wp_get_ability( $request['name'] ) : null;
+ 		if ( ! $ability instanceof WP_Ability ) {
+ 			return $input;
+ 		}
+ 
+ 		return $this->coerce_input_to_schema( $input, $ability );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -265,7 +270,7 @@
+ 	 * @param WP_Ability $ability The ability being executed.
+ 	 * @return mixed Coerced input, or the raw input when it cannot be safely coerced.
+ 	 */
+-	private function coerce_input_to_schema( $input, WP_Ability $ability ) {
++	private function coerce_input_to_schema( mixed $input, WP_Ability $ability ): mixed {
+ 		if ( null === $input ) {
+ 			return $input;
+ 		}
+@@ -303,6 +308,7 @@
+ 		}
+ 
+ 		return $sanitized;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -313,7 +319,7 @@
+ 	 * @param mixed $value The value to inspect.
+ 	 * @return bool True if the value is, or contains, a WP_Error.
+ 	 */
+-	private function input_contains_error( $value ): bool {
++	private function input_contains_error( mixed $value ): bool {
+ 		if ( is_wp_error( $value ) ) {
+ 			return true;
+ 		}

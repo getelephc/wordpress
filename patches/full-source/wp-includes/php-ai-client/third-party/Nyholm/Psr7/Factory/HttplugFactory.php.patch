@@ -1,0 +1,35 @@
+--- a/wp-includes/php-ai-client/third-party/Nyholm/Psr7/Factory/HttplugFactory.php
++++ b/wp-includes/php-ai-client/third-party/Nyholm/Psr7/Factory/HttplugFactory.php
+@@ -14,7 +14,7 @@
+ use WordPress\AiClientDependencies\Psr\Http\Message\ResponseInterface;
+ use WordPress\AiClientDependencies\Psr\Http\Message\StreamInterface;
+ use WordPress\AiClientDependencies\Psr\Http\Message\UriInterface;
+-if (!\interface_exists(MessageFactory::class)) {
++if (!\wp_aot_metadata_interface_exists(MessageFactory::class)) {
+     throw new \LogicException('You cannot use "Nyholm\Psr7\Factory\HttplugFactory" as the "php-http/message-factory" package is not installed. Try running "composer require php-http/message-factory". Note that this package is deprecated, use "psr/http-factory" instead');
+ }
+ @\trigger_error('Class "Nyholm\Psr7\Factory\HttplugFactory" is deprecated since version 1.8, use "Nyholm\Psr7\Factory\Psr17Factory" instead.', \E_USER_DEPRECATED);
+@@ -28,19 +28,19 @@
+  */
+ class HttplugFactory implements MessageFactory, StreamFactory, UriFactory
+ {
+-    public function createRequest($method, $uri, array $headers = [], $body = null, $protocolVersion = '1.1'): RequestInterface
++    public function createRequest(mixed $method, mixed $uri, array $headers = [], mixed $body = null, mixed $protocolVersion = '1.1'): RequestInterface
+     {
+         return new Request($method, $uri, $headers, $body, $protocolVersion);
+     }
+-    public function createResponse($statusCode = 200, $reasonPhrase = null, array $headers = [], $body = null, $version = '1.1'): ResponseInterface
++    public function createResponse(mixed $statusCode = 200, mixed $reasonPhrase = null, array $headers = [], mixed $body = null, mixed $version = '1.1'): ResponseInterface
+     {
+         return new Response((int) $statusCode, $headers, $body, $version, $reasonPhrase);
+     }
+-    public function createStream($body = null): StreamInterface
++    public function createStream(mixed $body = null): StreamInterface
+     {
+         return Stream::create($body ?? '');
+     }
+-    public function createUri($uri = ''): UriInterface
++    public function createUri(mixed $uri = ''): UriInterface
+     {
+         if ($uri instanceof UriInterface) {
+             return $uri;

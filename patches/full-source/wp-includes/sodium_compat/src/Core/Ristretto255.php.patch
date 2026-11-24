@@ -1,0 +1,20 @@
+--- a/wp-includes/sodium_compat/src/Core/Ristretto255.php
++++ b/wp-includes/sodium_compat/src/Core/Ristretto255.php
+@@ -459,7 +459,7 @@
+                 $h[$i + $j] = self::chrToInt($ux[$i]);
+             }
+         }
+-        return self::intArrayToString(array_slice($h, 0, $hLen));
++        return self::intArrayToString(\wp_aot_array_slice($h, 0, $hLen));
+     }
+ 
+     /**
+@@ -509,7 +509,7 @@
+                 $h[$i + $j] = self::chrToInt($ux[$i]);
+             }
+         }
+-        return self::intArrayToString(array_slice($h, 0, $hLen));
++        return self::intArrayToString(\wp_aot_array_slice($h, 0, $hLen));
+     }
+ 
+     /**

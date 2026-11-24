@@ -1,6 +1,133 @@
 --- a/wp-includes/script-loader.php
 +++ b/wp-includes/script-loader.php
-@@ -282,7 +282,7 @@
+@@ -17,22 +17,22 @@
+  */
+ 
+ /** WordPress Dependency Class */
+-require ABSPATH . WPINC . '/class-wp-dependency.php';
++require_once __DIR__ . '/class-wp-dependency.php';
+ 
+ /** WordPress Dependencies Class */
+-require ABSPATH . WPINC . '/class-wp-dependencies.php';
++require_once __DIR__ . '/class-wp-dependencies.php';
+ 
+ /** WordPress Scripts Class */
+-require ABSPATH . WPINC . '/class-wp-scripts.php';
++require_once __DIR__ . '/class-wp-scripts.php';
+ 
+ /** WordPress Scripts Functions */
+-require ABSPATH . WPINC . '/functions.wp-scripts.php';
++require_once __DIR__ . '/functions.wp-scripts.php';
+ 
+ /** WordPress Styles Class */
+-require ABSPATH . WPINC . '/class-wp-styles.php';
++require_once __DIR__ . '/class-wp-styles.php';
+ 
+ /** WordPress Styles Functions */
+-require ABSPATH . WPINC . '/functions.wp-styles.php';
++require_once __DIR__ . '/functions.wp-styles.php';
+ 
+ /**
+  * Registers TinyMCE scripts.
+@@ -46,7 +46,8 @@
+  * @param WP_Scripts $scripts            WP_Scripts object.
+  * @param bool       $force_uncompressed Whether to forcibly prevent gzip compression. Default false.
+  */
+-function wp_register_tinymce_scripts( $scripts, $force_uncompressed = false ) {
++function wp_register_tinymce_scripts( mixed $scripts, mixed $force_uncompressed = false ): mixed {
++	$scripts = \wp_aot_require_WP_Scripts( $scripts );
+ 	global $tinymce_version, $concatenate_scripts, $compress_scripts;
+ 
+ 	$suffix     = wp_scripts_get_suffix();
+@@ -68,6 +69,7 @@
+ 	}
+ 
+ 	$scripts->add( 'wp-tinymce-lists', includes_url( "js/tinymce/plugins/lists/plugin$suffix.js" ), array( 'wp-tinymce' ), $tinymce_version );
++	return null;
+ }
+ 
+ /**
+@@ -82,7 +84,8 @@
+  *
+  * @param WP_Scripts $scripts WP_Scripts object.
+  */
+-function wp_default_packages_vendor( $scripts ) {
++function wp_default_packages_vendor( mixed $scripts ): mixed {
++	$scripts = \wp_aot_require_WP_Scripts( $scripts );
+ 	global $wp_locale;
+ 
+ 	$suffix = wp_scripts_get_suffix();
+@@ -163,6 +166,7 @@
+ 		),
+ 		'after'
+ 	);
++	return null;
+ }
+ 
+ /**
+@@ -177,13 +181,14 @@
+  *
+  * @param WP_Scripts $scripts WP_Scripts object.
+  */
+-function wp_register_development_scripts( $scripts ) {
++function wp_register_development_scripts( mixed $scripts ): mixed {
++	$scripts = \wp_aot_require_WP_Scripts( $scripts );
+ 	if (
+-		! defined( 'SCRIPT_DEBUG' ) || ! SCRIPT_DEBUG
++		! \wp_aot_bootstrap_defined( 'SCRIPT_DEBUG' ) || ! SCRIPT_DEBUG
+ 		|| empty( $scripts->registered['react'] )
+ 		|| defined( 'WP_RUN_CORE_TESTS' )
+ 	) {
+-		return;
++		return null;
+ 	}
+ 
+ 	// React Refresh runtime - exposes ReactRefreshRuntime global.
+@@ -207,6 +212,7 @@
+ 	// Add entry as a dependency of React so it loads first.
+ 	// See https://github.com/pmmmwh/react-refresh-webpack-plugin/blob/main/docs/TROUBLESHOOTING.md#externalising-react.
+ 	$scripts->registered['react']->deps[] = 'wp-react-refresh-entry';
++	return null;
+ }
+ 
+ /**
+@@ -220,7 +226,7 @@
+  * @param string[]   $tests   Features to detect.
+  * @return string Conditional polyfill inline script.
+  */
+-function wp_get_script_polyfill( $scripts, $tests ) {
++function wp_get_script_polyfill( mixed $scripts, mixed $tests ): mixed {
+ 	$polyfill = '';
+ 	foreach ( $tests as $test => $handle ) {
+ 		if ( ! array_key_exists( $handle, $scripts->registered ) ) {
+@@ -230,7 +236,7 @@
+ 		$src = $scripts->registered[ $handle ]->src;
+ 		$ver = $scripts->registered[ $handle ]->ver;
+ 
+-		if ( ! preg_match( '|^(https?:)?//|', $src ) && ! ( $scripts->content_url && str_starts_with( $src, $scripts->content_url ) ) ) {
++		if ( ! preg_match( '|^(https?:)?//|', \wp_aot_regex_text( $src ) ) && ! ( $scripts->content_url && str_starts_with( $src, $scripts->content_url ) ) ) {
+ 			$src = $scripts->base_url . $src;
+ 		}
+ 
+@@ -260,6 +266,7 @@
+ 	}
+ 
+ 	return $polyfill;
++	return null;
+ }
+ 
+ /**
+@@ -272,7 +279,8 @@
+  *
+  * @param WP_Scripts $scripts WP_Scripts object.
+  */
+-function wp_default_packages_scripts( $scripts ) {
++function wp_default_packages_scripts( mixed $scripts ): mixed {
++	$scripts = \wp_aot_require_WP_Scripts( $scripts );
+ 	$suffix = defined( 'WP_RUN_CORE_TESTS' ) ? '.min' : wp_scripts_get_suffix();
+ 	/*
+ 	 * Expects multidimensional array like:
+@@ -282,10 +290,10 @@
  	 *     'api-fetch.js' => array(...
  	 */
  	$assets_file = ABSPATH . WPINC . '/assets/script-loader-packages.php';
@@ -8,4 +135,1215 @@
 +	$assets      = file_exists( $assets_file ) ? aot_require_data( $assets_file ) : array();
  
  	foreach ( $assets as $file_name => $package_data ) {
- 		$basename = str_replace( '.js', '', basename( $file_name ) );
+-		$basename = str_replace( '.js', '', basename( $file_name ) );
++		$basename = \wp_aot_str_replace( '.js', '', basename( $file_name ) );
+ 		$handle   = 'wp-' . $basename;
+ 		$path     = "/wp-includes/js/dist/{$basename}{$suffix}.js";
+ 
+@@ -298,13 +306,13 @@
+ 		// Add dependencies that cannot be detected and generated by build tools.
+ 		switch ( $handle ) {
+ 			case 'wp-block-library':
+-				array_push( $dependencies, 'editor' );
++				\wp_aot_array_push( $dependencies,array( 'editor' ));
+ 				break;
+ 			case 'wp-edit-post':
+-				array_push( $dependencies, 'media-models', 'media-views', 'postbox', 'wp-dom-ready' );
++				\wp_aot_array_push( $dependencies,array( 'media-models', 'media-views', 'postbox', 'wp-dom-ready' ));
+ 				break;
+ 			case 'wp-preferences':
+-				array_push( $dependencies, 'wp-preferences-persistence' );
++				\wp_aot_array_push( $dependencies,array( 'wp-preferences-persistence' ));
+ 				break;
+ 		}
+ 
+@@ -332,6 +340,7 @@
+ 			$scripts->add_inline_script( $handle, $script, 'after' );
+ 		}
+ 	}
++	return null;
+ }
+ 
+ /**
+@@ -345,7 +354,7 @@
+  *
+  * @param WP_Scripts $scripts WP_Scripts object.
+  */
+-function wp_default_packages_inline_scripts( $scripts ) {
++function wp_default_packages_inline_scripts( mixed $scripts ): mixed {
+ 	global $wp_locale, $wpdb;
+ 
+ 	if ( isset( $scripts->registered['wp-api-fetch'] ) ) {
+@@ -379,7 +388,7 @@
+ 		'after'
+ 	);
+ 
+-	$meta_key     = $wpdb->get_blog_prefix() . 'persisted_preferences';
++	$meta_key     = \wp_aot_require_wpdb( $wpdb )->get_blog_prefix() . 'persisted_preferences';
+ 	$user_id      = get_current_user_id();
+ 	$preload_data = get_user_meta( $user_id, $meta_key, true );
+ 	$scripts->add_inline_script(
+@@ -481,7 +490,7 @@
+ 					),
+ 					'timezone' => array(
+ 						'offset'          => (float) $gmt_offset,
+-						'offsetFormatted' => str_replace( array( '.25', '.5', '.75' ), array( ':15', ':30', ':45' ), (string) $gmt_offset ),
++						'offsetFormatted' => \wp_aot_str_replace( array( '.25', '.5', '.75' ), array( ':15', ':30', ':45' ), (string) $gmt_offset ),
+ 						'string'          => $timezone_string,
+ 						'abbr'            => $timezone_abbr,
+ 					),
+@@ -510,6 +519,7 @@
+ 		'Object.assign( window.wp.editor, window.wp.oldEditor );',
+ 		'after'
+ 	);
++	return null;
+ }
+ 
+ /**
+@@ -522,7 +532,7 @@
+  *
+  * @global WP_Scripts $wp_scripts
+  */
+-function wp_tinymce_inline_scripts() {
++function wp_tinymce_inline_scripts(): mixed {
+ 	global $wp_scripts;
+ 
+ 	/** This filter is documented in wp-includes/class-wp-editor.php */
+@@ -551,7 +561,7 @@
+ 
+ 	/** This filter is documented in wp-includes/class-wp-editor.php */
+ 	$tinymce_plugins = apply_filters( 'tiny_mce_plugins', $tinymce_plugins, 'classic-block' );
+-	$tinymce_plugins = array_unique( $tinymce_plugins );
++	$tinymce_plugins = \wp_aot_array_unique( $tinymce_plugins );
+ 
+ 	$disable_captions = false;
+ 	// Runs after `tiny_mce_plugins` but before `mce_buttons`.
+@@ -604,7 +614,7 @@
+ 	/** This filter is documented in wp-includes/class-wp-editor.php */
+ 	$external_plugins = apply_filters( 'mce_external_plugins', array(), 'classic-block' );
+ 
+-	$tinymce_settings = array(
++	$tinymce_settings = \wp_aot_mixed(array(
+ 		'plugins'              => implode( ',', $tinymce_plugins ),
+ 		'toolbar1'             => implode( ',', $toolbar1 ),
+ 		'toolbar2'             => implode( ',', $toolbar2 ),
+@@ -612,14 +622,14 @@
+ 		'toolbar4'             => implode( ',', $toolbar4 ),
+ 		'external_plugins'     => wp_json_encode( $external_plugins ),
+ 		'classic_block_editor' => true,
+-	);
++	));
+ 
+ 	if ( $disable_captions ) {
+ 		$tinymce_settings['wpeditimage_disable_captions'] = true;
+ 	}
+ 
+ 	if ( ! empty( $editor_settings['tinymce'] ) && is_array( $editor_settings['tinymce'] ) ) {
+-		$tinymce_settings = array_merge( $tinymce_settings, $editor_settings['tinymce'] );
++		$tinymce_settings = \wp_aot_array_merge(array( $tinymce_settings, $editor_settings['tinymce'] ));
+ 	}
+ 
+ 	/** This filter is documented in wp-includes/class-wp-editor.php */
+@@ -638,7 +648,7 @@
+ 		} elseif ( ! empty( $value ) && is_string( $value ) && (
+ 			( '{' === $value[0] && '}' === $value[ strlen( $value ) - 1 ] ) ||
+ 			( '[' === $value[0] && ']' === $value[ strlen( $value ) - 1 ] ) ||
+-			preg_match( '/^\(?function ?\(/', $value ) ) ) {
++			preg_match( '/^\(?function ?\(/', \wp_aot_regex_text( $value ) ) ) ) {
+ 			$init_obj .= $key . ':' . $value . ',';
+ 			continue;
+ 		}
+@@ -656,6 +666,7 @@
+ 	}';
+ 
+ 	$wp_scripts->add_inline_script( 'wp-block-library', $script, 'before' );
++	return null;
+ }
+ 
+ /**
+@@ -665,7 +676,7 @@
+  *
+  * @param WP_Scripts $scripts WP_Scripts object.
+  */
+-function wp_default_packages( $scripts ) {
++function wp_default_packages( mixed $scripts ): mixed {
+ 	wp_default_packages_vendor( $scripts );
+ 	wp_register_development_scripts( $scripts );
+ 	wp_register_tinymce_scripts( $scripts );
+@@ -674,6 +685,7 @@
+ 	if ( did_action( 'init' ) ) {
+ 		wp_default_packages_inline_scripts( $scripts );
+ 	}
++	return null;
+ }
+ 
+ /**
+@@ -686,8 +698,9 @@
+  * @param string $type The type of suffix to retrieve.
+  * @return string The script suffix.
+  */
+-function wp_scripts_get_suffix( $type = '' ) {
+-	static $suffixes;
++function wp_scripts_get_suffix( mixed $type = '' ): mixed {
++	static $suffixes_aot_cell = new \WordPressStaticValueCell();
++	$suffixes =& $suffixes_aot_cell->value;
+ 
+ 	if ( null === $suffixes ) {
+ 		/*
+@@ -697,7 +710,7 @@
+ 		 * via wp-admin/load-scripts.php or wp-admin/load-styles.php, in which case
+ 		 * wp-includes/functions.php is not loaded.
+ 		 */
+-		require ABSPATH . WPINC . '/version.php';
++		require __DIR__ . '/version.php';
+ 
+ 		/*
+ 		 * Note: str_contains() is not used here, as this file can be included
+@@ -706,8 +719,8 @@
+ 		 */
+ 		$develop_src = false !== strpos( $wp_version, '-src' );
+ 
+-		if ( ! defined( 'SCRIPT_DEBUG' ) ) {
+-			define( 'SCRIPT_DEBUG', $develop_src );
++		if ( ! \wp_aot_bootstrap_defined( 'SCRIPT_DEBUG' ) ) {
++			\wp_aot_bootstrap_mark('SCRIPT_DEBUG', define( 'SCRIPT_DEBUG', $develop_src ));
+ 		}
+ 		$suffix     = SCRIPT_DEBUG ? '' : '.min';
+ 		$dev_suffix = $develop_src ? '' : '.min';
+@@ -719,10 +732,11 @@
+ 	}
+ 
+ 	if ( 'dev' === $type ) {
+-		return $suffixes['dev_suffix'];
+-	}
+-
+-	return $suffixes['suffix'];
++		return \wp_aot_mixed($suffixes)['dev_suffix'];
++	}
++
++	return \wp_aot_mixed($suffixes)['suffix'];
++	return null;
+ }
+ 
+ /**
+@@ -736,7 +750,8 @@
+  *
+  * @param WP_Scripts $scripts WP_Scripts object.
+  */
+-function wp_default_scripts( $scripts ) {
++function wp_default_scripts( mixed $scripts ): mixed {
++	$scripts = \wp_aot_require_WP_Scripts( $scripts );
+ 	$suffix     = wp_scripts_get_suffix();
+ 	$dev_suffix = wp_scripts_get_suffix( 'dev' );
+ 	$guessurl   = site_url();
+@@ -747,7 +762,7 @@
+ 	}
+ 
+ 	$scripts->base_url        = $guessurl;
+-	$scripts->content_url     = defined( 'WP_CONTENT_URL' ) ? WP_CONTENT_URL : '';
++	$scripts->content_url     = \wp_aot_bootstrap_defined( 'WP_CONTENT_URL' ) ? \wp_aot_bootstrap_string('WP_CONTENT_URL') : '';
+ 	$scripts->default_version = get_bloginfo( 'version' );
+ 	$scripts->default_dirs    = array( '/wp-admin/js/', '/wp-includes/js/' );
+ 
+@@ -756,7 +771,7 @@
+ 		'utils',
+ 		'userSettings',
+ 		array(
+-			'url'    => (string) SITECOOKIEPATH,
++			'url'    => (string) \wp_aot_bootstrap_string('SITECOOKIEPATH'),
+ 			'uid'    => (string) get_current_user_id(),
+ 			'time'   => (string) time(),
+ 			'secure' => (string) ( 'https' === parse_url( site_url(), PHP_URL_SCHEME ) ),
+@@ -1534,6 +1549,7 @@
+ 
+ 		$scripts->add( 'svg-painter', '/wp-admin/js/svg-painter.js', array( 'jquery' ), false, 1 );
+ 	}
++	return null;
+ }
+ 
+ /**
+@@ -1553,7 +1569,8 @@
+  *
+  * @param WP_Styles $styles
+  */
+-function wp_default_styles( $styles ) {
++function wp_default_styles( mixed $styles ): mixed {
++	$styles = \wp_aot_require_WP_Styles( $styles );
+ 	global $editor_styles;
+ 
+ 	/*
+@@ -1563,15 +1580,15 @@
+ 	 * via wp-admin/load-scripts.php or wp-admin/load-styles.php, in which case
+ 	 * wp-includes/functions.php is not loaded.
+ 	 */
+-	require ABSPATH . WPINC . '/version.php';
+-
+-	if ( ! defined( 'SCRIPT_DEBUG' ) ) {
++	require __DIR__ . '/version.php';
++
++	if ( ! \wp_aot_bootstrap_defined( 'SCRIPT_DEBUG' ) ) {
+ 		/*
+ 		 * Note: str_contains() is not used here, as this file can be included
+ 		 * via wp-admin/load-scripts.php or wp-admin/load-styles.php, in which case
+ 		 * the polyfills from wp-includes/compat.php are not loaded.
+ 		 */
+-		define( 'SCRIPT_DEBUG', false !== strpos( $wp_version, '-src' ) );
++		\wp_aot_bootstrap_mark('SCRIPT_DEBUG', define( 'SCRIPT_DEBUG', false !== strpos( $wp_version, '-src' ) ));
+ 	}
+ 
+ 	$guessurl = site_url();
+@@ -1581,7 +1598,7 @@
+ 	}
+ 
+ 	$styles->base_url        = $guessurl;
+-	$styles->content_url     = defined( 'WP_CONTENT_URL' ) ? WP_CONTENT_URL : '';
++	$styles->content_url     = \wp_aot_bootstrap_defined( 'WP_CONTENT_URL' ) ? \wp_aot_bootstrap_string('WP_CONTENT_URL') : '';
+ 	$styles->default_version = get_bloginfo( 'version' );
+ 	$styles->text_direction  = function_exists( 'is_rtl' ) && is_rtl() ? 'rtl' : 'ltr';
+ 	$styles->default_dirs    = array( '/wp-admin/', '/wp-includes/css/' );
+@@ -1910,6 +1927,7 @@
+ 			$styles->add_data( $rtl_style, 'suffix', $suffix );
+ 		}
+ 	}
++	return null;
+ }
+ 
+ /**
+@@ -1920,14 +1938,14 @@
+  * @param string[] $js_array JavaScript scripts array
+  * @return string[] Reordered array, if needed.
+  */
+-function wp_prototype_before_jquery( $js_array ) {
+-	$prototype = array_search( 'prototype', $js_array, true );
++function wp_prototype_before_jquery( mixed $js_array ): mixed {
++	$prototype = \wp_aot_array_search( 'prototype', $js_array, true );
+ 
+ 	if ( false === $prototype ) {
+ 		return $js_array;
+ 	}
+ 
+-	$jquery = array_search( 'jquery', $js_array, true );
++	$jquery = \wp_aot_array_search( 'jquery', $js_array, true );
+ 
+ 	if ( false === $jquery ) {
+ 		return $js_array;
+@@ -1942,6 +1960,7 @@
+ 	array_splice( $js_array, $jquery, 0, 'prototype' );
+ 
+ 	return $js_array;
++	return null;
+ }
+ 
+ /**
+@@ -1953,7 +1972,7 @@
+  *
+  * @global array $shortcode_tags
+  */
+-function wp_just_in_time_script_localization() {
++function wp_just_in_time_script_localization(): mixed {
+ 
+ 	wp_localize_script(
+ 		'autosave',
+@@ -1980,6 +1999,7 @@
+ 			'shortcodes' => ! empty( $GLOBALS['shortcode_tags'] ) ? array_keys( $GLOBALS['shortcode_tags'] ) : array(),
+ 		)
+ 	);
++	return null;
+ }
+ 
+ /**
+@@ -1991,15 +2011,15 @@
+  *
+  * @global WP_Locale $wp_locale WordPress date and time locale object.
+  */
+-function wp_localize_jquery_ui_datepicker() {
++function wp_localize_jquery_ui_datepicker(): mixed {
+ 	global $wp_locale;
+ 
+ 	if ( ! wp_script_is( 'jquery-ui-datepicker', 'enqueued' ) ) {
+-		return;
++		return null;
+ 	}
+ 
+ 	// Convert the PHP date format into jQuery UI's format.
+-	$datepicker_date_format = str_replace(
++	$datepicker_date_format = \wp_aot_str_replace(
+ 		array(
+ 			'd',
+ 			'j',
+@@ -2046,6 +2066,7 @@
+ 	);
+ 
+ 	wp_add_inline_script( 'jquery-ui-datepicker', "jQuery(function(jQuery){jQuery.datepicker.setDefaults({$datepicker_defaults});});" );
++	return null;
+ }
+ 
+ /**
+@@ -2053,9 +2074,9 @@
+  *
+  * @since 4.8.0
+  */
+-function wp_localize_community_events() {
++function wp_localize_community_events(): mixed {
+ 	if ( ! wp_script_is( 'dashboard' ) ) {
+-		return;
++		return null;
+ 	}
+ 
+ 	require_once ABSPATH . 'wp-admin/includes/class-wp-community-events.php';
+@@ -2088,6 +2109,7 @@
+ 			'time_format' => get_option( 'time_format' ),
+ 		)
+ 	);
++	return null;
+ }
+ 
+ /**
+@@ -2111,11 +2133,11 @@
+  * @param string $handle Either 'colors' or 'colors-rtl'.
+  * @return string|false URL path to CSS stylesheet for Administration Screens.
+  */
+-function wp_style_loader_src( $src, $handle ) {
++function wp_style_loader_src( mixed $src, mixed $handle ): mixed {
+ 	global $_wp_admin_css_colors;
+ 
+ 	if ( wp_installing() ) {
+-		return preg_replace( '#^wp-admin/#', './', $src );
++		return \wp_aot_preg_replace( '#^wp-admin/#', './', $src );
+ 	}
+ 
+ 	if ( 'colors' === $handle ) {
+@@ -2142,6 +2164,7 @@
+ 	}
+ 
+ 	return $src;
++	return null;
+ }
+ 
+ /**
+@@ -2158,7 +2181,7 @@
+  *
+  * @return string[] Handles of the scripts that were printed.
+  */
+-function print_head_scripts() {
++function print_head_scripts(): mixed {
+ 	global $concatenate_scripts;
+ 
+ 	if ( ! did_action( 'wp_print_scripts' ) ) {
+@@ -2185,6 +2208,7 @@
+ 
+ 	$wp_scripts->reset();
+ 	return $wp_scripts->done;
++	return null;
+ }
+ 
+ /**
+@@ -2197,7 +2221,7 @@
+  *
+  * @return string[] Handles of the scripts that were printed.
+  */
+-function print_footer_scripts() {
++function print_footer_scripts(): mixed {
+ 	global $wp_scripts, $concatenate_scripts;
+ 
+ 	if ( ! ( $wp_scripts instanceof WP_Scripts ) ) {
+@@ -2220,6 +2244,7 @@
+ 
+ 	$wp_scripts->reset();
+ 	return $wp_scripts->done;
++	return null;
+ }
+ 
+ /**
+@@ -2232,15 +2257,15 @@
+  * @global WP_Scripts $wp_scripts
+  * @global bool       $compress_scripts
+  */
+-function _print_scripts() {
++function _print_scripts(): mixed {
+ 	global $wp_scripts, $compress_scripts;
+ 
+-	$zip = $compress_scripts ? 1 : 0;
+-	if ( $zip && defined( 'ENFORCE_GZIP' ) && ENFORCE_GZIP ) {
++	$zip = \wp_aot_mixed($compress_scripts ? 1 : 0);
++	if ( $zip && defined( 'ENFORCE_GZIP' ) && \wp_aot_undefined_constant('ENFORCE_GZIP') ) {
+ 		$zip = 'gzip';
+ 	}
+ 
+-	$concat = trim( $wp_scripts->concat, ', ' );
++	$concat = \wp_aot_mixed(trim( $wp_scripts->concat, ', ' ));
+ 
+ 	if ( $concat ) {
+ 		if ( ! empty( $wp_scripts->print_code ) ) {
+@@ -2261,6 +2286,7 @@
+ 	if ( ! empty( $wp_scripts->print_html ) ) {
+ 		echo $wp_scripts->print_html;
+ 	}
++	return null;
+ }
+ 
+ /**
+@@ -2275,7 +2301,7 @@
+  *
+  * @return string[] Handles of the scripts that were printed.
+  */
+-function wp_print_head_scripts() {
++function wp_print_head_scripts(): mixed {
+ 	global $wp_scripts;
+ 
+ 	if ( ! did_action( 'wp_print_scripts' ) ) {
+@@ -2288,6 +2314,7 @@
+ 	}
+ 
+ 	return print_head_scripts();
++	return null;
+ }
+ 
+ /**
+@@ -2304,9 +2331,10 @@
+  *
+  * @since 3.3.0
+  */
+-function _wp_footer_scripts() {
++function _wp_footer_scripts(): mixed {
+ 	print_late_styles();
+ 	print_footer_scripts();
++	return null;
+ }
+ 
+ /**
+@@ -2314,13 +2342,14 @@
+  *
+  * @since 2.8.0
+  */
+-function wp_print_footer_scripts() {
++function wp_print_footer_scripts(): mixed {
+ 	/**
+ 	 * Fires when footer scripts are printed.
+ 	 *
+ 	 * @since 2.8.0
+ 	 */
+ 	do_action( 'wp_print_footer_scripts' );
++	return null;
+ }
+ 
+ /**
+@@ -2331,13 +2360,14 @@
+  *
+  * @since 2.8.0
+  */
+-function wp_enqueue_scripts() {
++function wp_enqueue_scripts(): mixed {
+ 	/**
+ 	 * Fires when scripts and styles are enqueued.
+ 	 *
+ 	 * @since 2.8.0
+ 	 */
+ 	do_action( 'wp_enqueue_scripts' );
++	return null;
+ }
+ 
+ /**
+@@ -2349,7 +2379,7 @@
+  *
+  * @return string[] Handles of the styles that were printed.
+  */
+-function print_admin_styles() {
++function print_admin_styles(): mixed {
+ 	global $concatenate_scripts;
+ 
+ 	$wp_styles = wp_styles();
+@@ -2371,6 +2401,7 @@
+ 
+ 	$wp_styles->reset();
+ 	return $wp_styles->done;
++	return null;
+ }
+ 
+ /**
+@@ -2383,7 +2414,7 @@
+  *
+  * @return string[]|null
+  */
+-function print_late_styles() {
++function print_late_styles(): mixed {
+ 	global $wp_styles, $concatenate_scripts;
+ 
+ 	if ( ! ( $wp_styles instanceof WP_Styles ) ) {
+@@ -2407,6 +2438,7 @@
+ 
+ 	$wp_styles->reset();
+ 	return $wp_styles->done;
++	return null;
+ }
+ 
+ /**
+@@ -2417,17 +2449,17 @@
+  *
+  * @global bool $compress_css
+  */
+-function _print_styles() {
++function _print_styles(): mixed {
+ 	global $compress_css;
+ 
+ 	$wp_styles = wp_styles();
+ 
+-	$zip = $compress_css ? 1 : 0;
+-	if ( $zip && defined( 'ENFORCE_GZIP' ) && ENFORCE_GZIP ) {
++	$zip = \wp_aot_mixed($compress_css ? 1 : 0);
++	if ( $zip && defined( 'ENFORCE_GZIP' ) && \wp_aot_undefined_constant('ENFORCE_GZIP') ) {
+ 		$zip = 'gzip';
+ 	}
+ 
+-	$concat = trim( $wp_styles->concat, ', ' );
++	$concat = \wp_aot_mixed(trim( $wp_styles->concat, ', ' ));
+ 
+ 	if ( $concat ) {
+ 		$dir = $wp_styles->text_direction;
+@@ -2457,6 +2489,7 @@
+ 	if ( ! empty( $wp_styles->print_html ) ) {
+ 		echo $wp_styles->print_html;
+ 	}
++	return null;
+ }
+ 
+ /**
+@@ -2468,7 +2501,7 @@
+  * @global bool $compress_scripts
+  * @global bool $compress_css
+  */
+-function script_concat_settings() {
++function script_concat_settings(): mixed {
+ 	global $concatenate_scripts, $compress_scripts, $compress_css;
+ 
+ 	$compressed_output = ( ini_get( 'zlib.output_compression' ) || 'ob_gzhandler' === ini_get( 'output_handler' ) );
+@@ -2476,25 +2509,26 @@
+ 	$can_compress_scripts = ! wp_installing() && get_site_option( 'can_compress_scripts' );
+ 
+ 	if ( ! isset( $concatenate_scripts ) ) {
+-		$concatenate_scripts = defined( 'CONCATENATE_SCRIPTS' ) ? CONCATENATE_SCRIPTS : true;
+-		if ( ( ! is_admin() && ! did_action( 'login_init' ) ) || ( defined( 'SCRIPT_DEBUG' ) && SCRIPT_DEBUG ) ) {
++		$concatenate_scripts = defined( 'CONCATENATE_SCRIPTS' ) ? \wp_aot_undefined_constant('CONCATENATE_SCRIPTS') : true;
++		if ( ( ! is_admin() && ! did_action( 'login_init' ) ) || ( \wp_aot_bootstrap_defined( 'SCRIPT_DEBUG' ) && SCRIPT_DEBUG ) ) {
+ 			$concatenate_scripts = false;
+ 		}
+ 	}
+ 
+ 	if ( ! isset( $compress_scripts ) ) {
+-		$compress_scripts = defined( 'COMPRESS_SCRIPTS' ) ? COMPRESS_SCRIPTS : true;
++		$compress_scripts = defined( 'COMPRESS_SCRIPTS' ) ? \wp_aot_undefined_constant('COMPRESS_SCRIPTS') : true;
+ 		if ( $compress_scripts && ( ! $can_compress_scripts || $compressed_output ) ) {
+ 			$compress_scripts = false;
+ 		}
+ 	}
+ 
+ 	if ( ! isset( $compress_css ) ) {
+-		$compress_css = defined( 'COMPRESS_CSS' ) ? COMPRESS_CSS : true;
++		$compress_css = defined( 'COMPRESS_CSS' ) ? \wp_aot_undefined_constant('COMPRESS_CSS') : true;
+ 		if ( $compress_css && ( ! $can_compress_scripts || $compressed_output ) ) {
+ 			$compress_css = false;
+ 		}
+ 	}
++	return null;
+ }
+ 
+ /**
+@@ -2503,9 +2537,9 @@
+  *
+  * @since 5.0.0
+  */
+-function wp_common_block_scripts_and_styles() {
++function wp_common_block_scripts_and_styles(): mixed {
+ 	if ( is_admin() && ! wp_should_load_block_editor_scripts_and_styles() ) {
+-		return;
++		return null;
+ 	}
+ 
+ 	wp_enqueue_style( 'wp-block-library' );
+@@ -2525,6 +2559,7 @@
+ 	 * @since 5.0.0
+ 	 */
+ 	do_action( 'enqueue_block_assets' );
++	return null;
+ }
+ 
+ /**
+@@ -2541,14 +2576,15 @@
+  * @param array<array<string, mixed>> $nodes The nodes to filter.
+  * @return array<array<string, mixed>> A filtered array of style nodes.
+  */
+-function wp_filter_out_block_nodes( $nodes ) {
+-	return array_filter(
++function wp_filter_out_block_nodes( mixed $nodes ): mixed {
++	return \wp_aot_array_filter(
+ 		$nodes,
+-		static function ( $node ) {
++		static function ( mixed $node ) {
+ 			return ! in_array( 'blocks', $node['path'], true );
+ 		},
+ 		ARRAY_FILTER_USE_BOTH
+ 	);
++	return null;
+ }
+ 
+ /**
+@@ -2556,7 +2592,7 @@
+  *
+  * @since 5.8.0
+  */
+-function wp_enqueue_global_styles() {
++function wp_enqueue_global_styles(): mixed {
+ 	$assets_on_demand = wp_should_load_block_assets_on_demand();
+ 	$is_block_theme   = wp_is_block_theme();
+ 	$is_classic_theme = ! $is_block_theme;
+@@ -2575,7 +2611,7 @@
+ 			( $is_classic_theme && ! $assets_on_demand )
+ 		)
+ 	) {
+-		return;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -2594,7 +2630,7 @@
+ 			wp_add_inline_style( 'wp-global-styles-placeholder', ':root { --wp-internal-comment: "Placeholder for wp_hoist_late_printed_styles() to replace with the global-styles printed at wp_footer." }' );
+ 			wp_enqueue_style( 'wp-global-styles-placeholder' );
+ 		}
+-		return;
++		return null;
+ 	}
+ 
+ 	/*
+@@ -2634,7 +2670,7 @@
+ 				 */
+ 				$before_milestone = '/*BEGIN_CUSTOMIZER_CUSTOM_CSS*/';
+ 				$after_milestone  = '/*END_CUSTOMIZER_CUSTOM_CSS*/';
+-				$custom_css       = str_replace( array( $before_milestone, $after_milestone ), '', $custom_css );
++				$custom_css       = \wp_aot_str_replace( array( $before_milestone, $after_milestone ), '', $custom_css );
+ 				$custom_css       = $before_milestone . "\n" . $custom_css . "\n" . $after_milestone;
+ 			}
+ 			$custom_css = "\n" . $custom_css;
+@@ -2646,7 +2682,7 @@
+ 	}
+ 
+ 	if ( empty( $stylesheet ) ) {
+-		return;
++		return null;
+ 	}
+ 
+ 	wp_register_style( 'global-styles', false );
+@@ -2655,6 +2691,7 @@
+ 
+ 	// Add each block as an inline css.
+ 	wp_add_global_styles_for_blocks();
++	return null;
+ }
+ 
+ /**
+@@ -2667,7 +2704,7 @@
+  *
+  * @return bool Whether scripts and styles should be enqueued.
+  */
+-function wp_should_load_block_editor_scripts_and_styles() {
++function wp_should_load_block_editor_scripts_and_styles(): mixed {
+ 	global $current_screen;
+ 
+ 	$is_block_editor_screen = ( $current_screen instanceof WP_Screen ) && $current_screen->is_block_editor();
+@@ -2681,6 +2718,7 @@
+ 	 * @param bool $is_block_editor_screen Current value of the flag.
+ 	 */
+ 	return apply_filters( 'should_load_block_editor_scripts_and_styles', $is_block_editor_screen );
++	return null;
+ }
+ 
+ /**
+@@ -2701,7 +2739,7 @@
+  *
+  * @return bool Whether separate core block assets will be loaded.
+  */
+-function wp_should_load_separate_core_block_assets() {
++function wp_should_load_separate_core_block_assets(): mixed {
+ 	if ( is_admin() || is_feed() || wp_is_rest_endpoint() ) {
+ 		return false;
+ 	}
+@@ -2718,6 +2756,7 @@
+ 	 *                                   Default false (all block assets are loaded, even when not used).
+ 	 */
+ 	return apply_filters( 'should_load_separate_core_block_assets', false );
++	return null;
+ }
+ 
+ /**
+@@ -2736,7 +2775,7 @@
+  *
+  * @return bool Whether to load block assets only when they are rendered.
+  */
+-function wp_should_load_block_assets_on_demand() {
++function wp_should_load_block_assets_on_demand(): mixed {
+ 	if ( is_admin() || is_feed() || wp_is_rest_endpoint() ) {
+ 		return false;
+ 	}
+@@ -2762,6 +2801,7 @@
+ 	 * @param bool $load_assets_on_demand Whether to load block assets only when they are rendered.
+ 	 */
+ 	return apply_filters( 'should_load_block_assets_on_demand', $load_assets_on_demand );
++	return null;
+ }
+ 
+ /**
+@@ -2770,7 +2810,7 @@
+  *
+  * @since 5.0.0
+  */
+-function wp_enqueue_registered_block_scripts_and_styles() {
++function wp_enqueue_registered_block_scripts_and_styles(): mixed {
+ 	if ( wp_should_load_block_assets_on_demand() ) {
+ 		/**
+ 		 * Add placeholder for where block styles would historically get enqueued in a classic theme when block assets
+@@ -2782,7 +2822,7 @@
+ 			wp_add_inline_style( 'wp-block-styles-placeholder', ':root { --wp-internal-comment: "Placeholder for wp_hoist_late_printed_styles() to replace with the block styles printed at wp_footer." }' );
+ 			wp_enqueue_style( 'wp-block-styles-placeholder' );
+ 		}
+-		return;
++		return null;
+ 	}
+ 
+ 	$load_editor_scripts_and_styles = is_admin() && wp_should_load_block_editor_scripts_and_styles();
+@@ -2819,6 +2859,7 @@
+ 			}
+ 		}
+ 	}
++	return null;
+ }
+ 
+ /**
+@@ -2828,7 +2869,7 @@
+  *
+  * @global WP_Styles $wp_styles
+  */
+-function enqueue_block_styles_assets() {
++function enqueue_block_styles_assets(): mixed {
+ 	global $wp_styles;
+ 
+ 	$block_styles = WP_Block_Styles_Registry::get_instance()->get_all_registered();
+@@ -2841,7 +2882,7 @@
+ 				if ( wp_should_load_block_assets_on_demand() ) {
+ 					add_filter(
+ 						'render_block',
+-						static function ( $html, $block ) use ( $block_name, $style_properties ) {
++						static function ( mixed $html, mixed $block ) use ( $block_name, $style_properties ) {
+ 							if ( $block['blockName'] === $block_name ) {
+ 								wp_enqueue_style( $style_properties['style_handle'] );
+ 							}
+@@ -2873,6 +2914,7 @@
+ 			}
+ 		}
+ 	}
++	return null;
+ }
+ 
+ /**
+@@ -2880,7 +2922,7 @@
+  *
+  * @since 5.3.0
+  */
+-function enqueue_editor_block_styles_assets() {
++function enqueue_editor_block_styles_assets(): mixed {
+ 	$block_styles = WP_Block_Styles_Registry::get_instance()->get_all_registered();
+ 
+ 	$register_script_lines = array( '( function() {' );
+@@ -2906,6 +2948,7 @@
+ 	wp_register_script( 'wp-block-styles', false, array( 'wp-blocks' ), true, array( 'in_footer' => true ) );
+ 	wp_add_inline_script( 'wp-block-styles', $inline_script );
+ 	wp_enqueue_script( 'wp-block-styles' );
++	return null;
+ }
+ 
+ /**
+@@ -2913,9 +2956,10 @@
+  *
+  * @since 5.5.0
+  */
+-function wp_enqueue_editor_block_directory_assets() {
++function wp_enqueue_editor_block_directory_assets(): mixed {
+ 	wp_enqueue_script( 'wp-block-directory' );
+ 	wp_enqueue_style( 'wp-block-directory' );
++	return null;
+ }
+ 
+ /**
+@@ -2923,9 +2967,10 @@
+  *
+  * @since 5.8.0
+  */
+-function wp_enqueue_editor_format_library_assets() {
++function wp_enqueue_editor_format_library_assets(): mixed {
+ 	wp_enqueue_script( 'wp-format-library' );
+ 	wp_enqueue_style( 'wp-format-library' );
++	return null;
+ }
+ 
+ /**
+@@ -2939,7 +2984,7 @@
+  * @param array<string, string|bool> $attributes Key-value pairs representing `<script>` tag attributes.
+  * @return string String containing `<script>` opening and closing tags.
+  */
+-function wp_get_script_tag( $attributes ) {
++function wp_get_script_tag( mixed $attributes ): mixed {
+ 	/**
+ 	 * Filters attributes to be added to a script tag.
+ 	 *
+@@ -2976,6 +3021,7 @@
+ 		$processor->set_attribute( $name, $value ?? true );
+ 	}
+ 	return "{$processor->get_updated_html()}\n";
++	return null;
+ }
+ 
+ /**
+@@ -2988,8 +3034,9 @@
+  *
+  * @param array<string, string|bool> $attributes Key-value pairs representing `<script>` tag attributes.
+  */
+-function wp_print_script_tag( $attributes ) {
++function wp_print_script_tag( mixed $attributes ): mixed {
+ 	echo wp_get_script_tag( $attributes );
++	return null;
+ }
+ 
+ /**
+@@ -3018,7 +3065,7 @@
+  * @param array<string, string|bool> $attributes Optional. Key-value pairs representing `<script>` tag attributes.
+  * @return string HTML script tag containing the provided $data or the empty string `""` if the data cannot be safely embedded in a script tag.
+  */
+-function wp_get_inline_script_tag( $data, $attributes = array() ) {
++function wp_get_inline_script_tag( mixed $data, mixed $attributes = array() ): mixed {
+ 	$data = "\n" . trim( $data, "\n\r " ) . "\n";
+ 
+ 	/**
+@@ -3063,6 +3110,7 @@
+ 	}
+ 
+ 	return "{$processor->get_updated_html()}\n";
++	return null;
+ }
+ 
+ /**
+@@ -3076,8 +3124,9 @@
+  * @param string                     $data       Data for script tag: JavaScript, importmap, speculationrules, etc.
+  * @param array<string, string|bool> $attributes Optional. Key-value pairs representing `<script>` tag attributes.
+  */
+-function wp_print_inline_script_tag( $data, $attributes = array() ) {
++function wp_print_inline_script_tag( mixed $data, mixed $attributes = array() ): mixed {
+ 	echo wp_get_inline_script_tag( $data, $attributes );
++	return null;
+ }
+ 
+ /**
+@@ -3092,7 +3141,7 @@
+  *
+  * @global WP_Styles $wp_styles
+  */
+-function wp_maybe_inline_styles() {
++function wp_maybe_inline_styles(): mixed {
+ 	global $wp_styles;
+ 
+ 	$total_inline_limit = 40000;
+@@ -3142,9 +3191,9 @@
+ 
+ 	if ( ! empty( $styles ) ) {
+ 		// Reorder styles array based on size.
+-		usort(
++		\wp_aot_usort(
+ 			$styles,
+-			static function ( $a, $b ) {
++			static function ( mixed $a, mixed $b ) {
+ 				return $a['size'] <=> $b['size'];
+ 			}
+ 		);
+@@ -3196,12 +3245,16 @@
+ 			if ( empty( $wp_styles->registered[ $style['handle'] ]->extra['after'] ) ) {
+ 				$wp_styles->registered[ $style['handle'] ]->extra['after'] = array();
+ 			}
+-			array_unshift( $wp_styles->registered[ $style['handle'] ]->extra['after'], $style['css'] );
++			$wp_aot_dependency = \wp_aot_require_dependency($wp_styles->registered[$style['handle']]);
++            $wp_aot_after =& $wp_aot_dependency->extra['after'];
++            \wp_aot_array_unshift($wp_aot_after, array($style['css']));
++            unset($wp_aot_after, $wp_aot_dependency);
+ 
+ 			// Add the styles size to the $total_inline_size var.
+ 			$total_inline_size += (int) $style['size'];
+ 		}
+ 	}
++	return null;
+ }
+ 
+ /**
+@@ -3215,10 +3268,10 @@
+  *
+  * @return string The CSS with URLs made relative to the WordPress installation.
+  */
+-function _wp_normalize_relative_css_links( $css, $stylesheet_url ) {
+-	return preg_replace_callback(
++function _wp_normalize_relative_css_links( mixed $css, mixed $stylesheet_url ): mixed {
++	return \wp_aot_preg_replace_callback(
+ 		'#(url\s*\(\s*[\'"]?\s*)([^\'"\)]+)#',
+-		static function ( $matches ) use ( $stylesheet_url ) {
++		static function ( mixed $matches ) use ( $stylesheet_url ) {
+ 			list( , $prefix, $url ) = $matches;
+ 
+ 			// Short-circuit if the URL does not require normalization.
+@@ -3234,7 +3287,7 @@
+ 
+ 			// Build the absolute URL.
+ 			$absolute_url = dirname( $stylesheet_url ) . '/' . $url;
+-			$absolute_url = str_replace( '/./', '/', $absolute_url );
++			$absolute_url = \wp_aot_str_replace( '/./', '/', $absolute_url );
+ 
+ 			// Convert to URL related to the site root.
+ 			$url = wp_make_link_relative( $absolute_url );
+@@ -3243,6 +3296,7 @@
+ 		},
+ 		$css
+ 	);
++	return null;
+ }
+ 
+ /**
+@@ -3250,10 +3304,11 @@
+  *
+  * @since 5.9.0
+  */
+-function wp_enqueue_global_styles_css_custom_properties() {
++function wp_enqueue_global_styles_css_custom_properties(): mixed {
+ 	wp_register_style( 'global-styles-css-custom-properties', false );
+ 	wp_add_inline_style( 'global-styles-css-custom-properties', wp_get_global_stylesheet( array( 'variables' ) ) );
+ 	wp_enqueue_style( 'global-styles-css-custom-properties' );
++	return null;
+ }
+ 
+ /**
+@@ -3270,7 +3325,7 @@
+  * @param string $style    String containing the CSS styles to be added.
+  * @param int    $priority To set the priority for the add_action.
+  */
+-function wp_enqueue_block_support_styles( $style, $priority = 10 ) {
++function wp_enqueue_block_support_styles( mixed $style, mixed $priority = 10 ): mixed {
+ 	$action_hook_name = 'wp_footer';
+ 	if ( wp_is_block_theme() ) {
+ 		$action_hook_name = 'wp_head';
+@@ -3285,6 +3340,7 @@
+ 		},
+ 		$priority
+ 	);
++	return null;
+ }
+ 
+ /**
+@@ -3305,7 +3361,7 @@
+  *                          Default to whether the `SCRIPT_DEBUG` constant is defined.
+  * }
+  */
+-function wp_enqueue_stored_styles( $options = array() ) {
++function wp_enqueue_stored_styles( mixed $options = array() ): mixed {
+ 	// Note: Styles printed at wp_footer for classic themes may still end up in the head due to wp_load_classic_theme_block_styles_on_demand().
+ 	$is_block_theme   = wp_is_block_theme();
+ 	$is_classic_theme = ! $is_block_theme;
+@@ -3318,14 +3374,14 @@
+ 		( $is_block_theme && doing_action( 'wp_footer' ) ) ||
+ 		( $is_classic_theme && doing_action( 'wp_enqueue_scripts' ) )
+ 	) {
+-		return;
++		return null;
+ 	}
+ 
+ 	$core_styles_keys         = array( 'block-supports' );
+ 	$compiled_core_stylesheet = '';
+ 	$style_tag_id             = 'core';
+ 	// Adds comment if code is prettified to identify core styles sections in debugging.
+-	$should_prettify = isset( $options['prettify'] ) ? true === $options['prettify'] : defined( 'SCRIPT_DEBUG' ) && SCRIPT_DEBUG;
++	$should_prettify = isset( $options['prettify'] ) ? true === $options['prettify'] : \wp_aot_bootstrap_defined( 'SCRIPT_DEBUG' ) && SCRIPT_DEBUG;
+ 	foreach ( $core_styles_keys as $style_key ) {
+ 		if ( $should_prettify ) {
+ 			$compiled_core_stylesheet .= "/**\n * Core styles: $style_key\n */\n";
+@@ -3356,6 +3412,7 @@
+ 			wp_enqueue_style( $key );
+ 		}
+ 	}
++	return null;
+ }
+ 
+ /**
+@@ -3379,7 +3436,7 @@
+  *     @type string|null      $path   Absolute path to the stylesheet, so that it can potentially be inlined.
+  * }
+  */
+-function wp_enqueue_block_style( $block_name, $args ) {
++function wp_enqueue_block_style( mixed $block_name, mixed $args ): mixed {
+ 	$args = wp_parse_args(
+ 		$args,
+ 		array(
+@@ -3399,7 +3456,7 @@
+ 	 *                        is to ensure the content exists.
+ 	 * @return string Block content.
+ 	 */
+-	$callback = static function ( $content ) use ( $args ) {
++	$callback = static function ( mixed $content ) use ( $args ) {
+ 		// Register the stylesheet.
+ 		if ( ! empty( $args['src'] ) ) {
+ 			wp_register_style( $args['handle'], $args['src'], $args['deps'], $args['ver'], $args['media'] );
+@@ -3410,7 +3467,7 @@
+ 			wp_style_add_data( $args['handle'], 'path', $args['path'] );
+ 
+ 			// Get the RTL file path.
+-			$rtl_file_path = str_replace( '.css', '-rtl.css', $args['path'] );
++			$rtl_file_path = \wp_aot_str_replace( '.css', '-rtl.css', $args['path'] );
+ 
+ 			// Add RTL stylesheet.
+ 			if ( file_exists( $rtl_file_path ) ) {
+@@ -3437,7 +3494,7 @@
+ 		 * @param array  $block   The full block, including name and attributes.
+ 		 * @return string Block content.
+ 		 */
+-		$callback_separate = static function ( $content, $block ) use ( $block_name, $callback ) {
++		$callback_separate = static function ( mixed $content, mixed $block ) use ( $block_name, $callback ) {
+ 			if ( ! empty( $block['blockName'] ) && $block_name === $block['blockName'] ) {
+ 				return $callback( $content );
+ 			}
+@@ -3454,7 +3511,7 @@
+ 		 * was deemed acceptable.
+ 		 */
+ 		add_filter( 'render_block', $callback_separate, 10, 2 );
+-		return;
++		return null;
+ 	}
+ 
+ 	/*
+@@ -3470,6 +3527,7 @@
+ 
+ 	// Enqueue assets in the editor.
+ 	add_action( 'enqueue_block_assets', $callback );
++	return null;
+ }
+ 
+ /**
+@@ -3481,10 +3539,11 @@
+  * @since 6.2.0 Added File block styles.
+  * @since 6.8.0 Moved stylesheet registration outside of this function.
+  */
+-function wp_enqueue_classic_theme_styles() {
++function wp_enqueue_classic_theme_styles(): mixed {
+ 	if ( ! wp_theme_has_theme_json() ) {
+ 		wp_enqueue_style( 'classic-theme-styles' );
+ 	}
++	return null;
+ }
+ 
+ /**
+@@ -3495,7 +3554,7 @@
+  * @global array  $menu
+  * @global array  $submenu
+  */
+-function wp_enqueue_command_palette_assets() {
++function wp_enqueue_command_palette_assets(): mixed {
+ 	global $menu, $submenu;
+ 
+ 	$command_palette_settings = array(
+@@ -3559,7 +3618,7 @@
+ 			$menu_url   = '';
+ 			$menu_slug  = $menu_item[2];
+ 
+-			if ( preg_match( '/\.php($|\?)/', $menu_slug ) || wp_http_validate_url( $menu_slug ) ) {
++			if ( preg_match( '/\.php($|\?)/', \wp_aot_regex_text( $menu_slug ) ) || wp_http_validate_url( $menu_slug ) ) {
+ 				$menu_url = $menu_slug;
+ 			} elseif ( ! empty( menu_page_url( $menu_slug, false ) ) ) {
+ 				$menu_url = WP_HTML_Decoder::decode_attribute( menu_page_url( $menu_slug, false ) );
+@@ -3583,7 +3642,7 @@
+ 					$submenu_url   = '';
+ 					$submenu_slug  = $submenu_item[2];
+ 
+-					if ( preg_match( '/\.php($|\?)/', $submenu_slug ) || wp_http_validate_url( $submenu_slug ) ) {
++					if ( preg_match( '/\.php($|\?)/', \wp_aot_regex_text( $submenu_slug ) ) || wp_http_validate_url( $submenu_slug ) ) {
+ 						$submenu_url = $submenu_slug;
+ 					} elseif ( ! empty( menu_page_url( $submenu_slug, false ) ) ) {
+ 						$submenu_url = WP_HTML_Decoder::decode_attribute( menu_page_url( $submenu_slug, false ) );
+@@ -3617,6 +3676,7 @@
+ 			wp_json_encode( $command_palette_settings, JSON_HEX_TAG | JSON_UNESCAPED_SLASHES )
+ 		)
+ 	);
++	return null;
+ }
+ 
+ /**
+@@ -3649,7 +3709,7 @@
+  * @return string Script body without surrounding script tag literals, or
+  *                original contents if both exact literals aren't present.
+  */
+-function wp_remove_surrounding_empty_script_tags( $contents ) {
++function wp_remove_surrounding_empty_script_tags( mixed $contents ): mixed {
+ 	$contents = trim( $contents );
+ 	$opener   = '<SCRIPT>';
+ 	$closer   = '</SCRIPT>';
+@@ -3674,6 +3734,7 @@
+ 			)
+ 		);
+ 	}
++	return null;
+ }
+ 
+ /**
+@@ -3755,13 +3816,16 @@
+ 	 * this code runs. This ensures that the placeholder appears right after any inlined wp-block-library styles,
+ 	 * which would be common.css.
+ 	 */
+-	$placeholder = sprintf( '/*%s*/', uniqid( 'wp_block_styles_on_demand_placeholder:' ) );
++	$placeholder = sprintf( '/*%s*/', \wp_aot_native_api('uniqid', array( 'wp_block_styles_on_demand_placeholder:' )) );
+ 	$dependency  = wp_styles()->query( 'wp-block-library', 'registered' );
+ 	if ( $dependency ) {
+ 		if ( ! isset( $dependency->extra['after'] ) ) {
+ 			wp_add_inline_style( 'wp-block-library', $placeholder );
+ 		} else {
+-			array_unshift( $dependency->extra['after'], $placeholder );
++			$wp_aot_dependency = \wp_aot_require_dependency($dependency);
++            $wp_aot_after =& $wp_aot_dependency->extra['after'];
++            \wp_aot_array_unshift($wp_aot_after, array($placeholder));
++            unset($wp_aot_after, $wp_aot_dependency);
+ 		}
+ 	}
+ 
+@@ -3796,7 +3860,7 @@
+ 		 * First print all styles related to core blocks which should be inserted right after the wp-block-library stylesheet
+ 		 * to preserve the CSS cascade. The logic in this `if` statement is derived from `wp_print_styles()`.
+ 		 */
+-		$enqueued_core_block_styles = array_values( array_intersect( $all_core_block_style_handles, wp_styles()->queue ) );
++		$enqueued_core_block_styles = array_values( \wp_aot_array_intersect(array( $all_core_block_style_handles, wp_styles()->queue )) );
+ 		if ( count( $enqueued_core_block_styles ) > 0 ) {
+ 			ob_start();
+ 			wp_styles()->do_items( $enqueued_core_block_styles );
+@@ -3804,7 +3868,7 @@
+ 		}
+ 
+ 		// Capture non-core block styles so they can get printed at the point where wp_enqueue_registered_block_scripts_and_styles() runs.
+-		$enqueued_other_block_styles = array_values( array_intersect( $all_other_block_style_handles, wp_styles()->queue ) );
++		$enqueued_other_block_styles = array_values( \wp_aot_array_intersect(array( $all_other_block_style_handles, wp_styles()->queue )) );
+ 		if ( count( $enqueued_other_block_styles ) > 0 ) {
+ 			ob_start();
+ 			wp_styles()->do_items( $enqueued_other_block_styles );
+@@ -3856,7 +3920,7 @@
+ 	// Replace placeholder with the captured late styles.
+ 	add_filter(
+ 		'wp_template_enhancement_output_buffer',
+-		static function ( $buffer ) use ( $placeholder, &$printed_core_block_styles, &$printed_other_block_styles, &$printed_global_styles, &$printed_late_styles ) {
++		static function ( mixed $buffer ) use ( $placeholder, &$printed_core_block_styles, &$printed_other_block_styles, &$printed_global_styles, &$printed_late_styles ) {
+ 
+ 			// Anonymous subclass of WP_HTML_Tag_Processor which exposes underlying bookmark spans.
+ 			$processor = new class( $buffer ) extends WP_HTML_Tag_Processor {
+@@ -4004,7 +4068,7 @@
+ 				 * the combined block library stylesheet was used. The pattern here is checking to see if it is not just
+ 				 * a sourceURL comment after the placeholder above is removed.
+ 				 */
+-				if ( ! preg_match( ':^\s*(/\*# sourceURL=\S+? \*/\s*)?$:s', $extra_inline_styles ) ) {
++				if ( ! preg_match( ':^\s*(/\*# sourceURL=\S+? \*/\s*)?$:s', \wp_aot_regex_text( $extra_inline_styles ) ) ) {
+ 					$style_processor = new WP_HTML_Tag_Processor( '<style></style>' );
+ 					$style_processor->next_tag();
+ 					$style_processor->set_attribute( 'id', 'wp-block-library-inline-css-extra' );

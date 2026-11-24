@@ -1,0 +1,34 @@
+--- a/wp-includes/block-bindings/pattern-overrides.php
++++ b/wp-includes/block-bindings/pattern-overrides.php
+@@ -19,12 +19,13 @@
+  * @param string   $attribute_name The name of the target attribute.
+  * @return mixed The value computed for the source.
+  */
+-function _block_bindings_pattern_overrides_get_value( array $source_args, $block_instance, string $attribute_name ) {
++function _block_bindings_pattern_overrides_get_value( array $source_args, mixed $block_instance, string $attribute_name ): mixed {
+ 	if ( empty( $block_instance->attributes['metadata']['name'] ) ) {
+ 		return null;
+ 	}
+ 	$metadata_name = $block_instance->attributes['metadata']['name'];
+ 	return _wp_array_get( $block_instance->context, array( 'pattern/overrides', $metadata_name, $attribute_name ), null );
++	return null;
+ }
+ 
+ /**
+@@ -33,7 +34,7 @@
+  * @since 6.5.0
+  * @access private
+  */
+-function _register_block_bindings_pattern_overrides_source() {
++function _register_block_bindings_pattern_overrides_source(): mixed {
+ 	register_block_bindings_source(
+ 		'core/pattern-overrides',
+ 		array(
+@@ -42,6 +43,7 @@
+ 			'uses_context'       => array( 'pattern/overrides' ),
+ 		)
+ 	);
++	return null;
+ }
+ 
+ add_action( 'init', '_register_block_bindings_pattern_overrides_source' );

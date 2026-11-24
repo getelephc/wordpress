@@ -1,6 +1,153 @@
 --- a/wp-admin/includes/class-wp-list-table.php
 +++ b/wp-admin/includes/class-wp-list-table.php
-@@ -412,13 +412,22 @@
+@@ -147,7 +147,7 @@
+ 	 *                            Default null.
+ 	 * }
+ 	 */
+-	public function __construct( $args = array() ) {
++	public function __construct( mixed $args = array() ) {
+ 		$args = wp_parse_args(
+ 			$args,
+ 			array(
+@@ -263,7 +263,25 @@
+ 	 */
+ 	public function __unset( $name ) {
+ 		if ( in_array( $name, $this->compat_fields, true ) ) {
+-			unset( $this->$name );
++			switch ( $name ) {
++				case '_args':
++					unset( $this->_args );
++					break;
++				case '_pagination_args':
++					unset( $this->_pagination_args );
++					break;
++				case 'screen':
++					unset( $this->screen );
++					break;
++				case '_actions':
++					unset( $this->_actions );
++					break;
++				case '_pagination':
++					unset( $this->_pagination );
++					break;
++				default:
++					throw new LogicException( 'Additional list-table compatibility fields are outside this finite fixture.' );
++			}
+ 			return;
+ 		}
+ 
+@@ -284,11 +302,12 @@
+ 	 * @param array  $arguments Arguments to pass when calling.
+ 	 * @return mixed|bool Return value of the callback, false otherwise.
+ 	 */
+-	public function __call( $name, $arguments ) {
++	public function __call( $name, $arguments ): mixed {
+ 		if ( in_array( $name, $this->compat_methods, true ) ) {
+ 			return $this->$name( ...$arguments );
+ 		}
+ 		return false;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -297,8 +316,9 @@
+ 	 * @since 3.1.0
+ 	 * @abstract
+ 	 */
+-	public function ajax_user_can() {
+-		die( 'function WP_List_Table::ajax_user_can() must be overridden in a subclass.' );
++	public function ajax_user_can(): mixed {
++		\wp_aot_exit( 'function WP_List_Table::ajax_user_can() must be overridden in a subclass.' );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -309,8 +329,9 @@
+ 	 * @since 3.1.0
+ 	 * @abstract
+ 	 */
+-	public function prepare_items() {
+-		die( 'function WP_List_Table::prepare_items() must be overridden in a subclass.' );
++	public function prepare_items(): mixed {
++		\wp_aot_exit( 'function WP_List_Table::prepare_items() must be overridden in a subclass.' );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -320,7 +341,7 @@
+ 	 *
+ 	 * @param array|string $args Array or string of arguments with information about the pagination.
+ 	 */
+-	protected function set_pagination_args( $args ) {
++	protected function set_pagination_args( mixed $args ): mixed {
+ 		$args = wp_parse_args(
+ 			$args,
+ 			array(
+@@ -335,12 +356,13 @@
+ 		}
+ 
+ 		// Redirect if page number is invalid and headers are not already sent.
+-		if ( ! headers_sent() && ! wp_doing_ajax() && $args['total_pages'] > 0 && $this->get_pagenum() > $args['total_pages'] ) {
++		if ( ! \wp_aot_native_headers_sent() && ! wp_doing_ajax() && $args['total_pages'] > 0 && $this->get_pagenum() > $args['total_pages'] ) {
+ 			wp_redirect( add_query_arg( 'paged', $args['total_pages'] ) );
+-			exit;
++			\wp_aot_exit();
+ 		}
+ 
+ 		$this->_pagination_args = $args;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -352,11 +374,12 @@
+ 	 *                    'total_pages', 'per_page', or 'infinite_scroll'.
+ 	 * @return int Number of items that correspond to the given pagination argument.
+ 	 */
+-	public function get_pagination_arg( $key ) {
++	public function get_pagination_arg( mixed $key ): mixed {
+ 		if ( 'page' === $key ) {
+ 			return $this->get_pagenum();
+ 		}
+ 		return $this->_pagination_args[ $key ] ?? 0;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -366,8 +389,9 @@
+ 	 *
+ 	 * @return bool Whether the table has items to display.
+ 	 */
+-	public function has_items() {
++	public function has_items(): mixed {
+ 		return ! empty( $this->items );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -375,8 +399,9 @@
+ 	 *
+ 	 * @since 3.1.0
+ 	 */
+-	public function no_items() {
++	public function no_items(): mixed {
+ 		_e( 'No items found.' );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -387,9 +412,9 @@
+ 	 * @param string $text     The 'submit' button label.
+ 	 * @param string $input_id ID attribute value for the search input field.
+ 	 */
+-	public function search_box( $text, $input_id ) {
++	public function search_box( mixed $text, mixed $input_id ): mixed {
+ 		if ( empty( $_REQUEST['s'] ) && ! $this->has_items() ) {
+-			return;
++			return null;
+ 		}
+ 
+ 		$input_id = $input_id . '-search-input';
+@@ -412,13 +437,23 @@
  		if ( ! empty( $_REQUEST['detached'] ) ) {
  			echo '<input type="hidden" name="detached" value="' . esc_attr( $_REQUEST['detached'] ) . '" />';
  		}
@@ -27,10 +174,176 @@
 +submit_button( $text, 'compact', '', false, array( 'id' => 'search-submit' ) ); ;
 +echo '</p>
 +		';
++		return null;
  	}
  
  	/**
-@@ -771,11 +780,17 @@
+@@ -435,7 +470,7 @@
+ 	 * }
+ 	 * @return string[] An array of link markup. Keys match the `$link_data` input array.
+ 	 */
+-	protected function get_views_links( $link_data = array() ) {
++	protected function get_views_links( mixed $link_data = array() ): mixed {
+ 		if ( ! is_array( $link_data ) ) {
+ 			_doing_it_wrong(
+ 				__METHOD__,
+@@ -492,6 +527,7 @@
+ 		}
+ 
+ 		return $views_links;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -504,8 +540,9 @@
+ 	 *
+ 	 * @return array<string, string> An associative array of views.
+ 	 */
+-	protected function get_views() {
++	protected function get_views(): mixed {
+ 		return array();
++		return null;
+ 	}
+ 
+ 	/**
+@@ -513,7 +550,7 @@
+ 	 *
+ 	 * @since 3.1.0
+ 	 */
+-	public function views() {
++	public function views(): mixed {
+ 		$views = $this->get_views();
+ 		/**
+ 		 * Filters the list of available list table views.
+@@ -528,7 +565,7 @@
+ 		$views = apply_filters( "views_{$this->screen->id}", $views );
+ 
+ 		if ( empty( $views ) ) {
+-			return;
++			return null;
+ 		}
+ 
+ 		$this->screen->render_screen_reader_content( 'heading_views' );
+@@ -539,6 +576,7 @@
+ 		}
+ 		echo implode( " |</li>\n", $views ) . "</li>\n";
+ 		echo '</ul>';
++		return null;
+ 	}
+ 
+ 	/**
+@@ -568,8 +606,9 @@
+ 	 *
+ 	 * @return array<string, string|array<string, string>> An associative array of bulk actions.
+ 	 */
+-	protected function get_bulk_actions() {
++	protected function get_bulk_actions(): mixed {
+ 		return array();
++		return null;
+ 	}
+ 
+ 	/**
+@@ -580,7 +619,7 @@
+ 	 * @param string $which The location of the bulk actions: Either 'top' or 'bottom'.
+ 	 *                      This is designated as optional for backward compatibility.
+ 	 */
+-	protected function bulk_actions( $which = '' ) {
++	protected function bulk_actions( mixed $which = '' ): mixed {
+ 		if ( is_null( $this->_actions ) ) {
+ 			$this->_actions = $this->get_bulk_actions();
+ 
+@@ -603,7 +642,7 @@
+ 		}
+ 
+ 		if ( empty( $this->_actions ) ) {
+-			return;
++			return null;
+ 		}
+ 
+ 		echo '<label for="bulk-action-selector-' . esc_attr( $which ) . '" class="screen-reader-text">' .
+@@ -634,6 +673,7 @@
+ 
+ 		submit_button( __( 'Apply' ), 'action compact', 'bulk_action', false, array( 'id' => "doaction$two" ) );
+ 		echo "\n";
++		return null;
+ 	}
+ 
+ 	/**
+@@ -643,7 +683,7 @@
+ 	 *
+ 	 * @return string|false The action name. False if no action was selected.
+ 	 */
+-	public function current_action() {
++	public function current_action(): mixed {
+ 		if ( isset( $_REQUEST['filter_action'] ) && ! empty( $_REQUEST['filter_action'] ) ) {
+ 			return false;
+ 		}
+@@ -653,6 +693,7 @@
+ 		}
+ 
+ 		return false;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -664,7 +705,7 @@
+ 	 * @param bool     $always_visible Whether the actions should be always visible.
+ 	 * @return string The HTML for the row actions.
+ 	 */
+-	protected function row_actions( $actions, $always_visible = false ) {
++	protected function row_actions( mixed $actions, mixed $always_visible = false ): mixed {
+ 		$action_count = count( $actions );
+ 
+ 		if ( ! $action_count ) {
+@@ -697,6 +738,7 @@
+ 		'</span></button>';
+ 
+ 		return $output;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -709,7 +751,7 @@
+ 	 *
+ 	 * @param string $post_type The post type.
+ 	 */
+-	protected function months_dropdown( $post_type ) {
++	protected function months_dropdown( mixed $post_type ): mixed {
+ 		global $wpdb, $wp_locale;
+ 
+ 		/**
+@@ -721,7 +763,7 @@
+ 		 * @param string $post_type The post type.
+ 		 */
+ 		if ( apply_filters( 'disable_months_dropdown', false, $post_type ) ) {
+-			return;
++			return null;
+ 		}
+ 
+ 		/**
+@@ -739,11 +781,11 @@
+ 			if ( ! isset( $_GET['post_status'] ) || 'trash' !== $_GET['post_status'] ) {
+ 				$extra_checks .= " AND post_status != 'trash'";
+ 			} elseif ( isset( $_GET['post_status'] ) ) {
+-				$extra_checks = $wpdb->prepare( ' AND post_status = %s', $_GET['post_status'] );
+-			}
+-
+-			$months = $wpdb->get_results(
+-				$wpdb->prepare(
++				$extra_checks = \wp_aot_require_wpdb( $wpdb )->prepare( ' AND post_status = %s', $_GET['post_status'] );
++			}
++
++			$months = \wp_aot_require_wpdb( $wpdb )->get_results(
++				\wp_aot_require_wpdb( $wpdb )->prepare(
+ 					"SELECT DISTINCT YEAR( post_date ) AS year, MONTH( post_date ) AS month
+ 					FROM $wpdb->posts
+ 					WHERE post_type = %s
+@@ -767,15 +809,21 @@
+ 		$month_count = count( $months );
+ 
+ 		if ( ! $month_count || ( 1 === $month_count && 0 === (int) $months[0]->month ) ) {
+-			return;
++			return null;
  		}
  
  		$selected_month = isset( $_GET['m'] ) ? (int) $_GET['m'] : 0;
@@ -52,7 +365,7 @@
  		foreach ( $months as $arc_row ) {
  			if ( 0 === (int) $arc_row->year ) {
  				continue;
-@@ -792,9 +807,9 @@
+@@ -792,9 +840,10 @@
  				esc_html( sprintf( __( '%1$s %2$d' ), $wp_locale->get_month( $month ), $year ) )
  			);
  		}
@@ -62,15 +375,18 @@
 +		;
 +echo '		</select>
 +		';
++		return null;
  	}
  
  	/**
-@@ -805,10 +820,12 @@
+@@ -804,11 +853,13 @@
+ 	 *
  	 * @param string $current_mode The current view mode slug, e.g. 'list' or 'excerpt'.
  	 */
- 	protected function view_switcher( $current_mode ) {
+-	protected function view_switcher( $current_mode ) {
 -		?>
 -		<input type="hidden" name="mode" value="<?php echo esc_attr( $current_mode ); ?>" />
++	protected function view_switcher( mixed $current_mode ): mixed {
 +		;
 +echo '		<input type="hidden" name="mode" value="';
 +echo esc_attr( $current_mode ); ;
@@ -81,7 +397,7 @@
  		foreach ( $this->modes as $mode => $title ) {
  			$classes      = array( 'view-' . $mode );
  			$aria_current = '';
-@@ -827,9 +844,9 @@
+@@ -827,9 +878,10 @@
  				$title
  			);
  		}
@@ -91,10 +407,252 @@
 +		;
 +echo '		</div>
 +		';
++		return null;
  	}
  
  	/**
-@@ -1625,33 +1642,39 @@
+@@ -840,7 +892,7 @@
+ 	 * @param int $post_id          The post ID.
+ 	 * @param int $pending_comments Number of pending comments.
+ 	 */
+-	protected function comments_bubble( $post_id, $pending_comments ) {
++	protected function comments_bubble( mixed $post_id, mixed $pending_comments ): mixed {
+ 		$post_object   = get_post( $post_id );
+ 		$edit_post_cap = $post_object ? 'edit_post' : 'edit_posts';
+ 
+@@ -959,6 +1011,7 @@
+ 				__( 'No comments' )
+ 			);
+ 		}
++		return null;
+ 	}
+ 
+ 	/**
+@@ -968,7 +1021,7 @@
+ 	 *
+ 	 * @return int Current page number.
+ 	 */
+-	public function get_pagenum() {
++	public function get_pagenum(): mixed {
+ 		$pagenum = isset( $_REQUEST['paged'] ) ? absint( $_REQUEST['paged'] ) : 0;
+ 
+ 		if ( isset( $this->_pagination_args['total_pages'] ) && $pagenum > $this->_pagination_args['total_pages'] ) {
+@@ -976,6 +1029,7 @@
+ 		}
+ 
+ 		return max( 1, $pagenum );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -987,7 +1041,7 @@
+ 	 * @param int    $default_value Optional. The number of items to display. Default 20.
+ 	 * @return int Number of items to display per page.
+ 	 */
+-	protected function get_items_per_page( $option, $default_value = 20 ) {
++	protected function get_items_per_page( mixed $option, mixed $default_value = 20 ): mixed {
+ 		$per_page = (int) get_user_option( $option );
+ 		if ( empty( $per_page ) || $per_page < 1 ) {
+ 			$per_page = $default_value;
+@@ -1018,6 +1072,7 @@
+ 		 * @param int $per_page Number of items to be displayed. Default 20.
+ 		 */
+ 		return (int) apply_filters( "{$option}", $per_page );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1027,11 +1082,11 @@
+ 	 *
+ 	 * @param string $which The location of the pagination: Either 'top' or 'bottom'.
+ 	 */
+-	protected function pagination( $which ) {
++	protected function pagination( mixed $which ): mixed {
+ 		if ( empty( $this->_pagination_args['total_items'] ) ) {
+ 			// translators: Number is a fixed value. This is default text when no items are found.
+ 			echo '<div class="tablenav-pages no-pages"><span class="displaying-num">' . __( '0 items' ) . '</span></div>';
+-			return;
++			return null;
+ 		}
+ 
+ 		$total_items     = $this->_pagination_args['total_items'];
+@@ -1182,6 +1237,7 @@
+ 		$this->_pagination = "<div class='tablenav-pages{$page_class}'>$output</div>";
+ 
+ 		echo $this->_pagination;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1195,8 +1251,9 @@
+ 	 *
+ 	 * @return array<string, string> An associative array of columns.
+ 	 */
+-	public function get_columns() {
+-		die( 'function WP_List_Table::get_columns() must be overridden in a subclass.' );
++	public function get_columns(): mixed {
++		\wp_aot_exit( 'function WP_List_Table::get_columns() must be overridden in a subclass.' );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1218,8 +1275,9 @@
+ 	 *
+ 	 * @return array<string, array<int, string|bool>|string> An associative array of sortable columns.
+ 	 */
+-	protected function get_sortable_columns() {
++	protected function get_sortable_columns(): mixed {
+ 		return array();
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1229,7 +1287,7 @@
+ 	 *
+ 	 * @return string Name of the default primary column, in this case, an empty string.
+ 	 */
+-	protected function get_default_primary_column_name() {
++	protected function get_default_primary_column_name(): mixed {
+ 		$columns = $this->get_columns();
+ 		$column  = '';
+ 
+@@ -1251,6 +1309,7 @@
+ 		}
+ 
+ 		return $column;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1262,8 +1321,9 @@
+ 	 *
+ 	 * @return string Name of the default primary column.
+ 	 */
+-	public function get_primary_column() {
++	public function get_primary_column(): mixed {
+ 		return $this->get_primary_column_name();
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1273,7 +1333,7 @@
+ 	 *
+ 	 * @return string The name of the primary column.
+ 	 */
+-	protected function get_primary_column_name() {
++	protected function get_primary_column_name(): mixed {
+ 		$columns = get_column_headers( $this->screen );
+ 		$default = $this->get_default_primary_column_name();
+ 
+@@ -1300,6 +1360,7 @@
+ 		}
+ 
+ 		return $column;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1309,7 +1370,7 @@
+ 	 *
+ 	 * @return array<int, array|string> Column information.
+ 	 */
+-	protected function get_column_info() {
++	protected function get_column_info(): mixed {
+ 		// $_column_headers is already set / cached.
+ 		if (
+ 			isset( $this->_column_headers ) &&
+@@ -1383,6 +1444,7 @@
+ 		$this->_column_headers = array( $columns, $hidden, $sortable, $primary );
+ 
+ 		return $this->_column_headers;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1392,10 +1454,11 @@
+ 	 *
+ 	 * @return int The number of visible columns.
+ 	 */
+-	public function get_column_count() {
++	public function get_column_count(): mixed {
+ 		list ( $columns, $hidden ) = $this->get_column_info();
+-		$hidden                    = array_intersect( array_keys( $columns ), array_filter( $hidden ) );
++		$hidden                    = \wp_aot_array_intersect(array( array_keys( $columns ), \wp_aot_array_filter( $hidden ) ));
+ 		return count( $columns ) - count( $hidden );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1405,7 +1468,7 @@
+ 	 *
+ 	 * @param bool $with_id Whether to set the ID attribute or not. Default true.
+ 	 */
+-	public function print_column_headers( $with_id = true ) {
++	public function print_column_headers( mixed $with_id = true ): mixed {
+ 		list( $columns, $hidden, $sortable, $primary ) = $this->get_column_info();
+ 
+ 		$current_url = set_url_scheme( 'http://' . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'] );
+@@ -1527,7 +1590,7 @@
+ 						'</span>' .
+ 						'%3$s' .
+ 					'</a>',
+-					esc_url( add_query_arg( compact( 'orderby', 'order' ), $current_url ) ),
++					esc_url( add_query_arg( \wp_aot_compact(get_defined_vars(), array( 'orderby', 'order' )), $current_url ) ),
+ 					$column_display_name,
+ 					$order_text
+ 				);
+@@ -1540,6 +1603,7 @@
+ 
+ 			echo "<$tag $scope $id $class_attr $aria_sort_attr $abbr_attr>$column_display_name</$tag>";
+ 		}
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1550,11 +1614,11 @@
+ 	 *
+ 	 * @since 6.3.0
+ 	 */
+-	public function print_table_description() {
++	public function print_table_description(): mixed {
+ 		list( $columns, $hidden, $sortable ) = $this->get_column_info();
+ 
+ 		if ( empty( $sortable ) ) {
+-			return;
++			return null;
+ 		}
+ 
+ 		// When users click on a column header to sort by other columns.
+@@ -1583,7 +1647,7 @@
+ 				$initial_order = $sortable[ $column_key ][4] ?? '';
+ 
+ 				if ( ! is_string( $orderby_text ) || '' === $orderby_text ) {
+-					return;
++					return null;
+ 				}
+ 				/*
+ 				 * We're in the initial view and there's no $_GET['orderby'] then check if the
+@@ -1608,10 +1672,11 @@
+ 					$order_text = 'asc' === $current_order ? $asc_text : $desc_text;
+ 					echo '<caption class="screen-reader-text">' . $orderby_text . ' ' . $order_text . '</caption>';
+ 
+-					return;
++					return null;
+ 				}
+ 			}
+ 		}
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1619,40 +1684,47 @@
+ 	 *
+ 	 * @since 3.1.0
+ 	 */
+-	public function display() {
++	public function display( mixed $wp_aot_output_empty = false ): mixed {
+ 		$singular = $this->_args['singular'];
+ 
  		$this->display_tablenav( 'top' );
  
  		$this->screen->render_screen_reader_content( 'heading_list' );
@@ -146,9 +704,35 @@
 -		<?php
 +		';
  		$this->display_tablenav( 'bottom' );
++		return null;
  	}
  
-@@ -1684,26 +1707,31 @@
+ 	/**
+@@ -1662,12 +1734,13 @@
+ 	 *
+ 	 * @return string[] Array of CSS classes for the table tag.
+ 	 */
+-	protected function get_table_classes() {
++	protected function get_table_classes(): mixed {
+ 		$mode = get_user_setting( 'posts_list_mode', 'list' );
+ 
+ 		$mode_class = esc_attr( 'table-view-' . $mode );
+ 
+ 		return array( 'widefat', 'fixed', 'striped', $mode_class, $this->_args['plural'] );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1677,33 +1750,39 @@
+ 	 *
+ 	 * @param string $which The location of the navigation: Either 'top' or 'bottom'.
+ 	 */
+-	protected function display_tablenav( $which ) {
++	protected function display_tablenav( mixed $which ): mixed {
+ 		if ( 'bottom' === $which && ! $this->has_items() ) {
+-			return;
++			return null;
+ 		}
  		if ( 'top' === $which ) {
  			wp_nonce_field( 'bulk-' . $this->_args['plural'] );
  		}
@@ -189,6 +773,171 @@
  	</div>
 -		<?php
 +		';
++		return null;
  	}
  
  	/**
+@@ -1713,14 +1792,14 @@
+ 	 *
+ 	 * @param string $which The location: 'top' or 'bottom'.
+ 	 */
+-	protected function extra_tablenav( $which ) {}
++	protected function extra_tablenav( mixed $which ): mixed { return null; }
+ 
+ 	/**
+ 	 * Generates the tbody element for the list table.
+ 	 *
+ 	 * @since 3.1.0
+ 	 */
+-	public function display_rows_or_placeholder() {
++	public function display_rows_or_placeholder(): mixed {
+ 		if ( $this->has_items() ) {
+ 			$this->display_rows();
+ 		} else {
+@@ -1728,6 +1807,7 @@
+ 			$this->no_items();
+ 			echo '</td></tr>';
+ 		}
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1735,10 +1815,11 @@
+ 	 *
+ 	 * @since 3.1.0
+ 	 */
+-	public function display_rows() {
++	public function display_rows( mixed $wp_aot_posts = array(), mixed $wp_aot_level = 0 ): mixed {
+ 		foreach ( $this->items as $item ) {
+ 			$this->single_row( $item );
+ 		}
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1748,10 +1829,11 @@
+ 	 *
+ 	 * @param object|array $item The current item
+ 	 */
+-	public function single_row( $item ) {
++	public function single_row( mixed $item, mixed $wp_aot_second = null, mixed $wp_aot_third = null, mixed $wp_aot_fourth = null ): mixed {
+ 		echo '<tr>';
+ 		$this->single_row_columns( $item );
+ 		echo '</tr>';
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1762,7 +1844,7 @@
+ 	 * @param object|array $item        The current item.
+ 	 * @param string       $column_name Name of the column.
+ 	 */
+-	protected function column_default( $item, $column_name ) {}
++	protected function column_default( mixed $item, mixed $column_name ): mixed { return null; }
+ 
+ 	/**
+ 	 * Handles the checkbox column output.
+@@ -1771,7 +1853,7 @@
+ 	 *
+ 	 * @param object|array $item The current item.
+ 	 */
+-	protected function column_cb( $item ) {}
++	protected function column_cb( mixed $item ): mixed { return null; }
+ 
+ 	/**
+ 	 * Returns a clean, human-readable label for the primary column's row header.
+@@ -1789,8 +1871,9 @@
+ 	 * @param object|array $item The current item.
+ 	 * @return string The aria-label value, or an empty string.
+ 	 */
+-	protected function get_primary_column_aria_label( $item ) {
++	protected function get_primary_column_aria_label( mixed $item ): mixed {
+ 		return '';
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1800,7 +1883,7 @@
+ 	 *
+ 	 * @param object|array $item The current item.
+ 	 */
+-	protected function single_row_columns( $item ) {
++	protected function single_row_columns( mixed $item ): mixed {
+ 		list( $columns, $hidden, $sortable, $primary ) = $this->get_column_info();
+ 
+ 		foreach ( $columns as $column_name => $column_display_name ) {
+@@ -1825,7 +1908,7 @@
+ 				echo '<td class="check-column">';
+ 				echo $this->column_cb( $item );
+ 				echo '</td>';
+-			} elseif ( method_exists( $this, '_column_' . $column_name ) ) {
++			} elseif ( \wp_aot_native_api('method_exists', array( $this, '_column_' . $column_name )) ) {
+ 				echo call_user_func(
+ 					array( $this, '_column_' . $column_name ),
+ 					$item,
+@@ -1848,7 +1931,7 @@
+ 
+ 				echo "<$tag $attributes$scope$aria_label>";
+ 
+-				if ( method_exists( $this, 'column_' . $column_name ) ) {
++				if ( \wp_aot_native_api('method_exists', array( $this, 'column_' . $column_name )) ) {
+ 					echo call_user_func( array( $this, 'column_' . $column_name ), $item );
+ 				} else {
+ 					echo $this->column_default( $item, $column_name );
+@@ -1858,6 +1941,7 @@
+ 				echo "</$tag>";
+ 			}
+ 		}
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1871,11 +1955,12 @@
+ 	 * @return string The row actions HTML, or an empty string
+ 	 *                if the current column is not the primary column.
+ 	 */
+-	protected function handle_row_actions( $item, $column_name, $primary ) {
++	protected function handle_row_actions( mixed $item, mixed $column_name, mixed $primary ): mixed {
+ 		return $column_name === $primary ? '<button type="button" class="toggle-row"><span class="screen-reader-text">' .
+ 			/* translators: Hidden accessibility text. */
+ 			__( 'Show more details' ) .
+ 		'</span></button>' : '';
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1885,7 +1970,7 @@
+ 	 *
+ 	 * @return never
+ 	 */
+-	public function ajax_response() {
++	public function ajax_response(): mixed {
+ 		$this->prepare_items();
+ 
+ 		ob_start();
+@@ -1911,7 +1996,8 @@
+ 			$response['total_pages_i18n'] = number_format_i18n( $this->_pagination_args['total_pages'] );
+ 		}
+ 
+-		die( wp_json_encode( $response ) );
++		\wp_aot_exit( wp_json_encode( $response ) );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1919,7 +2005,7 @@
+ 	 *
+ 	 * @since 3.1.0
+ 	 */
+-	public function _js_vars() {
++	public function _js_vars( mixed $wp_aot_extra_args = array() ): mixed {
+ 		$args = array(
+ 			'class'  => get_class( $this ),
+ 			'screen' => array(
+@@ -1929,5 +2015,6 @@
+ 		);
+ 
+ 		printf( "<script>list_args = %s;</script>\n", wp_json_encode( $args, JSON_HEX_TAG | JSON_UNESCAPED_SLASHES ) );
++		return null;
+ 	}
+ }

@@ -1,0 +1,34 @@
+--- a/wp-includes/blocks/comments-pagination-next.php
++++ b/wp-includes/blocks/comments-pagination-next.php
+@@ -16,7 +16,7 @@
+  *
+  * @return string Returns the next comments link for the query pagination.
+  */
+-function render_block_core_comments_pagination_next( $attributes, $content, $block ) {
++function render_block_core_comments_pagination_next( mixed $attributes, mixed $content, mixed $block ): mixed {
+ 	// Bail out early if the post ID is not set for some reason.
+ 	if ( empty( $block->context['postId'] ) ) {
+ 		return '';
+@@ -47,6 +47,7 @@
+ 		return '';
+ 	}
+ 	return $next_comments_link;
++	return null;
+ }
+ 
+ 
+@@ -55,12 +56,13 @@
+  *
+  * @since 6.0.0
+  */
+-function register_block_core_comments_pagination_next() {
++function register_block_core_comments_pagination_next(): mixed {
+ 	register_block_type_from_metadata(
+ 		__DIR__ . '/comments-pagination-next',
+ 		array(
+ 			'render_callback' => 'render_block_core_comments_pagination_next',
+ 		)
+ 	);
++	return null;
+ }
+ add_action( 'init', 'register_block_core_comments_pagination_next' );

@@ -1,0 +1,19 @@
+--- a/wp-includes/ai-client.php
++++ b/wp-includes/ai-client.php
+@@ -20,7 +20,7 @@
+  */
+ function wp_supports_ai(): bool {
+ 	// Return early if AI is disabled by the current environment.
+-	if ( defined( 'WP_AI_SUPPORT' ) && ! WP_AI_SUPPORT ) {
++	if ( defined( 'WP_AI_SUPPORT' ) && ! \wp_aot_undefined_constant('WP_AI_SUPPORT') ) {
+ 		return false;
+ 	}
+ 
+@@ -57,6 +57,6 @@
+  *                                                                                                   conversations. Default null.
+  * @return WP_AI_Client_Prompt_Builder The prompt builder instance.
+  */
+-function wp_ai_client_prompt( $prompt = null ): WP_AI_Client_Prompt_Builder {
++function wp_ai_client_prompt( mixed $prompt = null ): WP_AI_Client_Prompt_Builder {
+ 	return new WP_AI_Client_Prompt_Builder( AiClient::defaultRegistry(), $prompt );
+ }

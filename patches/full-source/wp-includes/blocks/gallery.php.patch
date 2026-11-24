@@ -1,0 +1,236 @@
+--- a/wp-includes/blocks/gallery.php
++++ b/wp-includes/blocks/gallery.php
+@@ -18,7 +18,7 @@
+  * @param array $parsed_block The block being rendered.
+  * @return array The migrated block object.
+  */
+-function block_core_gallery_data_id_backcompatibility( $parsed_block ) {
++function block_core_gallery_data_id_backcompatibility( mixed $parsed_block ): mixed {
+ 	if ( 'core/gallery' === $parsed_block['blockName'] ) {
+ 		foreach ( $parsed_block['innerBlocks'] as $key => $inner_block ) {
+ 			if ( 'core/image' === $inner_block['blockName'] ) {
+@@ -30,6 +30,7 @@
+ 	}
+ 
+ 	return $parsed_block;
++	return null;
+ }
+ 
+ add_filter( 'render_block_data', 'block_core_gallery_data_id_backcompatibility' );
+@@ -43,11 +44,12 @@
+  * @param array $parsed_block Block being rendered, filtered by render_block_data.
+  * @return array Filtered context.
+  */
+-function block_core_gallery_render_context( $context, $parsed_block ) {
++function block_core_gallery_render_context( mixed $context, mixed $parsed_block ): mixed {
+ 	if ( 'core/gallery' === $parsed_block['blockName'] ) {
+-		$context['galleryId'] = uniqid();
++		$context['galleryId'] = \wp_aot_native_api('uniqid', array());
+ 	}
+ 	return $context;
++	return null;
+ }
+ 
+ add_filter( 'render_block_context', 'block_core_gallery_render_context', 10, 2 );
+@@ -61,7 +63,7 @@
+  * @param string            $fallback_gap Fallback gap value.
+  * @return string Gallery column gap value.
+  */
+-function block_core_gallery_get_column_gap_value( $gap, $fallback_gap ) {
++function block_core_gallery_get_column_gap_value( mixed $gap, mixed $fallback_gap ): mixed {
+ 	if ( is_array( $gap ) ) {
+ 		$gap = $gap['left'] ?? $fallback_gap;
+ 	}
+@@ -72,7 +74,7 @@
+ 	// Skip if gap value contains unsupported characters.
+ 	// Regex for CSS value borrowed from `safecss_filter_attr`, and used here
+ 	// because we only want to match against the value, not the CSS attribute.
+-	$gap = $gap && preg_match( '%[\\\(&=}]|/\*%', $gap ) ? null : $gap;
++	$gap = $gap && preg_match( '%[\\\(&=}]|/\*%', \wp_aot_regex_text( $gap ) ) ? null : $gap;
+ 
+ 	// Get spacing CSS variable from preset value if provided.
+ 	if ( is_string( $gap ) && str_contains( $gap, 'var:preset|spacing|' ) ) {
+@@ -85,6 +87,7 @@
+ 
+ 	// The unstable gallery gap calculation requires a real value (such as `0px`) and not `0`.
+ 	return '0' === $gap_column ? '0px' : $gap_column;
++	return null;
+ }
+ 
+ /**
+@@ -105,7 +108,7 @@
+  * @param WP_Block $block  The gallery block instance being rendered.
+  * @return int[] Ordered list of image attachment IDs.
+  */
+-function block_core_gallery_resolve_dynamic_source( $source, $block ) {
++function block_core_gallery_resolve_dynamic_source( mixed $source, mixed $block ): mixed {
+ 	if ( ! is_array( $source ) ) {
+ 		return array();
+ 	}
+@@ -156,11 +159,12 @@
+ 				)
+ 			);
+ 
+-			return array_map( 'intval', $query->posts );
++			return \wp_aot_array_map( 'intval', $query->posts );
+ 	}
+ 
+ 	// Unknown or not-yet-implemented source type.
+ 	return array();
++	return null;
+ }
+ 
+ /**
+@@ -176,7 +180,7 @@
+  * @return array Partial image block attributes (`href`, `linkDestination`,
+  *               `linkTarget`, `rel`, `lightbox`).
+  */
+-function block_core_gallery_dynamic_image_link_attributes( $attachment_id, $attributes ) {
++function block_core_gallery_dynamic_image_link_attributes( mixed $attachment_id, mixed $attributes ): mixed {
+ 	$link_to = $attributes['linkTo'] ?? 'none';
+ 	$attrs   = array();
+ 
+@@ -204,6 +208,7 @@
+ 	}
+ 
+ 	return $attrs;
++	return null;
+ }
+ 
+ /**
+@@ -222,7 +227,7 @@
+  * @param array $context       Context to expose to the inner image block.
+  * @return string The rendered image block HTML, or an empty string on failure.
+  */
+-function block_core_gallery_render_dynamic_image( $attachment_id, $attributes, $context ) {
++function block_core_gallery_render_dynamic_image( mixed $attachment_id, mixed $attributes, mixed $context ): mixed {
+ 	$size_slug    = $attributes['sizeSlug'] ?? 'large';
+ 	$aspect_ratio = $attributes['aspectRatio'] ?? 'auto';
+ 
+@@ -241,14 +246,14 @@
+ 		return '';
+ 	}
+ 
+-	$image_attributes = array_merge(
++	$image_attributes = \wp_aot_array_merge(array(
+ 		array(
+ 			'id'       => $attachment_id,
+ 			'data-id'  => (string) $attachment_id,
+ 			'sizeSlug' => $size_slug,
+ 		),
+ 		block_core_gallery_dynamic_image_link_attributes( $attachment_id, $attributes )
+-	);
++	));
+ 
+ 	if ( $aspect_ratio && 'auto' !== $aspect_ratio ) {
+ 		$image_attributes['aspectRatio'] = $aspect_ratio;
+@@ -294,6 +299,7 @@
+ 	);
+ 
+ 	return ( new WP_Block( $image_block, $context ) )->render();
++	return null;
+ }
+ 
+ /**
+@@ -306,8 +312,9 @@
+  * @param array  $block      The block instance being rendered.
+  * @return string The content of the block being rendered.
+  */
+-function block_core_gallery_render( $attributes, $content, $block ) {
+-	static $global_styles = null;
++function block_core_gallery_render( mixed $attributes, mixed $content, mixed $block ): mixed {
++	static $global_styles_aot_cell = new \WordPressStaticValueCell();
++	$global_styles =& $global_styles_aot_cell->value;
+ 
+ 	// In dynamic mode the gallery's images are resolved at render time instead of
+ 	// being authored as inner blocks, so `save.js` persists at most the
+@@ -339,7 +346,7 @@
+ 		// Expose the gallery's provided context (plus galleryId/postId/postType)
+ 		// to each image block, since these images are rendered outside the
+ 		// gallery's real inner-block tree.
+-		$image_context = array_merge(
++		$image_context = \wp_aot_array_merge(array(
+ 			is_array( $block->context ) ? $block->context : array(),
+ 			array(
+ 				'allowResize'          => $attributes['allowResize'] ?? false,
+@@ -347,7 +354,7 @@
+ 				'fixedHeight'          => $attributes['fixedHeight'] ?? true,
+ 				'navigationButtonType' => $attributes['navigationButtonType'] ?? 'icon',
+ 			)
+-		);
++		));
+ 
+ 		$images_markup = '';
+ 		foreach ( $attachment_ids as $attachment_id ) {
+@@ -387,10 +394,10 @@
+ 		: array();
+ 	if (
+ 		defined( 'IS_GUTENBERG_PLUGIN' ) &&
+-		IS_GUTENBERG_PLUGIN &&
++		\wp_aot_undefined_constant('IS_GUTENBERG_PLUGIN') &&
+ 		function_exists( 'gutenberg_resolve_style_state_aliases' )
+ 	) {
+-		$style_attr = gutenberg_resolve_style_state_aliases( $style_attr, 'core/gallery' );
++		$style_attr = \wp_aot_native_api('gutenberg_resolve_style_state_aliases', array( $style_attr, 'core/gallery' ));
+ 	}
+ 
+ 	$unique_gallery_classname = wp_unique_id( 'wp-block-gallery-' );
+@@ -429,10 +436,13 @@
+ 	$global_settings          = wp_get_global_settings();
+ 	$viewport_settings        = $global_settings['viewport'] ?? null;
+ 	$responsive_media_queries = array();
+-	foreach ( array( 'WP_Theme_JSON_Gutenberg', 'WP_Theme_JSON' ) as $theme_json_class_name ) {
+-		if ( method_exists( $theme_json_class_name, 'get_viewport_media_queries' ) ) {
+-			$responsive_media_queries = $theme_json_class_name::get_viewport_media_queries( $viewport_settings );
+-			break;
++	$theme_json_class_name = 'WP_Theme_JSON_Gutenberg';
++	if ( method_exists( 'WP_Theme_JSON_Gutenberg', 'get_viewport_media_queries' ) ) {
++		$responsive_media_queries = \wp_aot_native_api('WP_Theme_JSON_Gutenberg::get_viewport_media_queries', array($viewport_settings));
++	} else {
++		$theme_json_class_name = 'WP_Theme_JSON';
++		if ( method_exists( 'WP_Theme_JSON', 'get_viewport_media_queries' ) ) {
++			$responsive_media_queries = WP_Theme_JSON::get_viewport_media_queries($viewport_settings);
+ 		}
+ 	}
+ 
+@@ -496,13 +506,13 @@
+ 		// extract images only.
+ 		$pattern = '/<figure[^>]*\bwp-block-image\b[^>]*>.*?<\/figure>/s';
+ 
+-		preg_match_all( $pattern, $updated_content, $matches );
++		preg_match_all( \wp_aot_regex_text( $pattern ), \wp_aot_regex_text( $updated_content ), $matches );
+ 		if ( $matches ) {
+ 			$image_blocks = $matches[0];
+-			shuffle( $image_blocks );
++			\wp_aot_shuffle( $image_blocks );
+ 
+ 			$i               = 0;
+-			$updated_content = preg_replace_callback(
++			$updated_content = \wp_aot_preg_replace_callback(
+ 				$pattern,
+ 				static function () use ( $image_blocks, &$i ) {
+ 					return $image_blocks[ $i++ ];
+@@ -569,6 +579,7 @@
+ 	}
+ 
+ 	return $updated_content;
++	return null;
+ }
+ 
+ /**
+@@ -576,13 +587,14 @@
+  *
+  * @since 5.9.0
+  */
+-function register_block_core_gallery() {
++function register_block_core_gallery(): mixed {
+ 	register_block_type_from_metadata(
+ 		__DIR__ . '/gallery',
+ 		array(
+ 			'render_callback' => 'block_core_gallery_render',
+ 		)
+ 	);
++	return null;
+ }
+ 
+ add_action( 'init', 'register_block_core_gallery' );

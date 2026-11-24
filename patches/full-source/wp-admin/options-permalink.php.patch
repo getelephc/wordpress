@@ -1,0 +1,82 @@
+--- a/wp-admin/options-permalink.php
++++ b/wp-admin/options-permalink.php
+@@ -109,10 +109,10 @@
+ 		}
+ 
+ 		if ( ! empty( $permalink_structure ) ) {
+-			$permalink_structure = preg_replace( '#/+#', '/', '/' . str_replace( '#', '', $permalink_structure ) );
++			$permalink_structure = \wp_aot_preg_replace( '#/+#', '/', '/' . \wp_aot_str_replace( '#', '', $permalink_structure ) );
+ 
+ 			if ( $index_php_prefix && $blog_prefix ) {
+-				$permalink_structure = $index_php_prefix . preg_replace( '#^/?index\.php#', '', $permalink_structure );
++				$permalink_structure = $index_php_prefix . \wp_aot_preg_replace( '#^/?index\.php#', '', $permalink_structure );
+ 			} else {
+ 				$permalink_structure = $blog_prefix . $permalink_structure;
+ 			}
+@@ -129,7 +129,7 @@
+ 		$category_base = $_POST['category_base'];
+ 
+ 		if ( ! empty( $category_base ) ) {
+-			$category_base = $blog_prefix . preg_replace( '#/+#', '/', '/' . str_replace( '#', '', $category_base ) );
++			$category_base = $blog_prefix . \wp_aot_preg_replace( '#/+#', '/', '/' . \wp_aot_str_replace( '#', '', $category_base ) );
+ 		}
+ 
+ 		$wp_rewrite->set_category_base( $category_base );
+@@ -139,7 +139,7 @@
+ 		$tag_base = $_POST['tag_base'];
+ 
+ 		if ( ! empty( $tag_base ) ) {
+-			$tag_base = $blog_prefix . preg_replace( '#/+#', '/', '/' . str_replace( '#', '', $tag_base ) );
++			$tag_base = $blog_prefix . \wp_aot_preg_replace( '#/+#', '/', '/' . \wp_aot_str_replace( '#', '', $tag_base ) );
+ 		}
+ 
+ 		$wp_rewrite->set_tag_base( $tag_base );
+@@ -163,8 +163,8 @@
+ 		$writable = true;
+ 	} else {
+ 		$writable       = false;
+-		$existing_rules = array_filter( extract_from_markers( $home_path . '.htaccess', 'WordPress' ) );
+-		$new_rules      = array_filter( explode( "\n", $wp_rewrite->mod_rewrite_rules() ) );
++		$existing_rules = \wp_aot_array_filter( extract_from_markers( $home_path . '.htaccess', 'WordPress' ) );
++		$new_rules      = \wp_aot_array_filter( explode( "\n", $wp_rewrite->mod_rewrite_rules() ) );
+ 
+ 		$htaccess_update_required = ( $new_rules !== $existing_rules );
+ 	}
+@@ -206,7 +206,7 @@
+ 	set_transient( 'settings_errors', get_settings_errors(), 30 ); // 30 seconds.
+ 
+ 	wp_redirect( admin_url( 'options-permalink.php?settings-updated=true' ) );
+-	exit;
++	\wp_aot_exit();
+ }
+ 
+ flush_rewrite_rules();
+@@ -233,9 +233,9 @@
+ if ( is_multisite() && ! is_subdomain_install() && is_main_site()
+ 	&& str_starts_with( $permalink_structure, '/blog/' )
+ ) {
+-	$permalink_structure = preg_replace( '|^/?blog|', '', $permalink_structure );
+-	$category_base       = preg_replace( '|^/?blog|', '', $category_base );
+-	$tag_base            = preg_replace( '|^/?blog|', '', $tag_base );
++	$permalink_structure = \wp_aot_preg_replace( '|^/?blog|', '', $permalink_structure );
++	$category_base       = \wp_aot_preg_replace( '|^/?blog|', '', $category_base );
++	$tag_base            = \wp_aot_preg_replace( '|^/?blog|', '', $tag_base );
+ }
+ 
+ $url_base = home_url( $blog_prefix . $index_php_prefix );
+@@ -251,13 +251,13 @@
+ 		'id'      => 'day-name',
+ 		'label'   => __( 'Day and name' ),
+ 		'value'   => $index_php_prefix . '/%year%/%monthnum%/%day%/%postname%/',
+-		'example' => $url_base . '/' . gmdate( 'Y/m/d' ) . '/' . _x( 'sample-post', 'sample permalink structure' ) . '/',
++		'example' => $url_base . '/' . \wp_aot_gmdate( 'Y/m/d' ) . '/' . _x( 'sample-post', 'sample permalink structure' ) . '/',
+ 	),
+ 	array(
+ 		'id'      => 'month-name',
+ 		'label'   => __( 'Month and name' ),
+ 		'value'   => $index_php_prefix . '/%year%/%monthnum%/%postname%/',
+-		'example' => $url_base . '/' . gmdate( 'Y/m' ) . '/' . _x( 'sample-post', 'sample permalink structure' ) . '/',
++		'example' => $url_base . '/' . \wp_aot_gmdate( 'Y/m' ) . '/' . _x( 'sample-post', 'sample permalink structure' ) . '/',
+ 	),
+ 	array(
+ 		'id'      => 'numeric',

@@ -1,7 +1,56 @@
 --- a/wp-admin/includes/class-wp-internal-pointers.php
 +++ b/wp-admin/includes/class-wp-internal-pointers.php
-@@ -117,10 +117,12 @@
- 			return;
+@@ -34,7 +34,7 @@
+ 	 *
+ 	 * @param string $hook_suffix The current admin page.
+ 	 */
+-	public static function enqueue_scripts( $hook_suffix ) {
++	public static function enqueue_scripts( mixed $hook_suffix ): mixed {
+ 		/*
+ 		 * Register feature pointers
+ 		 *
+@@ -54,7 +54,7 @@
+ 
+ 		// Check if screen related pointer is registered.
+ 		if ( empty( $registered_pointers[ $hook_suffix ] ) ) {
+-			return;
++			return null;
+ 		}
+ 
+ 		$pointers = (array) $registered_pointers[ $hook_suffix ];
+@@ -80,7 +80,7 @@
+ 		$dismissed = explode( ',', (string) get_user_meta( get_current_user_id(), 'dismissed_wp_pointers', true ) );
+ 
+ 		$got_pointers = false;
+-		foreach ( array_diff( $pointers, $dismissed ) as $pointer ) {
++		foreach ( \wp_aot_array_diff(array( $pointers, $dismissed )) as $pointer ) {
+ 			if ( isset( $caps_required[ $pointer ] ) ) {
+ 				foreach ( $caps_required[ $pointer ] as $cap ) {
+ 					if ( ! current_user_can( $cap ) ) {
+@@ -95,12 +95,13 @@
+ 		}
+ 
+ 		if ( ! $got_pointers ) {
+-			return;
++			return null;
+ 		}
+ 
+ 		// Add pointers script and style to queue.
+ 		wp_enqueue_style( 'wp-pointer' );
+ 		wp_enqueue_script( 'wp-pointer' );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -112,15 +113,17 @@
+ 	 * @param string $selector The HTML elements, on which the pointer should be attached.
+ 	 * @param array  $args Arguments to be passed to the pointer JS (see wp-pointer.js).
+ 	 */
+-	private static function print_js( $pointer_id, $selector, $args ) {
++	private static function print_js( mixed $pointer_id, mixed $selector, mixed $args ): mixed {
+ 		if ( empty( $pointer_id ) || empty( $selector ) || empty( $args ) || empty( $args['content'] ) ) {
+-			return;
++			return null;
  		}
  
 -		?>
@@ -16,7 +65,7 @@
  
  			if ( ! options )
  				return;
-@@ -128,18 +130,22 @@
+@@ -128,18 +131,22 @@
  			options = $.extend( options, {
  				close: function() {
  					$.post( ajaxurl, {
@@ -43,12 +92,47 @@
  			else
  				$( function() {
  					setup();
-@@ -147,7 +153,7 @@
+@@ -147,20 +154,21 @@
  
  		})( jQuery );
  		</script>
 -		<?php
 +		';
++		return null;
  	}
  
- 	public static function pointer_wp330_toolbar() {}
+-	public static function pointer_wp330_toolbar() {}
+-	public static function pointer_wp330_media_uploader() {}
+-	public static function pointer_wp330_saving_widgets() {}
+-	public static function pointer_wp340_customize_current_theme_link() {}
+-	public static function pointer_wp340_choose_image_from_library() {}
+-	public static function pointer_wp350_media() {}
+-	public static function pointer_wp360_revisions() {}
+-	public static function pointer_wp360_locks() {}
+-	public static function pointer_wp390_widgets() {}
+-	public static function pointer_wp410_dfw() {}
+-	public static function pointer_wp496_privacy() {}
++	public static function pointer_wp330_toolbar(): mixed { return null; }
++	public static function pointer_wp330_media_uploader(): mixed { return null; }
++	public static function pointer_wp330_saving_widgets(): mixed { return null; }
++	public static function pointer_wp340_customize_current_theme_link(): mixed { return null; }
++	public static function pointer_wp340_choose_image_from_library(): mixed { return null; }
++	public static function pointer_wp350_media(): mixed { return null; }
++	public static function pointer_wp360_revisions(): mixed { return null; }
++	public static function pointer_wp360_locks(): mixed { return null; }
++	public static function pointer_wp390_widgets(): mixed { return null; }
++	public static function pointer_wp410_dfw(): mixed { return null; }
++	public static function pointer_wp496_privacy(): mixed { return null; }
+ 
+ 	/**
+ 	 * Prevents new users from seeing existing 'new feature' pointers.
+@@ -169,7 +177,8 @@
+ 	 *
+ 	 * @param int $user_id User ID.
+ 	 */
+-	public static function dismiss_pointers_for_new_users( $user_id ) {
++	public static function dismiss_pointers_for_new_users( mixed $user_id ): mixed {
+ 		add_user_meta( $user_id, 'dismissed_wp_pointers', '' );
++		return null;
+ 	}
+ }

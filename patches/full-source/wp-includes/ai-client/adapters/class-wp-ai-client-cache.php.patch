@@ -1,0 +1,99 @@
+--- a/wp-includes/ai-client/adapters/class-wp-ai-client-cache.php
++++ b/wp-includes/ai-client/adapters/class-wp-ai-client-cache.php
+@@ -60,7 +60,7 @@
+ 	 * @param mixed  $default_value Default value to return if the key does not exist.
+ 	 * @return mixed The value of the item from the cache, or $default_value in case of cache miss.
+ 	 */
+-	public function get( $key, $default_value = null ) {
++	public function get( mixed $key, mixed $default_value = null ): mixed {
+ 		$found = false;
+ 		$value = wp_cache_get( $key, $this->get_cache_group(), false, $found );
+ 
+@@ -69,6 +69,7 @@
+ 		}
+ 
+ 		return $value;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -81,7 +82,7 @@
+ 	 * @param null|int|DateInterval $ttl   Optional. The TTL value of this item.
+ 	 * @return bool True on success and false on failure.
+ 	 */
+-	public function set( $key, $value, $ttl = null ): bool {
++	public function set( mixed $key, mixed $value, mixed $ttl = null ): bool {
+ 		$expire = $this->ttl_to_seconds( $ttl );
+ 
+ 		return wp_cache_set( $key, $value, $this->get_cache_group(), $expire );
+@@ -95,7 +96,7 @@
+ 	 * @param string $key The unique cache key of the item to delete.
+ 	 * @return bool True if the item was successfully removed. False if there was an error.
+ 	 */
+-	public function delete( $key ): bool {
++	public function delete( mixed $key ): bool {
+ 		return wp_cache_delete( $key, $this->get_cache_group() );
+ 	}
+ 
+@@ -126,7 +127,7 @@
+ 	 * @param mixed            $default_value Default value to return for keys that do not exist.
+ 	 * @return array<string, mixed> A list of key => value pairs.
+ 	 */
+-	public function getMultiple( $keys, $default_value = null ): array {
++	public function getMultiple( mixed $keys, mixed $default_value = null ): array {
+ 		/**
+ 		 * Keys array.
+ 		 *
+@@ -157,7 +158,7 @@
+ 	 * @param null|int|DateInterval   $ttl    Optional. The TTL value of this item.
+ 	 * @return bool True on success and false on failure.
+ 	 */
+-	public function setMultiple( $values, $ttl = null ): bool {
++	public function setMultiple( mixed $values, mixed $ttl = null ): bool {
+ 		$values_array = $this->iterable_to_array( $values );
+ 		$expire       = $this->ttl_to_seconds( $ttl );
+ 		$results      = wp_cache_set_multiple( $values_array, $this->get_cache_group(), $expire );
+@@ -174,7 +175,7 @@
+ 	 * @param iterable<string> $keys A list of string-based keys to be deleted.
+ 	 * @return bool True if the items were successfully removed. False if there was an error.
+ 	 */
+-	public function deleteMultiple( $keys ): bool {
++	public function deleteMultiple( mixed $keys ): bool {
+ 		$keys_array = $this->iterable_to_array( $keys );
+ 		$results    = wp_cache_delete_multiple( $keys_array, $this->get_cache_group() );
+ 
+@@ -190,7 +191,7 @@
+ 	 * @param string $key The cache item key.
+ 	 * @return bool True if the item exists in the cache, false otherwise.
+ 	 */
+-	public function has( $key ): bool {
++	public function has( mixed $key ): bool {
+ 		$found = false;
+ 		wp_cache_get( $key, $this->get_cache_group(), false, $found );
+ 
+@@ -205,7 +206,7 @@
+ 	 * @param null|int|DateInterval $ttl The TTL value.
+ 	 * @return int The TTL in seconds, or 0 for no expiration.
+ 	 */
+-	private function ttl_to_seconds( $ttl ): int {
++	private function ttl_to_seconds( mixed $ttl ): int {
+ 		if ( null === $ttl ) {
+ 			return 0;
+ 		}
+@@ -228,11 +229,11 @@
+ 	 * @param iterable<mixed> $items The iterable to convert.
+ 	 * @return array<mixed> The array.
+ 	 */
+-	private function iterable_to_array( $items ): array {
++	private function iterable_to_array( mixed $items ): array {
+ 		if ( is_array( $items ) ) {
+-			return $items;
+-		}
+-
+-		return iterator_to_array( $items );
++			return (array) $items;
++		}
++
++		return \wp_aot_iterator_values( $items );
+ 	}
+ }

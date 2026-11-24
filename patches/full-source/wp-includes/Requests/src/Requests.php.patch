@@ -1,6 +1,171 @@
 --- a/wp-includes/Requests/src/Requests.php
 +++ b/wp-includes/Requests/src/Requests.php
-@@ -452,7 +452,7 @@
+@@ -207,12 +207,13 @@
+ 	 *
+ 	 * @param string $transport Transport class to add, must support the \WpOrg\Requests\Transport interface
+ 	 */
+-	public static function add_transport($transport) {
++	public static function add_transport(mixed $transport): mixed {
+ 		if (empty(self::$transports)) {
+ 			self::$transports = self::DEFAULT_TRANSPORTS;
+ 		}
+ 
+ 		self::$transports[$transport] = $transport;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -222,11 +223,11 @@
+ 	 * @return string FQCN of the transport to use, or an empty string if no transport was
+ 	 *                found which provided the requested capabilities.
+ 	 */
+-	protected static function get_transport_class(array $capabilities = []) {
++	protected static function get_transport_class(array $capabilities = []): mixed {
+ 		// Caching code, don't bother testing coverage.
+ 		// @codeCoverageIgnoreStart
+ 		// Array of capabilities as a string to be used as an array key.
+-		ksort($capabilities);
++		\wp_aot_ksort($capabilities);
+ 		$cap_string = serialize($capabilities);
+ 
+ 		// Don't search for a transport if it's already been done for these $capabilities.
+@@ -244,7 +245,7 @@
+ 
+ 		// Find us a working transport.
+ 		foreach (self::$transports as $class) {
+-			if (!class_exists($class)) {
++			if (!\wp_aot_metadata_class_exists($class)) {
+ 				continue;
+ 			}
+ 
+@@ -256,6 +257,7 @@
+ 		}
+ 
+ 		return self::$transport[$cap_string];
++		return null;
+ 	}
+ 
+ 	/**
+@@ -265,7 +267,7 @@
+ 	 * @return \WpOrg\Requests\Transport
+ 	 * @throws \WpOrg\Requests\Exception If no valid transport is found (`notransport`).
+ 	 */
+-	protected static function get_transport(array $capabilities = []) {
++	protected static function get_transport(array $capabilities = []): mixed {
+ 		$class = self::get_transport_class($capabilities);
+ 
+ 		if ($class === '') {
+@@ -273,6 +275,7 @@
+ 		}
+ 
+ 		return new $class();
++		return null;
+ 	}
+ 
+ 	/**
+@@ -287,8 +290,9 @@
+ 	 * @param array<string, bool> $capabilities Optional. Associative array of capabilities to test against, i.e. `['<capability>' => true]`.
+ 	 * @return bool Whether the transport has the requested capabilities.
+ 	 */
+-	public static function has_capabilities(array $capabilities = []) {
++	public static function has_capabilities(array $capabilities = []): mixed {
+ 		return self::get_transport_class($capabilities) !== '';
++		return null;
+ 	}
+ 
+ 	/**#@+
+@@ -301,29 +305,33 @@
+ 	/**
+ 	 * Send a GET request
+ 	 */
+-	public static function get($url, $headers = [], $options = []) {
++	public static function get(mixed $url, mixed $headers = [], mixed $options = []): mixed {
+ 		return self::request($url, $headers, null, self::GET, $options);
++		return null;
+ 	}
+ 
+ 	/**
+ 	 * Send a HEAD request
+ 	 */
+-	public static function head($url, $headers = [], $options = []) {
++	public static function head(mixed $url, mixed $headers = [], mixed $options = []): mixed {
+ 		return self::request($url, $headers, null, self::HEAD, $options);
++		return null;
+ 	}
+ 
+ 	/**
+ 	 * Send a DELETE request
+ 	 */
+-	public static function delete($url, $headers = [], $options = []) {
++	public static function delete(mixed $url, mixed $headers = [], mixed $options = []): mixed {
+ 		return self::request($url, $headers, null, self::DELETE, $options);
++		return null;
+ 	}
+ 
+ 	/**
+ 	 * Send a TRACE request
+ 	 */
+-	public static function trace($url, $headers = [], $options = []) {
++	public static function trace(mixed $url, mixed $headers = [], mixed $options = []): mixed {
+ 		return self::request($url, $headers, null, self::TRACE, $options);
++		return null;
+ 	}
+ 	/**#@-*/
+ 
+@@ -338,21 +346,24 @@
+ 	/**
+ 	 * Send a POST request
+ 	 */
+-	public static function post($url, $headers = [], $data = [], $options = []) {
++	public static function post(mixed $url, mixed $headers = [], mixed $data = [], mixed $options = []): mixed {
+ 		return self::request($url, $headers, $data, self::POST, $options);
++		return null;
+ 	}
+ 	/**
+ 	 * Send a PUT request
+ 	 */
+-	public static function put($url, $headers = [], $data = [], $options = []) {
++	public static function put(mixed $url, mixed $headers = [], mixed $data = [], mixed $options = []): mixed {
+ 		return self::request($url, $headers, $data, self::PUT, $options);
++		return null;
+ 	}
+ 
+ 	/**
+ 	 * Send an OPTIONS request
+ 	 */
+-	public static function options($url, $headers = [], $data = [], $options = []) {
++	public static function options(mixed $url, mixed $headers = [], mixed $data = [], mixed $options = []): mixed {
+ 		return self::request($url, $headers, $data, self::OPTIONS, $options);
++		return null;
+ 	}
+ 
+ 	/**
+@@ -363,8 +374,9 @@
+ 	 *
+ 	 * @link https://tools.ietf.org/html/rfc5789
+ 	 */
+-	public static function patch($url, $headers, $data = [], $options = []) {
++	public static function patch(mixed $url, mixed $headers, mixed $data = [], mixed $options = []): mixed {
+ 		return self::request($url, $headers, $data, self::PATCH, $options);
++		return null;
+ 	}
+ 	/**#@-*/
+ 
+@@ -431,7 +443,7 @@
+ 	 * @throws \WpOrg\Requests\Exception\InvalidArgument When the passed $options argument is not an array.
+ 	 * @throws \WpOrg\Requests\Exception On invalid URLs (`nonhttp`)
+ 	 */
+-	public static function request($url, $headers = [], $data = [], $type = self::GET, $options = []) {
++	public static function request(mixed $url, mixed $headers = [], mixed $data = [], mixed $type = self::GET, mixed $options = []): mixed {
+ 		if (InputValidator::is_string_or_stringable($url) === false) {
+ 			throw InvalidArgument::create(1, '$url', 'string|Stringable', gettype($url));
+ 		}
+@@ -448,11 +460,11 @@
+ 			$options['type'] = $type;
+ 		}
+ 
+-		$options = array_merge(self::get_default_options(), $options);
++		$options = \wp_aot_array_merge(array(self::get_default_options(), $options));
  
  		self::set_defaults($url, $headers, $data, $type, $options);
  
@@ -9,7 +174,7 @@
  
  		if (!empty($options['transport'])) {
  			$transport = $options['transport'];
-@@ -468,7 +468,7 @@
+@@ -468,9 +480,10 @@
  
  		$response = $transport->request($url, $headers, $data, $options);
  
@@ -17,8 +182,38 @@
 +		throw new \RuntimeException( 'Reference-array call is outside the finite bootstrap fixture.' );
  
  		return self::parse_response($response, $url, $headers, $data, $options);
++		return null;
  	}
-@@ -590,7 +590,7 @@
+ 
+ 	/**
+@@ -517,7 +530,7 @@
+ 	 * @throws \WpOrg\Requests\Exception\InvalidArgument When the passed $requests argument is not an array or iterable object with array access.
+ 	 * @throws \WpOrg\Requests\Exception\InvalidArgument When the passed $options argument is not an array.
+ 	 */
+-	public static function request_multiple($requests, $options = []) {
++	public static function request_multiple(mixed $requests, mixed $options = []): mixed {
+ 		if (InputValidator::has_array_access($requests) === false || InputValidator::is_iterable($requests) === false) {
+ 			throw InvalidArgument::create(1, '$requests', 'array|ArrayAccess&Traversable', gettype($requests));
+ 		}
+@@ -526,7 +539,7 @@
+ 			throw InvalidArgument::create(2, '$options', 'array', gettype($options));
+ 		}
+ 
+-		$options = array_merge(self::get_default_options(true), $options);
++		$options = \wp_aot_array_merge(array(self::get_default_options(true), $options));
+ 
+ 		if (!empty($options['hooks'])) {
+ 			$options['hooks']->register('transport.internal.parse_response', [static::class, 'parse_multiple']);
+@@ -556,7 +569,7 @@
+ 					$request['options']['type'] = $request['type'];
+ 				}
+ 
+-				$request['options'] = array_merge($options, $request['options']);
++				$request['options'] = \wp_aot_array_merge(array($options, $request['options']));
+ 			}
+ 
+ 			self::set_defaults($request['url'], $request['headers'], $request['data'], $request['type'], $request['options']);
+@@ -590,11 +603,12 @@
  			if (is_string($response)) {
  				$request = $requests[$id];
  				self::parse_multiple($response, $request);
@@ -27,7 +222,107 @@
  			}
  		}
  
-@@ -782,7 +782,7 @@
+ 		return $responses;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -604,7 +618,7 @@
+ 	 * @param boolean $multirequest Is this a multirequest?
+ 	 * @return array Default option values
+ 	 */
+-	protected static function get_default_options($multirequest = false) {
++	protected static function get_default_options(mixed $multirequest = false): mixed {
+ 		$defaults           = static::OPTION_DEFAULTS;
+ 		$defaults['verify'] = self::$certificate_path;
+ 
+@@ -613,6 +627,7 @@
+ 		}
+ 
+ 		return $defaults;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -620,8 +635,9 @@
+ 	 *
+ 	 * @return string Default certificate path.
+ 	 */
+-	public static function get_certificate_path() {
++	public static function get_certificate_path(): mixed {
+ 		return self::$certificate_path;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -631,12 +647,13 @@
+ 	 *
+ 	 * @throws \WpOrg\Requests\Exception\InvalidArgument When the passed $url argument is not a string, Stringable or boolean.
+ 	 */
+-	public static function set_certificate_path($path) {
++	public static function set_certificate_path(mixed $path): mixed {
+ 		if (InputValidator::is_string_or_stringable($path) === false && is_bool($path) === false) {
+ 			throw InvalidArgument::create(1, '$path', 'string|Stringable|bool', gettype($path));
+ 		}
+ 
+ 		self::$certificate_path = $path;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -653,8 +670,8 @@
+ 	 *
+ 	 * @throws \WpOrg\Requests\Exception When the $url is not an http(s) URL.
+ 	 */
+-	protected static function set_defaults(&$url, &$headers, &$data, &$type, &$options) {
+-		if (!preg_match('/^http(s)?:\/\//i', $url, $matches)) {
++	protected static function set_defaults(mixed &$url, mixed &$headers, mixed &$data, mixed &$type, mixed &$options): mixed {
++		if (!preg_match('/^http(s)?:\/\//i', \wp_aot_regex_text( $url ), $matches)) {
+ 			throw new Exception('Only HTTP(S) requests are handled.', 'nonhttp', $url);
+ 		}
+ 
+@@ -704,6 +721,7 @@
+ 				$options['data_format'] = 'body';
+ 			}
+ 		}
++		return null;
+ 	}
+ 
+ 	/**
+@@ -720,7 +738,7 @@
+ 	 * @throws \WpOrg\Requests\Exception On missing head/body separator (`noversion`)
+ 	 * @throws \WpOrg\Requests\Exception On missing head/body separator (`toomanyredirects`)
+ 	 */
+-	protected static function parse_response($headers, $url, $req_headers, $req_data, $options) {
++	protected static function parse_response(mixed $headers, mixed $url, mixed $req_headers, mixed $req_data, mixed $options): mixed {
+ 		$return = new Response();
+ 		if (!$options['blocking']) {
+ 			return $return;
+@@ -746,11 +764,11 @@
+ 		}
+ 
+ 		// Pretend CRLF = LF for compatibility (RFC 2616, section 19.3)
+-		$headers = str_replace("\r\n", "\n", $headers);
++		$headers = \wp_aot_str_replace("\r\n", "\n", $headers);
+ 		// Unfold headers (replace [CRLF] 1*( SP | HT ) with SP) as per RFC 2616 (section 2.2)
+-		$headers = preg_replace('/\n[ \t]/', ' ', $headers);
++		$headers = \wp_aot_preg_replace('/\n[ \t]/', ' ', $headers);
+ 		$headers = explode("\n", $headers);
+-		preg_match('#^HTTP/(1\.\d)[ \t]+(\d+)#i', array_shift($headers), $matches);
++		preg_match('#^HTTP/(1\.\d)[ \t]+(\d+)#i', \wp_aot_regex_text( \wp_aot_array_shift($headers) ), $matches);
+ 		if (empty($matches)) {
+ 			throw new Exception('Response could not be parsed', 'noversion', $headers);
+ 		}
+@@ -764,7 +782,7 @@
+ 		foreach ($headers as $header) {
+ 			list($key, $value) = explode(':', $header, 2);
+ 			$value             = trim($value);
+-			preg_replace('#(\s+)#i', ' ', $value);
++			\wp_aot_preg_replace('#(\s+)#i', ' ', $value);
+ 			$return->headers[$key] = $value;
+ 		}
+ 
+@@ -782,7 +800,7 @@
  			unset($return->headers['connection']);
  		}
  
@@ -36,7 +331,7 @@
  
  		if ($return->is_redirect() && $options['follow_redirects'] === true) {
  			if (isset($return->headers['location']) && $options['redirected'] < $options['redirects']) {
-@@ -798,11 +798,12 @@
+@@ -798,11 +816,12 @@
  					$location = $location->uri;
  				}
  
@@ -53,12 +348,127 @@
  					$return,
  				];
  				$options['hooks']->dispatch('requests.before_redirect', $hook_args);
-@@ -816,7 +817,7 @@
+@@ -816,8 +835,9 @@
  
  		$return->redirects = $options['redirected'];
  
 -		$options['hooks']->dispatch('requests.after_request', [&$return, $req_headers, $req_data, $options]);
 +		throw new \RuntimeException( 'Reference-array call is outside the finite bootstrap fixture.' );
  		return $return;
++		return null;
  	}
  
+ 	/**
+@@ -832,7 +852,7 @@
+ 	 * @param array $request Request data as passed into {@see \WpOrg\Requests\Requests::request_multiple()}
+ 	 * @return void
+ 	 */
+-	public static function parse_multiple(&$response, $request) {
++	public static function parse_multiple(mixed &$response, mixed $request): mixed {
+ 		try {
+ 			$url      = $request['url'];
+ 			$headers  = $request['headers'];
+@@ -842,6 +862,7 @@
+ 		} catch (Exception $e) {
+ 			$response = $e;
+ 		}
++		return null;
+ 	}
+ 
+ 	/**
+@@ -851,8 +872,8 @@
+ 	 * @param string $data Chunked body
+ 	 * @return string Decoded body
+ 	 */
+-	protected static function decode_chunked($data) {
+-		if (!preg_match('/^([0-9a-f]+)(?:;(?:[\w-]*)(?:=(?:(?:[\w-]*)*|"(?:[^\r\n])*"))?)*\r\n/i', trim($data))) {
++	protected static function decode_chunked(mixed $data): mixed {
++		if (!preg_match('/^([0-9a-f]+)(?:;(?:[\w-]*)(?:=(?:(?:[\w-]*)*|"(?:[^\r\n])*"))?)*\r\n/i', \wp_aot_regex_text( trim($data) ))) {
+ 			return $data;
+ 		}
+ 
+@@ -860,7 +881,7 @@
+ 		$encoded = $data;
+ 
+ 		while (true) {
+-			$is_chunked = (bool) preg_match('/^([0-9a-f]+)(?:;(?:[\w-]*)(?:=(?:(?:[\w-]*)*|"(?:[^\r\n])*"))?)*\r\n/i', $encoded, $matches);
++			$is_chunked = (bool) preg_match('/^([0-9a-f]+)(?:;(?:[\w-]*)(?:=(?:(?:[\w-]*)*|"(?:[^\r\n])*"))?)*\r\n/i', \wp_aot_regex_text( $encoded ), $matches);
+ 			if (!$is_chunked) {
+ 				// Looks like it's not chunked after all
+ 				return $data;
+@@ -883,6 +904,7 @@
+ 
+ 		// We'll never actually get down here
+ 		// @codeCoverageIgnoreStart
++		return null;
+ 	}
+ 	// @codeCoverageIgnoreEnd
+ 
+@@ -894,7 +916,7 @@
+ 	 *
+ 	 * @throws \WpOrg\Requests\Exception\InvalidArgument When the passed argument is not iterable.
+ 	 */
+-	public static function flatten($dictionary) {
++	public static function flatten(mixed $dictionary): mixed {
+ 		if (InputValidator::is_iterable($dictionary) === false) {
+ 			throw InvalidArgument::create(1, '$dictionary', 'iterable', gettype($dictionary));
+ 		}
+@@ -905,6 +927,7 @@
+ 		}
+ 
+ 		return $return;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -918,7 +941,7 @@
+ 	 *
+ 	 * @throws \WpOrg\Requests\Exception\InvalidArgument When the passed argument is not a string.
+ 	 */
+-	public static function decompress($data) {
++	public static function decompress(mixed $data): mixed {
+ 		if (is_string($data) === false) {
+ 			throw InvalidArgument::create(1, '$data', 'string', gettype($data));
+ 		}
+@@ -935,7 +958,7 @@
+ 		}
+ 
+ 		if (function_exists('gzdecode')) {
+-			$decoded = @gzdecode($data);
++			$decoded = @\wp_aot_native_api('gzdecode', array($data));
+ 			if ($decoded !== false) {
+ 				return $decoded;
+ 			}
+@@ -961,6 +984,7 @@
+ 		}
+ 
+ 		return $data;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -985,7 +1009,7 @@
+ 	 *
+ 	 * @throws \WpOrg\Requests\Exception\InvalidArgument When the passed argument is not a string.
+ 	 */
+-	public static function compatible_gzinflate($gz_data) {
++	public static function compatible_gzinflate(mixed $gz_data): mixed {
+ 		if (is_string($gz_data) === false) {
+ 			throw InvalidArgument::create(1, '$gz_data', 'string', gettype($gz_data));
+ 		}
+@@ -1001,7 +1025,7 @@
+ 			$flg = ord(substr($gz_data, 3, 1));
+ 			if ($flg > 0) {
+ 				if ($flg & 4) {
+-					list($xlen) = unpack('v', substr($gz_data, $i, 2));
++					list($xlen) = (array) unpack('v', substr($gz_data, $i, 2));
+ 					$i         += 2 + $xlen;
+ 				}
+ 
+@@ -1095,5 +1119,6 @@
+ 		}
+ 
+ 		return false;
++		return null;
+ 	}
+ }

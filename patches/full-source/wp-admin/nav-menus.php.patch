@@ -1,0 +1,87 @@
+--- a/wp-admin/nav-menus.php
++++ b/wp-admin/nav-menus.php
+@@ -65,7 +65,7 @@
+ 		check_admin_referer( 'add-menu_item', 'menu-settings-column-nonce' );
+ 
+ 		if ( isset( $_REQUEST['nav-menu-locations'] ) ) {
+-			set_theme_mod( 'nav_menu_locations', array_map( 'absint', $_REQUEST['menu-locations'] ) );
++			set_theme_mod( 'nav_menu_locations', \wp_aot_array_map( 'absint', $_REQUEST['menu-locations'] ) );
+ 		} elseif ( isset( $_REQUEST['menu-item'] ) ) {
+ 			wp_save_nav_menu_items( $nav_menu_selected_id, $_REQUEST['menu-item'] );
+ 		}
+@@ -372,8 +372,8 @@
+ 		// Merge new and existing menu locations if any new ones are set.
+ 		$new_menu_locations = array();
+ 		if ( isset( $_POST['menu-locations'] ) ) {
+-			$new_menu_locations = array_map( 'absint', $_POST['menu-locations'] );
+-			$menu_locations     = array_merge( $menu_locations, $new_menu_locations );
++			$new_menu_locations = \wp_aot_array_map( 'absint', $_POST['menu-locations'] );
++			$menu_locations     = \wp_aot_array_merge(array( $menu_locations, $new_menu_locations ));
+ 		}
+ 
+ 		// Add Menu.
+@@ -439,7 +439,7 @@
+ 					}
+ 
+ 					wp_redirect( admin_url( 'nav-menus.php?menu=' . $_nav_menu_selected_id ) );
+-					exit;
++					\wp_aot_exit();
+ 				}
+ 			} else {
+ 				$messages[] = wp_get_admin_notice(
+@@ -503,12 +503,12 @@
+ 
+ 			// Update menu items.
+ 			if ( ! is_wp_error( $_menu_object ) ) {
+-				$messages = array_merge( $messages, wp_nav_menu_update_menu_items( $_nav_menu_selected_id, $nav_menu_selected_title ) );
++				$messages = \wp_aot_array_merge(array( $messages, wp_nav_menu_update_menu_items( $_nav_menu_selected_id, $nav_menu_selected_title ) ));
+ 
+ 				// If the menu ID changed, redirect to the new URL.
+ 				if ( $nav_menu_selected_id !== $_nav_menu_selected_id ) {
+ 					wp_redirect( admin_url( 'nav-menus.php?menu=' . (int) $_nav_menu_selected_id ) );
+-					exit;
++					\wp_aot_exit();
+ 				}
+ 			}
+ 		}
+@@ -518,7 +518,7 @@
+ 	case 'locations':
+ 		if ( ! $num_locations ) {
+ 			wp_redirect( admin_url( 'nav-menus.php' ) );
+-			exit;
++			\wp_aot_exit();
+ 		}
+ 
+ 		add_filter( 'screen_options_show_screen', '__return_false' );
+@@ -526,8 +526,8 @@
+ 		if ( isset( $_POST['menu-locations'] ) ) {
+ 			check_admin_referer( 'save-menu-locations' );
+ 
+-			$new_menu_locations = array_map( 'absint', $_POST['menu-locations'] );
+-			$menu_locations     = array_merge( $menu_locations, $new_menu_locations );
++			$new_menu_locations = \wp_aot_array_map( 'absint', $_POST['menu-locations'] );
++			$menu_locations     = \wp_aot_array_merge(array( $menu_locations, $new_menu_locations ));
+ 			// Set menu locations.
+ 			set_theme_mod( 'nav_menu_locations', $menu_locations );
+ 
+@@ -681,9 +681,10 @@
+  * @param string $classes Existing CSS classes for the body tag.
+  * @return string Modified CSS classes including the menu max depth class.
+  */
+-function wp_nav_menu_max_depth( $classes ) {
++function wp_nav_menu_max_depth( mixed $classes ): mixed {
+ 	global $_wp_nav_menu_max_depth;
+ 	return "$classes menu-max-depth-$_wp_nav_menu_max_depth";
++	return null;
+ }
+ 
+ add_filter( 'admin_body_class', 'wp_nav_menu_max_depth' );
+@@ -1007,7 +1008,7 @@
+ 							 */
+ 							$locations_listed_per_menu = absint( apply_filters( 'wp_nav_locations_listed_per_menu', 3 ) );
+ 
+-							$assigned_locations = array_slice( $locations_assigned_to_this_menu, 0, $locations_listed_per_menu );
++							$assigned_locations = \wp_aot_array_slice( $locations_assigned_to_this_menu, 0, $locations_listed_per_menu );
+ 
+ 							// Adds ellipses following the number of locations defined in $assigned_locations.
+ 							if ( ! empty( $assigned_locations ) ) {

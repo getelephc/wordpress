@@ -1,6 +1,38 @@
 --- a/wp-admin/includes/class-wp-post-comments-list-table.php
 +++ b/wp-admin/includes/class-wp-post-comments-list-table.php
-@@ -48,23 +48,25 @@
+@@ -19,7 +19,7 @@
+ 	/**
+ 	 * @return array
+ 	 */
+-	protected function get_column_info() {
++	protected function get_column_info(): mixed {
+ 		return array(
+ 			array(
+ 				'author'  => __( 'Author' ),
+@@ -29,49 +29,55 @@
+ 			array(),
+ 			'comment',
+ 		);
++		return null;
+ 	}
+ 
+ 	/**
+ 	 * @return array
+ 	 */
+-	protected function get_table_classes() {
++	protected function get_table_classes(): mixed {
+ 		$classes   = parent::get_table_classes();
+ 		$classes[] = 'wp-list-table';
+ 		$classes[] = 'comments-box';
+ 		return $classes;
++		return null;
+ 	}
+ 
+ 	/**
+ 	 * @param bool $output_empty
+ 	 */
+-	public function display( $output_empty = false ) {
++	public function display( mixed $output_empty = false ): mixed {
  		$singular = $this->_args['singular'];
  
  		wp_nonce_field( 'fetch-list-' . get_class( $this ), '_ajax_fetch_list_nonce' );
@@ -32,6 +64,16 @@
  </table>
 -		<?php
 +		';
++		return null;
  	}
  
  	/**
+ 	 * @param bool $comment_status
+ 	 * @return int
+ 	 */
+-	public function get_per_page( $comment_status = false ) {
++	public function get_per_page( mixed $comment_status = false ): mixed {
+ 		return 10;
++		return null;
+ 	}
+ }

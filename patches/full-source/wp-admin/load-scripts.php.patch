@@ -1,0 +1,51 @@
+--- a/wp-admin/load-scripts.php
++++ b/wp-admin/load-scripts.php
+@@ -28,21 +28,21 @@
+ 
+ $load = $_GET['load'];
+ if ( is_array( $load ) ) {
+-	ksort( $load );
++	\wp_aot_ksort( $load );
+ 	$load = implode( '', $load );
+ }
+ 
+-$load = preg_replace( '/[^a-z0-9,_-]+/i', '', $load );
+-$load = array_unique( explode( ',', $load ) );
++$load = \wp_aot_preg_replace( '/[^a-z0-9,_-]+/i', '', $load );
++$load = \wp_aot_array_unique( explode( ',', $load ) );
+ 
+ if ( empty( $load ) ) {
+ 	header( "$protocol 400 Bad Request" );
+-	exit;
++	\wp_aot_exit();
+ }
+ 
+-require ABSPATH . 'wp-admin/includes/noop.php';
+-require ABSPATH . WPINC . '/script-loader.php';
+-require ABSPATH . WPINC . '/version.php';
++require_once ABSPATH . 'wp-admin/includes/noop.php';
++require_once __DIR__ . '/../wp-includes/script-loader.php';
++require __DIR__ . '/../wp-includes/version.php';
+ 
+ $expires_offset = 31536000; // 1 year.
+ $out            = '';
+@@ -56,7 +56,7 @@
+ 
+ if ( isset( $_SERVER['HTTP_IF_NONE_MATCH'] ) && stripslashes( $_SERVER['HTTP_IF_NONE_MATCH'] ) === $etag ) {
+ 	header( "$protocol 304 Not Modified" );
+-	exit;
++	\wp_aot_exit();
+ }
+ 
+ foreach ( $load as $handle ) {
+@@ -70,8 +70,8 @@
+ 
+ header( "Etag: $etag" );
+ header( 'Content-Type: application/javascript; charset=UTF-8' );
+-header( 'Expires: ' . gmdate( 'D, d M Y H:i:s', time() + $expires_offset ) . ' GMT' );
++header( 'Expires: ' . \wp_aot_gmdate( 'D, d M Y H:i:s', time() + $expires_offset ) . ' GMT' );
+ header( "Cache-Control: public, max-age=$expires_offset" );
+ 
+ echo $out;
+-exit;
++\wp_aot_exit();

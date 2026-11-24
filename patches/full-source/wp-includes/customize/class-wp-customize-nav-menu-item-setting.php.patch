@@ -1,0 +1,282 @@
+--- a/wp-includes/customize/class-wp-customize-nav-menu-item-setting.php
++++ b/wp-includes/customize/class-wp-customize-nav-menu-item-setting.php
+@@ -161,12 +161,12 @@
+ 	 *                                      Can be a theme mod or option name.
+ 	 * @param array                $args    Optional. Setting arguments.
+ 	 */
+-	public function __construct( WP_Customize_Manager $manager, $id, array $args = array() ) {
++	public function __construct( WP_Customize_Manager $manager, mixed $id, array $args = array() ) {
+ 		if ( empty( $manager->nav_menus ) ) {
+ 			throw new Exception( 'Expected WP_Customize_Manager::$nav_menus to be set.' );
+ 		}
+ 
+-		if ( ! preg_match( self::ID_PATTERN, $id, $matches ) ) {
++		if ( ! preg_match( \wp_aot_regex_text( self::ID_PATTERN ), \wp_aot_regex_text( $id ), $matches ) ) {
+ 			throw new Exception( "Illegal widget setting ID: $id" );
+ 		}
+ 
+@@ -178,7 +178,7 @@
+ 		// Ensure that an initially-supplied value is valid.
+ 		if ( isset( $this->value ) ) {
+ 			$this->populate_value();
+-			foreach ( array_diff( array_keys( $this->default ), array_keys( $this->value ) ) as $missing ) {
++			foreach ( \wp_aot_array_diff(array( array_keys( $this->default ), array_keys( $this->value ) )) as $missing ) {
+ 				throw new Exception( "Supplied nav_menu_item value missing property: $missing" );
+ 			}
+ 		}
+@@ -192,11 +192,12 @@
+ 	 * @param int $menu_id       The term ID for the menu.
+ 	 * @param int $menu_item_id  The post ID for the menu item.
+ 	 */
+-	public function flush_cached_value( $menu_id, $menu_item_id ) {
++	public function flush_cached_value( mixed $menu_id, mixed $menu_item_id ): mixed {
+ 		unset( $menu_id );
+ 		if ( $menu_item_id === $this->post_id ) {
+ 			$this->value = null;
+ 		}
++		return null;
+ 	}
+ 
+ 	/**
+@@ -208,7 +209,7 @@
+ 	 *
+ 	 * @return array|false Instance data array, or false if the item is marked for deletion.
+ 	 */
+-	public function value() {
++	public function value(): mixed {
+ 		$type_label = null;
+ 		if ( $this->is_previewed && get_current_blog_id() === $this->_previewed_blog_id ) {
+ 			$undefined  = new stdClass(); // Symbol.
+@@ -257,6 +258,7 @@
+ 		}
+ 
+ 		return $value;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -266,13 +268,14 @@
+ 	 *
+ 	 * @return array|false Value prepared for the client.
+ 	 */
+-	public function js_value() {
++	public function js_value(): mixed {
+ 		$value = parent::js_value();
+ 		if ( is_array( $value ) && isset( $value['original_title'] ) ) {
+ 			// Decode entities for the sake of displaying the original title as a placeholder.
+-			$value['original_title'] = html_entity_decode( $value['original_title'], ENT_QUOTES, get_bloginfo( 'charset' ) );
++			$value['original_title'] = \wp_aot_html_entity_decode( $value['original_title'], ENT_QUOTES, get_bloginfo( 'charset' ) );
+ 		}
+ 		return $value;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -283,7 +286,7 @@
+ 	 * @param object $item Nav menu item.
+ 	 * @return string The original title, without entity decoding.
+ 	 */
+-	protected function get_original_title( $item ) {
++	protected function get_original_title( mixed $item ): mixed {
+ 		$original_title = '';
+ 		if ( 'post_type' === $item->type && ! empty( $item->object_id ) ) {
+ 			$original_object = get_post( $item->object_id );
+@@ -308,6 +311,7 @@
+ 			}
+ 		}
+ 		return $original_title;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -318,7 +322,7 @@
+ 	 * @param object $item Nav menu item.
+ 	 * @return string The type label.
+ 	 */
+-	protected function get_type_label( $item ) {
++	protected function get_type_label( mixed $item ): mixed {
+ 		if ( 'post_type' === $item->type ) {
+ 			$object = get_post_type_object( $item->object );
+ 			if ( $object ) {
+@@ -339,6 +343,7 @@
+ 			$type_label = __( 'Custom Link' );
+ 		}
+ 		return $type_label;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -350,9 +355,9 @@
+ 	 *
+ 	 * @see WP_Customize_Nav_Menu_Item_Setting::value()
+ 	 */
+-	protected function populate_value() {
++	protected function populate_value(): mixed {
+ 		if ( ! is_array( $this->value ) ) {
+-			return;
++			return null;
+ 		}
+ 
+ 		if ( isset( $this->value['menu_order'] ) ) {
+@@ -373,7 +378,7 @@
+ 				)
+ 			);
+ 			if ( ! empty( $menus ) ) {
+-				$this->value['nav_menu_term_id'] = array_shift( $menus );
++				$this->value['nav_menu_term_id'] = \wp_aot_array_shift( $menus );
+ 			} else {
+ 				$this->value['nav_menu_term_id'] = 0;
+ 			}
+@@ -435,6 +440,7 @@
+ 		foreach ( $irrelevant_properties as $property ) {
+ 			unset( $this->value[ $property ] );
+ 		}
++		return null;
+ 	}
+ 
+ 	/**
+@@ -447,7 +453,7 @@
+ 	 *
+ 	 * @return bool False if method short-circuited due to no-op.
+ 	 */
+-	public function preview() {
++	public function preview(): mixed {
+ 		if ( $this->is_previewed ) {
+ 			return false;
+ 		}
+@@ -474,6 +480,7 @@
+ 		// @todo Add get_post_metadata filters for plugins to add their data.
+ 
+ 		return true;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -488,7 +495,7 @@
+ 	 * @param array     $args  An array of arguments used to retrieve menu item objects.
+ 	 * @return WP_Post[] Array of menu item objects.
+ 	 */
+-	public function filter_wp_get_nav_menu_items( $items, $menu, $args ) {
++	public function filter_wp_get_nav_menu_items( mixed $items, mixed $menu, mixed $args ): mixed {
+ 		$this_item                = $this->value();
+ 		$current_nav_menu_term_id = null;
+ 		if ( isset( $this_item['nav_menu_term_id'] ) ) {
+@@ -550,6 +557,7 @@
+ 		}
+ 
+ 		return $items;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -564,13 +572,13 @@
+ 	 * @param array     $args  An array of arguments used to retrieve menu item objects.
+ 	 * @return WP_Post[] Array of menu item objects.
+ 	 */
+-	public static function sort_wp_get_nav_menu_items( $items, $menu, $args ) {
++	public static function sort_wp_get_nav_menu_items( mixed $items, mixed $menu, mixed $args ): mixed {
+ 		// @todo We should probably re-apply some constraints imposed by $args.
+ 		unset( $args['include'] );
+ 
+ 		// Remove invalid items only in front end.
+ 		if ( ! is_admin() ) {
+-			$items = array_filter( $items, '_is_valid_nav_menu_item' );
++			$items = \wp_aot_array_filter( $items, '_is_valid_nav_menu_item' );
+ 		}
+ 
+ 		if ( ARRAY_A === $args['output'] ) {
+@@ -588,6 +596,7 @@
+ 		}
+ 
+ 		return $items;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -597,8 +606,8 @@
+ 	 *
+ 	 * @return WP_Post With wp_setup_nav_menu_item() applied.
+ 	 */
+-	public function value_as_wp_post_nav_menu_item() {
+-		$item = (object) $this->value();
++	public function value_as_wp_post_nav_menu_item(): mixed {
++		$item = \wp_aot_json_record( (object) $this->value() );
+ 		unset( $item->nav_menu_term_id );
+ 
+ 		$item->post_status = $item->status;
+@@ -654,6 +663,7 @@
+ 		$post = apply_filters( 'wp_setup_nav_menu_item', $post );
+ 
+ 		return $post;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -669,7 +679,7 @@
+ 	 * @return array|false|null|WP_Error Null or WP_Error if an input isn't valid. False if it is marked for deletion.
+ 	 *                                   Otherwise the sanitized value.
+ 	 */
+-	public function sanitize( $value ) {
++	public function sanitize( mixed $value ): mixed {
+ 		// Restores the more descriptive, specific name for use within this method.
+ 		$menu_item_value = $value;
+ 
+@@ -701,7 +711,7 @@
+ 			'nav_menu_term_id' => 0,
+ 			'_invalid'         => false,
+ 		);
+-		$menu_item_value             = array_merge( $default, $menu_item_value );
++		$menu_item_value             = \wp_aot_array_merge(array( $default, $menu_item_value ));
+ 		$menu_item_value             = wp_array_slice_assoc( $menu_item_value, array_keys( $default ) );
+ 		$menu_item_value['position'] = (int) $menu_item_value['position'];
+ 
+@@ -719,7 +729,7 @@
+ 			if ( ! is_array( $value ) ) {
+ 				$value = explode( ' ', $value );
+ 			}
+-			$menu_item_value[ $key ] = implode( ' ', array_map( 'sanitize_html_class', $value ) );
++			$menu_item_value[ $key ] = implode( ' ', \wp_aot_array_map( 'sanitize_html_class', $value ) );
+ 		}
+ 
+ 		// Apply the same filters as when calling wp_insert_post().
+@@ -747,6 +757,7 @@
+ 
+ 		/** This filter is documented in wp-includes/class-wp-customize-setting.php */
+ 		return apply_filters( "customize_sanitize_{$this->id}", $menu_item_value, $this );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -768,7 +779,7 @@
+ 	 *                           should consist of.
+ 	 * @return bool Whether updated.
+ 	 */
+-	protected function update( $value ) {
++	protected function update( mixed $value ): mixed {
+ 		if ( $this->is_updated ) {
+ 			return ( 'error' !== $this->update_status );
+ 		}
+@@ -889,6 +900,7 @@
+ 		}
+ 
+ 		return ( 'error' !== $this->update_status );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -901,7 +913,7 @@
+ 	 * @param array $data Additional information passed back to the 'saved' event on `wp.customize`.
+ 	 * @return array Save response data.
+ 	 */
+-	public function amend_customize_save_response( $data ) {
++	public function amend_customize_save_response( mixed $data ): mixed {
+ 		if ( ! isset( $data['nav_menu_item_updates'] ) ) {
+ 			$data['nav_menu_item_updates'] = array();
+ 		}
+@@ -913,5 +925,6 @@
+ 			'status'           => $this->update_status,
+ 		);
+ 		return $data;
++		return null;
+ 	}
+ }

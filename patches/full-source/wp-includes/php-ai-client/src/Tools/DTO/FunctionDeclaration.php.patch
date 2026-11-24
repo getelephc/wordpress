@@ -1,0 +1,19 @@
+--- a/wp-includes/php-ai-client/src/Tools/DTO/FunctionDeclaration.php
++++ b/wp-includes/php-ai-client/src/Tools/DTO/FunctionDeclaration.php
+@@ -18,7 +18,7 @@
+  *     parameters?: array<string, mixed>
+  * }
+  *
+- * @extends AbstractDataTransferObject<FunctionDeclarationArrayShape>
++ * @phpstan-extends AbstractDataTransferObject<FunctionDeclarationArrayShape>
+  */
+ class FunctionDeclaration extends AbstractDataTransferObject
+ {
+@@ -117,6 +117,6 @@
+     public static function fromArray(array $array): self
+     {
+         static::validateFromArrayData($array, [self::KEY_NAME, self::KEY_DESCRIPTION]);
+-        return new self($array[self::KEY_NAME], $array[self::KEY_DESCRIPTION], $array[self::KEY_PARAMETERS] ?? null);
++        return new self($array[self::KEY_NAME], $array[self::KEY_DESCRIPTION], \wp_aot_require_nullable_array( $array[self::KEY_PARAMETERS] ?? null ));
+     }
+ }

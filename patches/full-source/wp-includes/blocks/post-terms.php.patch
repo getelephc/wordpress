@@ -1,0 +1,54 @@
+--- a/wp-includes/blocks/post-terms.php
++++ b/wp-includes/blocks/post-terms.php
+@@ -15,7 +15,7 @@
+  * @param WP_Block $block      Block instance.
+  * @return string Returns the filtered post terms for the current post wrapped inside "a" tags.
+  */
+-function render_block_core_post_terms( $attributes, $content, $block ) {
++function render_block_core_post_terms( mixed $attributes, mixed $content, mixed $block ): mixed {
+ 	if ( ! isset( $block->context['postId'] ) || ! isset( $attributes['term'] ) ) {
+ 		return '';
+ 	}
+@@ -59,6 +59,7 @@
+ 	}
+ 
+ 	return $post_terms;
++	return null;
+ }
+ 
+ /**
+@@ -68,7 +69,7 @@
+  *
+  * @return array The available variations for the block.
+  */
+-function block_core_post_terms_build_variations() {
++function block_core_post_terms_build_variations(): mixed {
+ 	$taxonomies = get_taxonomies(
+ 		array(
+ 			'publicly_queryable' => true,
+@@ -110,7 +111,8 @@
+ 		}
+ 	}
+ 
+-	return array_merge( $built_ins, $custom_variations );
++	return \wp_aot_array_merge(array( $built_ins, $custom_variations ));
++	return null;
+ }
+ 
+ /**
+@@ -118,7 +120,7 @@
+  *
+  * @since 5.8.0
+  */
+-function register_block_core_post_terms() {
++function register_block_core_post_terms(): mixed {
+ 	register_block_type_from_metadata(
+ 		__DIR__ . '/post-terms',
+ 		array(
+@@ -126,5 +128,6 @@
+ 			'variation_callback' => 'block_core_post_terms_build_variations',
+ 		)
+ 	);
++	return null;
+ }
+ add_action( 'init', 'register_block_core_post_terms' );

@@ -1,6 +1,50 @@
 --- a/wp-includes/customize/class-wp-customize-date-time-control.php
 +++ b/wp-includes/customize/class-wp-customize-date-time-control.php
-@@ -108,10 +108,12 @@
+@@ -70,7 +70,7 @@
+ 	 *
+ 	 * @since 4.9.0
+ 	 */
+-	public function render_content() {}
++	public function render_content(): mixed { return null; }
+ 
+ 	/**
+ 	 * Export data to JS.
+@@ -78,7 +78,7 @@
+ 	 * @since 4.9.0
+ 	 * @return array
+ 	 */
+-	public function json() {
++	public function json(): mixed {
+ 		$data = parent::json();
+ 
+ 		$data['maxYear']          = (int) $this->max_year;
+@@ -88,6 +88,7 @@
+ 		$data['includeTime']      = (bool) $this->include_time;
+ 
+ 		return $data;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -95,23 +96,25 @@
+ 	 *
+ 	 * @since 4.9.0
+ 	 */
+-	public function content_template() {
+-		$data          = array_merge( $this->json(), $this->get_month_choices() );
++	public function content_template(): mixed {
++		$data          = \wp_aot_array_merge(array( $this->json(), $this->get_month_choices() ));
+ 		$timezone_info = $this->get_timezone_info();
+ 
+ 		$date_format = get_option( 'date_format' );
+-		$date_format = preg_replace( '/(?<!\\\\)[Yyo]/', '%1$s', $date_format );
+-		$date_format = preg_replace( '/(?<!\\\\)[FmMn]/', '%2$s', $date_format );
+-		$date_format = preg_replace( '/(?<!\\\\)[jd]/', '%3$s', $date_format );
++		$date_format = \wp_aot_preg_replace( '/(?<!\\\\)[Yyo]/', '%1$s', $date_format );
++		$date_format = \wp_aot_preg_replace( '/(?<!\\\\)[FmMn]/', '%2$s', $date_format );
++		$date_format = \wp_aot_preg_replace( '/(?<!\\\\)[jd]/', '%3$s', $date_format );
+ 
+ 		// Fallback to ISO date format if year, month, or day are missing from the date format.
  		if ( 1 !== substr_count( $date_format, '%1$s' ) || 1 !== substr_count( $date_format, '%2$s' ) || 1 !== substr_count( $date_format, '%3$s' ) ) {
  			$date_format = '%1$s-%2$s-%3$s';
  		}
@@ -17,7 +61,7 @@
  
  		<# if ( data.label ) { #>
  			<span class="customize-control-title">
-@@ -122,17 +124,20 @@
+@@ -122,17 +125,20 @@
  		<# if ( data.description ) { #>
  			<span class="description customize-control-description">{{ data.description }}</span>
  		<# } #>
@@ -45,7 +89,7 @@
  					<select id="{{ idPrefix }}date-time-month" class="date-input month" data-component="month">
  						<# _.each( data.month_choices, function( choice ) {
  							if ( _.isObject( choice ) && ! _.isUndefined( choice.text ) && ! _.isUndefined( choice.value ) ) {
-@@ -145,70 +150,84 @@
+@@ -145,70 +151,85 @@
  							</option>
  						<# } ); #>
  					</select>
@@ -159,6 +203,75 @@
  		</div>
 -		<?php
 +		';
++		return null;
  	}
  
  	/**
+@@ -224,7 +245,7 @@
+ 	 *
+ 	 * @return array
+ 	 */
+-	public function get_month_choices() {
++	public function get_month_choices(): mixed {
+ 		global $wp_locale;
+ 		$months = array();
+ 		for ( $i = 1; $i < 13; $i++ ) {
+@@ -237,6 +258,7 @@
+ 		return array(
+ 			'month_choices' => $months,
+ 		);
++		return null;
+ 	}
+ 
+ 	/**
+@@ -251,7 +273,7 @@
+ 	 *     @type string $description Human-readable timezone description as HTML.
+ 	 * }
+ 	 */
+-	public function get_timezone_info() {
++	public function get_timezone_info(): mixed {
+ 		$tz_string     = get_option( 'timezone_string' );
+ 		$timezone_info = array();
+ 
+@@ -263,9 +285,9 @@
+ 			}
+ 
+ 			if ( $tz ) {
+-				$now                   = new DateTime( 'now', $tz );
+-				$formatted_gmt_offset  = $this->format_gmt_offset( $tz->getOffset( $now ) / HOUR_IN_SECONDS );
+-				$tz_name               = str_replace( '_', ' ', $tz->getName() );
++				$now                   = new DateTime( 'now', \wp_aot_require_nullable_DateTimeZone($tz) );
++				$formatted_gmt_offset  = $this->format_gmt_offset( $tz->getOffset( \wp_aot_require_DateTimeInterface($now) ) / HOUR_IN_SECONDS );
++				$tz_name               = \wp_aot_str_replace( '_', ' ', $tz->getName() );
+ 				$timezone_info['abbr'] = $now->format( 'T' );
+ 
+ 				$timezone_info['description'] = sprintf(
+@@ -291,6 +313,7 @@
+ 		}
+ 
+ 		return $timezone_info;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -303,17 +326,18 @@
+ 	 * @param float $offset Offset in hours.
+ 	 * @return string Formatted offset.
+ 	 */
+-	public function format_gmt_offset( $offset ) {
++	public function format_gmt_offset( mixed $offset ): mixed {
+ 		if ( 0 <= $offset ) {
+ 			$formatted_offset = '+' . (string) $offset;
+ 		} else {
+ 			$formatted_offset = (string) $offset;
+ 		}
+-		$formatted_offset = str_replace(
++		$formatted_offset = \wp_aot_str_replace(
+ 			array( '.25', '.5', '.75' ),
+ 			array( ':15', ':30', ':45' ),
+ 			$formatted_offset
+ 		);
+ 		return $formatted_offset;
++		return null;
+ 	}
+ }

@@ -1,8 +1,66 @@
 --- a/wp-admin/includes/revision.php
 +++ b/wp-admin/includes/revision.php
-@@ -363,24 +363,33 @@
+@@ -18,7 +18,7 @@
+  * @return array|false Associative array of a post's revisioned fields and their diffs.
+  *                     Or, false on failure.
   */
- function wp_print_revision_templates() {
+-function wp_get_revision_ui_diff( $post, $compare_from, $compare_to ) {
++function wp_get_revision_ui_diff( mixed $post, mixed $compare_from, mixed $compare_to ): mixed {
+ 	$post = get_post( $post );
+ 	if ( ! $post ) {
+ 		return false;
+@@ -161,6 +161,7 @@
+ 	 * @param WP_Post $compare_to   The revision post to compare to.
+ 	 */
+ 	return apply_filters( 'wp_get_revision_ui_diff', $return, $compare_from, $compare_to );
++	return null;
+ }
+ 
+ /**
+@@ -173,7 +174,7 @@
+  * @param int         $from                 Optional. The revision ID to compare from.
+  * @return array An associative array of revision data and related settings.
+  */
+-function wp_prepare_revisions_for_js( $post, $selected_revision_id, $from = null ) {
++function wp_prepare_revisions_for_js( mixed $post, mixed $selected_revision_id, mixed $from = null ): mixed {
+ 	$post    = get_post( $post );
+ 	$authors = array();
+ 	$now_gmt = time();
+@@ -206,7 +207,7 @@
+ 		$modified     = strtotime( $revision->post_modified );
+ 		$modified_gmt = strtotime( $revision->post_modified_gmt . ' +0000' );
+ 		if ( $can_restore ) {
+-			$restore_link = str_replace(
++			$restore_link = \wp_aot_str_replace(
+ 				'&amp;',
+ 				'&',
+ 				wp_nonce_url(
+@@ -323,9 +324,9 @@
+ 	// Now, grab the initial diff.
+ 	$compare_two_mode = is_numeric( $from );
+ 	if ( ! $compare_two_mode ) {
+-		$found = array_search( $selected_revision_id, array_keys( $revisions ), true );
++		$found = \wp_aot_array_search( $selected_revision_id, array_keys( $revisions ), true );
+ 		if ( $found ) {
+-			$from = array_keys( array_slice( $revisions, $found - 1, 1, true ) );
++			$from = array_keys( \wp_aot_array_slice( $revisions, $found - 1, 1, true ) );
+ 			$from = reset( $from );
+ 		} else {
+ 			$from = 0;
+@@ -352,6 +353,7 @@
+ 		'compareTwoMode' => absint( $compare_two_mode ), // Apparently booleans are not allowed.
+ 		'revisionIds'    => array_keys( $revisions ),
+ 	);
++	return null;
+ }
+ 
+ /**
+@@ -361,26 +363,35 @@
+  *
+  * @global WP_Post $post Global post object.
+  */
+-function wp_print_revision_templates() {
++function wp_print_revision_templates(): mixed {
  	global $post;
 -	?><script id="tmpl-revisions-frame" type="text/html">
 +	;
@@ -39,7 +97,7 @@
  	</script>
  
  	<script id="tmpl-revisions-checkbox" type="text/html">
-@@ -388,23 +397,28 @@
+@@ -388,23 +399,28 @@
  			<label>
  				<input type="checkbox" class="compare-two-revisions"
  				<#
@@ -75,7 +133,7 @@
  				<# } #>
  				<div class="author-card<# if ( data.attributes.autosave ) { #> autosave<# } #>">
  					<div>
-@@ -412,55 +426,62 @@
+@@ -412,55 +428,62 @@
  						<div class="author-info" id="diff-title-author">
  						<# if ( data.attributes.autosave ) { #>
  							<span class="byline">
@@ -157,7 +215,7 @@
  			<div class="revisions-tooltip-arrow"><span></span></div>
  		<# } #>
  	<# } #>
-@@ -468,7 +489,9 @@
+@@ -468,7 +491,9 @@
  
  	<script id="tmpl-revisions-diff" type="text/html">
  		<div class="loading-indicator"><span class="spinner"></span></div>
@@ -168,10 +226,11 @@
  		<div class="diff">
  		<# _.each( data.fields, function( field ) { #>
  			<h2>{{ field.name }}</h2>
-@@ -476,5 +499,5 @@
+@@ -476,5 +501,6 @@
  		<# }); #>
  		</div>
  	</script>
 -	<?php
 +	';
++	return null;
  }

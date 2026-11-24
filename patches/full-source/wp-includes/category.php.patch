@@ -1,6 +1,194 @@
 --- a/wp-includes/category.php
 +++ b/wp-includes/category.php
-@@ -384,11 +384,11 @@
+@@ -23,7 +23,7 @@
+  * }
+  * @return array List of category objects.
+  */
+-function get_categories( $args = '' ) {
++function get_categories( mixed $args = '' ): mixed {
+ 	$defaults = array( 'taxonomy' => 'category' );
+ 	$args     = wp_parse_args( $args, $defaults );
+ 
+@@ -64,6 +64,7 @@
+ 	}
+ 
+ 	return $categories;
++	return null;
+ }
+ 
+ /**
+@@ -89,7 +90,7 @@
+  *                                     Returns a WP_Term object with backwards compatible property aliases filled in.
+  *                                     WP_Error if $category is empty, null if it does not exist.
+  */
+-function get_category( $category, $output = OBJECT, $filter = 'raw' ) {
++function get_category( mixed $category, mixed $output = OBJECT, mixed $filter = 'raw' ): mixed {
+ 	$category = get_term( $category, 'category', $output, $filter );
+ 
+ 	if ( is_wp_error( $category ) ) {
+@@ -99,6 +100,7 @@
+ 	_make_cat_compat( $category );
+ 
+ 	return $category;
++	return null;
+ }
+ 
+ /**
+@@ -122,10 +124,10 @@
+  *                              respectively. Default OBJECT.
+  * @return WP_Term|array|WP_Error|null Type is based on $output value.
+  */
+-function get_category_by_path( $category_path, $full_match = true, $output = OBJECT ) {
++function get_category_by_path( mixed $category_path, mixed $full_match = true, mixed $output = OBJECT ): mixed {
+ 	$category_path  = rawurlencode( urldecode( $category_path ) );
+-	$category_path  = str_replace( '%2F', '/', $category_path );
+-	$category_path  = str_replace( '%20', ' ', $category_path );
++	$category_path  = \wp_aot_str_replace( '%2F', '/', $category_path );
++	$category_path  = \wp_aot_str_replace( '%20', ' ', $category_path );
+ 	$category_paths = '/' . trim( $category_path, '/' );
+ 	$leaf_path      = sanitize_title( basename( $category_paths ) );
+ 	$category_paths = explode( '/', $category_paths );
+@@ -176,6 +178,7 @@
+ 
+ 		return $category;
+ 	}
++	return null;
+ }
+ 
+ /**
+@@ -186,7 +189,7 @@
+  * @param string $slug The category slug.
+  * @return object|false Category data object on success, false if not found.
+  */
+-function get_category_by_slug( $slug ) {
++function get_category_by_slug( mixed $slug ): mixed {
+ 	$category = get_term_by( 'slug', $slug, 'category' );
+ 
+ 	if ( $category ) {
+@@ -194,6 +197,7 @@
+ 	}
+ 
+ 	return $category;
++	return null;
+ }
+ 
+ /**
+@@ -204,7 +208,7 @@
+  * @param string $cat_name Category name.
+  * @return int Category ID on success, 0 if the category doesn't exist.
+  */
+-function get_cat_ID( $cat_name ) { // phpcs:ignore WordPress.NamingConventions.ValidFunctionName.FunctionNameInvalid
++function get_cat_ID( mixed $cat_name ): mixed { // phpcs:ignore WordPress.NamingConventions.ValidFunctionName.FunctionNameInvalid
+ 	$cat = get_term_by( 'name', $cat_name, 'category' );
+ 
+ 	if ( $cat ) {
+@@ -212,6 +216,7 @@
+ 	}
+ 
+ 	return 0;
++	return null;
+ }
+ 
+ /**
+@@ -222,7 +227,7 @@
+  * @param int $cat_id Category ID.
+  * @return string Category name, or an empty string if the category doesn't exist.
+  */
+-function get_cat_name( $cat_id ) {
++function get_cat_name( mixed $cat_id ): mixed {
+ 	$cat_id   = (int) $cat_id;
+ 	$category = get_term( $cat_id, 'category' );
+ 
+@@ -231,6 +236,7 @@
+ 	}
+ 
+ 	return $category->name;
++	return null;
+ }
+ 
+ /**
+@@ -245,8 +251,9 @@
+  * @param int|object $cat2 The child category.
+  * @return bool Whether $cat2 is child of $cat1.
+  */
+-function cat_is_ancestor_of( $cat1, $cat2 ) {
++function cat_is_ancestor_of( mixed $cat1, mixed $cat2 ): mixed {
+ 	return term_is_ancestor_of( $cat1, $cat2, 'category' );
++	return null;
+ }
+ 
+ /**
+@@ -258,8 +265,9 @@
+  * @param string       $context  Optional. Default 'display'.
+  * @return object|array Same type as $category with sanitized data for safe use.
+  */
+-function sanitize_category( $category, $context = 'display' ) {
++function sanitize_category( mixed $category, mixed $context = 'display' ): mixed {
+ 	return sanitize_term( $category, 'category', $context );
++	return null;
+ }
+ 
+ /**
+@@ -273,8 +281,9 @@
+  * @param string $context What filter to use, 'raw', 'display', etc.
+  * @return mixed Value after $value has been sanitized.
+  */
+-function sanitize_category_field( $field, $value, $cat_id, $context ) {
++function sanitize_category_field( mixed $field, mixed $value, mixed $cat_id, mixed $context ): mixed {
+ 	return sanitize_term_field( $field, $value, $cat_id, 'category', $context );
++	return null;
+ }
+ 
+ /* Tags */
+@@ -292,7 +301,7 @@
+  * @return WP_Term[]|int|WP_Error Array of 'post_tag' term objects, a count thereof,
+  *                                or WP_Error if any of the taxonomies do not exist.
+  */
+-function get_tags( $args = '' ) {
++function get_tags( mixed $args = '' ): mixed {
+ 	$defaults = array( 'taxonomy' => 'post_tag' );
+ 	$args     = wp_parse_args( $args, $defaults );
+ 
+@@ -314,6 +323,7 @@
+ 	}
+ 
+ 	return $tags;
++	return null;
+ }
+ 
+ /**
+@@ -338,8 +348,9 @@
+  * @return WP_Term|array|WP_Error|null Tag data in type defined by $output parameter.
+  *                                     WP_Error if $tag is empty, null if it does not exist.
+  */
+-function get_tag( $tag, $output = OBJECT, $filter = 'raw' ) {
++function get_tag( mixed $tag, mixed $output = OBJECT, mixed $filter = 'raw' ): mixed {
+ 	return get_term( $tag, 'post_tag', $output, $filter );
++	return null;
+ }
+ 
+ /* Cache */
+@@ -351,8 +362,9 @@
+  *
+  * @param int $id Category ID
+  */
+-function clean_category_cache( $id ) {
++function clean_category_cache( mixed $id ): mixed {
+ 	clean_term_cache( $id, 'category' );
++	return null;
+ }
+ 
+ /**
+@@ -375,7 +387,7 @@
+  *
+  * @param array|object|WP_Term $category Category row object or array.
+  */
+-function _make_cat_compat( &$category ) {
++function _make_cat_compat( mixed &$category ): mixed {
+ 	if ( is_object( $category ) && ! is_wp_error( $category ) ) {
+ 		$category->cat_ID               = $category->term_id;
+ 		$category->category_count       = $category->count;
+@@ -384,11 +396,12 @@
  		$category->category_nicename    = $category->slug;
  		$category->category_parent      = $category->parent;
  	} elseif ( is_array( $category ) && isset( $category['term_id'] ) ) {
@@ -19,4 +207,5 @@
 +		$category['category_nicename']    = $category['slug'];
 +		$category['category_parent']      = $category['parent'];
 +	}
++	return null;
 +}

@@ -1,6 +1,175 @@
 --- a/wp-admin/includes/class-wp-plugins-list-table.php
 +++ b/wp-admin/includes/class-wp-plugins-list-table.php
-@@ -474,13 +474,22 @@
+@@ -36,7 +36,7 @@
+ 	 *
+ 	 * @param array $args An associative array of arguments.
+ 	 */
+-	public function __construct( $args = array() ) {
++	public function __construct( mixed $args = array() ) {
+ 		global $status, $page;
+ 
+ 		parent::__construct(
+@@ -69,8 +69,9 @@
+ 	 *
+ 	 * @return string[] Array of CSS classes for the table tag.
+ 	 */
+-	protected function get_table_classes() {
++	protected function get_table_classes(): mixed {
+ 		return array( 'widefat', $this->_args['plural'] );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -80,8 +81,9 @@
+ 	 *
+ 	 * @return bool Whether the current user can activate plugins.
+ 	 */
+-	public function ajax_user_can() {
++	public function ajax_user_can(): mixed {
+ 		return current_user_can( 'activate_plugins' );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -97,7 +99,7 @@
+ 	 * @global string                                             $order   Sort direction, 'ASC' or 'DESC'.
+ 	 * @global string                                             $s       URL-encoded search term.
+ 	 */
+-	public function prepare_items() {
++	public function prepare_items(): mixed {
+ 		global $status, $plugins, $totals, $page, $orderby, $order, $s;
+ 
+ 		$orderby = ! empty( $_REQUEST['orderby'] ) ? sanitize_text_field( $_REQUEST['orderby'] ) : '';
+@@ -212,9 +214,9 @@
+ 		foreach ( (array) $plugins['all'] as $plugin_file => $plugin_data ) {
+ 			// Extra info if known. array_merge() ensures $plugin_data has precedence if keys collide.
+ 			if ( isset( $plugin_info->response[ $plugin_file ] ) ) {
+-				$plugin_data = array_merge( (array) $plugin_info->response[ $plugin_file ], array( 'update-supported' => true ), $plugin_data );
++				$plugin_data = \wp_aot_array_merge(array( (array) $plugin_info->response[ $plugin_file ], array( 'update-supported' => true ), $plugin_data ));
+ 			} elseif ( isset( $plugin_info->no_update[ $plugin_file ] ) ) {
+-				$plugin_data = array_merge( (array) $plugin_info->no_update[ $plugin_file ], array( 'update-supported' => true ), $plugin_data );
++				$plugin_data = \wp_aot_array_merge(array( (array) $plugin_info->no_update[ $plugin_file ], array( 'update-supported' => true ), $plugin_data ));
+ 			} elseif ( empty( $plugin_data['update-supported'] ) ) {
+ 				$plugin_data['update-supported'] = false;
+ 			}
+@@ -224,7 +226,7 @@
+ 			 * This is the same data contained within $plugin_info->(response|no_update) however
+ 			 * not all plugins will be contained in those keys, this avoids unexpected warnings.
+ 			 */
+-			$filter_payload = array(
++			$filter_payload = \wp_aot_mixed(array(
+ 				'id'            => $plugin_file,
+ 				'slug'          => '',
+ 				'plugin'        => $plugin_file,
+@@ -237,7 +239,7 @@
+ 				'tested'        => '',
+ 				'requires_php'  => '',
+ 				'compatibility' => new stdClass(),
+-			);
++			));
+ 
+ 			$filter_payload = (object) wp_parse_args( $plugin_data, $filter_payload );
+ 
+@@ -306,7 +308,7 @@
+ 
+ 		if ( strlen( $s ) ) {
+ 			$status            = 'search';
+-			$plugins['search'] = array_filter( $plugins['all'], array( $this, '_search_callback' ) );
++			$plugins['search'] = \wp_aot_array_filter( $plugins['all'], $this->_search_callback(...));
+ 		}
+ 
+ 		/**
+@@ -357,14 +359,14 @@
+ 
+ 		$order = strtoupper( $order );
+ 
+-		uasort( $this->items, array( $this, '_order_callback' ) );
+-
+-		$plugins_per_page = $this->get_items_per_page( str_replace( '-', '_', $screen->id . '_per_page' ), 999 );
++		\wp_aot_uasort( $this->items, $this->_order_callback(...));
++
++		$plugins_per_page = $this->get_items_per_page( \wp_aot_str_replace( '-', '_', $screen->id . '_per_page' ), 999 );
+ 
+ 		$start = ( $page - 1 ) * $plugins_per_page;
+ 
+ 		if ( $total_this_page > $plugins_per_page ) {
+-			$this->items = array_slice( $this->items, $start, $plugins_per_page );
++			$this->items = \wp_aot_array_slice( $this->items, $start, $plugins_per_page );
+ 		}
+ 
+ 		$this->set_pagination_args(
+@@ -373,6 +375,7 @@
+ 				'per_page'    => $plugins_per_page,
+ 			)
+ 		);
++		return null;
+ 	}
+ 
+ 	/**
+@@ -385,7 +388,7 @@
+ 	 * @param array<string, mixed> $plugin Plugin data array to check against the search term.
+ 	 * @return bool True if the plugin matches the search term, false otherwise.
+ 	 */
+-	public function _search_callback( $plugin ) {
++	public function _search_callback( mixed $plugin ): mixed {
+ 		global $s;
+ 
+ 		foreach ( $plugin as $value ) {
+@@ -395,6 +398,7 @@
+ 		}
+ 
+ 		return false;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -409,7 +413,7 @@
+ 	 * @param array<string, mixed> $plugin_b Second plugin data array to compare.
+ 	 * @return int Negative if $plugin_a sorts before $plugin_b, positive if after, 0 if equal.
+ 	 */
+-	public function _order_callback( $plugin_a, $plugin_b ) {
++	public function _order_callback( mixed $plugin_a, mixed $plugin_b ): mixed {
+ 		global $orderby, $order;
+ 
+ 		$a = $plugin_a[ $orderby ];
+@@ -424,6 +428,7 @@
+ 		} else {
+ 			return strcasecmp( $a, $b );
+ 		}
++		return null;
+ 	}
+ 
+ 	/**
+@@ -433,7 +438,7 @@
+ 	 *
+ 	 * @global array<string, array<string, array<string, mixed>>> $plugins Array of plugin data arrays grouped by status.
+ 	 */
+-	public function no_items() {
++	public function no_items(): mixed {
+ 		global $plugins;
+ 
+ 		if ( ! empty( $_REQUEST['s'] ) ) {
+@@ -451,6 +456,7 @@
+ 		} else {
+ 			_e( 'No plugins are currently available.' );
+ 		}
++		return null;
+ 	}
+ 
+ 	/**
+@@ -461,9 +467,9 @@
+ 	 * @param string $text     The 'submit' button label.
+ 	 * @param string $input_id ID attribute value for the search input field.
+ 	 */
+-	public function search_box( $text, $input_id ) {
++	public function search_box( mixed $text, mixed $input_id ): mixed {
+ 		if ( empty( $_REQUEST['s'] ) && ! $this->has_items() ) {
+-			return;
++			return null;
+ 		}
+ 
+ 		$input_id = $input_id . '-search-input';
+@@ -474,13 +480,23 @@
  		if ( ! empty( $_REQUEST['order'] ) ) {
  			echo '<input type="hidden" name="order" value="' . esc_attr( $_REQUEST['order'] ) . '" />';
  		}
@@ -27,6 +196,301 @@
 +submit_button( $text, 'hide-if-js', '', false, array( 'id' => 'search-submit' ) ); ;
 +echo '		</p>
 +		';
++		return null;
  	}
  
  	/**
+@@ -492,7 +508,7 @@
+ 	 *
+ 	 * @return array<string, string> An associative array of column titles keyed by their column name.
+ 	 */
+-	public function get_columns() {
++	public function get_columns(): mixed {
+ 		global $status;
+ 
+ 		$columns = array(
+@@ -506,6 +522,7 @@
+ 		}
+ 
+ 		return $columns;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -515,8 +532,9 @@
+ 	 *
+ 	 * @return array<string, array<int, string|bool>|string> An associative array of sortable columns.
+ 	 */
+-	protected function get_sortable_columns() {
++	protected function get_sortable_columns(): mixed {
+ 		return array();
++		return null;
+ 	}
+ 
+ 	/**
+@@ -529,7 +547,7 @@
+ 	 *
+ 	 * @return array<string, string> An associative array of views.
+ 	 */
+-	protected function get_views() {
++	protected function get_views(): mixed {
+ 		global $totals, $status;
+ 
+ 		$status_links = array();
+@@ -651,6 +669,7 @@
+ 		}
+ 
+ 		return $this->get_views_links( $status_links );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -662,7 +681,7 @@
+ 	 *
+ 	 * @return array<string, string> An associative array of bulk actions.
+ 	 */
+-	protected function get_bulk_actions() {
++	protected function get_bulk_actions(): mixed {
+ 		global $status;
+ 
+ 		$actions = array();
+@@ -695,6 +714,7 @@
+ 		}
+ 
+ 		return $actions;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -707,14 +727,15 @@
+ 	 * @param string $which The location of the bulk actions: Either 'top' or 'bottom'.
+ 	 *                      This is designated as optional for backward compatibility.
+ 	 */
+-	public function bulk_actions( $which = '' ) {
++	public function bulk_actions( mixed $which = '' ): mixed {
+ 		global $status;
+ 
+ 		if ( in_array( $status, array( 'mustuse', 'dropins' ), true ) ) {
+-			return;
++			return null;
+ 		}
+ 
+ 		parent::bulk_actions( $which );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -726,11 +747,11 @@
+ 	 *
+ 	 * @param string $which The location: 'top' or 'bottom'.
+ 	 */
+-	protected function extra_tablenav( $which ) {
++	protected function extra_tablenav( mixed $which ): mixed {
+ 		global $status;
+ 
+ 		if ( ! in_array( $status, array( 'recently_activated', 'mustuse', 'dropins' ), true ) ) {
+-			return;
++			return null;
+ 		}
+ 
+ 		echo '<div class="alignleft actions">';
+@@ -741,16 +762,17 @@
+ 			echo '<p>' . sprintf(
+ 				/* translators: %s: mu-plugins directory name. */
+ 				__( 'Files in the %s directory are executed automatically.' ),
+-				'<code>' . str_replace( ABSPATH, '/', WPMU_PLUGIN_DIR ) . '</code>'
++				'<code>' . \wp_aot_str_replace( ABSPATH, '/', WPMU_PLUGIN_DIR ) . '</code>'
+ 			) . '</p>';
+ 		} elseif ( 'top' === $which && 'dropins' === $status ) {
+ 			echo '<p>' . sprintf(
+ 				/* translators: %s: wp-content directory name. */
+ 				__( 'Drop-ins are single files, found in the %s directory, that replace or enhance WordPress features in ways that are not possible for traditional plugins.' ),
+-				'<code>' . str_replace( ABSPATH, '', WP_CONTENT_DIR ) . '</code>'
++				'<code>' . \wp_aot_str_replace( ABSPATH, '', WP_CONTENT_DIR ) . '</code>'
+ 			) . '</p>';
+ 		}
+ 		echo '</div>';
++		return null;
+ 	}
+ 
+ 	/**
+@@ -762,12 +784,13 @@
+ 	 *
+ 	 * @return string|false The action name. False if no action was selected.
+ 	 */
+-	public function current_action() {
++	public function current_action(): mixed {
+ 		if ( isset( $_POST['clear-recent-list'] ) ) {
+ 			return 'clear-recent-list';
+ 		}
+ 
+ 		return parent::current_action();
++		return null;
+ 	}
+ 
+ 	/**
+@@ -777,16 +800,17 @@
+ 	 *
+ 	 * @global string $status Current plugin status filter slug.
+ 	 */
+-	public function display_rows() {
++	public function display_rows( mixed $wp_aot_posts = array(), mixed $wp_aot_level = 0 ): mixed {
+ 		global $status;
+ 
+ 		if ( is_multisite() && ! $this->screen->in_admin( 'network' ) && in_array( $status, array( 'mustuse', 'dropins' ), true ) ) {
+-			return;
++			return null;
+ 		}
+ 
+ 		foreach ( $this->items as $plugin_file => $plugin_data ) {
+ 			$this->single_row( array( $plugin_file, $plugin_data ) );
+ 		}
++		return null;
+ 	}
+ 
+ 	/**
+@@ -802,9 +826,10 @@
+ 	 * @param array $item The current item. An array containing the plugin file path and plugin data.
+ 	 * @phpstan-param array{string, array<string, mixed>} $item
+ 	 */
+-	public function single_row( $item ) {
++	public function single_row( mixed $item, mixed $wp_aot_second = null, mixed $wp_aot_third = null, mixed $wp_aot_fourth = null ): mixed {
+ 		global $status, $page, $s, $totals;
+-		static $plugin_id_attrs = array();
++		static $plugin_id_attrs_aot_cell = new \WordPressStaticArrayCell();
++		$plugin_id_attrs =& $plugin_id_attrs_aot_cell->value;
+ 
+ 		list( $plugin_file, $plugin_data ) = $item;
+ 
+@@ -818,7 +843,7 @@
+ 			++$suffix;
+ 		}
+ 
+-		$plugin_id_attrs[] = $plugin_id_attr;
++		\wp_aot_array_push( $plugin_id_attrs, array( $plugin_id_attr ) );
+ 
+ 		$context = $status;
+ 		$screen  = $this->screen;
+@@ -859,7 +884,7 @@
+ 			if ( true === ( $dropins[ $plugin_file ][1] ) ) { // Doesn't require a constant.
+ 				$is_active   = true;
+ 				$description = '<p><strong>' . $dropins[ $plugin_file ][0] . '</strong></p>';
+-			} elseif ( defined( $dropins[ $plugin_file ][1] ) && constant( $dropins[ $plugin_file ][1] ) ) { // Constant is true.
++			} elseif ( \wp_aot_metadata_defined( $dropins[ $plugin_file ][1] ) && \wp_aot_metadata_constant( $dropins[ $plugin_file ][1] ) ) { // Constant is true.
+ 				$is_active   = true;
+ 				$description = '<p><strong>' . $dropins[ $plugin_file ][0] . '</strong></p>';
+ 			} else {
+@@ -1076,7 +1101,7 @@
+ 			} // End if $screen->in_admin( 'network' ).
+ 		} // End if $context.
+ 
+-		$actions = array_filter( $actions );
++		$actions = \wp_aot_array_filter( $actions );
+ 
+ 		if ( $screen->in_admin( 'network' ) ) {
+ 
+@@ -1383,7 +1408,7 @@
+ 
+ 					echo "<td class='column-auto-updates{$extra_classes}'>";
+ 
+-					$html = array();
++					$html = \wp_aot_mixed(array());
+ 
+ 					if ( isset( $plugin_data['auto-update-forced'] ) ) {
+ 						if ( $plugin_data['auto-update-forced'] ) {
+@@ -1592,6 +1617,7 @@
+ 		 *                            'search', 'paused', 'auto-update-enabled', 'auto-update-disabled'.
+ 		 */
+ 		do_action( "after_plugin_row_{$plugin_file}", $plugin_file, $plugin_data, $status );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1601,8 +1627,9 @@
+ 	 *
+ 	 * @return string Unalterable name for the primary column, in this case, 'name'.
+ 	 */
+-	protected function get_primary_column_name() {
++	protected function get_primary_column_name(): mixed {
+ 		return 'name';
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1612,11 +1639,11 @@
+ 	 *
+ 	 * @param string $dependency The dependency's filepath, relative to the plugins directory.
+ 	 */
+-	protected function add_dependents_to_dependency_plugin_row( $dependency ) {
++	protected function add_dependents_to_dependency_plugin_row( mixed $dependency ): mixed {
+ 		$dependent_names = WP_Plugin_Dependencies::get_dependent_names( $dependency );
+ 
+ 		if ( empty( $dependent_names ) ) {
+-			return;
++			return null;
+ 		}
+ 
+ 		$dependency_note = __( 'Note: This plugin cannot be deactivated or deleted until the plugins that require it are deactivated or deleted.' );
+@@ -1633,6 +1660,7 @@
+ 			$required_by,
+ 			$dependency_note
+ 		);
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1642,11 +1670,11 @@
+ 	 *
+ 	 * @param string $dependent The dependent plugin's filepath, relative to the plugins directory.
+ 	 */
+-	protected function add_dependencies_to_dependent_plugin_row( $dependent ) {
++	protected function add_dependencies_to_dependent_plugin_row( mixed $dependent ): mixed {
+ 		$dependency_names = WP_Plugin_Dependencies::get_dependency_names( $dependent );
+ 
+ 		if ( array() === $dependency_names ) {
+-			return;
++			return null;
+ 		}
+ 
+ 		$links = array();
+@@ -1684,6 +1712,7 @@
+ 			$requires,
+ 			$notice
+ 		);
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1695,7 +1724,7 @@
+ 	 * @param string $slug The dependency's slug.
+ 	 * @return string A 'View details' link for the dependency.
+ 	 */
+-	protected function get_dependency_view_details_link( $name, $slug ) {
++	protected function get_dependency_view_details_link( mixed $name, mixed $slug ): mixed {
+ 		$dependency_data = WP_Plugin_Dependencies::get_dependency_data( $slug );
+ 
+ 		if ( false === $dependency_data
+@@ -1707,6 +1736,7 @@
+ 		}
+ 
+ 		return $this->get_view_details_link( $name, $slug );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1718,7 +1748,7 @@
+ 	 * @param string $slug The plugin's slug.
+ 	 * @return string A 'View details' link for the plugin.
+ 	 */
+-	protected function get_view_details_link( $name, $slug ) {
++	protected function get_view_details_link( mixed $name, mixed $slug ): mixed {
+ 		$url = add_query_arg(
+ 			array(
+ 				'tab'       => 'plugin-information',
+@@ -1739,5 +1769,6 @@
+ 			$name_attr,
+ 			esc_html( $name )
+ 		);
++		return null;
+ 	}
+ }

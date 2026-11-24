@@ -1,0 +1,130 @@
+--- a/wp-admin/includes/class-core-upgrader.php
++++ b/wp-admin/includes/class-core-upgrader.php
+@@ -29,7 +29,7 @@
+ 	 *
+ 	 * @since 2.8.0
+ 	 */
+-	public function upgrade_strings() {
++	public function upgrade_strings(): mixed {
+ 		$this->strings['up_to_date'] = __( 'WordPress is at the latest version.' );
+ 		$this->strings['locked']     = __( 'Another update is currently in progress.' );
+ 		$this->strings['no_package'] = __( 'Update package not available.' );
+@@ -40,6 +40,7 @@
+ 		$this->strings['copy_failed_space']     = __( 'Could not copy files. You may have run out of disk space.' );
+ 		$this->strings['start_rollback']        = __( 'Attempting to restore the previous version.' );
+ 		$this->strings['rollback_was_required'] = __( 'Due to an error during updating, WordPress has been restored to your previous version.' );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -63,10 +64,10 @@
+ 	 * }
+ 	 * @return string|false|WP_Error New WordPress version on success, false or WP_Error on failure.
+ 	 */
+-	public function upgrade( $current, $args = array() ) {
++	public function upgrade( mixed $current, mixed $args = array() ): mixed {
+ 		global $wp_filesystem;
+ 
+-		require ABSPATH . WPINC . '/version.php'; // $wp_version;
++		require __DIR__ . '/../../wp-includes/version.php'; // $wp_version;
+ 
+ 		$start_time = time();
+ 
+@@ -111,7 +112,7 @@
+ 		} elseif ( $current->packages->partial && 'reinstall' !== $current->response && $wp_version === $current->partial_version && $partial ) {
+ 			$to_download = 'partial';
+ 		} elseif ( $current->packages->new_bundled && version_compare( $wp_version, $current->new_bundled, '<' )
+-			&& ( ! defined( 'CORE_UPGRADE_SKIP_NEW_BUNDLED' ) || ! CORE_UPGRADE_SKIP_NEW_BUNDLED ) ) {
++			&& ( ! defined( 'CORE_UPGRADE_SKIP_NEW_BUNDLED' ) || ! \wp_aot_undefined_constant('CORE_UPGRADE_SKIP_NEW_BUNDLED') ) ) {
+ 			$to_download = 'new_bundled';
+ 		} elseif ( $current->packages->no_content ) {
+ 			$to_download = 'no_content';
+@@ -203,7 +204,7 @@
+ 				/** This filter is documented in wp-admin/includes/update-core.php */
+ 				apply_filters( 'update_feedback', $this->strings['start_rollback'] );
+ 
+-				$rollback_result = $this->upgrade( $current, array_merge( $parsed_args, array( 'do_rollback' => true ) ) );
++				$rollback_result = $this->upgrade( $current, \wp_aot_array_merge(array( $parsed_args, array( 'do_rollback' => true ) )) );
+ 
+ 				$original_result = $result;
+ 				$result          = new WP_Error(
+@@ -266,6 +267,7 @@
+ 		WP_Upgrader::release_lock( 'core_updater' );
+ 
+ 		return $result;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -276,11 +278,11 @@
+ 	 * @param string $offered_ver The offered version, of the format x.y.z.
+ 	 * @return bool True if we should update to the offered version, otherwise false.
+ 	 */
+-	public static function should_update_to_version( $offered_ver ) {
+-		require ABSPATH . WPINC . '/version.php'; // $wp_version; // x.y.z
+-
+-		$current_branch = implode( '.', array_slice( preg_split( '/[.-]/', $wp_version ), 0, 2 ) ); // x.y
+-		$new_branch     = implode( '.', array_slice( preg_split( '/[.-]/', $offered_ver ), 0, 2 ) ); // x.y
++	public static function should_update_to_version( mixed $offered_ver ): mixed {
++		require __DIR__ . '/../../wp-includes/version.php'; // $wp_version; // x.y.z
++
++		$current_branch = implode( '.', \wp_aot_array_slice( \wp_aot_preg_split( '/[.-]/', \wp_aot_regex_text( $wp_version ) ), 0, 2 ) ); // x.y
++		$new_branch     = implode( '.', \wp_aot_array_slice( \wp_aot_preg_split( '/[.-]/', \wp_aot_regex_text( $offered_ver ) ), 0, 2 ) ); // x.y
+ 
+ 		$current_is_development_version = (bool) strpos( $wp_version, '-' );
+ 
+@@ -291,19 +293,19 @@
+ 
+ 		// WP_AUTO_UPDATE_CORE = true (all), 'beta', 'rc', 'development', 'branch-development', 'minor', false.
+ 		if ( defined( 'WP_AUTO_UPDATE_CORE' ) ) {
+-			if ( false === WP_AUTO_UPDATE_CORE ) {
++			if ( false === \wp_aot_undefined_constant('WP_AUTO_UPDATE_CORE') ) {
+ 				// Defaults to turned off, unless a filter allows it.
+ 				$upgrade_dev   = false;
+ 				$upgrade_minor = false;
+ 				$upgrade_major = false;
+-			} elseif ( true === WP_AUTO_UPDATE_CORE
+-				|| in_array( WP_AUTO_UPDATE_CORE, array( 'beta', 'rc', 'development', 'branch-development' ), true )
++			} elseif ( true === \wp_aot_undefined_constant('WP_AUTO_UPDATE_CORE')
++				|| in_array( \wp_aot_undefined_constant('WP_AUTO_UPDATE_CORE'), array( 'beta', 'rc', 'development', 'branch-development' ), true )
+ 			) {
+ 				// ALL updates for core.
+ 				$upgrade_dev   = true;
+ 				$upgrade_minor = true;
+ 				$upgrade_major = true;
+-			} elseif ( 'minor' === WP_AUTO_UPDATE_CORE ) {
++			} elseif ( 'minor' === \wp_aot_undefined_constant('WP_AUTO_UPDATE_CORE') ) {
+ 				// Only minor updates for core.
+ 				$upgrade_dev   = false;
+ 				$upgrade_minor = true;
+@@ -388,6 +390,7 @@
+ 
+ 		// If we're not sure, we don't want it.
+ 		return false;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -400,7 +403,7 @@
+ 	 *
+ 	 * @return bool True if the checksums match, otherwise false.
+ 	 */
+-	public function check_files() {
++	public function check_files(): mixed {
+ 		global $wp_version, $wp_local_package;
+ 
+ 		$checksums = get_core_checksums( $wp_version, $wp_local_package ?? 'en_US' );
+@@ -414,11 +417,12 @@
+ 			if ( str_starts_with( $file, 'wp-content' ) ) {
+ 				continue;
+ 			}
+-			if ( ! file_exists( ABSPATH . $file ) || md5_file( ABSPATH . $file ) !== $checksum ) {
++			if ( ! file_exists( ABSPATH . $file ) || \wp_aot_native_api('md5_file', array( ABSPATH . $file )) !== $checksum ) {
+ 				return false;
+ 			}
+ 		}
+ 
+ 		return true;
++		return null;
+ 	}
+ }

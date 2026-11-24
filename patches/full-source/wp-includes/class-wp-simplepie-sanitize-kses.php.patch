@@ -1,0 +1,31 @@
+--- a/wp-includes/class-wp-simplepie-sanitize-kses.php
++++ b/wp-includes/class-wp-simplepie-sanitize-kses.php
+@@ -9,7 +9,7 @@
+ 
+ // Don't load directly.
+ if ( ! defined( 'ABSPATH' ) ) {
+-	exit;
++	\wp_aot_exit();
+ }
+ 
+ /**
+@@ -36,10 +36,10 @@
+ 	 *                      URLs to absolute ones. Default empty.
+ 	 * @return mixed Sanitized data.
+ 	 */
+-	public function sanitize( $data, $type, $base = '' ) {
++	public function sanitize( mixed $data, mixed $type, mixed $base = '' ): mixed {
+ 		$data = trim( $data );
+ 		if ( $type & SimplePie\SimplePie::CONSTRUCT_MAYBE_HTML ) {
+-			if ( preg_match( '/(&(#(x[0-9a-fA-F]+|[0-9]+)|[a-zA-Z0-9]+)|<\/[A-Za-z][^\x09\x0A\x0B\x0C\x0D\x20\x2F\x3E]*' . SIMPLEPIE_PCRE_HTML_ATTRIBUTE . '>)/', $data ) ) {
++			if ( preg_match( \wp_aot_regex_text( '/(&(#(x[0-9a-fA-F]+|[0-9]+)|[a-zA-Z0-9]+)|<\/[A-Za-z][^\x09\x0A\x0B\x0C\x0D\x20\x2F\x3E]*' . SIMPLEPIE_PCRE_HTML_ATTRIBUTE . '>)/' ), \wp_aot_regex_text( $data ) ) ) {
+ 				$type |= SimplePie\SimplePie::CONSTRUCT_HTML;
+ 			} else {
+ 				$type |= SimplePie\SimplePie::CONSTRUCT_TEXT;
+@@ -57,5 +57,6 @@
+ 		} else {
+ 			return parent::sanitize( $data, $type, $base );
+ 		}
++		return null;
+ 	}
+ }

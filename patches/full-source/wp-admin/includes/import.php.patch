@@ -1,0 +1,88 @@
+--- a/wp-admin/includes/import.php
++++ b/wp-admin/includes/import.php
+@@ -14,12 +14,13 @@
+  * @global array $wp_importers
+  * @return array
+  */
+-function get_importers() {
++function get_importers(): mixed {
+ 	global $wp_importers;
+ 	if ( is_array( $wp_importers ) ) {
+-		uasort( $wp_importers, '_usort_by_first_member' );
++		\wp_aot_uasort( $wp_importers, '_usort_by_first_member' );
+ 	}
+ 	return $wp_importers;
++	return null;
+ }
+ 
+ /**
+@@ -34,8 +35,9 @@
+  * @param array $b
+  * @return int
+  */
+-function _usort_by_first_member( $a, $b ) {
++function _usort_by_first_member( mixed $a, mixed $b ): mixed {
+ 	return strnatcasecmp( $a[0], $b[0] );
++	return null;
+ }
+ 
+ /**
+@@ -51,12 +53,13 @@
+  * @param callable $callback    Callback to run.
+  * @return void|WP_Error Void on success. WP_Error when $callback is WP_Error.
+  */
+-function register_importer( $id, $name, $description, $callback ) {
++function register_importer( mixed $id, mixed $name, mixed $description, mixed $callback ): mixed {
+ 	global $wp_importers;
+ 	if ( is_wp_error( $callback ) ) {
+ 		return $callback;
+ 	}
+ 	$wp_importers[ $id ] = array( $name, $description, $callback );
++	return null;
+ }
+ 
+ /**
+@@ -68,8 +71,9 @@
+  *
+  * @param string $id Importer ID.
+  */
+-function wp_import_cleanup( $id ) {
++function wp_import_cleanup( mixed $id ): mixed {
+ 	wp_delete_attachment( $id );
++	return null;
+ }
+ 
+ /**
+@@ -79,7 +83,7 @@
+  *
+  * @return array Uploaded file's details on success, error message on failure.
+  */
+-function wp_import_handle_upload() {
++function wp_import_handle_upload(): mixed {
+ 	if ( ! isset( $_FILES['import'] ) ) {
+ 		return array(
+ 			'error' => sprintf(
+@@ -126,6 +130,7 @@
+ 		'file' => $upload['file'],
+ 		'id'   => $id,
+ 	);
++	return null;
+ }
+ 
+ /**
+@@ -135,7 +140,7 @@
+  *
+  * @return array Importers with metadata for each.
+  */
+-function wp_get_popular_importers() {
++function wp_get_popular_importers(): mixed {
+ 	$locale            = get_user_locale();
+ 	$cache_key         = 'popular_importers_' . md5( $locale . wp_get_wp_version() );
+ 	$popular_importers = get_site_transient( $cache_key );
+@@ -226,4 +231,5 @@
+ 			'importer-id' => 'wordpress',
+ 		),
+ 	);
+-}
++	return null;
++}

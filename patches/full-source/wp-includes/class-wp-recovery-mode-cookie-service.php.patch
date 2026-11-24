@@ -1,0 +1,196 @@
+--- a/wp-includes/class-wp-recovery-mode-cookie-service.php
++++ b/wp-includes/class-wp-recovery-mode-cookie-service.php
+@@ -21,8 +21,9 @@
+ 	 *
+ 	 * @return bool True if the cookie is set, false otherwise.
+ 	 */
+-	public function is_cookie_set() {
+-		return ! empty( $_COOKIE[ RECOVERY_MODE_COOKIE ] );
++	public function is_cookie_set(): mixed {
++		return ! empty( $_COOKIE[ \wp_aot_bootstrap_string('RECOVERY_MODE_COOKIE') ] );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -32,7 +33,7 @@
+ 	 *
+ 	 * @since 5.2.0
+ 	 */
+-	public function set_cookie() {
++	public function set_cookie(): mixed {
+ 
+ 		$value = $this->generate_cookie();
+ 
+@@ -47,11 +48,12 @@
+ 
+ 		$expire = time() + $length;
+ 
+-		setcookie( RECOVERY_MODE_COOKIE, $value, $expire, COOKIEPATH, COOKIE_DOMAIN, is_ssl(), true );
+-
+-		if ( COOKIEPATH !== SITECOOKIEPATH ) {
+-			setcookie( RECOVERY_MODE_COOKIE, $value, $expire, SITECOOKIEPATH, COOKIE_DOMAIN, is_ssl(), true );
+-		}
++		\wp_aot_native_api('setcookie', array( \wp_aot_bootstrap_string('RECOVERY_MODE_COOKIE'), $value, $expire, \wp_aot_bootstrap_string('COOKIEPATH'), COOKIE_DOMAIN, is_ssl(), true ));
++
++		if ( \wp_aot_bootstrap_string('COOKIEPATH') !== \wp_aot_bootstrap_string('SITECOOKIEPATH') ) {
++			\wp_aot_native_api('setcookie', array( \wp_aot_bootstrap_string('RECOVERY_MODE_COOKIE'), $value, $expire, \wp_aot_bootstrap_string('SITECOOKIEPATH'), COOKIE_DOMAIN, is_ssl(), true ));
++		}
++		return null;
+ 	}
+ 
+ 	/**
+@@ -59,9 +61,10 @@
+ 	 *
+ 	 * @since 5.2.0
+ 	 */
+-	public function clear_cookie() {
+-		setcookie( RECOVERY_MODE_COOKIE, ' ', time() - YEAR_IN_SECONDS, COOKIEPATH, COOKIE_DOMAIN );
+-		setcookie( RECOVERY_MODE_COOKIE, ' ', time() - YEAR_IN_SECONDS, SITECOOKIEPATH, COOKIE_DOMAIN );
++	public function clear_cookie(): mixed {
++		\wp_aot_native_api('setcookie', array( \wp_aot_bootstrap_string('RECOVERY_MODE_COOKIE'), ' ', time() - YEAR_IN_SECONDS, \wp_aot_bootstrap_string('COOKIEPATH'), COOKIE_DOMAIN ));
++		\wp_aot_native_api('setcookie', array( \wp_aot_bootstrap_string('RECOVERY_MODE_COOKIE'), ' ', time() - YEAR_IN_SECONDS, \wp_aot_bootstrap_string('SITECOOKIEPATH'), COOKIE_DOMAIN ));
++		return null;
+ 	}
+ 
+ 	/**
+@@ -73,14 +76,14 @@
+ 	 *                       If omitted, it will be retrieved from the super global.
+ 	 * @return true|WP_Error True on success, error object on failure.
+ 	 */
+-	public function validate_cookie( $cookie = '' ) {
++	public function validate_cookie( mixed $cookie = '' ): mixed {
+ 
+ 		if ( ! $cookie ) {
+-			if ( empty( $_COOKIE[ RECOVERY_MODE_COOKIE ] ) ) {
++			if ( empty( $_COOKIE[ \wp_aot_bootstrap_string('RECOVERY_MODE_COOKIE') ] ) ) {
+ 				return new WP_Error( 'no_cookie', __( 'No cookie present.' ) );
+ 			}
+ 
+-			$cookie = $_COOKIE[ RECOVERY_MODE_COOKIE ];
++			$cookie = $_COOKIE[ \wp_aot_bootstrap_string('RECOVERY_MODE_COOKIE') ];
+ 		}
+ 
+ 		$parts = $this->parse_cookie( $cookie );
+@@ -110,6 +113,7 @@
+ 		}
+ 
+ 		return true;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -123,13 +127,13 @@
+ 	 *                       If omitted, it will be retrieved from the super global.
+ 	 * @return string|WP_Error Session ID on success, or error object on failure.
+ 	 */
+-	public function get_session_id_from_cookie( $cookie = '' ) {
++	public function get_session_id_from_cookie( mixed $cookie = '' ): mixed {
+ 		if ( ! $cookie ) {
+-			if ( empty( $_COOKIE[ RECOVERY_MODE_COOKIE ] ) ) {
++			if ( empty( $_COOKIE[ \wp_aot_bootstrap_string('RECOVERY_MODE_COOKIE') ] ) ) {
+ 				return new WP_Error( 'no_cookie', __( 'No cookie present.' ) );
+ 			}
+ 
+-			$cookie = $_COOKIE[ RECOVERY_MODE_COOKIE ];
++			$cookie = $_COOKIE[ \wp_aot_bootstrap_string('RECOVERY_MODE_COOKIE') ];
+ 		}
+ 
+ 		$parts = $this->parse_cookie( $cookie );
+@@ -140,6 +144,7 @@
+ 		list( , , $random ) = $parts;
+ 
+ 		return sha1( $random );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -150,7 +155,7 @@
+ 	 * @param string $cookie Cookie content.
+ 	 * @return array|WP_Error Cookie parts array, or error object on failure.
+ 	 */
+-	private function parse_cookie( $cookie ) {
++	private function parse_cookie( mixed $cookie ): mixed {
+ 		$cookie = base64_decode( $cookie );
+ 		$parts  = explode( '|', $cookie );
+ 
+@@ -159,6 +164,7 @@
+ 		}
+ 
+ 		return $parts;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -177,11 +183,12 @@
+ 	 *
+ 	 * @return string Generated cookie content.
+ 	 */
+-	private function generate_cookie() {
++	private function generate_cookie(): mixed {
+ 		$to_sign = sprintf( 'recovery_mode|%s|%s', time(), wp_generate_password( 20, false ) );
+ 		$signed  = $this->recovery_mode_hash( $to_sign );
+ 
+ 		return base64_encode( sprintf( '%s|%s', $to_sign, $signed ) );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -197,8 +204,8 @@
+ 	 * @param string $data Data to hash.
+ 	 * @return string|false The hashed $data, or false on failure.
+ 	 */
+-	private function recovery_mode_hash( $data ) {
+-		$default_keys = array_unique(
++	private function recovery_mode_hash( mixed $data ): mixed {
++		$default_keys = \wp_aot_array_unique(
+ 			array(
+ 				'put your unique phrase here',
+ 				/*
+@@ -210,38 +217,39 @@
+ 			)
+ 		);
+ 
+-		if ( ! defined( 'AUTH_KEY' ) || in_array( AUTH_KEY, $default_keys, true ) ) {
++		if ( ! defined( 'AUTH_KEY' ) || in_array( \wp_aot_metadata_constant('AUTH_KEY'), $default_keys, true ) ) {
+ 			$auth_key = get_site_option( 'recovery_mode_auth_key' );
+ 
+ 			if ( ! $auth_key ) {
+ 				if ( ! function_exists( 'wp_generate_password' ) ) {
+-					require_once ABSPATH . WPINC . '/pluggable.php';
++					require_once __DIR__ . '/pluggable.php';
+ 				}
+ 
+ 				$auth_key = wp_generate_password( 64, true, true );
+ 				update_site_option( 'recovery_mode_auth_key', $auth_key );
+ 			}
+ 		} else {
+-			$auth_key = AUTH_KEY;
+-		}
+-
+-		if ( ! defined( 'AUTH_SALT' ) || in_array( AUTH_SALT, $default_keys, true ) || AUTH_SALT === $auth_key ) {
++			$auth_key = \wp_aot_metadata_constant('AUTH_KEY');
++		}
++
++		if ( ! defined( 'AUTH_SALT' ) || in_array( \wp_aot_metadata_constant('AUTH_SALT'), $default_keys, true ) || \wp_aot_metadata_constant('AUTH_SALT') === $auth_key ) {
+ 			$auth_salt = get_site_option( 'recovery_mode_auth_salt' );
+ 
+ 			if ( ! $auth_salt ) {
+ 				if ( ! function_exists( 'wp_generate_password' ) ) {
+-					require_once ABSPATH . WPINC . '/pluggable.php';
++					require_once __DIR__ . '/pluggable.php';
+ 				}
+ 
+ 				$auth_salt = wp_generate_password( 64, true, true );
+ 				update_site_option( 'recovery_mode_auth_salt', $auth_salt );
+ 			}
+ 		} else {
+-			$auth_salt = AUTH_SALT;
++			$auth_salt = \wp_aot_metadata_constant('AUTH_SALT');
+ 		}
+ 
+ 		$secret = $auth_key . $auth_salt;
+ 
+ 		return hash_hmac( 'sha1', $data, $secret );
++		return null;
+ 	}
+ }

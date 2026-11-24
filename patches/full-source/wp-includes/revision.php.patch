@@ -1,0 +1,579 @@
+--- a/wp-includes/revision.php
++++ b/wp-includes/revision.php
+@@ -19,8 +19,9 @@
+  * @param bool          $deprecated Not used.
+  * @return string[] Array of fields that can be versioned.
+  */
+-function _wp_post_revision_fields( $post = array(), $deprecated = false ) {
+-	static $fields = null;
++function _wp_post_revision_fields( mixed $post = array(), mixed $deprecated = false ): mixed {
++	static $fields_aot_cell = new \WordPressStaticValueCell();
++	$fields =& $fields_aot_cell->value;
+ 
+ 	if ( ! is_array( $post ) ) {
+ 		$post = get_post( $post, ARRAY_A );
+@@ -59,6 +60,7 @@
+ 	}
+ 
+ 	return $fields;
++	return null;
+ }
+ 
+ /**
+@@ -72,7 +74,7 @@
+  * @param bool          $autosave Optional. Is the revision an autosave? Default false.
+  * @return array Post array ready to be inserted as a post revision.
+  */
+-function _wp_post_revision_data( $post = array(), $autosave = false ) {
++function _wp_post_revision_data( mixed $post = array(), mixed $autosave = false ): mixed {
+ 	if ( ! is_array( $post ) ) {
+ 		$post = get_post( $post, ARRAY_A );
+ 	}
+@@ -81,7 +83,7 @@
+ 
+ 	$revision_data = array();
+ 
+-	foreach ( array_intersect( array_keys( $post ), array_keys( $fields ) ) as $field ) {
++	foreach ( \wp_aot_array_intersect(array( array_keys( $post ), array_keys( $fields ) )) as $field ) {
+ 		$revision_data[ $field ] = $post[ $field ];
+ 	}
+ 
+@@ -93,6 +95,7 @@
+ 	$revision_data['post_date_gmt'] = $post['post_modified_gmt'] ?? '';
+ 
+ 	return $revision_data;
++	return null;
+ }
+ 
+ /**
+@@ -104,16 +107,17 @@
+  * @param WP_Post $post    The post object that was inserted.
+  * @param bool    $update  Whether this insert is updating an existing post.
+  */
+-function wp_save_post_revision_on_insert( $post_id, $post, $update ) {
++function wp_save_post_revision_on_insert( mixed $post_id, mixed $post, mixed $update ): mixed {
+ 	if ( ! $update ) {
+-		return;
++		return null;
+ 	}
+ 
+ 	if ( ! has_action( 'post_updated', 'wp_save_post_revision' ) ) {
+-		return;
++		return null;
+ 	}
+ 
+ 	wp_save_post_revision( $post_id );
++	return null;
+ }
+ 
+ /**
+@@ -127,8 +131,8 @@
+  * @param int $post_id The ID of the post to save as a revision.
+  * @return int|WP_Error|null Null or 0 if error, new revision ID, if success.
+  */
+-function wp_save_post_revision( $post_id ) {
+-	if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) {
++function wp_save_post_revision( mixed $post_id ): mixed {
++	if ( defined( 'DOING_AUTOSAVE' ) && \wp_aot_metadata_constant('DOING_AUTOSAVE') ) {
+ 		return null;
+ 	}
+ 
+@@ -248,7 +252,7 @@
+ 		return $return;
+ 	}
+ 
+-	$revisions = array_slice( $revisions, 0, $delete );
++	$revisions = \wp_aot_array_slice( $revisions, 0, $delete );
+ 
+ 	for ( $i = 0; isset( $revisions[ $i ] ); $i++ ) {
+ 		if ( str_contains( $revisions[ $i ]->post_name, 'autosave' ) ) {
+@@ -259,6 +263,7 @@
+ 	}
+ 
+ 	return $return;
++	return null;
+ }
+ 
+ /**
+@@ -274,7 +279,7 @@
+  * @param int $user_id Optional. The post author ID. Default 0.
+  * @return WP_Post|false The autosaved data or false on failure or when no autosave exists.
+  */
+-function wp_get_post_autosave( $post_id, $user_id = 0 ) {
++function wp_get_post_autosave( mixed $post_id, mixed $user_id = 0 ): mixed {
+ 	$args = array(
+ 		'post_type'      => 'revision',
+ 		'post_status'    => 'inherit',
+@@ -297,7 +302,8 @@
+ 		return false;
+ 	}
+ 
+-	return get_post( $query->posts[0] );
++	return get_post( \wp_aot_mixed($query->posts)[0] );
++	return null;
+ }
+ 
+ /**
+@@ -308,7 +314,7 @@
+  * @param int|WP_Post $post Post ID or post object.
+  * @return int|false ID of revision's parent on success, false if not a revision.
+  */
+-function wp_is_post_revision( $post ) {
++function wp_is_post_revision( mixed $post ): mixed {
+ 	$post = wp_get_post_revision( $post );
+ 
+ 	if ( ! $post ) {
+@@ -316,6 +322,7 @@
+ 	}
+ 
+ 	return (int) $post->post_parent;
++	return null;
+ }
+ 
+ /**
+@@ -326,7 +333,7 @@
+  * @param int|WP_Post $post Post ID or post object.
+  * @return int|false ID of autosave's parent on success, false if not a revision.
+  */
+-function wp_is_post_autosave( $post ) {
++function wp_is_post_autosave( mixed $post ): mixed {
+ 	$post = wp_get_post_revision( $post );
+ 
+ 	if ( ! $post ) {
+@@ -338,6 +345,7 @@
+ 	}
+ 
+ 	return false;
++	return null;
+ }
+ 
+ /**
+@@ -351,7 +359,7 @@
+  *                                         Default false.
+  * @return int|WP_Error WP_Error or 0 if error, new revision ID if success.
+  */
+-function _wp_put_post_revision( $post = null, $autosave = false ) {
++function _wp_put_post_revision( mixed $post = null, mixed $autosave = false ): mixed {
+ 	if ( is_object( $post ) ) {
+ 		$post = get_object_vars( $post );
+ 	} elseif ( ! is_array( $post ) ) {
+@@ -388,6 +396,7 @@
+ 	}
+ 
+ 	return $revision_id;
++	return null;
+ }
+ 
+ 
+@@ -399,10 +408,10 @@
+  * @param int $revision_id The ID of the revision to save the meta to.
+  * @param int $post_id     The ID of the post the revision is associated with.
+  */
+-function wp_save_revisioned_meta_fields( $revision_id, $post_id ) {
++function wp_save_revisioned_meta_fields( mixed $revision_id, mixed $post_id ): mixed {
+ 	$post_type = get_post_type( $post_id );
+ 	if ( ! $post_type ) {
+-		return;
++		return null;
+ 	}
+ 
+ 	foreach ( wp_post_revision_meta_keys( $post_type ) as $meta_key ) {
+@@ -410,6 +419,7 @@
+ 			_wp_copy_post_meta( $post_id, $revision_id, $meta_key );
+ 		}
+ 	}
++	return null;
+ }
+ 
+ /**
+@@ -435,7 +445,7 @@
+  *     )
+  * )
+  */
+-function wp_get_post_revision( &$post, $output = OBJECT, $filter = 'raw' ) {
++function wp_get_post_revision( mixed &$post, mixed $output = OBJECT, mixed $filter = 'raw' ): mixed {
+ 	$revision = get_post( $post, OBJECT, $filter );
+ 
+ 	if ( ! $revision ) {
+@@ -450,7 +460,7 @@
+ 		return $revision;
+ 	} elseif ( ARRAY_A === $output ) {
+ 		/** @var non-empty-array<string, mixed> $_revision */
+-		$_revision = get_object_vars( $revision );
++		$_revision = \wp_aot_mixed(get_object_vars( $revision ));
+ 		return $_revision;
+ 	} elseif ( ARRAY_N === $output ) {
+ 		/** @var non-empty-array<string, mixed> $vars */
+@@ -460,6 +470,7 @@
+ 	}
+ 
+ 	return $revision;
++	return null;
+ }
+ 
+ /**
+@@ -473,7 +484,7 @@
+  * @param array       $fields   Optional. What fields to restore from. Defaults to all.
+  * @return int|false|null Null if error, false if no fields to restore, (int) post ID if success.
+  */
+-function wp_restore_post_revision( $revision, $fields = null ) {
++function wp_restore_post_revision( mixed $revision, mixed $fields = null ): mixed {
+ 	$revision = wp_get_post_revision( $revision, ARRAY_A );
+ 
+ 	if ( ! $revision ) {
+@@ -485,7 +496,7 @@
+ 	}
+ 
+ 	$update = array();
+-	foreach ( array_intersect( array_keys( $revision ), $fields ) as $field ) {
++	foreach ( \wp_aot_array_intersect(array( array_keys( $revision ), $fields )) as $field ) {
+ 		$update[ $field ] = $revision[ $field ];
+ 	}
+ 
+@@ -517,6 +528,7 @@
+ 	do_action( 'wp_restore_post_revision', $post_id, $revision['ID'] );
+ 
+ 	return $post_id;
++	return null;
+ }
+ 
+ /**
+@@ -527,10 +539,10 @@
+  * @param int $post_id     The ID of the post to restore the meta to.
+  * @param int $revision_id The ID of the revision to restore the meta from.
+  */
+-function wp_restore_post_revision_meta( $post_id, $revision_id ) {
++function wp_restore_post_revision_meta( mixed $post_id, mixed $revision_id ): mixed {
+ 	$post_type = get_post_type( $post_id );
+ 	if ( ! $post_type ) {
+-		return;
++		return null;
+ 	}
+ 
+ 	// Restore revisioned meta fields.
+@@ -541,6 +553,7 @@
+ 
+ 		_wp_copy_post_meta( $revision_id, $post_id, $meta_key );
+ 	}
++	return null;
+ }
+ 
+ /**
+@@ -552,7 +565,7 @@
+  * @param int    $target_post_id Post ID to copy meta value(s) to.
+  * @param string $meta_key       Meta key to copy.
+  */
+-function _wp_copy_post_meta( $source_post_id, $target_post_id, $meta_key ) {
++function _wp_copy_post_meta( mixed $source_post_id, mixed $target_post_id, mixed $meta_key ): mixed {
+ 
+ 	foreach ( get_post_meta( $source_post_id, $meta_key ) as $meta_value ) {
+ 		/**
+@@ -561,6 +574,7 @@
+ 		 */
+ 		add_metadata( 'post', $target_post_id, $meta_key, wp_slash( $meta_value ) );
+ 	}
++	return null;
+ }
+ 
+ /**
+@@ -571,11 +585,11 @@
+  * @param string $post_type The post type being revisioned.
+  * @return array An array of meta keys to be revisioned.
+  */
+-function wp_post_revision_meta_keys( $post_type ) {
+-	$registered_meta = array_merge(
++function wp_post_revision_meta_keys( mixed $post_type ): mixed {
++	$registered_meta = \wp_aot_array_merge(array(
+ 		get_registered_meta_keys( 'post' ),
+ 		get_registered_meta_keys( 'post', $post_type )
+-	);
++	));
+ 
+ 	$wp_revisioned_meta_keys = array();
+ 
+@@ -596,6 +610,7 @@
+ 	 * @param string $post_type The post type being revisioned.
+ 	 */
+ 	return apply_filters( 'wp_post_revision_meta_keys', $wp_revisioned_meta_keys, $post_type );
++	return null;
+ }
+ 
+ /**
+@@ -608,7 +623,7 @@
+  * @param WP_Post $post             The post object.
+  * @return bool Whether the post has changed.
+  */
+-function wp_check_revisioned_meta_fields_have_changed( $post_has_changed, WP_Post $last_revision, WP_Post $post ) {
++function wp_check_revisioned_meta_fields_have_changed( mixed $post_has_changed, WP_Post $last_revision, WP_Post $post ): mixed {
+ 	foreach ( wp_post_revision_meta_keys( $post->post_type ) as $meta_key ) {
+ 		if ( get_post_meta( $post->ID, $meta_key ) !== get_post_meta( $last_revision->ID, $meta_key ) ) {
+ 			$post_has_changed = true;
+@@ -616,6 +631,7 @@
+ 		}
+ 	}
+ 	return $post_has_changed;
++	return null;
+ }
+ 
+ /**
+@@ -628,7 +644,7 @@
+  * @param int|WP_Post $revision Revision ID or revision object.
+  * @return WP_Post|false|null Null or false if error, deleted post object if success.
+  */
+-function wp_delete_post_revision( $revision ) {
++function wp_delete_post_revision( mixed $revision ): mixed {
+ 	$revision = wp_get_post_revision( $revision );
+ 
+ 	if ( ! $revision ) {
+@@ -650,6 +666,7 @@
+ 	}
+ 
+ 	return $delete;
++	return null;
+ }
+ 
+ /**
+@@ -663,7 +680,7 @@
+  * @param array|null  $args Optional. Arguments for retrieving post revisions. Default null.
+  * @return WP_Post[]|int[] Array of revision objects or IDs, or an empty array if none.
+  */
+-function wp_get_post_revisions( $post = 0, $args = null ) {
++function wp_get_post_revisions( mixed $post = 0, mixed $args = null ): mixed {
+ 	$post = get_post( $post );
+ 
+ 	if ( ! $post || empty( $post->ID ) ) {
+@@ -681,14 +698,14 @@
+ 		return array();
+ 	}
+ 
+-	$args = array_merge(
++	$args = \wp_aot_array_merge(array(
+ 		$args,
+ 		array(
+ 			'post_parent' => $post->ID,
+ 			'post_type'   => 'revision',
+ 			'post_status' => 'inherit',
+ 		)
+-	);
++	));
+ 
+ 	$revisions = get_children( $args );
+ 
+@@ -697,6 +714,7 @@
+ 	}
+ 
+ 	return $revisions;
++	return null;
+ }
+ 
+ /**
+@@ -713,7 +731,7 @@
+  *     @type int $count     The total count of revisions for the given post.
+  * }
+  */
+-function wp_get_latest_revision_id_and_total_count( $post = 0 ) {
++function wp_get_latest_revision_id_and_total_count( mixed $post = 0 ): mixed {
+ 	$post = get_post( $post );
+ 
+ 	if ( ! $post ) {
+@@ -749,6 +767,7 @@
+ 		'latest_id' => $revisions[0],
+ 		'count'     => $revision_query->found_posts,
+ 	);
++	return null;
+ }
+ 
+ /**
+@@ -759,7 +778,7 @@
+  * @param int|WP_Post $post Optional. Post ID or WP_Post object. Default is global `$post`.
+  * @return string|null The URL for editing revisions on the given post, otherwise null.
+  */
+-function wp_get_post_revisions_url( $post = 0 ) {
++function wp_get_post_revisions_url( mixed $post = 0 ): mixed {
+ 	$post = get_post( $post );
+ 
+ 	if ( ! $post instanceof WP_Post ) {
+@@ -782,6 +801,7 @@
+ 	}
+ 
+ 	return get_edit_post_link( $revisions['latest_id'] );
++	return null;
+ }
+ 
+ /**
+@@ -792,8 +812,9 @@
+  * @param WP_Post $post The post object.
+  * @return bool True if number of revisions to keep isn't zero, false otherwise.
+  */
+-function wp_revisions_enabled( $post ) {
++function wp_revisions_enabled( mixed $post ): mixed {
+ 	return wp_revisions_to_keep( $post ) !== 0;
++	return null;
+ }
+ 
+ /**
+@@ -809,7 +830,7 @@
+  * @param WP_Post $post The post object.
+  * @return int The number of revisions to keep.
+  */
+-function wp_revisions_to_keep( $post ) {
++function wp_revisions_to_keep( mixed $post ): mixed {
+ 	$num = WP_POST_REVISIONS;
+ 
+ 	if ( true === $num ) {
+@@ -855,6 +876,7 @@
+ 	$num = apply_filters( "wp_{$post->post_type}_revisions_to_keep", $num, $post );
+ 
+ 	return (int) $num;
++	return null;
+ }
+ 
+ /**
+@@ -866,7 +888,7 @@
+  * @param WP_Post $post
+  * @return WP_Post|false
+  */
+-function _set_preview( $post ) {
++function _set_preview( mixed $post ): mixed {
+ 	if ( ! is_object( $post ) ) {
+ 		return $post;
+ 	}
+@@ -886,6 +908,7 @@
+ 	add_filter( 'get_post_metadata', '_wp_preview_meta_filter', 10, 4 );
+ 
+ 	return $post;
++	return null;
+ }
+ 
+ /**
+@@ -894,7 +917,7 @@
+  * @since 2.7.0
+  * @access private
+  */
+-function _show_post_preview() {
++function _show_post_preview(): mixed {
+ 	if ( isset( $_GET['preview_id'] ) && isset( $_GET['preview_nonce'] ) ) {
+ 		$id = (int) $_GET['preview_id'];
+ 
+@@ -904,6 +927,7 @@
+ 
+ 		add_filter( 'the_preview', '_set_preview' );
+ 	}
++	return null;
+ }
+ 
+ /**
+@@ -917,7 +941,7 @@
+  * @param string $taxonomy
+  * @return array
+  */
+-function _wp_preview_terms_filter( $terms, $post_id, $taxonomy ) {
++function _wp_preview_terms_filter( mixed $terms, mixed $post_id, mixed $taxonomy ): mixed {
+ 	$post = get_post();
+ 
+ 	if ( ! $post ) {
+@@ -941,6 +965,7 @@
+ 	}
+ 
+ 	return $terms;
++	return null;
+ }
+ 
+ /**
+@@ -954,7 +979,7 @@
+  * @param string            $meta_key Meta key.
+  * @return null|array The default return value or the post thumbnail meta array.
+  */
+-function _wp_preview_post_thumbnail_filter( $value, $post_id, $meta_key ) {
++function _wp_preview_post_thumbnail_filter( mixed $value, mixed $post_id, mixed $meta_key ): mixed {
+ 	$post = get_post();
+ 
+ 	if ( ! $post ) {
+@@ -975,6 +1000,7 @@
+ 	}
+ 
+ 	return (string) $thumbnail_id;
++	return null;
+ }
+ 
+ /**
+@@ -986,18 +1012,19 @@
+  * @param WP_Post $revision
+  * @return int|false
+  */
+-function _wp_get_post_revision_version( $revision ) {
++function _wp_get_post_revision_version( mixed $revision ): mixed {
+ 	if ( is_object( $revision ) ) {
+ 		$revision = get_object_vars( $revision );
+ 	} elseif ( ! is_array( $revision ) ) {
+ 		return false;
+ 	}
+ 
+-	if ( preg_match( '/^\d+-(?:autosave|revision)-v(\d+)$/', $revision['post_name'], $matches ) ) {
++	if ( preg_match( '/^\d+-(?:autosave|revision)-v(\d+)$/', \wp_aot_regex_text( $revision['post_name'] ), $matches ) ) {
+ 		return (int) $matches[1];
+ 	}
+ 
+ 	return 0;
++	return null;
+ }
+ 
+ /**
+@@ -1012,13 +1039,13 @@
+  * @param array   $revisions Current revisions of the post.
+  * @return bool true if the revisions were upgraded, false if problems.
+  */
+-function _wp_upgrade_revisions_of_post( $post, $revisions ) {
++function _wp_upgrade_revisions_of_post( mixed $post, mixed $revisions ): mixed {
+ 	global $wpdb;
+ 
+ 	// Add post option exclusively.
+ 	$lock   = "revision-upgrade-{$post->ID}";
+ 	$now    = time();
+-	$result = $wpdb->query( $wpdb->prepare( "INSERT IGNORE INTO `$wpdb->options` (`option_name`, `option_value`, `autoload`) VALUES (%s, %s, 'off') /* LOCK */", $lock, $now ) );
++	$result = \wp_aot_require_wpdb( $wpdb )->query( \wp_aot_require_wpdb( $wpdb )->prepare( "INSERT IGNORE INTO `$wpdb->options` (`option_name`, `option_value`, `autoload`) VALUES (%s, %s, 'off') /* LOCK */", $lock, $now ) );
+ 
+ 	if ( ! $result ) {
+ 		// If we couldn't get a lock, see how old the previous lock is.
+@@ -1068,7 +1095,7 @@
+ 
+ 		// Always update the revision version.
+ 		$update = array(
+-			'post_name' => preg_replace( '/^(\d+-(?:autosave|revision))[\d-]*$/', '$1-v1', $this_revision->post_name ),
++			'post_name' => \wp_aot_preg_replace( '/^(\d+-(?:autosave|revision))[\d-]*$/', '$1-v1', $this_revision->post_name ),
+ 		);
+ 
+ 		/*
+@@ -1086,7 +1113,7 @@
+ 		}
+ 
+ 		// Upgrade this revision.
+-		$result = $wpdb->update( $wpdb->posts, $update, array( 'ID' => $this_revision->ID ) );
++		$result = \wp_aot_require_wpdb( $wpdb )->update( $wpdb->posts, $update, array( 'ID' => $this_revision->ID ) );
+ 
+ 		if ( $result ) {
+ 			wp_cache_delete( $this_revision->ID, 'posts' );
+@@ -1101,6 +1128,7 @@
+ 	}
+ 
+ 	return true;
++	return null;
+ }
+ 
+ /**
+@@ -1118,7 +1146,7 @@
+  *               the post type is a revision or the post ID doesn't match the object ID.
+  *               Otherwise, the revisioned meta value is returned for the preview.
+  */
+-function _wp_preview_meta_filter( $value, $object_id, $meta_key, $single ) {
++function _wp_preview_meta_filter( mixed $value, mixed $object_id, mixed $meta_key, mixed $single ): mixed {
+ 	$post = get_post();
+ 
+ 	if ( empty( $post )
+@@ -1136,4 +1164,5 @@
+ 	}
+ 
+ 	return get_post_meta( $preview->ID, $meta_key, $single );
+-}
++	return null;
++}

@@ -1,0 +1,74 @@
+--- a/wp-includes/blocks/home-link.php
++++ b/wp-includes/blocks/home-link.php
+@@ -14,7 +14,7 @@
+  * @param  array $context home link block context.
+  * @return array Colors CSS classes and inline styles.
+  */
+-function block_core_home_link_build_css_colors( $context ) {
++function block_core_home_link_build_css_colors( mixed $context ): mixed {
+ 	$colors = array(
+ 		'css_classes'   => array(),
+ 		'inline_styles' => '',
+@@ -57,6 +57,7 @@
+ 	}
+ 
+ 	return $colors;
++	return null;
+ }
+ 
+ /**
+@@ -67,11 +68,11 @@
+  * @param  array $context    Home link block context.
+  * @return string The li wrapper attributes.
+  */
+-function block_core_home_link_build_li_wrapper_attributes( $context ) {
++function block_core_home_link_build_li_wrapper_attributes( mixed $context ): mixed {
+ 	$colors  = block_core_home_link_build_css_colors( $context );
+-	$classes = array_merge(
++	$classes = \wp_aot_array_merge(array(
+ 		$colors['css_classes']
+-	);
++	));
+ 
+ 	$style_attribute = $colors['inline_styles'];
+ 	$classes[]       = 'wp-block-navigation-item';
+@@ -91,6 +92,7 @@
+ 	);
+ 
+ 	return $wrapper_attributes;
++	return null;
+ }
+ 
+ /**
+@@ -104,7 +106,7 @@
+  *
+  * @return string Returns the post content with the home url added.
+  */
+-function render_block_core_home_link( $attributes, $content, $block ) {
++function render_block_core_home_link( mixed $attributes, mixed $content, mixed $block ): mixed {
+ 	if ( empty( $attributes['label'] ) ) {
+ 		$attributes['label'] = __( 'Home' );
+ 	}
+@@ -136,6 +138,7 @@
+ 		wp_kses_post( $attributes['label'] ),
+ 		$description
+ 	);
++	return null;
+ }
+ 
+ /**
+@@ -146,12 +149,13 @@
+  * @uses render_block_core_home_link()
+  * @throws WP_Error An WP_Error exception parsing the block definition.
+  */
+-function register_block_core_home_link() {
++function register_block_core_home_link(): mixed {
+ 	register_block_type_from_metadata(
+ 		__DIR__ . '/home-link',
+ 		array(
+ 			'render_callback' => 'render_block_core_home_link',
+ 		)
+ 	);
++	return null;
+ }
+ add_action( 'init', 'register_block_core_home_link' );

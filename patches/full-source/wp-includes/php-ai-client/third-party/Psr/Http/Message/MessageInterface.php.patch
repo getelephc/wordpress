@@ -1,0 +1,20 @@
+--- a/wp-includes/php-ai-client/third-party/Psr/Http/Message/MessageInterface.php
++++ b/wp-includes/php-ai-client/third-party/Psr/Http/Message/MessageInterface.php
+@@ -123,7 +123,7 @@
+      * @return static
+      * @throws \InvalidArgumentException for invalid header names or values.
+      */
+-    public function withHeader(string $name, $value): MessageInterface;
++    public function withHeader(string $name, mixed $value): MessageInterface;
+     /**
+      * Return an instance with the specified header appended with the given value.
+      *
+@@ -140,7 +140,7 @@
+      * @return static
+      * @throws \InvalidArgumentException for invalid header names or values.
+      */
+-    public function withAddedHeader(string $name, $value): MessageInterface;
++    public function withAddedHeader(string $name, mixed $value): MessageInterface;
+     /**
+      * Return an instance without the specified header.
+      *

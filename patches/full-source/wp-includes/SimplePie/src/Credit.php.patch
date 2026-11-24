@@ -1,0 +1,52 @@
+--- a/wp-includes/SimplePie/src/Credit.php
++++ b/wp-includes/SimplePie/src/Credit.php
+@@ -72,13 +72,14 @@
+      *
+      * @return string|null
+      */
+-    public function get_role()
++    public function get_role(): mixed
+     {
+         if ($this->role !== null) {
+             return $this->role;
+         }
+ 
+         return null;
++    	return null;
+     }
+ 
+     /**
+@@ -86,13 +87,14 @@
+      *
+      * @return string|null
+      */
+-    public function get_scheme()
++    public function get_scheme(): mixed
+     {
+         if ($this->scheme !== null) {
+             return $this->scheme;
+         }
+ 
+         return null;
++    	return null;
+     }
+ 
+     /**
+@@ -100,14 +102,15 @@
+      *
+      * @return string|null
+      */
+-    public function get_name()
++    public function get_name(): mixed
+     {
+         if ($this->name !== null) {
+             return $this->name;
+         }
+ 
+         return null;
++    	return null;
+     }
+ }
+ 
+-class_alias('SimplePie\Credit', 'SimplePie_Credit');
++(!defined('WP_AOT_NATIVE_RUNTIME') && (bool) \wp_aot_native_api('class_alias', array('SimplePie\Credit', 'SimplePie_Credit')));

@@ -1,0 +1,22 @@
+--- a/wp-includes/block-supports/anchor.php
++++ b/wp-includes/block-supports/anchor.php
+@@ -14,9 +14,9 @@
+  *
+  * @param WP_Block_Type $block_type Block Type.
+  */
+-function wp_register_anchor_support( WP_Block_Type $block_type ) {
++function wp_register_anchor_support( WP_Block_Type $block_type ): mixed {
+ 	if ( ! block_has_support( $block_type, array( 'anchor' ) ) ) {
+-		return;
++		return null;
+ 	}
+ 
+ 	if ( ! isset( $block_type->attributes ) ) {
+@@ -28,6 +28,7 @@
+ 			'type' => 'string',
+ 		);
+ 	}
++	return null;
+ }
+ 
+ /**

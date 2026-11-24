@@ -1,0 +1,524 @@
+--- a/wp-includes/class-pop3.php
++++ b/wp-includes/class-pop3.php
+@@ -17,37 +17,37 @@
+  */
+ 
+ class POP3 {
+-    var $ERROR      = '';       //  Error string.
+-
+-    var $TIMEOUT    = 60;       //  Default timeout before giving up on a
++    public $ERROR      = '';       //  Error string.
++
++    public $TIMEOUT    = 60;       //  Default timeout before giving up on a
+                                 //  network operation.
+ 
+-    var $COUNT      = -1;       //  Mailbox msg count
+-
+-    var $BUFFER     = 512;      //  Socket buffer for socket fgets() calls.
++    public $COUNT      = -1;       //  Mailbox msg count
++
++    public $BUFFER     = 512;      //  Socket buffer for socket fgets() calls.
+                                 //  Per RFC 1939 the returned line a POP3
+                                 //  server can send is 512 bytes.
+ 
+-    var $FP         = '';       //  The connection to the server's
++    public $FP         = '';       //  The connection to the server's
+                                 //  file descriptor
+ 
+-    var $MAILSERVER = '';       // Set this to hard code the server name
+-
+-    var $DEBUG      = FALSE;    // set to true to echo pop3
++    public $MAILSERVER = '';       // Set this to hard code the server name
++
++    public $DEBUG      = FALSE;    // set to true to echo pop3
+                                 // commands and responses to error_log
+                                 // this WILL log passwords!
+ 
+-    var $BANNER     = '';       //  Holds the banner returned by the
++    public $BANNER     = '';       //  Holds the banner returned by the
+                                 //  pop server - used for apop()
+ 
+-    var $ALLOWAPOP  = FALSE;    //  Allow or disallow apop()
++    public $ALLOWAPOP  = FALSE;    //  Allow or disallow apop()
+                                 //  This must be set to true
+                                 //  manually
+ 
+ 	/**
+ 	 * PHP5 constructor.
+ 	 */
+-    function __construct ( $server = '', $timeout = '' ) {
++    function __construct ( mixed $server = '', mixed $timeout = '' ) {
+         settype($this->BUFFER,"integer");
+         if( !empty($server) ) {
+             // Do not allow programs to alter MAILSERVER
+@@ -61,7 +61,7 @@
+             $this->TIMEOUT = $timeout;
+             // Extend POP3 request timeout to the specified TIMEOUT property.
+             if(function_exists("set_time_limit")){
+-                set_time_limit($timeout);
++                \wp_aot_native_api('set_time_limit', array($timeout));
+             }
+         }
+     }
+@@ -69,19 +69,21 @@
+ 	/**
+ 	 * PHP4 constructor.
+ 	 */
+-	public function POP3( $server = '', $timeout = '' ) {
++	public function POP3( mixed $server = '', mixed $timeout = '' ): mixed {
+ 		self::__construct( $server, $timeout );
++		return null;
+ 	}
+ 
+-    function update_timer () {
++    function update_timer (): mixed {
+         // Extend POP3 request timeout to the specified TIMEOUT property.
+         if(function_exists("set_time_limit")){
+-            set_time_limit($this->TIMEOUT);
++            \wp_aot_native_api('set_time_limit', array($this->TIMEOUT));
+         }
+         return true;
+-    }
+-
+-    function connect ($server, $port = 110)  {
++    	return null;
++    }
++
++    function connect (mixed $server, mixed $port = 110): mixed  {
+         //  Opens a socket to the specified server. Unless overridden,
+         //  port defaults to 110. Returns true on success, false on fail
+ 
+@@ -97,7 +99,7 @@
+             return false;
+         }
+ 
+-        $fp = @fsockopen("$server", $port, $errno, $errstr);
++        $fp = @\wp_aot_fsockopen("$server", $port, $errno, $errstr);
+ 
+         if(!$fp) {
+             $this->ERROR = "POP3 connect: " . _("Error ") . "[$errno] [$errstr]";
+@@ -107,10 +109,10 @@
+ 
+         socket_set_blocking($fp,-1);
+         $this->update_timer();
+-        $reply = fgets($fp,$this->BUFFER);
++        $reply = \wp_aot_fgets($fp,\wp_aot_nullable_int( $this->BUFFER ));
+         $reply = $this->strip_clf($reply);
+         if($this->DEBUG)
+-            error_log("POP3 SEND [connect: $server] GOT [$reply]",0);
++            \wp_aot_native_api('error_log', array("POP3 SEND [connect: $server] GOT [$reply]",0));
+         if(!$this->is_ok($reply)) {
+             $this->ERROR = "POP3 connect: " . _("Error ") . "[$reply]";
+             unset($this->FP);
+@@ -119,9 +121,10 @@
+         $this->FP = $fp;
+         $this->BANNER = $this->parse_banner($reply);
+         return true;
+-    }
+-
+-    function user ($user = "") {
++    	return null;
++    }
++
++    function user (mixed $user = ""): mixed {
+         // Sends the USER command, returns true or false
+ 
+         if( empty($user) ) {
+@@ -138,9 +141,10 @@
+             } else
+                 return true;
+         }
+-    }
+-
+-    function pass ($pass = "")     {
++    	return null;
++    }
++
++    function pass (mixed $pass = ""): mixed     {
+         // Sends the PASS command, returns # of msgs in mailbox,
+         // returns false (undef) on Auth failure
+ 
+@@ -163,9 +167,10 @@
+                 return $count;
+             }
+         }
+-    }
+-
+-    function apop ($login,$pass) {
++    	return null;
++    }
++
++    function apop (mixed $login,mixed $pass): mixed {
+         //  Attempts an APOP login. If this fails, it'll
+         //  try a standard login. YOUR SERVER MUST SUPPORT
+         //  THE USE OF THE APOP COMMAND!
+@@ -207,9 +212,10 @@
+                 }
+             }
+         }
+-    }
+-
+-    function login ($login = "", $pass = "") {
++    	return null;
++    }
++
++    function login (mixed $login = "", mixed $pass = ""): mixed {
+         // Sends both user and pass. Returns # of msgs in mailbox or
+         // false on failure (or -1, if the error occurs while getting
+         // the number of messages.)
+@@ -231,9 +237,10 @@
+                     return $count;
+             }
+         }
+-    }
+-
+-    function top ($msgNum, $numLines = "0") {
++    	return null;
++    }
++
++    function top (mixed $msgNum, mixed $numLines = "0"): mixed {
+         //  Gets the header and first $numLines of the msg body
+         //  returns data in an array with each returned line being
+         //  an array element. If $numLines is empty, returns
+@@ -248,11 +255,11 @@
+         $fp = $this->FP;
+         $buffer = $this->BUFFER;
+         $cmd = "TOP $msgNum $numLines";
+-        fwrite($fp, "TOP $msgNum $numLines\r\n");
+-        $reply = fgets($fp, $buffer);
++        \wp_aot_fwrite($fp, "TOP $msgNum $numLines\r\n");
++        $reply = \wp_aot_fgets($fp, \wp_aot_nullable_int( $buffer ));
+         $reply = $this->strip_clf($reply);
+         if($this->DEBUG) {
+-            @error_log("POP3 SEND [$cmd] GOT [$reply]",0);
++            @\wp_aot_native_api('error_log', array("POP3 SEND [$cmd] GOT [$reply]",0));
+         }
+         if(!$this->is_ok($reply))
+         {
+@@ -263,19 +270,20 @@
+         $count = 0;
+         $MsgArray = array();
+ 
+-        $line = fgets($fp,$buffer);
+-        while ( !preg_match('/^\.\r\n/',$line))
++        $line = \wp_aot_fgets($fp,\wp_aot_nullable_int( $buffer ));
++        while ( !preg_match('/^\.\r\n/',\wp_aot_regex_text( $line )))
+         {
+             $MsgArray[$count] = $line;
+             $count++;
+-            $line = fgets($fp,$buffer);
++            $line = \wp_aot_fgets($fp,\wp_aot_nullable_int( $buffer ));
+             if(empty($line))    { break; }
+         }
+ 
+         return $MsgArray;
+-    }
+-
+-    function pop_list ($msgNum = "") {
++    	return null;
++    }
++
++    function pop_list (mixed $msgNum = ""): mixed {
+         //  If called with an argument, returns that msgs' size in octets
+         //  No argument returns an associative array of undeleted
+         //  msg numbers and their sizes in octets
+@@ -302,18 +310,18 @@
+         if(!empty($msgNum))
+         {
+             $cmd = "LIST $msgNum";
+-            fwrite($fp,"$cmd\r\n");
+-            $reply = fgets($fp,$this->BUFFER);
++            \wp_aot_fwrite($fp,"$cmd\r\n");
++            $reply = \wp_aot_fgets($fp,\wp_aot_nullable_int( $this->BUFFER ));
+             $reply = $this->strip_clf($reply);
+             if($this->DEBUG) {
+-                @error_log("POP3 SEND [$cmd] GOT [$reply]",0);
++                @\wp_aot_native_api('error_log', array("POP3 SEND [$cmd] GOT [$reply]",0));
+             }
+             if(!$this->is_ok($reply))
+             {
+                 $this->ERROR = "POP3 pop_list: " . _("Error ") . "[$reply]";
+                 return false;
+             }
+-            list($junk,$num,$size) = preg_split('/\s+/',$reply);
++            list($junk,$num,$size) = \wp_aot_preg_split('/\s+/',\wp_aot_regex_text( $reply ));
+             return $size;
+         }
+         $cmd = "LIST";
+@@ -329,14 +337,14 @@
+         for($msgC=1;$msgC <= $Total; $msgC++)
+         {
+             if($msgC > $Total) { break; }
+-            $line = fgets($fp,$this->BUFFER);
++            $line = \wp_aot_fgets($fp,\wp_aot_nullable_int( $this->BUFFER ));
+             $line = $this->strip_clf($line);
+             if(strpos($line, '.') === 0)
+             {
+                 $this->ERROR = "POP3 pop_list: " . _("Premature end of list");
+                 return false;
+             }
+-            list($thisMsg,$msgSize) = preg_split('/\s+/',$line);
++            list($thisMsg,$msgSize) = \wp_aot_preg_split('/\s+/',\wp_aot_regex_text( $line ));
+             settype($thisMsg,"integer");
+             if($thisMsg != $msgC)
+             {
+@@ -348,9 +356,10 @@
+             }
+         }
+         return $MsgArray;
+-    }
+-
+-    function get ($msgNum) {
++    	return null;
++    }
++
++    function get (mixed $msgNum): mixed {
+         //  Retrieve the specified msg number. Returns an array
+         //  where each line of the msg is an array element.
+ 
+@@ -376,19 +385,20 @@
+         $count = 0;
+         $MsgArray = array();
+ 
+-        $line = fgets($fp,$buffer);
+-        while ( !preg_match('/^\.\r\n/',$line))
++        $line = \wp_aot_fgets($fp,\wp_aot_nullable_int( $buffer ));
++        while ( !preg_match('/^\.\r\n/',\wp_aot_regex_text( $line )))
+         {
+             if ( $line[0] == '.' ) { $line = substr($line,1); }
+             $MsgArray[$count] = $line;
+             $count++;
+-            $line = fgets($fp,$buffer);
++            $line = \wp_aot_fgets($fp,\wp_aot_nullable_int( $buffer ));
+             if(empty($line))    { break; }
+         }
+         return $MsgArray;
+-    }
+-
+-    function last ( $type = "count" ) {
++    	return null;
++    }
++
++    function last ( mixed $type = "count" ): mixed {
+         //  Returns the highest msg number in the mailbox.
+         //  returns -1 on error, 0+ on success, if type != count
+         //  results in a popstat() call (2 element array returned)
+@@ -407,7 +417,7 @@
+             return $last;
+         }
+ 
+-        $Vars = preg_split('/\s+/',$reply);
++        $Vars = \wp_aot_preg_split('/\s+/',\wp_aot_regex_text( $reply ));
+         $count = $Vars[1];
+         $size = $Vars[2];
+         settype($count,"integer");
+@@ -417,9 +427,10 @@
+             return array($count,$size);
+         }
+         return $count;
+-    }
+-
+-    function reset () {
++    	return null;
++    }
++
++    function reset (): mixed {
+         //  Resets the status of the remote server. This includes
+         //  resetting the status of ALL msgs to not be deleted.
+         //  This method automatically closes the connection to the server.
+@@ -437,13 +448,14 @@
+             //  wild is going on.
+ 
+             $this->ERROR = "POP3 reset: " . _("Error ") . "[$reply]";
+-            @error_log("POP3 reset: ERROR [$reply]",0);
++            @\wp_aot_native_api('error_log', array("POP3 reset: ERROR [$reply]",0));
+         }
+         $this->quit();
+         return true;
+-    }
+-
+-    function send_cmd ( $cmd = "" )
++    	return null;
++    }
++
++    function send_cmd ( mixed $cmd = "" ): mixed
+     {
+         //  Sends a user defined command string to the
+         //  POP server and returns the results. Useful for
+@@ -473,14 +485,15 @@
+         $fp = $this->FP;
+         $buffer = $this->BUFFER;
+         $this->update_timer();
+-        fwrite($fp,"$cmd\r\n");
+-        $reply = fgets($fp,$buffer);
++        \wp_aot_fwrite($fp,"$cmd\r\n");
++        $reply = \wp_aot_fgets($fp,\wp_aot_nullable_int( $buffer ));
+         $reply = $this->strip_clf($reply);
+-        if($this->DEBUG) { @error_log("POP3 SEND [$cmd] GOT [$reply]",0); }
++        if($this->DEBUG) { @\wp_aot_native_api('error_log', array("POP3 SEND [$cmd] GOT [$reply]",0)); }
+         return $reply;
+-    }
+-
+-    function quit() {
++    	return null;
++    }
++
++    function quit(): mixed {
+         //  Closes the connection to the POP3 server, deleting
+         //  any msgs marked as deleted.
+ 
+@@ -491,16 +504,17 @@
+         }
+         $fp = $this->FP;
+         $cmd = "QUIT";
+-        fwrite($fp,"$cmd\r\n");
+-        $reply = fgets($fp,$this->BUFFER);
++        \wp_aot_fwrite($fp,"$cmd\r\n");
++        $reply = \wp_aot_fgets($fp,\wp_aot_nullable_int( $this->BUFFER ));
+         $reply = $this->strip_clf($reply);
+-        if($this->DEBUG) { @error_log("POP3 SEND [$cmd] GOT [$reply]",0); }
++        if($this->DEBUG) { @\wp_aot_native_api('error_log', array("POP3 SEND [$cmd] GOT [$reply]",0)); }
+         fclose($fp);
+         unset($this->FP);
+         return true;
+-    }
+-
+-    function popstat () {
++    	return null;
++    }
++
++    function popstat (): mixed {
+         //  Returns an array of 2 elements. The number of undeleted
+         //  msgs in the mailbox, and the size of the mbox in octets.
+ 
+@@ -513,9 +527,10 @@
+             return false;
+         }
+         return $PopArray;
+-    }
+-
+-    function uidl ($msgNum = "")
++    	return null;
++    }
++
++    function uidl (mixed $msgNum = ""): mixed
+     {
+         //  Returns the UIDL of the msg specified. If called with
+         //  no arguments, returns an associative array where each
+@@ -538,7 +553,7 @@
+                 $this->ERROR = "POP3 uidl: " . _("Error ") . "[$reply]";
+                 return false;
+             }
+-            list ($ok,$num,$myUidl) = preg_split('/\s+/',$reply);
++            list ($ok,$num,$myUidl) = \wp_aot_preg_split('/\s+/',\wp_aot_regex_text( $reply ));
+             return $myUidl;
+         } else {
+             $this->update_timer();
+@@ -552,10 +567,10 @@
+                 return $UIDLArray;
+             }
+             $cmd = "UIDL";
+-            fwrite($fp, "UIDL\r\n");
+-            $reply = fgets($fp, $buffer);
++            \wp_aot_fwrite($fp, "UIDL\r\n");
++            $reply = \wp_aot_fgets($fp, \wp_aot_nullable_int( $buffer ));
+             $reply = $this->strip_clf($reply);
+-            if($this->DEBUG) { @error_log("POP3 SEND [$cmd] GOT [$reply]",0); }
++            if($this->DEBUG) { @\wp_aot_native_api('error_log', array("POP3 SEND [$cmd] GOT [$reply]",0)); }
+             if(!$this->is_ok($reply))
+             {
+                 $this->ERROR = "POP3 uidl: " . _("Error ") . "[$reply]";
+@@ -564,9 +579,9 @@
+ 
+             $line = "";
+             $count = 1;
+-            $line = fgets($fp,$buffer);
+-            while ( !preg_match('/^\.\r\n/',$line)) {
+-                list ($msg,$msgUidl) = preg_split('/\s+/',$line);
++            $line = \wp_aot_fgets($fp,\wp_aot_nullable_int( $buffer ));
++            while ( !preg_match('/^\.\r\n/',\wp_aot_regex_text( $line ))) {
++                list ($msg,$msgUidl) = \wp_aot_preg_split('/\s+/',\wp_aot_regex_text( $line ));
+                 $msgUidl = $this->strip_clf($msgUidl);
+                 if($count == $msg) {
+                     $UIDLArray[$msg] = $msgUidl;
+@@ -576,13 +591,14 @@
+                     $UIDLArray[$count] = 'deleted';
+                 }
+                 $count++;
+-                $line = fgets($fp,$buffer);
++                $line = \wp_aot_fgets($fp,\wp_aot_nullable_int( $buffer ));
+             }
+         }
+         return $UIDLArray;
+-    }
+-
+-    function delete ($msgNum = "") {
++    	return null;
++    }
++
++    function delete (mixed $msgNum = ""): mixed {
+         //  Flags a specified msg as deleted. The msg will not
+         //  be deleted until a quit() method is called.
+ 
+@@ -603,33 +619,36 @@
+             return false;
+         }
+         return true;
++    	return null;
+     }
+ 
+     //  *********************************************************
+ 
+     //  The following methods are internal to the class.
+ 
+-    function is_ok ($cmd = "") {
++    function is_ok (mixed $cmd = ""): mixed {
+         //  Return true or false on +OK or -ERR
+ 
+         if( empty($cmd) )
+             return false;
+         else
+             return( stripos($cmd, '+OK') !== false );
+-    }
+-
+-    function strip_clf ($text = "") {
++    	return null;
++    }
++
++    function strip_clf (mixed $text = ""): mixed {
+         // Strips \r\n from server responses
+ 
+         if(empty($text))
+             return $text;
+         else {
+-            $stripped = str_replace(array("\r","\n"),'',$text);
++            $stripped = \wp_aot_str_replace(array("\r","\n"),'',$text);
+             return $stripped;
+         }
+-    }
+-
+-    function parse_banner ( $server_text ) {
++    	return null;
++    }
++
++    function parse_banner ( mixed $server_text ): mixed {
+         $outside = true;
+         $banner = "";
+         $length = strlen($server_text);
+@@ -653,13 +672,15 @@
+         }
+         $banner = $this->strip_clf($banner);    // Just in case
+         return "<$banner>";
++    	return null;
+     }
+ 
+ }   // End class
+ 
+ // For php4 compatibility
+ if (!function_exists("stripos")) {
+-    function stripos($haystack, $needle){
++    function stripos(mixed $haystack, mixed $needle): mixed{
+         return strpos($haystack, stristr( $haystack, $needle ));
++    	return null;
+     }
+ }

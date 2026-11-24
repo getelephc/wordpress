@@ -1,12 +1,31 @@
 --- a/wp-includes/customize/class-wp-widget-area-customize-control.php
 +++ b/wp-includes/customize/class-wp-widget-area-customize-control.php
-@@ -52,20 +52,31 @@
+@@ -37,12 +37,13 @@
+ 	 *
+ 	 * @since 3.9.0
  	 */
- 	public function render_content() {
- 		$id = 'reorder-widgets-desc-' . str_replace( array( '[', ']' ), array( '-', '' ), $this->id );
+-	public function to_json() {
++	public function to_json(): mixed {
+ 		parent::to_json();
+ 		$exported_properties = array( 'sidebar_id' );
+ 		foreach ( $exported_properties as $key ) {
+ 			$this->json[ $key ] = $this->$key;
+ 		}
++		return null;
+ 	}
+ 
+ 	/**
+@@ -50,22 +51,34 @@
+ 	 *
+ 	 * @since 3.9.0
+ 	 */
+-	public function render_content() {
+-		$id = 'reorder-widgets-desc-' . str_replace( array( '[', ']' ), array( '-', '' ), $this->id );
 -		?>
 -		<button type="button" class="button add-new-widget" aria-expanded="false" aria-controls="available-widgets">
 -			<?php _e( 'Add a Widget' ); ?>
++	public function render_content(): mixed {
++		$id = 'reorder-widgets-desc-' . \wp_aot_str_replace( array( '[', ']' ), array( '-', '' ), $this->id );
 +		;
 +echo '		<button type="button" class="button add-new-widget" aria-expanded="false" aria-controls="available-widgets">
 +			';
@@ -42,5 +61,6 @@
 +			;
 +echo '		</p>
 +		';
++		return null;
  	}
  }

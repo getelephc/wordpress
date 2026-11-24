@@ -1,0 +1,50 @@
+--- a/wp-admin/network/site-new.php
++++ b/wp-admin/network/site-new.php
+@@ -44,7 +44,7 @@
+ 	$domain = '';
+ 
+ 	$blog['domain'] = trim( $blog['domain'] );
+-	if ( preg_match( '|^([a-zA-Z0-9-])+$|', $blog['domain'] ) ) {
++	if ( preg_match( '|^([a-zA-Z0-9-])+$|', \wp_aot_regex_text( $blog['domain'] ) ) ) {
+ 		$domain = strtolower( $blog['domain'] );
+ 	}
+ 
+@@ -101,7 +101,7 @@
+ 	}
+ 
+ 	if ( is_subdomain_install() ) {
+-		$newdomain = $domain . '.' . preg_replace( '|^www\.|', '', get_network()->domain );
++		$newdomain = $domain . '.' . \wp_aot_preg_replace( '|^www\.|', '', get_network()->domain );
+ 		$path      = get_network()->path;
+ 	} else {
+ 		$newdomain = get_network()->domain;
+@@ -140,9 +140,9 @@
+ 		do_action( 'network_site_new_created_user', $user_id );
+ 	}
+ 
+-	$wpdb->hide_errors();
++	\wp_aot_require_wpdb( $wpdb )->hide_errors();
+ 	$id = wpmu_create_blog( $newdomain, $path, $title, $user_id, $meta, get_current_network_id() );
+-	$wpdb->show_errors();
++	\wp_aot_require_wpdb( $wpdb )->show_errors();
+ 
+ 	if ( ! is_wp_error( $id ) ) {
+ 		if ( ! is_super_admin( $user_id ) && ! get_user_option( 'primary_blog', $user_id ) ) {
+@@ -160,7 +160,7 @@
+ 				'site-new.php'
+ 			)
+ 		);
+-		exit;
++		\wp_aot_exit();
+ 	} else {
+ 		wp_die( $id->get_error_message() );
+ 	}
+@@ -220,7 +220,7 @@
+ 				<span class="code">
+ 					<?php if ( is_subdomain_install() ) : ?>
+ 						<input name="blog[domain]" type="text" class="regular-text code" id="site-address" aria-describedby="site-address-desc" autocapitalize="none" autocorrect="off" required /><!--
+-						--><code class="no-break"><?php echo esc_html( '.' . preg_replace( '|^www\.|', '', get_network()->domain ) ); ?></code>
++						--><code class="no-break"><?php echo esc_html( '.' . \wp_aot_preg_replace( '|^www\.|', '', get_network()->domain ) ); ?></code>
+ 					<?php else : ?>
+ 						<code class="no-break"><?php echo esc_html( get_network()->domain . get_network()->path ); ?></code><!--
+ 						--><input name="blog[domain]" type="text" class="regular-text code" id="site-address" aria-describedby="site-address-desc" autocapitalize="none" autocorrect="off" required />

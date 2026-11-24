@@ -1,0 +1,40 @@
+--- a/wp-includes/html-api/class-wp-html-doctype-info.php
++++ b/wp-includes/html-api/class-wp-html-doctype-info.php
+@@ -453,8 +453,8 @@
+ 		 * @see https://html.spec.whatwg.org/#preprocessing-the-input-stream
+ 		 * @see https://infra.spec.whatwg.org/#normalize-newlines
+ 		 */
+-		$doctype_html = str_replace( "\r\n", "\n", $doctype_html );
+-		$doctype_html = str_replace( "\r", "\n", $doctype_html );
++		$doctype_html = \wp_aot_str_replace( "\r\n", "\n", $doctype_html );
++		$doctype_html = \wp_aot_str_replace( "\r", "\n", $doctype_html );
+ 		$end          = strlen( $doctype_html ) - 1;
+ 
+ 		/*
+@@ -489,7 +489,7 @@
+ 		}
+ 
+ 		$name_length  = strcspn( $doctype_html, " \t\n\f\r", $at, $end - $at );
+-		$doctype_name = str_replace( "\0", "\u{FFFD}", strtolower( substr( $doctype_html, $at, $name_length ) ) );
++		$doctype_name = \wp_aot_str_replace( "\0", "\u{FFFD}", strtolower( substr( $doctype_html, $at, $name_length ) ) );
+ 
+ 		$at += $name_length;
+ 		$at += strspn( $doctype_html, " \t\n\f\r", $at, $end - $at );
+@@ -566,7 +566,7 @@
+ 		++$at;
+ 
+ 		$identifier_length = strcspn( $doctype_html, $closer_quote, $at, $end - $at );
+-		$doctype_public_id = str_replace( "\0", "\u{FFFD}", substr( $doctype_html, $at, $identifier_length ) );
++		$doctype_public_id = \wp_aot_str_replace( "\0", "\u{FFFD}", substr( $doctype_html, $at, $identifier_length ) );
+ 
+ 		$at += $identifier_length;
+ 		if ( $at >= $end || $closer_quote !== $doctype_html[ $at ] ) {
+@@ -609,7 +609,7 @@
+ 		++$at;
+ 
+ 		$identifier_length = strcspn( $doctype_html, $closer_quote, $at, $end - $at );
+-		$doctype_system_id = str_replace( "\0", "\u{FFFD}", substr( $doctype_html, $at, $identifier_length ) );
++		$doctype_system_id = \wp_aot_str_replace( "\0", "\u{FFFD}", substr( $doctype_html, $at, $identifier_length ) );
+ 
+ 		$at += $identifier_length;
+ 		if ( $at >= $end || $closer_quote !== $doctype_html[ $at ] ) {

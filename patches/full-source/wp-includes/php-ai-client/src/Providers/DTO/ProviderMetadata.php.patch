@@ -1,0 +1,37 @@
+--- a/wp-includes/php-ai-client/src/Providers/DTO/ProviderMetadata.php
++++ b/wp-includes/php-ai-client/src/Providers/DTO/ProviderMetadata.php
+@@ -27,7 +27,7 @@
+  *     logoPath?: ?string
+  * }
+  *
+- * @extends AbstractDataTransferObject<ProviderMetadataArrayShape>
++ * @phpstan-extends AbstractDataTransferObject<ProviderMetadataArrayShape>
+  */
+ class ProviderMetadata extends AbstractDataTransferObject
+ {
+@@ -84,7 +84,7 @@
+      */
+     public function __construct(string $id, string $name, ProviderTypeEnum $type, ?string $credentialsUrl = null, ?RequestAuthenticationMethod $authenticationMethod = null, ?string $description = null, ?string $logoPath = null)
+     {
+-        if (!preg_match('/^[a-z0-9\-_]+$/', $id)) {
++        if (!preg_match('/^[a-z0-9\-_]+$/', \wp_aot_regex_text( (string) ($id) ))) {
+             throw new InvalidArgumentException(sprintf(
+                 // phpcs:ignore Generic.Files.LineLength.TooLong
+                 'Invalid provider ID "%s". Only lowercase alphanumeric characters, hyphens, and underscores are allowed.',
+@@ -185,7 +185,7 @@
+      */
+     public static function getJsonSchema(): array
+     {
+-        return ['type' => 'object', 'properties' => [self::KEY_ID => ['type' => 'string', 'description' => 'The provider\'s unique identifier.'], self::KEY_NAME => ['type' => 'string', 'description' => 'The provider\'s display name.'], self::KEY_DESCRIPTION => ['type' => 'string', 'description' => 'The provider\'s description.'], self::KEY_TYPE => ['type' => 'string', 'enum' => ProviderTypeEnum::getValues(), 'description' => 'The provider type (cloud, server, or client).'], self::KEY_CREDENTIALS_URL => ['type' => 'string', 'description' => 'The URL where users can get credentials.'], self::KEY_AUTHENTICATION_METHOD => ['type' => ['string', 'null'], 'enum' => array_merge(RequestAuthenticationMethod::getValues(), [null]), 'description' => 'The authentication method.'], self::KEY_LOGO_PATH => ['type' => 'string', 'description' => 'The full path to the provider\'s logo image file.']], 'required' => [self::KEY_ID, self::KEY_NAME, self::KEY_TYPE]];
++        return ['type' => 'object', 'properties' => [self::KEY_ID => ['type' => 'string', 'description' => 'The provider\'s unique identifier.'], self::KEY_NAME => ['type' => 'string', 'description' => 'The provider\'s display name.'], self::KEY_DESCRIPTION => ['type' => 'string', 'description' => 'The provider\'s description.'], self::KEY_TYPE => ['type' => 'string', 'enum' => ProviderTypeEnum::getValues(), 'description' => 'The provider type (cloud, server, or client).'], self::KEY_CREDENTIALS_URL => ['type' => 'string', 'description' => 'The URL where users can get credentials.'], self::KEY_AUTHENTICATION_METHOD => ['type' => ['string', 'null'], 'enum' => \wp_aot_array_merge(array(RequestAuthenticationMethod::getValues(), [null])), 'description' => 'The authentication method.'], self::KEY_LOGO_PATH => ['type' => 'string', 'description' => 'The full path to the provider\'s logo image file.']], 'required' => [self::KEY_ID, self::KEY_NAME, self::KEY_TYPE]];
+     }
+     /**
+      * {@inheritDoc}
+@@ -210,6 +210,6 @@
+     public static function fromArray(array $array): self
+     {
+         static::validateFromArrayData($array, [self::KEY_ID, self::KEY_NAME, self::KEY_TYPE]);
+-        return new self($array[self::KEY_ID], $array[self::KEY_NAME], ProviderTypeEnum::from($array[self::KEY_TYPE]), $array[self::KEY_CREDENTIALS_URL] ?? null, isset($array[self::KEY_AUTHENTICATION_METHOD]) ? RequestAuthenticationMethod::from($array[self::KEY_AUTHENTICATION_METHOD]) : null, $array[self::KEY_DESCRIPTION] ?? null, $array[self::KEY_LOGO_PATH] ?? null);
++        return new self($array[self::KEY_ID], $array[self::KEY_NAME], \wp_aot_require_WordPress_AiClient_Providers_Enums_ProviderTypeEnum( ProviderTypeEnum::from($array[self::KEY_TYPE]) ), $array[self::KEY_CREDENTIALS_URL] ?? null, \wp_aot_require_nullable_WordPress_AiClient_Providers_Http_Enums_RequestAuthenticationMethod( isset($array[self::KEY_AUTHENTICATION_METHOD]) ? RequestAuthenticationMethod::from($array[self::KEY_AUTHENTICATION_METHOD]) : null ), $array[self::KEY_DESCRIPTION] ?? null, $array[self::KEY_LOGO_PATH] ?? null);
+     }
+ }

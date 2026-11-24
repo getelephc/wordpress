@@ -1,0 +1,123 @@
+--- a/wp-includes/fonts/class-wp-font-collection.php
++++ b/wp-includes/fonts/class-wp-font-collection.php
+@@ -81,7 +81,7 @@
+ 	 *
+ 	 * @return array|WP_Error An array containing the font collection data, or a WP_Error on failure.
+ 	 */
+-	public function get_data() {
++	public function get_data(): mixed {
+ 		if ( is_wp_error( $this->data ) ) {
+ 			return $this->data;
+ 		}
+@@ -102,6 +102,7 @@
+ 		);
+ 
+ 		return wp_parse_args( $this->data, $defaults );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -113,7 +114,7 @@
+ 	 * @return array|WP_Error An array containing the font collection data on success,
+ 	 *                        else an instance of WP_Error on failure.
+ 	 */
+-	private function load_from_json( $file_or_url ) {
++	private function load_from_json( mixed $file_or_url ): mixed {
+ 		$url  = wp_http_validate_url( $file_or_url );
+ 		$file = file_exists( $file_or_url ) ? wp_normalize_path( realpath( $file_or_url ) ) : false;
+ 
+@@ -144,6 +145,7 @@
+ 		}
+ 
+ 		return $data;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -155,13 +157,14 @@
+ 	 * @return array|WP_Error An array containing the font collection data on success,
+ 	 *                        else an instance of WP_Error on failure.
+ 	 */
+-	private function load_from_file( $file ) {
++	private function load_from_file( mixed $file ): mixed {
+ 		$data = wp_json_file_decode( $file, array( 'associative' => true ) );
+ 		if ( empty( $data ) ) {
+ 			return new WP_Error( 'font_collection_decode_error', __( 'Error decoding the font collection JSON file contents.' ) );
+ 		}
+ 
+ 		return $this->sanitize_and_validate_data( $data, array( 'font_families' ) );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -173,7 +176,7 @@
+ 	 * @return array|WP_Error An array containing the font collection data on success,
+ 	 *                        else an instance of WP_Error on failure.
+ 	 */
+-	private function load_from_url( $url ) {
++	private function load_from_url( mixed $url ): mixed {
+ 		// Limit key to 167 characters to avoid failure in the case of a long URL.
+ 		$transient_key = substr( 'wp_font_collection_url_' . $url, 0, 167 );
+ 		$data          = get_site_transient( $transient_key );
+@@ -206,6 +209,7 @@
+ 		}
+ 
+ 		return $data;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -217,7 +221,7 @@
+ 	 * @param array $required_properties Required properties that must exist in the passed data.
+ 	 * @return array|WP_Error Sanitized data if valid, otherwise a WP_Error instance.
+ 	 */
+-	private function sanitize_and_validate_data( $data, $required_properties = array() ) {
++	private function sanitize_and_validate_data( mixed $data, mixed $required_properties = array() ): mixed {
+ 		$schema = self::get_sanitization_schema();
+ 		$data   = WP_Font_Utils::sanitize_from_schema( $data, $schema );
+ 
+@@ -235,6 +239,7 @@
+ 		}
+ 
+ 		return $data;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -244,7 +249,7 @@
+ 	 *
+ 	 * @return array Font collection sanitization schema.
+ 	 */
+-	private static function get_sanitization_schema() {
++	private static function get_sanitization_schema(): mixed {
+ 		return array(
+ 			'name'          => 'sanitize_text_field',
+ 			'description'   => 'sanitize_text_field',
+@@ -252,7 +257,7 @@
+ 				array(
+ 					'font_family_settings' => array(
+ 						'name'       => 'sanitize_text_field',
+-						'slug'       => static function ( $value ) {
++						'slug'       => static function ( mixed $value ) {
+ 							return _wp_to_kebab_case( sanitize_title( $value ) );
+ 						},
+ 						'fontFamily' => 'WP_Font_Utils::sanitize_font_family',
+@@ -262,9 +267,9 @@
+ 								'fontFamily'            => 'sanitize_text_field',
+ 								'fontStyle'             => 'sanitize_text_field',
+ 								'fontWeight'            => 'sanitize_text_field',
+-								'src'                   => static function ( $value ) {
++								'src'                   => static function ( mixed $value ) {
+ 									return is_array( $value )
+-										? array_map( 'sanitize_text_field', $value )
++										? \wp_aot_array_map( 'sanitize_text_field', $value )
+ 										: sanitize_text_field( $value );
+ 								},
+ 								'preview'               => 'sanitize_url',
+@@ -291,5 +296,6 @@
+ 				),
+ 			),
+ 		);
++		return null;
+ 	}
+ }

@@ -1,0 +1,77 @@
+--- a/wp-includes/sitemaps.php
++++ b/wp-includes/sitemaps.php
+@@ -19,7 +19,7 @@
+  *
+  * @return WP_Sitemaps Sitemaps instance.
+  */
+-function wp_sitemaps_get_server() {
++function wp_sitemaps_get_server(): mixed {
+ 	global $wp_sitemaps;
+ 
+ 	// If there isn't a global instance, set and bootstrap the sitemaps system.
+@@ -40,6 +40,7 @@
+ 	}
+ 
+ 	return $wp_sitemaps;
++	return null;
+ }
+ 
+ /**
+@@ -49,10 +50,11 @@
+  *
+  * @return WP_Sitemaps_Provider[] Array of sitemap providers.
+  */
+-function wp_get_sitemap_providers() {
++function wp_get_sitemap_providers(): mixed {
+ 	$sitemaps = wp_sitemaps_get_server();
+ 
+ 	return $sitemaps->registry->get_providers();
++	return null;
+ }
+ 
+ /**
+@@ -64,10 +66,11 @@
+  * @param WP_Sitemaps_Provider $provider The `Sitemaps_Provider` instance implementing the sitemap.
+  * @return bool Whether the sitemap was added.
+  */
+-function wp_register_sitemap_provider( $name, WP_Sitemaps_Provider $provider ) {
++function wp_register_sitemap_provider( mixed $name, WP_Sitemaps_Provider $provider ): mixed {
+ 	$sitemaps = wp_sitemaps_get_server();
+ 
+ 	return $sitemaps->registry->add_provider( $name, $provider );
++	return null;
+ }
+ 
+ /**
+@@ -78,7 +81,7 @@
+  * @param string $object_type Object type for sitemap to be filtered (e.g. 'post', 'term', 'user').
+  * @return int The maximum number of URLs.
+  */
+-function wp_sitemaps_get_max_urls( $object_type ) {
++function wp_sitemaps_get_max_urls( mixed $object_type ): mixed {
+ 	/**
+ 	 * Filters the maximum number of URLs displayed on a sitemap.
+ 	 *
+@@ -88,6 +91,7 @@
+ 	 * @param string $object_type Object type for sitemap to be filtered (e.g. 'post', 'term', 'user').
+ 	 */
+ 	return apply_filters( 'wp_sitemaps_max_urls', 2000, $object_type );
++	return null;
+ }
+ 
+ /**
+@@ -100,7 +104,7 @@
+  * @param int    $page         The page of the sitemap. Default 1.
+  * @return string|false The sitemap URL or false if the sitemap doesn't exist.
+  */
+-function get_sitemap_url( $name, $subtype_name = '', $page = 1 ) {
++function get_sitemap_url( mixed $name, mixed $subtype_name = '', mixed $page = 1 ): mixed {
+ 	$sitemaps = wp_sitemaps_get_server();
+ 
+ 	if ( ! $sitemaps ) {
+@@ -126,4 +130,5 @@
+ 	}
+ 
+ 	return $provider->get_sitemap_url( $subtype_name, $page );
++	return null;
+ }

@@ -1,0 +1,108 @@
+--- a/wp-includes/php-ai-client/src/Common/AbstractEnum.php
++++ b/wp-includes/php-ai-client/src/Common/AbstractEnum.php
+@@ -77,9 +77,8 @@
+      */
+     final public function __get(string $property)
+     {
+-        if ($property === 'value' || $property === 'name') {
+-            return $this->{$property};
+-        }
++        if ($property === 'value') return $this->value;
++        if ($property === 'name') return $this->name;
+         throw new BadMethodCallException(sprintf('Property %s::%s does not exist', static::class, $property));
+     }
+     /**
+@@ -154,10 +153,10 @@
+      * @param string|self $other The value or enum to compare.
+      * @return bool True if values are equal.
+      */
+-    final public function equals($other): bool
++    final public function equals(mixed $other): bool
+     {
+         if ($other instanceof self) {
+-            return $this->is($other);
++            return $this->is(\wp_aot_require_WordPress_AiClient_Common_AbstractEnum( $other ));
+         }
+         return $this->value === $other;
+     }
+@@ -213,12 +212,34 @@
+             self::$instances[$className] = [];
+         }
+         if (!isset(self::$instances[$className][$name])) {
+-            $instance = new $className($value, $name);
++            $instance = self::createCompiledInstance($className, $value, $name);
+             self::$instances[$className][$name] = $instance;
+         }
+         /** @var static */
+-        return self::$instances[$className][$name];
+-    }
++        return \wp_aot_require_WordPress_AiClient_Common_AbstractEnum( self::$instances[$className][$name] );
++    }
++    /** Constructs the same finite enum classes accepted by the reflection manifest. */
++    private static function createCompiledInstance(string $className, string $value, string $name): self
++    {
++        switch ($className) {
++            case \WordPress\AiClient\Files\Enums\FileTypeEnum::class: return new \WordPress\AiClient\Files\Enums\FileTypeEnum($value, $name);
++            case \WordPress\AiClient\Files\Enums\MediaOrientationEnum::class: return new \WordPress\AiClient\Files\Enums\MediaOrientationEnum($value, $name);
++            case \WordPress\AiClient\Messages\Enums\MessagePartChannelEnum::class: return new \WordPress\AiClient\Messages\Enums\MessagePartChannelEnum($value, $name);
++            case \WordPress\AiClient\Messages\Enums\MessagePartTypeEnum::class: return new \WordPress\AiClient\Messages\Enums\MessagePartTypeEnum($value, $name);
++            case \WordPress\AiClient\Messages\Enums\MessageRoleEnum::class: return new \WordPress\AiClient\Messages\Enums\MessageRoleEnum($value, $name);
++            case \WordPress\AiClient\Messages\Enums\ModalityEnum::class: return new \WordPress\AiClient\Messages\Enums\ModalityEnum($value, $name);
++            case \WordPress\AiClient\Operations\Enums\OperationStateEnum::class: return new \WordPress\AiClient\Operations\Enums\OperationStateEnum($value, $name);
++            case \WordPress\AiClient\Providers\Enums\ProviderTypeEnum::class: return new \WordPress\AiClient\Providers\Enums\ProviderTypeEnum($value, $name);
++            case \WordPress\AiClient\Providers\Enums\ToolTypeEnum::class: return new \WordPress\AiClient\Providers\Enums\ToolTypeEnum($value, $name);
++            case \WordPress\AiClient\Providers\Http\Enums\HttpMethodEnum::class: return new \WordPress\AiClient\Providers\Http\Enums\HttpMethodEnum($value, $name);
++            case \WordPress\AiClient\Providers\Http\Enums\RequestAuthenticationMethod::class: return new \WordPress\AiClient\Providers\Http\Enums\RequestAuthenticationMethod($value, $name);
++            case \WordPress\AiClient\Providers\Models\Enums\CapabilityEnum::class: return new \WordPress\AiClient\Providers\Models\Enums\CapabilityEnum($value, $name);
++            case \WordPress\AiClient\Providers\Models\Enums\OptionEnum::class: return new \WordPress\AiClient\Providers\Models\Enums\OptionEnum($value, $name);
++            case \WordPress\AiClient\Results\Enums\FinishReasonEnum::class: return new \WordPress\AiClient\Results\Enums\FinishReasonEnum($value, $name);
++        }
++        throw new \LogicException('The enum class is outside the compiled source manifest: ' . $className);
++    }
++
+     /**
+      * Gets all constants for this enum class.
+      *
+@@ -233,7 +254,7 @@
+         if (!isset(self::$cache[$className])) {
+             self::$cache[$className] = static::determineClassEnumerations($className);
+         }
+-        return self::$cache[$className];
++        return \wp_aot_require_array( self::$cache[$className] );
+     }
+     /**
+      * Determines the class enumerations by reflecting on class constants.
+@@ -249,13 +270,13 @@
+      */
+     protected static function determineClassEnumerations(string $className): array
+     {
+-        $reflection = new ReflectionClass($className);
++        $reflection = \wp_aot_enum_reflection($className);
+         $constants = $reflection->getConstants();
+         // Validate all constants
+         $enumConstants = [];
+         foreach ($constants as $name => $value) {
+             // Check if constant name follows uppercase snake_case pattern
+-            if (!preg_match('/^[A-Z][A-Z0-9_]*$/', $name)) {
++            if (!preg_match('/^[A-Z][A-Z0-9_]*$/', \wp_aot_regex_text( (string) $name ))) {
+                 throw new RuntimeException(sprintf('Invalid enum constant name "%s" in %s. Constants must be UPPER_SNAKE_CASE.', $name, $className));
+             }
+             // Check if value is valid type
+@@ -317,7 +338,7 @@
+      */
+     private static function camelCaseToConstant(string $camelCase): string
+     {
+-        $snakeCase = preg_replace('/([a-z])([A-Z])/', '$1_$2', $camelCase);
++        $snakeCase = \wp_aot_preg_replace('/([a-z])([A-Z])/', '$1_$2', $camelCase);
+         if ($snakeCase === null) {
+             return strtoupper($camelCase);
+         }
+@@ -342,7 +363,7 @@
+      * @return string The enum value.
+      */
+     #[\ReturnTypeWillChange]
+-    public function jsonSerialize()
++    public function jsonSerialize(): mixed
+     {
+         return $this->value;
+     }

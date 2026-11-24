@@ -1,0 +1,36 @@
+--- a/wp-includes/block-supports/align.php
++++ b/wp-includes/block-supports/align.php
+@@ -14,7 +14,7 @@
+  *
+  * @param WP_Block_Type $block_type Block Type.
+  */
+-function wp_register_alignment_support( $block_type ) {
++function wp_register_alignment_support( mixed $block_type ): mixed {
+ 	$has_align_support = block_has_support( $block_type, 'align', false );
+ 	if ( $has_align_support ) {
+ 		if ( ! $block_type->attributes ) {
+@@ -28,6 +28,7 @@
+ 			);
+ 		}
+ 	}
++	return null;
+ }
+ 
+ /**
+@@ -41,7 +42,7 @@
+  * @param array         $block_attributes Block attributes.
+  * @return array Block alignment CSS classes and inline styles.
+  */
+-function wp_apply_alignment_support( $block_type, $block_attributes ) {
++function wp_apply_alignment_support( mixed $block_type, mixed $block_attributes ): mixed {
+ 	$attributes        = array();
+ 	$has_align_support = block_has_support( $block_type, 'align', false );
+ 	if ( $has_align_support ) {
+@@ -53,6 +54,7 @@
+ 	}
+ 
+ 	return $attributes;
++	return null;
+ }
+ 
+ // Register the block support.

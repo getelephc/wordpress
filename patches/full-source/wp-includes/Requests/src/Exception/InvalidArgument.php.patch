@@ -1,0 +1,11 @@
+--- a/wp-includes/Requests/src/Exception/InvalidArgument.php
++++ b/wp-includes/Requests/src/Exception/InvalidArgument.php
+@@ -22,7 +22,7 @@
+ 	 *
+ 	 * @return \WpOrg\Requests\Exception\InvalidArgument
+ 	 */
+-	public static function create($position, $name, $expected, $received) {
++	public static function create(mixed $position, mixed $name, mixed $expected, mixed $received): self {
+ 		// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_debug_backtrace
+ 		$stack = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 2);
+ 

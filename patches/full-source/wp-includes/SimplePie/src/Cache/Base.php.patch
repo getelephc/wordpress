@@ -1,0 +1,53 @@
+--- a/wp-includes/SimplePie/src/Cache/Base.php
++++ b/wp-includes/SimplePie/src/Cache/Base.php
+@@ -38,7 +38,7 @@
+      * @param string $name Unique ID for the cache
+      * @param Base::TYPE_FEED|Base::TYPE_IMAGE $type Either TYPE_FEED for SimplePie data, or TYPE_IMAGE for image data
+      */
+-    public function __construct(string $location, string $name, $type);
++    public function __construct(string $location, string $name, mixed $type);
+ 
+     /**
+      * Save data to the cache
+@@ -46,35 +46,35 @@
+      * @param array<mixed>|\SimplePie\SimplePie $data Data to store in the cache. If passed a SimplePie object, only cache the $data property
+      * @return bool Successfulness
+      */
+-    public function save($data);
++    public function save(mixed $data): mixed;
+ 
+     /**
+      * Retrieve the data saved to the cache
+      *
+      * @return array<mixed> Data for SimplePie::$data
+      */
+-    public function load();
++    public function load(): mixed;
+ 
+     /**
+      * Retrieve the last modified time for the cache
+      *
+      * @return int Timestamp
+      */
+-    public function mtime();
++    public function mtime(): mixed;
+ 
+     /**
+      * Set the last modified time to the current time
+      *
+      * @return bool Success status
+      */
+-    public function touch();
++    public function touch(): mixed;
+ 
+     /**
+      * Remove the cache
+      *
+      * @return bool Success status
+      */
+-    public function unlink();
++    public function unlink(): mixed;
+ }
+ 
+-class_alias('SimplePie\Cache\Base', 'SimplePie_Cache_Base');
++(!defined('WP_AOT_NATIVE_RUNTIME') && (bool) \wp_aot_native_api('class_alias', array('SimplePie\Cache\Base', 'SimplePie_Cache_Base')));

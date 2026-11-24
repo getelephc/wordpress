@@ -1,7 +1,97 @@
 --- a/wp-admin/includes/class-wp-users-list-table.php
 +++ b/wp-admin/includes/class-wp-users-list-table.php
-@@ -300,21 +300,33 @@
- 	protected function extra_tablenav( $which ) {
+@@ -41,7 +41,7 @@
+ 	 *
+ 	 * @param array $args An associative array of arguments.
+ 	 */
+-	public function __construct( $args = array() ) {
++	public function __construct( mixed $args = array() ) {
+ 		parent::__construct(
+ 			array(
+ 				'singular' => 'user',
+@@ -64,12 +64,13 @@
+ 	 *
+ 	 * @return bool
+ 	 */
+-	public function ajax_user_can() {
++	public function ajax_user_can(): mixed {
+ 		if ( $this->is_site_users ) {
+ 			return current_user_can( 'manage_sites' );
+ 		} else {
+ 			return current_user_can( 'list_users' );
+ 		}
++		return null;
+ 	}
+ 
+ 	/**
+@@ -80,7 +81,7 @@
+ 	 * @global string $role
+ 	 * @global string $usersearch
+ 	 */
+-	public function prepare_items() {
++	public function prepare_items(): mixed {
+ 		global $role, $usersearch;
+ 
+ 		$usersearch = isset( $_REQUEST['s'] ) ? wp_unslash( trim( $_REQUEST['s'] ) ) : '';
+@@ -147,6 +148,7 @@
+ 				'per_page'    => $users_per_page,
+ 			)
+ 		);
++		return null;
+ 	}
+ 
+ 	/**
+@@ -154,8 +156,9 @@
+ 	 *
+ 	 * @since 3.1.0
+ 	 */
+-	public function no_items() {
++	public function no_items(): mixed {
+ 		_e( 'No users found.' );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -171,7 +174,7 @@
+ 	 *
+ 	 * @return string[] An array of HTML links keyed by their view.
+ 	 */
+-	protected function get_views() {
++	protected function get_views(): mixed {
+ 		global $role;
+ 
+ 		$wp_roles = wp_roles();
+@@ -259,6 +262,7 @@
+ 		}
+ 
+ 		return $this->get_views_links( $role_links );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -268,7 +272,7 @@
+ 	 *
+ 	 * @return array Array of bulk action labels keyed by their action.
+ 	 */
+-	protected function get_bulk_actions() {
++	protected function get_bulk_actions(): mixed {
+ 		$actions = array();
+ 
+ 		if ( is_multisite() ) {
+@@ -287,6 +291,7 @@
+ 		}
+ 
+ 		return $actions;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -297,24 +302,36 @@
+ 	 * @param string $which Whether this is being invoked above ("top")
+ 	 *                      or below the table ("bottom").
+ 	 */
+-	protected function extra_tablenav( $which ) {
++	protected function extra_tablenav( mixed $which ): mixed {
  		$id        = 'bottom' === $which ? 'new_role2' : 'new_role';
  		$button_id = 'bottom' === $which ? 'changeit2' : 'changeit';
 -		?>
@@ -46,7 +136,7 @@
  			submit_button( __( 'Change' ), '', $button_id, false );
  		endif;
  
-@@ -328,9 +340,9 @@
+@@ -328,9 +345,9 @@
  		 * @param string $which The location of the extra table nav markup: 'top' or 'bottom'.
  		 */
  		do_action( 'restrict_manage_users', $which );
@@ -59,3 +149,120 @@
  		/**
  		 * Fires immediately following the closing "actions" div in the tablenav for the users
  		 * list table.
+@@ -340,6 +357,7 @@
+ 		 * @param string $which The location of the extra table nav markup: 'top' or 'bottom'.
+ 		 */
+ 		do_action( 'manage_users_extra_tablenav', $which );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -352,12 +370,13 @@
+ 	 *
+ 	 * @return string The bulk action required.
+ 	 */
+-	public function current_action() {
++	public function current_action(): mixed {
+ 		if ( isset( $_REQUEST['changeit'] ) ) {
+ 			return 'promote';
+ 		}
+ 
+ 		return parent::current_action();
++		return null;
+ 	}
+ 
+ 	/**
+@@ -367,7 +386,7 @@
+ 	 *
+ 	 * @return string[] Array of column titles keyed by their column name.
+ 	 */
+-	public function get_columns() {
++	public function get_columns(): mixed {
+ 		$columns = array(
+ 			'cb'       => '<input type="checkbox" />',
+ 			'username' => __( 'Username' ),
+@@ -382,6 +401,7 @@
+ 		}
+ 
+ 		return $columns;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -391,13 +411,14 @@
+ 	 *
+ 	 * @return array Array of sortable columns.
+ 	 */
+-	protected function get_sortable_columns() {
++	protected function get_sortable_columns(): mixed {
+ 		$columns = array(
+ 			'username' => array( 'login', false, __( 'Username' ), __( 'Table ordered by Username.' ), 'asc' ),
+ 			'email'    => array( 'email', false, __( 'E-mail' ), __( 'Table ordered by E-mail.' ) ),
+ 		);
+ 
+ 		return $columns;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -405,7 +426,7 @@
+ 	 *
+ 	 * @since 3.1.0
+ 	 */
+-	public function display_rows() {
++	public function display_rows( mixed $wp_aot_posts = array(), mixed $wp_aot_level = 0 ): mixed {
+ 		// Query the post counts for this page.
+ 		if ( ! $this->is_site_users ) {
+ 			$post_counts = count_many_users_posts( array_keys( $this->items ) );
+@@ -414,6 +435,7 @@
+ 		foreach ( $this->items as $userid => $user_object ) {
+ 			echo "\n\t" . $this->single_row( $user_object, '', '', isset( $post_counts ) ? $post_counts[ $userid ] : 0 );
+ 		}
++		return null;
+ 	}
+ 
+ 	/**
+@@ -430,7 +452,7 @@
+ 	 *                             to zero, as in, a new user has made zero posts.
+ 	 * @return string Output for a single row.
+ 	 */
+-	public function single_row( $user_object, $style = '', $role = '', $numposts = 0 ) {
++	public function single_row( mixed $user_object, mixed $style = '', mixed $role = '', mixed $numposts = 0 ): mixed {
+ 		if ( ! ( $user_object instanceof WP_User ) ) {
+ 			$user_object = get_userdata( (int) $user_object );
+ 		}
+@@ -642,6 +664,7 @@
+ 		$row .= '</tr>';
+ 
+ 		return $row;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -651,8 +674,9 @@
+ 	 *
+ 	 * @return string Name of the default primary column, in this case, 'username'.
+ 	 */
+-	protected function get_default_primary_column_name() {
++	protected function get_default_primary_column_name(): mixed {
+ 		return 'username';
++		return null;
+ 	}
+ 
+ 	/**
+@@ -663,7 +687,7 @@
+ 	 * @param WP_User $user_object The WP_User object.
+ 	 * @return string[] An array of user role names keyed by role.
+ 	 */
+-	protected function get_role_list( $user_object ) {
++	protected function get_role_list( mixed $user_object ): mixed {
+ 		$wp_roles = wp_roles();
+ 
+ 		$role_list = array();
+@@ -687,5 +711,6 @@
+ 		 * @param WP_User  $user_object A WP_User object.
+ 		 */
+ 		return apply_filters( 'get_role_list', $role_list, $user_object );
++		return null;
+ 	}
+ }

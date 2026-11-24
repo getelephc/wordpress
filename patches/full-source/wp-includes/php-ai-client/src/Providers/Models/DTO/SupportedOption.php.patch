@@ -1,0 +1,69 @@
+--- a/wp-includes/php-ai-client/src/Providers/Models/DTO/SupportedOption.php
++++ b/wp-includes/php-ai-client/src/Providers/Models/DTO/SupportedOption.php
+@@ -20,7 +20,7 @@
+  *     supportedValues?: list<mixed>
+  * }
+  *
+- * @extends AbstractDataTransferObject<SupportedOptionArrayShape>
++ * @phpstan-extends AbstractDataTransferObject<SupportedOptionArrayShape>
+  */
+ class SupportedOption extends AbstractDataTransferObject
+ {
+@@ -71,7 +71,7 @@
+      * @param mixed $value The value to check.
+      * @return bool True if the value is supported, false otherwise.
+      */
+-    public function isSupportedValue($value): bool
++    public function isSupportedValue(mixed $value): bool
+     {
+         // If supportedValues is null, any value is supported
+         if ($this->supportedValues === null) {
+@@ -79,12 +79,12 @@
+         }
+         // If the value is an array, consider it a set (i.e. order doesn't matter).
+         if (is_array($value)) {
+-            $normalizedValue = self::normalizeArrayForComparison($value);
++            $normalizedValue = self::normalizeArrayForComparison(\wp_aot_require_array( $value ));
+             foreach ($this->supportedValues as $supportedValue) {
+                 if (!is_array($supportedValue)) {
+                     continue;
+                 }
+-                $normalizedSupported = self::normalizeArrayForComparison($supportedValue);
++                $normalizedSupported = self::normalizeArrayForComparison(\wp_aot_require_array( $supportedValue ));
+                 if ($normalizedValue === $normalizedSupported) {
+                     return \true;
+                 }
+@@ -111,12 +111,13 @@
+      * @param mixed $value The value to normalize.
+      * @return mixed The normalized value.
+      */
+-    private static function normalizeValue($value)
++    private static function normalizeValue(mixed $value): mixed
+     {
+         if ($value instanceof AbstractEnum) {
+             return $value->value;
+         }
+         return $value;
++    	return null;
+     }
+     /**
+      * Normalizes and sorts an array for comparison.
+@@ -132,8 +133,8 @@
+      */
+     private static function normalizeArrayForComparison(array $items): array
+     {
+-        $normalized = array_map([self::class, 'normalizeValue'], $items);
+-        sort($normalized);
++        $normalized = \wp_aot_array_map(self::normalizeValue(...), $items);
++        \wp_aot_sort($normalized);
+         return $normalized;
+     }
+     /**
+@@ -181,6 +182,6 @@
+     public static function fromArray(array $array): self
+     {
+         static::validateFromArrayData($array, [self::KEY_NAME]);
+-        return new self(OptionEnum::from($array[self::KEY_NAME]), $array[self::KEY_SUPPORTED_VALUES] ?? null);
++        return new self(\wp_aot_require_WordPress_AiClient_Providers_Models_Enums_OptionEnum( OptionEnum::from($array[self::KEY_NAME]) ), \wp_aot_require_nullable_array( $array[self::KEY_SUPPORTED_VALUES] ?? null ));
+     }
+ }

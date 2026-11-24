@@ -1,0 +1,90 @@
+--- a/wp-includes/php-ai-client/src/Providers/ProviderRegistry.php
++++ b/wp-includes/php-ai-client/src/Providers/ProviderRegistry.php
+@@ -57,7 +57,7 @@
+      */
+     public function registerProvider(string $className): void
+     {
+-        if (!class_exists($className)) {
++        if (!\wp_aot_class_exists($className)) {
+             throw new InvalidArgumentException(sprintf('Provider class does not exist: %s', $className));
+         }
+         // Validate that class implements ProviderInterface
+@@ -257,7 +257,7 @@
+         $className = $this->resolveProviderClassName($idOrClassName);
+         $modelInstance = $className::model($modelId, $modelConfig);
+         $this->bindModelDependencies($modelInstance);
+-        return $modelInstance;
++        return \wp_aot_require_WordPress_AiClient_Providers_Models_Contracts_ModelInterface( $modelInstance );
+     }
+     /**
+      * Binds dependencies to a model instance.
+@@ -342,9 +342,9 @@
+     {
+         $className = $this->resolveProviderClassName($idOrClassName);
+         if (!isset($this->providerAuthenticationInstances[$className])) {
+-            return null;
+-        }
+-        return $this->providerAuthenticationInstances[$className];
++            return \wp_aot_require_nullable_WordPress_AiClient_Providers_Http_Contracts_RequestAuthenticationInterface( null );
++        }
++        return \wp_aot_require_nullable_WordPress_AiClient_Providers_Http_Contracts_RequestAuthenticationInterface( $this->providerAuthenticationInstances[$className] );
+     }
+     /**
+      * Sets the HTTP transporter for a specific provider, hooking up its class instances.
+@@ -421,11 +421,11 @@
+         $providerId = $providerMetadata->getId();
+         $authenticationMethod = $providerMetadata->getAuthenticationMethod();
+         if ($authenticationMethod === null) {
+-            return null;
++            return \wp_aot_require_nullable_WordPress_AiClient_Providers_Http_Contracts_RequestAuthenticationInterface( null );
+         }
+         $authenticationClass = $authenticationMethod->getImplementationClass();
+         if ($authenticationClass === null) {
+-            return null;
++            return \wp_aot_require_nullable_WordPress_AiClient_Providers_Http_Contracts_RequestAuthenticationInterface( null );
+         }
+         $authenticationSchema = $authenticationClass::getJsonSchema();
+         // Iterate over all JSON schema object properties to try to determine the necessary authentication data.
+@@ -437,11 +437,11 @@
+                 // Try to get the value from environment variable or constant.
+                 $envValue = getenv($envVarName);
+                 if ($envValue === \false) {
+-                    if (!defined($envVarName)) {
++                    if (!\wp_aot_defined($envVarName)) {
+                         continue;
+                         // Skip if neither environment variable nor constant is defined.
+                     }
+-                    $envValue = constant($envVarName);
++                    $envValue = \wp_aot_constant($envVarName);
+                     if (!is_scalar($envValue)) {
+                         continue;
+                     }
+@@ -467,14 +467,14 @@
+             if (isset($authenticationSchema['required']) && is_array($authenticationSchema['required'])) {
+                 /** @var list<string> $requiredProperties */
+                 $requiredProperties = $authenticationSchema['required'];
+-                if (array_diff_key(array_flip($requiredProperties), $authenticationData)) {
+-                    return null;
++                if (\wp_aot_diff_keys(\wp_aot_require_array( \wp_aot_array_flip($requiredProperties) ), $authenticationData)) {
++                    return \wp_aot_require_nullable_WordPress_AiClient_Providers_Http_Contracts_RequestAuthenticationInterface( null );
+                 }
+             }
+         }
+         /** @var RequestAuthenticationInterface */
+         /** @var array<string, mixed> $authenticationData */
+-        return $authenticationClass::fromArray($authenticationData);
++        return \wp_aot_require_nullable_WordPress_AiClient_Providers_Http_Contracts_RequestAuthenticationInterface( $authenticationClass::fromArray($authenticationData) );
+     }
+     /**
+      * Checks if the given value is a registered provider class name.
+@@ -513,8 +513,8 @@
+     private function getEnvVarName(string $providerId, string $field): string
+     {
+         // Convert camelCase or kebab-case or snake_case to CONSTANT_CASE.
+-        $constantCaseProviderId = strtoupper((string) preg_replace('/([a-z])([A-Z])/', '$1_$2', str_replace('-', '_', $providerId)));
+-        $constantCaseField = strtoupper((string) preg_replace('/([a-z])([A-Z])/', '$1_$2', str_replace('-', '_', $field)));
++        $constantCaseProviderId = strtoupper((string) \wp_aot_preg_replace('/([a-z])([A-Z])/', '$1_$2', \wp_aot_str_replace('-', '_', $providerId)));
++        $constantCaseField = strtoupper((string) \wp_aot_preg_replace('/([a-z])([A-Z])/', '$1_$2', \wp_aot_str_replace('-', '_', $field)));
+         return "{$constantCaseProviderId}_{$constantCaseField}";
+     }
+ }

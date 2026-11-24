@@ -1,0 +1,20 @@
+--- a/wp-admin/import.php
++++ b/wp-admin/import.php
+@@ -45,7 +45,7 @@
+ 	$importer_id = $popular_importers[ $_GET['invalid'] ]['importer-id'];
+ 	if ( $importer_id !== $_GET['invalid'] ) { // Prevent redirect loops.
+ 		wp_redirect( admin_url( 'admin.php?import=' . $importer_id ) );
+-		exit;
++		\wp_aot_exit();
+ 	}
+ 	unset( $importer_id );
+ }
+@@ -101,7 +101,7 @@
+ if ( empty( $importers ) ) {
+ 	echo '<p>' . __( 'No importers are available.' ) . '</p>'; // TODO: Make more helpful.
+ } else {
+-	uasort( $importers, '_usort_by_first_member' );
++	\wp_aot_uasort( $importers, '_usort_by_first_member' );
+ 	?>
+ <table class="widefat importers striped">
+ 

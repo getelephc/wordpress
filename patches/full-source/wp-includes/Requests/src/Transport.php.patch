@@ -1,0 +1,27 @@
+--- a/wp-includes/Requests/src/Transport.php
++++ b/wp-includes/Requests/src/Transport.php
+@@ -22,7 +22,7 @@
+ 	 * @param array $options Request options, see {@see \WpOrg\Requests\Requests::response()} for documentation
+ 	 * @return string Raw HTTP result
+ 	 */
+-	public function request($url, $headers = [], $data = [], $options = []);
++	public function request(mixed $url, mixed $headers = [], mixed $data = [], mixed $options = []): mixed;
+ 
+ 	/**
+ 	 * Send multiple requests simultaneously
+@@ -31,7 +31,7 @@
+ 	 * @param array $options Global options, see {@see \WpOrg\Requests\Requests::response()} for documentation
+ 	 * @return array Array of \WpOrg\Requests\Response objects (may contain \WpOrg\Requests\Exception or string responses as well)
+ 	 */
+-	public function request_multiple($requests, $options);
++	public function request_multiple(mixed $requests, mixed $options): mixed;
+ 
+ 	/**
+ 	 * Self-test whether the transport can be used.
+@@ -41,5 +41,5 @@
+ 	 * @param array<string, bool> $capabilities Optional. Associative array of capabilities to test against, i.e. `['<capability>' => true]`.
+ 	 * @return bool Whether the transport can be used.
+ 	 */
+-	public static function test($capabilities = []);
++	public static function test(mixed $capabilities = []): mixed;
+ }

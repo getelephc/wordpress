@@ -1,0 +1,123 @@
+--- a/wp-includes/class-wp-recovery-mode-email-service.php
++++ b/wp-includes/class-wp-recovery-mode-email-service.php
+@@ -50,7 +50,7 @@
+ 	 * }
+ 	 * @return true|WP_Error True if email sent, WP_Error otherwise.
+ 	 */
+-	public function maybe_send_recovery_mode_email( $rate_limit, $error, $extension ) {
++	public function maybe_send_recovery_mode_email( mixed $rate_limit, mixed $error, mixed $extension ): mixed {
+ 
+ 		$last_sent = get_option( self::RATE_LIMIT_OPTION );
+ 
+@@ -83,6 +83,7 @@
+ 		);
+ 
+ 		return new WP_Error( 'email_sent_already', $err_message );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -92,8 +93,9 @@
+ 	 *
+ 	 * @return bool True on success, false on failure.
+ 	 */
+-	public function clear_rate_limit() {
++	public function clear_rate_limit(): mixed {
+ 		return delete_option( self::RATE_LIMIT_OPTION );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -111,7 +113,7 @@
+ 	 * }
+ 	 * @return bool Whether the email was sent successfully.
+ 	 */
+-	private function send_recovery_mode_email( $rate_limit, $error, $extension ) {
++	private function send_recovery_mode_email( mixed $rate_limit, mixed $error, mixed $extension ): mixed {
+ 
+ 		$url      = $this->link_service->generate_url();
+ 		$blogname = wp_specialchars_decode( get_option( 'blogname' ), ENT_QUOTES );
+@@ -170,7 +172,7 @@
+ 
+ ###DETAILS###'
+ 		);
+-		$message = str_replace(
++		$message = \wp_aot_str_replace(
+ 			array(
+ 				'###LINK###',
+ 				'###EXPIRES###',
+@@ -235,6 +237,7 @@
+ 		}
+ 
+ 		return $sent;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -244,12 +247,13 @@
+ 	 *
+ 	 * @return string Email address to send recovery mode link to.
+ 	 */
+-	private function get_recovery_mode_email_address() {
+-		if ( defined( 'RECOVERY_MODE_EMAIL' ) && is_email( RECOVERY_MODE_EMAIL ) ) {
+-			return RECOVERY_MODE_EMAIL;
++	private function get_recovery_mode_email_address(): mixed {
++		if ( defined( 'RECOVERY_MODE_EMAIL' ) && is_email( \wp_aot_undefined_constant('RECOVERY_MODE_EMAIL') ) ) {
++			return \wp_aot_undefined_constant('RECOVERY_MODE_EMAIL');
+ 		}
+ 
+ 		return get_option( 'admin_email' );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -265,7 +269,7 @@
+ 	 * }
+ 	 * @return string Message about which extension caused the error.
+ 	 */
+-	private function get_cause( $extension ) {
++	private function get_cause( mixed $extension ): mixed {
+ 
+ 		if ( 'plugin' === $extension['type'] ) {
+ 			$plugin = $this->get_plugin( $extension );
+@@ -287,6 +291,7 @@
+ 		}
+ 
+ 		return $cause;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -302,7 +307,7 @@
+ 	 * }
+ 	 * @return array|false A plugin array {@see get_plugins()} or `false` if no plugin was found.
+ 	 */
+-	private function get_plugin( $extension ) {
++	private function get_plugin( mixed $extension ): mixed {
+ 		if ( ! function_exists( 'get_plugins' ) ) {
+ 			require_once ABSPATH . 'wp-admin/includes/plugin.php';
+ 		}
+@@ -321,6 +326,7 @@
+ 		}
+ 
+ 		return false;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -336,7 +342,7 @@
+ 	 * }
+ 	 * @return array An associative array of debug information.
+ 	 */
+-	private function get_debug( $extension ) {
++	private function get_debug( mixed $extension ): mixed {
+ 		$theme      = wp_get_theme();
+ 		$wp_version = get_bloginfo( 'version' );
+ 
+@@ -374,5 +380,6 @@
+ 		);
+ 
+ 		return $debug;
++		return null;
+ 	}
+ }

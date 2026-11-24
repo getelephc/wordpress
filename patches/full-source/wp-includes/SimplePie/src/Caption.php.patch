@@ -1,0 +1,84 @@
+--- a/wp-includes/SimplePie/src/Caption.php
++++ b/wp-includes/SimplePie/src/Caption.php
+@@ -92,13 +92,14 @@
+      *
+      * @return string|null Time in the format 'hh:mm:ss.SSS'
+      */
+-    public function get_endtime()
++    public function get_endtime(): mixed
+     {
+         if ($this->endTime !== null) {
+             return $this->endTime;
+         }
+ 
+         return null;
++    	return null;
+     }
+ 
+     /**
+@@ -107,13 +108,14 @@
+      * @link http://tools.ietf.org/html/rfc3066
+      * @return string|null Language code as per RFC 3066
+      */
+-    public function get_language()
++    public function get_language(): mixed
+     {
+         if ($this->lang !== null) {
+             return $this->lang;
+         }
+ 
+         return null;
++    	return null;
+     }
+ 
+     /**
+@@ -121,13 +123,14 @@
+      *
+      * @return string|null Time in the format 'hh:mm:ss.SSS'
+      */
+-    public function get_starttime()
++    public function get_starttime(): mixed
+     {
+         if ($this->startTime !== null) {
+             return $this->startTime;
+         }
+ 
+         return null;
++    	return null;
+     }
+ 
+     /**
+@@ -135,13 +138,14 @@
+      *
+      * @return string|null
+      */
+-    public function get_text()
++    public function get_text(): mixed
+     {
+         if ($this->text !== null) {
+             return $this->text;
+         }
+ 
+         return null;
++    	return null;
+     }
+ 
+     /**
+@@ -149,14 +153,15 @@
+      *
+      * @return string|null Either 'text' or 'html'
+      */
+-    public function get_type()
++    public function get_type(): mixed
+     {
+         if ($this->type !== null) {
+             return $this->type;
+         }
+ 
+         return null;
++    	return null;
+     }
+ }
+ 
+-class_alias('SimplePie\Caption', 'SimplePie_Caption');
++(!defined('WP_AOT_NATIVE_RUNTIME') && (bool) \wp_aot_native_api('class_alias', array('SimplePie\Caption', 'SimplePie_Caption')));

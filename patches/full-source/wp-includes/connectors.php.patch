@@ -1,0 +1,105 @@
+--- a/wp-includes/connectors.php
++++ b/wp-includes/connectors.php
+@@ -329,7 +329,7 @@
+ 	// Registry values (from provider plugins) take precedence over hardcoded fallbacks.
+ 	$ai_registry = AiClient::defaultRegistry();
+ 
+-	foreach ( array_filter( $ai_registry->getRegisteredProviderIds() ) as $connector_id ) {
++	foreach ( \wp_aot_array_filter( $ai_registry->getRegisteredProviderIds() ) as $connector_id ) {
+ 		$provider_class_name = $ai_registry->getProviderClassName( $connector_id );
+ 		$provider_metadata   = $provider_class_name::metadata();
+ 
+@@ -386,24 +386,24 @@
+ 	// Register all default connectors directly on the registry.
+ 	foreach ( $defaults as $id => $args ) {
+ 		if ( 'api_key' === $args['authentication']['method'] ) {
+-			$sanitized_id = str_replace( '-', '_', $id );
++			$sanitized_id = \wp_aot_str_replace( '-', '_', $id );
+ 
+ 			$args['authentication']['setting_name'] = "connectors_ai_{$sanitized_id}_api_key";
+ 
+ 			// All AI providers use the {CONSTANT_CASE_ID}_API_KEY naming convention.
+-			$constant_case_key = strtoupper( (string) preg_replace( '/([a-z])([A-Z])/', '$1_$2', $sanitized_id ) ) . '_API_KEY';
++			$constant_case_key = strtoupper( (string) \wp_aot_preg_replace( '/([a-z])([A-Z])/', '$1_$2', $sanitized_id ) ) . '_API_KEY';
+ 
+ 			$args['authentication']['constant_name'] = $constant_case_key;
+ 			$args['authentication']['env_var_name']  = $constant_case_key;
+ 		}
+ 
+-		$args['plugin']['is_active'] = static function () use ( $ai_registry, $id ): bool {
++		$args['plugin']['is_active'] = \wp_aot_mixed( static function () use ( $ai_registry, $id ): bool {
+ 			try {
+ 				return $ai_registry->hasProvider( $id );
+ 			} catch ( Exception $e ) {
+ 				return false;
+ 			}
+-		};
++		} );
+ 
+ 		$registry->register( $id, $args );
+ 	}
+@@ -451,8 +451,8 @@
+ 	}
+ 
+ 	// Check PHP constant.
+-	if ( '' !== $constant_name && defined( $constant_name ) ) {
+-		$const_value = constant( $constant_name );
++	if ( '' !== $constant_name && \wp_aot_metadata_defined( $constant_name ) ) {
++		$const_value = \wp_aot_metadata_constant( $constant_name );
+ 		if ( is_string( $const_value ) && '' !== $const_value ) {
+ 			return 'constant';
+ 		}
+@@ -545,8 +545,8 @@
+ 
+ 	// Check PHP constant.
+ 	$constant_name = $auth['constant_name'] ?? '';
+-	if ( '' !== $constant_name && defined( $constant_name ) ) {
+-		$const_value = constant( $constant_name );
++	if ( '' !== $constant_name && \wp_aot_metadata_defined( $constant_name ) ) {
++		$const_value = \wp_aot_metadata_constant( $constant_name );
+ 		if ( is_string( $const_value ) && '' !== $const_value ) {
+ 			$credentials = wp_connectors_parse_application_password_credentials( $const_value );
+ 			if ( '' !== $credentials['username'] && '' !== $credentials['password'] ) {
+@@ -638,13 +638,13 @@
+  *                       `sanitize_option_{$option}` filter name when omitted.
+  * @return array{username: string, password: string} Sanitized credentials.
+  */
+-function wp_connectors_sanitize_application_password_credentials( $value, string $option = '' ): array {
++function wp_connectors_sanitize_application_password_credentials( mixed $value, string $option = '' ): array {
+ 	if ( ! is_array( $value ) ) {
+ 		$value = array();
+ 	}
+ 
+ 	if ( '' === $option ) {
+-		$option = str_replace( 'sanitize_option_', '', (string) current_filter() );
++		$option = \wp_aot_str_replace( 'sanitize_option_', '', (string) current_filter() );
+ 	}
+ 
+ 	$stored = get_option( $option );
+@@ -835,7 +835,7 @@
+ 							'additionalProperties' => false,
+ 						),
+ 					),
+-					'sanitize_callback' => static function ( $value ) use ( $setting_name ) {
++					'sanitize_callback' => static function ( mixed $value ) use ( $setting_name ) {
+ 						return wp_connectors_sanitize_application_password_credentials( $value, $setting_name );
+ 					},
+ 				)
+@@ -927,7 +927,7 @@
+ 				$auth_out['isConnected'] = 'none' !== $key_source;
+ 			}
+ 		} elseif ( 'application_password' === $auth['method'] ) {
+-			$credentials = wp_connectors_get_application_password_credentials( $auth );
++			$credentials = wp_connectors_get_application_password_credentials( \wp_aot_array_input($auth ));
+ 
+ 			$auth_out['settingName']    = $auth['setting_name'] ?? '';
+ 			$auth_out['credentialsUrl'] = $auth['credentials_url'] ?? null;
+@@ -957,7 +957,7 @@
+ 
+ 		$connectors[ $connector_id ] = $connector_out;
+ 	}
+-	ksort( $connectors );
++	\wp_aot_ksort( $connectors );
+ 	$data['connectors']        = $connectors;
+ 	$data['isFileModDisabled'] = ! wp_is_file_mod_allowed( 'install_plugins' );
+ 	return $data;

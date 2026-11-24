@@ -1,0 +1,581 @@
+--- a/wp-admin/includes/class-wp-filesystem-base.php
++++ b/wp-admin/includes/class-wp-filesystem-base.php
+@@ -72,7 +72,7 @@
+ 	 *
+ 	 * @return string|false The location of the remote path, or false on failure.
+ 	 */
+-	public function abspath() {
++	public function abspath(): mixed {
+ 		$folder = $this->find_folder( ABSPATH );
+ 
+ 		/*
+@@ -84,6 +84,7 @@
+ 		}
+ 
+ 		return $folder;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -93,8 +94,9 @@
+ 	 *
+ 	 * @return string|false The location of the remote path, or false on failure.
+ 	 */
+-	public function wp_content_dir() {
++	public function wp_content_dir(): mixed {
+ 		return $this->find_folder( WP_CONTENT_DIR );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -104,8 +106,9 @@
+ 	 *
+ 	 * @return string|false The location of the remote path, or false on failure.
+ 	 */
+-	public function wp_plugins_dir() {
++	public function wp_plugins_dir(): mixed {
+ 		return $this->find_folder( WP_PLUGIN_DIR );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -117,7 +120,7 @@
+ 	 *                            Default false.
+ 	 * @return string|false The location of the remote path, or false on failure.
+ 	 */
+-	public function wp_themes_dir( $theme = false ) {
++	public function wp_themes_dir( mixed $theme = false ): mixed {
+ 		$theme_root = get_theme_root( is_string( $theme ) ? $theme : '' );
+ 
+ 		// Account for relative theme roots.
+@@ -126,6 +129,7 @@
+ 		}
+ 
+ 		return $this->find_folder( $theme_root );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -135,8 +139,9 @@
+ 	 *
+ 	 * @return string|false The location of the remote path, or false on failure.
+ 	 */
+-	public function wp_lang_dir() {
++	public function wp_lang_dir(): mixed {
+ 		return $this->find_folder( WP_LANG_DIR );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -154,10 +159,11 @@
+ 	 * @param bool   $verbose Optional. True to display debug information. Default false.
+ 	 * @return string|false The location of the remote path, or false on failure.
+ 	 */
+-	public function find_base_dir( $base = '.', $verbose = false ) {
++	public function find_base_dir( mixed $base = '.', mixed $verbose = false ): mixed {
+ 		_deprecated_function( __FUNCTION__, '2.7.0', 'WP_Filesystem_Base::abspath() or WP_Filesystem_Base::wp_*_dir()' );
+ 		$this->verbose = $verbose;
+ 		return $this->abspath();
++		return null;
+ 	}
+ 
+ 	/**
+@@ -175,10 +181,11 @@
+ 	 * @param bool   $verbose Optional. True to display debug information. Default false.
+ 	 * @return string|false The location of the remote path, or false on failure.
+ 	 */
+-	public function get_base_dir( $base = '.', $verbose = false ) {
++	public function get_base_dir( mixed $base = '.', mixed $verbose = false ): mixed {
+ 		_deprecated_function( __FUNCTION__, '2.7.0', 'WP_Filesystem_Base::abspath() or WP_Filesystem_Base::wp_*_dir()' );
+ 		$this->verbose = $verbose;
+ 		return $this->abspath();
++		return null;
+ 	}
+ 
+ 	/**
+@@ -192,7 +199,7 @@
+ 	 * @param string $folder the folder to locate.
+ 	 * @return string|false The location of the remote path, false on failure.
+ 	 */
+-	public function find_folder( $folder ) {
++	public function find_folder( mixed $folder ): mixed {
+ 		if ( isset( $this->cache[ $folder ] ) ) {
+ 			return $this->cache[ $folder ];
+ 		}
+@@ -207,27 +214,27 @@
+ 
+ 			// Direct matches ( folder = CONSTANT/ ).
+ 			foreach ( $constant_overrides as $constant => $dir ) {
+-				if ( ! defined( $constant ) ) {
++				if ( ! \wp_aot_metadata_defined( $constant ) ) {
+ 					continue;
+ 				}
+ 
+ 				if ( $folder === $dir ) {
+ 					/** @var string $constant_value */
+-					$constant_value = constant( $constant );
++					$constant_value = \wp_aot_metadata_constant( $constant );
+ 					return trailingslashit( $constant_value );
+ 				}
+ 			}
+ 
+ 			// Prefix matches ( folder = CONSTANT/subdir ),
+ 			foreach ( $constant_overrides as $constant => $dir ) {
+-				if ( ! defined( $constant ) ) {
++				if ( ! \wp_aot_metadata_defined( $constant ) ) {
+ 					continue;
+ 				}
+ 
+ 				if ( 0 === stripos( $folder, $dir ) ) { // $folder starts with $dir.
+ 					/** @var string $constant_value */
+-					$constant_value   = constant( $constant );
+-					$potential_folder = (string) preg_replace( '#^' . preg_quote( $dir, '#' ) . '/#i', trailingslashit( $constant_value ), $folder );
++					$constant_value   = \wp_aot_metadata_constant( $constant );
++					$potential_folder = (string) \wp_aot_preg_replace( '#^' . preg_quote( \wp_aot_regex_text( $dir ), '#' ) . '/#i', trailingslashit( $constant_value ), $folder );
+ 					$potential_folder = trailingslashit( $potential_folder );
+ 
+ 					if ( $this->is_dir( $potential_folder ) ) {
+@@ -238,13 +245,13 @@
+ 				}
+ 			}
+ 		} elseif ( 'direct' === $this->method ) {
+-			$folder = str_replace( '\\', '/', $folder ); // Windows path sanitization.
++			$folder = \wp_aot_str_replace( '\\', '/', $folder ); // Windows path sanitization.
+ 
+ 			return trailingslashit( $folder );
+ 		}
+ 
+-		$folder = (string) preg_replace( '|^([a-z]{1}):|i', '', $folder ); // Strip out Windows drive letter if it's there.
+-		$folder = str_replace( '\\', '/', $folder ); // Windows path sanitization.
++		$folder = (string) \wp_aot_preg_replace( '|^([a-z]{1}):|i', '', $folder ); // Strip out Windows drive letter if it's there.
++		$folder = \wp_aot_str_replace( '\\', '/', $folder ); // Windows path sanitization.
+ 
+ 		if ( isset( $this->cache[ $folder ] ) ) {
+ 			return $this->cache[ $folder ];
+@@ -264,6 +271,7 @@
+ 		}
+ 
+ 		return $return;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -278,7 +286,7 @@
+ 	 * @param bool   $loop   If the function has recursed. Internal use only.
+ 	 * @return string|false The location of the remote path, false to cease looping.
+ 	 */
+-	public function search_for_folder( $folder, $base = '.', $loop = false ) {
++	public function search_for_folder( mixed $folder, mixed $base = '.', mixed $loop = false ): mixed {
+ 		if ( empty( $base ) || '.' === $base ) {
+ 			$cwd  = $this->cwd();
+ 			$base = is_string( $cwd ) ? trailingslashit( $cwd ) : '/';
+@@ -293,7 +301,7 @@
+ 
+ 		$folder_parts     = explode( '/', $folder );
+ 		$folder_part_keys = array_keys( $folder_parts );
+-		$last_index       = array_pop( $folder_part_keys );
++		$last_index       = \wp_aot_array_pop( $folder_part_keys );
+ 		$last_path        = $folder_parts[ $last_index ];
+ 
+ 		$files = $this->dirlist( $base );
+@@ -321,7 +329,7 @@
+ 				}
+ 
+ 				// Only search for the remaining path tokens in the directory, not the full path again.
+-				$newfolder = implode( '/', array_slice( $folder_parts, $index + 1 ) );
++				$newfolder = implode( '/', \wp_aot_array_slice( $folder_parts, $index + 1 ) );
+ 				$ret       = $this->search_for_folder( $newfolder, $newdir, $loop );
+ 
+ 				if ( $ret ) {
+@@ -356,6 +364,7 @@
+ 		 * This comes into effect when the CWD is /home/user/ but WP is at /var/www/....
+ 		 */
+ 		return $this->search_for_folder( $folder, '/', true );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -370,7 +379,7 @@
+ 	 * @param string $file String filename.
+ 	 * @return string The *nix-style representation of permissions.
+ 	 */
+-	public function gethchmod( $file ) {
++	public function gethchmod( mixed $file ): mixed {
+ 		$perms = intval( $this->getchmod( $file ), 8 );
+ 
+ 		if ( ( $perms & 0xC000 ) === 0xC000 ) { // Socket.
+@@ -413,6 +422,7 @@
+ 					( ( $perms & 0x0200 ) ? 'T' : '-' ) );
+ 
+ 		return $info;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -423,8 +433,9 @@
+ 	 * @param string $file Path to the file.
+ 	 * @return string Mode of the file (the last 3 digits).
+ 	 */
+-	public function getchmod( $file ) {
++	public function getchmod( mixed $file ): mixed {
+ 		return '777';
++		return null;
+ 	}
+ 
+ 	/**
+@@ -440,13 +451,13 @@
+ 	 * @param string $mode string The *nix-style file permissions.
+ 	 * @return string Octal representation of permissions.
+ 	 */
+-	public function getnumchmodfromh( $mode ) {
++	public function getnumchmodfromh( mixed $mode ): mixed {
+ 		$realmode = '';
+ 		$legal    = array( '', 'w', 'r', 'x', '-' );
+-		$attarray = (array) preg_split( '//', $mode );
++		$attarray = (array) \wp_aot_preg_split( '//', \wp_aot_regex_text( $mode ) );
+ 
+ 		for ( $i = 0, $c = count( $attarray ); $i < $c; $i++ ) {
+-			$key = array_search( $attarray[ $i ], $legal, true );
++			$key = \wp_aot_array_search( $attarray[ $i ], $legal, true );
+ 
+ 			if ( $key ) {
+ 				$realmode .= $legal[ $key ];
+@@ -460,7 +471,7 @@
+ 			'w' => '2',
+ 			'x' => '1',
+ 		);
+-		$mode  = strtr( $mode, $trans );
++		$mode  = \wp_aot_strtr( $mode, $trans );
+ 
+ 		$newmode  = $mode[0];
+ 		$newmode .= (int) $mode[1] + (int) $mode[2] + (int) $mode[3];
+@@ -468,6 +479,7 @@
+ 		$newmode .= (int) $mode[7] + (int) $mode[8] + (int) $mode[9];
+ 
+ 		return $newmode;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -478,8 +490,9 @@
+ 	 * @param string $text String to test against.
+ 	 * @return bool True if string is binary, false otherwise.
+ 	 */
+-	public function is_binary( $text ) {
+-		return (bool) preg_match( '|[^\x20-\x7E]|', $text ); // chr(32)..chr(127)
++	public function is_binary( mixed $text ): mixed {
++		return (bool) preg_match( '|[^\x20-\x7E]|', \wp_aot_regex_text( $text ) ); // chr(32)..chr(127)
++		return null;
+ 	}
+ 
+ 	/**
+@@ -495,8 +508,9 @@
+ 	 *                              Default false.
+ 	 * @return bool True on success, false on failure.
+ 	 */
+-	public function chown( $file, $owner, $recursive = false ) {
+-		return false;
++	public function chown( mixed $file, mixed $owner, mixed $recursive = false ): mixed {
++		return false;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -507,8 +521,9 @@
+ 	 *
+ 	 * @return bool True on success, false on failure (always true for WP_Filesystem_Direct).
+ 	 */
+-	public function connect() {
++	public function connect(): mixed {
+ 		return true;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -520,8 +535,9 @@
+ 	 * @param string $file Name of the file to read.
+ 	 * @return string|false Read data on success, false on failure.
+ 	 */
+-	public function get_contents( $file ) {
+-		return false;
++	public function get_contents( mixed $file ): mixed {
++		return false;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -533,8 +549,9 @@
+ 	 * @param string $file Path to the file.
+ 	 * @return string[]|false File contents in an array on success, false on failure.
+ 	 */
+-	public function get_contents_array( $file ) {
+-		return false;
++	public function get_contents_array( mixed $file ): mixed {
++		return false;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -549,8 +566,9 @@
+ 	 *                            Default false.
+ 	 * @return bool True on success, false on failure.
+ 	 */
+-	public function put_contents( $file, $contents, $mode = false ) {
+-		return false;
++	public function put_contents( mixed $file, mixed $contents, mixed $mode = false ): mixed {
++		return false;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -561,8 +579,9 @@
+ 	 *
+ 	 * @return string|false The current working directory on success, false on failure.
+ 	 */
+-	public function cwd() {
+-		return false;
++	public function cwd(): mixed {
++		return false;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -574,8 +593,9 @@
+ 	 * @param string $dir The new current directory.
+ 	 * @return bool True on success, false on failure.
+ 	 */
+-	public function chdir( $dir ) {
+-		return false;
++	public function chdir( mixed $dir ): mixed {
++		return false;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -590,8 +610,9 @@
+ 	 *                              Default false.
+ 	 * @return bool True on success, false on failure.
+ 	 */
+-	public function chgrp( $file, $group, $recursive = false ) {
+-		return false;
++	public function chgrp( mixed $file, mixed $group, mixed $recursive = false ): mixed {
++		return false;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -607,8 +628,9 @@
+ 	 *                             Default false.
+ 	 * @return bool True on success, false on failure.
+ 	 */
+-	public function chmod( $file, $mode = false, $recursive = false ) {
+-		return false;
++	public function chmod( mixed $file, mixed $mode = false, mixed $recursive = false ): mixed {
++		return false;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -620,8 +642,9 @@
+ 	 * @param string $file Path to the file.
+ 	 * @return string|false Username of the owner on success, false on failure.
+ 	 */
+-	public function owner( $file ) {
+-		return false;
++	public function owner( mixed $file ): mixed {
++		return false;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -633,8 +656,9 @@
+ 	 * @param string $file Path to the file.
+ 	 * @return string|false The group on success, false on failure.
+ 	 */
+-	public function group( $file ) {
+-		return false;
++	public function group( mixed $file ): mixed {
++		return false;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -651,8 +675,9 @@
+ 	 *                               0755 for dirs. Default false.
+ 	 * @return bool True on success, false on failure.
+ 	 */
+-	public function copy( $source, $destination, $overwrite = false, $mode = false ) {
+-		return false;
++	public function copy( mixed $source, mixed $destination, mixed $overwrite = false, mixed $mode = false ): mixed {
++		return false;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -667,8 +692,9 @@
+ 	 *                            Default false.
+ 	 * @return bool True on success, false on failure.
+ 	 */
+-	public function move( $source, $destination, $overwrite = false ) {
+-		return false;
++	public function move( mixed $source, mixed $destination, mixed $overwrite = false ): mixed {
++		return false;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -684,8 +710,9 @@
+ 	 *                                Default false.
+ 	 * @return bool True on success, false on failure.
+ 	 */
+-	public function delete( $file, $recursive = false, $type = false ) {
+-		return false;
++	public function delete( mixed $file, mixed $recursive = false, mixed $type = false ): mixed {
++		return false;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -697,8 +724,9 @@
+ 	 * @param string $path Path to file or directory.
+ 	 * @return bool Whether $path exists or not.
+ 	 */
+-	public function exists( $path ) {
+-		return false;
++	public function exists( mixed $path ): mixed {
++		return false;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -710,8 +738,9 @@
+ 	 * @param string $file File path.
+ 	 * @return bool Whether $file is a file.
+ 	 */
+-	public function is_file( $file ) {
+-		return false;
++	public function is_file( mixed $file ): mixed {
++		return false;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -723,8 +752,9 @@
+ 	 * @param string $path Directory path.
+ 	 * @return bool Whether $path is a directory.
+ 	 */
+-	public function is_dir( $path ) {
+-		return false;
++	public function is_dir( mixed $path ): mixed {
++		return false;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -736,8 +766,9 @@
+ 	 * @param string $file Path to file.
+ 	 * @return bool Whether $file is readable.
+ 	 */
+-	public function is_readable( $file ) {
+-		return false;
++	public function is_readable( mixed $file ): mixed {
++		return false;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -749,8 +780,9 @@
+ 	 * @param string $path Path to file or directory.
+ 	 * @return bool Whether $path is writable.
+ 	 */
+-	public function is_writable( $path ) {
+-		return false;
++	public function is_writable( mixed $path ): mixed {
++		return false;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -762,8 +794,9 @@
+ 	 * @param string $file Path to file.
+ 	 * @return int|false Unix timestamp representing last access time, false on failure.
+ 	 */
+-	public function atime( $file ) {
+-		return false;
++	public function atime( mixed $file ): mixed {
++		return false;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -775,8 +808,9 @@
+ 	 * @param string $file Path to file.
+ 	 * @return int|false Unix timestamp representing modification time, false on failure.
+ 	 */
+-	public function mtime( $file ) {
+-		return false;
++	public function mtime( mixed $file ): mixed {
++		return false;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -788,8 +822,9 @@
+ 	 * @param string $file Path to file.
+ 	 * @return int|false Size of the file in bytes on success, false on failure.
+ 	 */
+-	public function size( $file ) {
+-		return false;
++	public function size( mixed $file ): mixed {
++		return false;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -807,8 +842,9 @@
+ 	 *                      Default 0.
+ 	 * @return bool True on success, false on failure.
+ 	 */
+-	public function touch( $file, $time = 0, $atime = 0 ) {
+-		return false;
++	public function touch( mixed $file, mixed $time = 0, mixed $atime = 0 ): mixed {
++		return false;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -826,8 +862,9 @@
+ 	 *                                Default false.
+ 	 * @return bool True on success, false on failure.
+ 	 */
+-	public function mkdir( $path, $chmod = false, $chown = false, $chgrp = false ) {
+-		return false;
++	public function mkdir( mixed $path, mixed $chmod = false, mixed $chown = false, mixed $chgrp = false ): mixed {
++		return false;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -841,8 +878,9 @@
+ 	 *                          Default false.
+ 	 * @return bool True on success, false on failure.
+ 	 */
+-	public function rmdir( $path, $recursive = false ) {
+-		return false;
++	public function rmdir( mixed $path, mixed $recursive = false ): mixed {
++		return false;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -882,7 +920,8 @@
+ 	 * }
+ 	 * @phpstan-return array<string, FileListing>|false
+ 	 */
+-	public function dirlist( $path, $include_hidden = true, $recursive = false ) {
+-		return false;
++	public function dirlist( mixed $path, mixed $include_hidden = true, mixed $recursive = false ): mixed {
++		return false;
++		return null;
+ 	}
+ }

@@ -1,0 +1,138 @@
+--- a/wp-includes/blocks/page-list.php
++++ b/wp-includes/blocks/page-list.php
+@@ -14,7 +14,7 @@
+  * @param array $context Block context from parent Navigation block.
+  * @return string The visibility mode: 'hover', 'click', or 'always'.
+  */
+-function block_core_page_list_get_submenu_visibility( $context ) {
++function block_core_page_list_get_submenu_visibility( mixed $context ): mixed {
+ 	$deprecated_open_submenus_on_click = $context['openSubmenusOnClick'] ?? null;
+ 
+ 	// For backward compatibility, prioritize the legacy attribute if present. If it has been loaded and saved in the editor, then
+@@ -28,6 +28,7 @@
+ 
+ 	// Use submenuVisibility for migrated/new blocks.
+ 	return $submenu_visibility ?? 'hover';
++	return null;
+ }
+ 
+ /**
+@@ -40,7 +41,7 @@
+  * @param  array $context    Navigation block context.
+  * @return array Colors CSS classes and inline styles.
+  */
+-function block_core_page_list_build_css_colors( $attributes, $context ) {
++function block_core_page_list_build_css_colors( mixed $attributes, mixed $context ): mixed {
+ 	$colors = array(
+ 		'css_classes'           => array(),
+ 		'inline_styles'         => '',
+@@ -122,6 +123,7 @@
+ 	}
+ 
+ 	return $colors;
++	return null;
+ }
+ /**
+  * Outputs Page list markup from an array of pages with nested children.
+@@ -139,9 +141,9 @@
+  *
+  * @return string List markup.
+  */
+-function block_core_page_list_render_nested_page_list( $submenu_visibility, $show_submenu_icons, $is_navigation_child, $nested_pages, $is_nested, $active_page_ancestor_ids = array(), $colors = array(), $depth = 0 ) {
++function block_core_page_list_render_nested_page_list( mixed $submenu_visibility, mixed $show_submenu_icons, mixed $is_navigation_child, mixed $nested_pages, mixed $is_nested, mixed $active_page_ancestor_ids = array(), mixed $colors = array(), mixed $depth = 0 ): mixed {
+ 	if ( empty( $nested_pages ) ) {
+-		return;
++		return null;
+ 	}
+ 	$front_page_id = (int) get_option( 'page_on_front' );
+ 	$markup        = '';
+@@ -219,6 +221,7 @@
+ 		$markup .= '</li>';
+ 	}
+ 	return $markup;
++	return null;
+ }
+ 
+ /**
+@@ -231,9 +234,9 @@
+  *
+  * @return array The nested array of pages.
+  */
+-function block_core_page_list_nest_pages( $current_level, $children ) {
++function block_core_page_list_nest_pages( mixed $current_level, mixed $children ): mixed {
+ 	if ( empty( $current_level ) ) {
+-		return;
++		return null;
+ 	}
+ 	foreach ( (array) $current_level as $key => $current ) {
+ 		if ( isset( $children[ $key ] ) ) {
+@@ -241,6 +244,7 @@
+ 		}
+ 	}
+ 	return $current_level;
++	return null;
+ }
+ 
+ /**
+@@ -254,7 +258,7 @@
+  *
+  * @return string Returns the page list markup.
+  */
+-function render_block_core_page_list( $attributes, $content, $block ) {
++function render_block_core_page_list( mixed $attributes, mixed $content, mixed $block ): mixed {
+ 	static $block_id = 0;
+ 	++$block_id;
+ 
+@@ -270,7 +274,7 @@
+ 
+ 	// If there are no pages, there is nothing to show.
+ 	if ( empty( $all_pages ) ) {
+-		return;
++		return null;
+ 	}
+ 
+ 	$top_level_pages = array();
+@@ -305,9 +309,9 @@
+ 	}
+ 
+ 	$colors  = block_core_page_list_build_css_colors( $attributes, $block->context );
+-	$classes = array_merge(
++	$classes = \wp_aot_array_merge(array(
+ 		$colors['css_classes']
+-	);
++	));
+ 
+ 	$style_attribute = $colors['inline_styles'];
+ 	$css_classes     = trim( implode( ' ', $classes ) );
+@@ -317,7 +321,7 @@
+ 	if ( 0 !== $parent_page_id ) {
+ 		// If the parent page has no child pages, there is nothing to show.
+ 		if ( ! array_key_exists( $parent_page_id, $pages_with_children ) ) {
+-			return;
++			return null;
+ 		}
+ 
+ 		$nested_pages = block_core_page_list_nest_pages(
+@@ -349,6 +353,7 @@
+ 		$wrapper_attributes,
+ 		$items_markup
+ 	);
++	return null;
+ }
+ 
+ /**
+@@ -356,12 +361,13 @@
+  *
+  * @since 5.8.0
+  */
+-function register_block_core_page_list() {
++function register_block_core_page_list(): mixed {
+ 	register_block_type_from_metadata(
+ 		__DIR__ . '/page-list',
+ 		array(
+ 			'render_callback' => 'render_block_core_page_list',
+ 		)
+ 	);
++	return null;
+ }
+ add_action( 'init', 'register_block_core_page_list' );

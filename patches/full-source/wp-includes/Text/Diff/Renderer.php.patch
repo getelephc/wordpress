@@ -1,0 +1,211 @@
+--- a/wp-includes/Text/Diff/Renderer.php
++++ b/wp-includes/Text/Diff/Renderer.php
+@@ -20,7 +20,7 @@
+      * This should be left at zero for this class, but subclasses may want to
+      * set this to other values.
+      */
+-    var $_leading_context_lines = 0;
++    public $_leading_context_lines = 0;
+ 
+     /**
+      * Number of trailing context "lines" to preserve.
+@@ -28,12 +28,12 @@
+      * This should be left at zero for this class, but subclasses may want to
+      * set this to other values.
+      */
+-    var $_trailing_context_lines = 0;
++    public $_trailing_context_lines = 0;
+ 
+     /**
+      * Constructor.
+      */
+-    function __construct( $params = array() )
++    function __construct( mixed $params = array() )
+     {
+         foreach ($params as $param => $value) {
+             $v = '_' . $param;
+@@ -46,8 +46,9 @@
+ 	/**
+ 	 * PHP4 constructor.
+ 	 */
+-	public function Text_Diff_Renderer( $params = array() ) {
++	public function Text_Diff_Renderer( mixed $params = array() ): mixed {
+ 		self::__construct( $params );
++		return null;
+ 	}
+ 
+     /**
+@@ -55,7 +56,7 @@
+      *
+      * @return array  All parameters of this renderer object.
+      */
+-    function getParams()
++    function getParams(): mixed
+     {
+         $params = array();
+         foreach (get_object_vars($this) as $k => $v) {
+@@ -65,6 +66,7 @@
+         }
+ 
+         return $params;
++    	return null;
+     }
+ 
+     /**
+@@ -74,10 +76,11 @@
+      *
+      * @return string  The formatted output.
+      */
+-    function render($diff)
++    function render(mixed $diff): mixed
+     {
+         $xi = $yi = 1;
+-        $block = false;
++        $x0 = $y0 = \wp_aot_mixed(null);
++        $block = \wp_aot_mixed(false);
+         $context = array();
+ 
+         $nlead = $this->_leading_context_lines;
+@@ -104,14 +107,14 @@
+                         if ($ntrail) {
+                             /* Create a new block with as many lines as we need
+                              * for the trailing context. */
+-                            $context = array_slice($edit->orig, 0, $ntrail);
++                            $context = \wp_aot_array_slice($edit->orig, 0, $ntrail);
+                             $block[] = new Text_Diff_Op_copy($context);
+                         }
+                         /* @todo */
+                         $output .= $this->_block($x0, $ntrail + $xi - $x0,
+                                                  $y0, $ntrail + $yi - $y0,
+                                                  $block);
+-                        $block = false;
++                        $block = \wp_aot_mixed(false);
+                     }
+                 }
+                 /* Keep the copy block as the context for the next block. */
+@@ -120,7 +123,7 @@
+                 /* Don't we have any diff blocks yet? */
+                 if (!is_array($block)) {
+                     /* Extract context lines from the preceding copy block. */
+-                    $context = array_slice($context, count($context) - $nlead);
++                    $context = \wp_aot_array_slice($context, count($context) - $nlead);
+                     $x0 = $xi - count($context);
+                     $y0 = $yi - count($context);
+                     $block = array();
+@@ -146,9 +149,10 @@
+         }
+ 
+         return $output . $this->_endDiff();
+-    }
+-
+-    function _block($xbeg, $xlen, $ybeg, $ylen, &$edits)
++    	return null;
++    }
++
++    function _block(mixed $xbeg, mixed $xlen, mixed $ybeg, mixed $ylen, mixed &$edits): mixed
+     {
+         $output = $this->_startBlock($this->_blockHeader($xbeg, $xlen, $ybeg, $ylen));
+ 
+@@ -173,19 +177,22 @@
+         }
+ 
+         return $output . $this->_endBlock();
+-    }
+-
+-    function _startDiff()
++    	return null;
++    }
++
++    function _startDiff(): mixed
+     {
+         return '';
+-    }
+-
+-    function _endDiff()
++    	return null;
++    }
++
++    function _endDiff(): mixed
+     {
+         return '';
+-    }
+-
+-    function _blockHeader($xbeg, $xlen, $ybeg, $ylen)
++    	return null;
++    }
++
++    function _blockHeader(mixed $xbeg, mixed $xlen, mixed $ybeg, mixed $ylen): mixed
+     {
+         if ($xlen > 1) {
+             $xbeg .= ',' . ($xbeg + $xlen - 1);
+@@ -202,41 +209,49 @@
+         }
+ 
+         return $xbeg . ($xlen ? ($ylen ? 'c' : 'd') : 'a') . $ybeg;
+-    }
+-
+-    function _startBlock($header)
++    	return null;
++    }
++
++    function _startBlock(mixed $header): mixed
+     {
+         return $header . "\n";
+-    }
+-
+-    function _endBlock()
++    	return null;
++    }
++
++    function _endBlock(): mixed
+     {
+         return '';
+-    }
+-
+-    function _lines($lines, $prefix = ' ')
++    	return null;
++    }
++
++    function _lines( mixed $lines, mixed $prefix = ' ', mixed $wp_aot_unused_3 = true ): mixed
+     {
+         return $prefix . implode("\n$prefix", $lines) . "\n";
+-    }
+-
+-    function _context($lines)
++    	return null;
++    }
++
++    function _context( mixed $lines, mixed $wp_aot_unused_2 = true ): mixed
+     {
+         return $this->_lines($lines, '  ');
+-    }
+-
+-    function _added($lines)
++    	return null;
++    }
++
++    function _added( mixed $lines, mixed $wp_aot_unused_2 = true ): mixed
+     {
+         return $this->_lines($lines, '> ');
+-    }
+-
+-    function _deleted($lines)
++    	return null;
++    }
++
++    function _deleted( mixed $lines, mixed $wp_aot_unused_2 = true ): mixed
+     {
+         return $this->_lines($lines, '< ');
+-    }
+-
+-    function _changed($orig, $final)
++    	return null;
++    }
++
++    function _changed(mixed $orig, mixed $final): mixed
+     {
+         return $this->_deleted($orig) . "---\n" . $this->_added($final);
++    	return null;
+     }
+ 
+ }

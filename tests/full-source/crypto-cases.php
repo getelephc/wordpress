@@ -14,4 +14,31 @@ $signature = hex2bin('77cd5175661beb49ebae0acb2bd51a744ae8c939a049d518e5046a334c
 $public = hex2bin('fec1428673f6afe89264b3807344ae8b269d125a503855202687db5a7128579f');
 $out[] = sodium_crypto_sign_verify_detached($signature,"WordPress\0Elephc",$public);
 $out[] = sodium_crypto_sign_verify_detached($signature,'changed',$public);
+$hmac_algorithms = (array) wp_aot_native_api('hash_hmac_algos', array());
+$out[] = array('hmac_algorithms', $hmac_algorithms);
+foreach ($hmac_algorithms as $algorithm) {
+    foreach (array('', 'WordPress', "A\0B👋", str_repeat('data', 100)) as $data) {
+        foreach (array('', 'key', "A\0B", str_repeat('key', 100)) as $key) {
+            foreach (array($algorithm) as $spelling) {
+                $out[] = array($spelling, hash_hmac($spelling, $data, $key), bin2hex(hash_hmac($spelling, $data, $key, true)));
+            }
+        }
+    }
+}
+foreach (hash_algos() as $algorithm) {
+    try { $value = hash_hmac($algorithm, 'WordPress', 'key'); }
+    catch (ValueError $error) { $value = get_class($error); }
+    $out[] = array($algorithm, in_array($algorithm, $hmac_algorithms, true), $value);
+}
+foreach (array('', 'not-an-algorithm', "md5\0") as $algorithm) {
+    try { $out[] = array($algorithm, hash_hmac($algorithm, '', '')); }
+    catch (ValueError $error) { $out[] = array($algorithm, get_class($error)); }
+}
+$hmac_algorithms[0] = 'changed';
+$hmac_again = (array) wp_aot_native_api('hash_hmac_algos', array());
+$out[] = array($hmac_algorithms[0], $hmac_again[0], count($hmac_again));
+foreach (array(array(null), array(1, 2)) as $extra_arguments) {
+    try { $out[] = wp_aot_native_api('hash_hmac_algos', (array) $extra_arguments); }
+    catch (Throwable $error) { $out[] = array(get_class($error)); }
+}
 echo json_encode($out), "\n";

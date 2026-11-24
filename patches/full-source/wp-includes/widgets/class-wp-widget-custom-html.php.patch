@@ -1,8 +1,132 @@
 --- a/wp-includes/widgets/class-wp-widget-custom-html.php
 +++ b/wp-includes/widgets/class-wp-widget-custom-html.php
-@@ -248,10 +248,22 @@
+@@ -62,10 +62,10 @@
+ 	 * @param int $number Optional. The unique order number of this widget instance
+ 	 *                    compared to other instances of the same class. Default -1.
  	 */
- 	public function form( $instance ) {
+-	public function _register_one( $number = -1 ) {
++	public function _register_one( mixed $number = -1 ): mixed {
+ 		parent::_register_one( $number );
+ 		if ( $this->registered ) {
+-			return;
++			return null;
+ 		}
+ 		$this->registered = true;
+ 
+@@ -83,6 +83,7 @@
+ 
+ 		// Note this action is used to ensure the help text is added to the end.
+ 		add_action( 'admin_head-widgets.php', array( 'WP_Widget_Custom_HTML', 'add_help_text' ) );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -96,11 +97,12 @@
+ 	 * @param array $attrs Attributes.
+ 	 * @return array Attributes.
+ 	 */
+-	public function _filter_gallery_shortcode_attrs( $attrs ) {
++	public function _filter_gallery_shortcode_attrs( mixed $attrs ): mixed {
+ 		if ( ! is_singular() && empty( $attrs['id'] ) && empty( $attrs['include'] ) ) {
+ 			$attrs['id'] = -1;
+ 		}
+ 		return $attrs;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -114,7 +116,7 @@
+ 	 *                        'before_widget', and 'after_widget'.
+ 	 * @param array $instance Settings for the current Custom HTML widget instance.
+ 	 */
+-	public function widget( $args, $instance ) {
++	public function widget( mixed $args, mixed $instance ): mixed {
+ 		global $post;
+ 
+ 		// Override global $post so filters (and shortcodes) apply in a consistent context.
+@@ -130,20 +132,20 @@
+ 		// Prevent dumping out all attachments from the media library.
+ 		add_filter( 'shortcode_atts_gallery', array( $this, '_filter_gallery_shortcode_attrs' ) );
+ 
+-		$instance = array_merge( $this->default_instance, $instance );
++		$instance = \wp_aot_array_merge(array( $this->default_instance, $instance ));
+ 
+ 		/** This filter is documented in wp-includes/widgets/class-wp-widget-pages.php */
+ 		$title = apply_filters( 'widget_title', $instance['title'], $instance, $this->id_base );
+ 
+ 		// Prepare instance data that looks like a normal Text widget.
+-		$simulated_text_widget_instance = array_merge(
++		$simulated_text_widget_instance = \wp_aot_array_merge(array(
+ 			$instance,
+ 			array(
+ 				'text'   => $instance['content'] ?? '',
+ 				'filter' => false, // Because wpautop is not applied.
+ 				'visual' => false, // Because it wasn't created in TinyMCE.
+ 			)
+-		);
++		));
+ 		unset( $simulated_text_widget_instance['content'] ); // Was moved to 'text' prop.
+ 
+ 		/** This filter is documented in wp-includes/widgets/class-wp-widget-text.php */
+@@ -165,7 +167,7 @@
+ 		remove_filter( 'shortcode_atts_gallery', array( $this, '_filter_gallery_shortcode_attrs' ) );
+ 
+ 		// Inject the Text widget's container class name alongside this widget's class name for theme styling compatibility.
+-		$args['before_widget'] = preg_replace( '/(?<=\sclass=["\'])/', 'widget_text ', $args['before_widget'] );
++		$args['before_widget'] = \wp_aot_preg_replace( '/(?<=\sclass=["\'])/', 'widget_text ', $args['before_widget'] );
+ 
+ 		echo $args['before_widget'];
+ 		if ( ! empty( $title ) ) {
+@@ -175,6 +177,7 @@
+ 		echo $content;
+ 		echo '</div>';
+ 		echo $args['after_widget'];
++		return null;
+ 	}
+ 
+ 	/**
+@@ -187,8 +190,8 @@
+ 	 * @param array $old_instance Old settings for this instance.
+ 	 * @return array Settings to save or bool false to cancel saving.
+ 	 */
+-	public function update( $new_instance, $old_instance ) {
+-		$instance          = array_merge( $this->default_instance, $old_instance );
++	public function update( mixed $new_instance, mixed $old_instance ): mixed {
++		$instance          = \wp_aot_array_merge(array( $this->default_instance, $old_instance ));
+ 		$instance['title'] = sanitize_text_field( $new_instance['title'] );
+ 		if ( current_user_can( 'unfiltered_html' ) ) {
+ 			$instance['content'] = $new_instance['content'];
+@@ -196,6 +199,7 @@
+ 			$instance['content'] = wp_kses_post( $new_instance['content'] );
+ 		}
+ 		return $instance;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -203,7 +207,7 @@
+ 	 *
+ 	 * @since 4.9.0
+ 	 */
+-	public function enqueue_admin_scripts() {
++	public function enqueue_admin_scripts(): mixed {
+ 		$settings = wp_enqueue_code_editor(
+ 			array(
+ 				'type'       => 'text/html',
+@@ -234,6 +238,7 @@
+ 			),
+ 		);
+ 		wp_add_inline_script( 'custom-html-widgets', sprintf( 'jQuery.extend( wp.customHtmlWidgets.l10n, %s );', wp_json_encode( $l10n, JSON_HEX_TAG | JSON_UNESCAPED_SLASHES ) ), 'after' );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -246,12 +251,25 @@
+ 	 *
+ 	 * @param array $instance Current instance.
+ 	 */
+-	public function form( $instance ) {
++	public function form( mixed $instance ): mixed {
  		$instance = wp_parse_args( (array) $instance, $this->default_instance );
 -		?>
 -		<input id="<?php echo $this->get_field_id( 'title' ); ?>" name="<?php echo $this->get_field_name( 'title' ); ?>" class="title sync-input" type="hidden" value="<?php echo esc_attr( $instance['title'] ); ?>" />
@@ -24,16 +148,19 @@
 +echo esc_textarea( $instance['content'] ); ;
 +echo '</textarea>
 +		';
++		return null;
  	}
  
  	/**
-@@ -260,38 +272,49 @@
+@@ -259,39 +277,51 @@
+ 	 *
  	 * @since 4.9.0
  	 */
- 	public static function render_control_template_scripts() {
+-	public static function render_control_template_scripts() {
 -		?>
 -		<script type="text/html" id="tmpl-widget-custom-html-control-fields">
 -			<# var elementIdPrefix = 'el' + String( Math.random() ).replace( /\D/g, '' ) + '_' #>
++	public static function render_control_template_scripts(): mixed {
 +		;
 +echo '		<script type="text/html" id="tmpl-widget-custom-html-control-fields">
 +			<# var elementIdPrefix = \'el\' + String( Math.random() ).replace( /\\D/g, \'\' ) + \'_\' #>
@@ -60,10 +187,11 @@
 +echo '				';
  				$probably_unsafe_html = array( 'script', 'iframe', 'form', 'input', 'style' );
  				$allowed_html         = wp_kses_allowed_html( 'post' );
- 				$disallowed_html      = array_diff( $probably_unsafe_html, array_keys( $allowed_html ) );
+-				$disallowed_html      = array_diff( $probably_unsafe_html, array_keys( $allowed_html ) );
 -				?>
 -				<?php if ( ! empty( $disallowed_html ) ) : ?>
 -					<# if ( data.codeEditorDisabled ) { #>
++				$disallowed_html      = \wp_aot_array_diff(array( $probably_unsafe_html, array_keys( $allowed_html ) ));
 +				;
 +echo '				';
 +if ( ! empty( $disallowed_html ) ) : ;
@@ -90,6 +218,23 @@
  		</script>
 -		<?php
 +		';
++		return null;
  	}
  
  	/**
+@@ -299,7 +329,7 @@
+ 	 *
+ 	 * @since 4.9.0
+ 	 */
+-	public static function add_help_text() {
++	public static function add_help_text(): mixed {
+ 		$screen = get_current_screen();
+ 
+ 		$content  = '<p>';
+@@ -336,5 +366,6 @@
+ 				'content' => $content,
+ 			)
+ 		);
++		return null;
+ 	}
+ }

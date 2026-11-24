@@ -1,36 +1,2882 @@
 --- a/wp-admin/includes/class-pclzip.php
 +++ b/wp-admin/includes/class-pclzip.php
-@@ -394,10 +394,12 @@
-              ,PCLZIP_ATT_FILE_COMMENT => 'optional'
- 						);
-     foreach ($v_att_list as $v_entry) {
-+      $v_descriptor = array();
-       $v_result = $this->privFileDescrParseAtt($v_entry,
--                                               $v_filedescr_list[],
-+                                               $v_descriptor,
-                                                $v_options,
-                                                $v_supported_attributes);
-+      $v_filedescr_list[] = $v_descriptor;
-       if ($v_result != 1) {
-         return 0;
-       }
-@@ -577,10 +579,12 @@
-              ,PCLZIP_ATT_FILE_COMMENT => 'optional'
- 						);
-     foreach ($v_att_list as $v_entry) {
-+      $v_descriptor = array();
-       $v_result = $this->privFileDescrParseAtt($v_entry,
--                                               $v_filedescr_list[],
-+                                               $v_descriptor,
-                                                $v_options,
-                                                $v_supported_attributes);
-+      $v_filedescr_list[] = $v_descriptor;
-       if ($v_result != 1) {
-         return 0;
-       }
-@@ -5729,4 +5733,4 @@
+@@ -26,8 +26,8 @@
+ // --------------------------------------------------------------------------------
+ 
+   // ----- Constants
+-  if (!defined('PCLZIP_READ_BLOCK_SIZE')) {
+-    define( 'PCLZIP_READ_BLOCK_SIZE', 2048 );
++  if (!\wp_aot_pclzip_block_size_defined()) {
++    \wp_aot_pclzip_block_size_define( 2048 );
+   }
+ 
+   // ----- File list separator
+@@ -190,19 +190,19 @@
+   class PclZip
+   {
+     // ----- Filename of the zip file
+-    var $zipname = '';
++    public $zipname = '';
+ 
+     // ----- File descriptor of the zip file
+-    var $zip_fd = 0;
++    public $zip_fd = 0;
+ 
+     // ----- Internal error handling
+-    var $error_code = 1;
+-    var $error_string = '';
++    public $error_code = 1;
++    public $error_string = '';
+ 
+     // ----- Current status of the magic_quotes_runtime
+     // This value store the php configuration for magic_quotes
+     // The class can then disable the magic_quotes and reset it after
+-    var $magic_quotes_status;
++    public $magic_quotes_status;
+ 
+   // --------------------------------------------------------------------------------
+   // Function : PclZip()
+@@ -212,13 +212,13 @@
+   //   Note that no real action is taken, if the archive does not exist it is not
+   //   created. Use create() for that.
+   // --------------------------------------------------------------------------------
+-  function __construct($p_zipname)
++  function __construct(mixed $p_zipname)
+   {
+ 
+     // ----- Tests the zlib
+     if (!function_exists('gzopen'))
+     {
+-      die('Abort '.basename(__FILE__).' : Missing zlib extensions');
++      \wp_aot_exit('Abort '.basename(__FILE__).' : Missing zlib extensions');
+     }
+ 
+     // ----- Set the attributes
+@@ -230,8 +230,9 @@
+     return;
+   }
+ 
+-  public function PclZip($p_zipname) {
++  public function PclZip(mixed $p_zipname): mixed {
+     self::__construct($p_zipname);
++  	return null;
+   }
    // --------------------------------------------------------------------------------
  
+@@ -272,7 +273,7 @@
+   //   The list of the added files, with a status of the add action.
+   //   (see PclZip::listContent() for list entry format)
+   // --------------------------------------------------------------------------------
+-  function create($p_filelist)
++  function create(mixed $p_filelist): mixed
+   {
+     $v_result=1;
  
+@@ -292,7 +293,7 @@
+       $v_arg_list = func_get_args();
+ 
+       // ----- Remove from the options list the first argument
+-      array_shift($v_arg_list);
++      \wp_aot_array_shift($v_arg_list);
+       $v_size--;
+ 
+       // ----- Look for first arg
+@@ -330,7 +331,7 @@
+           $v_options[PCLZIP_OPT_REMOVE_PATH] = $v_arg_list[1];
+         }
+         else if ($v_size > 2) {
+-          PclZip::privErrorLog(PCLZIP_ERR_INVALID_PARAMETER,
++          $this->wp_aot_error_log(PCLZIP_ERR_INVALID_PARAMETER,
+ 		                       "Invalid number / type of arguments");
+           return 0;
+         }
+@@ -369,7 +370,7 @@
+ 
+     // ----- Invalid variable type for $p_filelist
+     else {
+-      PclZip::privErrorLog(PCLZIP_ERR_INVALID_PARAMETER, "Invalid variable type p_filelist");
++      $this->wp_aot_error_log(PCLZIP_ERR_INVALID_PARAMETER, "Invalid variable type p_filelist");
+       return 0;
+     }
+ 
+@@ -394,10 +395,12 @@
+              ,PCLZIP_ATT_FILE_COMMENT => 'optional'
+ 						);
+     foreach ($v_att_list as $v_entry) {
++      $v_descriptor = array();
+       $v_result = $this->privFileDescrParseAtt($v_entry,
+-                                               $v_filedescr_list[],
++                                               $v_descriptor,
+                                                $v_options,
+                                                $v_supported_attributes);
++      $v_filedescr_list[] = $v_descriptor;
+       if ($v_result != 1) {
+         return 0;
+       }
+@@ -417,6 +420,7 @@
+ 
+     // ----- Return
+     return $p_result_list;
++  	return null;
+   }
+   // --------------------------------------------------------------------------------
+ 
+@@ -455,7 +459,7 @@
+   //   The list of the added files, with a status of the add action.
+   //   (see PclZip::listContent() for list entry format)
+   // --------------------------------------------------------------------------------
+-  function add($p_filelist)
++  function add(mixed $p_filelist): mixed
+   {
+     $v_result=1;
+ 
+@@ -475,7 +479,7 @@
+       $v_arg_list = func_get_args();
+ 
+       // ----- Remove form the options list the first argument
+-      array_shift($v_arg_list);
++      \wp_aot_array_shift($v_arg_list);
+       $v_size--;
+ 
+       // ----- Look for first arg
+@@ -516,7 +520,7 @@
+         }
+         else if ($v_size > 2) {
+           // ----- Error log
+-          PclZip::privErrorLog(PCLZIP_ERR_INVALID_PARAMETER, "Invalid number / type of arguments");
++          $this->wp_aot_error_log(PCLZIP_ERR_INVALID_PARAMETER, "Invalid number / type of arguments");
+ 
+           // ----- Return
+           return 0;
+@@ -556,7 +560,7 @@
+ 
+     // ----- Invalid variable type for $p_filelist
+     else {
+-      PclZip::privErrorLog(PCLZIP_ERR_INVALID_PARAMETER, "Invalid variable type '".gettype($p_filelist)."' for p_filelist");
++      $this->wp_aot_error_log(PCLZIP_ERR_INVALID_PARAMETER, "Invalid variable type '".gettype($p_filelist)."' for p_filelist");
+       return 0;
+     }
+ 
+@@ -577,10 +581,12 @@
+              ,PCLZIP_ATT_FILE_COMMENT => 'optional'
+ 						);
+     foreach ($v_att_list as $v_entry) {
++      $v_descriptor = array();
+       $v_result = $this->privFileDescrParseAtt($v_entry,
+-                                               $v_filedescr_list[],
++                                               $v_descriptor,
+                                                $v_options,
+                                                $v_supported_attributes);
++      $v_filedescr_list[] = $v_descriptor;
+       if ($v_result != 1) {
+         return 0;
+       }
+@@ -600,6 +606,7 @@
+ 
+     // ----- Return
+     return $p_result_list;
++  	return null;
+   }
+   // --------------------------------------------------------------------------------
+ 
+@@ -644,7 +651,7 @@
+   //   0 on an unrecoverable failure,
+   //   The list of the files in the archive.
+   // --------------------------------------------------------------------------------
+-  function listContent()
++  function listContent(): mixed
+   {
+     $v_result=1;
+ 
+@@ -666,6 +673,7 @@
+ 
+     // ----- Return
+     return $p_list;
++  	return null;
+   }
+   // --------------------------------------------------------------------------------
+ 
+@@ -701,7 +709,7 @@
+   //   The list of the extracted files, with a status of the action.
+   //   (see PclZip::listContent() for list entry format)
+   // --------------------------------------------------------------------------------
+-  function extract()
++  function extract(): mixed
+   {
+     $v_result=1;
+ 
+@@ -793,7 +801,7 @@
+         }
+         else if ($v_size > 2) {
+           // ----- Error log
+-          PclZip::privErrorLog(PCLZIP_ERR_INVALID_PARAMETER, "Invalid number / type of arguments");
++          $this->wp_aot_error_log(PCLZIP_ERR_INVALID_PARAMETER, "Invalid number / type of arguments");
+ 
+           // ----- Return
+           return 0;
+@@ -817,6 +825,7 @@
+ 
+     // ----- Return
+     return $p_list;
++  	return null;
+   }
+   // --------------------------------------------------------------------------------
+ 
+@@ -858,7 +867,7 @@
+   //   (see PclZip::listContent() for list entry format)
+   // --------------------------------------------------------------------------------
+   //function extractByIndex($p_index, options...)
+-  function extractByIndex($p_index)
++  function extractByIndex(mixed $p_index): mixed
+   {
+     $v_result=1;
+ 
+@@ -873,8 +882,8 @@
+     // ----- Set default values
+     $v_options = array();
+ //    $v_path = "./";
+-    $v_path = '';
+-    $v_remove_path = "";
++    $v_path = \wp_aot_mixed('');
++    $v_remove_path = \wp_aot_mixed("");
+     $v_remove_all_path = false;
+ 
+     // ----- Look for variable options arguments
+@@ -889,7 +898,7 @@
+       $v_arg_list = func_get_args();
+ 
+       // ----- Remove form the options list the first argument
+-      array_shift($v_arg_list);
++      \wp_aot_array_shift($v_arg_list);
+       $v_size--;
+ 
+       // ----- Look for first arg
+@@ -954,7 +963,7 @@
+         }
+         else if ($v_size > 2) {
+           // ----- Error log
+-          PclZip::privErrorLog(PCLZIP_ERR_INVALID_PARAMETER, "Invalid number / type of arguments");
++          $this->wp_aot_error_log(PCLZIP_ERR_INVALID_PARAMETER, "Invalid number / type of arguments");
+ 
+           // ----- Return
+           return 0;
+@@ -986,6 +995,7 @@
+ 
+     // ----- Return
+     return $p_list;
++  	return null;
+   }
+   // --------------------------------------------------------------------------------
+ 
+@@ -1007,7 +1017,7 @@
+   //   The list of the files which are still present in the archive.
+   //   (see PclZip::listContent() for list entry format)
+   // --------------------------------------------------------------------------------
+-  function delete()
++  function delete(): mixed
+   {
+     $v_result=1;
+ 
+@@ -1057,6 +1067,7 @@
+ 
+     // ----- Return
+     return $v_list;
++  	return null;
+   }
+   // --------------------------------------------------------------------------------
+ 
+@@ -1066,13 +1077,14 @@
+   //   ***** Deprecated *****
+   //   delete(PCLZIP_OPT_BY_INDEX, $p_index) should be preferred.
+   // --------------------------------------------------------------------------------
+-  function deleteByIndex($p_index)
++  function deleteByIndex(mixed $p_index): mixed
+   {
+ 
+     $p_list = $this->delete(PCLZIP_OPT_BY_INDEX, $p_index);
+ 
+     // ----- Return
+     return $p_list;
++  	return null;
+   }
+   // --------------------------------------------------------------------------------
+ 
+@@ -1090,7 +1102,7 @@
+   //   0 on failure,
+   //   An array with the archive properties.
+   // --------------------------------------------------------------------------------
+-  function properties()
++  function properties(): mixed
+   {
+ 
+     // ----- Reset the error handler
+@@ -1120,7 +1132,7 @@
+         $this->privSwapBackMagicQuotes();
+ 
+         // ----- Error log
+-        PclZip::privErrorLog(PCLZIP_ERR_READ_OPEN_FAIL, 'Unable to open archive \''.$this->zipname.'\' in binary read mode');
++        $this->wp_aot_error_log(PCLZIP_ERR_READ_OPEN_FAIL, 'Unable to open archive \''.$this->zipname.'\' in binary read mode');
+ 
+         // ----- Return
+         return 0;
+@@ -1148,6 +1160,7 @@
+ 
+     // ----- Return
+     return $v_prop;
++  	return null;
+   }
+   // --------------------------------------------------------------------------------
+ 
+@@ -1163,7 +1176,7 @@
+   //   1 on success.
+   //   0 or a negative value on error (error code).
+   // --------------------------------------------------------------------------------
+-  function duplicate($p_archive)
++  function duplicate(mixed $p_archive): mixed
+   {
+     $v_result = 1;
+ 
+@@ -1186,7 +1199,7 @@
+       // TBC : Should also check the archive format
+       if (!is_file($p_archive)) {
+         // ----- Error log
+-        PclZip::privErrorLog(PCLZIP_ERR_MISSING_FILE, "No file with filename '".$p_archive."'");
++        $this->wp_aot_error_log(PCLZIP_ERR_MISSING_FILE, "No file with filename '".$p_archive."'");
+         $v_result = PCLZIP_ERR_MISSING_FILE;
+       }
+       else {
+@@ -1199,12 +1212,13 @@
+     else
+     {
+       // ----- Error log
+-      PclZip::privErrorLog(PCLZIP_ERR_INVALID_PARAMETER, "Invalid variable type p_archive_to_add");
++      $this->wp_aot_error_log(PCLZIP_ERR_INVALID_PARAMETER, "Invalid variable type p_archive_to_add");
+       $v_result = PCLZIP_ERR_INVALID_PARAMETER;
+     }
+ 
+     // ----- Return
+     return $v_result;
++  	return null;
+   }
+   // --------------------------------------------------------------------------------
+ 
+@@ -1222,7 +1236,7 @@
+   //   1 on success,
+   //   0 or negative values on error (see below).
+   // --------------------------------------------------------------------------------
+-  function merge($p_archive_to_add)
++  function merge(mixed $p_archive_to_add): mixed
+   {
+     $v_result = 1;
+ 
+@@ -1257,12 +1271,13 @@
+     else
+     {
+       // ----- Error log
+-      PclZip::privErrorLog(PCLZIP_ERR_INVALID_PARAMETER, "Invalid variable type p_archive_to_add");
++      $this->wp_aot_error_log(PCLZIP_ERR_INVALID_PARAMETER, "Invalid variable type p_archive_to_add");
+       $v_result = PCLZIP_ERR_INVALID_PARAMETER;
+     }
+ 
+     // ----- Return
+     return $v_result;
++  	return null;
+   }
+   // --------------------------------------------------------------------------------
+ 
+@@ -1273,14 +1288,16 @@
+   // Description :
+   // Parameters :
+   // --------------------------------------------------------------------------------
+-  function errorCode()
+-  {
++  function errorCode(): mixed { return $this->wp_aot_error_code();  return null; }
++
++private function wp_aot_error_code(): mixed {
+     if (PCLZIP_ERROR_EXTERNAL == 1) {
+-      return(PclErrorCode());
++      return(\wp_aot_native_api('PclErrorCode', array()));
+     }
+     else {
+       return($this->error_code);
+     }
++  	return null;
+   }
+   // --------------------------------------------------------------------------------
+ 
+@@ -1289,7 +1306,7 @@
+   // Description :
+   // Parameters :
+   // --------------------------------------------------------------------------------
+-  function errorName($p_with_code=false)
++  function errorName(mixed $p_with_code=false): mixed
+   {
+     $v_name = array ( PCLZIP_ERR_NO_ERROR => 'PCLZIP_ERR_NO_ERROR',
+                       PCLZIP_ERR_WRITE_OPEN_FAIL => 'PCLZIP_ERR_WRITE_OPEN_FAIL',
+@@ -1327,6 +1344,7 @@
+     else {
+       return($v_value);
+     }
++  	return null;
+   }
+   // --------------------------------------------------------------------------------
+ 
+@@ -1335,10 +1353,10 @@
+   // Description :
+   // Parameters :
+   // --------------------------------------------------------------------------------
+-  function errorInfo($p_full=false)
++  function errorInfo(mixed $p_full=false): mixed
+   {
+     if (PCLZIP_ERROR_EXTERNAL == 1) {
+-      return(PclErrorString());
++      return(\wp_aot_native_api('PclErrorString', array()));
+     }
+     else {
+       if ($p_full) {
+@@ -1348,6 +1366,7 @@
+         return($this->error_string." [code ".$this->error_code."]");
+       }
+     }
++  	return null;
+   }
+   // --------------------------------------------------------------------------------
+ 
+@@ -1374,7 +1393,7 @@
+   //   true on success,
+   //   false on error, the error code is set.
+   // --------------------------------------------------------------------------------
+-  function privCheckFormat($p_level=0)
++  function privCheckFormat(mixed $p_level=0): mixed
+   {
+     $v_result = true;
+ 
+@@ -1387,14 +1406,14 @@
+     // ----- Look if the file exits
+     if (!is_file($this->zipname)) {
+       // ----- Error log
+-      PclZip::privErrorLog(PCLZIP_ERR_MISSING_FILE, "Missing archive file '".$this->zipname."'");
++      $this->wp_aot_error_log(PCLZIP_ERR_MISSING_FILE, "Missing archive file '".$this->zipname."'");
+       return(false);
+     }
+ 
+     // ----- Check that the file is readable
+     if (!is_readable($this->zipname)) {
+       // ----- Error log
+-      PclZip::privErrorLog(PCLZIP_ERR_READ_OPEN_FAIL, "Unable to read archive '".$this->zipname."'");
++      $this->wp_aot_error_log(PCLZIP_ERR_READ_OPEN_FAIL, "Unable to read archive '".$this->zipname."'");
+       return(false);
+     }
+ 
+@@ -1409,6 +1428,7 @@
+ 
+     // ----- Return
+     return $v_result;
++  	return null;
+   }
+   // --------------------------------------------------------------------------------
+ 
+@@ -1427,7 +1447,7 @@
+   //   1 on success.
+   //   0 on failure.
+   // --------------------------------------------------------------------------------
+-  function privParseOptions(&$p_options_list, $p_size, &$v_result_list, $v_requested_options=false)
++  function privParseOptions(mixed &$p_options_list, mixed $p_size, mixed &$v_result_list, mixed $v_requested_options=false): mixed
+   {
+     $v_result=1;
+ 
+@@ -1438,10 +1458,10 @@
+       // ----- Check if the option is supported
+       if (!isset($v_requested_options[$p_options_list[$i]])) {
+         // ----- Error log
+-        PclZip::privErrorLog(PCLZIP_ERR_INVALID_PARAMETER, "Invalid optional parameter '".$p_options_list[$i]."' for this method");
++        $this->wp_aot_error_log(PCLZIP_ERR_INVALID_PARAMETER, "Invalid optional parameter '".$p_options_list[$i]."' for this method");
+ 
+         // ----- Return
+-        return PclZip::errorCode();
++        return $this->wp_aot_error_code();
+       }
+ 
+       // ----- Look for next option
+@@ -1453,10 +1473,10 @@
+           // ----- Check the number of parameters
+           if (($i+1) >= $p_size) {
+             // ----- Error log
+-            PclZip::privErrorLog(PCLZIP_ERR_MISSING_OPTION_VALUE, "Missing parameter value for option '".PclZipUtilOptionText($p_options_list[$i])."'");
++            $this->wp_aot_error_log(PCLZIP_ERR_MISSING_OPTION_VALUE, "Missing parameter value for option '".PclZipUtilOptionText($p_options_list[$i])."'");
+ 
+             // ----- Return
+-            return PclZip::errorCode();
++            return $this->wp_aot_error_code();
+           }
+ 
+           // ----- Get the value
+@@ -1467,21 +1487,21 @@
+         case PCLZIP_OPT_TEMP_FILE_THRESHOLD :
+           // ----- Check the number of parameters
+           if (($i+1) >= $p_size) {
+-            PclZip::privErrorLog(PCLZIP_ERR_MISSING_OPTION_VALUE, "Missing parameter value for option '".PclZipUtilOptionText($p_options_list[$i])."'");
+-            return PclZip::errorCode();
++            $this->wp_aot_error_log(PCLZIP_ERR_MISSING_OPTION_VALUE, "Missing parameter value for option '".PclZipUtilOptionText($p_options_list[$i])."'");
++            return $this->wp_aot_error_code();
+           }
+ 
+           // ----- Check for incompatible options
+           if (isset($v_result_list[PCLZIP_OPT_TEMP_FILE_OFF])) {
+-            PclZip::privErrorLog(PCLZIP_ERR_INVALID_PARAMETER, "Option '".PclZipUtilOptionText($p_options_list[$i])."' can not be used with option 'PCLZIP_OPT_TEMP_FILE_OFF'");
+-            return PclZip::errorCode();
++            $this->wp_aot_error_log(PCLZIP_ERR_INVALID_PARAMETER, "Option '".PclZipUtilOptionText($p_options_list[$i])."' can not be used with option 'PCLZIP_OPT_TEMP_FILE_OFF'");
++            return $this->wp_aot_error_code();
+           }
+ 
+           // ----- Check the value
+           $v_value = $p_options_list[$i+1];
+           if ((!is_int($v_value)) || ($v_value<0)) {
+-            PclZip::privErrorLog(PCLZIP_ERR_INVALID_OPTION_VALUE, "Integer expected for option '".PclZipUtilOptionText($p_options_list[$i])."'");
+-            return PclZip::errorCode();
++            $this->wp_aot_error_log(PCLZIP_ERR_INVALID_OPTION_VALUE, "Integer expected for option '".PclZipUtilOptionText($p_options_list[$i])."'");
++            return $this->wp_aot_error_code();
+           }
+ 
+           // ----- Get the value (and convert it in bytes)
+@@ -1492,8 +1512,8 @@
+         case PCLZIP_OPT_TEMP_FILE_ON :
+           // ----- Check for incompatible options
+           if (isset($v_result_list[PCLZIP_OPT_TEMP_FILE_OFF])) {
+-            PclZip::privErrorLog(PCLZIP_ERR_INVALID_PARAMETER, "Option '".PclZipUtilOptionText($p_options_list[$i])."' can not be used with option 'PCLZIP_OPT_TEMP_FILE_OFF'");
+-            return PclZip::errorCode();
++            $this->wp_aot_error_log(PCLZIP_ERR_INVALID_PARAMETER, "Option '".PclZipUtilOptionText($p_options_list[$i])."' can not be used with option 'PCLZIP_OPT_TEMP_FILE_OFF'");
++            return $this->wp_aot_error_code();
+           }
+ 
+           $v_result_list[$p_options_list[$i]] = true;
+@@ -1502,13 +1522,13 @@
+         case PCLZIP_OPT_TEMP_FILE_OFF :
+           // ----- Check for incompatible options
+           if (isset($v_result_list[PCLZIP_OPT_TEMP_FILE_ON])) {
+-            PclZip::privErrorLog(PCLZIP_ERR_INVALID_PARAMETER, "Option '".PclZipUtilOptionText($p_options_list[$i])."' can not be used with option 'PCLZIP_OPT_TEMP_FILE_ON'");
+-            return PclZip::errorCode();
++            $this->wp_aot_error_log(PCLZIP_ERR_INVALID_PARAMETER, "Option '".PclZipUtilOptionText($p_options_list[$i])."' can not be used with option 'PCLZIP_OPT_TEMP_FILE_ON'");
++            return $this->wp_aot_error_code();
+           }
+           // ----- Check for incompatible options
+           if (isset($v_result_list[PCLZIP_OPT_TEMP_FILE_THRESHOLD])) {
+-            PclZip::privErrorLog(PCLZIP_ERR_INVALID_PARAMETER, "Option '".PclZipUtilOptionText($p_options_list[$i])."' can not be used with option 'PCLZIP_OPT_TEMP_FILE_THRESHOLD'");
+-            return PclZip::errorCode();
++            $this->wp_aot_error_log(PCLZIP_ERR_INVALID_PARAMETER, "Option '".PclZipUtilOptionText($p_options_list[$i])."' can not be used with option 'PCLZIP_OPT_TEMP_FILE_THRESHOLD'");
++            return $this->wp_aot_error_code();
+           }
+ 
+           $v_result_list[$p_options_list[$i]] = true;
+@@ -1518,10 +1538,10 @@
+           // ----- Check the number of parameters
+           if (($i+1) >= $p_size) {
+             // ----- Error log
+-            PclZip::privErrorLog(PCLZIP_ERR_MISSING_OPTION_VALUE, "Missing parameter value for option '".PclZipUtilOptionText($p_options_list[$i])."'");
++            $this->wp_aot_error_log(PCLZIP_ERR_MISSING_OPTION_VALUE, "Missing parameter value for option '".PclZipUtilOptionText($p_options_list[$i])."'");
+ 
+             // ----- Return
+-            return PclZip::errorCode();
++            return $this->wp_aot_error_code();
+           }
+ 
+           // ----- Get the value
+@@ -1539,10 +1559,10 @@
+           // ----- Check the number of parameters
+           if (($i+1) >= $p_size) {
+             // ----- Error log
+-            PclZip::privErrorLog(PCLZIP_ERR_MISSING_OPTION_VALUE, "Missing parameter value for option '".PclZipUtilOptionText($p_options_list[$i])."'");
++            $this->wp_aot_error_log(PCLZIP_ERR_MISSING_OPTION_VALUE, "Missing parameter value for option '".PclZipUtilOptionText($p_options_list[$i])."'");
+ 
+             // ----- Return
+-            return PclZip::errorCode();
++            return $this->wp_aot_error_code();
+           }
+ 
+           // ----- Get the value
+@@ -1554,10 +1574,10 @@
+           }
+           else {
+             // ----- Error log
+-            PclZip::privErrorLog(PCLZIP_ERR_INVALID_OPTION_VALUE, "Wrong parameter value for option '".PclZipUtilOptionText($p_options_list[$i])."'");
++            $this->wp_aot_error_log(PCLZIP_ERR_INVALID_OPTION_VALUE, "Wrong parameter value for option '".PclZipUtilOptionText($p_options_list[$i])."'");
+ 
+             // ----- Return
+-            return PclZip::errorCode();
++            return $this->wp_aot_error_code();
+           }
+           $i++;
+         break;
+@@ -1572,10 +1592,10 @@
+           // ----- Check the number of parameters
+           if (($i+1) >= $p_size) {
+             // ----- Error log
+-            PclZip::privErrorLog(PCLZIP_ERR_MISSING_OPTION_VALUE, "Missing parameter value for option '".PclZipUtilOptionText($p_options_list[$i])."'");
++            $this->wp_aot_error_log(PCLZIP_ERR_MISSING_OPTION_VALUE, "Missing parameter value for option '".PclZipUtilOptionText($p_options_list[$i])."'");
+ 
+             // ----- Return
+-            return PclZip::errorCode();
++            return $this->wp_aot_error_code();
+           }
+ 
+           // ----- Get the value
+@@ -1584,10 +1604,10 @@
+           }
+           else {
+             // ----- Error log
+-            PclZip::privErrorLog(PCLZIP_ERR_INVALID_OPTION_VALUE, "Wrong parameter value for option '".PclZipUtilOptionText($p_options_list[$i])."'");
++            $this->wp_aot_error_log(PCLZIP_ERR_INVALID_OPTION_VALUE, "Wrong parameter value for option '".PclZipUtilOptionText($p_options_list[$i])."'");
+ 
+             // ----- Return
+-            return PclZip::errorCode();
++            return $this->wp_aot_error_code();
+           }
+           $i++;
+         break;
+@@ -1599,13 +1619,13 @@
+           // ----- Check the number of parameters
+           if (($i+1) >= $p_size) {
+             // ----- Error log
+-            PclZip::privErrorLog(PCLZIP_ERR_MISSING_OPTION_VALUE,
++            $this->wp_aot_error_log(PCLZIP_ERR_MISSING_OPTION_VALUE,
+ 			                     "Missing parameter value for option '"
+ 								 .PclZipUtilOptionText($p_options_list[$i])
+ 								 ."'");
+ 
+             // ----- Return
+-            return PclZip::errorCode();
++            return $this->wp_aot_error_code();
+           }
+ 
+           // ----- Get the value
+@@ -1614,13 +1634,13 @@
+           }
+           else {
+             // ----- Error log
+-            PclZip::privErrorLog(PCLZIP_ERR_INVALID_OPTION_VALUE,
++            $this->wp_aot_error_log(PCLZIP_ERR_INVALID_OPTION_VALUE,
+ 			                     "Wrong parameter value for option '"
+ 								 .PclZipUtilOptionText($p_options_list[$i])
+ 								 ."'");
+ 
+             // ----- Return
+-            return PclZip::errorCode();
++            return $this->wp_aot_error_code();
+           }
+           $i++;
+         break;
+@@ -1630,10 +1650,10 @@
+           // ----- Check the number of parameters
+           if (($i+1) >= $p_size) {
+             // ----- Error log
+-            PclZip::privErrorLog(PCLZIP_ERR_MISSING_OPTION_VALUE, "Missing parameter value for option '".PclZipUtilOptionText($p_options_list[$i])."'");
++            $this->wp_aot_error_log(PCLZIP_ERR_MISSING_OPTION_VALUE, "Missing parameter value for option '".PclZipUtilOptionText($p_options_list[$i])."'");
+ 
+             // ----- Return
+-            return PclZip::errorCode();
++            return $this->wp_aot_error_code();
+           }
+ 
+           // ----- Get the value
+@@ -1641,7 +1661,7 @@
+           if (is_string($p_options_list[$i+1])) {
+ 
+               // ----- Remove spaces
+-              $p_options_list[$i+1] = strtr($p_options_list[$i+1], ' ', '');
++              $p_options_list[$i+1] = \wp_aot_strtr($p_options_list[$i+1], ' ', '');
+ 
+               // ----- Parse items
+               $v_work_list = explode(",", $p_options_list[$i+1]);
+@@ -1654,10 +1674,10 @@
+           }
+           else {
+             // ----- Error log
+-            PclZip::privErrorLog(PCLZIP_ERR_INVALID_OPTION_VALUE, "Value must be integer, string or array for option '".PclZipUtilOptionText($p_options_list[$i])."'");
++            $this->wp_aot_error_log(PCLZIP_ERR_INVALID_OPTION_VALUE, "Value must be integer, string or array for option '".PclZipUtilOptionText($p_options_list[$i])."'");
+ 
+             // ----- Return
+-            return PclZip::errorCode();
++            return $this->wp_aot_error_code();
+           }
+ 
+           // ----- Reduce the index list
+@@ -1687,10 +1707,10 @@
+               }
+               else {
+                   // ----- Error log
+-                  PclZip::privErrorLog(PCLZIP_ERR_INVALID_OPTION_VALUE, "Too many values in index range for option '".PclZipUtilOptionText($p_options_list[$i])."'");
++                  $this->wp_aot_error_log(PCLZIP_ERR_INVALID_OPTION_VALUE, "Too many values in index range for option '".PclZipUtilOptionText($p_options_list[$i])."'");
+ 
+                   // ----- Return
+-                  return PclZip::errorCode();
++                  return $this->wp_aot_error_code();
+               }
+ 
+ 
+@@ -1700,10 +1720,10 @@
+ 
+                   // ----- TBC : An automatic sort should be written ...
+                   // ----- Error log
+-                  PclZip::privErrorLog(PCLZIP_ERR_INVALID_OPTION_VALUE, "Invalid order of index range for option '".PclZipUtilOptionText($p_options_list[$i])."'");
++                  $this->wp_aot_error_log(PCLZIP_ERR_INVALID_OPTION_VALUE, "Invalid order of index range for option '".PclZipUtilOptionText($p_options_list[$i])."'");
+ 
+                   // ----- Return
+-                  return PclZip::errorCode();
++                  return $this->wp_aot_error_code();
+               }
+               $v_sort_value = $v_result_list[$p_options_list[$i]][$j]['start'];
+           }
+@@ -1732,10 +1752,10 @@
+           // ----- Check the number of parameters
+           if (($i+1) >= $p_size) {
+             // ----- Error log
+-            PclZip::privErrorLog(PCLZIP_ERR_MISSING_OPTION_VALUE, "Missing parameter value for option '".PclZipUtilOptionText($p_options_list[$i])."'");
++            $this->wp_aot_error_log(PCLZIP_ERR_MISSING_OPTION_VALUE, "Missing parameter value for option '".PclZipUtilOptionText($p_options_list[$i])."'");
+ 
+             // ----- Return
+-            return PclZip::errorCode();
++            return $this->wp_aot_error_code();
+           }
+ 
+           // ----- Get the value
+@@ -1757,22 +1777,22 @@
+           // ----- Check the number of parameters
+           if (($i+1) >= $p_size) {
+             // ----- Error log
+-            PclZip::privErrorLog(PCLZIP_ERR_MISSING_OPTION_VALUE, "Missing parameter value for option '".PclZipUtilOptionText($p_options_list[$i])."'");
++            $this->wp_aot_error_log(PCLZIP_ERR_MISSING_OPTION_VALUE, "Missing parameter value for option '".PclZipUtilOptionText($p_options_list[$i])."'");
+ 
+             // ----- Return
+-            return PclZip::errorCode();
++            return $this->wp_aot_error_code();
+           }
+ 
+           // ----- Get the value
+           $v_function_name = $p_options_list[$i+1];
+ 
+           // ----- Check that the value is a valid existing function
+-          if (!function_exists($v_function_name)) {
++          if (!\wp_aot_function_exists($v_function_name)) {
+             // ----- Error log
+-            PclZip::privErrorLog(PCLZIP_ERR_INVALID_OPTION_VALUE, "Function '".$v_function_name."()' is not an existing function for option '".PclZipUtilOptionText($p_options_list[$i])."'");
++            $this->wp_aot_error_log(PCLZIP_ERR_INVALID_OPTION_VALUE, "Function '".$v_function_name."()' is not an existing function for option '".PclZipUtilOptionText($p_options_list[$i])."'");
+ 
+             // ----- Return
+-            return PclZip::errorCode();
++            return $this->wp_aot_error_code();
+           }
+ 
+           // ----- Set the attribute
+@@ -1782,12 +1802,12 @@
+ 
+         default :
+           // ----- Error log
+-          PclZip::privErrorLog(PCLZIP_ERR_INVALID_PARAMETER,
++          $this->wp_aot_error_log(PCLZIP_ERR_INVALID_PARAMETER,
+ 		                       "Unknown parameter '"
+ 							   .$p_options_list[$i]."'");
+ 
+           // ----- Return
+-          return PclZip::errorCode();
++          return $this->wp_aot_error_code();
+       }
+ 
+       // ----- Next options
+@@ -1802,10 +1822,10 @@
+           // ----- Look if present
+           if (!isset($v_result_list[$key])) {
+             // ----- Error log
+-            PclZip::privErrorLog(PCLZIP_ERR_INVALID_PARAMETER, "Missing mandatory parameter ".PclZipUtilOptionText($key)."(".$key.")");
++            $this->wp_aot_error_log(PCLZIP_ERR_INVALID_PARAMETER, "Missing mandatory parameter ".PclZipUtilOptionText($key)."(".$key.")");
+ 
+             // ----- Return
+-            return PclZip::errorCode();
++            return $this->wp_aot_error_code();
+           }
+         }
+       }
+@@ -1818,6 +1838,7 @@
+ 
+     // ----- Return
+     return $v_result;
++  	return null;
+   }
+   // --------------------------------------------------------------------------------
+ 
+@@ -1827,7 +1848,7 @@
+   // Parameters :
+   // Return Values :
+   // --------------------------------------------------------------------------------
+-  function privOptionDefaultThreshold(&$p_options)
++  function privOptionDefaultThreshold(mixed &$p_options): mixed
+   {
+     $v_result=1;
+ 
+@@ -1861,6 +1882,7 @@
+ 
+     // ----- Return
+     return $v_result;
++  	return null;
+   }
+   // --------------------------------------------------------------------------------
+ 
+@@ -1872,7 +1894,7 @@
+   //   1 on success.
+   //   0 on failure.
+   // --------------------------------------------------------------------------------
+-  function privFileDescrParseAtt(&$p_file_list, &$p_filedescr, $v_options, $v_requested_options=false)
++  function privFileDescrParseAtt(mixed &$p_file_list, mixed &$p_filedescr, mixed $v_options, mixed $v_requested_options=false): mixed
+   {
+     $v_result=1;
+ 
+@@ -1882,62 +1904,62 @@
+       // ----- Check if the option is supported
+       if (!isset($v_requested_options[$v_key])) {
+         // ----- Error log
+-        PclZip::privErrorLog(PCLZIP_ERR_INVALID_PARAMETER, "Invalid file attribute '".$v_key."' for this file");
++        $this->wp_aot_error_log(PCLZIP_ERR_INVALID_PARAMETER, "Invalid file attribute '".$v_key."' for this file");
+ 
+         // ----- Return
+-        return PclZip::errorCode();
++        return $this->wp_aot_error_code();
+       }
+ 
+       // ----- Look for attribute
+       switch ($v_key) {
+         case PCLZIP_ATT_FILE_NAME :
+           if (!is_string($v_value)) {
+-            PclZip::privErrorLog(PCLZIP_ERR_INVALID_ATTRIBUTE_VALUE, "Invalid type ".gettype($v_value).". String expected for attribute '".PclZipUtilOptionText($v_key)."'");
+-            return PclZip::errorCode();
++            $this->wp_aot_error_log(PCLZIP_ERR_INVALID_ATTRIBUTE_VALUE, "Invalid type ".gettype($v_value).". String expected for attribute '".PclZipUtilOptionText($v_key)."'");
++            return $this->wp_aot_error_code();
+           }
+ 
+           $p_filedescr['filename'] = PclZipUtilPathReduction($v_value);
+ 
+           if ($p_filedescr['filename'] == '') {
+-            PclZip::privErrorLog(PCLZIP_ERR_INVALID_ATTRIBUTE_VALUE, "Invalid empty filename for attribute '".PclZipUtilOptionText($v_key)."'");
+-            return PclZip::errorCode();
++            $this->wp_aot_error_log(PCLZIP_ERR_INVALID_ATTRIBUTE_VALUE, "Invalid empty filename for attribute '".PclZipUtilOptionText($v_key)."'");
++            return $this->wp_aot_error_code();
+           }
+ 
+         break;
+ 
+         case PCLZIP_ATT_FILE_NEW_SHORT_NAME :
+           if (!is_string($v_value)) {
+-            PclZip::privErrorLog(PCLZIP_ERR_INVALID_ATTRIBUTE_VALUE, "Invalid type ".gettype($v_value).". String expected for attribute '".PclZipUtilOptionText($v_key)."'");
+-            return PclZip::errorCode();
++            $this->wp_aot_error_log(PCLZIP_ERR_INVALID_ATTRIBUTE_VALUE, "Invalid type ".gettype($v_value).". String expected for attribute '".PclZipUtilOptionText($v_key)."'");
++            return $this->wp_aot_error_code();
+           }
+ 
+           $p_filedescr['new_short_name'] = PclZipUtilPathReduction($v_value);
+ 
+           if ($p_filedescr['new_short_name'] == '') {
+-            PclZip::privErrorLog(PCLZIP_ERR_INVALID_ATTRIBUTE_VALUE, "Invalid empty short filename for attribute '".PclZipUtilOptionText($v_key)."'");
+-            return PclZip::errorCode();
++            $this->wp_aot_error_log(PCLZIP_ERR_INVALID_ATTRIBUTE_VALUE, "Invalid empty short filename for attribute '".PclZipUtilOptionText($v_key)."'");
++            return $this->wp_aot_error_code();
+           }
+         break;
+ 
+         case PCLZIP_ATT_FILE_NEW_FULL_NAME :
+           if (!is_string($v_value)) {
+-            PclZip::privErrorLog(PCLZIP_ERR_INVALID_ATTRIBUTE_VALUE, "Invalid type ".gettype($v_value).". String expected for attribute '".PclZipUtilOptionText($v_key)."'");
+-            return PclZip::errorCode();
++            $this->wp_aot_error_log(PCLZIP_ERR_INVALID_ATTRIBUTE_VALUE, "Invalid type ".gettype($v_value).". String expected for attribute '".PclZipUtilOptionText($v_key)."'");
++            return $this->wp_aot_error_code();
+           }
+ 
+           $p_filedescr['new_full_name'] = PclZipUtilPathReduction($v_value);
+ 
+           if ($p_filedescr['new_full_name'] == '') {
+-            PclZip::privErrorLog(PCLZIP_ERR_INVALID_ATTRIBUTE_VALUE, "Invalid empty full filename for attribute '".PclZipUtilOptionText($v_key)."'");
+-            return PclZip::errorCode();
++            $this->wp_aot_error_log(PCLZIP_ERR_INVALID_ATTRIBUTE_VALUE, "Invalid empty full filename for attribute '".PclZipUtilOptionText($v_key)."'");
++            return $this->wp_aot_error_code();
+           }
+         break;
+ 
+         // ----- Look for options that takes a string
+         case PCLZIP_ATT_FILE_COMMENT :
+           if (!is_string($v_value)) {
+-            PclZip::privErrorLog(PCLZIP_ERR_INVALID_ATTRIBUTE_VALUE, "Invalid type ".gettype($v_value).". String expected for attribute '".PclZipUtilOptionText($v_key)."'");
+-            return PclZip::errorCode();
++            $this->wp_aot_error_log(PCLZIP_ERR_INVALID_ATTRIBUTE_VALUE, "Invalid type ".gettype($v_value).". String expected for attribute '".PclZipUtilOptionText($v_key)."'");
++            return $this->wp_aot_error_code();
+           }
+ 
+           $p_filedescr['comment'] = $v_value;
+@@ -1945,8 +1967,8 @@
+ 
+         case PCLZIP_ATT_FILE_MTIME :
+           if (!is_int($v_value)) {
+-            PclZip::privErrorLog(PCLZIP_ERR_INVALID_ATTRIBUTE_VALUE, "Invalid type ".gettype($v_value).". Integer expected for attribute '".PclZipUtilOptionText($v_key)."'");
+-            return PclZip::errorCode();
++            $this->wp_aot_error_log(PCLZIP_ERR_INVALID_ATTRIBUTE_VALUE, "Invalid type ".gettype($v_value).". Integer expected for attribute '".PclZipUtilOptionText($v_key)."'");
++            return $this->wp_aot_error_code();
+           }
+ 
+           $p_filedescr['mtime'] = $v_value;
+@@ -1958,11 +1980,11 @@
+ 
+         default :
+           // ----- Error log
+-          PclZip::privErrorLog(PCLZIP_ERR_INVALID_PARAMETER,
++          $this->wp_aot_error_log(PCLZIP_ERR_INVALID_PARAMETER,
+ 		                           "Unknown parameter '".$v_key."'");
+ 
+           // ----- Return
+-          return PclZip::errorCode();
++          return $this->wp_aot_error_code();
+       }
+ 
+       // ----- Look for mandatory options
+@@ -1972,8 +1994,8 @@
+           if ($v_requested_options[$key] == 'mandatory') {
+             // ----- Look if present
+             if (!isset($p_file_list[$key])) {
+-              PclZip::privErrorLog(PCLZIP_ERR_INVALID_PARAMETER, "Missing mandatory parameter ".PclZipUtilOptionText($key)."(".$key.")");
+-              return PclZip::errorCode();
++              $this->wp_aot_error_log(PCLZIP_ERR_INVALID_PARAMETER, "Missing mandatory parameter ".PclZipUtilOptionText($key)."(".$key.")");
++              return $this->wp_aot_error_code();
+             }
+           }
+         }
+@@ -1984,6 +2006,7 @@
+ 
+     // ----- Return
+     return $v_result;
++  	return null;
+   }
+   // --------------------------------------------------------------------------------
+ 
+@@ -2001,7 +2024,7 @@
+   //   1 on success.
+   //   0 on failure.
+   // --------------------------------------------------------------------------------
+-  function privFileDescrExpand(&$p_filedescr_list, &$p_options)
++  function privFileDescrExpand(mixed &$p_filedescr_list, mixed &$p_options): mixed
+   {
+     $v_result=1;
+ 
+@@ -2044,10 +2067,10 @@
+       // ----- Missing file
+       else {
+         // ----- Error log
+-        PclZip::privErrorLog(PCLZIP_ERR_MISSING_FILE, "File '".$v_descr['filename']."' does not exist");
++        $this->wp_aot_error_log(PCLZIP_ERR_MISSING_FILE, "File '".$v_descr['filename']."' does not exist");
+ 
+         // ----- Return
+-        return PclZip::errorCode();
++        return $this->wp_aot_error_code();
+       }
+ 
+       // ----- Calculate the stored filename
+@@ -2102,7 +2125,7 @@
+           }
+ 
+           // ----- Concat the resulting list
+-          $v_result_list = array_merge($v_result_list, $v_dirlist_descr);
++          $v_result_list = \wp_aot_array_merge(array($v_result_list, $v_dirlist_descr));
+         }
+         else {
+         }
+@@ -2117,6 +2140,7 @@
+ 
+     // ----- Return
+     return $v_result;
++  	return null;
+   }
+   // --------------------------------------------------------------------------------
+ 
+@@ -2126,7 +2150,7 @@
+   // Parameters :
+   // Return Values :
+   // --------------------------------------------------------------------------------
+-  function privCreate($p_filedescr_list, &$p_result_list, &$p_options)
++  function privCreate(mixed $p_filedescr_list, mixed &$p_result_list, mixed &$p_options): mixed
+   {
+     $v_result=1;
+     $v_list_detail = array();
+@@ -2152,6 +2176,7 @@
+ 
+     // ----- Return
+     return $v_result;
++  	return null;
+   }
+   // --------------------------------------------------------------------------------
+ 
+@@ -2161,7 +2186,7 @@
+   // Parameters :
+   // Return Values :
+   // --------------------------------------------------------------------------------
+-  function privAdd($p_filedescr_list, &$p_result_list, &$p_options)
++  function privAdd(mixed $p_filedescr_list, mixed &$p_result_list, mixed &$p_options): mixed
+   {
+     $v_result=1;
+     $v_list_detail = array();
+@@ -2202,7 +2227,7 @@
+     @rewind($this->zip_fd);
+ 
+     // ----- Creates a temporary file
+-    $v_zip_temp_name = PCLZIP_TEMPORARY_DIR.uniqid('pclzip-').'.tmp';
++    $v_zip_temp_name = PCLZIP_TEMPORARY_DIR.\wp_aot_native_api('uniqid', array('pclzip-')).'.tmp';
+ 
+     // ----- Open the temporary file in write mode
+     if (($v_zip_temp_fd = @fopen($v_zip_temp_name, 'wb')) == 0)
+@@ -2210,10 +2235,10 @@
+       $this->privCloseFd();
+       $this->privSwapBackMagicQuotes();
+ 
+-      PclZip::privErrorLog(PCLZIP_ERR_READ_OPEN_FAIL, 'Unable to open temporary file \''.$v_zip_temp_name.'\' in binary write mode');
++      $this->wp_aot_error_log(PCLZIP_ERR_READ_OPEN_FAIL, 'Unable to open temporary file \''.$v_zip_temp_name.'\' in binary write mode');
+ 
+       // ----- Return
+-      return PclZip::errorCode();
++      return $this->wp_aot_error_code();
+     }
+ 
+     // ----- Copy the files from the archive to the temporary file
+@@ -2221,9 +2246,9 @@
+     $v_size = $v_central_dir['offset'];
+     while ($v_size != 0)
+     {
+-      $v_read_size = ($v_size < PCLZIP_READ_BLOCK_SIZE ? $v_size : PCLZIP_READ_BLOCK_SIZE);
+-      $v_buffer = fread($this->zip_fd, $v_read_size);
+-      @fwrite($v_zip_temp_fd, $v_buffer, $v_read_size);
++      $v_read_size = ($v_size < \wp_aot_pclzip_block_size() ? $v_size : \wp_aot_pclzip_block_size());
++      $v_buffer = \wp_aot_fread($this->zip_fd, \wp_aot_internal_int( $v_read_size ));
++      @\wp_aot_fwrite($v_zip_temp_fd, $v_buffer, \wp_aot_nullable_int( $v_read_size ));
+       $v_size -= $v_read_size;
+     }
+ 
+@@ -2238,7 +2263,7 @@
+     $v_header_list = array();
+     if (($v_result = $this->privAddFileList($p_filedescr_list, $v_header_list, $p_options)) != 1)
+     {
+-      fclose($v_zip_temp_fd);
++      \wp_aot_fclose($v_zip_temp_fd);
+       $this->privCloseFd();
+       @unlink($v_zip_temp_name);
+       $this->privSwapBackMagicQuotes();
+@@ -2254,9 +2279,9 @@
+     $v_size = $v_central_dir['size'];
+     while ($v_size != 0)
+     {
+-      $v_read_size = ($v_size < PCLZIP_READ_BLOCK_SIZE ? $v_size : PCLZIP_READ_BLOCK_SIZE);
+-      $v_buffer = @fread($v_zip_temp_fd, $v_read_size);
+-      @fwrite($this->zip_fd, $v_buffer, $v_read_size);
++      $v_read_size = ($v_size < \wp_aot_pclzip_block_size() ? $v_size : \wp_aot_pclzip_block_size());
++      $v_buffer = @\wp_aot_fread($v_zip_temp_fd, \wp_aot_internal_int( $v_read_size ));
++      @\wp_aot_fwrite($this->zip_fd, $v_buffer, \wp_aot_nullable_int( $v_read_size ));
+       $v_size -= $v_read_size;
+     }
+ 
+@@ -2266,7 +2291,7 @@
+       // ----- Create the file header
+       if ($v_header_list[$i]['status'] == 'ok') {
+         if (($v_result = $this->privWriteCentralFileHeader($v_header_list[$i])) != 1) {
+-          fclose($v_zip_temp_fd);
++          \wp_aot_fclose($v_zip_temp_fd);
+           $this->privCloseFd();
+           @unlink($v_zip_temp_name);
+           $this->privSwapBackMagicQuotes();
+@@ -2316,7 +2341,7 @@
+     $this->privCloseFd();
+ 
+     // ----- Close the temporary file
+-    @fclose($v_zip_temp_fd);
++    @\wp_aot_fclose($v_zip_temp_fd);
+ 
+     // ----- Magic quotes trick
+     $this->privSwapBackMagicQuotes();
+@@ -2332,6 +2357,7 @@
+ 
+     // ----- Return
+     return $v_result;
++  	return null;
+   }
+   // --------------------------------------------------------------------------------
+ 
+@@ -2340,7 +2366,7 @@
+   // Description :
+   // Parameters :
+   // --------------------------------------------------------------------------------
+-  function privOpenFd($p_mode)
++  function privOpenFd(mixed $p_mode): mixed
+   {
+     $v_result=1;
+ 
+@@ -2348,24 +2374,25 @@
+     if ($this->zip_fd != 0)
+     {
+       // ----- Error log
+-      PclZip::privErrorLog(PCLZIP_ERR_READ_OPEN_FAIL, 'Zip file \''.$this->zipname.'\' already open');
++      $this->wp_aot_error_log(PCLZIP_ERR_READ_OPEN_FAIL, 'Zip file \''.$this->zipname.'\' already open');
+ 
+       // ----- Return
+-      return PclZip::errorCode();
++      return $this->wp_aot_error_code();
+     }
+ 
+     // ----- Open the zip file
+     if (($this->zip_fd = @fopen($this->zipname, $p_mode)) == 0)
+     {
+       // ----- Error log
+-      PclZip::privErrorLog(PCLZIP_ERR_READ_OPEN_FAIL, 'Unable to open archive \''.$this->zipname.'\' in '.$p_mode.' mode');
++      $this->wp_aot_error_log(PCLZIP_ERR_READ_OPEN_FAIL, 'Unable to open archive \''.$this->zipname.'\' in '.$p_mode.' mode');
+ 
+       // ----- Return
+-      return PclZip::errorCode();
++      return $this->wp_aot_error_code();
+     }
+ 
+     // ----- Return
+     return $v_result;
++  	return null;
+   }
+   // --------------------------------------------------------------------------------
+ 
+@@ -2374,16 +2401,17 @@
+   // Description :
+   // Parameters :
+   // --------------------------------------------------------------------------------
+-  function privCloseFd()
++  function privCloseFd(): mixed
+   {
+     $v_result=1;
+ 
+     if ($this->zip_fd != 0)
+-      @fclose($this->zip_fd);
++      @\wp_aot_fclose($this->zip_fd);
+     $this->zip_fd = 0;
+ 
+     // ----- Return
+     return $v_result;
++  	return null;
+   }
+   // --------------------------------------------------------------------------------
+ 
+@@ -2401,7 +2429,7 @@
+   // Return Values :
+   // --------------------------------------------------------------------------------
+ //  function privAddList($p_list, &$p_result_list, $p_add_dir, $p_remove_dir, $p_remove_all_dir, &$p_options)
+-  function privAddList($p_filedescr_list, &$p_result_list, &$p_options)
++  function privAddList(mixed $p_filedescr_list, mixed &$p_result_list, mixed &$p_options): mixed
+   {
+     $v_result=1;
+ 
+@@ -2453,6 +2481,7 @@
+ 
+     // ----- Return
+     return $v_result;
++  	return null;
+   }
+   // --------------------------------------------------------------------------------
+ 
+@@ -2465,7 +2494,7 @@
+   //   $p_result_list : list of added files with their properties (specially the status field)
+   // Return Values :
+   // --------------------------------------------------------------------------------
+-  function privAddFileList($p_filedescr_list, &$p_result_list, &$p_options)
++  function privAddFileList(mixed $p_filedescr_list, mixed &$p_result_list, mixed &$p_options): mixed
+   {
+     $v_result=1;
+     $v_header = array();
+@@ -2489,8 +2518,8 @@
+       // ----- Check the filename
+       if (   ($p_filedescr_list[$j]['type'] != 'virtual_file')
+           && (!file_exists($p_filedescr_list[$j]['filename']))) {
+-        PclZip::privErrorLog(PCLZIP_ERR_MISSING_FILE, "File '".$p_filedescr_list[$j]['filename']."' does not exist");
+-        return PclZip::errorCode();
++        $this->wp_aot_error_log(PCLZIP_ERR_MISSING_FILE, "File '".$p_filedescr_list[$j]['filename']."' does not exist");
++        return $this->wp_aot_error_code();
+       }
+ 
+       // ----- Look if it is a file or a dir with no all path remove option
+@@ -2518,6 +2547,7 @@
+ 
+     // ----- Return
+     return $v_result;
++  	return null;
+   }
+   // --------------------------------------------------------------------------------
+ 
+@@ -2527,7 +2557,7 @@
+   // Parameters :
+   // Return Values :
+   // --------------------------------------------------------------------------------
+-  function privAddFile($p_filedescr, &$p_header, &$p_options)
++  function privAddFile(mixed $p_filedescr, mixed &$p_header, mixed &$p_options): mixed
+   {
+     $v_result=1;
+ 
+@@ -2537,10 +2567,10 @@
+     // TBC : Already done in the fileAtt check ... ?
+     if ($p_filename == "") {
+       // ----- Error log
+-      PclZip::privErrorLog(PCLZIP_ERR_INVALID_PARAMETER, "Invalid file list parameter (invalid or empty list)");
++      $this->wp_aot_error_log(PCLZIP_ERR_INVALID_PARAMETER, "Invalid file list parameter (invalid or empty list)");
+ 
+       // ----- Return
+-      return PclZip::errorCode();
++      return $this->wp_aot_error_code();
+     }
+ 
+     // ----- Look for a stored different filename
+@@ -2669,20 +2699,20 @@
+ 
+         // ----- Open the source file
+         if (($v_file = @fopen($p_filename, "rb")) == 0) {
+-          PclZip::privErrorLog(PCLZIP_ERR_READ_OPEN_FAIL, "Unable to open file '$p_filename' in binary read mode");
+-          return PclZip::errorCode();
++          $this->wp_aot_error_log(PCLZIP_ERR_READ_OPEN_FAIL, "Unable to open file '$p_filename' in binary read mode");
++          return $this->wp_aot_error_code();
+         }
+ 
+         // ----- Read the file content
+         if ($p_header['size'] > 0) {
+-          $v_content = @fread($v_file, $p_header['size']);
++          $v_content = @\wp_aot_fread($v_file, \wp_aot_internal_int( $p_header['size'] ));
+         }
+         else {
+           $v_content = '';
+         }
+ 
+         // ----- Close the file
+-        @fclose($v_file);
++        @\wp_aot_fclose($v_file);
+ 
+         // ----- Calculate the CRC
+         $p_header['crc'] = @crc32($v_content);
+@@ -2706,12 +2736,12 @@
+ 
+         // ----- Call the header generation
+         if (($v_result = $this->privWriteFileHeader($p_header)) != 1) {
+-          @fclose($v_file);
++          @\wp_aot_fclose($v_file);
+           return $v_result;
+         }
+ 
+         // ----- Write the compressed (or not) content
+-        @fwrite($this->zip_fd, $v_content, $p_header['compressed_size']);
++        @\wp_aot_fwrite($this->zip_fd, $v_content, \wp_aot_nullable_int( $p_header['compressed_size'] ));
+ 
+         }
+ 
+@@ -2744,12 +2774,12 @@
+ 
+         // ----- Call the header generation
+         if (($v_result = $this->privWriteFileHeader($p_header)) != 1) {
+-          @fclose($v_file);
++          @\wp_aot_fclose($v_file);
+           return $v_result;
+         }
+ 
+         // ----- Write the compressed (or not) content
+-        @fwrite($this->zip_fd, $v_content, $p_header['compressed_size']);
++        @\wp_aot_fwrite($this->zip_fd, $v_content, \wp_aot_nullable_int( $p_header['compressed_size'] ));
+       }
+ 
+       // ----- Look for a directory
+@@ -2794,6 +2824,7 @@
+ 
+     // ----- Return
+     return $v_result;
++  	return null;
+   }
+   // --------------------------------------------------------------------------------
+ 
+@@ -2803,7 +2834,7 @@
+   // Parameters :
+   // Return Values :
+   // --------------------------------------------------------------------------------
+-  function privAddFileUsingTempFile($p_filedescr, &$p_header, &$p_options)
++  function privAddFileUsingTempFile(mixed $p_filedescr, mixed &$p_header, mixed &$p_options): mixed
+   {
+     $v_result=PCLZIP_ERR_NO_ERROR;
+ 
+@@ -2813,54 +2844,54 @@
+ 
+     // ----- Open the source file
+     if (($v_file = @fopen($p_filename, "rb")) == 0) {
+-      PclZip::privErrorLog(PCLZIP_ERR_READ_OPEN_FAIL, "Unable to open file '$p_filename' in binary read mode");
+-      return PclZip::errorCode();
++      $this->wp_aot_error_log(PCLZIP_ERR_READ_OPEN_FAIL, "Unable to open file '$p_filename' in binary read mode");
++      return $this->wp_aot_error_code();
+     }
+ 
+     // ----- Creates a compressed temporary file
+-    $v_gzip_temp_name = PCLZIP_TEMPORARY_DIR.uniqid('pclzip-').'.gz';
+-    if (($v_file_compressed = @gzopen($v_gzip_temp_name, "wb")) == 0) {
+-      fclose($v_file);
+-      PclZip::privErrorLog(PCLZIP_ERR_WRITE_OPEN_FAIL, 'Unable to open temporary file \''.$v_gzip_temp_name.'\' in binary write mode');
+-      return PclZip::errorCode();
++    $v_gzip_temp_name = PCLZIP_TEMPORARY_DIR.\wp_aot_native_api('uniqid', array('pclzip-')).'.gz';
++    if (($v_file_compressed = @\wp_aot_native_api('gzopen', array($v_gzip_temp_name, "wb"))) == 0) {
++      \wp_aot_fclose($v_file);
++      $this->wp_aot_error_log(PCLZIP_ERR_WRITE_OPEN_FAIL, 'Unable to open temporary file \''.$v_gzip_temp_name.'\' in binary write mode');
++      return $this->wp_aot_error_code();
+     }
+ 
+     // ----- Read the file by PCLZIP_READ_BLOCK_SIZE octets blocks
+     $v_size = filesize($p_filename);
+     while ($v_size != 0) {
+-      $v_read_size = ($v_size < PCLZIP_READ_BLOCK_SIZE ? $v_size : PCLZIP_READ_BLOCK_SIZE);
+-      $v_buffer = @fread($v_file, $v_read_size);
++      $v_read_size = ($v_size < \wp_aot_pclzip_block_size() ? $v_size : \wp_aot_pclzip_block_size());
++      $v_buffer = @\wp_aot_fread($v_file, \wp_aot_internal_int( $v_read_size ));
+       //$v_binary_data = pack('a'.$v_read_size, $v_buffer);
+-      @gzputs($v_file_compressed, $v_buffer, $v_read_size);
++      @\wp_aot_native_api('gzputs', array($v_file_compressed, $v_buffer, $v_read_size));
+       $v_size -= $v_read_size;
+     }
+ 
+     // ----- Close the file
+-    @fclose($v_file);
+-    @gzclose($v_file_compressed);
++    @\wp_aot_fclose($v_file);
++    @\wp_aot_native_api('gzclose', array($v_file_compressed));
+ 
+     // ----- Check the minimum file size
+     if (filesize($v_gzip_temp_name) < 18) {
+-      PclZip::privErrorLog(PCLZIP_ERR_BAD_FORMAT, 'gzip temporary file \''.$v_gzip_temp_name.'\' has invalid filesize - should be minimum 18 bytes');
+-      return PclZip::errorCode();
++      $this->wp_aot_error_log(PCLZIP_ERR_BAD_FORMAT, 'gzip temporary file \''.$v_gzip_temp_name.'\' has invalid filesize - should be minimum 18 bytes');
++      return $this->wp_aot_error_code();
+     }
+ 
+     // ----- Extract the compressed attributes
+     if (($v_file_compressed = @fopen($v_gzip_temp_name, "rb")) == 0) {
+-      PclZip::privErrorLog(PCLZIP_ERR_READ_OPEN_FAIL, 'Unable to open temporary file \''.$v_gzip_temp_name.'\' in binary read mode');
+-      return PclZip::errorCode();
++      $this->wp_aot_error_log(PCLZIP_ERR_READ_OPEN_FAIL, 'Unable to open temporary file \''.$v_gzip_temp_name.'\' in binary read mode');
++      return $this->wp_aot_error_code();
+     }
+ 
+     // ----- Read the gzip file header
+-    $v_binary_data = @fread($v_file_compressed, 10);
++    $v_binary_data = @\wp_aot_fread($v_file_compressed, 10);
+     $v_data_header = unpack('a1id1/a1id2/a1cm/a1flag/Vmtime/a1xfl/a1os', $v_binary_data);
+ 
+     // ----- Check some parameters
+     $v_data_header['os'] = bin2hex($v_data_header['os']);
+ 
+     // ----- Read the gzip file footer
+-    @fseek($v_file_compressed, filesize($v_gzip_temp_name)-8);
+-    $v_binary_data = @fread($v_file_compressed, 8);
++    @fseek($v_file_compressed, \wp_aot_internal_int( filesize($v_gzip_temp_name)-8 ));
++    $v_binary_data = @\wp_aot_fread($v_file_compressed, 8);
+     $v_data_footer = unpack('Vcrc/Vcompressed_size', $v_binary_data);
+ 
+     // ----- Set the attributes
+@@ -2870,7 +2901,7 @@
+     $p_header['compressed_size'] = filesize($v_gzip_temp_name)-18;
+ 
+     // ----- Close the file
+-    @fclose($v_file_compressed);
++    @\wp_aot_fclose($v_file_compressed);
+ 
+     // ----- Call the header generation
+     if (($v_result = $this->privWriteFileHeader($p_header)) != 1) {
+@@ -2880,8 +2911,8 @@
+     // ----- Add the compressed data
+     if (($v_file_compressed = @fopen($v_gzip_temp_name, "rb")) == 0)
+     {
+-      PclZip::privErrorLog(PCLZIP_ERR_READ_OPEN_FAIL, 'Unable to open temporary file \''.$v_gzip_temp_name.'\' in binary read mode');
+-      return PclZip::errorCode();
++      $this->wp_aot_error_log(PCLZIP_ERR_READ_OPEN_FAIL, 'Unable to open temporary file \''.$v_gzip_temp_name.'\' in binary read mode');
++      return $this->wp_aot_error_code();
+     }
+ 
+     // ----- Read the file by PCLZIP_READ_BLOCK_SIZE octets blocks
+@@ -2889,21 +2920,22 @@
+     $v_size = $p_header['compressed_size'];
+     while ($v_size != 0)
+     {
+-      $v_read_size = ($v_size < PCLZIP_READ_BLOCK_SIZE ? $v_size : PCLZIP_READ_BLOCK_SIZE);
+-      $v_buffer = @fread($v_file_compressed, $v_read_size);
++      $v_read_size = ($v_size < \wp_aot_pclzip_block_size() ? $v_size : \wp_aot_pclzip_block_size());
++      $v_buffer = @\wp_aot_fread($v_file_compressed, \wp_aot_internal_int( $v_read_size ));
+       //$v_binary_data = pack('a'.$v_read_size, $v_buffer);
+-      @fwrite($this->zip_fd, $v_buffer, $v_read_size);
++      @\wp_aot_fwrite($this->zip_fd, $v_buffer, \wp_aot_nullable_int( $v_read_size ));
+       $v_size -= $v_read_size;
+     }
+ 
+     // ----- Close the file
+-    @fclose($v_file_compressed);
++    @\wp_aot_fclose($v_file_compressed);
+ 
+     // ----- Unlink the temporary file
+     @unlink($v_gzip_temp_name);
+ 
+     // ----- Return
+     return $v_result;
++  	return null;
+   }
+   // --------------------------------------------------------------------------------
+ 
+@@ -2915,7 +2947,7 @@
+   // Parameters :
+   // Return Values :
+   // --------------------------------------------------------------------------------
+-  function privCalculateStoredFilename(&$p_filedescr, &$p_options)
++  function privCalculateStoredFilename(mixed &$p_filedescr, mixed &$p_options): mixed
+   {
+     $v_result=1;
+ 
+@@ -3018,6 +3050,7 @@
+ 
+     // ----- Return
+     return $v_result;
++  	return null;
+   }
+   // --------------------------------------------------------------------------------
+ 
+@@ -3027,7 +3060,7 @@
+   // Parameters :
+   // Return Values :
+   // --------------------------------------------------------------------------------
+-  function privWriteFileHeader(&$p_header)
++  function privWriteFileHeader(mixed &$p_header): mixed
+   {
+     $v_result=1;
+ 
+@@ -3040,29 +3073,30 @@
+     $v_mdate = (($v_date['year']-1980)<<9) + ($v_date['mon']<<5) + $v_date['mday'];
+ 
+     // ----- Packed data
+-    $v_binary_data = pack("VvvvvvVVVvv", 0x04034b50,
++    $v_binary_data = \wp_aot_pack("VvvvvvVVVvv", array( 0x04034b50,
+ 	                      $p_header['version_extracted'], $p_header['flag'],
+                           $p_header['compression'], $v_mtime, $v_mdate,
+                           $p_header['crc'], $p_header['compressed_size'],
+ 						  $p_header['size'],
+                           strlen($p_header['stored_filename']),
+-						  $p_header['extra_len']);
++						  $p_header['extra_len']));
+ 
+     // ----- Write the first 148 bytes of the header in the archive
+-    fputs($this->zip_fd, $v_binary_data, 30);
++    \wp_aot_fwrite($this->zip_fd, $v_binary_data, 30);
+ 
+     // ----- Write the variable fields
+     if (strlen($p_header['stored_filename']) != 0)
+     {
+-      fputs($this->zip_fd, $p_header['stored_filename'], strlen($p_header['stored_filename']));
++      \wp_aot_fwrite($this->zip_fd, $p_header['stored_filename'], \wp_aot_nullable_int( strlen($p_header['stored_filename']) ));
+     }
+     if ($p_header['extra_len'] != 0)
+     {
+-      fputs($this->zip_fd, $p_header['extra'], $p_header['extra_len']);
++      \wp_aot_fwrite($this->zip_fd, $p_header['extra'], \wp_aot_nullable_int( $p_header['extra_len'] ));
+     }
+ 
+     // ----- Return
+     return $v_result;
++  	return null;
+   }
+   // --------------------------------------------------------------------------------
+ 
+@@ -3072,7 +3106,7 @@
+   // Parameters :
+   // Return Values :
+   // --------------------------------------------------------------------------------
+-  function privWriteCentralFileHeader(&$p_header)
++  function privWriteCentralFileHeader(mixed &$p_header): mixed
+   {
+     $v_result=1;
+ 
+@@ -3087,7 +3121,7 @@
+ 
+ 
+     // ----- Packed data
+-    $v_binary_data = pack("VvvvvvvVVVvvvvvVV", 0x02014b50,
++    $v_binary_data = \wp_aot_pack("VvvvvvvVVVvvvvvVV", array( 0x02014b50,
+ 	                      $p_header['version'], $p_header['version_extracted'],
+                           $p_header['flag'], $p_header['compression'],
+ 						  $v_mtime, $v_mdate, $p_header['crc'],
+@@ -3095,27 +3129,28 @@
+                           strlen($p_header['stored_filename']),
+ 						  $p_header['extra_len'], $p_header['comment_len'],
+                           $p_header['disk'], $p_header['internal'],
+-						  $p_header['external'], $p_header['offset']);
++						  $p_header['external'], $p_header['offset']));
+ 
+     // ----- Write the 42 bytes of the header in the zip file
+-    fputs($this->zip_fd, $v_binary_data, 46);
++    \wp_aot_fwrite($this->zip_fd, $v_binary_data, 46);
+ 
+     // ----- Write the variable fields
+     if (strlen($p_header['stored_filename']) != 0)
+     {
+-      fputs($this->zip_fd, $p_header['stored_filename'], strlen($p_header['stored_filename']));
++      \wp_aot_fwrite($this->zip_fd, $p_header['stored_filename'], \wp_aot_nullable_int( strlen($p_header['stored_filename']) ));
+     }
+     if ($p_header['extra_len'] != 0)
+     {
+-      fputs($this->zip_fd, $p_header['extra'], $p_header['extra_len']);
++      \wp_aot_fwrite($this->zip_fd, $p_header['extra'], \wp_aot_nullable_int( $p_header['extra_len'] ));
+     }
+     if ($p_header['comment_len'] != 0)
+     {
+-      fputs($this->zip_fd, $p_header['comment'], $p_header['comment_len']);
++      \wp_aot_fwrite($this->zip_fd, $p_header['comment'], \wp_aot_nullable_int( $p_header['comment_len'] ));
+     }
+ 
+     // ----- Return
+     return $v_result;
++  	return null;
+   }
+   // --------------------------------------------------------------------------------
+ 
+@@ -3125,26 +3160,27 @@
+   // Parameters :
+   // Return Values :
+   // --------------------------------------------------------------------------------
+-  function privWriteCentralHeader($p_nb_entries, $p_size, $p_offset, $p_comment)
++  function privWriteCentralHeader(mixed $p_nb_entries, mixed $p_size, mixed $p_offset, mixed $p_comment): mixed
+   {
+     $v_result=1;
+ 
+     // ----- Packed data
+-    $v_binary_data = pack("VvvvvVVv", 0x06054b50, 0, 0, $p_nb_entries,
++    $v_binary_data = \wp_aot_pack("VvvvvVVv", array( 0x06054b50, 0, 0, $p_nb_entries,
+ 	                      $p_nb_entries, $p_size,
+-						  $p_offset, strlen($p_comment));
++						  $p_offset, strlen($p_comment)));
+ 
+     // ----- Write the 22 bytes of the header in the zip file
+-    fputs($this->zip_fd, $v_binary_data, 22);
++    \wp_aot_fwrite($this->zip_fd, $v_binary_data, 22);
+ 
+     // ----- Write the variable fields
+     if (strlen($p_comment) != 0)
+     {
+-      fputs($this->zip_fd, $p_comment, strlen($p_comment));
++      \wp_aot_fwrite($this->zip_fd, $p_comment, \wp_aot_nullable_int( strlen($p_comment) ));
+     }
+ 
+     // ----- Return
+     return $v_result;
++  	return null;
+   }
+   // --------------------------------------------------------------------------------
+ 
+@@ -3154,7 +3190,7 @@
+   // Parameters :
+   // Return Values :
+   // --------------------------------------------------------------------------------
+-  function privList(&$p_list)
++  function privList(mixed &$p_list): mixed
+   {
+     $v_result=1;
+ 
+@@ -3168,10 +3204,10 @@
+       $this->privSwapBackMagicQuotes();
+ 
+       // ----- Error log
+-      PclZip::privErrorLog(PCLZIP_ERR_READ_OPEN_FAIL, 'Unable to open archive \''.$this->zipname.'\' in binary read mode');
++      $this->wp_aot_error_log(PCLZIP_ERR_READ_OPEN_FAIL, 'Unable to open archive \''.$this->zipname.'\' in binary read mode');
+ 
+       // ----- Return
+-      return PclZip::errorCode();
++      return $this->wp_aot_error_code();
+     }
+ 
+     // ----- Read the central directory information
+@@ -3184,15 +3220,15 @@
+ 
+     // ----- Go to beginning of Central Dir
+     @rewind($this->zip_fd);
+-    if (@fseek($this->zip_fd, $v_central_dir['offset']))
++    if (@fseek($this->zip_fd, \wp_aot_internal_int( $v_central_dir['offset'] )))
+     {
+       $this->privSwapBackMagicQuotes();
+ 
+       // ----- Error log
+-      PclZip::privErrorLog(PCLZIP_ERR_INVALID_ARCHIVE_ZIP, 'Invalid archive size');
++      $this->wp_aot_error_log(PCLZIP_ERR_INVALID_ARCHIVE_ZIP, 'Invalid archive size');
+ 
+       // ----- Return
+-      return PclZip::errorCode();
++      return $this->wp_aot_error_code();
+     }
+ 
+     // ----- Read each entry
+@@ -3219,6 +3255,7 @@
+ 
+     // ----- Return
+     return $v_result;
++  	return null;
+   }
+   // --------------------------------------------------------------------------------
+ 
+@@ -3241,7 +3278,7 @@
+   // Parameters :
+   // Return Values :
+   // --------------------------------------------------------------------------------
+-  function privConvertHeader2FileInfo($p_header, &$p_info)
++  function privConvertHeader2FileInfo(mixed $p_header, mixed &$p_info): mixed
+   {
+     $v_result=1;
+ 
+@@ -3261,6 +3298,7 @@
+ 
+     // ----- Return
+     return $v_result;
++  	return null;
+   }
+   // --------------------------------------------------------------------------------
+ 
+@@ -3280,7 +3318,7 @@
+   // Return Values :
+   //   1 on success,0 or less on error (see error code list)
+   // --------------------------------------------------------------------------------
+-  function privExtractByRule(&$p_file_list, $p_path, $p_remove_path, $p_remove_all_path, &$p_options)
++  function privExtractByRule(mixed &$p_file_list, mixed $p_path, mixed $p_remove_path, mixed $p_remove_all_path, mixed &$p_options): mixed
+   {
+     $v_result=1;
+ 
+@@ -3339,17 +3377,17 @@
+ 
+       // ----- Read next Central dir entry
+       @rewind($this->zip_fd);
+-      if (@fseek($this->zip_fd, $v_pos_entry))
++      if (@fseek($this->zip_fd, \wp_aot_internal_int( $v_pos_entry )))
+       {
+         // ----- Close the zip file
+         $this->privCloseFd();
+         $this->privSwapBackMagicQuotes();
+ 
+         // ----- Error log
+-        PclZip::privErrorLog(PCLZIP_ERR_INVALID_ARCHIVE_ZIP, 'Invalid archive size');
++        $this->wp_aot_error_log(PCLZIP_ERR_INVALID_ARCHIVE_ZIP, 'Invalid archive size');
+ 
+         // ----- Return
+-        return PclZip::errorCode();
++        return $this->wp_aot_error_code();
+       }
+ 
+       // ----- Read the file header
+@@ -3377,7 +3415,7 @@
+           && ($p_options[PCLZIP_OPT_BY_NAME] != 0)) {
+ 
+           // ----- Look if the filename is in the list
+-          for ($j=0; ($j<sizeof($p_options[PCLZIP_OPT_BY_NAME])) && (!$v_extract); $j++) {
++          for ($j=\wp_aot_mixed(0); ($j<sizeof($p_options[PCLZIP_OPT_BY_NAME])) && (!$v_extract); $j++) {
+ 
+               // ----- Look for a directory
+               if (substr($p_options[PCLZIP_OPT_BY_NAME][$j], -1) == "/") {
+@@ -3411,7 +3449,7 @@
+       else if (   (isset($p_options[PCLZIP_OPT_BY_PREG]))
+                && ($p_options[PCLZIP_OPT_BY_PREG] != "")) {
+ 
+-          if (preg_match($p_options[PCLZIP_OPT_BY_PREG], $v_header['stored_filename'])) {
++          if (preg_match(\wp_aot_regex_text( $p_options[PCLZIP_OPT_BY_PREG] ), \wp_aot_regex_text( $v_header['stored_filename'] ))) {
+               $v_extract = true;
+           }
+       }
+@@ -3453,12 +3491,12 @@
+ 
+               $this->privSwapBackMagicQuotes();
+ 
+-              PclZip::privErrorLog(PCLZIP_ERR_UNSUPPORTED_COMPRESSION,
++              $this->wp_aot_error_log(PCLZIP_ERR_UNSUPPORTED_COMPRESSION,
+ 			                       "Filename '".$v_header['stored_filename']."' is "
+ 				  	    	  	   ."compressed by an unsupported compression "
+ 				  	    	  	   ."method (".$v_header['compression'].") ");
+ 
+-              return PclZip::errorCode();
++              return $this->wp_aot_error_code();
+ 		  }
+ 	  }
+ 
+@@ -3472,12 +3510,12 @@
+ 
+               $this->privSwapBackMagicQuotes();
+ 
+-              PclZip::privErrorLog(PCLZIP_ERR_UNSUPPORTED_ENCRYPTION,
++              $this->wp_aot_error_log(PCLZIP_ERR_UNSUPPORTED_ENCRYPTION,
+ 			                       "Unsupported encryption for "
+ 				  	    	  	   ." filename '".$v_header['stored_filename']
+ 								   ."'");
+ 
+-              return PclZip::errorCode();
++              return $this->wp_aot_error_code();
+ 		  }
+     }
+ 
+@@ -3500,7 +3538,7 @@
+ 
+         // ----- Go to the file position
+         @rewind($this->zip_fd);
+-        if (@fseek($this->zip_fd, $v_header['offset']))
++        if (@fseek($this->zip_fd, \wp_aot_internal_int( $v_header['offset'] )))
+         {
+           // ----- Close the zip file
+           $this->privCloseFd();
+@@ -3508,10 +3546,10 @@
+           $this->privSwapBackMagicQuotes();
+ 
+           // ----- Error log
+-          PclZip::privErrorLog(PCLZIP_ERR_INVALID_ARCHIVE_ZIP, 'Invalid archive size');
++          $this->wp_aot_error_log(PCLZIP_ERR_INVALID_ARCHIVE_ZIP, 'Invalid archive size');
+ 
+           // ----- Return
+-          return PclZip::errorCode();
++          return $this->wp_aot_error_code();
+         }
+ 
+         // ----- Look for extraction as string
+@@ -3608,6 +3646,7 @@
+ 
+     // ----- Return
+     return $v_result;
++  	return null;
+   }
+   // --------------------------------------------------------------------------------
+ 
+@@ -3620,7 +3659,7 @@
+   // 1 : ... ?
+   // PCLZIP_ERR_USER_ABORTED(2) : User ask for extraction stop in callback
+   // --------------------------------------------------------------------------------
+-  function privExtractFile(&$p_entry, $p_path, $p_remove_path, $p_remove_all_path, &$p_options)
++  function privExtractFile(mixed &$p_entry, mixed $p_path, mixed $p_remove_path, mixed $p_remove_all_path, mixed &$p_options): mixed
+   {
+     $v_result=1;
+ 
+@@ -3686,11 +3725,11 @@
+                                 $p_entry['filename']);
+       if ($v_inclusion == 0) {
+ 
+-        PclZip::privErrorLog(PCLZIP_ERR_DIRECTORY_RESTRICTION,
++        $this->wp_aot_error_log(PCLZIP_ERR_DIRECTORY_RESTRICTION,
+ 			                     "Filename '".$p_entry['filename']."' is "
+ 								 ."outside PCLZIP_OPT_EXTRACT_DIR_RESTRICTION");
+ 
+-        return PclZip::errorCode();
++        return $this->wp_aot_error_code();
+       }
+     }
+ 
+@@ -3744,11 +3783,11 @@
+         if (   (isset($p_options[PCLZIP_OPT_STOP_ON_ERROR]))
+ 		    && ($p_options[PCLZIP_OPT_STOP_ON_ERROR]===true)) {
+ 
+-            PclZip::privErrorLog(PCLZIP_ERR_ALREADY_A_DIRECTORY,
++            $this->wp_aot_error_log(PCLZIP_ERR_ALREADY_A_DIRECTORY,
+ 			                     "Filename '".$p_entry['filename']."' is "
+ 								 ."already used by an existing directory");
+ 
+-            return PclZip::errorCode();
++            return $this->wp_aot_error_code();
+ 		    }
+       }
+       // ----- Look if file is write protected
+@@ -3764,11 +3803,11 @@
+         if (   (isset($p_options[PCLZIP_OPT_STOP_ON_ERROR]))
+ 		    && ($p_options[PCLZIP_OPT_STOP_ON_ERROR]===true)) {
+ 
+-            PclZip::privErrorLog(PCLZIP_ERR_WRITE_OPEN_FAIL,
++            $this->wp_aot_error_log(PCLZIP_ERR_WRITE_OPEN_FAIL,
+ 			                     "Filename '".$p_entry['filename']."' exists "
+ 								 ."and is write protected");
+ 
+-            return PclZip::errorCode();
++            return $this->wp_aot_error_code();
+ 		    }
+       }
+ 
+@@ -3788,11 +3827,11 @@
+             if (   (isset($p_options[PCLZIP_OPT_STOP_ON_ERROR]))
+ 		        && ($p_options[PCLZIP_OPT_STOP_ON_ERROR]===true)) {
+ 
+-                PclZip::privErrorLog(PCLZIP_ERR_WRITE_OPEN_FAIL,
++                $this->wp_aot_error_log(PCLZIP_ERR_WRITE_OPEN_FAIL,
+ 			             "Newer version of '".$p_entry['filename']."' exists "
+ 					    ."and option PCLZIP_OPT_REPLACE_NEWER is not selected");
+ 
+-                return PclZip::errorCode();
++                return $this->wp_aot_error_code();
+ 		      }
+ 		    }
+       }
+@@ -3846,21 +3885,21 @@
+           $v_size = $p_entry['compressed_size'];
+           while ($v_size != 0)
+           {
+-            $v_read_size = ($v_size < PCLZIP_READ_BLOCK_SIZE ? $v_size : PCLZIP_READ_BLOCK_SIZE);
+-            $v_buffer = @fread($this->zip_fd, $v_read_size);
++            $v_read_size = ($v_size < \wp_aot_pclzip_block_size() ? $v_size : \wp_aot_pclzip_block_size());
++            $v_buffer = @\wp_aot_fread($this->zip_fd, \wp_aot_internal_int( $v_read_size ));
+             /* Try to speed up the code
+             $v_binary_data = pack('a'.$v_read_size, $v_buffer);
+             @fwrite($v_dest_file, $v_binary_data, $v_read_size);
+             */
+-            @fwrite($v_dest_file, $v_buffer, $v_read_size);
++            @\wp_aot_fwrite($v_dest_file, $v_buffer, \wp_aot_nullable_int( $v_read_size ));
+             $v_size -= $v_read_size;
+           }
+ 
+           // ----- Closing the destination file
+-          fclose($v_dest_file);
++          \wp_aot_fclose($v_dest_file);
+ 
+           // ----- Change the file mtime
+-          touch($p_entry['filename'], $p_entry['mtime']);
++          \wp_aot_touch($p_entry['filename'], \wp_aot_nullable_int($p_entry['mtime']));
+ 
+ 
+         }
+@@ -3868,8 +3907,8 @@
+           // ----- TBC
+           // Need to be finished
+           if (($p_entry['flag'] & 1) == 1) {
+-            PclZip::privErrorLog(PCLZIP_ERR_UNSUPPORTED_ENCRYPTION, 'File \''.$p_entry['filename'].'\' is encrypted. Encrypted files are not supported.');
+-            return PclZip::errorCode();
++            $this->wp_aot_error_log(PCLZIP_ERR_UNSUPPORTED_ENCRYPTION, 'File \''.$p_entry['filename'].'\' is encrypted. Encrypted files are not supported.');
++            return $this->wp_aot_error_code();
+           }
+ 
+ 
+@@ -3890,7 +3929,7 @@
+ 
+             // ----- Read the compressed file in a buffer (one shot)
+             if ($p_entry['compressed_size'] > 0) {
+-              $v_buffer = @fread($this->zip_fd, $p_entry['compressed_size']);
++              $v_buffer = @\wp_aot_fread($this->zip_fd, \wp_aot_internal_int( $p_entry['compressed_size'] ));
+             }
+             else {
+               $v_buffer = '';
+@@ -3918,23 +3957,23 @@
+             }
+ 
+             // ----- Write the uncompressed data
+-            @fwrite($v_dest_file, $v_file_content, $p_entry['size']);
++            @\wp_aot_fwrite($v_dest_file, $v_file_content, \wp_aot_nullable_int( $p_entry['size'] ));
+             unset($v_file_content);
+ 
+             // ----- Closing the destination file
+-            @fclose($v_dest_file);
++            @\wp_aot_fclose($v_dest_file);
+ 
+           }
+ 
+           // ----- Change the file mtime
+-          @touch($p_entry['filename'], $p_entry['mtime']);
++          @\wp_aot_touch($p_entry['filename'], \wp_aot_nullable_int($p_entry['mtime']));
+         }
+ 
+         // ----- Look for chmod option
+         if (isset($p_options[PCLZIP_OPT_SET_CHMOD])) {
+ 
+           // ----- Change the mode of the file
+-          @chmod($p_entry['filename'], $p_options[PCLZIP_OPT_SET_CHMOD]);
++          @chmod($p_entry['filename'], \wp_aot_internal_int($p_options[PCLZIP_OPT_SET_CHMOD]));
+         }
+ 
+       }
+@@ -3965,6 +4004,7 @@
+ 
+     // ----- Return
+     return $v_result;
++  	return null;
+   }
+   // --------------------------------------------------------------------------------
+ 
+@@ -3974,40 +4014,40 @@
+   // Parameters :
+   // Return Values :
+   // --------------------------------------------------------------------------------
+-  function privExtractFileUsingTempFile(&$p_entry, &$p_options)
++  function privExtractFileUsingTempFile(mixed &$p_entry, mixed &$p_options): mixed
+   {
+     $v_result=1;
+ 
+     // ----- Creates a temporary file
+-    $v_gzip_temp_name = PCLZIP_TEMPORARY_DIR.uniqid('pclzip-').'.gz';
++    $v_gzip_temp_name = PCLZIP_TEMPORARY_DIR.\wp_aot_native_api('uniqid', array('pclzip-')).'.gz';
+     if (($v_dest_file = @fopen($v_gzip_temp_name, "wb")) == 0) {
+-      fclose($v_file);
+-      PclZip::privErrorLog(PCLZIP_ERR_WRITE_OPEN_FAIL, 'Unable to open temporary file \''.$v_gzip_temp_name.'\' in binary write mode');
+-      return PclZip::errorCode();
++      \wp_aot_fclose($v_file);
++      $this->wp_aot_error_log(PCLZIP_ERR_WRITE_OPEN_FAIL, 'Unable to open temporary file \''.$v_gzip_temp_name.'\' in binary write mode');
++      return $this->wp_aot_error_code();
+     }
+ 
+ 
+     // ----- Write gz file format header
+-    $v_binary_data = pack('va1a1Va1a1', 0x8b1f, chr($p_entry['compression']), chr(0x00), time(), chr(0x00), chr(3));
+-    @fwrite($v_dest_file, $v_binary_data, 10);
++    $v_binary_data = \wp_aot_pack('va1a1Va1a1', array( 0x8b1f, chr($p_entry['compression']), chr(0x00), time(), chr(0x00), chr(3)));
++    @\wp_aot_fwrite($v_dest_file, $v_binary_data, 10);
+ 
+     // ----- Read the file by PCLZIP_READ_BLOCK_SIZE octets blocks
+     $v_size = $p_entry['compressed_size'];
+     while ($v_size != 0)
+     {
+-      $v_read_size = ($v_size < PCLZIP_READ_BLOCK_SIZE ? $v_size : PCLZIP_READ_BLOCK_SIZE);
+-      $v_buffer = @fread($this->zip_fd, $v_read_size);
++      $v_read_size = ($v_size < \wp_aot_pclzip_block_size() ? $v_size : \wp_aot_pclzip_block_size());
++      $v_buffer = @\wp_aot_fread($this->zip_fd, \wp_aot_internal_int( $v_read_size ));
+       //$v_binary_data = pack('a'.$v_read_size, $v_buffer);
+-      @fwrite($v_dest_file, $v_buffer, $v_read_size);
++      @\wp_aot_fwrite($v_dest_file, $v_buffer, \wp_aot_nullable_int( $v_read_size ));
+       $v_size -= $v_read_size;
+     }
+ 
+     // ----- Write gz file format footer
+-    $v_binary_data = pack('VV', $p_entry['crc'], $p_entry['size']);
+-    @fwrite($v_dest_file, $v_binary_data, 8);
++    $v_binary_data = \wp_aot_pack('VV', array( $p_entry['crc'], $p_entry['size']));
++    @\wp_aot_fwrite($v_dest_file, $v_binary_data, 8);
+ 
+     // ----- Close the temporary file
+-    @fclose($v_dest_file);
++    @\wp_aot_fclose($v_dest_file);
+ 
+     // ----- Opening destination file
+     if (($v_dest_file = @fopen($p_entry['filename'], 'wb')) == 0) {
+@@ -4016,31 +4056,32 @@
+     }
+ 
+     // ----- Open the temporary gz file
+-    if (($v_src_file = @gzopen($v_gzip_temp_name, 'rb')) == 0) {
+-      @fclose($v_dest_file);
++    if (($v_src_file = @\wp_aot_native_api('gzopen', array($v_gzip_temp_name, 'rb'))) == 0) {
++      @\wp_aot_fclose($v_dest_file);
+       $p_entry['status'] = "read_error";
+-      PclZip::privErrorLog(PCLZIP_ERR_READ_OPEN_FAIL, 'Unable to open temporary file \''.$v_gzip_temp_name.'\' in binary read mode');
+-      return PclZip::errorCode();
++      $this->wp_aot_error_log(PCLZIP_ERR_READ_OPEN_FAIL, 'Unable to open temporary file \''.$v_gzip_temp_name.'\' in binary read mode');
++      return $this->wp_aot_error_code();
+     }
+ 
+ 
+     // ----- Read the file by PCLZIP_READ_BLOCK_SIZE octets blocks
+     $v_size = $p_entry['size'];
+     while ($v_size != 0) {
+-      $v_read_size = ($v_size < PCLZIP_READ_BLOCK_SIZE ? $v_size : PCLZIP_READ_BLOCK_SIZE);
+-      $v_buffer = @gzread($v_src_file, $v_read_size);
++      $v_read_size = ($v_size < \wp_aot_pclzip_block_size() ? $v_size : \wp_aot_pclzip_block_size());
++      $v_buffer = @\wp_aot_native_api('gzread', array($v_src_file, $v_read_size));
+       //$v_binary_data = pack('a'.$v_read_size, $v_buffer);
+-      @fwrite($v_dest_file, $v_buffer, $v_read_size);
++      @\wp_aot_fwrite($v_dest_file, $v_buffer, \wp_aot_nullable_int( $v_read_size ));
+       $v_size -= $v_read_size;
+     }
+-    @fclose($v_dest_file);
+-    @gzclose($v_src_file);
++    @\wp_aot_fclose($v_dest_file);
++    @\wp_aot_native_api('gzclose', array($v_src_file));
+ 
+     // ----- Delete the temporary file
+     @unlink($v_gzip_temp_name);
+ 
+     // ----- Return
+     return $v_result;
++  	return null;
+   }
+   // --------------------------------------------------------------------------------
+ 
+@@ -4050,7 +4091,7 @@
+   // Parameters :
+   // Return Values :
+   // --------------------------------------------------------------------------------
+-  function privExtractFileInOutput(&$p_entry, &$p_options)
++  function privExtractFileInOutput(mixed &$p_entry, mixed &$p_options): mixed
+   {
+     $v_result=1;
+ 
+@@ -4107,7 +4148,7 @@
+ 
+           // ----- Read the file in a buffer (one shot)
+           if ($p_entry['compressed_size'] > 0) {
+-            $v_buffer = @fread($this->zip_fd, $p_entry['compressed_size']);
++            $v_buffer = @\wp_aot_fread($this->zip_fd, \wp_aot_internal_int( $p_entry['compressed_size'] ));
+           }
+           else {
+             $v_buffer = '';
+@@ -4121,7 +4162,7 @@
+ 
+           // ----- Read the compressed file in a buffer (one shot)
+           if ($p_entry['compressed_size'] > 0) {
+-            $v_buffer = @fread($this->zip_fd, $p_entry['compressed_size']);
++            $v_buffer = @\wp_aot_fread($this->zip_fd, \wp_aot_internal_int( $p_entry['compressed_size'] ));
+           }
+           else {
+             $v_buffer = '';
+@@ -4162,6 +4203,7 @@
+     }
+ 
+     return $v_result;
++  	return null;
+   }
+   // --------------------------------------------------------------------------------
+ 
+@@ -4171,7 +4213,7 @@
+   // Parameters :
+   // Return Values :
+   // --------------------------------------------------------------------------------
+-  function privExtractFileAsString(&$p_entry, &$p_string, &$p_options)
++  function privExtractFileAsString(mixed &$p_entry, mixed &$p_string, mixed &$p_options): mixed
+   {
+     $v_result=1;
+ 
+@@ -4230,7 +4272,7 @@
+ 
+           // ----- Reading the file
+           if ($p_entry['compressed_size'] > 0) {
+-            $p_string = @fread($this->zip_fd, $p_entry['compressed_size']);
++            $p_string = @\wp_aot_fread($this->zip_fd, \wp_aot_internal_int( $p_entry['compressed_size'] ));
+           }
+           else {
+             $p_string = '';
+@@ -4240,7 +4282,7 @@
+ 
+           // ----- Reading the file
+           if ($p_entry['compressed_size'] > 0) {
+-            $v_data = @fread($this->zip_fd, $p_entry['compressed_size']);
++            $v_data = @\wp_aot_fread($this->zip_fd, \wp_aot_internal_int( $p_entry['compressed_size'] ));
+           }
+           else {
+             $v_data = '';
+@@ -4293,6 +4335,7 @@
+ 
+     // ----- Return
+     return $v_result;
++  	return null;
+   }
+   // --------------------------------------------------------------------------------
+ 
+@@ -4302,12 +4345,12 @@
+   // Parameters :
+   // Return Values :
+   // --------------------------------------------------------------------------------
+-  function privReadFileHeader(&$p_header)
++  function privReadFileHeader(mixed &$p_header): mixed
+   {
+     $v_result=1;
+ 
+     // ----- Read the 4 bytes signature
+-    $v_binary_data = @fread($this->zip_fd, 4);
++    $v_binary_data = @\wp_aot_fread($this->zip_fd, 4);
+     $v_data = unpack('Vid', $v_binary_data);
+ 
+     // ----- Check signature
+@@ -4315,14 +4358,14 @@
+     {
+ 
+       // ----- Error log
+-      PclZip::privErrorLog(PCLZIP_ERR_BAD_FORMAT, 'Invalid archive structure');
++      $this->wp_aot_error_log(PCLZIP_ERR_BAD_FORMAT, 'Invalid archive structure');
+ 
+       // ----- Return
+-      return PclZip::errorCode();
++      return $this->wp_aot_error_code();
+     }
+ 
+     // ----- Read the first 42 bytes of the header
+-    $v_binary_data = fread($this->zip_fd, 26);
++    $v_binary_data = \wp_aot_fread($this->zip_fd, 26);
+ 
+     // ----- Look for invalid block size
+     if (strlen($v_binary_data) != 26)
+@@ -4331,21 +4374,21 @@
+       $p_header['status'] = "invalid_header";
+ 
+       // ----- Error log
+-      PclZip::privErrorLog(PCLZIP_ERR_BAD_FORMAT, "Invalid block size : ".strlen($v_binary_data));
++      $this->wp_aot_error_log(PCLZIP_ERR_BAD_FORMAT, "Invalid block size : ".strlen($v_binary_data));
+ 
+       // ----- Return
+-      return PclZip::errorCode();
++      return $this->wp_aot_error_code();
+     }
+ 
+     // ----- Extract the values
+     $v_data = unpack('vversion/vflag/vcompression/vmtime/vmdate/Vcrc/Vcompressed_size/Vsize/vfilename_len/vextra_len', $v_binary_data);
+ 
+     // ----- Get filename
+-    $p_header['filename'] = fread($this->zip_fd, $v_data['filename_len']);
++    $p_header['filename'] = \wp_aot_fread($this->zip_fd, \wp_aot_internal_int( $v_data['filename_len'] ));
+ 
+     // ----- Get extra_fields
+     if ($v_data['extra_len'] != 0) {
+-      $p_header['extra'] = fread($this->zip_fd, $v_data['extra_len']);
++      $p_header['extra'] = \wp_aot_fread($this->zip_fd, \wp_aot_internal_int( $v_data['extra_len'] ));
+     }
+     else {
+       $p_header['extra'] = '';
+@@ -4376,7 +4419,7 @@
+       $v_day = $p_header['mdate'] & 0x001F;
+ 
+       // ----- Get UNIX date format
+-      $p_header['mtime'] = @mktime($v_hour, $v_minute, $v_seconde, $v_month, $v_day, $v_year);
++      $p_header['mtime'] = @mktime(\wp_aot_calendar_component( $v_hour ), \wp_aot_calendar_component( $v_minute ), \wp_aot_calendar_component( $v_seconde ), \wp_aot_calendar_component( $v_month ), \wp_aot_calendar_component( $v_day ), \wp_aot_calendar_component( $v_year ));
+ 
+     }
+     else
+@@ -4396,6 +4439,7 @@
+ 
+     // ----- Return
+     return $v_result;
++  	return null;
+   }
+   // --------------------------------------------------------------------------------
+ 
+@@ -4405,12 +4449,12 @@
+   // Parameters :
+   // Return Values :
+   // --------------------------------------------------------------------------------
+-  function privReadCentralFileHeader(&$p_header)
++  function privReadCentralFileHeader(mixed &$p_header): mixed
+   {
+     $v_result=1;
+ 
+     // ----- Read the 4 bytes signature
+-    $v_binary_data = @fread($this->zip_fd, 4);
++    $v_binary_data = @\wp_aot_fread($this->zip_fd, 4);
+     $v_data = unpack('Vid', $v_binary_data);
+ 
+     // ----- Check signature
+@@ -4418,14 +4462,14 @@
+     {
+ 
+       // ----- Error log
+-      PclZip::privErrorLog(PCLZIP_ERR_BAD_FORMAT, 'Invalid archive structure');
++      $this->wp_aot_error_log(PCLZIP_ERR_BAD_FORMAT, 'Invalid archive structure');
+ 
+       // ----- Return
+-      return PclZip::errorCode();
++      return $this->wp_aot_error_code();
+     }
+ 
+     // ----- Read the first 42 bytes of the header
+-    $v_binary_data = fread($this->zip_fd, 42);
++    $v_binary_data = \wp_aot_fread($this->zip_fd, 42);
+ 
+     // ----- Look for invalid block size
+     if (strlen($v_binary_data) != 42)
+@@ -4434,10 +4478,10 @@
+       $p_header['status'] = "invalid_header";
+ 
+       // ----- Error log
+-      PclZip::privErrorLog(PCLZIP_ERR_BAD_FORMAT, "Invalid block size : ".strlen($v_binary_data));
++      $this->wp_aot_error_log(PCLZIP_ERR_BAD_FORMAT, "Invalid block size : ".strlen($v_binary_data));
+ 
+       // ----- Return
+-      return PclZip::errorCode();
++      return $this->wp_aot_error_code();
+     }
+ 
+     // ----- Extract the values
+@@ -4445,19 +4489,19 @@
+ 
+     // ----- Get filename
+     if ($p_header['filename_len'] != 0)
+-      $p_header['filename'] = fread($this->zip_fd, $p_header['filename_len']);
++      $p_header['filename'] = \wp_aot_fread($this->zip_fd, \wp_aot_internal_int( $p_header['filename_len'] ));
+     else
+       $p_header['filename'] = '';
+ 
+     // ----- Get extra
+     if ($p_header['extra_len'] != 0)
+-      $p_header['extra'] = fread($this->zip_fd, $p_header['extra_len']);
++      $p_header['extra'] = \wp_aot_fread($this->zip_fd, \wp_aot_internal_int( $p_header['extra_len'] ));
+     else
+       $p_header['extra'] = '';
+ 
+     // ----- Get comment
+     if ($p_header['comment_len'] != 0)
+-      $p_header['comment'] = fread($this->zip_fd, $p_header['comment_len']);
++      $p_header['comment'] = \wp_aot_fread($this->zip_fd, \wp_aot_internal_int( $p_header['comment_len'] ));
+     else
+       $p_header['comment'] = '';
+ 
+@@ -4479,7 +4523,7 @@
+       $v_day = $p_header['mdate'] & 0x001F;
+ 
+       // ----- Get UNIX date format
+-      $p_header['mtime'] = @mktime($v_hour, $v_minute, $v_seconde, $v_month, $v_day, $v_year);
++      $p_header['mtime'] = @mktime(\wp_aot_calendar_component( $v_hour ), \wp_aot_calendar_component( $v_minute ), \wp_aot_calendar_component( $v_seconde ), \wp_aot_calendar_component( $v_month ), \wp_aot_calendar_component( $v_day ), \wp_aot_calendar_component( $v_year ));
+ 
+     }
+     else
+@@ -4502,6 +4546,7 @@
+ 
+     // ----- Return
+     return $v_result;
++  	return null;
+   }
+   // --------------------------------------------------------------------------------
+ 
+@@ -4513,7 +4558,7 @@
+   //   1 on success,
+   //   0 on error;
+   // --------------------------------------------------------------------------------
+-  function privCheckFileHeaders(&$p_local_header, &$p_central_header)
++  function privCheckFileHeaders(mixed &$p_local_header, mixed &$p_central_header): mixed
+   {
+     $v_result=1;
+ 
+@@ -4541,6 +4586,7 @@
+ 
+     // ----- Return
+     return $v_result;
++  	return null;
+   }
+   // --------------------------------------------------------------------------------
+ 
+@@ -4550,38 +4596,38 @@
+   // Parameters :
+   // Return Values :
+   // --------------------------------------------------------------------------------
+-  function privReadEndCentralDir(&$p_central_dir)
++  function privReadEndCentralDir(mixed &$p_central_dir): mixed
+   {
+     $v_result=1;
+ 
+     // ----- Go to the end of the zip file
+     $v_size = filesize($this->zipname);
+-    @fseek($this->zip_fd, $v_size);
++    @fseek($this->zip_fd, \wp_aot_internal_int( $v_size ));
+     if (@ftell($this->zip_fd) != $v_size)
+     {
+       // ----- Error log
+-      PclZip::privErrorLog(PCLZIP_ERR_BAD_FORMAT, 'Unable to go to the end of the archive \''.$this->zipname.'\'');
++      $this->wp_aot_error_log(PCLZIP_ERR_BAD_FORMAT, 'Unable to go to the end of the archive \''.$this->zipname.'\'');
+ 
+       // ----- Return
+-      return PclZip::errorCode();
++      return $this->wp_aot_error_code();
+     }
+ 
+     // ----- First try : look if this is an archive with no commentaries (most of the time)
+     // in this case the end of central dir is at 22 bytes of the file end
+     $v_found = 0;
+     if ($v_size > 26) {
+-      @fseek($this->zip_fd, $v_size-22);
++      @fseek($this->zip_fd, \wp_aot_internal_int( $v_size-22 ));
+       if (($v_pos = @ftell($this->zip_fd)) != ($v_size-22))
+       {
+         // ----- Error log
+-        PclZip::privErrorLog(PCLZIP_ERR_BAD_FORMAT, 'Unable to seek back to the middle of the archive \''.$this->zipname.'\'');
++        $this->wp_aot_error_log(PCLZIP_ERR_BAD_FORMAT, 'Unable to seek back to the middle of the archive \''.$this->zipname.'\'');
+ 
+         // ----- Return
+-        return PclZip::errorCode();
++        return $this->wp_aot_error_code();
+       }
+ 
+       // ----- Read for bytes
+-      $v_binary_data = @fread($this->zip_fd, 4);
++      $v_binary_data = @\wp_aot_fread($this->zip_fd, 4);
+       $v_data = @unpack('Vid', $v_binary_data);
+ 
+       // ----- Check signature
+@@ -4594,17 +4640,17 @@
+ 
+     // ----- Go back to the maximum possible size of the Central Dir End Record
+     if (!$v_found) {
+-      $v_maximum_size = 65557; // 0xFFFF + 22;
++      $v_maximum_size = \wp_aot_mixed(65557); // 0xFFFF + 22;
+       if ($v_maximum_size > $v_size)
+         $v_maximum_size = $v_size;
+-      @fseek($this->zip_fd, $v_size-$v_maximum_size);
++      @fseek($this->zip_fd, \wp_aot_internal_int( $v_size-$v_maximum_size ));
+       if (@ftell($this->zip_fd) != ($v_size-$v_maximum_size))
+       {
+         // ----- Error log
+-        PclZip::privErrorLog(PCLZIP_ERR_BAD_FORMAT, 'Unable to seek back to the middle of the archive \''.$this->zipname.'\'');
++        $this->wp_aot_error_log(PCLZIP_ERR_BAD_FORMAT, 'Unable to seek back to the middle of the archive \''.$this->zipname.'\'');
+ 
+         // ----- Return
+-        return PclZip::errorCode();
++        return $this->wp_aot_error_code();
+       }
+ 
+       // ----- Read byte per byte in order to find the signature
+@@ -4613,7 +4659,7 @@
+       while ($v_pos < $v_size)
+       {
+         // ----- Read a byte
+-        $v_byte = @fread($this->zip_fd, 1);
++        $v_byte = @\wp_aot_fread($this->zip_fd, 1);
+ 
+         // -----  Add the byte
+         //$v_bytes = ($v_bytes << 8) | ord($v_byte);
+@@ -4636,25 +4682,25 @@
+       {
+ 
+         // ----- Error log
+-        PclZip::privErrorLog(PCLZIP_ERR_BAD_FORMAT, "Unable to find End of Central Dir Record signature");
++        $this->wp_aot_error_log(PCLZIP_ERR_BAD_FORMAT, "Unable to find End of Central Dir Record signature");
+ 
+         // ----- Return
+-        return PclZip::errorCode();
++        return $this->wp_aot_error_code();
+       }
+     }
+ 
+     // ----- Read the first 18 bytes of the header
+-    $v_binary_data = fread($this->zip_fd, 18);
++    $v_binary_data = \wp_aot_fread($this->zip_fd, 18);
+ 
+     // ----- Look for invalid block size
+     if (strlen($v_binary_data) != 18)
+     {
+ 
+       // ----- Error log
+-      PclZip::privErrorLog(PCLZIP_ERR_BAD_FORMAT, "Invalid End of Central Dir Record size : ".strlen($v_binary_data));
++      $this->wp_aot_error_log(PCLZIP_ERR_BAD_FORMAT, "Invalid End of Central Dir Record size : ".strlen($v_binary_data));
+ 
+       // ----- Return
+-      return PclZip::errorCode();
++      return $this->wp_aot_error_code();
+     }
+ 
+     // ----- Extract the values
+@@ -4669,18 +4715,18 @@
+ 	  // While decrypted, zip has training 0 bytes
+ 	  if (0) {
+       // ----- Error log
+-      PclZip::privErrorLog(PCLZIP_ERR_BAD_FORMAT,
++      $this->wp_aot_error_log(PCLZIP_ERR_BAD_FORMAT,
+ 	                       'The central dir is not at the end of the archive.'
+ 						   .' Some trailing bytes exists after the archive.');
+ 
+       // ----- Return
+-      return PclZip::errorCode();
++      return $this->wp_aot_error_code();
+ 	  }
+     }
+ 
+     // ----- Get comment
+     if ($v_data['comment_size'] != 0) {
+-      $p_central_dir['comment'] = fread($this->zip_fd, $v_data['comment_size']);
++      $p_central_dir['comment'] = \wp_aot_fread($this->zip_fd, \wp_aot_internal_int( $v_data['comment_size'] ));
+     }
+     else
+       $p_central_dir['comment'] = '';
+@@ -4698,6 +4744,7 @@
+ 
+     // ----- Return
+     return $v_result;
++  	return null;
+   }
+   // --------------------------------------------------------------------------------
+ 
+@@ -4707,7 +4754,7 @@
+   // Parameters :
+   // Return Values :
+   // --------------------------------------------------------------------------------
+-  function privDeleteByRule(&$p_result_list, &$p_options)
++  function privDeleteByRule(mixed &$p_result_list, mixed &$p_options): mixed
+   {
+     $v_result=1;
+     $v_list_detail = array();
+@@ -4734,16 +4781,16 @@
+     // ----- Start at beginning of Central Dir
+     $v_pos_entry = $v_central_dir['offset'];
+     @rewind($this->zip_fd);
+-    if (@fseek($this->zip_fd, $v_pos_entry))
++    if (@fseek($this->zip_fd, \wp_aot_internal_int( $v_pos_entry )))
+     {
+       // ----- Close the zip file
+       $this->privCloseFd();
+ 
+       // ----- Error log
+-      PclZip::privErrorLog(PCLZIP_ERR_INVALID_ARCHIVE_ZIP, 'Invalid archive size');
++      $this->wp_aot_error_log(PCLZIP_ERR_INVALID_ARCHIVE_ZIP, 'Invalid archive size');
+ 
+       // ----- Return
+-      return PclZip::errorCode();
++      return $this->wp_aot_error_code();
+     }
+ 
+     // ----- Read each entry
+@@ -4774,7 +4821,7 @@
+           && ($p_options[PCLZIP_OPT_BY_NAME] != 0)) {
+ 
+           // ----- Look if the filename is in the list
+-          for ($j=0; ($j<sizeof($p_options[PCLZIP_OPT_BY_NAME])) && (!$v_found); $j++) {
++          for ($j=\wp_aot_mixed(0); ($j<sizeof($p_options[PCLZIP_OPT_BY_NAME])) && (!$v_found); $j++) {
+ 
+               // ----- Look for a directory
+               if (substr($p_options[PCLZIP_OPT_BY_NAME][$j], -1) == "/") {
+@@ -4812,7 +4859,7 @@
+       else if (   (isset($p_options[PCLZIP_OPT_BY_PREG]))
+                && ($p_options[PCLZIP_OPT_BY_PREG] != "")) {
+ 
+-          if (preg_match($p_options[PCLZIP_OPT_BY_PREG], $v_header_list[$v_nb_extracted]['stored_filename'])) {
++          if (preg_match(\wp_aot_regex_text( $p_options[PCLZIP_OPT_BY_PREG] ), \wp_aot_regex_text( $v_header_list[$v_nb_extracted]['stored_filename'] ))) {
+               $v_found = true;
+           }
+       }
+@@ -4855,7 +4902,7 @@
+     if ($v_nb_extracted > 0) {
+ 
+         // ----- Creates a temporary file
+-        $v_zip_temp_name = PCLZIP_TEMPORARY_DIR.uniqid('pclzip-').'.tmp';
++        $v_zip_temp_name = PCLZIP_TEMPORARY_DIR.\wp_aot_native_api('uniqid', array('pclzip-')).'.tmp';
+ 
+         // ----- Creates a temporary zip archive
+         $v_temp_zip = new PclZip($v_zip_temp_name);
+@@ -4873,17 +4920,17 @@
+ 
+             // ----- Calculate the position of the header
+             @rewind($this->zip_fd);
+-            if (@fseek($this->zip_fd,  $v_header_list[$i]['offset'])) {
++            if (@fseek($this->zip_fd,  \wp_aot_internal_int( $v_header_list[$i]['offset'] ))) {
+                 // ----- Close the zip file
+                 $this->privCloseFd();
+                 $v_temp_zip->privCloseFd();
+                 @unlink($v_zip_temp_name);
+ 
+                 // ----- Error log
+-                PclZip::privErrorLog(PCLZIP_ERR_INVALID_ARCHIVE_ZIP, 'Invalid archive size');
++                $this->wp_aot_error_log(PCLZIP_ERR_INVALID_ARCHIVE_ZIP, 'Invalid archive size');
+ 
+                 // ----- Return
+-                return PclZip::errorCode();
++                return $this->wp_aot_error_code();
+             }
+ 
+             // ----- Read the file header
+@@ -5003,6 +5050,7 @@
+ 
+     // ----- Return
+     return $v_result;
++  	return null;
+   }
+   // --------------------------------------------------------------------------------
+ 
+@@ -5017,7 +5065,7 @@
+   //    1 : OK
+   //   -1 : Unable to create directory
+   // --------------------------------------------------------------------------------
+-  function privDirCheck($p_dir, $p_is_dir=false)
++  function privDirCheck(mixed $p_dir, mixed $p_is_dir=false): mixed
+   {
+     $v_result = 1;
+ 
+@@ -5054,14 +5102,15 @@
+     if (!@mkdir($p_dir, 0777))
+     {
+       // ----- Error log
+-      PclZip::privErrorLog(PCLZIP_ERR_DIR_CREATE_FAIL, "Unable to create directory '$p_dir'");
++      $this->wp_aot_error_log(PCLZIP_ERR_DIR_CREATE_FAIL, "Unable to create directory '$p_dir'");
+ 
+       // ----- Return
+-      return PclZip::errorCode();
++      return $this->wp_aot_error_code();
+     }
+ 
+     // ----- Return
+     return $v_result;
++  	return null;
+   }
+   // --------------------------------------------------------------------------------
+ 
+@@ -5072,7 +5121,7 @@
+   // Parameters :
+   // Return Values :
+   // --------------------------------------------------------------------------------
+-  function privMerge(&$p_archive_to_add)
++  function privMerge(mixed &$p_archive_to_add): mixed
+   {
+     $v_result=1;
+ 
+@@ -5139,7 +5188,7 @@
+     @rewind($p_archive_to_add->zip_fd);
+ 
+     // ----- Creates a temporary file
+-    $v_zip_temp_name = PCLZIP_TEMPORARY_DIR.uniqid('pclzip-').'.tmp';
++    $v_zip_temp_name = PCLZIP_TEMPORARY_DIR.\wp_aot_native_api('uniqid', array('pclzip-')).'.tmp';
+ 
+     // ----- Open the temporary file in write mode
+     if (($v_zip_temp_fd = @fopen($v_zip_temp_name, 'wb')) == 0)
+@@ -5147,10 +5196,10 @@
+       $this->privCloseFd();
+       $p_archive_to_add->privCloseFd();
+ 
+-      PclZip::privErrorLog(PCLZIP_ERR_READ_OPEN_FAIL, 'Unable to open temporary file \''.$v_zip_temp_name.'\' in binary write mode');
++      $this->wp_aot_error_log(PCLZIP_ERR_READ_OPEN_FAIL, 'Unable to open temporary file \''.$v_zip_temp_name.'\' in binary write mode');
+ 
+       // ----- Return
+-      return PclZip::errorCode();
++      return $this->wp_aot_error_code();
+     }
+ 
+     // ----- Copy the files from the archive to the temporary file
+@@ -5158,9 +5207,9 @@
+     $v_size = $v_central_dir['offset'];
+     while ($v_size != 0)
+     {
+-      $v_read_size = ($v_size < PCLZIP_READ_BLOCK_SIZE ? $v_size : PCLZIP_READ_BLOCK_SIZE);
+-      $v_buffer = fread($this->zip_fd, $v_read_size);
+-      @fwrite($v_zip_temp_fd, $v_buffer, $v_read_size);
++      $v_read_size = ($v_size < \wp_aot_pclzip_block_size() ? $v_size : \wp_aot_pclzip_block_size());
++      $v_buffer = \wp_aot_fread($this->zip_fd, \wp_aot_internal_int( $v_read_size ));
++      @\wp_aot_fwrite($v_zip_temp_fd, $v_buffer, \wp_aot_nullable_int( $v_read_size ));
+       $v_size -= $v_read_size;
+     }
+ 
+@@ -5168,9 +5217,9 @@
+     $v_size = $v_central_dir_to_add['offset'];
+     while ($v_size != 0)
+     {
+-      $v_read_size = ($v_size < PCLZIP_READ_BLOCK_SIZE ? $v_size : PCLZIP_READ_BLOCK_SIZE);
+-      $v_buffer = fread($p_archive_to_add->zip_fd, $v_read_size);
+-      @fwrite($v_zip_temp_fd, $v_buffer, $v_read_size);
++      $v_read_size = ($v_size < \wp_aot_pclzip_block_size() ? $v_size : \wp_aot_pclzip_block_size());
++      $v_buffer = \wp_aot_fread($p_archive_to_add->zip_fd, \wp_aot_internal_int( $v_read_size ));
++      @\wp_aot_fwrite($v_zip_temp_fd, $v_buffer, \wp_aot_nullable_int( $v_read_size ));
+       $v_size -= $v_read_size;
+     }
+ 
+@@ -5181,9 +5230,9 @@
+     $v_size = $v_central_dir['size'];
+     while ($v_size != 0)
+     {
+-      $v_read_size = ($v_size < PCLZIP_READ_BLOCK_SIZE ? $v_size : PCLZIP_READ_BLOCK_SIZE);
+-      $v_buffer = @fread($this->zip_fd, $v_read_size);
+-      @fwrite($v_zip_temp_fd, $v_buffer, $v_read_size);
++      $v_read_size = ($v_size < \wp_aot_pclzip_block_size() ? $v_size : \wp_aot_pclzip_block_size());
++      $v_buffer = @\wp_aot_fread($this->zip_fd, \wp_aot_internal_int( $v_read_size ));
++      @\wp_aot_fwrite($v_zip_temp_fd, $v_buffer, \wp_aot_nullable_int( $v_read_size ));
+       $v_size -= $v_read_size;
+     }
+ 
+@@ -5191,9 +5240,9 @@
+     $v_size = $v_central_dir_to_add['size'];
+     while ($v_size != 0)
+     {
+-      $v_read_size = ($v_size < PCLZIP_READ_BLOCK_SIZE ? $v_size : PCLZIP_READ_BLOCK_SIZE);
+-      $v_buffer = @fread($p_archive_to_add->zip_fd, $v_read_size);
+-      @fwrite($v_zip_temp_fd, $v_buffer, $v_read_size);
++      $v_read_size = ($v_size < \wp_aot_pclzip_block_size() ? $v_size : \wp_aot_pclzip_block_size());
++      $v_buffer = @\wp_aot_fread($p_archive_to_add->zip_fd, \wp_aot_internal_int( $v_read_size ));
++      @\wp_aot_fwrite($v_zip_temp_fd, $v_buffer, \wp_aot_nullable_int( $v_read_size ));
+       $v_size -= $v_read_size;
+     }
+ 
+@@ -5215,7 +5264,7 @@
+     {
+       $this->privCloseFd();
+       $p_archive_to_add->privCloseFd();
+-      @fclose($v_zip_temp_fd);
++      @\wp_aot_fclose($v_zip_temp_fd);
+       $this->zip_fd = null;
+ 
+       // ----- Reset the file list
+@@ -5235,7 +5284,7 @@
+     $p_archive_to_add->privCloseFd();
+ 
+     // ----- Close the temporary file
+-    @fclose($v_zip_temp_fd);
++    @\wp_aot_fclose($v_zip_temp_fd);
+ 
+     // ----- Delete the zip file
+     // TBC : I should test the result ...
+@@ -5248,6 +5297,7 @@
+ 
+     // ----- Return
+     return $v_result;
++  	return null;
+   }
+   // --------------------------------------------------------------------------------
+ 
+@@ -5257,7 +5307,7 @@
+   // Parameters :
+   // Return Values :
+   // --------------------------------------------------------------------------------
+-  function privDuplicate($p_archive_filename)
++  function privDuplicate(mixed $p_archive_filename): mixed
+   {
+     $v_result=1;
+ 
+@@ -5284,10 +5334,10 @@
+     {
+       $this->privCloseFd();
+ 
+-      PclZip::privErrorLog(PCLZIP_ERR_READ_OPEN_FAIL, 'Unable to open archive file \''.$p_archive_filename.'\' in binary write mode');
++      $this->wp_aot_error_log(PCLZIP_ERR_READ_OPEN_FAIL, 'Unable to open archive file \''.$p_archive_filename.'\' in binary write mode');
+ 
+       // ----- Return
+-      return PclZip::errorCode();
++      return $this->wp_aot_error_code();
+     }
+ 
+     // ----- Copy the files from the archive to the temporary file
+@@ -5295,9 +5345,9 @@
+     $v_size = filesize($p_archive_filename);
+     while ($v_size != 0)
+     {
+-      $v_read_size = ($v_size < PCLZIP_READ_BLOCK_SIZE ? $v_size : PCLZIP_READ_BLOCK_SIZE);
+-      $v_buffer = fread($v_zip_temp_fd, $v_read_size);
+-      @fwrite($this->zip_fd, $v_buffer, $v_read_size);
++      $v_read_size = ($v_size < \wp_aot_pclzip_block_size() ? $v_size : \wp_aot_pclzip_block_size());
++      $v_buffer = \wp_aot_fread($v_zip_temp_fd, \wp_aot_internal_int( $v_read_size ));
++      @\wp_aot_fwrite($this->zip_fd, $v_buffer, \wp_aot_nullable_int( $v_read_size ));
+       $v_size -= $v_read_size;
+     }
+ 
+@@ -5305,10 +5355,11 @@
+     $this->privCloseFd();
+ 
+     // ----- Close the temporary file
+-    @fclose($v_zip_temp_fd);
++    @\wp_aot_fclose($v_zip_temp_fd);
+ 
+     // ----- Return
+     return $v_result;
++  	return null;
+   }
+   // --------------------------------------------------------------------------------
+ 
+@@ -5317,15 +5368,17 @@
+   // Description :
+   // Parameters :
+   // --------------------------------------------------------------------------------
+-  function privErrorLog($p_error_code=0, $p_error_string='')
+-  {
++  function privErrorLog(mixed $p_error_code=0, mixed $p_error_string=''): mixed { return $this->wp_aot_error_log($p_error_code, $p_error_string);  return null; }
++
++private function wp_aot_error_log(mixed $p_error_code=0, mixed $p_error_string=''): mixed {
+     if (PCLZIP_ERROR_EXTERNAL == 1) {
+-      PclError($p_error_code, $p_error_string);
++      \wp_aot_native_api('PclError', array($p_error_code, $p_error_string));
+     }
+     else {
+       $this->error_code = $p_error_code;
+       $this->error_string = $p_error_string;
+     }
++  	return null;
+   }
+   // --------------------------------------------------------------------------------
+ 
+@@ -5334,15 +5387,16 @@
+   // Description :
+   // Parameters :
+   // --------------------------------------------------------------------------------
+-  function privErrorReset()
++  function privErrorReset(): mixed
+   {
+     if (PCLZIP_ERROR_EXTERNAL == 1) {
+-      PclErrorReset();
++      \wp_aot_native_api('PclErrorReset', array());
+     }
+     else {
+       $this->error_code = 0;
+       $this->error_string = '';
+     }
++  	return null;
+   }
+   // --------------------------------------------------------------------------------
+ 
+@@ -5352,7 +5406,7 @@
+   // Parameters :
+   // Return Values :
+   // --------------------------------------------------------------------------------
+-  function privDisableMagicQuotes()
++  function privDisableMagicQuotes(): mixed
+   {
+     $v_result=1;
+ 
+@@ -5382,6 +5436,7 @@
+ 
+     // ----- Return
+     return $v_result;
++  	return null;
+   }
+   // --------------------------------------------------------------------------------
+ 
+@@ -5391,7 +5446,7 @@
+   // Parameters :
+   // Return Values :
+   // --------------------------------------------------------------------------------
+-  function privSwapBackMagicQuotes()
++  function privSwapBackMagicQuotes(): mixed
+   {
+     $v_result=1;
+ 
+@@ -5418,6 +5473,7 @@
+ 	*/
+     // ----- Return
+     return $v_result;
++  	return null;
+   }
+   // --------------------------------------------------------------------------------
+ 
+@@ -5431,7 +5487,7 @@
+   // Parameters :
+   // Return Values :
+   // --------------------------------------------------------------------------------
+-  function PclZipUtilPathReduction($p_dir)
++  function PclZipUtilPathReduction(mixed $p_dir): mixed
+   {
+     $v_result = "";
+ 
+@@ -5494,6 +5550,7 @@
+ 
+     // ----- Return
+     return $v_result;
++  	return null;
+   }
+   // --------------------------------------------------------------------------------
+ 
+@@ -5512,7 +5569,7 @@
+   //   1 if $p_path is inside directory $p_dir
+   //   2 if $p_path is exactly the same as $p_dir
+   // --------------------------------------------------------------------------------
+-  function PclZipUtilPathInclusion($p_dir, $p_path)
++  function PclZipUtilPathInclusion(mixed $p_dir, mixed $p_path): mixed
+   {
+     $v_result = 1;
+ 
+@@ -5575,6 +5632,7 @@
+ 
+     // ----- Return
+     return $v_result;
++  	return null;
+   }
+   // --------------------------------------------------------------------------------
+ 
+@@ -5589,7 +5647,7 @@
+   //             3 : src & dest gzip
+   // Return Values :
+   // --------------------------------------------------------------------------------
+-  function PclZipUtilCopyBlock($p_src, $p_dest, $p_size, $p_mode=0)
++  function PclZipUtilCopyBlock(mixed $p_src, mixed $p_dest, mixed $p_size, mixed $p_mode=0): mixed
+   {
+     $v_result = 1;
+ 
+@@ -5597,9 +5655,9 @@
+     {
+       while ($p_size != 0)
+       {
+-        $v_read_size = ($p_size < PCLZIP_READ_BLOCK_SIZE ? $p_size : PCLZIP_READ_BLOCK_SIZE);
+-        $v_buffer = @fread($p_src, $v_read_size);
+-        @fwrite($p_dest, $v_buffer, $v_read_size);
++        $v_read_size = ($p_size < \wp_aot_pclzip_block_size() ? $p_size : \wp_aot_pclzip_block_size());
++        $v_buffer = @\wp_aot_fread($p_src, \wp_aot_internal_int( $v_read_size ));
++        @\wp_aot_fwrite($p_dest, $v_buffer, \wp_aot_nullable_int( $v_read_size ));
+         $p_size -= $v_read_size;
+       }
+     }
+@@ -5607,9 +5665,9 @@
+     {
+       while ($p_size != 0)
+       {
+-        $v_read_size = ($p_size < PCLZIP_READ_BLOCK_SIZE ? $p_size : PCLZIP_READ_BLOCK_SIZE);
+-        $v_buffer = @gzread($p_src, $v_read_size);
+-        @fwrite($p_dest, $v_buffer, $v_read_size);
++        $v_read_size = ($p_size < \wp_aot_pclzip_block_size() ? $p_size : \wp_aot_pclzip_block_size());
++        $v_buffer = @\wp_aot_native_api('gzread', array($p_src, $v_read_size));
++        @\wp_aot_fwrite($p_dest, $v_buffer, \wp_aot_nullable_int( $v_read_size ));
+         $p_size -= $v_read_size;
+       }
+     }
+@@ -5617,9 +5675,9 @@
+     {
+       while ($p_size != 0)
+       {
+-        $v_read_size = ($p_size < PCLZIP_READ_BLOCK_SIZE ? $p_size : PCLZIP_READ_BLOCK_SIZE);
+-        $v_buffer = @fread($p_src, $v_read_size);
+-        @gzwrite($p_dest, $v_buffer, $v_read_size);
++        $v_read_size = ($p_size < \wp_aot_pclzip_block_size() ? $p_size : \wp_aot_pclzip_block_size());
++        $v_buffer = @\wp_aot_fread($p_src, \wp_aot_internal_int( $v_read_size ));
++        @\wp_aot_native_api('gzwrite', array($p_dest, $v_buffer, $v_read_size));
+         $p_size -= $v_read_size;
+       }
+     }
+@@ -5627,15 +5685,16 @@
+     {
+       while ($p_size != 0)
+       {
+-        $v_read_size = ($p_size < PCLZIP_READ_BLOCK_SIZE ? $p_size : PCLZIP_READ_BLOCK_SIZE);
+-        $v_buffer = @gzread($p_src, $v_read_size);
+-        @gzwrite($p_dest, $v_buffer, $v_read_size);
++        $v_read_size = ($p_size < \wp_aot_pclzip_block_size() ? $p_size : \wp_aot_pclzip_block_size());
++        $v_buffer = @\wp_aot_native_api('gzread', array($p_src, $v_read_size));
++        @\wp_aot_native_api('gzwrite', array($p_dest, $v_buffer, $v_read_size));
+         $p_size -= $v_read_size;
+       }
+     }
+ 
+     // ----- Return
+     return $v_result;
++  	return null;
+   }
+   // --------------------------------------------------------------------------------
+ 
+@@ -5651,7 +5710,7 @@
+   // Return Values :
+   //   1 on success, 0 on failure.
+   // --------------------------------------------------------------------------------
+-  function PclZipUtilRename($p_src, $p_dest)
++  function PclZipUtilRename(mixed $p_src, mixed $p_dest): mixed
+   {
+     $v_result = 1;
+ 
+@@ -5669,6 +5728,7 @@
+ 
+     // ----- Return
+     return $v_result;
++  	return null;
+   }
+   // --------------------------------------------------------------------------------
+ 
+@@ -5681,7 +5741,7 @@
+   // Return Values :
+   //   The option text value.
+   // --------------------------------------------------------------------------------
+-  function PclZipUtilOptionText($p_option)
++  function PclZipUtilOptionText(mixed $p_option): mixed
+   {
+ 
+     $v_list = get_defined_constants();
+@@ -5698,6 +5758,7 @@
+     $v_result = 'Unknown';
+ 
+     return $v_result;
++  	return null;
+   }
+   // --------------------------------------------------------------------------------
+ 
+@@ -5712,7 +5773,7 @@
+   // Return Values :
+   //   The path translated.
+   // --------------------------------------------------------------------------------
+-  function PclZipUtilTranslateWinPath($p_path, $p_remove_disk_letter=true)
++  function PclZipUtilTranslateWinPath(mixed $p_path, mixed $p_remove_disk_letter=true): mixed
+   {
+     if (PHP_OS_FAMILY == 'Windows') {
+       // ----- Look for potential disk letter
+@@ -5721,12 +5782,13 @@
+       }
+       // ----- Change potential windows directory separator
+       if ((strpos($p_path, '\\') > 0) || (substr($p_path, 0,1) == '\\')) {
+-          $p_path = strtr($p_path, '\\', '/');
++          $p_path = \wp_aot_strtr($p_path, '\\', '/');
+       }
+     }
+     return $p_path;
+-  }
+-  // --------------------------------------------------------------------------------
+-
+-
 -?>
++  	return null;
++  }
++  // --------------------------------------------------------------------------------
++
++
 +;

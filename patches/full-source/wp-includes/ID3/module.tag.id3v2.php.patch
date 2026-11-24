@@ -1,0 +1,632 @@
+--- a/wp-includes/ID3/module.tag.id3v2.php
++++ b/wp-includes/ID3/module.tag.id3v2.php
+@@ -15,7 +15,7 @@
+ /////////////////////////////////////////////////////////////////
+ 
+ if (!defined('GETID3_INCLUDEPATH')) { // prevent path-exposing attacks that access modules directly on public webservers
+-	exit;
++	\wp_aot_exit();
+ }
+ getid3_lib::IncludeDependency(GETID3_INCLUDEPATH.'module.tag.id3v1.php', __FILE__, true);
+ 
+@@ -26,7 +26,7 @@
+ 	/**
+ 	 * @return bool
+ 	 */
+-	public function Analyze() {
++	public function Analyze(): mixed {
+ 		$info = &$this->getid3->info;
+ 
+ 		//    Overall tag structure:
+@@ -340,7 +340,7 @@
+ 				}
+ 
+ 				if ($iTunesBrokenFrameNameFixed = self::ID3v22iTunesBrokenFrameName($frame_name)) {
+-					$this->warning('error parsing "'.$frame_name.'" ('.$framedataoffset.' bytes into the ID3v2.'.$id3v2_majorversion.' tag). (ERROR: IsValidID3v2FrameName("'.str_replace("\x00", ' ', $frame_name).'", '.$id3v2_majorversion.'))). [Note: this particular error has been known to happen with tags edited by iTunes (versions "X v2.0.3", "v3.0.1", "v7.0.0.70" are known-guilty, probably others too)]. Translated frame name from "'.str_replace("\x00", ' ', $frame_name).'" to "'.$iTunesBrokenFrameNameFixed.'" for parsing.');
++					$this->warning('error parsing "'.$frame_name.'" ('.$framedataoffset.' bytes into the ID3v2.'.$id3v2_majorversion.' tag). (ERROR: IsValidID3v2FrameName("'.\wp_aot_str_replace("\x00", ' ', $frame_name).'", '.$id3v2_majorversion.'))). [Note: this particular error has been known to happen with tags edited by iTunes (versions "X v2.0.3", "v3.0.1", "v7.0.0.70" are known-guilty, probably others too)]. Translated frame name from "'.\wp_aot_str_replace("\x00", ' ', $frame_name).'" to "'.$iTunesBrokenFrameNameFixed.'" for parsing.');
+ 					$frame_name = $iTunesBrokenFrameNameFixed;
+ 				}
+ 				if (($frame_size <= strlen($framedata)) && ($this->IsValidID3v2FrameName($frame_name, $id3v2_majorversion))) {
+@@ -399,11 +399,11 @@
+ 							case "\x00".'MP':
+ 							case ' MP':
+ 							case 'MP3':
+-								$this->warning('error parsing "'.$frame_name.'" ('.$framedataoffset.' bytes into the ID3v2.'.$id3v2_majorversion.' tag). (ERROR: !IsValidID3v2FrameName("'.str_replace("\x00", ' ', $frame_name).'", '.$id3v2_majorversion.'))). [Note: this particular error has been known to happen with tags edited by "MP3ext (www.mutschler.de/mp3ext/)"]');
++								$this->warning('error parsing "'.$frame_name.'" ('.$framedataoffset.' bytes into the ID3v2.'.$id3v2_majorversion.' tag). (ERROR: !IsValidID3v2FrameName("'.\wp_aot_str_replace("\x00", ' ', $frame_name).'", '.$id3v2_majorversion.'))). [Note: this particular error has been known to happen with tags edited by "MP3ext (www.mutschler.de/mp3ext/)"]');
+ 								break;
+ 
+ 							default:
+-								$this->warning('error parsing "'.$frame_name.'" ('.$framedataoffset.' bytes into the ID3v2.'.$id3v2_majorversion.' tag). (ERROR: !IsValidID3v2FrameName("'.str_replace("\x00", ' ', $frame_name).'", '.$id3v2_majorversion.'))).');
++								$this->warning('error parsing "'.$frame_name.'" ('.$framedataoffset.' bytes into the ID3v2.'.$id3v2_majorversion.' tag). (ERROR: !IsValidID3v2FrameName("'.\wp_aot_str_replace("\x00", ' ', $frame_name).'", '.$id3v2_majorversion.'))).');
+ 								break;
+ 						}
+ 
+@@ -458,7 +458,7 @@
+ 					$genres[] = $genre;
+ 				}
+ 			}
+-			$thisfile_id3v2['comments']['genre'] = array_unique($genres);
++			$thisfile_id3v2['comments']['genre'] = \wp_aot_array_unique($genres);
+ 			unset($key, $value, $genres, $genre);
+ 		}
+ 
+@@ -470,7 +470,7 @@
+ 			}
+ 		}
+ 
+-		if (!isset($thisfile_id3v2['comments']['year']) && !empty($thisfile_id3v2['comments']['recording_time'][0]) && preg_match('#^([0-9]{4})#', trim($thisfile_id3v2['comments']['recording_time'][0]), $matches)) {
++		if (!isset($thisfile_id3v2['comments']['year']) && !empty($thisfile_id3v2['comments']['recording_time'][0]) && preg_match('#^([0-9]{4})#', \wp_aot_regex_text( trim($thisfile_id3v2['comments']['recording_time'][0]) ), $matches)) {
+ 			$thisfile_id3v2['comments']['year'] = array($matches[1]);
+ 		}
+ 
+@@ -481,7 +481,7 @@
+ 				switch ($txxx_array['description']) {
+ 					case 'replaygain_track_gain':
+ 						if (empty($info['replay_gain']['track']['adjustment']) && !empty($txxx_array['data'])) {
+-							$info['replay_gain']['track']['adjustment'] = floatval(trim(str_replace('dB', '', $txxx_array['data'])));
++							$info['replay_gain']['track']['adjustment'] = floatval(trim(\wp_aot_str_replace('dB', '', $txxx_array['data'])));
+ 						}
+ 						break;
+ 					case 'replaygain_track_peak':
+@@ -491,7 +491,7 @@
+ 						break;
+ 					case 'replaygain_album_gain':
+ 						if (empty($info['replay_gain']['album']['adjustment']) && !empty($txxx_array['data'])) {
+-							$info['replay_gain']['album']['adjustment'] = floatval(trim(str_replace('dB', '', $txxx_array['data'])));
++							$info['replay_gain']['album']['adjustment'] = floatval(trim(\wp_aot_str_replace('dB', '', $txxx_array['data'])));
+ 						}
+ 						break;
+ 				}
+@@ -506,6 +506,7 @@
+ 		}
+ 
+ 		return true;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -513,14 +514,14 @@
+ 	 *
+ 	 * @return array
+ 	 */
+-	public function ParseID3v2GenreString($genrestring) {
++	public function ParseID3v2GenreString(mixed $genrestring): mixed {
+ 		// Parse genres into arrays of genreName and genreID
+ 		// ID3v2.2.x, ID3v2.3.x: '(21)' or '(4)Eurodisco' or '(51)(39)' or '(55)((I think...)'
+ 		// ID3v2.4.x: '21' $00 'Eurodisco' $00
+ 		$clean_genres = array();
+ 
+ 		// hack-fixes for some badly-written ID3v2.3 taggers, while trying not to break correctly-written tags
+-		if (($this->getid3->info['id3v2']['majorversion'] == 3) && !preg_match('#[\x00]#', $genrestring)) {
++		if (($this->getid3->info['id3v2']['majorversion'] == 3) && !preg_match('#[\x00]#', \wp_aot_regex_text( $genrestring ))) {
+ 			// note: MusicBrainz Picard incorrectly stores plaintext genres separated by "/" when writing in ID3v2.3 mode, hack-fix here:
+ 			// replace / with NULL, then replace back the two ID3v1 genres that legitimately have "/" as part of the single genre name
+ 			if (strpos($genrestring, '/') !== false) {
+@@ -530,35 +531,36 @@
+ 					'RnB/Swing',   // Discogs - https://www.discogs.com/style/rnb/swing
+ 					'Funk / Soul', // Discogs (note spaces) - https://www.discogs.com/genre/funk+%2F+soul
+ 				);
+-				$genrestring = str_replace('/', "\x00", $genrestring);
++				$genrestring = \wp_aot_str_replace('/', "\x00", $genrestring);
+ 				foreach ($LegitimateSlashedGenreList as $SlashedGenre) {
+-					$genrestring = str_ireplace(str_replace('/', "\x00", $SlashedGenre), $SlashedGenre, $genrestring);
++					$genrestring = str_ireplace(\wp_aot_str_replace('/', "\x00", $SlashedGenre), $SlashedGenre, $genrestring);
+ 				}
+ 			}
+ 
+ 			// some other taggers separate multiple genres with semicolon, e.g. "Heavy Metal;Thrash Metal;Metal"
+ 			if (strpos($genrestring, ';') !== false) {
+-				$genrestring = str_replace(';', "\x00", $genrestring);
++				$genrestring = \wp_aot_str_replace(';', "\x00", $genrestring);
+ 			}
+ 		}
+ 
+ 
+ 		if (strpos($genrestring, "\x00") === false) {
+-			$genrestring = preg_replace('#\(([0-9]{1,3})\)#', '$1'."\x00", $genrestring);
++			$genrestring = \wp_aot_preg_replace('#\(([0-9]{1,3})\)#', '$1'."\x00", $genrestring);
+ 		}
+ 
+ 		$genre_elements = explode("\x00", $genrestring);
+ 		foreach ($genre_elements as $element) {
+ 			$element = trim($element);
+ 			if ($element) {
+-				if (preg_match('#^[0-9]{1,3}$#', $element)) {
++				if (preg_match('#^[0-9]{1,3}$#', \wp_aot_regex_text( $element ))) {
+ 					$clean_genres[] = getid3_id3v1::LookupGenreName($element);
+ 				} else {
+-					$clean_genres[] = str_replace('((', '(', $element);
++					$clean_genres[] = \wp_aot_str_replace('((', '(', $element);
+ 				}
+ 			}
+ 		}
+ 		return $clean_genres;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -566,7 +568,7 @@
+ 	 *
+ 	 * @return bool
+ 	 */
+-	public function ParseID3v2Frame(&$parsedFrame) {
++	public function ParseID3v2Frame(mixed &$parsedFrame): mixed {
+ 
+ 		// shortcuts
+ 		$info = &$this->getid3->info;
+@@ -846,7 +848,7 @@
+ 				if (count($IPLS_parts_unsorted) == 1) {
+ 					// just a list of names, e.g. "Dino Baptiste, Jimmy Copley, John Gordon, Bernie Marsden, Sharon Watson"
+ 					foreach ($IPLS_parts_unsorted as $key => $value) {
+-						$IPLS_parts_sorted = preg_split('#[;,\\r\\n\\t]#', $value);
++						$IPLS_parts_sorted = \wp_aot_preg_split('#[;,\\r\\n\\t]#', \wp_aot_regex_text( $value ));
+ 						$position = '';
+ 						foreach ($IPLS_parts_sorted as $person) {
+ 							$IPLS_parts[] = array('position'=>$position, 'person'=>$person);
+@@ -872,7 +874,7 @@
+ 				}
+ 
+ 			} else {
+-				$IPLS_parts = preg_split('#[;,\\r\\n\\t]#', $parsedFrame['data_raw']);
++				$IPLS_parts = \wp_aot_preg_split('#[;,\\r\\n\\t]#', \wp_aot_regex_text( $parsedFrame['data_raw'] ));
+ 			}
+ 			$parsedFrame['data'] = $IPLS_parts;
+ 
+@@ -1388,7 +1390,7 @@
+ 					if ($frame_mimetype === "\x00") {
+ 						$frame_mimetype = '';
+ 					}
+-					$frame_imagetype = strtoupper(str_replace('image/', '', strtolower($frame_mimetype)));
++					$frame_imagetype = strtoupper(\wp_aot_str_replace('image/', '', strtolower($frame_mimetype)));
+ 					if ($frame_imagetype == 'JPEG') {
+ 						$frame_imagetype = 'JPG';
+ 					}
+@@ -1463,7 +1465,7 @@
+ 						}
+ */
+ 					} elseif (is_string($this->getid3->option_save_attachments)) {
+-						$dir = rtrim(str_replace(array('/', '\\'), DIRECTORY_SEPARATOR, $this->getid3->option_save_attachments), DIRECTORY_SEPARATOR);
++						$dir = rtrim(\wp_aot_str_replace(array('/', '\\'), DIRECTORY_SEPARATOR, $this->getid3->option_save_attachments), DIRECTORY_SEPARATOR);
+ 						if (!is_dir($dir) || !getID3::is_writable($dir)) {
+ 							// cannot write, skip
+ 							$this->warning('attachment at '.$frame_offset.' cannot be saved to "'.$dir.'" (not writable)');
+@@ -1752,7 +1754,7 @@
+ 
+ 			$parsedFrame['purchasedate'] = substr($parsedFrame['data'], $frame_offset, 8);
+ 			if ($this->IsValidDateStampString($parsedFrame['purchasedate'])) {
+-				$parsedFrame['purchasedateunix'] = mktime (0, 0, 0, substr($parsedFrame['purchasedate'], 4, 2), substr($parsedFrame['purchasedate'], 6, 2), substr($parsedFrame['purchasedate'], 0, 4));
++				$parsedFrame['purchasedateunix'] = mktime (0, 0, 0, \wp_aot_calendar_component( substr($parsedFrame['purchasedate'], 4, 2) ), \wp_aot_calendar_component( substr($parsedFrame['purchasedate'], 6, 2) ), \wp_aot_calendar_component( substr($parsedFrame['purchasedate'], 0, 4) ));
+ 			}
+ 			$frame_offset += 8;
+ 
+@@ -2071,7 +2073,7 @@
+ 							$parsedFrame['subframes'][] = $subframe;
+ 							break;
+ 						case 'APIC':
+-							if (preg_match('#^([^\\x00]+)*\\x00(.)([^\\x00]+)*\\x00(.+)$#s', $subframe['text'], $matches)) {
++							if (preg_match('#^([^\\x00]+)*\\x00(.)([^\\x00]+)*\\x00(.+)$#s', \wp_aot_regex_text( $subframe['text'] ), $matches)) {
+ 								list($dummy, $subframe_apic_mime, $subframe_apic_picturetype, $subframe_apic_description, $subframe_apic_picturedata) = $matches;
+ 								$subframe['image_mime']   = trim(getid3_lib::iconv_fallback($subframe['encoding'], $info['encoding'], $subframe_apic_mime));
+ 								$subframe['picture_type'] = $this->APICPictureTypeLookup($subframe_apic_picturetype);
+@@ -2199,6 +2201,7 @@
+ 		}
+ 
+ 		return true;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -2206,8 +2209,9 @@
+ 	 *
+ 	 * @return string
+ 	 */
+-	public function DeUnsynchronise($data) {
+-		return str_replace("\xFF\x00", "\xFF", $data);
++	public function DeUnsynchronise(mixed $data): mixed {
++		return \wp_aot_str_replace("\xFF\x00", "\xFF", $data);
++		return null;
+ 	}
+ 
+ 	/**
+@@ -2215,7 +2219,7 @@
+ 	 *
+ 	 * @return string
+ 	 */
+-	public function LookupExtendedHeaderRestrictionsTagSizeLimits($index) {
++	public function LookupExtendedHeaderRestrictionsTagSizeLimits(mixed $index): mixed {
+ 		static $LookupExtendedHeaderRestrictionsTagSizeLimits = array(
+ 			0x00 => 'No more than 128 frames and 1 MB total tag size',
+ 			0x01 => 'No more than 64 frames and 128 KB total tag size',
+@@ -2223,6 +2227,7 @@
+ 			0x03 => 'No more than 32 frames and 4 KB total tag size',
+ 		);
+ 		return (isset($LookupExtendedHeaderRestrictionsTagSizeLimits[$index]) ? $LookupExtendedHeaderRestrictionsTagSizeLimits[$index] : '');
++		return null;
+ 	}
+ 
+ 	/**
+@@ -2230,12 +2235,13 @@
+ 	 *
+ 	 * @return string
+ 	 */
+-	public function LookupExtendedHeaderRestrictionsTextEncodings($index) {
++	public function LookupExtendedHeaderRestrictionsTextEncodings(mixed $index): mixed {
+ 		static $LookupExtendedHeaderRestrictionsTextEncodings = array(
+ 			0x00 => 'No restrictions',
+ 			0x01 => 'Strings are only encoded with ISO-8859-1 or UTF-8',
+ 		);
+ 		return (isset($LookupExtendedHeaderRestrictionsTextEncodings[$index]) ? $LookupExtendedHeaderRestrictionsTextEncodings[$index] : '');
++		return null;
+ 	}
+ 
+ 	/**
+@@ -2243,7 +2249,7 @@
+ 	 *
+ 	 * @return string
+ 	 */
+-	public function LookupExtendedHeaderRestrictionsTextFieldSize($index) {
++	public function LookupExtendedHeaderRestrictionsTextFieldSize(mixed $index): mixed {
+ 		static $LookupExtendedHeaderRestrictionsTextFieldSize = array(
+ 			0x00 => 'No restrictions',
+ 			0x01 => 'No string is longer than 1024 characters',
+@@ -2251,6 +2257,7 @@
+ 			0x03 => 'No string is longer than 30 characters',
+ 		);
+ 		return (isset($LookupExtendedHeaderRestrictionsTextFieldSize[$index]) ? $LookupExtendedHeaderRestrictionsTextFieldSize[$index] : '');
++		return null;
+ 	}
+ 
+ 	/**
+@@ -2258,12 +2265,13 @@
+ 	 *
+ 	 * @return string
+ 	 */
+-	public function LookupExtendedHeaderRestrictionsImageEncoding($index) {
++	public function LookupExtendedHeaderRestrictionsImageEncoding(mixed $index): mixed {
+ 		static $LookupExtendedHeaderRestrictionsImageEncoding = array(
+ 			0x00 => 'No restrictions',
+ 			0x01 => 'Images are encoded only with PNG or JPEG',
+ 		);
+ 		return (isset($LookupExtendedHeaderRestrictionsImageEncoding[$index]) ? $LookupExtendedHeaderRestrictionsImageEncoding[$index] : '');
++		return null;
+ 	}
+ 
+ 	/**
+@@ -2271,7 +2279,7 @@
+ 	 *
+ 	 * @return string
+ 	 */
+-	public function LookupExtendedHeaderRestrictionsImageSizeSize($index) {
++	public function LookupExtendedHeaderRestrictionsImageSizeSize(mixed $index): mixed {
+ 		static $LookupExtendedHeaderRestrictionsImageSizeSize = array(
+ 			0x00 => 'No restrictions',
+ 			0x01 => 'All images are 256x256 pixels or smaller',
+@@ -2279,6 +2287,7 @@
+ 			0x03 => 'All images are exactly 64x64 pixels, unless required otherwise',
+ 		);
+ 		return (isset($LookupExtendedHeaderRestrictionsImageSizeSize[$index]) ? $LookupExtendedHeaderRestrictionsImageSizeSize[$index] : '');
++		return null;
+ 	}
+ 
+ 	/**
+@@ -2286,7 +2295,7 @@
+ 	 *
+ 	 * @return string
+ 	 */
+-	public function LookupCurrencyUnits($currencyid) {
++	public function LookupCurrencyUnits(mixed $currencyid): mixed {
+ 
+ 		$begin = __LINE__;
+ 
+@@ -2481,6 +2490,7 @@
+ 		*/
+ 
+ 		return getid3_lib::EmbeddedLookup($currencyid, $begin, __LINE__, __FILE__, 'id3v2-currency-units');
++		return null;
+ 	}
+ 
+ 	/**
+@@ -2488,7 +2498,7 @@
+ 	 *
+ 	 * @return string
+ 	 */
+-	public function LookupCurrencyCountry($currencyid) {
++	public function LookupCurrencyCountry(mixed $currencyid): mixed {
+ 
+ 		$begin = __LINE__;
+ 
+@@ -2682,6 +2692,7 @@
+ 		*/
+ 
+ 		return getid3_lib::EmbeddedLookup($currencyid, $begin, __LINE__, __FILE__, 'id3v2-currency-country');
++		return null;
+ 	}
+ 
+ 	/**
+@@ -2690,7 +2701,7 @@
+ 	 *
+ 	 * @return string
+ 	 */
+-	public static function LanguageLookup($languagecode, $casesensitive=false) {
++	public static function LanguageLookup(mixed $languagecode, mixed $casesensitive=false): mixed {
+ 
+ 		if (!$casesensitive) {
+ 			$languagecode = strtolower($languagecode);
+@@ -3143,6 +3154,7 @@
+ 		*/
+ 
+ 		return getid3_lib::EmbeddedLookup($languagecode, $begin, __LINE__, __FILE__, 'id3v2-languagecode');
++		return null;
+ 	}
+ 
+ 	/**
+@@ -3150,7 +3162,7 @@
+ 	 *
+ 	 * @return string
+ 	 */
+-	public static function ETCOEventLookup($index) {
++	public static function ETCOEventLookup(mixed $index): mixed {
+ 		if (($index >= 0x17) && ($index <= 0xDF)) {
+ 			return 'reserved for future use';
+ 		}
+@@ -3191,6 +3203,7 @@
+ 		);
+ 
+ 		return (isset($EventLookup[$index]) ? $EventLookup[$index] : '');
++		return null;
+ 	}
+ 
+ 	/**
+@@ -3198,7 +3211,7 @@
+ 	 *
+ 	 * @return string
+ 	 */
+-	public static function SYTLContentTypeLookup($index) {
++	public static function SYTLContentTypeLookup(mixed $index): mixed {
+ 		static $SYTLContentTypeLookup = array(
+ 			0x00 => 'other',
+ 			0x01 => 'lyrics',
+@@ -3212,6 +3225,7 @@
+ 		);
+ 
+ 		return (isset($SYTLContentTypeLookup[$index]) ? $SYTLContentTypeLookup[$index] : '');
++		return null;
+ 	}
+ 
+ 	/**
+@@ -3220,7 +3234,7 @@
+ 	 *
+ 	 * @return array|string
+ 	 */
+-	public static function APICPictureTypeLookup($index, $returnarray=false) {
++	public static function APICPictureTypeLookup(mixed $index, mixed $returnarray=false): mixed {
+ 		static $APICPictureTypeLookup = array(
+ 			0x00 => 'Other',
+ 			0x01 => '32x32 pixels \'file icon\' (PNG only)',
+@@ -3248,6 +3262,7 @@
+ 			return $APICPictureTypeLookup;
+ 		}
+ 		return (isset($APICPictureTypeLookup[$index]) ? $APICPictureTypeLookup[$index] : '');
++		return null;
+ 	}
+ 
+ 	/**
+@@ -3255,7 +3270,7 @@
+ 	 *
+ 	 * @return string
+ 	 */
+-	public static function COMRReceivedAsLookup($index) {
++	public static function COMRReceivedAsLookup(mixed $index): mixed {
+ 		static $COMRReceivedAsLookup = array(
+ 			0x00 => 'Other',
+ 			0x01 => 'Standard CD album with other songs',
+@@ -3269,6 +3284,7 @@
+ 		);
+ 
+ 		return (isset($COMRReceivedAsLookup[$index]) ? $COMRReceivedAsLookup[$index] : '');
++		return null;
+ 	}
+ 
+ 	/**
+@@ -3276,7 +3292,7 @@
+ 	 *
+ 	 * @return string
+ 	 */
+-	public static function RVA2ChannelTypeLookup($index) {
++	public static function RVA2ChannelTypeLookup(mixed $index): mixed {
+ 		static $RVA2ChannelTypeLookup = array(
+ 			0x00 => 'Other',
+ 			0x01 => 'Master volume',
+@@ -3290,6 +3306,7 @@
+ 		);
+ 
+ 		return (isset($RVA2ChannelTypeLookup[$index]) ? $RVA2ChannelTypeLookup[$index] : '');
++		return null;
+ 	}
+ 
+ 	/**
+@@ -3297,7 +3314,7 @@
+ 	 *
+ 	 * @return string
+ 	 */
+-	public static function FrameNameLongLookup($framename) {
++	public static function FrameNameLongLookup(mixed $framename): mixed {
+ 
+ 		$begin = __LINE__;
+ 
+@@ -3478,6 +3495,7 @@
+ 		// Last three:
+ 		// from Helium2 [www.helium2.com]
+ 		// from http://privatewww.essex.ac.uk/~djmrob/replaygain/file_format_id3v2.html
++		return null;
+ 	}
+ 
+ 	/**
+@@ -3485,7 +3503,7 @@
+ 	 *
+ 	 * @return string
+ 	 */
+-	public static function FrameNameShortLookup($framename) {
++	public static function FrameNameShortLookup(mixed $framename): mixed {
+ 
+ 		$begin = __LINE__;
+ 
+@@ -3662,6 +3680,7 @@
+ 		*/
+ 
+ 		return getid3_lib::EmbeddedLookup($framename, $begin, __LINE__, __FILE__, 'id3v2-framename_short');
++		return null;
+ 	}
+ 
+ 	/**
+@@ -3669,7 +3688,7 @@
+ 	 *
+ 	 * @return string
+ 	 */
+-	public static function TextEncodingTerminatorLookup($encoding) {
++	public static function TextEncodingTerminatorLookup(mixed $encoding): mixed {
+ 		// http://www.id3.org/id3v2.4.0-structure.txt
+ 		// Frames that allow different types of text encoding contains a text encoding description byte. Possible encodings:
+ 		static $TextEncodingTerminatorLookup = array(
+@@ -3680,6 +3699,7 @@
+ 			255 => "\x00\x00"
+ 		);
+ 		return (isset($TextEncodingTerminatorLookup[$encoding]) ? $TextEncodingTerminatorLookup[$encoding] : "\x00");
++		return null;
+ 	}
+ 
+ 	/**
+@@ -3687,7 +3707,7 @@
+ 	 *
+ 	 * @return string
+ 	 */
+-	public static function TextEncodingNameLookup($encoding) {
++	public static function TextEncodingNameLookup(mixed $encoding): mixed {
+ 		// http://www.id3.org/id3v2.4.0-structure.txt
+ 		// Frames that allow different types of text encoding contains a text encoding description byte. Possible encodings:
+ 		static $TextEncodingNameLookup = array(
+@@ -3698,6 +3718,7 @@
+ 			255 => 'UTF-16BE'
+ 		);
+ 		return (isset($TextEncodingNameLookup[$encoding]) ? $TextEncodingNameLookup[$encoding] : 'ISO-8859-1');
++		return null;
+ 	}
+ 
+ 	/**
+@@ -3706,7 +3727,7 @@
+ 	 *
+ 	 * @return string
+ 	 */
+-	public static function RemoveStringTerminator($string, $terminator) {
++	public static function RemoveStringTerminator(mixed $string, mixed $terminator): mixed {
+ 		// Null terminator at end of comment string is somewhat ambiguous in the specification, may or may not be implemented by various taggers. Remove terminator only if present.
+ 		// https://github.com/JamesHeinrich/getID3/issues/121
+ 		// https://community.mp3tag.de/t/x-trailing-nulls-in-id3v2-comments/19227
+@@ -3714,6 +3735,7 @@
+ 			$string = substr($string, 0, -strlen($terminator));
+ 		}
+ 		return $string;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -3721,12 +3743,13 @@
+ 	 *
+ 	 * @return string
+ 	 */
+-	public static function MakeUTF16emptyStringEmpty($string) {
++	public static function MakeUTF16emptyStringEmpty(mixed $string): mixed {
+ 		if (in_array($string, array("\x00", "\x00\x00", "\xFF\xFE", "\xFE\xFF"))) {
+ 			// if string only contains a BOM or terminator then make it actually an empty string
+ 			$string = '';
+ 		}
+ 		return $string;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -3735,16 +3758,17 @@
+ 	 *
+ 	 * @return bool|int
+ 	 */
+-	public static function IsValidID3v2FrameName($framename, $id3v2majorversion) {
++	public static function IsValidID3v2FrameName(mixed $framename, mixed $id3v2majorversion): mixed {
+ 		switch ($id3v2majorversion) {
+ 			case 2:
+-				return preg_match('#[A-Z][A-Z0-9]{2}#', $framename);
++				return preg_match('#[A-Z][A-Z0-9]{2}#', \wp_aot_regex_text( $framename ));
+ 
+ 			case 3:
+ 			case 4:
+-				return preg_match('#[A-Z][A-Z0-9]{3}#', $framename);
++				return preg_match('#[A-Z][A-Z0-9]{3}#', \wp_aot_regex_text( $framename ));
+ 		}
+ 		return false;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -3754,13 +3778,14 @@
+ 	 *
+ 	 * @return bool
+ 	 */
+-	public static function IsANumber($numberstring, $allowdecimal=false, $allownegative=false) {
++	public static function IsANumber(mixed $numberstring, mixed $allowdecimal=false, mixed $allownegative=false): mixed {
+ 		$pattern  = '#^';
+ 		$pattern .= ($allownegative ? '\\-?' : '');
+ 		$pattern .= '[0-9]+';
+ 		$pattern .= ($allowdecimal  ? '(\\.[0-9]+)?' : '');
+ 		$pattern .= '$#';
+-		return preg_match($pattern, $numberstring);
++		return preg_match(\wp_aot_regex_text( $pattern ), \wp_aot_regex_text( $numberstring ));
++		return null;
+ 	}
+ 
+ 	/**
+@@ -3768,8 +3793,8 @@
+ 	 *
+ 	 * @return bool
+ 	 */
+-	public static function IsValidDateStampString($datestamp) {
+-		if (!preg_match('#^[12][0-9]{3}[01][0-9][0123][0-9]$#', $datestamp)) {
++	public static function IsValidDateStampString(mixed $datestamp): mixed {
++		if (!preg_match('#^[12][0-9]{3}[01][0-9][0123][0-9]$#', \wp_aot_regex_text( $datestamp ))) {
+ 			return false;
+ 		}
+ 		$year  = substr($datestamp, 0, 4);
+@@ -3791,6 +3816,7 @@
+ 			return false;
+ 		}
+ 		return true;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -3798,8 +3824,9 @@
+ 	 *
+ 	 * @return int
+ 	 */
+-	public static function ID3v2HeaderLength($majorversion) {
++	public static function ID3v2HeaderLength(mixed $majorversion): mixed {
+ 		return (($majorversion == 2) ? 6 : 10);
++		return null;
+ 	}
+ 
+ 	/**
+@@ -3807,7 +3834,7 @@
+ 	 *
+ 	 * @return string|false
+ 	 */
+-	public static function ID3v22iTunesBrokenFrameName($frame_name) {
++	public static function ID3v22iTunesBrokenFrameName(mixed $frame_name): mixed {
+ 		// iTunes (multiple versions) has been known to write ID3v2.3 style frames
+ 		// but use ID3v2.2 frame names, right-padded using either [space] or [null]
+ 		// to make them fit in the 4-byte frame name space of the ID3v2.3 frame.
+@@ -3890,6 +3917,7 @@
+ 			}
+ 		}
+ 		return false;
++		return null;
+ 	}
+ 
+ }

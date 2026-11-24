@@ -1,0 +1,46 @@
+--- a/wp-includes/class-wp-speculation-rules.php
++++ b/wp-includes/class-wp-speculation-rules.php
+@@ -233,13 +233,13 @@
+ 	 * @return array<string, array<int, array<string, mixed>>> Speculation rules data.
+ 	 */
+ 	#[ReturnTypeWillChange]
+-	public function jsonSerialize() {
++	public function jsonSerialize(): array {
+ 		// Strip the IDs for JSON output, since they are not relevant for the Speculation Rules API.
+-		return array_map(
++		return \wp_aot_array_map(
+ 			static function ( array $rules ) {
+ 				return array_values( $rules );
+ 			},
+-			array_filter( $this->rules_by_mode )
++			\wp_aot_array_filter( $this->rules_by_mode )
+ 		);
+ 	}
+ 
+@@ -252,7 +252,7 @@
+ 	 * @return bool True if the ID is valid, false otherwise.
+ 	 */
+ 	private function is_valid_id( string $id ): bool {
+-		return (bool) preg_match( '/^[a-z][a-z0-9_-]+$/', $id );
++		return (bool) preg_match( '/^[a-z][a-z0-9_-]+$/', \wp_aot_regex_text( $id ) );
+ 	}
+ 
+ 	/**
+@@ -266,7 +266,7 @@
+ 	 *
+ 	 * @phpstan-assert-if-true 'prefetch'|'prerender' $mode
+ 	 */
+-	public static function is_valid_mode( $mode ): bool {
++	public static function is_valid_mode( mixed $mode ): bool {
+ 		return is_string( $mode ) && isset( self::$mode_allowlist[ $mode ] );
+ 	}
+ 
+@@ -281,7 +281,7 @@
+ 	 *
+ 	 * @phpstan-assert-if-true 'conservative'|'moderate'|'eager'|'immediate' $eagerness
+ 	 */
+-	public static function is_valid_eagerness( $eagerness ): bool {
++	public static function is_valid_eagerness( mixed $eagerness ): bool {
+ 		return is_string( $eagerness ) && isset( self::$eagerness_allowlist[ $eagerness ] );
+ 	}
+ 

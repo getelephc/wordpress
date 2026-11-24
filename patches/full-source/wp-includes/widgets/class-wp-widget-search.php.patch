@@ -1,7 +1,28 @@
 --- a/wp-includes/widgets/class-wp-widget-search.php
 +++ b/wp-includes/widgets/class-wp-widget-search.php
-@@ -67,12 +67,22 @@
- 	public function form( $instance ) {
+@@ -40,7 +40,7 @@
+ 	 *                        'before_widget', and 'after_widget'.
+ 	 * @param array $instance Settings for the current Search widget instance.
+ 	 */
+-	public function widget( $args, $instance ) {
++	public function widget( mixed $args, mixed $instance ): mixed {
+ 		$title = ! empty( $instance['title'] ) ? $instance['title'] : '';
+ 
+ 		/** This filter is documented in wp-includes/widgets/class-wp-widget-pages.php */
+@@ -55,6 +55,7 @@
+ 		get_search_form();
+ 
+ 		echo $args['after_widget'];
++		return null;
+ 	}
+ 
+ 	/**
+@@ -64,15 +65,26 @@
+ 	 *
+ 	 * @param array $instance Current settings.
+ 	 */
+-	public function form( $instance ) {
++	public function form( mixed $instance ): mixed {
  		$instance = wp_parse_args( (array) $instance, array( 'title' => '' ) );
  		$title    = $instance['title'];
 -		?>
@@ -25,6 +46,20 @@
  		</p>
 -		<?php
 +		';
++		return null;
  	}
  
  	/**
+@@ -85,10 +97,11 @@
+ 	 * @param array $old_instance Old settings for this instance.
+ 	 * @return array Updated settings.
+ 	 */
+-	public function update( $new_instance, $old_instance ) {
++	public function update( mixed $new_instance, mixed $old_instance ): mixed {
+ 		$instance          = $old_instance;
+ 		$new_instance      = wp_parse_args( (array) $new_instance, array( 'title' => '' ) );
+ 		$instance['title'] = sanitize_text_field( $new_instance['title'] );
+ 		return $instance;
++		return null;
+ 	}
+ }

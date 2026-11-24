@@ -1,0 +1,59 @@
+--- a/wp-includes/Requests/src/Exception/Http.php
++++ b/wp-includes/Requests/src/Exception/Http.php
+@@ -21,7 +21,7 @@
+ 	 *
+ 	 * @var integer
+ 	 */
+-	protected $code = 0;
++	protected $wp_aot_code = 0;
+ 
+ 	/**
+ 	 * Reason phrase
+@@ -39,13 +39,13 @@
+ 	 * @param string|null $reason Reason phrase
+ 	 * @param mixed $data Associated data
+ 	 */
+-	public function __construct($reason = null, $data = null) {
++	public function __construct(?string $reason = null, mixed $data = null) {
+ 		if ($reason !== null) {
+ 			$this->reason = $reason;
+ 		}
+ 
+-		$message = sprintf('%d %s', $this->code, $this->reason);
+-		parent::__construct($message, 'httpresponse', $data, $this->code);
++		$message = sprintf('%d %s', $this->wp_aot_code, $this->reason);
++		parent::__construct($message, 'httpresponse', $data, $this->wp_aot_code);
+ 	}
+ 
+ 	/**
+@@ -53,8 +53,9 @@
+ 	 *
+ 	 * @return string
+ 	 */
+-	public function getReason() {
++	public function getReason(): mixed {
+ 		return $this->reason;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -63,16 +64,17 @@
+ 	 * @param int|bool $code HTTP status code, or false if unavailable
+ 	 * @return string Exception class name to use
+ 	 */
+-	public static function get_class($code) {
++	public static function get_class(mixed $code): mixed {
+ 		if (!$code) {
+ 			return StatusUnknown::class;
+ 		}
+ 
+ 		$class = sprintf('\WpOrg\Requests\Exception\Http\Status%d', $code);
+-		if (class_exists($class)) {
++		if (\wp_aot_metadata_class_exists($class)) {
+ 			return $class;
+ 		}
+ 
+ 		return StatusUnknown::class;
++		return null;
+ 	}
+ }

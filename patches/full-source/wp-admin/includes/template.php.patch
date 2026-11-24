@@ -1,6 +1,77 @@
 --- a/wp-admin/includes/template.php
 +++ b/wp-admin/includes/template.php
-@@ -240,19 +240,29 @@
+@@ -37,7 +37,7 @@
+  * @param bool        $checked_ontop        Optional. Whether to move checked items out of the hierarchy and to
+  *                                          the top of the list. Default true.
+  */
+-function wp_category_checklist( $post_id = 0, $descendants_and_self = 0, $selected_cats = false, $popular_cats = false, $walker = null, $checked_ontop = true ) {
++function wp_category_checklist( mixed $post_id = 0, mixed $descendants_and_self = 0, mixed $selected_cats = false, mixed $popular_cats = false, mixed $walker = null, mixed $checked_ontop = true ): mixed {
+ 	wp_terms_checklist(
+ 		$post_id,
+ 		array(
+@@ -49,6 +49,7 @@
+ 			'checked_ontop'        => $checked_ontop,
+ 		)
+ 	);
++	return null;
+ }
+ 
+ /**
+@@ -78,7 +79,7 @@
+  * }
+  * @return string HTML list of input elements.
+  */
+-function wp_terms_checklist( $post_id = 0, $args = array() ) {
++function wp_terms_checklist( mixed $post_id = 0, mixed $args = array() ): mixed {
+ 	$defaults = array(
+ 		'descendants_and_self' => 0,
+ 		'selected_cats'        => false,
+@@ -120,15 +121,15 @@
+ 	$args['list_only'] = ! empty( $parsed_args['list_only'] );
+ 
+ 	if ( is_array( $parsed_args['selected_cats'] ) ) {
+-		$args['selected_cats'] = array_map( 'intval', $parsed_args['selected_cats'] );
++		$args['selected_cats'] = \wp_aot_array_map( 'intval', $parsed_args['selected_cats'] );
+ 	} elseif ( $post_id ) {
+-		$args['selected_cats'] = wp_get_object_terms( $post_id, $taxonomy, array_merge( $args, array( 'fields' => 'ids' ) ) );
++		$args['selected_cats'] = wp_get_object_terms( $post_id, $taxonomy, \wp_aot_array_merge(array( $args, array( 'fields' => 'ids' ) )) );
+ 	} else {
+ 		$args['selected_cats'] = array();
+ 	}
+ 
+ 	if ( is_array( $parsed_args['popular_cats'] ) ) {
+-		$args['popular_cats'] = array_map( 'intval', $parsed_args['popular_cats'] );
++		$args['popular_cats'] = \wp_aot_array_map( 'intval', $parsed_args['popular_cats'] );
+ 	} else {
+ 		$args['popular_cats'] = get_terms(
+ 			array(
+@@ -152,7 +153,7 @@
+ 			)
+ 		);
+ 		$self       = get_term( $descendants_and_self, $taxonomy );
+-		array_unshift( $categories, $self );
++		\wp_aot_array_unshift( $categories,array( $self ));
+ 	} else {
+ 		$categories = (array) get_terms(
+ 			array(
+@@ -190,6 +191,7 @@
+ 	}
+ 
+ 	return $output;
++	return null;
+ }
+ 
+ /**
+@@ -208,7 +210,7 @@
+  * @param bool   $display      Optional. Whether to display the list as well. Default true.
+  * @return int[] Array of popular term IDs.
+  */
+-function wp_popular_terms_checklist( $taxonomy, $default_term = 0, $number = 10, $display = true ) {
++function wp_popular_terms_checklist( mixed $taxonomy, mixed $default_term = 0, mixed $number = 10, mixed $display = true ): mixed {
+ 	$post = get_post();
+ 
+ 	if ( $post && $post->ID ) {
+@@ -240,21 +242,32 @@
  
  		$id      = "popular-$taxonomy-$term->term_id";
  		$checked = in_array( $term->term_id, $checked_terms, true ) ? 'checked="checked"' : '';
@@ -37,8 +108,85 @@
 +		';
  	}
  	return $popular_ids;
++	return null;
  }
-@@ -452,28 +462,39 @@
+ 
+ /**
+@@ -264,7 +277,7 @@
+  *
+  * @param int $link_id Optional. The link ID. Default 0.
+  */
+-function wp_link_category_checklist( $link_id = 0 ) {
++function wp_link_category_checklist( mixed $link_id = 0 ): mixed {
+ 	$default = 1;
+ 
+ 	$checked_categories = array();
+@@ -288,7 +301,7 @@
+ 	);
+ 
+ 	if ( empty( $categories ) ) {
+-		return;
++		return null;
+ 	}
+ 
+ 	foreach ( $categories as $category ) {
+@@ -299,6 +312,7 @@
+ 		$checked = in_array( $cat_id, $checked_categories, true ) ? ' checked="checked"' : '';
+ 		echo '<li id="link-category-', $cat_id, '"><label for="in-link-category-', $cat_id, '" class="selectit"><input value="', $cat_id, '" type="checkbox" name="link_category[]" id="in-link-category-', $cat_id, '"', $checked, '/> ', $name, '</label></li>';
+ 	}
++	return null;
+ }
+ 
+ /**
+@@ -308,10 +322,10 @@
+  *
+  * @param WP_Post $post Post object.
+  */
+-function get_inline_data( $post ) {
++function get_inline_data( mixed $post ): mixed {
+ 	$post_type_object = get_post_type_object( $post->post_type );
+ 	if ( ! current_user_can( 'edit_post', $post->ID ) ) {
+-		return;
++		return null;
+ 	}
+ 
+ 	$title = esc_textarea( trim( $post->post_title ) );
+@@ -373,7 +387,7 @@
+ 			}
+ 
+ 			echo '<div class="tags_input" id="' . $taxonomy_name . '_' . $post->ID . '">'
+-				. esc_html( str_replace( ',', ', ', $terms_to_edit ) ) . '</div>';
++				. esc_html( \wp_aot_str_replace( ',', ', ', $terms_to_edit ) ) . '</div>';
+ 
+ 		}
+ 	}
+@@ -397,6 +411,7 @@
+ 	do_action( 'add_inline_data', $post, $post_type_object );
+ 
+ 	echo '</div>';
++	return null;
+ }
+ 
+ /**
+@@ -412,7 +427,7 @@
+  *                          otherwise WP_Comments_List_Table. Default 'single'.
+  * @param bool   $table_row Optional. Whether to use a table instead of a div element. Default true.
+  */
+-function wp_comment_reply( $position = 1, $checkbox = false, $mode = 'single', $table_row = true ) {
++function wp_comment_reply( mixed $position = 1, mixed $checkbox = false, mixed $mode = 'single', mixed $table_row = true ): mixed {
+ 	global $wp_list_table;
+ 	/**
+ 	 * Filters the in-line comment reply-to form output in the Comments
+@@ -441,7 +456,7 @@
+ 
+ 	if ( ! empty( $content ) ) {
+ 		echo $content;
+-		return;
++		return null;
+ 	}
+ 
+ 	if ( ! $wp_list_table ) {
+@@ -452,28 +467,39 @@
  		}
  	}
  
@@ -93,7 +241,7 @@
  	$quicktags_settings = array( 'buttons' => 'strong,em,link,block,del,ins,img,ul,ol,li,code,close' );
  	wp_editor(
  		'',
-@@ -484,22 +505,28 @@
+@@ -484,22 +510,28 @@
  			'quicktags'     => $quicktags_settings,
  		)
  	);
@@ -127,7 +275,7 @@
  		<input type="text" id="author-url" name="newcomment_author_url" class="code" size="103" value="" />
  		</div>
  	</div>
-@@ -507,14 +534,22 @@
+@@ -507,14 +539,22 @@
  	<div id="replysubmit" class="submit">
  		<p class="reply-submit-buttons">
  			<button type="button" class="save button button-primary">
@@ -155,7 +303,7 @@
  		wp_admin_notice(
  			'<p class="error"></p>',
  			array(
-@@ -523,30 +558,39 @@
+@@ -523,30 +563,40 @@
  				'paragraph_wrap'     => false,
  			)
  		);
@@ -207,15 +355,18 @@
 +endif; ;
 +echo '</form>
 +	';
++	return null;
  }
  
  /**
-@@ -555,26 +599,30 @@
+@@ -554,27 +604,32 @@
+  *
   * @since 2.9.0
   */
- function wp_comment_trashnotice() {
+-function wp_comment_trashnotice() {
 -	?>
 -<div class="hidden" id="trash-undo-holder">
++function wp_comment_trashnotice(): mixed {
 +	;
 +echo '<div class="hidden" id="trash-undo-holder">
  	<div class="trash-undo-inside">
@@ -247,11 +398,25 @@
  </div>
 -	<?php
 +	';
++	return null;
  }
  
  /**
-@@ -602,23 +650,27 @@
- 		return;
+@@ -584,7 +639,7 @@
+  *
+  * @param array[] $meta An array of meta data arrays keyed on 'meta_key' and 'meta_value'.
+  */
+-function list_meta( $meta ) {
++function list_meta( mixed $meta ): mixed {
+ 	// Exit if no meta.
+ 	if ( ! $meta ) {
+ 		echo '
+@@ -599,26 +654,31 @@
+ 	<tr><td></td></tr>
+ 	</tbody>
+ </table>'; // TBODY needed for list-manipulation JS.
+-		return;
++		return null;
  	}
  	$count = 0;
 -	?>
@@ -284,15 +449,67 @@
  </table>
 -	<?php
 +	';
++	return null;
  }
  
  /**
-@@ -736,47 +788,65 @@
- 	if ( $keys ) {
- 		natcasesort( $keys );
+@@ -630,8 +690,9 @@
+  * @param int   $count Reference to the row number.
+  * @return string A single row of public meta data.
+  */
+-function _list_meta_row( $entry, &$count ) {
+-	static $update_nonce = '';
++function _list_meta_row( mixed $entry, mixed &$count ): mixed {
++	static $update_nonce_aot_cell = new \WordPressStaticStringCell();
++	$update_nonce =& $update_nonce_aot_cell->value;
+ 
+ 	if ( is_protected_meta( $entry['meta_key'], 'post' ) ) {
+ 		return '';
+@@ -680,6 +741,7 @@
+ 		__( 'Value' ) .
+ 	"</label><textarea name='meta[{$entry['meta_id']}][value]' id='meta-{$entry['meta_id']}-value' rows='2' cols='30'>{$entry['meta_value']}</textarea></td>\n\t</tr>";
+ 	return $r;
++	return null;
+ }
+ 
+ /**
+@@ -691,7 +753,7 @@
+  *
+  * @param WP_Post $post Optional. The post being edited.
+  */
+-function meta_form( $post = null ) {
++function meta_form( mixed $post = null ): mixed {
+ 	global $wpdb;
+ 	$post = get_post( $post );
+ 
+@@ -719,64 +781,82 @@
+ 		 */
+ 		$limit = apply_filters( 'postmeta_form_limit', 30 );
+ 
+-		$keys = $wpdb->get_col(
+-			$wpdb->prepare(
++		$keys = \wp_aot_require_wpdb( $wpdb )->get_col(
++			\wp_aot_require_wpdb( $wpdb )->prepare(
+ 				"SELECT DISTINCT meta_key
+ 				FROM $wpdb->postmeta
+ 				WHERE meta_key NOT BETWEEN '_' AND '_z'
+ 				HAVING meta_key NOT LIKE %s
+ 				ORDER BY meta_key
+ 				LIMIT %d",
+-				$wpdb->esc_like( '_' ) . '%',
++				\wp_aot_require_wpdb( $wpdb )->esc_like( '_' ) . '%',
+ 				$limit
+ 			)
+ 		);
  	}
+ 
+ 	if ( $keys ) {
+-		natcasesort( $keys );
+-	}
 -	?>
 -<p><strong><?php _e( 'Add Custom Field:' ); ?></strong></p>
++		\wp_aot_natcasesort( $keys );
++	}
 +	;
 +echo '<p><strong>';
 +_e( 'Add Custom Field:' ); ;
@@ -374,7 +591,7 @@
  	submit_button(
  		__( 'Add Custom Field' ),
  		'',
-@@ -787,9 +857,9 @@
+@@ -787,9 +867,10 @@
  			'data-wp-lists' => 'add:the-list:newmeta',
  		)
  	);
@@ -384,10 +601,29 @@
 +	;
 +echo '</div>
 +	';
++	return null;
  }
  
  /**
-@@ -890,13 +960,17 @@
+@@ -806,7 +887,7 @@
+  * @param int|bool $multi     Optional. Whether the additional fields and buttons should be added.
+  *                            Default 0|false.
+  */
+-function touch_time( $edit = 1, $for_post = 1, $tab_index = 0, $multi = 0 ) {
++function touch_time( mixed $edit = 1, mixed $for_post = 1, mixed $tab_index = 0, mixed $multi = 0 ): mixed {
+ 	global $wp_locale;
+ 	$post = get_post();
+ 
+@@ -870,7 +951,7 @@
+ 	echo '</div><input type="hidden" id="ss" name="ss" value="' . $ss . '" />';
+ 
+ 	if ( $multi ) {
+-		return;
++		return null;
+ 	}
+ 
+ 	echo "\n\n";
+@@ -890,13 +971,18 @@
  		$cur_timeunit = 'cur_' . $timeunit;
  		echo '<input type="hidden" id="' . $cur_timeunit . '" name="' . $cur_timeunit . '" value="' . $curr . '" />' . "\n";
  	}
@@ -407,10 +643,85 @@
  </p>
 -	<?php
 +	';
++	return null;
  }
  
  /**
-@@ -1027,24 +1101,29 @@
+@@ -908,15 +994,16 @@
+  * @param string $default_template Optional. The template file name. Default empty.
+  * @param string $post_type        Optional. Post type to get templates for. Default 'page'.
+  */
+-function page_template_dropdown( $default_template = '', $post_type = 'page' ) {
++function page_template_dropdown( mixed $default_template = '', mixed $post_type = 'page' ): mixed {
+ 	$templates = get_page_templates( null, $post_type );
+ 
+-	ksort( $templates );
++	\wp_aot_ksort( $templates );
+ 
+ 	foreach ( array_keys( $templates ) as $template ) {
+ 		$selected = selected( $default_template, $templates[ $template ], false );
+ 		echo "\n\t<option value='" . esc_attr( $templates[ $template ] ) . "' $selected>" . esc_html( $template ) . '</option>';
+ 	}
++	return null;
+ }
+ 
+ /**
+@@ -933,12 +1020,12 @@
+  * @param int|WP_Post $post         Post ID or WP_Post object.
+  * @return void|false Void on success, false if the page has no children.
+  */
+-function parent_dropdown( $default_page = 0, $parent_page = 0, $level = 0, $post = null ) {
++function parent_dropdown( mixed $default_page = 0, mixed $parent_page = 0, mixed $level = 0, mixed $post = null ): mixed {
+ 	global $wpdb;
+ 
+ 	$post  = get_post( $post );
+-	$items = $wpdb->get_results(
+-		$wpdb->prepare(
++	$items = \wp_aot_require_wpdb( $wpdb )->get_results(
++		\wp_aot_require_wpdb( $wpdb )->prepare(
+ 			"SELECT ID, post_parent, post_title
+ 			FROM $wpdb->posts
+ 			WHERE post_parent = %d AND post_type = 'page'
+@@ -963,6 +1050,7 @@
+ 	} else {
+ 		return false;
+ 	}
++	return null;
+ }
+ 
+ /**
+@@ -975,11 +1063,11 @@
+  * @param array  $editable_roles Array of roles to include in the dropdown. Defaults to all
+  *                               roles the current user is allowed to edit.
+  */
+-function wp_dropdown_roles( $selected = '', $editable_roles = null ) {
++function wp_dropdown_roles( mixed $selected = '', mixed $editable_roles = null ): mixed {
+ 	$r = '';
+ 
+ 	if ( null === $editable_roles ) {
+-		$editable_roles = array_reverse( get_editable_roles() );
++		$editable_roles = \wp_aot_array_reverse( get_editable_roles() );
+ 	}
+ 
+ 	foreach ( $editable_roles as $role => $details ) {
+@@ -993,6 +1081,7 @@
+ 	}
+ 
+ 	echo $r;
++	return null;
+ }
+ 
+ /**
+@@ -1002,7 +1091,7 @@
+  *
+  * @param string $action The action attribute for the form.
+  */
+-function wp_import_upload_form( $action ) {
++function wp_import_upload_form( mixed $action ): mixed {
+ 
+ 	/**
+ 	 * Filters the maximum allowed upload size for import files.
+@@ -1027,25 +1116,31 @@
  			)
  		);
  	else :
@@ -447,9 +758,166 @@
 +echo '</form>
 +		';
  	endif;
++	return null;
  }
  
-@@ -1547,10 +1626,10 @@
+ /**
+@@ -1079,7 +1174,7 @@
+  *                                              of the box array (which is the second parameter passed
+  *                                              to your callback). Default null.
+  */
+-function add_meta_box( $id, $title, $callback, $screen = null, $context = 'advanced', $priority = 'default', $callback_args = null ) {
++function add_meta_box( mixed $id, mixed $title, mixed $callback, mixed $screen = null, mixed $context = 'advanced', mixed $priority = 'default', mixed $callback_args = null ): mixed {
+ 	global $wp_meta_boxes;
+ 
+ 	if ( empty( $screen ) ) {
+@@ -1093,7 +1188,7 @@
+ 	}
+ 
+ 	if ( ! isset( $screen->id ) ) {
+-		return;
++		return null;
+ 	}
+ 
+ 	$page = $screen->id;
+@@ -1118,7 +1213,7 @@
+ 			if ( ( 'core' === $priority || 'sorted' === $priority )
+ 				&& false === $wp_meta_boxes[ $page ][ $a_context ][ $a_priority ][ $id ]
+ 			) {
+-				return;
++				return null;
+ 			}
+ 
+ 			// If a core box was previously added by a plugin, don't add.
+@@ -1131,7 +1226,7 @@
+ 					$wp_meta_boxes[ $page ][ $a_context ]['core'][ $id ] = $wp_meta_boxes[ $page ][ $a_context ]['default'][ $id ];
+ 					unset( $wp_meta_boxes[ $page ][ $a_context ]['default'][ $id ] );
+ 				}
+-				return;
++				return null;
+ 			}
+ 
+ 			// If no priority given and ID already present, use existing priority.
+@@ -1168,6 +1263,7 @@
+ 		'callback' => $callback,
+ 		'args'     => $callback_args,
+ 	);
++	return null;
+ }
+ 
+ 
+@@ -1187,7 +1283,7 @@
+  *     @type array    $args         Extra meta box arguments.
+  * }
+  */
+-function do_block_editor_incompatible_meta_box( $data_object, $box ) {
++function do_block_editor_incompatible_meta_box( mixed $data_object, mixed $box ): mixed {
+ 	$plugin  = _get_plugin_from_callback( $box['old_callback'] );
+ 	$plugins = get_plugins();
+ 	echo '<p>';
+@@ -1236,6 +1332,7 @@
+ 		printf( __( 'Please open the <a href="%s">classic editor</a> to use this meta box.' ), esc_url( $edit_url ) );
+ 		echo '</p>';
+ 	}
++	return null;
+ }
+ 
+ /**
+@@ -1248,14 +1345,14 @@
+  * @param callable $callback The callback function to check.
+  * @return array|null The plugin that the callback belongs to, or null if it doesn't belong to a plugin.
+  */
+-function _get_plugin_from_callback( $callback ) {
++function _get_plugin_from_callback( mixed $callback ): mixed {
+ 	try {
+ 		if ( is_array( $callback ) ) {
+-			$reflection = new ReflectionMethod( $callback[0], $callback[1] );
++			$reflection = \wp_aot_native_new('ReflectionMethod', array( $callback[0], $callback[1] ));
+ 		} elseif ( is_string( $callback ) && str_contains( $callback, '::' ) ) {
+-			$reflection = new ReflectionMethod( $callback );
++			$reflection = \wp_aot_native_new('ReflectionMethod', array( $callback ));
+ 		} else {
+-			$reflection = new ReflectionFunction( $callback );
++			$reflection = \wp_aot_native_new('ReflectionFunction', array( $callback ));
+ 		}
+ 	} catch ( ReflectionException $exception ) {
+ 		// We could not properly reflect on the callable, so we abort here.
+@@ -1270,8 +1367,8 @@
+ 		$plugin_dir = wp_normalize_path( WP_PLUGIN_DIR );
+ 
+ 		if ( str_starts_with( $filename, $plugin_dir ) ) {
+-			$filename = str_replace( $plugin_dir, '', $filename );
+-			$filename = preg_replace( '|^/([^/]*/).*$|', '\\1', $filename );
++			$filename = \wp_aot_str_replace( $plugin_dir, '', $filename );
++			$filename = \wp_aot_preg_replace( '|^/([^/]*/).*$|', '\\1', $filename );
+ 
+ 			$plugins = get_plugins();
+ 
+@@ -1283,6 +1380,7 @@
+ 		}
+ 	}
+ 
++	return null;
+ 	return null;
+ }
+ 
+@@ -1303,9 +1401,10 @@
+  *                                      for example a `WP_Post` or `WP_Comment` object.
+  * @return int Number of meta_boxes.
+  */
+-function do_meta_boxes( $screen, $context, $data_object ) {
++function do_meta_boxes( mixed $screen, mixed $context, mixed $data_object ): mixed {
+ 	global $wp_meta_boxes;
+-	static $already_sorted = false;
++	static $already_sorted_aot_cell = new \WordPressStaticFalseCell();
++	$already_sorted =& $already_sorted_aot_cell->value;
+ 
+ 	if ( empty( $screen ) ) {
+ 		$screen = get_current_screen();
+@@ -1463,6 +1562,7 @@
+ 	echo '</div>';
+ 
+ 	return $i;
++	return null;
+ }
+ 
+ /**
+@@ -1483,7 +1583,7 @@
+  *                                        include 'normal' and 'side'. Menus meta boxes (accordion sections)
+  *                                        all use the 'side' context.
+  */
+-function remove_meta_box( $id, $screen, $context ) {
++function remove_meta_box( mixed $id, mixed $screen, mixed $context ): mixed {
+ 	global $wp_meta_boxes;
+ 
+ 	if ( empty( $screen ) ) {
+@@ -1497,7 +1597,7 @@
+ 	}
+ 
+ 	if ( ! isset( $screen->id ) ) {
+-		return;
++		return null;
+ 	}
+ 
+ 	$page = $screen->id;
+@@ -1515,6 +1615,7 @@
+ 	foreach ( array( 'high', 'core', 'default', 'low' ) as $priority ) {
+ 		$wp_meta_boxes[ $page ][ $context ][ $priority ][ $id ] = false;
+ 	}
++	return null;
+ }
+ 
+ /**
+@@ -1533,7 +1634,7 @@
+  * @param mixed         $data_object Gets passed to the section callback function as the first parameter.
+  * @return int Number of meta boxes as accordion sections.
+  */
+-function do_accordion_sections( $screen, $context, $data_object ) {
++function do_accordion_sections( mixed $screen, mixed $context, mixed $data_object ): mixed {
+ 	global $wp_meta_boxes;
+ 
+ 	wp_enqueue_script( 'accordion' );
+@@ -1547,10 +1648,10 @@
  	$page = $screen->id;
  
  	$hidden = get_hidden_meta_boxes( $screen );
@@ -463,7 +931,7 @@
  	$i          = 0;
  	$first_open = false;
  
-@@ -1572,31 +1651,49 @@
+@@ -1572,32 +1673,51 @@
  						$open_class    = 'open';
  						$aria_expanded = 'true';
  					}
@@ -523,14 +991,167 @@
 -	<?php
 +	';
  	return $i;
++	return null;
  }
  
-@@ -2028,43 +2125,52 @@
+ /**
+@@ -1631,7 +1751,7 @@
+  *     @type string $section_class  The class name to use for the section. Default empty.
+  * }
+  */
+-function add_settings_section( $id, $title, $callback, $page, $args = array() ) {
++function add_settings_section( mixed $id, mixed $title, mixed $callback, mixed $page, mixed $args = array() ): mixed {
+ 	global $wp_settings_sections;
+ 
+ 	$defaults = array(
+@@ -1672,6 +1792,7 @@
+ 	}
+ 
+ 	$wp_settings_sections[ $page ][ $id ] = $section;
++	return null;
+ }
+ 
+ /**
+@@ -1709,7 +1830,7 @@
+  *                             field is output.
+  * }
+  */
+-function add_settings_field( $id, $title, $callback, $page, $section = 'default', $args = array() ) {
++function add_settings_field( mixed $id, mixed $title, mixed $callback, mixed $page, mixed $section = 'default', mixed $args = array() ): mixed {
+ 	global $wp_settings_fields;
+ 
+ 	if ( 'misc' === $page ) {
+@@ -1744,6 +1865,7 @@
+ 		'callback' => $callback,
+ 		'args'     => $args,
+ 	);
++	return null;
+ }
+ 
+ /**
+@@ -1760,11 +1882,11 @@
+  *
+  * @param string $page The slug name of the page whose settings sections you want to output.
+  */
+-function do_settings_sections( $page ) {
++function do_settings_sections( mixed $page ): mixed {
+ 	global $wp_settings_sections, $wp_settings_fields;
+ 
+ 	if ( ! isset( $wp_settings_sections[ $page ] ) ) {
+-		return;
++		return null;
+ 	}
+ 
+ 	foreach ( (array) $wp_settings_sections[ $page ] as $section ) {
+@@ -1795,6 +1917,7 @@
+ 			echo wp_kses_post( $section['after_section'] );
+ 		}
+ 	}
++	return null;
+ }
+ 
+ /**
+@@ -1811,11 +1934,11 @@
+  * @param string $page Slug title of the admin page whose settings fields you want to show.
+  * @param string $section Slug title of the settings section whose fields you want to show.
+  */
+-function do_settings_fields( $page, $section ) {
++function do_settings_fields( mixed $page, mixed $section ): mixed {
+ 	global $wp_settings_fields;
+ 
+ 	if ( ! isset( $wp_settings_fields[ $page ][ $section ] ) ) {
+-		return;
++		return null;
+ 	}
+ 
+ 	foreach ( (array) $wp_settings_fields[ $page ][ $section ] as $field ) {
+@@ -1838,6 +1961,7 @@
+ 		echo '</td>';
+ 		echo '</tr>';
+ 	}
++	return null;
+ }
+ 
+ /**
+@@ -1865,7 +1989,7 @@
+  * @param string $type    Optional. Message type, controls HTML class. Possible values include 'error',
+  *                        'success', 'warning', 'info'. Default 'error'.
+  */
+-function add_settings_error( $setting, $code, $message, $type = 'error' ) {
++function add_settings_error( mixed $setting, mixed $code, mixed $message, mixed $type = 'error' ): mixed {
+ 	global $wp_settings_errors;
+ 
+ 	$wp_settings_errors[] = array(
+@@ -1874,6 +1998,7 @@
+ 		'message' => $message,
+ 		'type'    => $type,
+ 	);
++	return null;
+ }
+ 
+ /**
+@@ -1912,7 +2037,7 @@
+  *     }
+  * }
+  */
+-function get_settings_errors( $setting = '', $sanitize = false ) {
++function get_settings_errors( mixed $setting = '', mixed $sanitize = false ): mixed {
+ 	global $wp_settings_errors;
+ 
+ 	/*
+@@ -1926,7 +2051,7 @@
+ 
+ 	// If settings were passed back from options.php then use them.
+ 	if ( isset( $_GET['settings-updated'] ) && $_GET['settings-updated'] && get_transient( 'settings_errors' ) ) {
+-		$wp_settings_errors = array_merge( (array) $wp_settings_errors, get_transient( 'settings_errors' ) );
++		$wp_settings_errors = \wp_aot_array_merge(array( (array) $wp_settings_errors, get_transient( 'settings_errors' ) ));
+ 		delete_transient( 'settings_errors' );
+ 	}
+ 
+@@ -1949,6 +2074,7 @@
+ 	}
+ 
+ 	return $wp_settings_errors;
++	return null;
+ }
+ 
+ /**
+@@ -1980,16 +2106,16 @@
+  * @param bool   $hide_on_update If set to true errors will not be shown if the settings page has
+  *                               already been submitted.
+  */
+-function settings_errors( $setting = '', $sanitize = false, $hide_on_update = false ) {
++function settings_errors( mixed $setting = '', mixed $sanitize = false, mixed $hide_on_update = false ): mixed {
+ 
+ 	if ( $hide_on_update && ! empty( $_GET['settings-updated'] ) ) {
+-		return;
++		return null;
+ 	}
+ 
+ 	$settings_errors = get_settings_errors( $setting, $sanitize );
+ 
+ 	if ( empty( $settings_errors ) ) {
+-		return;
++		return null;
+ 	}
+ 
+ 	$output = '';
+@@ -2018,6 +2144,7 @@
+ 	}
+ 
+ 	echo $output;
++	return null;
+ }
+ 
+ /**
+@@ -2027,44 +2154,54 @@
+  *
   * @param string $found_action Optional. The value of the 'found_action' input field. Default empty string.
   */
- function find_posts_div( $found_action = '' ) {
+-function find_posts_div( $found_action = '' ) {
 -	?>
 -	<div id="find-posts" class="find-box" style="display: none;">
++function find_posts_div( mixed $found_action = '' ): mixed {
 +	;
 +echo '	<div id="find-posts" class="find-box" style="display: none;">
  		<div id="find-posts-head" class="find-box-head">
@@ -595,10 +1216,64 @@
  	</div>
 -	<?php
 +	';
++	return null;
  }
  
  /**
-@@ -2136,23 +2242,43 @@
+@@ -2074,11 +2211,12 @@
+  *
+  * @since 2.7.0
+  */
+-function the_post_password() {
++function the_post_password(): mixed {
+ 	$post = get_post();
+ 	if ( isset( $post->post_password ) ) {
+ 		echo esc_attr( $post->post_password );
+ 	}
++	return null;
+ }
+ 
+ /**
+@@ -2092,12 +2230,13 @@
+  * @param int|WP_Post $post Optional. Post ID or WP_Post object. Default is global $post.
+  * @return string The post title if set.
+  */
+-function _draft_or_post_title( $post = 0 ) {
++function _draft_or_post_title( mixed $post = 0 ): mixed {
+ 	$title = get_the_title( $post );
+ 	if ( empty( $title ) ) {
+ 		$title = __( '(no title)' );
+ 	}
+ 	return esc_html( $title );
++	return null;
+ }
+ 
+ /**
+@@ -2108,8 +2247,9 @@
+  *
+  * @since 2.7.0
+  */
+-function _admin_search_query() {
++function _admin_search_query(): mixed {
+ 	echo isset( $_REQUEST['s'] ) ? esc_attr( wp_unslash( $_REQUEST['s'] ) ) : '';
++	return null;
+ }
+ 
+ /**
+@@ -2125,34 +2265,54 @@
+  * @param string $title      Optional. Title of the Iframe page. Default empty.
+  * @param bool   $deprecated Not used.
+  */
+-function iframe_header( $title = '', $deprecated = false ) {
++function iframe_header( mixed $title = '', mixed $deprecated = false ): mixed {
+ 	global $hook_suffix, $admin_body_class, $body_id, $wp_locale;
+ 
+ 	show_admin_bar( false );
+ 
+-	$admin_body_class = preg_replace( '/[^a-z0-9_-]+/i', '-', $hook_suffix );
++	$admin_body_class = \wp_aot_preg_replace( '/[^a-z0-9_-]+/i', '-', $hook_suffix );
+ 
+ 	$current_screen = get_current_screen();
  
  	header( 'Content-Type: ' . get_option( 'html_type' ) . '; charset=' . get_option( 'blog_charset' ) );
  	_wp_admin_html_begin();
@@ -656,7 +1331,15 @@
  	/** This action is documented in wp-admin/admin-header.php */
  	do_action( 'admin_enqueue_scripts', $hook_suffix );
  
-@@ -2181,24 +2307,28 @@
+@@ -2174,31 +2334,36 @@
+ 	/** This action is documented in wp-admin/admin-header.php */
+ 	do_action( 'admin_head' );
+ 
+-	$admin_body_class .= ' locale-' . sanitize_html_class( strtolower( str_replace( '_', '-', get_user_locale() ) ) );
++	$admin_body_class .= ' locale-' . sanitize_html_class( strtolower( \wp_aot_str_replace( '_', '-', get_user_locale() ) ) );
+ 	$admin_body_class .= ' admin-color-' . sanitize_html_class( get_user_option( 'admin_color' ), 'modern' );
+ 
+ 	if ( is_rtl() ) {
  		$admin_body_class .= ' rtl';
  	}
  
@@ -689,10 +1372,20 @@
  </script>
 -	<?php
 +	';
++	return null;
  }
  
  /**
-@@ -2217,9 +2347,9 @@
+@@ -2206,7 +2371,7 @@
+  *
+  * @since 2.7.0
+  */
+-function iframe_footer() {
++function iframe_footer(): mixed {
+ 	/*
+ 	 * We're going to hide any footer output on iFrame pages,
+ 	 * but run the hooks anyway since they output JavaScript
+@@ -2217,9 +2382,9 @@
  	 * @global string $hook_suffix
  	 */
  	global $hook_suffix;
@@ -705,7 +1398,7 @@
  	/** This action is documented in wp-admin/admin-footer.php */
  	do_action( 'admin_footer', $hook_suffix );
  
-@@ -2228,12 +2358,12 @@
+@@ -2228,12 +2393,13 @@
  
  	/** This action is documented in wp-admin/admin-footer.php */
  	do_action( 'admin_print_footer_scripts' );
@@ -719,16 +1412,90 @@
  </html>
 -	<?php
 +	';
++	return null;
  }
  
  /**
-@@ -2497,16 +2627,18 @@
+@@ -2249,7 +2415,7 @@
+  *                         Default true.
+  * @return string Post states string.
+  */
+-function _post_states( $post, $display = true ) {
++function _post_states( mixed $post, mixed $display = true ): mixed {
+ 	$post_states      = get_post_states( $post );
+ 	$post_states_html = '';
+ 
+@@ -2288,6 +2454,7 @@
+ 	}
+ 
+ 	return $post_states_html;
++	return null;
+ }
+ 
+ /**
+@@ -2298,7 +2465,7 @@
+  * @param WP_Post $post The post to retrieve states for.
+  * @return string[] Array of post state labels keyed by their state.
+  */
+-function get_post_states( $post ) {
++function get_post_states( mixed $post ): mixed {
+ 	$post_states = array();
+ 	if ( ! $post instanceof WP_Post ) {
+ 		return $post_states;
+@@ -2364,6 +2531,7 @@
+ 	 * @param WP_Post                $post        The current post object.
+ 	 */
+ 	return apply_filters( 'display_post_states', $post_states, $post );
++	return null;
+ }
+ 
+ /**
+@@ -2377,7 +2545,7 @@
+  *                         Default true.
+  * @return string Media states string.
+  */
+-function _media_states( $post, $display = true ) {
++function _media_states( mixed $post, mixed $display = true ): mixed {
+ 	$media_states        = get_media_states( $post );
+ 	$media_states_string = '';
+ 
+@@ -2403,6 +2571,7 @@
+ 	}
+ 
+ 	return $media_states_string;
++	return null;
+ }
+ 
+ /**
+@@ -2413,8 +2582,9 @@
+  * @param WP_Post $post The attachment to retrieve states for.
+  * @return string[] Array of media state labels keyed by their state.
+  */
+-function get_media_states( $post ) {
+-	static $header_images;
++function get_media_states( mixed $post ): mixed {
++	static $header_images_aot_cell = new \WordPressStaticValueCell();
++	$header_images =& $header_images_aot_cell->value;
+ 
+ 	$media_states = array();
+ 	$stylesheet   = get_option( 'stylesheet' );
+@@ -2484,6 +2654,7 @@
+ 	 * @param WP_Post  $post         The current attachment object.
+ 	 */
+ 	return apply_filters( 'display_media_states', $media_states, $post );
++	return null;
+ }
+ 
+ /**
+@@ -2496,17 +2667,19 @@
+  *
   * @since 2.8.0
   */
- function compression_test() {
+-function compression_test() {
 -	?>
 -	<script>
 -	var compressionNonce = <?php echo wp_json_encode( wp_create_nonce( 'update_can_compress_scripts' ), JSON_HEX_TAG | JSON_UNESCAPED_SLASHES ); ?>;
++function compression_test(): mixed {
 +	;
 +echo '	<script>
 +	var compressionNonce = ';
@@ -745,7 +1512,7 @@
  			}
  
  			if (x) {
-@@ -2514,13 +2646,13 @@
+@@ -2514,13 +2687,13 @@
  					var r, h;
  					if ( x.readyState == 4 ) {
  						r = x.responseText.substr(0, 18);
@@ -762,7 +1529,7 @@
  			}
  		},
  
-@@ -2530,7 +2662,7 @@
+@@ -2530,7 +2703,7 @@
  
  			if ( 1 == test ) {
  				if ( h && ( h.match(/deflate/i) || h.match(/gzip/i) ) )
@@ -771,7 +1538,7 @@
  				else
  					this.get(2);
  
-@@ -2538,16 +2670,16 @@
+@@ -2538,16 +2711,17 @@
  			}
  
  			if ( 2 == test ) {
@@ -789,10 +1556,57 @@
  	</script>
 -	<?php
 +	';
++	return null;
  }
  
  /**
-@@ -2664,10 +2796,12 @@
+@@ -2572,8 +2746,9 @@
+  *                                       e.g. `id="search-submit"`, though the array format is generally preferred.
+  *                                       Default empty string.
+  */
+-function submit_button( $text = '', $type = 'primary', $name = 'submit', $wrap = true, $other_attributes = '' ) {
++function submit_button( mixed $text = '', mixed $type = 'primary', mixed $name = 'submit', mixed $wrap = true, mixed $other_attributes = '' ): mixed {
+ 	echo get_submit_button( $text, $type, $name, $wrap, $other_attributes );
++	return null;
+ }
+ 
+ /**
+@@ -2597,7 +2772,7 @@
+  *                                       Default empty string.
+  * @return string Submit button HTML.
+  */
+-function get_submit_button( $text = '', $type = 'primary large', $name = 'submit', $wrap = true, $other_attributes = '' ) {
++function get_submit_button( mixed $text = '', mixed $type = 'primary large', mixed $name = 'submit', mixed $wrap = true, mixed $other_attributes = '' ): mixed {
+ 	if ( ! is_array( $type ) ) {
+ 		$type = explode( ' ', $type );
+ 	}
+@@ -2614,7 +2789,7 @@
+ 	}
+ 
+ 	// Remove empty items, remove duplicate items, and finally build a string.
+-	$class = implode( ' ', array_unique( array_filter( $classes ) ) );
++	$class = implode( ' ', \wp_aot_array_unique( \wp_aot_array_filter( $classes ) ) );
+ 
+ 	$text = $text ? $text : __( 'Save Changes' );
+ 
+@@ -2646,6 +2821,7 @@
+ 	}
+ 
+ 	return $button;
++	return null;
+ }
+ 
+ /**
+@@ -2655,7 +2831,7 @@
+  *
+  * @global bool $is_IE
+  */
+-function _wp_admin_html_begin() {
++function _wp_admin_html_begin(): mixed {
+ 	global $is_IE;
+ 
+ 	$admin_html_class = ( is_admin_bar_showing() ) ? 'wp-toolbar' : '';
+@@ -2664,10 +2840,12 @@
  		header( 'X-UA-Compatible: IE=edge' );
  	}
  
@@ -809,7 +1623,7 @@
  	/**
  	 * Fires inside the HTML tag in the admin header.
  	 *
-@@ -2676,11 +2810,15 @@
+@@ -2676,11 +2854,16 @@
  	do_action( 'admin_xml_ns' );
  
  	language_attributes();
@@ -826,6 +1640,100 @@
 +echo get_option( 'blog_charset' ); ;
 +echo '" />
 +	';
++	return null;
  }
  
  /**
+@@ -2691,7 +2874,7 @@
+  * @param string $hook_name The hook name (also known as the hook suffix) used to determine the screen.
+  * @return WP_Screen Screen object.
+  */
+-function convert_to_screen( $hook_name ) {
++function convert_to_screen( mixed $hook_name ): mixed {
+ 	if ( ! class_exists( 'WP_Screen' ) ) {
+ 		_doing_it_wrong(
+ 			'convert_to_screen(), add_meta_box()',
+@@ -2711,6 +2894,7 @@
+ 	}
+ 
+ 	return WP_Screen::get( $hook_name );
++	return null;
+ }
+ 
+ /**
+@@ -2719,7 +2903,7 @@
+  * @since 3.6.0
+  * @access private
+  */
+-function _local_storage_notice() {
++function _local_storage_notice(): mixed {
+ 	$local_storage_message  = '<p class="local-restore">';
+ 	$local_storage_message .= __( 'The backup of this post in your browser is different from the version below.' );
+ 	$local_storage_message .= '<button type="button" class="button restore-backup">' . __( 'Restore the backup' ) . '</button></p>';
+@@ -2736,6 +2920,7 @@
+ 			'paragraph_wrap'     => false,
+ 		)
+ 	);
++	return null;
+ }
+ 
+ /**
+@@ -2761,7 +2946,7 @@
+  * }
+  * @return string Star rating HTML.
+  */
+-function wp_star_rating( $args = array() ) {
++function wp_star_rating( mixed $args = array() ): mixed {
+ 	$defaults    = array(
+ 		'rating' => 0,
+ 		'type'   => 'rating',
+@@ -2771,7 +2956,7 @@
+ 	$parsed_args = wp_parse_args( $args, $defaults );
+ 
+ 	// Non-English decimal places when the $rating is coming from a string.
+-	$rating = (float) str_replace( ',', '.', $parsed_args['rating'] );
++	$rating = (float) \wp_aot_str_replace( ',', '.', $parsed_args['rating'] );
+ 
+ 	// Convert percentage to star rating, 0..5 in .5 increments.
+ 	if ( 'percent' === $parsed_args['type'] ) {
+@@ -2804,6 +2989,7 @@
+ 	}
+ 
+ 	return $output;
++	return null;
+ }
+ 
+ /**
+@@ -2812,7 +2998,7 @@
+  * @ignore
+  * @since 4.2.0
+  */
+-function _wp_posts_page_notice() {
++function _wp_posts_page_notice(): mixed {
+ 	wp_admin_notice(
+ 		__( 'You are currently editing the page that shows your latest posts.' ),
+ 		array(
+@@ -2820,6 +3006,7 @@
+ 			'additional_classes' => array( 'inline' ),
+ 		)
+ 	);
++	return null;
+ }
+ 
+ /**
+@@ -2828,7 +3015,7 @@
+  * @ignore
+  * @since 5.8.0
+  */
+-function _wp_block_editor_posts_page_notice() {
++function _wp_block_editor_posts_page_notice(): mixed {
+ 	wp_add_inline_script(
+ 		'wp-notices',
+ 		sprintf(
+@@ -2837,4 +3024,5 @@
+ 		),
+ 		'after'
+ 	);
+-}
++	return null;
++}

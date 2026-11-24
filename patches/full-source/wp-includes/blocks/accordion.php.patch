@@ -1,0 +1,34 @@
+--- a/wp-includes/blocks/accordion.php
++++ b/wp-includes/blocks/accordion.php
+@@ -10,7 +10,7 @@
+  *
+  * @return string Returns the updated markup.
+  */
+-function render_block_core_accordion( $attributes, $content ) {
++function render_block_core_accordion( mixed $attributes, mixed $content ): mixed {
+ 	if ( ! $content ) {
+ 		return $content;
+ 	}
+@@ -27,6 +27,7 @@
+ 	}
+ 
+ 	return $content;
++	return null;
+ }
+ 
+ /**
+@@ -34,12 +35,13 @@
+  *
+  * @since 6.9.0
+  */
+-function register_block_core_accordion() {
++function register_block_core_accordion(): mixed {
+ 	register_block_type_from_metadata(
+ 		__DIR__ . '/accordion',
+ 		array(
+ 			'render_callback' => 'render_block_core_accordion',
+ 		)
+ 	);
++	return null;
+ }
+ add_action( 'init', 'register_block_core_accordion' );

@@ -1,0 +1,165 @@
+--- a/wp-includes/bookmark.php
++++ b/wp-includes/bookmark.php
+@@ -21,12 +21,13 @@
+  * @param string       $filter   Optional. How to sanitize bookmark fields. Default 'raw'.
+  * @return array|object|null Type returned depends on $output value.
+  */
+-function get_bookmark( $bookmark, $output = OBJECT, $filter = 'raw' ) {
++function get_bookmark( mixed $bookmark, mixed $output = OBJECT, mixed $filter = 'raw' ): mixed {
+ 	global $wpdb;
+ 
+ 	if ( empty( $bookmark ) ) {
+-		if ( isset( $GLOBALS['link'] ) ) {
+-			$_bookmark = & $GLOBALS['link'];
++		if ( \wp_aot_bookmark_link_is_set() ) {
++			global $link;
++			$_bookmark = &$link;
+ 		} else {
+ 			$_bookmark = null;
+ 		}
+@@ -34,14 +35,15 @@
+ 		wp_cache_add( $bookmark->link_id, $bookmark, 'bookmark' );
+ 		$_bookmark = $bookmark;
+ 	} else {
+-		if ( isset( $GLOBALS['link'] ) && ( $GLOBALS['link']->link_id === $bookmark ) ) {
+-			$_bookmark = & $GLOBALS['link'];
++		if ( \wp_aot_bookmark_link_is_set() && ( \wp_aot_bookmark_link_value()->link_id === $bookmark ) ) {
++			global $link;
++			$_bookmark = &$link;
+ 		} else {
+ 			$_bookmark = wp_cache_get( $bookmark, 'bookmark' );
+ 			if ( ! $_bookmark ) {
+-				$_bookmark = $wpdb->get_row( $wpdb->prepare( "SELECT * FROM $wpdb->links WHERE link_id = %d LIMIT 1", $bookmark ) );
++				$_bookmark = \wp_aot_require_wpdb( $wpdb )->get_row( \wp_aot_require_wpdb( $wpdb )->prepare( "SELECT * FROM $wpdb->links WHERE link_id = %d LIMIT 1", $bookmark ) );
+ 				if ( $_bookmark ) {
+-					$_bookmark->link_category = array_unique( wp_get_object_terms( $_bookmark->link_id, 'link_category', array( 'fields' => 'ids' ) ) );
++					$_bookmark->link_category = \wp_aot_array_unique( wp_get_object_terms( $_bookmark->link_id, 'link_category', array( 'fields' => 'ids' ) ) );
+ 					wp_cache_add( $_bookmark->link_id, $_bookmark, 'bookmark' );
+ 				}
+ 			}
+@@ -63,6 +65,7 @@
+ 	} else {
+ 		return $_bookmark;
+ 	}
++	return null;
+ }
+ 
+ /**
+@@ -75,7 +78,7 @@
+  * @param string $context  Optional. The context of how the field will be used. Default 'display'.
+  * @return string|WP_Error
+  */
+-function get_bookmark_field( $field, $bookmark, $context = 'display' ) {
++function get_bookmark_field( mixed $field, mixed $bookmark, mixed $context = 'display' ): mixed {
+ 	$bookmark = (int) $bookmark;
+ 	$bookmark = get_bookmark( $bookmark );
+ 
+@@ -92,6 +95,7 @@
+ 	}
+ 
+ 	return sanitize_bookmark_field( $field, $bookmark->$field, $bookmark->link_id, $context );
++	return null;
+ }
+ 
+ /**
+@@ -133,7 +137,7 @@
+  * }
+  * @return object[] List of bookmark row objects.
+  */
+-function get_bookmarks( $args = '' ) {
++function get_bookmarks( mixed $args = '' ): mixed {
+ 	global $wpdb;
+ 
+ 	$defaults = array(
+@@ -232,8 +236,8 @@
+ 
+ 	$search = '';
+ 	if ( ! empty( $parsed_args['search'] ) ) {
+-		$like   = '%' . $wpdb->esc_like( $parsed_args['search'] ) . '%';
+-		$search = $wpdb->prepare( ' AND ( (link_url LIKE %s) OR (link_name LIKE %s) OR (link_description LIKE %s) ) ', $like, $like, $like );
++		$like   = '%' . \wp_aot_require_wpdb( $wpdb )->esc_like( $parsed_args['search'] ) . '%';
++		$search = \wp_aot_require_wpdb( $wpdb )->prepare( ' AND ( (link_url LIKE %s) OR (link_name LIKE %s) OR (link_description LIKE %s) ) ', $like, $like, $like );
+ 	}
+ 
+ 	$category_query = '';
+@@ -311,7 +315,7 @@
+ 		$query .= ' LIMIT ' . absint( $parsed_args['limit'] );
+ 	}
+ 
+-	$results = $wpdb->get_results( $query );
++	$results = \wp_aot_require_wpdb( $wpdb )->get_results( $query );
+ 
+ 	if ( 'rand()' !== $orderby ) {
+ 		$cache[ $key ] = $results;
+@@ -320,6 +324,7 @@
+ 
+ 	/** This filter is documented in wp-includes/bookmark.php */
+ 	return apply_filters( 'get_bookmarks', $results, $parsed_args );
++	return null;
+ }
+ 
+ /**
+@@ -331,7 +336,7 @@
+  * @param string         $context  Optional. How to filter the fields. Default 'display'.
+  * @return stdClass|array Same type as $bookmark but with fields sanitized.
+  */
+-function sanitize_bookmark( $bookmark, $context = 'display' ) {
++function sanitize_bookmark( mixed $bookmark, mixed $context = 'display' ): mixed {
+ 	$fields = array(
+ 		'link_id',
+ 		'link_url',
+@@ -370,6 +375,7 @@
+ 	}
+ 
+ 	return $bookmark;
++	return null;
+ }
+ 
+ /**
+@@ -396,7 +402,7 @@
+  *                            'display', 'attribute', or 'js'. Default 'display'.
+  * @return mixed The filtered value.
+  */
+-function sanitize_bookmark_field( $field, $value, $bookmark_id, $context ) {
++function sanitize_bookmark_field( mixed $field, mixed $value, mixed $bookmark_id, mixed $context ): mixed {
+ 	$int_fields = array( 'link_id', 'link_rating' );
+ 	if ( in_array( $field, $int_fields, true ) ) {
+ 		$value = (int) $value;
+@@ -404,7 +410,7 @@
+ 
+ 	switch ( $field ) {
+ 		case 'link_category': // array( ints )
+-			$value = array_map( 'absint', (array) $value );
++			$value = \wp_aot_array_map( 'absint', (array) $value );
+ 			/*
+ 			 * We return here so that the categories aren't filtered.
+ 			 * The 'link_category' filter is for the name of a link category, not an array of a link's link categories.
+@@ -412,7 +418,7 @@
+ 			return $value;
+ 
+ 		case 'link_visible': // bool stored as Y|N
+-			$value = preg_replace( '/[^YNyn]/', '', $value );
++			$value = \wp_aot_preg_replace( '/[^YNyn]/', '', $value );
+ 			break;
+ 		case 'link_target': // "enum"
+ 			$targets = array( '_top', '_blank' );
+@@ -455,6 +461,7 @@
+ 	}
+ 
+ 	return $value;
++	return null;
+ }
+ 
+ /**
+@@ -464,8 +471,9 @@
+  *
+  * @param int $bookmark_id Bookmark ID.
+  */
+-function clean_bookmark_cache( $bookmark_id ) {
++function clean_bookmark_cache( mixed $bookmark_id ): mixed {
+ 	wp_cache_delete( $bookmark_id, 'bookmark' );
+ 	wp_cache_delete( 'get_bookmarks', 'bookmark' );
+ 	clean_object_term_cache( $bookmark_id, 'link' );
+-}
++	return null;
++}

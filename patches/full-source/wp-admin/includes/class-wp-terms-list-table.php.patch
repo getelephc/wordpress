@@ -1,11 +1,335 @@
 --- a/wp-admin/includes/class-wp-terms-list-table.php
 +++ b/wp-admin/includes/class-wp-terms-list-table.php
-@@ -678,31 +678,39 @@
- 		if ( ! current_user_can( $tax->cap->edit_terms ) ) {
- 			return;
+@@ -34,7 +34,7 @@
+ 	 *
+ 	 * @param array $args An associative array of arguments.
+ 	 */
+-	public function __construct( $args = array() ) {
++	public function __construct( mixed $args = array() ) {
+ 		global $post_type, $taxonomy, $action, $tax;
+ 
+ 		parent::__construct(
+@@ -68,13 +68,14 @@
+ 	/**
+ 	 * @return bool
+ 	 */
+-	public function ajax_user_can() {
++	public function ajax_user_can(): mixed {
+ 		return current_user_can( get_taxonomy( $this->screen->taxonomy )->cap->manage_terms );
+-	}
+-
+-	/**
+-	 */
+-	public function prepare_items() {
++		return null;
++	}
++
++	/**
++	 */
++	public function prepare_items(): mixed {
+ 		$taxonomy = $this->screen->taxonomy;
+ 
+ 		$tags_per_page = $this->get_items_per_page( "edit_{$taxonomy}_per_page" );
+@@ -151,18 +152,20 @@
+ 				'per_page'    => $tags_per_page,
+ 			)
+ 		);
+-	}
+-
+-	/**
+-	 */
+-	public function no_items() {
++		return null;
++	}
++
++	/**
++	 */
++	public function no_items(): mixed {
+ 		echo get_taxonomy( $this->screen->taxonomy )->labels->not_found;
++		return null;
+ 	}
+ 
+ 	/**
+ 	 * @return array
+ 	 */
+-	protected function get_bulk_actions() {
++	protected function get_bulk_actions(): mixed {
+ 		$actions = array();
+ 
+ 		if ( current_user_can( get_taxonomy( $this->screen->taxonomy )->cap->delete_terms ) ) {
+@@ -170,23 +173,25 @@
  		}
+ 
+ 		return $actions;
++		return null;
+ 	}
+ 
+ 	/**
+ 	 * @return string
+ 	 */
+-	public function current_action() {
++	public function current_action(): mixed {
+ 		if ( isset( $_REQUEST['action'] ) && isset( $_REQUEST['delete_tags'] ) && 'delete' === $_REQUEST['action'] ) {
+ 			return 'bulk-delete';
+ 		}
+ 
+ 		return parent::current_action();
++		return null;
+ 	}
+ 
+ 	/**
+ 	 * @return string[] Array of column titles keyed by their column name.
+ 	 */
+-	public function get_columns() {
++	public function get_columns(): mixed {
+ 		$columns = array(
+ 			'cb'          => '<input type="checkbox" />',
+ 			'name'        => _x( 'Name', 'term name' ),
+@@ -201,12 +206,13 @@
+ 		}
+ 
+ 		return $columns;
++		return null;
+ 	}
+ 
+ 	/**
+ 	 * @return array
+ 	 */
+-	protected function get_sortable_columns() {
++	protected function get_sortable_columns(): mixed {
+ 		$taxonomy = $this->screen->taxonomy;
+ 
+ 		if ( ! isset( $_GET['orderby'] ) && is_taxonomy_hierarchical( $taxonomy ) ) {
+@@ -222,11 +228,12 @@
+ 			'posts'       => array( 'count', false, _x( 'Count', 'Number/count of items' ), __( 'Table ordered by Posts Count.' ) ),
+ 			'links'       => array( 'count', false, __( 'Links' ), __( 'Table ordered by Links.' ) ),
+ 		);
+-	}
+-
+-	/**
+-	 */
+-	public function display_rows_or_placeholder() {
++		return null;
++	}
++
++	/**
++	 */
++	public function display_rows_or_placeholder(): mixed {
+ 		$taxonomy = $this->screen->taxonomy;
+ 
+ 		$number = $this->callback_args['number'];
+@@ -239,7 +246,7 @@
+ 			echo '<tr class="no-items"><td class="colspanchange" colspan="' . $this->get_column_count() . '">';
+ 			$this->no_items();
+ 			echo '</td></tr>';
+-			return;
++			return null;
+ 		}
+ 
+ 		if ( is_taxonomy_hierarchical( $taxonomy ) && ! isset( $this->callback_args['orderby'] ) ) {
+@@ -259,6 +266,7 @@
+ 				$this->single_row( $term );
+ 			}
+ 		}
++		return null;
+ 	}
+ 
+ 	/**
+@@ -271,7 +279,7 @@
+ 	 * @param int    $parent_term
+ 	 * @param int    $level
+ 	 */
+-	private function _rows( $taxonomy, $terms, &$children, $start, $per_page, &$count, $parent_term = 0, $level = 0 ) {
++	private function _rows( mixed $taxonomy, mixed $terms, mixed &$children, mixed $start, mixed $per_page, mixed &$count, mixed $parent_term = 0, mixed $level = 0 ): mixed {
+ 
+ 		$end = $start + $per_page;
+ 
+@@ -307,7 +315,7 @@
+ 
+ 				$num_parents = count( $my_parents );
+ 
+-				while ( $my_parent = array_pop( $my_parents ) ) {
++				while ( $my_parent = \wp_aot_array_pop( $my_parents ) ) {
+ 					echo "\t";
+ 					$this->single_row( $my_parent, $level - $num_parents );
+ 					--$num_parents;
+@@ -327,6 +335,7 @@
+ 				$this->_rows( $taxonomy, $terms, $children, $start, $per_page, $count, $term->term_id, $level + 1 );
+ 			}
+ 		}
++		return null;
+ 	}
+ 
+ 	/**
+@@ -335,7 +344,7 @@
+ 	 * @param WP_Term $tag   Term object.
+ 	 * @param int     $level
+ 	 */
+-	public function single_row( $tag, $level = 0 ) {
++	public function single_row( mixed $tag, mixed $level = 0, mixed $wp_aot_third = null, mixed $wp_aot_fourth = null ): mixed {
+ 		global $taxonomy;
+ 		$tag = sanitize_term( $tag, $taxonomy );
+ 
+@@ -351,6 +360,7 @@
+ 		echo '<tr id="tag-' . $tag->term_id . '" class="' . $level . '">';
+ 		$this->single_row_columns( $tag );
+ 		echo '</tr>';
++		return null;
+ 	}
+ 
+ 	/**
+@@ -359,7 +369,7 @@
+ 	 * @param WP_Term $item Term object.
+ 	 * @return string
+ 	 */
+-	public function column_cb( $item ) {
++	public function column_cb( mixed $item ): mixed {
+ 		// Restores the more descriptive, specific name for use within this method.
+ 		$tag = $item;
+ 
+@@ -374,13 +384,14 @@
+ 		}
+ 
+ 		return '&nbsp;';
++		return null;
+ 	}
+ 
+ 	/**
+ 	 * @param WP_Term $tag Term object.
+ 	 * @return string
+ 	 */
+-	public function column_name( $tag ) {
++	public function column_name( mixed $tag ): mixed {
+ 		$taxonomy = $this->screen->taxonomy;
+ 
+ 		$pad = str_repeat( '&#8212; ', max( 0, $this->level ) );
+@@ -437,6 +448,7 @@
+ 		}
+ 
+ 		return $output;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -446,8 +458,9 @@
+ 	 *
+ 	 * @return string Name of the default primary column, in this case, 'name'.
+ 	 */
+-	protected function get_default_primary_column_name() {
++	protected function get_default_primary_column_name(): mixed {
+ 		return 'name';
++		return null;
+ 	}
+ 
+ 	/**
+@@ -462,7 +475,7 @@
+ 	 * @return string Row actions output for terms, or an empty string
+ 	 *                if the current column is not the primary column.
+ 	 */
+-	protected function handle_row_actions( $item, $column_name, $primary ) {
++	protected function handle_row_actions( mixed $item, mixed $column_name, mixed $primary ): mixed {
+ 		if ( $primary !== $column_name ) {
+ 			return '';
+ 		}
+@@ -562,13 +575,14 @@
+ 		$actions = apply_filters( "{$taxonomy}_row_actions", $actions, $tag );
+ 
+ 		return $this->row_actions( $actions );
++		return null;
+ 	}
+ 
+ 	/**
+ 	 * @param WP_Term $tag Term object.
+ 	 * @return string
+ 	 */
+-	public function column_description( $tag ) {
++	public function column_description( mixed $tag ): mixed {
+ 		if ( $tag->description ) {
+ 			return $tag->description;
+ 		} else {
+@@ -577,22 +591,24 @@
+ 				__( 'No description' ) .
+ 			'</span>';
+ 		}
++		return null;
+ 	}
+ 
+ 	/**
+ 	 * @param WP_Term $tag Term object.
+ 	 * @return string
+ 	 */
+-	public function column_slug( $tag ) {
++	public function column_slug( mixed $tag ): mixed {
+ 		/** This filter is documented in wp-admin/edit-tag-form.php */
+ 		return apply_filters( 'editable_slug', $tag->slug, $tag );
++		return null;
+ 	}
+ 
+ 	/**
+ 	 * @param WP_Term $tag Term object.
+ 	 * @return string
+ 	 */
+-	public function column_posts( $tag ) {
++	public function column_posts( mixed $tag ): mixed {
+ 		$count = number_format_i18n( $tag->count );
+ 
+ 		$tax = get_taxonomy( $this->screen->taxonomy );
+@@ -620,13 +636,14 @@
+ 		}
+ 
+ 		return "<a href='" . esc_url( add_query_arg( $args, 'edit.php' ) ) . "'>$count</a>";
++		return null;
+ 	}
+ 
+ 	/**
+ 	 * @param WP_Term $tag Term object.
+ 	 * @return string
+ 	 */
+-	public function column_links( $tag ) {
++	public function column_links( mixed $tag ): mixed {
+ 		$count = number_format_i18n( $tag->count );
+ 
+ 		if ( $count ) {
+@@ -634,6 +651,7 @@
+ 		}
+ 
+ 		return $count;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -643,7 +661,7 @@
+ 	 * @param string  $column_name Name of the column.
+ 	 * @return string
+ 	 */
+-	public function column_default( $item, $column_name ) {
++	public function column_default( mixed $item, mixed $column_name ): mixed {
+ 		// Restores the more descriptive, specific name for use within this method.
+ 		$tag = $item;
+ 
+@@ -665,6 +683,7 @@
+ 		 * @param int    $term_id     Term ID.
+ 		 */
+ 		return apply_filters( "manage_{$this->screen->taxonomy}_custom_column", '', $column_name, $tag->term_id );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -672,37 +691,45 @@
+ 	 *
+ 	 * @since 3.1.0
+ 	 */
+-	public function inline_edit() {
++	public function inline_edit(): mixed {
+ 		$tax = get_taxonomy( $this->screen->taxonomy );
+ 
+ 		if ( ! current_user_can( $tax->cap->edit_terms ) ) {
+-			return;
+-		}
 -		?>
 -
++			return null;
++		}
 +		;
 +echo '
  		<form method="get">
@@ -47,7 +371,7 @@
  			$core_columns = array(
  				'cb'          => true,
  				'description' => true,
-@@ -721,18 +729,27 @@
+@@ -721,18 +748,27 @@
  				/** This action is documented in wp-admin/includes/class-wp-posts-list-table.php */
  				do_action( 'quick_edit_custom_box', $column_name, 'edit-tags', $this->screen->taxonomy );
  			}
@@ -84,7 +408,7 @@
  				wp_admin_notice(
  					'<p class="error"></p>',
  					array(
-@@ -741,15 +758,15 @@
+@@ -741,15 +777,16 @@
  						'paragraph_wrap'     => false,
  					)
  				);
@@ -100,6 +424,18 @@
  		</form>
 -		<?php
 +		';
++		return null;
  	}
  
  	/**
+@@ -763,8 +800,9 @@
+ 	 * @param WP_Term $term Term object.
+ 	 * @return string The term name.
+ 	 */
+-	protected function get_primary_column_aria_label( $term ) {
++	protected function get_primary_column_aria_label( mixed $term ): mixed {
+ 		// Term names are already sanitized via `sanitize_term()` on creation and update.
+ 		return $term->name;
++		return null;
+ 	}
+ }

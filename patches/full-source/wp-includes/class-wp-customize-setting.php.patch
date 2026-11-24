@@ -1,15 +1,378 @@
 --- a/wp-includes/class-wp-customize-setting.php
 +++ b/wp-includes/class-wp-customize-setting.php
-@@ -858,7 +858,7 @@
+@@ -9,7 +9,7 @@
+ 
+ // Don't load directly.
+ if ( ! defined( 'ABSPATH' ) ) {
+-	exit;
++	\wp_aot_exit();
+ }
+ 
+ /**
+@@ -180,7 +180,7 @@
+ 	 *     @type bool            $dirty                Whether or not the setting is initially dirty when created.
+ 	 * }
+ 	 */
+-	public function __construct( $manager, $id, $args = array() ) {
++	public function __construct( mixed $manager, mixed $id, mixed $args = array() ) {
+ 		$keys = array_keys( get_object_vars( $this ) );
+ 		foreach ( $keys as $key ) {
+ 			if ( isset( $args[ $key ] ) ) {
+@@ -192,8 +192,8 @@
+ 		$this->id      = $id;
+ 
+ 		// Parse the ID for array keys.
+-		$this->id_data['keys'] = preg_split( '/\[/', str_replace( ']', '', $this->id ) );
+-		$this->id_data['base'] = array_shift( $this->id_data['keys'] );
++		$this->id_data['keys'] = \wp_aot_preg_split( '/\[/', \wp_aot_regex_text( \wp_aot_str_replace( ']', '', $this->id ) ) );
++		$this->id_data['base'] = \wp_aot_array_shift( $this->id_data['keys'] );
+ 
+ 		// Rebuild the ID.
+ 		$this->id = $this->id_data['base'];
+@@ -234,8 +234,9 @@
+ 	 *     @type array  $keys Keys for multidimensional array.
+ 	 * }
+ 	 */
+-	final public function id_data() {
++	final public function id_data(): mixed {
+ 		return $this->id_data;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -246,7 +247,7 @@
+ 	 *
+ 	 * @since 4.4.0
+ 	 */
+-	protected function aggregate_multidimensional() {
++	protected function aggregate_multidimensional(): mixed {
+ 		$id_base = $this->id_data['base'];
+ 		if ( ! isset( self::$aggregated_multidimensionals[ $this->type ] ) ) {
+ 			self::$aggregated_multidimensionals[ $this->type ] = array();
+@@ -264,6 +265,7 @@
+ 			add_action( "customize_post_value_set_{$this->id}", array( $this, '_clear_aggregated_multidimensional_preview_applied_flag' ), 9 );
+ 			$this->is_multidimensional_aggregated = true;
+ 		}
++		return null;
+ 	}
+ 
+ 	/**
+@@ -274,8 +276,9 @@
+ 	 * @since 4.5.0
+ 	 * @ignore
+ 	 */
+-	public static function reset_aggregated_multidimensionals() {
++	public static function reset_aggregated_multidimensionals(): mixed {
+ 		self::$aggregated_multidimensionals = array();
++		return null;
+ 	}
+ 
+ 	/**
+@@ -293,11 +296,12 @@
+ 	 *
+ 	 * @return bool If preview() has been called.
+ 	 */
+-	public function is_current_blog_previewed() {
++	public function is_current_blog_previewed(): mixed {
+ 		if ( ! isset( $this->_previewed_blog_id ) ) {
+ 			return false;
+ 		}
+ 		return ( get_current_blog_id() === $this->_previewed_blog_id );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -321,7 +325,7 @@
+ 	 *
+ 	 * @return bool False when preview short-circuits due no change needing to be previewed.
+ 	 */
+-	public function preview() {
++	public function preview(): mixed {
+ 		if ( ! isset( $this->_previewed_blog_id ) ) {
+ 			$this->_previewed_blog_id = get_current_blog_id();
+ 		}
+@@ -420,6 +424,7 @@
+ 		$this->is_previewed = true;
+ 
+ 		return true;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -434,8 +439,9 @@
+ 	 * @see WP_Customize_Manager::set_post_value()
+ 	 * @see WP_Customize_Setting::_multidimensional_preview_filter()
+ 	 */
+-	final public function _clear_aggregated_multidimensional_preview_applied_flag() {
++	final public function _clear_aggregated_multidimensional_preview_applied_flag(): mixed {
+ 		unset( self::$aggregated_multidimensionals[ $this->type ][ $this->id_data['base'] ]['preview_applied_instances'][ $this->id ] );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -450,7 +456,7 @@
+ 	 * @param mixed $original Old value.
+ 	 * @return mixed New or old value.
+ 	 */
+-	public function _preview_filter( $original ) {
++	public function _preview_filter( mixed $original ): mixed {
+ 		if ( ! $this->is_current_blog_previewed() ) {
+ 			return $original;
+ 		}
+@@ -468,6 +474,7 @@
+ 			$value = $this->default;
+ 		}
+ 		return $value;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -482,7 +489,7 @@
+ 	 * @param mixed $original Original root value.
+ 	 * @return mixed New or old value.
+ 	 */
+-	final public function _multidimensional_preview_filter( $original ) {
++	final public function _multidimensional_preview_filter( mixed $original ): mixed {
+ 		if ( ! $this->is_current_blog_previewed() ) {
+ 			return $original;
+ 		}
+@@ -511,6 +518,7 @@
+ 		}
+ 
+ 		return self::$aggregated_multidimensionals[ $this->type ][ $id_base ]['root_value'];
++		return null;
+ 	}
+ 
+ 	/**
+@@ -522,7 +530,7 @@
+ 	 * @return void|false Void on success, false if cap check fails
+ 	 *                    or value isn't set or is invalid.
+ 	 */
+-	final public function save() {
++	final public function save(): mixed {
+ 		$value = $this->post_value();
+ 
+ 		if ( ! $this->check_capabilities() || ! isset( $value ) ) {
+@@ -544,6 +552,7 @@
+ 		do_action( "customize_save_{$id_base}", $this );
+ 
+ 		$this->update( $value );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -556,8 +565,9 @@
+ 	 * @param mixed $default_value A default value which is used as a fallback. Default null.
+ 	 * @return mixed The default value on failure, otherwise the sanitized and validated value.
+ 	 */
+-	final public function post_value( $default_value = null ) {
++	final public function post_value( mixed $default_value = null ): mixed {
+ 		return $this->manager->post_value( $this, $default_value );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -568,7 +578,7 @@
+ 	 * @param string|array $value The value to sanitize.
+ 	 * @return string|array|null|WP_Error Sanitized value, or `null`/`WP_Error` if invalid.
+ 	 */
+-	public function sanitize( $value ) {
++	public function sanitize( mixed $value ): mixed {
+ 
+ 		/**
+ 		 * Filters a Customize setting value in un-slashed form.
+@@ -579,6 +589,7 @@
+ 		 * @param WP_Customize_Setting $setting WP_Customize_Setting instance.
+ 		 */
+ 		return apply_filters( "customize_sanitize_{$this->id}", $value, $this );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -591,7 +602,7 @@
+ 	 * @param mixed $value Value to validate.
+ 	 * @return true|WP_Error True if the input was validated, otherwise WP_Error.
+ 	 */
+-	public function validate( $value ) {
++	public function validate( mixed $value ): mixed {
+ 		if ( is_wp_error( $value ) ) {
+ 			return $value;
+ 		}
+@@ -620,6 +631,7 @@
+ 			$validity = true;
+ 		}
+ 		return $validity;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -630,7 +642,7 @@
+ 	 * @param mixed $default_value Value to return if root does not exist.
+ 	 * @return mixed
+ 	 */
+-	protected function get_root_value( $default_value = null ) {
++	protected function get_root_value( mixed $default_value = null ): mixed {
+ 		$id_base = $this->id_data['base'];
+ 		if ( 'option' === $this->type ) {
+ 			return get_option( $id_base, $default_value );
+@@ -644,6 +656,7 @@
+ 			 */
+ 			return $default_value;
+ 		}
++		return null;
+ 	}
+ 
+ 	/**
+@@ -654,7 +667,7 @@
+ 	 * @param mixed $value Value to set as root of multidimensional setting.
+ 	 * @return bool Whether the multidimensional root was updated successfully.
+ 	 */
+-	protected function set_root_value( $value ) {
++	protected function set_root_value( mixed $value ): mixed {
+ 		$id_base = $this->id_data['base'];
+ 		if ( 'option' === $this->type ) {
+ 			$autoload = true;
+@@ -673,6 +686,7 @@
+ 			 */
+ 			return false;
+ 		}
++		return null;
+ 	}
+ 
+ 	/**
+@@ -683,7 +697,7 @@
+ 	 * @param mixed $value The value to update.
+ 	 * @return bool The result of saving the value.
+ 	 */
+-	protected function update( $value ) {
++	protected function update( mixed $value ): mixed {
+ 		$id_base = $this->id_data['base'];
+ 		if ( 'option' === $this->type || 'theme_mod' === $this->type ) {
+ 			if ( ! $this->is_multidimensional_aggregated ) {
+@@ -710,6 +724,7 @@
+ 
+ 			return (bool) has_action( "customize_update_{$this->type}" );
+ 		}
++		return null;
+ 	}
+ 
+ 	/**
+@@ -718,8 +733,9 @@
+ 	 * @since 3.4.0
+ 	 * @deprecated 4.4.0 Deprecated in favor of update() method.
+ 	 */
+-	protected function _update_theme_mod() {
++	protected function _update_theme_mod(): mixed {
+ 		_deprecated_function( __METHOD__, '4.4.0', __CLASS__ . '::update()' );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -728,8 +744,9 @@
+ 	 * @since 3.4.0
+ 	 * @deprecated 4.4.0 Deprecated in favor of update() method.
+ 	 */
+-	protected function _update_option() {
++	protected function _update_option(): mixed {
+ 		_deprecated_function( __METHOD__, '4.4.0', __CLASS__ . '::update()' );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -739,7 +756,7 @@
+ 	 *
+ 	 * @return mixed The value.
+ 	 */
+-	public function value() {
++	public function value(): mixed {
+ 		$id_base      = $this->id_data['base'];
+ 		$is_core_type = ( 'option' === $this->type || 'theme_mod' === $this->type );
+ 
+@@ -783,6 +800,7 @@
+ 			$value = $this->get_root_value( $this->default );
+ 		}
+ 		return $value;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -792,7 +810,7 @@
+ 	 *
+ 	 * @return mixed The requested escaped value.
+ 	 */
+-	public function js_value() {
++	public function js_value(): mixed {
+ 
+ 		/**
+ 		 * Filters a Customize setting value for use in JavaScript.
+@@ -807,10 +825,11 @@
+ 		$value = apply_filters( "customize_sanitize_js_{$this->id}", $this->value(), $this );
+ 
+ 		if ( is_string( $value ) ) {
+-			return html_entity_decode( $value, ENT_QUOTES, 'UTF-8' );
++			return \wp_aot_html_entity_decode( $value, ENT_QUOTES, 'UTF-8' );
+ 		}
+ 
+ 		return $value;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -820,13 +839,14 @@
+ 	 *
+ 	 * @return array Array of parameters passed to JavaScript.
+ 	 */
+-	public function json() {
++	public function json(): mixed {
+ 		return array(
+ 			'value'     => $this->js_value(),
+ 			'transport' => $this->transport,
+ 			'dirty'     => $this->dirty,
+ 			'type'      => $this->type,
+ 		);
++		return null;
+ 	}
+ 
+ 	/**
+@@ -836,16 +856,17 @@
+ 	 *
+ 	 * @return bool False if theme doesn't support the setting or user can't change setting, otherwise true.
+ 	 */
+-	final public function check_capabilities() {
++	final public function check_capabilities(): mixed {
+ 		if ( $this->capability && ! current_user_can( $this->capability ) ) {
+ 			return false;
+ 		}
+ 
+-		if ( $this->theme_supports && ! current_theme_supports( ...(array) $this->theme_supports ) ) {
++		if ( $this->theme_supports && ! call_user_func_array( 'current_theme_supports', (array) $this->theme_supports ) ) {
+ 			return false;
+ 		}
+ 
+ 		return true;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -858,7 +879,7 @@
  	 * @param bool  $create Default false.
  	 * @return array|null Keys are 'root', 'node', and 'key'.
  	 */
 -	final protected function multidimensional( &$root, $keys, $create = false ) {
-+	final protected function multidimensional( &$root, $keys, $create = false, $replacement = null ) {
++	final protected function multidimensional( mixed &$root, mixed $keys, mixed $create = false, mixed $replacement = null ): mixed {
  		if ( $create && empty( $root ) ) {
  			$root = array();
  		}
-@@ -896,9 +896,13 @@
+@@ -867,7 +888,7 @@
+ 			return null;
+ 		}
+ 
+-		$last = array_pop( $keys );
++		$last = \wp_aot_array_pop( $keys );
+ 		$node = &$root;
+ 
+ 		foreach ( $keys as $key ) {
+@@ -896,11 +917,16 @@
  			return null;
  		}
  
@@ -24,8 +387,19 @@
 +			'node' => $node,
  			'key'  => $last,
  		);
++		return null;
  	}
-@@ -920,7 +924,7 @@
+ 
+ 	/**
+@@ -913,20 +939,21 @@
+ 	 * @param mixed $value The value to update.
+ 	 * @return mixed
+ 	 */
+-	final protected function multidimensional_replace( $root, $keys, $value ) {
++	final protected function multidimensional_replace( mixed $root, mixed $keys, mixed $value ): mixed {
+ 		if ( ! isset( $value ) ) {
+ 			return $root;
+ 		} elseif ( empty( $keys ) ) { // If there are no keys, we're replacing the root.
  			return $value;
  		}
  
@@ -34,3 +408,67 @@
  
  		if ( isset( $result ) ) {
  			$result['node'][ $result['key'] ] = $value;
+ 		}
+ 
+ 		return $root;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -939,13 +966,14 @@
+ 	 * @param mixed $default_value A default value which is used as a fallback. Default null.
+ 	 * @return mixed The requested value or the default value.
+ 	 */
+-	final protected function multidimensional_get( $root, $keys, $default_value = null ) {
++	final protected function multidimensional_get( mixed $root, mixed $keys, mixed $default_value = null ): mixed {
+ 		if ( empty( $keys ) ) { // If there are no keys, test the root.
+ 			return $root ?? $default_value;
+ 		}
+ 
+ 		$result = $this->multidimensional( $root, $keys );
+ 		return isset( $result ) ? $result['node'][ $result['key'] ] : $default_value;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -957,33 +985,34 @@
+ 	 * @param array $keys
+ 	 * @return bool True if value is set, false if not.
+ 	 */
+-	final protected function multidimensional_isset( $root, $keys ) {
++	final protected function multidimensional_isset( mixed $root, mixed $keys ): mixed {
+ 		$result = $this->multidimensional_get( $root, $keys );
+ 		return isset( $result );
++		return null;
+ 	}
+ }
+ 
+ /**
+  * WP_Customize_Filter_Setting class.
+  */
+-require_once ABSPATH . WPINC . '/customize/class-wp-customize-filter-setting.php';
++require_once __DIR__ . '/customize/class-wp-customize-filter-setting.php';
+ 
+ /**
+  * WP_Customize_Header_Image_Setting class.
+  */
+-require_once ABSPATH . WPINC . '/customize/class-wp-customize-header-image-setting.php';
++require_once __DIR__ . '/customize/class-wp-customize-header-image-setting.php';
+ 
+ /**
+  * WP_Customize_Background_Image_Setting class.
+  */
+-require_once ABSPATH . WPINC . '/customize/class-wp-customize-background-image-setting.php';
++require_once __DIR__ . '/customize/class-wp-customize-background-image-setting.php';
+ 
+ /**
+  * WP_Customize_Nav_Menu_Item_Setting class.
+  */
+-require_once ABSPATH . WPINC . '/customize/class-wp-customize-nav-menu-item-setting.php';
++require_once __DIR__ . '/customize/class-wp-customize-nav-menu-item-setting.php';
+ 
+ /**
+  * WP_Customize_Nav_Menu_Setting class.
+  */
+-require_once ABSPATH . WPINC . '/customize/class-wp-customize-nav-menu-setting.php';
++require_once __DIR__ . '/customize/class-wp-customize-nav-menu-setting.php';

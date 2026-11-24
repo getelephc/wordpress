@@ -1,0 +1,37 @@
+--- a/wp-admin/includes/class-wp-list-table-compat.php
++++ b/wp-admin/includes/class-wp-list-table-compat.php
+@@ -25,7 +25,7 @@
+ 	 * @param string[]         $columns An array of columns with column IDs as the keys
+ 	 *                                  and translated column names as the values.
+ 	 */
+-	public function __construct( $screen, $columns = array() ) {
++	public function __construct( mixed $screen, mixed $columns = array() ) {
+ 		if ( is_string( $screen ) ) {
+ 			$screen = convert_to_screen( $screen );
+ 		}
+@@ -45,13 +45,14 @@
+ 	 *
+ 	 * @return array
+ 	 */
+-	protected function get_column_info() {
++	protected function get_column_info(): mixed {
+ 		$columns  = get_column_headers( $this->_screen );
+ 		$hidden   = get_hidden_columns( $this->_screen );
+ 		$sortable = array();
+ 		$primary  = $this->get_default_primary_column_name();
+ 
+ 		return array( $columns, $hidden, $sortable, $primary );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -61,7 +62,8 @@
+ 	 *
+ 	 * @return array
+ 	 */
+-	public function get_columns() {
++	public function get_columns(): mixed {
+ 		return $this->_columns;
++		return null;
+ 	}
+ }

@@ -1,6 +1,23 @@
 --- a/wp-includes/class-wp-http-requests-hooks.php
 +++ b/wp-includes/class-wp-http-requests-hooks.php
-@@ -55,7 +55,7 @@
+@@ -36,7 +36,7 @@
+ 	 * @param string $url     URL to request.
+ 	 * @param array  $request Request data in WP_Http format.
+ 	 */
+-	public function __construct( $url, $request ) {
++	public function __construct( mixed $url, mixed $request ) {
+ 		$this->url     = $url;
+ 		$this->request = $request;
+ 	}
+@@ -48,14 +48,14 @@
+ 	 * @param array  $parameters Parameters to pass to callbacks.
+ 	 * @return bool True if hooks were run, false if nothing was hooked.
+ 	 */
+-	public function dispatch( $hook, $parameters = array() ) {
++	public function dispatch( mixed $hook, mixed $parameters = array() ): mixed {
+ 		$result = parent::dispatch( $hook, $parameters );
+ 
+ 		// Handle back-compat actions.
  		switch ( $hook ) {
  			case 'curl.before_send':
  				/** This action is documented in wp-includes/class-wp-http-curl.php */
@@ -9,3 +26,14 @@
  				break;
  		}
  
+@@ -72,8 +72,9 @@
+ 		 * @param array $request Request data in WP_Http format.
+ 		 * @param string $url URL to request.
+ 		 */
+-		do_action_ref_array( "requests-{$hook}", $parameters, $this->request, $this->url ); // phpcs:ignore WordPress.NamingConventions.ValidHookName.UseUnderscores
++		do_action_ref_array( "requests-{$hook}", \wp_aot_array_input($parameters), $this->request, $this->url ); // phpcs:ignore WordPress.NamingConventions.ValidHookName.UseUnderscores
+ 
+ 		return $result;
++		return null;
+ 	}
+ }

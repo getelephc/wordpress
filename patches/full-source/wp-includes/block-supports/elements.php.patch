@@ -1,0 +1,53 @@
+--- a/wp-includes/block-supports/elements.php
++++ b/wp-includes/block-supports/elements.php
+@@ -28,7 +28,7 @@
+  * @param  array $options Per element type options e.g. whether to skip serialization.
+  * @return bool Whether the block needs an elements class name.
+  */
+-function wp_should_add_elements_class_name( $block, $options ) {
++function wp_should_add_elements_class_name( mixed $block, mixed $options ): mixed {
+ 	if ( ! isset( $block['attrs']['style']['elements'] ) ) {
+ 		return false;
+ 	}
+@@ -92,6 +92,7 @@
+ 	}
+ 
+ 	return false;
++	return null;
+ }
+ 
+ /**
+@@ -132,7 +133,7 @@
+  *     ...
+  * }
+  */
+-function wp_render_elements_support_styles( $parsed_block ) {
++function wp_render_elements_support_styles( mixed $parsed_block ): mixed {
+ 	/*
+ 	 * The generation of element styles and classname were moved to the
+ 	 * `render_block_data` filter in 6.6.0 to avoid filtered attributes
+@@ -252,6 +253,7 @@
+ 	}
+ 
+ 	return $parsed_block;
++	return null;
+ }
+ 
+ /**
+@@ -274,7 +276,7 @@
+  *     ...
+  * } $block
+  */
+-function wp_render_elements_class_name( $block_content, $block ) {
++function wp_render_elements_class_name( mixed $block_content, mixed $block ): mixed {
+ 	$class_name_attr   = $block['attrs']['className'] ?? null;
+ 	$class_name_prefix = 'wp-elements-';
+ 	if ( ! is_string( $class_name_attr ) || ! str_contains( $class_name_attr, $class_name_prefix ) ) {
+@@ -302,6 +304,7 @@
+ 	}
+ 
+ 	return $tags->get_updated_html();
++	return null;
+ }
+ 
+ add_filter( 'render_block', 'wp_render_elements_class_name', 10, 2 );

@@ -1,0 +1,119 @@
+--- a/wp-includes/php-ai-client/third-party/Http/Discovery/Psr17FactoryDiscovery.php
++++ b/wp-includes/php-ai-client/third-party/Http/Discovery/Psr17FactoryDiscovery.php
+@@ -17,7 +17,7 @@
+  */
+ final class Psr17FactoryDiscovery extends ClassDiscovery
+ {
+-    private static function createException($type, Exception $e)
++    private static function createException(mixed $type, Exception $e): RealNotFoundException
+     {
+         return new RealNotFoundException('No PSR-17 ' . $type . ' found. Install a package from this list: https://packagist.org/providers/psr/http-factory-implementation', 0, $e);
+     }
+@@ -26,7 +26,7 @@
+      *
+      * @throws RealNotFoundException
+      */
+-    public static function findRequestFactory()
++    public static function findRequestFactory(): mixed
+     {
+         try {
+             $messageFactory = static::findOneByType(RequestFactoryInterface::class);
+@@ -34,13 +34,14 @@
+             throw self::createException('request factory', $e);
+         }
+         return static::instantiateClass($messageFactory);
++    	return null;
+     }
+     /**
+      * @return ResponseFactoryInterface
+      *
+      * @throws RealNotFoundException
+      */
+-    public static function findResponseFactory()
++    public static function findResponseFactory(): mixed
+     {
+         try {
+             $messageFactory = static::findOneByType(ResponseFactoryInterface::class);
+@@ -48,13 +49,14 @@
+             throw self::createException('response factory', $e);
+         }
+         return static::instantiateClass($messageFactory);
++    	return null;
+     }
+     /**
+      * @return ServerRequestFactoryInterface
+      *
+      * @throws RealNotFoundException
+      */
+-    public static function findServerRequestFactory()
++    public static function findServerRequestFactory(): mixed
+     {
+         try {
+             $messageFactory = static::findOneByType(ServerRequestFactoryInterface::class);
+@@ -62,13 +64,14 @@
+             throw self::createException('server request factory', $e);
+         }
+         return static::instantiateClass($messageFactory);
++    	return null;
+     }
+     /**
+      * @return StreamFactoryInterface
+      *
+      * @throws RealNotFoundException
+      */
+-    public static function findStreamFactory()
++    public static function findStreamFactory(): mixed
+     {
+         try {
+             $messageFactory = static::findOneByType(StreamFactoryInterface::class);
+@@ -76,13 +79,14 @@
+             throw self::createException('stream factory', $e);
+         }
+         return static::instantiateClass($messageFactory);
++    	return null;
+     }
+     /**
+      * @return UploadedFileFactoryInterface
+      *
+      * @throws RealNotFoundException
+      */
+-    public static function findUploadedFileFactory()
++    public static function findUploadedFileFactory(): mixed
+     {
+         try {
+             $messageFactory = static::findOneByType(UploadedFileFactoryInterface::class);
+@@ -90,13 +94,14 @@
+             throw self::createException('uploaded file factory', $e);
+         }
+         return static::instantiateClass($messageFactory);
++    	return null;
+     }
+     /**
+      * @return UriFactoryInterface
+      *
+      * @throws RealNotFoundException
+      */
+-    public static function findUriFactory()
++    public static function findUriFactory(): mixed
+     {
+         try {
+             $messageFactory = static::findOneByType(UriFactoryInterface::class);
+@@ -104,6 +109,7 @@
+             throw self::createException('url factory', $e);
+         }
+         return static::instantiateClass($messageFactory);
++    	return null;
+     }
+     /**
+      * @return UriFactoryInterface
+@@ -112,8 +118,9 @@
+      *
+      * @deprecated This will be removed in 2.0. Consider using the findUriFactory() method.
+      */
+-    public static function findUrlFactory()
++    public static function findUrlFactory(): mixed
+     {
+         return static::findUriFactory();
++    	return null;
+     }
+ }

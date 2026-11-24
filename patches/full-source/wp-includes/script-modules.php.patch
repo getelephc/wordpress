@@ -1,6 +1,59 @@
 --- a/wp-includes/script-modules.php
 +++ b/wp-includes/script-modules.php
-@@ -175,7 +175,7 @@
+@@ -68,8 +68,9 @@
+  *     @type 'auto'|'low'|'high' $fetchpriority Fetch priority. Default 'auto'. Optional.
+  * }
+  */
+-function wp_register_script_module( string $id, string $src, array $deps = array(), $version = false, array $args = array() ) {
++function wp_register_script_module( string $id, string $src, array $deps = array(), mixed $version = false, array $args = array() ): mixed {
+ 	wp_script_modules()->register( $id, $src, $deps, $version, $args );
++	return null;
+ }
+ 
+ /**
+@@ -112,8 +113,9 @@
+  *     @type 'auto'|'low'|'high' $fetchpriority Fetch priority. Default 'auto'. Optional.
+  * }
+  */
+-function wp_enqueue_script_module( string $id, string $src = '', array $deps = array(), $version = false, array $args = array() ) {
++function wp_enqueue_script_module( string $id, string $src = '', array $deps = array(), mixed $version = false, array $args = array() ): mixed {
+ 	wp_script_modules()->enqueue( $id, $src, $deps, $version, $args );
++	return null;
+ }
+ 
+ /**
+@@ -123,8 +125,9 @@
+  *
+  * @param string $id The identifier of the script module.
+  */
+-function wp_dequeue_script_module( string $id ) {
++function wp_dequeue_script_module( string $id ): mixed {
+ 	wp_script_modules()->dequeue( $id );
++	return null;
+ }
+ 
+ /**
+@@ -134,8 +137,9 @@
+  *
+  * @param string $id The identifier of the script module.
+  */
+-function wp_deregister_script_module( string $id ) {
++function wp_deregister_script_module( string $id ): mixed {
+ 	wp_script_modules()->deregister( $id );
++	return null;
+ }
+ 
+ /**
+@@ -164,7 +168,7 @@
+  *
+  * @since 6.7.0
+  */
+-function wp_default_script_modules() {
++function wp_default_script_modules(): mixed {
+ 	$suffix = defined( 'WP_RUN_CORE_TESTS' ) ? '.min' : wp_scripts_get_suffix();
+ 
+ 	/*
+@@ -175,7 +179,7 @@
  	 *     'block-library/navigation/view.js' => …
  	 */
  	$assets_file = ABSPATH . WPINC . '/assets/script-modules-packages.php';
@@ -9,3 +62,46 @@
  
  	foreach ( $assets as $file_name => $script_module_data ) {
  		/*
+@@ -185,7 +189,7 @@
+ 		 *   - interactivity-router/index.min.js  => @wordpress/interactivity-router
+ 		 *   - block-library/navigation/view.js   => @wordpress/block-library/navigation/view
+ 		 */
+-		$script_module_id = '@wordpress/' . preg_replace( '~(?:/index)?(?:\.min)?\.js$~D', '', $file_name, 1 );
++		$script_module_id = '@wordpress/' . \wp_aot_preg_replace( '~(?:/index)?(?:\.min)?\.js$~D', '', $file_name, 1 );
+ 
+ 		/*
+ 		 * The Interactivity API is designed with server-side rendering as its primary goal, so all of its script modules
+@@ -215,15 +219,16 @@
+ 		// non-minified versions are not shipped because they consist of large
+ 		// inlined WASM/worker code with no debugging value.
+ 		if ( str_starts_with( $file_name, 'vips/' ) || 'video-conversion/worker.js' === $file_name ) {
+-			$file_name = str_replace( '.js', '.min.js', $file_name );
++			$file_name = \wp_aot_str_replace( '.js', '.min.js', $file_name );
+ 		} elseif ( '' !== $suffix ) {
+-			$file_name = str_replace( '.js', $suffix . '.js', $file_name );
++			$file_name = \wp_aot_str_replace( '.js', $suffix . '.js', $file_name );
+ 		}
+ 
+ 		$path        = includes_url( "js/dist/script-modules/{$file_name}" );
+ 		$module_deps = $script_module_data['module_dependencies'] ?? array();
+-		wp_register_script_module( $script_module_id, $path, $module_deps, $script_module_data['version'], $args );
++		wp_register_script_module( $script_module_id, $path, \wp_aot_array_input($module_deps), $script_module_data['version'], $args );
+ 	}
++	return null;
+ }
+ 
+ /**
+@@ -231,10 +236,11 @@
+  *
+  * @since 6.9.0
+  */
+-function wp_enqueue_block_editor_script_modules() {
++function wp_enqueue_block_editor_script_modules(): mixed {
+ 	/*
+ 	 * Enqueue the LaTeX to MathML loader for the math block editor.
+ 	 * The loader dynamically imports the main LaTeX to MathML module when needed.
+ 	 */
+ 	wp_enqueue_script_module( '@wordpress/latex-to-mathml/loader' );
+-}
++	return null;
++}

@@ -1,0 +1,135 @@
+--- a/wp-admin/includes/ms-deprecated.php
++++ b/wp-admin/includes/ms-deprecated.php
+@@ -15,9 +15,10 @@
+  *
+  * @deprecated 3.0.0
+  */
+-function wpmu_menu() {
++function wpmu_menu(): mixed {
+ 	_deprecated_function( __FUNCTION__, '3.0.0' );
+ 	// Deprecated. See #11763.
++	return null;
+ }
+ 
+ /**
+@@ -26,7 +27,7 @@
+  * @deprecated 3.0.0 Use is_upload_space_available()
+  * @see is_upload_space_available()
+  */
+-function wpmu_checkAvailableSpace() {
++function wpmu_checkAvailableSpace(): mixed {
+ 	_deprecated_function( __FUNCTION__, '3.0.0', 'is_upload_space_available()' );
+ 
+ 	if ( ! is_upload_space_available() ) {
+@@ -36,6 +37,7 @@
+ 			size_format( get_space_allowed() * MB_IN_BYTES )
+ 		) );
+ 	}
++	return null;
+ }
+ 
+ /**
+@@ -43,9 +45,10 @@
+  *
+  * @deprecated 3.0.0
+  */
+-function mu_options( $options ) {
++function mu_options( mixed $options ): mixed {
+ 	_deprecated_function( __FUNCTION__, '3.0.0' );
+ 	return $options;
++	return null;
+ }
+ 
+ /**
+@@ -54,9 +57,10 @@
+  * @deprecated 3.0.0 Use activate_plugin()
+  * @see activate_plugin()
+  */
+-function activate_sitewide_plugin() {
++function activate_sitewide_plugin(): mixed {
+ 	_deprecated_function( __FUNCTION__, '3.0.0', 'activate_plugin()' );
+ 	return false;
++	return null;
+ }
+ 
+ /**
+@@ -65,8 +69,9 @@
+  * @deprecated 3.0.0 Use deactivate_plugin()
+  * @see deactivate_plugin()
+  */
+-function deactivate_sitewide_plugin( $plugin = false ) {
++function deactivate_sitewide_plugin( mixed $plugin = false ): mixed {
+ 	_deprecated_function( __FUNCTION__, '3.0.0', 'deactivate_plugin()' );
++	return null;
+ }
+ 
+ /**
+@@ -75,9 +80,10 @@
+  * @deprecated 3.0.0 Use is_network_only_plugin()
+  * @see is_network_only_plugin()
+  */
+-function is_wpmu_sitewide_plugin( $file ) {
++function is_wpmu_sitewide_plugin( mixed $file ): mixed {
+ 	_deprecated_function( __FUNCTION__, '3.0.0', 'is_network_only_plugin()' );
+ 	return is_network_only_plugin( $file );
++	return null;
+ }
+ 
+ /**
+@@ -86,9 +92,10 @@
+  * @deprecated 3.4.0 Use WP_Theme::get_allowed_on_network()
+  * @see WP_Theme::get_allowed_on_network()
+  */
+-function get_site_allowed_themes() {
++function get_site_allowed_themes(): mixed {
+ 	_deprecated_function( __FUNCTION__, '3.4.0', 'WP_Theme::get_allowed_on_network()' );
+-	return array_map( 'intval', WP_Theme::get_allowed_on_network() );
++	return \wp_aot_array_map( 'intval', WP_Theme::get_allowed_on_network() );
++	return null;
+ }
+ 
+ /**
+@@ -97,9 +104,10 @@
+  * @deprecated 3.4.0 Use WP_Theme::get_allowed_on_site()
+  * @see WP_Theme::get_allowed_on_site()
+  */
+-function wpmu_get_blog_allowedthemes( $blog_id = 0 ) {
++function wpmu_get_blog_allowedthemes( mixed $blog_id = 0 ): mixed {
+ 	_deprecated_function( __FUNCTION__, '3.4.0', 'WP_Theme::get_allowed_on_site()' );
+-	return array_map( 'intval', WP_Theme::get_allowed_on_site( $blog_id ) );
++	return \wp_aot_array_map( 'intval', WP_Theme::get_allowed_on_site( $blog_id ) );
++	return null;
+ }
+ 
+ /**
+@@ -107,7 +115,7 @@
+  *
+  * @deprecated 3.5.0
+  */
+-function ms_deprecated_blogs_file() {}
++function ms_deprecated_blogs_file(): mixed { return null; }
+ 
+ if ( ! function_exists( 'install_global_terms' ) ) :
+ 	/**
+@@ -117,8 +125,9 @@
+ 	 * @since 6.1.0 This function no longer does anything.
+ 	 * @deprecated 6.1.0
+ 	 */
+-	function install_global_terms() {
++	function install_global_terms(): mixed {
+ 		_deprecated_function( __FUNCTION__, '6.1.0' );
++		return null;
+ 	}
+ endif;
+ 
+@@ -133,8 +142,9 @@
+  * @param string        $taxonomy The taxonomy for `$term`.
+  * @return WP_Term|array Always returns `$term`.
+  */
+-function sync_category_tag_slugs( $term, $taxonomy ) {
++function sync_category_tag_slugs( mixed $term, mixed $taxonomy ): mixed {
+ 	_deprecated_function( __FUNCTION__, '6.1.0' );
+ 
+ 	return $term;
++	return null;
+ }

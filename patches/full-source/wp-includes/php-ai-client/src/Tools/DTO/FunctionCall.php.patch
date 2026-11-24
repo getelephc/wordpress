@@ -1,0 +1,32 @@
+--- a/wp-includes/php-ai-client/src/Tools/DTO/FunctionCall.php
++++ b/wp-includes/php-ai-client/src/Tools/DTO/FunctionCall.php
+@@ -15,7 +15,7 @@
+  *
+  * @phpstan-type FunctionCallArrayShape array{id?: string, name?: string, args?: mixed}
+  *
+- * @extends AbstractDataTransferObject<FunctionCallArrayShape>
++ * @phpstan-extends AbstractDataTransferObject<FunctionCallArrayShape>
+  */
+ class FunctionCall extends AbstractDataTransferObject
+ {
+@@ -44,7 +44,7 @@
+      * @param mixed $args The arguments to pass to the function.
+      * @throws InvalidArgumentException If neither id nor name is provided.
+      */
+-    public function __construct(?string $id = null, ?string $name = null, $args = null)
++    public function __construct(?string $id = null, ?string $name = null, mixed $args = null)
+     {
+         if ($id === null && $name === null) {
+             throw new InvalidArgumentException('At least one of id or name must be provided.');
+@@ -82,9 +82,10 @@
+      *
+      * @return mixed The function arguments.
+      */
+-    public function getArgs()
++    public function getArgs(): mixed
+     {
+         return $this->args;
++    	return null;
+     }
+     /**
+      * {@inheritDoc}

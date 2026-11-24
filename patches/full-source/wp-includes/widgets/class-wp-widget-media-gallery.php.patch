@@ -1,8 +1,101 @@
 --- a/wp-includes/widgets/class-wp-widget-media-gallery.php
 +++ b/wp-includes/widgets/class-wp-widget-media-gallery.php
-@@ -174,8 +174,8 @@
+@@ -32,7 +32,7 @@
+ 			)
+ 		);
+ 
+-		$this->l10n = array_merge(
++		$this->l10n = \wp_aot_array_merge(array(
+ 			$this->l10n,
+ 			array(
+ 				'no_media_selected' => __( 'No images selected' ),
+@@ -40,7 +40,7 @@
+ 				'replace_media'     => '',
+ 				'edit_media'        => _x( 'Edit Gallery', 'label for button in the gallery widget; should not be longer than ~13 characters long' ),
+ 			)
+-		);
++		));
+ 	}
+ 
+ 	/**
+@@ -54,7 +54,7 @@
+ 	 *
+ 	 * @return array Schema for properties.
  	 */
- 	public function render_control_template_scripts() {
+-	public function get_instance_schema() {
++	public function get_instance_schema(): mixed {
+ 		$schema = array(
+ 			'title'          => array(
+ 				'type'                  => 'string',
+@@ -79,7 +79,7 @@
+ 			),
+ 			'size'           => array(
+ 				'type'    => 'string',
+-				'enum'    => array_merge( get_intermediate_image_sizes(), array( 'full', 'custom' ) ),
++				'enum'    => \wp_aot_array_merge(array( get_intermediate_image_sizes(), array( 'full', 'custom' ) )),
+ 				'default' => 'thumbnail',
+ 			),
+ 			'link_type'      => array(
+@@ -101,6 +101,7 @@
+ 		$schema = apply_filters( "widget_{$this->id_base}_instance_schema", $schema, $this );
+ 
+ 		return $schema;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -110,15 +111,15 @@
+ 	 *
+ 	 * @param array $instance Widget instance props.
+ 	 */
+-	public function render_media( $instance ) {
+-		$instance = array_merge( wp_list_pluck( $this->get_instance_schema(), 'default' ), $instance );
+-
+-		$shortcode_atts = array_merge(
++	public function render_media( mixed $instance ): mixed {
++		$instance = \wp_aot_array_merge(array( wp_list_pluck( $this->get_instance_schema(), 'default' ), $instance ));
++
++		$shortcode_atts = \wp_aot_array_merge(array(
+ 			$instance,
+ 			array(
+ 				'link' => $instance['link_type'],
+ 			)
+-		);
++		));
+ 
+ 		// @codeCoverageIgnoreStart
+ 		if ( $instance['orderby_random'] ) {
+@@ -127,6 +128,7 @@
+ 
+ 		// @codeCoverageIgnoreEnd
+ 		echo gallery_shortcode( $shortcode_atts );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -134,7 +136,7 @@
+ 	 *
+ 	 * @since 4.9.0
+ 	 */
+-	public function enqueue_admin_scripts() {
++	public function enqueue_admin_scripts(): mixed {
+ 		parent::enqueue_admin_scripts();
+ 
+ 		$handle = 'media-gallery-widget';
+@@ -165,6 +167,7 @@
+ 				wp_json_encode( $this->l10n, JSON_HEX_TAG | JSON_UNESCAPED_SLASHES )
+ 			)
+ 		);
++		return null;
+ 	}
+ 
+ 	/**
+@@ -172,10 +175,10 @@
+ 	 *
+ 	 * @since 4.9.0
+ 	 */
+-	public function render_control_template_scripts() {
++	public function render_control_template_scripts(): mixed {
  		parent::render_control_template_scripts();
 -		?>
 -		<script type="text/html" id="tmpl-wp-media-widget-gallery-preview">
@@ -11,7 +104,7 @@
  			<#
  			var ids = _.filter( data.ids, function( id ) {
  				return ( id in data.attachments );
-@@ -197,7 +197,7 @@
+@@ -197,7 +200,7 @@
  										<# } #>
  										<# if ( ! attachment.alt && attachment.filename ) { #>
  											aria-label="
@@ -20,7 +113,7 @@
  											echo esc_attr(
  												sprintf(
  													/* translators: %s: The image file name. */
-@@ -205,21 +205,21 @@
+@@ -205,21 +208,21 @@
  													'{{ attachment.filename }}'
  												)
  											);
@@ -47,7 +140,7 @@
  									</div>
  									<# } #>
  								</div>
-@@ -229,11 +229,13 @@
+@@ -229,11 +232,14 @@
  				</ul>
  			<# } else { #>
  				<div class="attachment-media-view">
@@ -60,6 +153,23 @@
  		</script>
 -		<?php
 +		';
++		return null;
  	}
  
  	/**
+@@ -244,7 +250,7 @@
+ 	 * @param array $instance Widget instance props.
+ 	 * @return bool Whether widget has content.
+ 	 */
+-	protected function has_content( $instance ) {
++	protected function has_content( mixed $instance ): mixed {
+ 		if ( ! empty( $instance['ids'] ) ) {
+ 			$attachments = wp_parse_id_list( $instance['ids'] );
+ 			// Prime attachment post caches.
+@@ -257,5 +263,6 @@
+ 			return true;
+ 		}
+ 		return false;
++		return null;
+ 	}
+ }

@@ -1,0 +1,109 @@
+--- a/wp-includes/block-supports/block-style-variations.php
++++ b/wp-includes/block-supports/block-style-variations.php
+@@ -16,13 +16,14 @@
+  *
+  * @return array|null The block style variation name if found.
+  */
+-function wp_get_block_style_variation_name_from_class( $class_string ) {
++function wp_get_block_style_variation_name_from_class( mixed $class_string ): mixed {
+ 	if ( ! is_string( $class_string ) ) {
+ 		return null;
+ 	}
+ 
+-	preg_match_all( '/\bis-style-(?!default)(\S+)\b/', $class_string, $matches );
++	preg_match_all( '/\bis-style-(?!default)(\S+)\b/', \wp_aot_regex_text( $class_string ), $matches );
+ 	return $matches[1] ?? null;
++	return null;
+ }
+ 
+ /**
+@@ -34,7 +35,7 @@
+  * @param array $variation_data Reference to the variation data being processed.
+  * @param array $theme_json     Theme.json data to retrieve referenced values from.
+  */
+-function wp_resolve_block_style_variation_ref_values( &$variation_data, $theme_json ) {
++function wp_resolve_block_style_variation_ref_values( mixed &$variation_data, mixed $theme_json ): mixed {
+ 	foreach ( $variation_data as $key => &$value ) {
+ 		// Only need to potentially process arrays.
+ 		if ( is_array( $value ) ) {
+@@ -60,6 +61,7 @@
+ 			}
+ 		}
+ 	}
++	return null;
+ }
+ /**
+  * Renders the block style variation's styles.
+@@ -78,7 +80,7 @@
+  *
+  * @return array The parsed block with block style variation classname added.
+  */
+-function wp_render_block_style_variation_support_styles( $parsed_block ) {
++function wp_render_block_style_variation_support_styles( mixed $parsed_block ): mixed {
+ 	$classes    = $parsed_block['attrs']['className'] ?? null;
+ 	$variations = wp_get_block_style_variation_name_from_class( $classes );
+ 
+@@ -201,6 +203,7 @@
+ 	_wp_array_set( $parsed_block, array( 'attrs', 'className' ), $updated_class_name );
+ 
+ 	return $parsed_block;
++	return null;
+ }
+ 
+ /**
+@@ -218,7 +221,7 @@
+  *
+  * @return string                Filtered block content.
+  */
+-function wp_render_block_style_variation_class_name( $block_content, $block ) {
++function wp_render_block_style_variation_class_name( mixed $block_content, mixed $block ): mixed {
+ 	if ( ! $block_content || empty( $block['attrs']['className'] ) ) {
+ 		return $block_content;
+ 	}
+@@ -232,7 +235,7 @@
+ 	 * Matches a class prefixed by `is-style`, followed by the
+ 	 * variation slug, then `--`, and finally an instance number.
+ 	 */
+-	preg_match( '/\bis-style-(\S+?--\d+)\b/', $block_class_name, $matches );
++	preg_match( '/\bis-style-(\S+?--\d+)\b/', \wp_aot_regex_text( $block_class_name ), $matches );
+ 
+ 	if ( empty( $matches ) ) {
+ 		return $block_content;
+@@ -250,6 +253,7 @@
+ 	}
+ 
+ 	return $tags->get_updated_html();
++	return null;
+ }
+ 
+ /**
+@@ -258,8 +262,9 @@
+  * @since 6.6.0
+  * @access private
+  */
+-function wp_enqueue_block_style_variation_styles() {
++function wp_enqueue_block_style_variation_styles(): mixed {
+ 	wp_enqueue_style( 'block-style-variation-styles' );
++	return null;
+ }
+ 
+ // Register the block support.
+@@ -277,9 +282,9 @@
+  *
+  * @param array $variations Shared block style variations.
+  */
+-function wp_register_block_style_variations_from_theme_json_partials( $variations ) {
++function wp_register_block_style_variations_from_theme_json_partials( mixed $variations ): mixed {
+ 	if ( empty( $variations ) ) {
+-		return;
++		return null;
+ 	}
+ 
+ 	$registry = WP_Block_Styles_Registry::get_instance();
+@@ -307,4 +312,5 @@
+ 			}
+ 		}
+ 	}
+-}
++	return null;
++}

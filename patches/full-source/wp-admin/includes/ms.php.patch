@@ -1,6 +1,122 @@
 --- a/wp-admin/includes/ms.php
 +++ b/wp-admin/includes/ms.php
-@@ -259,14 +259,14 @@
+@@ -15,7 +15,7 @@
+  * @param array $file An element from the `$_FILES` array for a given file.
+  * @return array The `$_FILES` array element with 'error' key set if file exceeds quota. 'error' is empty otherwise.
+  */
+-function check_upload_size( $file ) {
++function check_upload_size( mixed $file ): mixed {
+ 	if ( get_site_option( 'upload_space_check_disabled' ) ) {
+ 		return $file;
+ 	}
+@@ -33,7 +33,7 @@
+ 	$file_size = filesize( $file['tmp_name'] );
+ 	if ( $space_left < $file_size ) {
+ 		/* translators: %s: Required disk space in kilobytes. */
+-		$file['error'] = sprintf( __( 'Not enough space to upload. %s KB needed.' ), number_format( ( $file_size - $space_left ) / KB_IN_BYTES ) );
++		$file['error'] = sprintf( __( 'Not enough space to upload. %s KB needed.' ), \wp_aot_number_format( ( $file_size - $space_left ) / KB_IN_BYTES ) );
+ 	}
+ 
+ 	if ( $file_size > ( KB_IN_BYTES * get_site_option( 'fileupload_maxk', 1500 ) ) ) {
+@@ -50,6 +50,7 @@
+ 	}
+ 
+ 	return $file;
++	return null;
+ }
+ 
+ /**
+@@ -61,7 +62,7 @@
+  * @param int  $blog_id Site ID.
+  * @param bool $drop    True if site's database tables should be dropped. Default false.
+  */
+-function wpmu_delete_blog( $blog_id, $drop = false ) {
++function wpmu_delete_blog( mixed $blog_id, mixed $drop = false ): mixed {
+ 	$blog_id = (int) $blog_id;
+ 
+ 	$switch = false;
+@@ -123,6 +124,7 @@
+ 	if ( $switch ) {
+ 		restore_current_blog();
+ 	}
++	return null;
+ }
+ 
+ /**
+@@ -142,7 +144,7 @@
+  * @param int $id The user ID.
+  * @return bool True if the user was deleted, false otherwise.
+  */
+-function wpmu_delete_user( $id ) {
++function wpmu_delete_user( mixed $id ): mixed {
+ 	global $wpdb;
+ 
+ 	if ( ! is_numeric( $id ) ) {
+@@ -180,13 +182,13 @@
+ 			switch_to_blog( $blog->userblog_id );
+ 			remove_user_from_blog( $id, $blog->userblog_id );
+ 
+-			$post_ids = $wpdb->get_col( $wpdb->prepare( "SELECT ID FROM $wpdb->posts WHERE post_author = %d", $id ) );
++			$post_ids = \wp_aot_require_wpdb( $wpdb )->get_col( \wp_aot_require_wpdb( $wpdb )->prepare( "SELECT ID FROM $wpdb->posts WHERE post_author = %d", $id ) );
+ 			foreach ( (array) $post_ids as $post_id ) {
+ 				wp_delete_post( $post_id );
+ 			}
+ 
+ 			// Clean links.
+-			$link_ids = $wpdb->get_col( $wpdb->prepare( "SELECT link_id FROM $wpdb->links WHERE link_owner = %d", $id ) );
++			$link_ids = \wp_aot_require_wpdb( $wpdb )->get_col( \wp_aot_require_wpdb( $wpdb )->prepare( "SELECT link_id FROM $wpdb->links WHERE link_owner = %d", $id ) );
+ 
+ 			if ( $link_ids ) {
+ 				foreach ( $link_ids as $link_id ) {
+@@ -198,12 +200,12 @@
+ 		}
+ 	}
+ 
+-	$meta = $wpdb->get_col( $wpdb->prepare( "SELECT umeta_id FROM $wpdb->usermeta WHERE user_id = %d", $id ) );
++	$meta = \wp_aot_require_wpdb( $wpdb )->get_col( \wp_aot_require_wpdb( $wpdb )->prepare( "SELECT umeta_id FROM $wpdb->usermeta WHERE user_id = %d", $id ) );
+ 	foreach ( $meta as $mid ) {
+ 		delete_metadata_by_mid( 'user', $mid );
+ 	}
+ 
+-	$wpdb->delete( $wpdb->users, array( 'ID' => $id ) );
++	\wp_aot_require_wpdb( $wpdb )->delete( $wpdb->users, array( 'ID' => $id ) );
+ 
+ 	clean_user_cache( $user );
+ 
+@@ -211,6 +213,7 @@
+ 	do_action( 'deleted_user', $id, null, $user );
+ 
+ 	return true;
++	return null;
+ }
+ 
+ /**
+@@ -222,7 +225,7 @@
+  *                              a warning message is displayed. Default true.
+  * @return bool True if user is over upload space quota, otherwise false.
+  */
+-function upload_is_user_over_quota( $display_message = true ) {
++function upload_is_user_over_quota( mixed $display_message = true ): mixed {
+ 	if ( get_site_option( 'upload_space_check_disabled' ) ) {
+ 		return false;
+ 	}
+@@ -245,6 +248,7 @@
+ 	} else {
+ 		return false;
+ 	}
++	return null;
+ }
+ 
+ /**
+@@ -252,21 +256,22 @@
+  *
+  * @since MU (3.0.0)
+  */
+-function display_space_usage() {
++function display_space_usage(): mixed {
+ 	$space_allowed = get_space_allowed();
+ 	$space_used    = get_space_used();
+ 
  	$percent_used = ( $space_used / $space_allowed ) * 100;
  
  	$space = size_format( $space_allowed * MB_IN_BYTES );
@@ -11,17 +127,43 @@
 +echo '	<strong>
 +	';
  		/* translators: Storage space that's been used. 1: Percentage of used space, 2: Total space allowed in megabytes or gigabytes. */
- 		printf( __( 'Used: %1$s%% of %2$s' ), number_format( $percent_used ), $space );
+-		printf( __( 'Used: %1$s%% of %2$s' ), number_format( $percent_used ), $space );
 -	?>
 -	</strong>
 -	<?php
++		printf( __( 'Used: %1$s%% of %2$s' ), \wp_aot_number_format( $percent_used ), $space );
 +	;
 +echo '	</strong>
 +	';
++	return null;
  }
  
  /**
-@@ -301,22 +301,28 @@
+@@ -277,12 +282,13 @@
+  * @param int $size Current max size in bytes.
+  * @return int Max size in bytes.
+  */
+-function fix_import_form_size( $size ) {
++function fix_import_form_size( mixed $size ): mixed {
+ 	if ( upload_is_user_over_quota( false ) ) {
+ 		return 0;
+ 	}
+ 	$available = get_upload_space_available();
+ 	return min( $size, $available );
++	return null;
+ }
+ 
+ /**
+@@ -292,7 +298,7 @@
+  *
+  * @param int $id The ID of the site to display the setting for.
+  */
+-function upload_space_setting( $id ) {
++function upload_space_setting( mixed $id ): mixed {
+ 	switch_to_blog( $id );
+ 	$quota = get_option( 'blog_upload_space' );
+ 	restore_current_blog();
+@@ -301,22 +307,29 @@
  		$quota = '';
  	}
  
@@ -55,15 +197,161 @@
  	</tr>
 -	<?php
 +	';
++	return null;
  }
  
  /**
-@@ -760,31 +766,40 @@
+@@ -327,7 +340,7 @@
+  * @param int $id The user ID.
+  * @return int|false The ID of the refreshed user or false if the user does not exist.
+  */
+-function refresh_user_details( $id ) {
++function refresh_user_details( mixed $id ): mixed {
+ 	$id = (int) $id;
+ 
+ 	$user = get_userdata( $id );
+@@ -338,6 +351,7 @@
+ 	clean_user_cache( $user );
+ 
+ 	return $id;
++	return null;
+ }
+ 
+ /**
+@@ -349,7 +363,7 @@
+  * @return string The language corresponding to $code if it exists. If it does not exist,
+  *                then the first two letters of $code is returned.
+  */
+-function format_code_lang( $code = '' ) {
++function format_code_lang( mixed $code = '' ): mixed {
+ 	$code       = strtolower( substr( $code, 0, 2 ) );
+ 	$lang_codes = array(
+ 		'aa' => 'Afar',
+@@ -548,7 +562,8 @@
+ 	 * @param string   $code       A two-letter designation of the language.
+ 	 */
+ 	$lang_codes = apply_filters( 'lang_codes', $lang_codes, $code );
+-	return strtr( $code, $lang_codes );
++	return \wp_aot_strtr( $code, $lang_codes );
++	return null;
+ }
+ 
+ /**
+@@ -558,15 +573,15 @@
+  * @since 3.2.0
+  * @access private
+  */
+-function _access_denied_splash() {
++function _access_denied_splash(): mixed {
+ 	if ( ! is_user_logged_in() || is_network_admin() ) {
+-		return;
++		return null;
+ 	}
+ 
+ 	$blogs = get_blogs_of_user( get_current_user_id() );
+ 
+ 	if ( wp_list_filter( $blogs, array( 'userblog_id' => get_current_blog_id() ) ) ) {
+-		return;
++		return null;
+ 	}
+ 
+ 	$blog_name = get_bloginfo( 'name' );
+@@ -603,6 +618,7 @@
+ 	$output .= '</table>';
+ 
+ 	wp_die( $output, 403 );
++	return null;
+ }
+ 
+ /**
+@@ -613,8 +629,9 @@
+  * @param string $permission A permission to be checked. Currently not used.
+  * @return bool True if the user has proper permissions, false if they do not.
+  */
+-function check_import_new_users( $permission ) {
++function check_import_new_users( mixed $permission ): mixed {
+ 	return current_user_can( 'manage_network_users' );
++	return null;
+ }
+ // See "import_allow_fetch_attachments" and "import_attachment_size_limit" filters too.
+ 
+@@ -626,7 +643,7 @@
+  * @param string[] $lang_files Optional. An array of the language files. Default empty array.
+  * @param string   $current    Optional. The current language code. Default empty.
+  */
+-function mu_dropdown_languages( $lang_files = array(), $current = '' ) {
++function mu_dropdown_languages( mixed $lang_files = array(), mixed $current = '' ): mixed {
+ 	$flag   = false;
+ 	$output = array();
+ 
+@@ -652,7 +669,7 @@
+ 	}
+ 
+ 	// Order by name.
+-	uksort( $output, 'strnatcasecmp' );
++	\wp_aot_uksort( $output, 'strnatcasecmp' );
+ 
+ 	/**
+ 	 * Filters the languages available in the dropdown.
+@@ -666,6 +683,7 @@
+ 	$output = apply_filters( 'mu_dropdown_languages', $output, $lang_files, $current );
+ 
+ 	echo implode( "\n\t", $output );
++	return null;
+ }
+ 
+ /**
+@@ -678,7 +696,7 @@
+  *
+  * @return void|false Void on success. False if the current user is not a super admin.
+  */
+-function site_admin_notice() {
++function site_admin_notice(): mixed {
+ 	global $wp_db_version, $pagenow;
+ 
+ 	if ( ! current_user_can( 'upgrade_network' ) ) {
+@@ -686,7 +704,7 @@
+ 	}
+ 
+ 	if ( 'upgrade.php' === $pagenow ) {
+-		return;
++		return null;
+ 	}
+ 
+ 	if ( (int) get_site_option( 'wpmu_upgrade_site' ) !== $wp_db_version ) {
+@@ -705,6 +723,7 @@
+ 			)
+ 		);
+ 	}
++	return null;
+ }
+ 
+ /**
+@@ -719,7 +738,7 @@
+  * @param array $postarr An array of posts. Not currently used.
+  * @return array The new array of post data after checking for collisions.
+  */
+-function avoid_blog_page_permalink_collision( $data, $postarr ) {
++function avoid_blog_page_permalink_collision( mixed $data, mixed $postarr ): mixed {
+ 	if ( is_subdomain_install() ) {
+ 		return $data;
+ 	}
+@@ -749,6 +768,7 @@
+ 	}
+ 
+ 	return $data;
++	return null;
+ }
+ 
+ /**
+@@ -759,32 +779,41 @@
+  *
   * @since 3.0.0
   */
- function choose_primary_blog() {
+-function choose_primary_blog() {
 -	?>
 -	<table class="form-table" role="presentation">
++function choose_primary_blog(): mixed {
 +	;
 +echo '	<table class="form-table" role="presentation">
  	<tr>
@@ -113,7 +401,7 @@
  			if ( ! $found ) {
  				$blog = reset( $all_blogs );
  				update_user_meta( get_current_user_id(), 'primary_blog', $blog->userblog_id );
-@@ -798,11 +813,11 @@
+@@ -798,11 +827,12 @@
  		} else {
  			_e( 'Not available' );
  		}
@@ -125,16 +413,36 @@
  	</table>
 -	<?php
 +	';
++	return null;
  }
  
  /**
-@@ -842,11 +857,13 @@
+@@ -816,7 +846,7 @@
+  * @param int $network_id The network ID to check.
+  * @return bool True if network can be edited, false otherwise.
+  */
+-function can_edit_network( $network_id ) {
++function can_edit_network( mixed $network_id ): mixed {
+ 	if ( get_current_network_id() === (int) $network_id ) {
+ 		$result = true;
+ 	} else {
+@@ -832,6 +862,7 @@
+ 	 * @param int  $network_id The network ID to check.
+ 	 */
+ 	return apply_filters( 'can_edit_network', $result, $network_id );
++	return null;
+ }
+ 
+ /**
+@@ -841,12 +872,15 @@
+  *
   * @access private
   */
- function _thickbox_path_admin_subfolder() {
+-function _thickbox_path_admin_subfolder() {
 -	?>
 -<script>
 -var tb_pathToImage = "<?php echo esc_js( includes_url( 'js/thickbox/loadingAnimation.gif', 'relative' ) ); ?>";
++function _thickbox_path_admin_subfolder(): mixed {
 +	;
 +echo '<script>
 +var tb_pathToImage = "';
@@ -143,10 +451,20 @@
  </script>
 -	<?php
 +	';
++	return null;
  }
  
  /**
-@@ -863,23 +880,32 @@
+@@ -855,7 +889,7 @@
+  * @param array $users
+  * @return bool
+  */
+-function confirm_delete_users( $users ) {
++function confirm_delete_users( mixed $users ): mixed {
+ 	global $wpdb;
+ 
+ 	$current_user = wp_get_current_user();
+@@ -863,23 +897,32 @@
  		return false;
  	}
  
@@ -192,7 +510,7 @@
  	foreach ( $users as $user_id ) {
  		if ( '' !== $user_id && '0' !== $user_id ) {
  			$delete_user = get_userdata( $user_id );
-@@ -904,27 +930,29 @@
+@@ -904,27 +947,29 @@
  				);
  			}
  
@@ -234,7 +552,29 @@
  				foreach ( (array) $blogs as $key => $details ) {
  					$blog_users = get_users(
  						array(
-@@ -966,36 +994,62 @@
+@@ -943,8 +988,8 @@
+ 						$user_has_content = (bool) apply_filters( 'users_have_additional_content', false, array( $delete_user->ID ) );
+ 
+ 						if ( ! $user_has_content ) {
+-							if ( $wpdb->get_var(
+-								$wpdb->prepare(
++							if ( \wp_aot_require_wpdb( $wpdb )->get_var(
++								\wp_aot_require_wpdb( $wpdb )->prepare(
+ 									"SELECT ID FROM {$wpdb->posts}
+ 									WHERE post_author = %d
+ 									LIMIT 1",
+@@ -952,8 +997,8 @@
+ 								)
+ 							) ) {
+ 								$user_has_content = true;
+-							} elseif ( $wpdb->get_var(
+-								$wpdb->prepare(
++							} elseif ( \wp_aot_require_wpdb( $wpdb )->get_var(
++								\wp_aot_require_wpdb( $wpdb )->prepare(
+ 									"SELECT link_id FROM {$wpdb->links}
+ 									WHERE link_owner = %d
+ 									LIMIT 1",
+@@ -966,36 +1011,62 @@
  						restore_current_blog();
  
  						if ( ! $user_has_content ) {
@@ -317,7 +657,7 @@
  										wp_dropdown_users(
  											array(
  												'show_option_none' => __( 'Select a user' ),
-@@ -1006,43 +1060,51 @@
+@@ -1006,44 +1077,53 @@
  												'blog_id' => $details->userblog_id,
  											)
  										);
@@ -386,14 +726,18 @@
 +echo '	</form>
 +	';
  	return true;
++	return null;
  }
  
-@@ -1052,22 +1114,22 @@
+ /**
+@@ -1051,23 +1131,24 @@
+  *
   * @since 4.1.0
   */
- function network_settings_add_js() {
+-function network_settings_add_js() {
 -	?>
 -<script>
++function network_settings_add_js(): mixed {
 +	;
 +echo '<script>
  jQuery( function($) {
@@ -416,6 +760,67 @@
  </script>
 -	<?php
 +	';
++	return null;
  }
  
  /**
+@@ -1085,7 +1166,7 @@
+  *     @type string $selected The ID of the selected link.
+  * }
+  */
+-function network_edit_site_nav( $args = array() ) {
++function network_edit_site_nav( mixed $args = array() ): mixed {
+ 
+ 	/**
+ 	 * Filters the links that appear on site-editing network pages.
+@@ -1179,6 +1260,7 @@
+ 	echo '<nav class="nav-tab-wrapper wp-clearfix" aria-label="' . esc_attr__( 'Secondary menu' ) . '">';
+ 	echo implode( '', $screen_links );
+ 	echo '</nav>';
++	return null;
+ }
+ 
+ /**
+@@ -1188,7 +1270,7 @@
+  *
+  * @return array Help tab arguments.
+  */
+-function get_site_screen_help_tab_args() {
++function get_site_screen_help_tab_args(): mixed {
+ 	return array(
+ 		'id'      => 'overview',
+ 		'title'   => __( 'Overview' ),
+@@ -1203,6 +1285,7 @@
+ 			) . '</p>' .
+ 			'<p>' . __( '<strong>Settings</strong> &mdash; This page shows a list of all settings associated with this site. Some are created by WordPress and others are created by plugins you activate. Note that some fields are grayed out and say Serialized Data. You cannot modify these values due to the way the setting is stored in the database.' ) . '</p>',
+ 	);
++	return null;
+ }
+ 
+ /**
+@@ -1212,10 +1295,11 @@
+  *
+  * @return string Help sidebar content.
+  */
+-function get_site_screen_help_sidebar_content() {
++function get_site_screen_help_sidebar_content(): mixed {
+ 	return '<p><strong>' . __( 'For more information:' ) . '</strong></p>' .
+ 		'<p>' . __( '<a href="https://developer.wordpress.org/advanced-administration/multisite/admin/#network-admin-sites-screen">Documentation on Site Management</a>' ) . '</p>' .
+ 		'<p>' . __( '<a href="https://wordpress.org/support/forum/multisite/">Support forums</a>' ) . '</p>';
++	return null;
+ }
+ 
+ /**
+@@ -1225,9 +1309,10 @@
+  *
+  * @param string $role Role the user is attempting to assign.
+  */
+-function wp_ensure_editable_role( $role ) {
++function wp_ensure_editable_role( mixed $role ): mixed {
+ 	$roles = get_editable_roles();
+ 	if ( ! isset( $roles[ $role ] ) ) {
+ 		wp_die( __( 'Sorry, you are not allowed to give users that role.' ), 403 );
+ 	}
+-}
++	return null;
++}

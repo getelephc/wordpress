@@ -1,0 +1,157 @@
+--- a/wp-includes/block-supports/custom-css.php
++++ b/wp-includes/block-supports/custom-css.php
+@@ -38,7 +38,7 @@
+  *     ...
+  * }
+  */
+-function wp_render_custom_css_support_styles( $parsed_block ) {
++function wp_render_custom_css_support_styles( mixed $parsed_block ): mixed {
+ 	$custom_css = $parsed_block['attrs']['style']['css'] ?? null;
+ 	if ( ! is_string( $custom_css ) || '' === trim( $custom_css ) ) {
+ 		return $parsed_block;
+@@ -50,12 +50,12 @@
+ 	}
+ 
+ 	// Validate CSS doesn't contain HTML markup (same validation as global styles REST API).
+-	if ( preg_match( '#</?\w+#', $custom_css ) ) {
++	if ( preg_match( '#</?\w+#', \wp_aot_regex_text( $custom_css ) ) ) {
+ 		return $parsed_block;
+ 	}
+ 
+ 	// Generate a unique class name for this block instance.
+-	$class_name          = wp_unique_id_from_values( $parsed_block, 'wp-custom-css-' );
++	$class_name          = wp_unique_id_from_values( \wp_aot_array_input($parsed_block), 'wp-custom-css-' );
+ 	$existing_class_name = $parsed_block['attrs']['className'] ?? null;
+ 	$updated_class_name  = is_string( $existing_class_name )
+ 		? "$existing_class_name $class_name"
+@@ -88,6 +88,7 @@
+ 	}
+ 
+ 	return $parsed_block;
++	return null;
+ }
+ 
+ /**
+@@ -95,8 +96,9 @@
+  *
+  * @since 7.0.0
+  */
+-function wp_enqueue_block_custom_css() {
++function wp_enqueue_block_custom_css(): mixed {
+ 	wp_enqueue_style( 'wp-block-custom-css' );
++	return null;
+ }
+ 
+ /**
+@@ -119,7 +121,7 @@
+  *     ...
+  * } $block
+  */
+-function wp_render_custom_css_class_name( $block_content, $block ) {
++function wp_render_custom_css_class_name( mixed $block_content, mixed $block ): mixed {
+ 	$class_name_attr   = $block['attrs']['className'] ?? null;
+ 	$class_name_prefix = 'wp-custom-css-';
+ 	if ( ! is_string( $class_name_attr ) || ! str_contains( $class_name_attr, $class_name_prefix ) ) {
+@@ -148,6 +150,7 @@
+ 	}
+ 
+ 	return $tags->get_updated_html();
++	return null;
+ }
+ 
+ add_filter( 'render_block', 'wp_render_custom_css_class_name', 10, 2 );
+@@ -159,7 +162,7 @@
+  *
+  * @param WP_Block_Type $block_type Block Type.
+  */
+-function wp_register_custom_css_support( $block_type ) {
++function wp_register_custom_css_support( mixed $block_type ): mixed {
+ 	// Setup attributes and styles within that if needed.
+ 	if ( ! $block_type->attributes ) {
+ 		$block_type->attributes = array();
+@@ -167,7 +170,7 @@
+ 
+ 	// Check for existing style attribute definition e.g. from block.json.
+ 	if ( array_key_exists( 'style', $block_type->attributes ) ) {
+-		return;
++		return null;
+ 	}
+ 
+ 	$has_custom_css_support = block_has_support( $block_type, array( 'customCSS' ), true );
+@@ -177,6 +180,7 @@
+ 			'type' => 'object',
+ 		);
+ 	}
++	return null;
+ }
+ 
+ /**
+@@ -192,7 +196,7 @@
+  * @param string $content Post content to filter, expected to be escaped with slashes.
+  * @return string Filtered post content with block custom CSS removed.
+  */
+-function wp_strip_custom_css_from_blocks( $content ) {
++function wp_strip_custom_css_from_blocks( mixed $content ): mixed {
+ 	if ( ! has_blocks( $content ) ) {
+ 		return $content;
+ 	}
+@@ -266,6 +270,7 @@
+ 	}
+ 
+ 	return addslashes( $result );
++	return null;
+ }
+ 
+ /**
+@@ -275,9 +280,10 @@
+  * @since 7.0.0
+  * @access private
+  */
+-function wp_custom_css_kses_init_filters() {
++function wp_custom_css_kses_init_filters(): mixed {
+ 	add_filter( 'content_save_pre', 'wp_strip_custom_css_from_blocks', 8 );
+ 	add_filter( 'content_filtered_save_pre', 'wp_strip_custom_css_from_blocks', 8 );
++	return null;
+ }
+ 
+ /**
+@@ -287,9 +293,10 @@
+  * @since 7.0.0
+  * @access private
+  */
+-function wp_custom_css_remove_filters() {
++function wp_custom_css_remove_filters(): mixed {
+ 	remove_filter( 'content_save_pre', 'wp_strip_custom_css_from_blocks', 8 );
+ 	remove_filter( 'content_filtered_save_pre', 'wp_strip_custom_css_from_blocks', 8 );
++	return null;
+ }
+ 
+ /**
+@@ -298,11 +305,12 @@
+  * @since 7.0.0
+  * @access private
+  */
+-function wp_custom_css_kses_init() {
++function wp_custom_css_kses_init(): mixed {
+ 	wp_custom_css_remove_filters();
+ 	if ( ! current_user_can( 'edit_css' ) ) {
+ 		wp_custom_css_kses_init_filters();
+ 	}
++	return null;
+ }
+ 
+ /**
+@@ -319,11 +327,12 @@
+  * @param mixed $arg Input argument of the filter.
+  * @return mixed Input argument of the filter.
+  */
+-function wp_custom_css_force_filtered_html_on_import_filter( $arg ) {
++function wp_custom_css_force_filtered_html_on_import_filter( mixed $arg ): mixed {
+ 	if ( $arg ) {
+ 		wp_custom_css_kses_init_filters();
+ 	}
+ 	return $arg;
++	return null;
+ }
+ 
+ // Run before wp_filter_global_styles_post (priority 9) and wp_filter_post_kses (priority 10).

@@ -1,0 +1,143 @@
+--- a/wp-includes/class-wp-http-requests-response.php
++++ b/wp-includes/class-wp-http-requests-response.php
+@@ -39,7 +39,7 @@
+ 	 * @param \WpOrg\Requests\Response $response HTTP response.
+ 	 * @param string                   $filename Optional. File name. Default empty.
+ 	 */
+-	public function __construct( WpOrg\Requests\Response $response, $filename = '' ) {
++	public function __construct( WpOrg\Requests\Response $response, mixed $filename = '' ) {
+ 		$this->response = $response;
+ 		$this->filename = $filename;
+ 	}
+@@ -51,8 +51,9 @@
+ 	 *
+ 	 * @return WpOrg\Requests\Response HTTP response.
+ 	 */
+-	public function get_response_object() {
++	public function get_response_object(): mixed {
+ 		return $this->response;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -62,7 +63,7 @@
+ 	 *
+ 	 * @return \WpOrg\Requests\Utility\CaseInsensitiveDictionary Map of header name to header value.
+ 	 */
+-	public function get_headers() {
++	public function get_headers(): mixed {
+ 		// Ensure headers remain case-insensitive.
+ 		$converted = new WpOrg\Requests\Utility\CaseInsensitiveDictionary();
+ 
+@@ -75,6 +76,7 @@
+ 		}
+ 
+ 		return $converted;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -84,8 +86,9 @@
+ 	 *
+ 	 * @param array $headers Map of header name to header value.
+ 	 */
+-	public function set_headers( $headers ) {
+-		$this->response->headers = new WpOrg\Requests\Response\Headers( $headers );
++	public function set_headers( mixed $headers ): mixed {
++		$this->response->headers = new WpOrg\Requests\Response\Headers( \wp_aot_require_array($headers) );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -98,12 +101,13 @@
+ 	 * @param bool   $replace Optional. Whether to replace an existing header of the same name.
+ 	 *                        Default true.
+ 	 */
+-	public function header( $key, $value, $replace = true ) {
++	public function header( mixed $key, mixed $value, mixed $replace = true ): mixed {
+ 		if ( $replace ) {
+ 			unset( $this->response->headers[ $key ] );
+ 		}
+ 
+ 		$this->response->headers[ $key ] = $value;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -113,8 +117,9 @@
+ 	 *
+ 	 * @return int The 3-digit HTTP status code.
+ 	 */
+-	public function get_status() {
++	public function get_status(): mixed {
+ 		return $this->response->status_code;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -124,8 +129,9 @@
+ 	 *
+ 	 * @param int $code HTTP status.
+ 	 */
+-	public function set_status( $code ) {
++	public function set_status( mixed $code ): mixed {
+ 		$this->response->status_code = absint( $code );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -135,8 +141,9 @@
+ 	 *
+ 	 * @return string Response data.
+ 	 */
+-	public function get_data() {
++	public function get_data(): mixed {
+ 		return $this->response->body;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -146,8 +153,9 @@
+ 	 *
+ 	 * @param string $data Response data.
+ 	 */
+-	public function set_data( $data ) {
++	public function set_data( mixed $data ): mixed {
+ 		$this->response->body = $data;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -157,7 +165,7 @@
+ 	 *
+ 	 * @return WP_Http_Cookie[] List of cookie objects.
+ 	 */
+-	public function get_cookies() {
++	public function get_cookies(): mixed {
+ 		$cookies = array();
+ 		foreach ( $this->response->cookies as $cookie ) {
+ 			$cookies[] = new WP_Http_Cookie(
+@@ -173,6 +181,7 @@
+ 		}
+ 
+ 		return $cookies;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -182,7 +191,7 @@
+ 	 *
+ 	 * @return array WP_Http response array, per WP_Http::request().
+ 	 */
+-	public function to_array() {
++	public function to_array(): mixed {
+ 		return array(
+ 			'headers'  => $this->get_headers(),
+ 			'body'     => $this->get_data(),
+@@ -193,5 +202,6 @@
+ 			'cookies'  => $this->get_cookies(),
+ 			'filename' => $this->filename,
+ 		);
++		return null;
+ 	}
+ }

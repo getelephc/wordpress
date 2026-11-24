@@ -1,0 +1,123 @@
+--- a/wp-includes/class-wp-paused-extensions-storage.php
++++ b/wp-includes/class-wp-paused-extensions-storage.php
+@@ -29,7 +29,7 @@
+ 	 *
+ 	 * @param string $extension_type Extension type. Either 'plugin' or 'theme'.
+ 	 */
+-	public function __construct( $extension_type ) {
++	public function __construct( mixed $extension_type ) {
+ 		$this->type = $extension_type;
+ 	}
+ 
+@@ -52,7 +52,7 @@
+ 	 * }
+ 	 * @return bool True on success, false on failure.
+ 	 */
+-	public function set( $extension, $error ) {
++	public function set( mixed $extension, mixed $error ): mixed {
+ 		if ( ! $this->is_api_loaded() ) {
+ 			return false;
+ 		}
+@@ -73,6 +73,7 @@
+ 		$paused_extensions[ $this->type ][ $extension ] = $error;
+ 
+ 		return update_option( $option_name, $paused_extensions, false );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -83,7 +84,7 @@
+ 	 * @param string $extension Plugin or theme directory name.
+ 	 * @return bool True on success, false on failure.
+ 	 */
+-	public function delete( $extension ) {
++	public function delete( mixed $extension ): mixed {
+ 		if ( ! $this->is_api_loaded() ) {
+ 			return false;
+ 		}
+@@ -113,6 +114,7 @@
+ 		}
+ 
+ 		return update_option( $option_name, $paused_extensions, false );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -123,7 +125,7 @@
+ 	 * @param string $extension Plugin or theme directory name.
+ 	 * @return array|null Error that is stored, or null if the extension is not paused.
+ 	 */
+-	public function get( $extension ) {
++	public function get( mixed $extension ): mixed {
+ 		if ( ! $this->is_api_loaded() ) {
+ 			return null;
+ 		}
+@@ -135,6 +137,7 @@
+ 		}
+ 
+ 		return $paused_extensions[ $extension ];
++		return null;
+ 	}
+ 
+ 	/**
+@@ -148,7 +151,7 @@
+ 	 *     @type array ...$0 Error information returned by `error_get_last()`.
+ 	 * }
+ 	 */
+-	public function get_all() {
++	public function get_all(): mixed {
+ 		if ( ! $this->is_api_loaded() ) {
+ 			return array();
+ 		}
+@@ -162,6 +165,7 @@
+ 		$paused_extensions = (array) get_option( $option_name, array() );
+ 
+ 		return $paused_extensions[ $this->type ] ?? array();
++		return null;
+ 	}
+ 
+ 	/**
+@@ -171,7 +175,7 @@
+ 	 *
+ 	 * @return bool
+ 	 */
+-	public function delete_all() {
++	public function delete_all(): mixed {
+ 		if ( ! $this->is_api_loaded() ) {
+ 			return false;
+ 		}
+@@ -191,6 +195,7 @@
+ 		}
+ 
+ 		return update_option( $option_name, $paused_extensions, false );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -200,8 +205,9 @@
+ 	 *
+ 	 * @return bool True if the API is loaded, false otherwise.
+ 	 */
+-	protected function is_api_loaded() {
++	protected function is_api_loaded(): mixed {
+ 		return function_exists( 'get_option' );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -211,7 +217,7 @@
+ 	 *
+ 	 * @return string
+ 	 */
+-	protected function get_option_name() {
++	protected function get_option_name(): mixed {
+ 		if ( ! wp_recovery_mode()->is_active() ) {
+ 			return '';
+ 		}
+@@ -222,5 +228,6 @@
+ 		}
+ 
+ 		return "{$session_id}_paused_extensions";
++		return null;
+ 	}
+ }

@@ -1,0 +1,64 @@
+--- a/wp-includes/class-wp-site.php
++++ b/wp-includes/class-wp-site.php
+@@ -165,7 +165,7 @@
+ 	 * @param int $site_id The ID of the site to retrieve.
+ 	 * @return WP_Site|false The site's object if found. False if not.
+ 	 */
+-	public static function get_instance( $site_id ) {
++	public static function get_instance( mixed $site_id ): mixed {
+ 		global $wpdb;
+ 
+ 		$site_id = (int) $site_id;
+@@ -176,7 +176,7 @@
+ 		$_site = wp_cache_get( $site_id, 'sites' );
+ 
+ 		if ( false === $_site ) {
+-			$_site = $wpdb->get_row( $wpdb->prepare( "SELECT * FROM {$wpdb->blogs} WHERE blog_id = %d LIMIT 1", $site_id ) );
++			$_site = \wp_aot_require_wpdb( $wpdb )->get_row( \wp_aot_require_wpdb( $wpdb )->prepare( "SELECT * FROM {$wpdb->blogs} WHERE blog_id = %d LIMIT 1", $site_id ) );
+ 
+ 			if ( empty( $_site ) || is_wp_error( $_site ) ) {
+ 				$_site = -1;
+@@ -190,6 +190,7 @@
+ 		}
+ 
+ 		return new WP_Site( $_site );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -202,7 +203,7 @@
+ 	 *
+ 	 * @param object $site A site object.
+ 	 */
+-	public function __construct( $site ) {
++	public function __construct( mixed $site ) {
+ 		foreach ( get_object_vars( $site ) as $key => $value ) {
+ 			$this->$key = $value;
+ 		}
+@@ -215,8 +216,9 @@
+ 	 *
+ 	 * @return array Object as array.
+ 	 */
+-	public function to_array() {
++	public function to_array(): mixed {
+ 		return get_object_vars( $this );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -326,7 +328,7 @@
+ 	 *
+ 	 * @return stdClass A raw site object with all details included.
+ 	 */
+-	private function get_details() {
++	private function get_details(): mixed {
+ 		$details = wp_cache_get( $this->blog_id, 'site-details' );
+ 
+ 		if ( false === $details ) {
+@@ -359,5 +361,6 @@
+ 		$details = apply_filters( 'site_details', $details );
+ 
+ 		return $details;
++		return null;
+ 	}
+ }

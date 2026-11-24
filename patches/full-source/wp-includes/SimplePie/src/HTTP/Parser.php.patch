@@ -1,0 +1,316 @@
+--- a/wp-includes/SimplePie/src/HTTP/Parser.php
++++ b/wp-includes/SimplePie/src/HTTP/Parser.php
+@@ -44,7 +44,7 @@
+      *
+      * @var (Psr7Compatible is true ? array<string, non-empty-array<string>> : array<string, string>)
+      */
+-    public $headers = [];
++    public mixed $headers = [];
+ 
+     /**
+      * Body of the response
+@@ -141,7 +141,7 @@
+      *
+      * @return bool true on success, false on failure
+      */
+-    public function parse()
++    public function parse(): mixed
+     {
+         while ($this->state && $this->state !== self::STATE_EMIT && $this->has_data()) {
+             $state = $this->state;
+@@ -159,6 +159,7 @@
+         $this->headers = [];
+         $this->body = '';
+         return false;
++    	return null;
+     }
+ 
+     /**
+@@ -166,9 +167,10 @@
+      *
+      * @return bool true if there is further data, false if not
+      */
+-    protected function has_data()
++    protected function has_data(): mixed
+     {
+         return (bool) ($this->position < $this->data_length);
++    	return null;
+     }
+ 
+     /**
+@@ -176,20 +178,21 @@
+      *
+      * @return bool true if the next character is LWS, false if not
+      */
+-    protected function is_linear_whitespace()
++    protected function is_linear_whitespace(): mixed
+     {
+         return (bool) ($this->data[$this->position] === "\x09"
+             || $this->data[$this->position] === "\x20"
+             || ($this->data[$this->position] === "\x0A"
+                 && isset($this->data[$this->position + 1])
+                 && ($this->data[$this->position + 1] === "\x09" || $this->data[$this->position + 1] === "\x20")));
++    	return null;
+     }
+ 
+     /**
+      * Parse the HTTP version
+      * @return void
+      */
+-    protected function http_version()
++    protected function http_version(): mixed
+     {
+         if (strpos($this->data, "\x0A") !== false && strtoupper(substr($this->data, 0, 5)) === 'HTTP/') {
+             $len = strspn($this->data, '0123456789.', 5);
+@@ -205,13 +208,14 @@
+         } else {
+             $this->state = self::STATE_ERROR;
+         }
++    	return null;
+     }
+ 
+     /**
+      * Parse the status code
+      * @return void
+      */
+-    protected function status()
++    protected function status(): mixed
+     {
+         if ($len = strspn($this->data, '0123456789', $this->position)) {
+             $this->status_code = (int) substr($this->data, $this->position, $len);
+@@ -220,18 +224,20 @@
+         } else {
+             $this->state = self::STATE_ERROR;
+         }
++    	return null;
+     }
+ 
+     /**
+      * Parse the reason phrase
+      * @return void
+      */
+-    protected function reason()
++    protected function reason(): mixed
+     {
+         $len = strcspn($this->data, "\x0A", $this->position);
+         $this->reason = trim(substr($this->data, $this->position, $len), "\x09\x0D\x20");
+         $this->position += $len + 1;
+         $this->state = self::STATE_NEW_LINE;
++    	return null;
+     }
+ 
+     private function add_header(string $name, string $value): void
+@@ -268,7 +274,7 @@
+      * Deal with a new line, shifting data around as needed
+      * @return void
+      */
+-    protected function new_line()
++    protected function new_line(): mixed
+     {
+         $this->value = trim($this->value, "\x0D\x20");
+         if ($this->name !== '' && $this->value !== '') {
+@@ -291,13 +297,14 @@
+         } else {
+             $this->state = self::STATE_NAME;
+         }
++    	return null;
+     }
+ 
+     /**
+      * Parse a header name
+      * @return void
+      */
+-    protected function name()
++    protected function name(): mixed
+     {
+         $len = strcspn($this->data, "\x0A:", $this->position);
+         if (isset($this->data[$this->position + $len])) {
+@@ -312,13 +319,14 @@
+         } else {
+             $this->state = self::STATE_ERROR;
+         }
++    	return null;
+     }
+ 
+     /**
+      * Parse LWS, replacing consecutive LWS characters with a single space
+      * @return void
+      */
+-    protected function linear_whitespace()
++    protected function linear_whitespace(): mixed
+     {
+         do {
+             if (substr($this->data, $this->position, 2) === "\x0D\x0A") {
+@@ -329,13 +337,14 @@
+             $this->position += strspn($this->data, "\x09\x20", $this->position);
+         } while ($this->has_data() && $this->is_linear_whitespace());
+         $this->value .= "\x20";
++    	return null;
+     }
+ 
+     /**
+      * See what state to move to while within non-quoted header values
+      * @return void
+      */
+-    protected function value()
++    protected function value(): mixed
+     {
+         if ($this->is_linear_whitespace()) {
+             $this->linear_whitespace();
+@@ -364,25 +373,27 @@
+                     break;
+             }
+         }
++    	return null;
+     }
+ 
+     /**
+      * Parse a header value while outside quotes
+      * @return void
+      */
+-    protected function value_char()
++    protected function value_char(): mixed
+     {
+         $len = strcspn($this->data, "\x09\x20\x0A\"", $this->position);
+         $this->value .= substr($this->data, $this->position, $len);
+         $this->position += $len;
+         $this->state = self::STATE_VALUE;
++    	return null;
+     }
+ 
+     /**
+      * See what state to move to while within quoted header values
+      * @return void
+      */
+-    protected function quote()
++    protected function quote(): mixed
+     {
+         if ($this->is_linear_whitespace()) {
+             $this->linear_whitespace();
+@@ -408,36 +419,39 @@
+                     break;
+             }
+         }
++    	return null;
+     }
+ 
+     /**
+      * Parse a header value while within quotes
+      * @return void
+      */
+-    protected function quote_char()
++    protected function quote_char(): mixed
+     {
+         $len = strcspn($this->data, "\x09\x20\x0A\"\\", $this->position);
+         $this->value .= substr($this->data, $this->position, $len);
+         $this->position += $len;
+         $this->state = self::STATE_VALUE;
++    	return null;
+     }
+ 
+     /**
+      * Parse an escaped character within quotes
+      * @return void
+      */
+-    protected function quote_escaped()
++    protected function quote_escaped(): mixed
+     {
+         $this->value .= $this->data[$this->position];
+         $this->position++;
+         $this->state = self::STATE_QUOTE;
++    	return null;
+     }
+ 
+     /**
+      * Parse the body
+      * @return void
+      */
+-    protected function body()
++    protected function body(): mixed
+     {
+         $this->body = substr($this->data, $this->position);
+         if (!empty($this->headers['transfer-encoding'])) {
+@@ -446,28 +460,29 @@
+         } else {
+             $this->state = self::STATE_EMIT;
+         }
++    	return null;
+     }
+ 
+     /**
+      * Parsed a "Transfer-Encoding: chunked" body
+      * @return void
+      */
+-    protected function chunked()
+-    {
+-        if (!preg_match('/^([0-9a-f]+)[^\r\n]*\r\n/i', trim($this->body))) {
++    protected function chunked(): mixed
++    {
++        if (!preg_match('/^([0-9a-f]+)[^\r\n]*\r\n/i', \wp_aot_regex_text( trim($this->body) ))) {
+             $this->state = self::STATE_EMIT;
+-            return;
++            return null;
+         }
+ 
+         $decoded = '';
+         $encoded = $this->body;
+ 
+         while (true) {
+-            $is_chunked = (bool) preg_match('/^([0-9a-f]+)[^\r\n]*\r\n/i', $encoded, $matches);
++            $is_chunked = (bool) preg_match('/^([0-9a-f]+)[^\r\n]*\r\n/i', \wp_aot_regex_text( $encoded ), $matches);
+             if (!$is_chunked) {
+                 // Looks like it's not chunked after all
+                 $this->state = self::STATE_EMIT;
+-                return;
++                return null;
+             }
+ 
+             $length = hexdec(trim($matches[1]));
+@@ -478,7 +493,7 @@
+                 // Ignore trailer headers
+                 $this->state = self::STATE_EMIT;
+                 $this->body = $decoded;
+-                return;
++                return null;
+             }
+ 
+             $chunk_length = strlen($matches[0]);
+@@ -491,9 +506,10 @@
+             if (trim($encoded) === '0' || empty($encoded)) {
+                 $this->state = self::STATE_EMIT;
+                 $this->body = $decoded;
+-                return;
+-            }
+-        }
++                return null;
++            }
++        }
++    	return null;
+     }
+ 
+     /**
+@@ -504,10 +520,10 @@
+      *
+      * @return string
+      */
+-    public static function prepareHeaders(string $headers, int $count = 1)
+-    {
+-        $data = explode("\r\n\r\n", $headers, $count);
+-        $data = array_pop($data);
++    public static function prepareHeaders(string $headers, int $count = 1): mixed
++    {
++        $data = \wp_aot_mixed(explode("\r\n\r\n", $headers, $count));
++        $data = \wp_aot_array_pop($data);
+         if (false !== stripos($data, "HTTP/1.0 200 Connection established\r\n")) {
+             $exploded = explode("\r\n\r\n", $data, 2);
+             $data = end($exploded);
+@@ -517,7 +533,8 @@
+             $data = end($exploded);
+         }
+         return $data;
++    	return null;
+     }
+ }
+ 
+-class_alias('SimplePie\HTTP\Parser', 'SimplePie_HTTP_Parser');
++(!defined('WP_AOT_NATIVE_RUNTIME') && (bool) \wp_aot_native_api('class_alias', array('SimplePie\HTTP\Parser', 'SimplePie_HTTP_Parser')));

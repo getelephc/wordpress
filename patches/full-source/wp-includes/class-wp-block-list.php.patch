@@ -1,0 +1,136 @@
+--- a/wp-includes/class-wp-block-list.php
++++ b/wp-includes/class-wp-block-list.php
+@@ -20,7 +20,8 @@
+ 	 * @since 5.5.0
+ 	 * @var array[]|WP_Block[]
+ 	 */
+-	protected $blocks;
++	protected array $blocks;
++	private int $cursor_position = 0;
+ 
+ 	/**
+ 	 * All available context of the current hierarchy.
+@@ -28,7 +29,7 @@
+ 	 * @since 5.5.0
+ 	 * @var array
+ 	 */
+-	protected $available_context;
++	protected array $available_context;
+ 
+ 	/**
+ 	 * Block type registry to use in constructing block instances.
+@@ -49,7 +50,7 @@
+ 	 * @param array                  $available_context Optional array of ancestry context values.
+ 	 * @param WP_Block_Type_Registry $registry          Optional block type registry.
+ 	 */
+-	public function __construct( $blocks, $available_context = array(), $registry = null ) {
++	public function __construct( array $blocks, array $available_context = array(), ?WP_Block_Type_Registry $registry = null ) {
+ 		if ( ! $registry instanceof WP_Block_Type_Registry ) {
+ 			$registry = WP_Block_Type_Registry::get_instance();
+ 		}
+@@ -71,7 +72,7 @@
+ 	 * @return bool Whether block exists.
+ 	 */
+ 	#[ReturnTypeWillChange]
+-	public function offsetExists( $offset ) {
++	public function offsetExists( mixed $offset ): bool {
+ 		return isset( $this->blocks[ $offset ] );
+ 	}
+ 
+@@ -86,7 +87,7 @@
+ 	 * @return WP_Block|null Block value if exists, or null.
+ 	 */
+ 	#[ReturnTypeWillChange]
+-	public function offsetGet( $offset ) {
++	public function offsetGet( mixed $offset ): mixed {
+ 		$block = $this->blocks[ $offset ];
+ 
+ 		if ( isset( $block ) && is_array( $block ) ) {
+@@ -109,7 +110,7 @@
+ 	 * @param array|WP_Block $value  Block value.
+ 	 */
+ 	#[ReturnTypeWillChange]
+-	public function offsetSet( $offset, $value ) {
++	public function offsetSet( mixed $offset, mixed $value ): void {
+ 		if ( is_null( $offset ) ) {
+ 			$this->blocks[] = $value;
+ 		} else {
+@@ -127,7 +128,12 @@
+ 	 * @param int $offset Offset of block value to unset.
+ 	 */
+ 	#[ReturnTypeWillChange]
+-	public function offsetUnset( $offset ) {
++	public function offsetUnset( mixed $offset ): void {
++		$positions = \wp_aot_array_flip( array_keys( $this->blocks ) );
++		$removed_position = $positions[ $offset ] ?? null;
++		if ( null !== $removed_position && $removed_position < $this->cursor_position ) {
++			--$this->cursor_position;
++		}
+ 		unset( $this->blocks[ $offset ] );
+ 	}
+ 
+@@ -139,8 +145,8 @@
+ 	 * @link https://www.php.net/manual/en/iterator.rewind.php
+ 	 */
+ 	#[ReturnTypeWillChange]
+-	public function rewind() {
+-		reset( $this->blocks );
++	public function rewind(): void {
++		$this->cursor_position = 0;
+ 	}
+ 
+ 	/**
+@@ -153,7 +159,7 @@
+ 	 * @return WP_Block|null Current element.
+ 	 */
+ 	#[ReturnTypeWillChange]
+-	public function current() {
++	public function current(): mixed {
+ 		return $this->offsetGet( $this->key() );
+ 	}
+ 
+@@ -167,8 +173,9 @@
+ 	 * @return int|null Key of the current element.
+ 	 */
+ 	#[ReturnTypeWillChange]
+-	public function key() {
+-		return key( $this->blocks );
++	public function key(): mixed {
++		$keys = array_keys( $this->blocks );
++		return $keys[ $this->cursor_position ] ?? null;
+ 	}
+ 
+ 	/**
+@@ -179,8 +186,10 @@
+ 	 * @link https://www.php.net/manual/en/iterator.next.php
+ 	 */
+ 	#[ReturnTypeWillChange]
+-	public function next() {
+-		next( $this->blocks );
++	public function next(): void {
++		if ( $this->cursor_position < count( $this->blocks ) ) {
++			++$this->cursor_position;
++		}
+ 	}
+ 
+ 	/**
+@@ -191,8 +200,8 @@
+ 	 * @link https://www.php.net/manual/en/iterator.valid.php
+ 	 */
+ 	#[ReturnTypeWillChange]
+-	public function valid() {
+-		return null !== key( $this->blocks );
++	public function valid(): bool {
++		return $this->cursor_position < count( $this->blocks );
+ 	}
+ 
+ 	/**
+@@ -205,7 +214,7 @@
+ 	 * @return int Block count.
+ 	 */
+ 	#[ReturnTypeWillChange]
+-	public function count() {
++	public function count(): int {
+ 		return count( $this->blocks );
+ 	}
+ }

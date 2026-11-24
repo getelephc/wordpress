@@ -1,6 +1,6 @@
 --- a/wp-load.php
 +++ b/wp-load.php
-@@ -52,7 +52,7 @@
+@@ -52,16 +52,16 @@
  } elseif ( @file_exists( dirname( ABSPATH ) . '/wp-config.php' ) && ! @file_exists( dirname( ABSPATH ) . '/wp-settings.php' ) ) {
  
  	/** The config file resides one level above ABSPATH but is not part of another installation */
@@ -9,3 +9,34 @@
  
  } else {
  
+ 	// A config file doesn't exist.
+ 
+ 	define( 'WPINC', 'wp-includes' );
+-	require_once ABSPATH . WPINC . '/version.php';
+-	require_once ABSPATH . WPINC . '/compat.php';
+-	require_once ABSPATH . WPINC . '/load.php';
++	require_once __DIR__ . '/wp-includes/version.php';
++	require_once __DIR__ . '/wp-includes/compat.php';
++	require_once __DIR__ . '/wp-includes/load.php';
+ 
+ 	// Check for the required PHP version and for the MySQL extension or a database drop-in.
+ 	wp_check_php_mysql_versions();
+@@ -69,15 +69,15 @@
+ 	// Standardize $_SERVER variables across setups.
+ 	wp_fix_server_vars();
+ 
+-	define( 'WP_CONTENT_DIR', ABSPATH . 'wp-content' );
+-	require_once ABSPATH . WPINC . '/functions.php';
++	\wp_aot_bootstrap_mark('WP_CONTENT_DIR', define( 'WP_CONTENT_DIR', ABSPATH . 'wp-content' ));
++	require_once __DIR__ . '/wp-includes/functions.php';
+ 
+ 	$path = wp_guess_url() . '/wp-admin/setup-config.php';
+ 
+ 	// Redirect to setup-config.php.
+ 	if ( ! str_contains( $_SERVER['REQUEST_URI'], 'setup-config' ) ) {
+ 		header( 'Location: ' . $path );
+-		exit;
++		\wp_aot_exit();
+ 	}
+ 
+ 	wp_load_translations_early();

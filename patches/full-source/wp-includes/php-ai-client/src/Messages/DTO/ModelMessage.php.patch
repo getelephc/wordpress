@@ -1,0 +1,10 @@
+--- a/wp-includes/php-ai-client/src/Messages/DTO/ModelMessage.php
++++ b/wp-includes/php-ai-client/src/Messages/DTO/ModelMessage.php
+@@ -27,6 +27,6 @@
+      */
+     public function __construct(array $parts)
+     {
+-        parent::__construct(MessageRoleEnum::model(), $parts);
++        parent::__construct(\wp_aot_require_WordPress_AiClient_Messages_Enums_MessageRoleEnum( MessageRoleEnum::model() ), $parts);
+     }
+ }

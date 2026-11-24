@@ -1,8 +1,42 @@
 --- a/wp-includes/widgets/class-wp-widget-calendar.php
 +++ b/wp-includes/widgets/class-wp-widget-calendar.php
-@@ -95,11 +95,21 @@
+@@ -47,7 +47,7 @@
+ 	 *                        'before_widget', and 'after_widget'.
+ 	 * @param array $instance The settings for the particular instance of the widget.
  	 */
- 	public function form( $instance ) {
+-	public function widget( $args, $instance ) {
++	public function widget( mixed $args, mixed $instance ): mixed {
+ 		$title = ! empty( $instance['title'] ) ? $instance['title'] : '';
+ 
+ 		/** This filter is documented in wp-includes/widgets/class-wp-widget-pages.php */
+@@ -67,6 +67,7 @@
+ 		echo $args['after_widget'];
+ 
+ 		++self::$instance;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -79,11 +80,12 @@
+ 	 * @param array $old_instance Old settings for this instance.
+ 	 * @return array Updated settings to save.
+ 	 */
+-	public function update( $new_instance, $old_instance ) {
++	public function update( mixed $new_instance, mixed $old_instance ): mixed {
+ 		$instance          = $old_instance;
+ 		$instance['title'] = sanitize_text_field( $new_instance['title'] );
+ 
+ 		return $instance;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -93,13 +95,24 @@
+ 	 *
+ 	 * @param array $instance Current settings.
+ 	 */
+-	public function form( $instance ) {
++	public function form( mixed $instance ): mixed {
  		$instance = wp_parse_args( (array) $instance, array( 'title' => '' ) );
 -		?>
 -		<p>
@@ -25,5 +59,6 @@
  		</p>
 -		<?php
 +		';
++		return null;
  	}
  }

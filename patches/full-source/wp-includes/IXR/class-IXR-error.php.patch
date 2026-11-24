@@ -1,0 +1,41 @@
+--- a/wp-includes/IXR/class-IXR-error.php
++++ b/wp-includes/IXR/class-IXR-error.php
+@@ -8,13 +8,13 @@
+  */
+ class IXR_Error
+ {
+-    var $code;
+-    var $message;
++    public $code;
++    public $message;
+ 
+ 	/**
+ 	 * PHP5 constructor.
+ 	 */
+-    function __construct( $code, $message )
++    function __construct( mixed $code, mixed $message )
+     {
+         $this->code = $code;
+         $this->message = htmlspecialchars($message);
+@@ -23,11 +23,12 @@
+ 	/**
+ 	 * PHP4 constructor.
+ 	 */
+-	public function IXR_Error( $code, $message ) {
++	public function IXR_Error( mixed $code, mixed $message ): mixed {
+ 		self::__construct( $code, $message );
++		return null;
+ 	}
+ 
+-    function getXml()
++    function getXml(): mixed
+     {
+         $xml = <<<EOD
+ <methodResponse>
+@@ -49,5 +50,6 @@
+ 
+ EOD;
+         return $xml;
++    	return null;
+     }
+ }

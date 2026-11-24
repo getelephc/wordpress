@@ -1,0 +1,97 @@
+--- a/wp-includes/blocks/template-part.php
++++ b/wp-includes/blocks/template-part.php
+@@ -16,8 +16,9 @@
+  *
+  * @return string The render.
+  */
+-function render_block_core_template_part( $attributes ) {
+-	static $seen_ids = array();
++function render_block_core_template_part( mixed $attributes ): mixed {
++	static $seen_ids_aot_cell = new \WordPressStaticArrayCell();
++	$seen_ids =& $seen_ids_aot_cell->value;
+ 
+ 	$template_part_id = null;
+ 	$content          = null;
+@@ -163,7 +164,8 @@
+ 	}
+ 	$wrapper_attributes = get_block_wrapper_attributes();
+ 
+-	return "<$html_tag $wrapper_attributes>" . str_replace( ']]>', ']]&gt;', $content ) . "</$html_tag>";
++	return "<$html_tag $wrapper_attributes>" . \wp_aot_str_replace( ']]>', ']]&gt;', $content ) . "</$html_tag>";
++	return null;
+ }
+ 
+ /**
+@@ -175,7 +177,7 @@
+  *
+  * @return array Array containing the block variation objects.
+  */
+-function build_template_part_block_area_variations( $instance_variations ) {
++function build_template_part_block_area_variations( mixed $instance_variations ): mixed {
+ 	$variations    = array();
+ 	$defined_areas = get_allowed_block_template_part_areas();
+ 
+@@ -204,6 +206,7 @@
+ 		}
+ 	}
+ 	return $variations;
++	return null;
+ }
+ 
+ /**
+@@ -213,7 +216,7 @@
+  *
+  * @return array Array containing the block variation objects.
+  */
+-function build_template_part_block_instance_variations() {
++function build_template_part_block_instance_variations(): mixed {
+ 	// Block themes are unavailable during installation.
+ 	if ( wp_installing() ) {
+ 		return array();
+@@ -232,7 +235,7 @@
+ 	);
+ 
+ 	$defined_areas = get_allowed_block_template_part_areas();
+-	$icon_by_area  = array_combine( array_column( $defined_areas, 'area' ), array_column( $defined_areas, 'icon' ) );
++	$icon_by_area  = \wp_aot_array_combine( \wp_aot_array_column( $defined_areas, 'area' ), \wp_aot_array_column( $defined_areas, 'icon' ) );
+ 
+ 	foreach ( $template_parts as $template_part ) {
+ 		// Navigation overlay template parts should not appear in the
+@@ -267,6 +270,7 @@
+ 		);
+ 	}
+ 	return $variations;
++	return null;
+ }
+ 
+ /**
+@@ -276,10 +280,11 @@
+  *
+  * @return array Array containing the block variation objects.
+  */
+-function build_template_part_block_variations() {
++function build_template_part_block_variations(): mixed {
+ 	$instance_variations = build_template_part_block_instance_variations();
+ 	$area_variations     = build_template_part_block_area_variations( $instance_variations );
+-	return array_merge( $area_variations, $instance_variations );
++	return \wp_aot_array_merge(array( $area_variations, $instance_variations ));
++	return null;
+ }
+ 
+ /**
+@@ -287,7 +292,7 @@
+  *
+  * @since 5.9.0
+  */
+-function register_block_core_template_part() {
++function register_block_core_template_part(): mixed {
+ 	register_block_type_from_metadata(
+ 		__DIR__ . '/template-part',
+ 		array(
+@@ -295,5 +300,6 @@
+ 			'variation_callback' => 'build_template_part_block_variations',
+ 		)
+ 	);
++	return null;
+ }
+ add_action( 'init', 'register_block_core_template_part' );

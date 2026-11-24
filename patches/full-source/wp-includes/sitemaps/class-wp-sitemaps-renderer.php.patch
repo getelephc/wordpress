@@ -1,0 +1,120 @@
+--- a/wp-includes/sitemaps/class-wp-sitemaps-renderer.php
++++ b/wp-includes/sitemaps/class-wp-sitemaps-renderer.php
+@@ -62,7 +62,7 @@
+ 	 *
+ 	 * @return string The sitemap stylesheet URL.
+ 	 */
+-	public function get_sitemap_stylesheet_url() {
++	public function get_sitemap_stylesheet_url(): mixed {
+ 		global $wp_rewrite;
+ 
+ 		$sitemap_url = home_url( '/wp-sitemap.xsl' );
+@@ -82,6 +82,7 @@
+ 		 * @param string $sitemap_url Full URL for the sitemaps XSL file.
+ 		 */
+ 		return apply_filters( 'wp_sitemaps_stylesheet_url', $sitemap_url );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -93,7 +94,7 @@
+ 	 *
+ 	 * @return string The sitemap index stylesheet URL.
+ 	 */
+-	public function get_sitemap_index_stylesheet_url() {
++	public function get_sitemap_index_stylesheet_url(): mixed {
+ 		global $wp_rewrite;
+ 
+ 		$sitemap_url = home_url( '/wp-sitemap-index.xsl' );
+@@ -113,6 +114,7 @@
+ 		 * @param string $sitemap_url Full URL for the sitemaps index XSL file.
+ 		 */
+ 		return apply_filters( 'wp_sitemaps_stylesheet_index_url', $sitemap_url );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -122,7 +124,7 @@
+ 	 *
+ 	 * @param array $sitemaps Array of sitemap URLs.
+ 	 */
+-	public function render_index( $sitemaps ) {
++	public function render_index( mixed $sitemaps ): mixed {
+ 		header( 'Content-Type: application/xml; charset=UTF-8' );
+ 
+ 		$this->check_for_simple_xml_availability();
+@@ -133,6 +135,7 @@
+ 			// All output is escaped within get_sitemap_index_xml().
+ 			echo $index_xml;
+ 		}
++		return null;
+ 	}
+ 
+ 	/**
+@@ -143,7 +146,7 @@
+ 	 * @param array $sitemaps Array of sitemap URLs.
+ 	 * @return string|false A well-formed XML string for a sitemap index. False on error.
+ 	 */
+-	public function get_sitemap_index_xml( $sitemaps ) {
++	public function get_sitemap_index_xml( mixed $sitemaps ): mixed {
+ 		$sitemap_index = new SimpleXMLElement(
+ 			sprintf(
+ 				'%1$s%2$s%3$s',
+@@ -177,6 +180,7 @@
+ 		}
+ 
+ 		return $sitemap_index->asXML();
++		return null;
+ 	}
+ 
+ 	/**
+@@ -186,7 +190,7 @@
+ 	 *
+ 	 * @param array $url_list Array of URLs for a sitemap.
+ 	 */
+-	public function render_sitemap( $url_list ) {
++	public function render_sitemap( mixed $url_list ): mixed {
+ 		header( 'Content-Type: application/xml; charset=UTF-8' );
+ 
+ 		$this->check_for_simple_xml_availability();
+@@ -197,6 +201,7 @@
+ 			// All output is escaped within get_sitemap_xml().
+ 			echo $sitemap_xml;
+ 		}
++		return null;
+ 	}
+ 
+ 	/**
+@@ -207,7 +212,7 @@
+ 	 * @param array $url_list Array of URLs for a sitemap.
+ 	 * @return string|false A well-formed XML string for a sitemap index. False on error.
+ 	 */
+-	public function get_sitemap_xml( $url_list ) {
++	public function get_sitemap_xml( mixed $url_list ): mixed {
+ 		$urlset = new SimpleXMLElement(
+ 			sprintf(
+ 				'%1$s%2$s%3$s',
+@@ -241,6 +246,7 @@
+ 		}
+ 
+ 		return $urlset->asXML();
++		return null;
+ 	}
+ 
+ 	/**
+@@ -248,7 +254,7 @@
+ 	 *
+ 	 * @since 5.5.0
+ 	 */
+-	private function check_for_simple_xml_availability() {
++	private function check_for_simple_xml_availability(): mixed {
+ 		if ( ! class_exists( 'SimpleXMLElement' ) ) {
+ 			add_filter(
+ 				'wp_die_handler',
+@@ -269,5 +275,6 @@
+ 				)
+ 			);
+ 		}
++		return null;
+ 	}
+ }

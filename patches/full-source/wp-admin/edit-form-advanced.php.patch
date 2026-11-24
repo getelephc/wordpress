@@ -1,0 +1,20 @@
+--- a/wp-admin/edit-form-advanced.php
++++ b/wp-admin/edit-form-advanced.php
+@@ -8,7 +8,7 @@
+ 
+ // Don't load directly.
+ if ( ! defined( 'ABSPATH' ) ) {
+-	exit;
++	\wp_aot_exit();
+ }
+ 
+ /**
+@@ -39,7 +39,7 @@
+ 
+ if ( post_type_supports( $post_type, 'editor' )
+ 	&& ! wp_is_mobile()
+-	&& ! ( $is_IE && preg_match( '/MSIE [5678]/', $_SERVER['HTTP_USER_AGENT'] ) )
++	&& ! ( $is_IE && preg_match( '/MSIE [5678]/', \wp_aot_regex_text( $_SERVER['HTTP_USER_AGENT'] ) ) )
+ ) {
+ 	/**
+ 	 * Filters whether to enable the 'expand' functionality in the post editor.

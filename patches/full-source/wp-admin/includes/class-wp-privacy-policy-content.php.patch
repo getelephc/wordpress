@@ -1,6 +1,176 @@
 --- a/wp-admin/includes/class-wp-privacy-policy-content.php
 +++ b/wp-admin/includes/class-wp-privacy-policy-content.php
-@@ -415,39 +415,57 @@
+@@ -33,9 +33,9 @@
+ 	 * @param string $plugin_name The name of the plugin or theme that is suggesting content for the site's privacy policy.
+ 	 * @param string $policy_text The suggested content for inclusion in the policy.
+ 	 */
+-	public static function add( $plugin_name, $policy_text ) {
++	public static function add( mixed $plugin_name, mixed $policy_text ): mixed {
+ 		if ( empty( $plugin_name ) || empty( $policy_text ) ) {
+-			return;
++			return null;
+ 		}
+ 
+ 		$data = array(
+@@ -46,6 +46,7 @@
+ 		if ( ! in_array( $data, self::$policy_content, true ) ) {
+ 			self::$policy_content[] = $data;
+ 		}
++		return null;
+ 	}
+ 
+ 	/**
+@@ -53,7 +54,7 @@
+ 	 *
+ 	 * @since 4.9.6
+ 	 */
+-	public static function text_change_check() {
++	public static function text_change_check(): mixed {
+ 
+ 		$policy_page_id = (int) get_option( 'wp_page_for_privacy_policy' );
+ 
+@@ -100,8 +101,8 @@
+ 		}
+ 
+ 		// Normalize the order of texts, to facilitate comparison.
+-		sort( $old );
+-		sort( $new );
++		\wp_aot_sort( $old );
++		\wp_aot_sort( $new );
+ 
+ 		/*
+ 		 * The == operator (equal, not identical) was used intentionally.
+@@ -124,6 +125,7 @@
+ 		}
+ 
+ 		return 'changed' === $state;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -131,11 +133,11 @@
+ 	 *
+ 	 * @since 4.9.6
+ 	 */
+-	public static function policy_text_changed_notice() {
++	public static function policy_text_changed_notice(): mixed {
+ 		$screen = get_current_screen()->id;
+ 
+ 		if ( 'privacy' !== $screen ) {
+-			return;
++			return null;
+ 		}
+ 
+ 		$privacy_message = sprintf(
+@@ -152,6 +154,7 @@
+ 				'dismissible'        => true,
+ 			)
+ 		);
++		return null;
+ 	}
+ 
+ 	/**
+@@ -162,11 +165,11 @@
+ 	 *
+ 	 * @param int $post_id The ID of the updated post.
+ 	 */
+-	public static function _policy_page_updated( $post_id ) {
++	public static function _policy_page_updated( mixed $post_id ): mixed {
+ 		$policy_page_id = (int) get_option( 'wp_page_for_privacy_policy' );
+ 
+ 		if ( ! $policy_page_id || $policy_page_id !== (int) $post_id ) {
+-			return;
++			return null;
+ 		}
+ 
+ 		// Remove updated|removed status.
+@@ -201,6 +204,7 @@
+ 				add_post_meta( $policy_page_id, '_wp_suggested_privacy_policy_content', $data );
+ 			}
+ 		}
++		return null;
+ 	}
+ 
+ 	/**
+@@ -212,13 +216,13 @@
+ 	 *
+ 	 * @return array The privacy policy text/information added by core and plugins.
+ 	 */
+-	public static function get_suggested_policy_text() {
++	public static function get_suggested_policy_text(): mixed {
+ 		$policy_page_id = (int) get_option( 'wp_page_for_privacy_policy' );
+ 		$checked        = array();
+ 		$time           = time();
+ 		$update_cache   = false;
+ 		$new            = self::$policy_content;
+-		$old            = array();
++		$old            = \wp_aot_mixed(array());
+ 
+ 		if ( $policy_page_id ) {
+ 			$old = (array) get_post_meta( $policy_page_id, '_wp_suggested_privacy_policy_content' );
+@@ -299,6 +303,7 @@
+ 		}
+ 
+ 		return $checked;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -311,7 +316,7 @@
+ 	 *
+ 	 * @param WP_Post|null $post The currently edited post. Default null.
+ 	 */
+-	public static function notice( $post = null ) {
++	public static function notice( mixed $post = null ): mixed {
+ 		if ( is_null( $post ) ) {
+ 			global $post;
+ 		} else {
+@@ -319,11 +324,11 @@
+ 		}
+ 
+ 		if ( ! ( $post instanceof WP_Post ) ) {
+-			return;
++			return null;
+ 		}
+ 
+ 		if ( ! current_user_can( 'manage_privacy_options' ) ) {
+-			return;
++			return null;
+ 		}
+ 
+ 		$current_screen = get_current_screen();
+@@ -332,11 +337,11 @@
+ 		// If the privacy policy page has been deleted, reset the option and bail.
+ 		if ( $policy_page_id && ! get_post( $policy_page_id ) ) {
+ 			update_option( 'wp_page_for_privacy_policy', 0 );
+-			return;
++			return null;
+ 		}
+ 
+ 		if ( 'post' !== $current_screen->base || $policy_page_id !== $post->ID ) {
+-			return;
++			return null;
+ 		}
+ 
+ 		$message = __( 'Need help putting together your new Privacy Policy page? Check out the guide for recommendations on what content to include, along with policies suggested by your plugins and theme.' );
+@@ -374,6 +379,7 @@
+ 				)
+ 			);
+ 		}
++		return null;
+ 	}
+ 
+ 	/**
+@@ -381,7 +387,7 @@
+ 	 *
+ 	 * @since 4.9.6
+ 	 */
+-	public static function privacy_policy_guide() {
++	public static function privacy_policy_guide(): mixed {
+ 
+ 		$content_array = self::get_suggested_policy_text();
+ 		$date_format   = __( 'F j, Y' );
+@@ -415,40 +421,59 @@
  			}
  
  			$plugin_name = esc_html( $section['plugin_name'] );
@@ -73,10 +243,41 @@
 -				<?php endif; ?>
 -			</div>
 -			<?php
+-		}
 +				';
 +endif; ;
 +echo '			</div>
 +			';
- 		}
++		}
++		return null;
  	}
  
+ 	/**
+@@ -461,7 +486,7 @@
+ 	 * @param bool $blocks      Whether to format the content for the block editor. Default true.
+ 	 * @return string The default policy content.
+ 	 */
+-	public static function get_default_content( $description = false, $blocks = true ) {
++	public static function get_default_content( mixed $description = false, mixed $blocks = true ): mixed {
+ 		$suggested_text = '<strong class="privacy-policy-tutorial">' . __( 'Suggested text:' ) . ' </strong>';
+ 		$content        = '';
+ 		$strings        = array();
+@@ -698,6 +723,7 @@
+ 			'5.7.0',
+ 			'wp_add_privacy_policy_content()'
+ 		);
++		return null;
+ 	}
+ 
+ 	/**
+@@ -705,8 +731,9 @@
+ 	 *
+ 	 * @since 4.9.6
+ 	 */
+-	public static function add_suggested_content() {
++	public static function add_suggested_content(): mixed {
+ 		$content = self::get_default_content( false, false );
+ 		wp_add_privacy_policy_content( __( 'WordPress' ), $content );
++		return null;
+ 	}
+ }

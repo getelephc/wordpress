@@ -1,0 +1,86 @@
+--- a/wp-includes/sitemaps/class-wp-sitemaps-provider.php
++++ b/wp-includes/sitemaps/class-wp-sitemaps-provider.php
+@@ -45,7 +45,7 @@
+ 	 * @param string $object_subtype Optional. Object subtype name. Default empty.
+ 	 * @return array[] Array of URL information for a sitemap.
+ 	 */
+-	abstract public function get_url_list( $page_num, $object_subtype = '' );
++	abstract public function get_url_list( mixed $page_num, mixed $object_subtype = '' ): mixed;
+ 
+ 	/**
+ 	 * Gets the max number of pages available for the object type.
+@@ -55,7 +55,7 @@
+ 	 * @param string $object_subtype Optional. Object subtype. Default empty.
+ 	 * @return int Total number of pages.
+ 	 */
+-	abstract public function get_max_num_pages( $object_subtype = '' );
++	abstract public function get_max_num_pages( mixed $object_subtype = '' ): mixed;
+ 
+ 	/**
+ 	 * Gets data about each sitemap type.
+@@ -64,7 +64,7 @@
+ 	 *
+ 	 * @return array[] Array of sitemap types including object subtype name and number of pages.
+ 	 */
+-	public function get_sitemap_type_data() {
++	public function get_sitemap_type_data(): mixed {
+ 		$sitemap_data = array();
+ 
+ 		$object_subtypes = $this->get_object_subtypes();
+@@ -92,6 +92,7 @@
+ 		}
+ 
+ 		return $sitemap_data;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -103,7 +104,7 @@
+ 	 *
+ 	 * @return array[] Array of sitemap entries.
+ 	 */
+-	public function get_sitemap_entries() {
++	public function get_sitemap_entries(): mixed {
+ 		$sitemaps = array();
+ 
+ 		$sitemap_types = $this->get_sitemap_type_data();
+@@ -132,6 +133,7 @@
+ 		}
+ 
+ 		return $sitemaps;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -145,11 +147,11 @@
+ 	 * @param int    $page The page of the sitemap.
+ 	 * @return string The composed URL for a sitemap entry.
+ 	 */
+-	public function get_sitemap_url( $name, $page ) {
++	public function get_sitemap_url( mixed $name, mixed $page ): mixed {
+ 		global $wp_rewrite;
+ 
+ 		// Accounts for cases where name is not included, ex: sitemaps-users-1.xml.
+-		$params = array_filter(
++		$params = \wp_aot_array_filter(
+ 			array(
+ 				'sitemap'         => $this->name,
+ 				'sitemap-subtype' => $name,
+@@ -167,6 +169,7 @@
+ 		}
+ 
+ 		return home_url( $basename );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -176,7 +179,8 @@
+ 	 *
+ 	 * @return array List of object subtypes objects keyed by their name.
+ 	 */
+-	public function get_object_subtypes() {
++	public function get_object_subtypes(): mixed {
+ 		return array();
++		return null;
+ 	}
+ }

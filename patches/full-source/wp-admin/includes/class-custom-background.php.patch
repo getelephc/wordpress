@@ -1,14 +1,115 @@
 --- a/wp-admin/includes/class-custom-background.php
 +++ b/wp-admin/includes/class-custom-background.php
-@@ -238,11 +238,13 @@
+@@ -48,7 +48,7 @@
+ 	 * @param callable $admin_image_div_callback Optional. Custom image div output callback.
+ 	 *                                           Default empty string.
+ 	 */
+-	public function __construct( $admin_header_callback = '', $admin_image_div_callback = '' ) {
++	public function __construct( mixed $admin_header_callback = '', mixed $admin_image_div_callback = '' ) {
+ 		$this->admin_header_callback    = $admin_header_callback;
+ 		$this->admin_image_div_callback = $admin_image_div_callback;
+ 
+@@ -65,7 +65,7 @@
+ 	 *
  	 * @since 3.0.0
  	 */
- 	public function admin_page() {
+-	public function init() {
++	public function init(): mixed {
+ 		$page = add_theme_page(
+ 			_x( 'Background', 'custom background' ),
+ 			_x( 'Background', 'custom background' ),
+@@ -75,7 +75,7 @@
+ 		);
+ 
+ 		if ( ! $page ) {
+-			return;
++			return null;
+ 		}
+ 
+ 		add_action( "load-{$page}", array( $this, 'admin_load' ) );
+@@ -85,6 +85,7 @@
+ 		if ( $this->admin_header_callback ) {
+ 			add_action( "admin_head-{$page}", $this->admin_header_callback, 51 );
+ 		}
++		return null;
+ 	}
+ 
+ 	/**
+@@ -92,7 +93,7 @@
+ 	 *
+ 	 * @since 3.0.0
+ 	 */
+-	public function admin_load() {
++	public function admin_load(): mixed {
+ 		get_current_screen()->add_help_tab(
+ 			array(
+ 				'id'      => 'overview',
+@@ -114,6 +115,7 @@
+ 		wp_enqueue_media();
+ 		wp_enqueue_script( 'custom-background' );
+ 		wp_enqueue_style( 'wp-color-picker' );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -121,9 +123,9 @@
+ 	 *
+ 	 * @since 3.0.0
+ 	 */
+-	public function take_action() {
++	public function take_action(): mixed {
+ 		if ( empty( $_POST ) ) {
+-			return;
++			return null;
+ 		}
+ 
+ 		if ( isset( $_POST['reset-background'] ) ) {
+@@ -133,7 +135,7 @@
+ 			remove_theme_mod( 'background_image_thumb' );
+ 
+ 			$this->updated = true;
+-			return;
++			return null;
+ 		}
+ 
+ 		if ( isset( $_POST['remove-background'] ) ) {
+@@ -145,7 +147,7 @@
+ 
+ 			$this->updated = true;
+ 			wp_safe_redirect( $_POST['_wp_http_referer'] );
+-			return;
++			return null;
+ 		}
+ 
+ 		if ( isset( $_POST['background-preset'] ) ) {
+@@ -220,7 +222,7 @@
+ 		if ( isset( $_POST['background-color'] ) ) {
+ 			check_admin_referer( 'custom-background' );
+ 
+-			$color = preg_replace( '/[^0-9a-fA-F]/', '', $_POST['background-color'] );
++			$color = \wp_aot_preg_replace( '/[^0-9a-fA-F]/', '', $_POST['background-color'] );
+ 
+ 			if ( strlen( $color ) === 6 || strlen( $color ) === 3 ) {
+ 				set_theme_mod( 'background_color', $color );
+@@ -230,6 +232,7 @@
+ 		}
+ 
+ 		$this->updated = true;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -237,12 +240,14 @@
+ 	 *
+ 	 * @since 3.0.0
+ 	 */
+-	public function admin_page() {
 -		?>
 -<div class="wrap" id="custom-background">
 -<h1><?php _e( 'Custom Background' ); ?></h1>
 -
 -		<?php
++	public function admin_page(): mixed {
 +		;
 +echo '<div class="wrap" id="custom-background">
 +<h1>';
@@ -19,7 +120,7 @@
  		if ( current_user_can( 'customize' ) ) {
  			$message = sprintf(
  				/* translators: %s: URL to background image configuration in Customizer. */
-@@ -272,16 +274,20 @@
+@@ -272,16 +277,20 @@
  				)
  			);
  		}
@@ -45,7 +146,16 @@
  		if ( $this->admin_image_div_callback ) {
  			call_user_func( $this->admin_image_div_callback );
  		} else {
-@@ -307,76 +313,122 @@
+@@ -293,7 +302,7 @@
+ 
+ 			$background_image_thumb = get_background_image();
+ 			if ( $background_image_thumb ) {
+-				$background_image_thumb = esc_url( set_url_scheme( get_theme_mod( 'background_image_thumb', str_replace( '%', '%%', $background_image_thumb ) ) ) );
++				$background_image_thumb = esc_url( set_url_scheme( get_theme_mod( 'background_image_thumb', \wp_aot_str_replace( '%', '%%', $background_image_thumb ) ) ) );
+ 				$background_position_x  = get_theme_mod( 'background_position_x', get_theme_support( 'custom-background', 'default-position-x' ) );
+ 				$background_position_y  = get_theme_mod( 'background_position_y', get_theme_support( 'custom-background', 'default-position-y' ) );
+ 				$background_size        = get_theme_mod( 'background_size', get_theme_support( 'custom-background', 'default-size' ) );
+@@ -307,76 +316,122 @@
  				. " background-repeat: $background_repeat;"
  				. " background-attachment: $background_attachment;";
  			}
@@ -215,7 +325,7 @@
  			$background_position_title = __( 'Image Position' );
  
  			$background_position = sprintf(
-@@ -429,79 +481,142 @@
+@@ -429,79 +484,143 @@
  					),
  				),
  			);
@@ -400,6 +510,89 @@
  </div>
 -		<?php
 +		';
++		return null;
  	}
  
  	/**
+@@ -509,9 +628,9 @@
+ 	 *
+ 	 * @since 3.0.0
+ 	 */
+-	public function handle_upload() {
++	public function handle_upload(): mixed {
+ 		if ( empty( $_FILES ) ) {
+-			return;
++			return null;
+ 		}
+ 
+ 		check_admin_referer( 'custom-background-upload', '_wpnonce-custom-background-upload' );
+@@ -560,6 +679,7 @@
+ 		$file = apply_filters( 'wp_create_file_in_uploads', $file, $id ); // For replication.
+ 
+ 		$this->updated = true;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -572,7 +692,7 @@
+ 	 *
+ 	 * @return never
+ 	 */
+-	public function ajax_background_add() {
++	public function ajax_background_add(): mixed {
+ 		check_ajax_referer( 'background-add', 'nonce' );
+ 
+ 		if ( ! current_user_can( 'edit_theme_options' ) ) {
+@@ -587,6 +707,7 @@
+ 		update_post_meta( $attachment_id, '_wp_attachment_is_custom_background', get_stylesheet() );
+ 
+ 		wp_send_json_success();
++		return null;
+ 	}
+ 
+ 	/**
+@@ -596,8 +717,9 @@
+ 	 * @param array $form_fields
+ 	 * @return array $form_fields
+ 	 */
+-	public function attachment_fields_to_edit( $form_fields ) {
++	public function attachment_fields_to_edit( mixed $form_fields ): mixed {
+ 		return $form_fields;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -607,8 +729,9 @@
+ 	 * @param array $tabs
+ 	 * @return array $tabs
+ 	 */
+-	public function filter_upload_tabs( $tabs ) {
++	public function filter_upload_tabs( mixed $tabs ): mixed {
+ 		return $tabs;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -617,11 +740,11 @@
+ 	 *
+ 	 * @return never
+ 	 */
+-	public function wp_set_background_image() {
++	public function wp_set_background_image(): mixed {
+ 		check_ajax_referer( 'custom-background' );
+ 
+ 		if ( ! current_user_can( 'edit_theme_options' ) || ! isset( $_POST['attachment_id'] ) ) {
+-			exit;
++			\wp_aot_exit();
+ 		}
+ 
+ 		$attachment_id = absint( $_POST['attachment_id'] );
+@@ -650,6 +773,7 @@
+ 		$thumbnail = wp_get_attachment_image_src( $attachment_id, 'thumbnail' );
+ 		set_theme_mod( 'background_image', sanitize_url( $url[0] ) );
+ 		set_theme_mod( 'background_image_thumb', sanitize_url( $thumbnail[0] ) );
+-		exit;
++		\wp_aot_exit();
++		return null;
+ 	}
+ }

@@ -1,0 +1,28 @@
+--- a/wp-includes/blocks/shortcode.php
++++ b/wp-includes/blocks/shortcode.php
+@@ -15,8 +15,9 @@
+  *
+  * @return string Returns the block content.
+  */
+-function render_block_core_shortcode( $attributes, $content ) {
++function render_block_core_shortcode( mixed $attributes, mixed $content ): mixed {
+ 	return wpautop( $content );
++	return null;
+ }
+ 
+ /**
+@@ -24,12 +25,13 @@
+  *
+  * @since 5.0.0
+  */
+-function register_block_core_shortcode() {
++function register_block_core_shortcode(): mixed {
+ 	register_block_type_from_metadata(
+ 		__DIR__ . '/shortcode',
+ 		array(
+ 			'render_callback' => 'render_block_core_shortcode',
+ 		)
+ 	);
++	return null;
+ }
+ add_action( 'init', 'register_block_core_shortcode' );

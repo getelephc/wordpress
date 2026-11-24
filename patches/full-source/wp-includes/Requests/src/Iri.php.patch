@@ -1,0 +1,488 @@
+--- a/wp-includes/Requests/src/Iri.php
++++ b/wp-includes/Requests/src/Iri.php
+@@ -150,8 +150,8 @@
+ 	 *
+ 	 * @return string
+ 	 */
+-	public function __toString() {
+-		return $this->get_iri();
++	public function __toString(): string {
++		return \wp_aot_weak_string($this->get_iri());
+ 	}
+ 
+ 	/**
+@@ -161,7 +161,7 @@
+ 	 * @param mixed $value Property value
+ 	 */
+ 	public function __set($name, $value) {
+-		if (method_exists($this, 'set_' . $name)) {
++		if (\wp_aot_native_api('method_exists', array($this, 'set_' . $name))) {
+ 			call_user_func(array($this, 'set_' . $name), $value);
+ 		}
+ 		elseif (
+@@ -229,7 +229,7 @@
+ 	 * @return bool
+ 	 */
+ 	public function __isset($name) {
+-		return (method_exists($this, 'get_' . $name) || isset($this->$name));
++		return (\wp_aot_native_api('method_exists', array($this, 'get_' . $name)) || isset($this->$name));
+ 	}
+ 
+ 	/**
+@@ -238,7 +238,7 @@
+ 	 * @param string $name Property name
+ 	 */
+ 	public function __unset($name) {
+-		if (method_exists($this, 'set_' . $name)) {
++		if (\wp_aot_native_api('method_exists', array($this, 'set_' . $name))) {
+ 			call_user_func(array($this, 'set_' . $name), '');
+ 		}
+ 	}
+@@ -250,7 +250,7 @@
+ 	 *
+ 	 * @throws \WpOrg\Requests\Exception\InvalidArgument When the passed $iri argument is not a string, Stringable or null.
+ 	 */
+-	public function __construct($iri = null) {
++	public function __construct(mixed $iri = null) {
+ 		if ($iri !== null && InputValidator::is_string_or_stringable($iri) === false) {
+ 			throw InvalidArgument::create(1, '$iri', 'string|Stringable|null', gettype($iri));
+ 		}
+@@ -267,7 +267,7 @@
+ 	 * @param \WpOrg\Requests\Iri|string $relative Relative IRI
+ 	 * @return \WpOrg\Requests\Iri|false
+ 	 */
+-	public static function absolutize($base, $relative) {
++	public static function absolutize(mixed $base, mixed $relative): mixed {
+ 		if (!($relative instanceof self)) {
+ 			$relative = new self($relative);
+ 		}
+@@ -330,6 +330,7 @@
+ 		}
+ 		$target->scheme_normalization();
+ 		return $target;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -338,9 +339,9 @@
+ 	 * @param string $iri
+ 	 * @return array
+ 	 */
+-	protected function parse_iri($iri) {
++	protected function parse_iri(mixed $iri): mixed {
+ 		$iri = trim($iri, "\x20\x09\x0A\x0C\x0D");
+-		$has_match = preg_match('/^((?P<scheme>[^:\/?#]+):)?(\/\/(?P<authority>[^\/?#]*))?(?P<path>[^?#]*)(\?(?P<query>[^#]*))?(#(?P<fragment>.*))?$/', $iri, $match);
++		$has_match = preg_match('/^((?P<scheme>[^:\/?#]+):)?(\/\/(?P<authority>[^\/?#]*))?(?P<path>[^?#]*)(\?(?P<query>[^#]*))?(#(?P<fragment>.*))?$/', \wp_aot_regex_text( $iri ), $match);
+ 		if (!$has_match) {
+ 			throw new Exception('Cannot parse supplied IRI', 'iri.cannot_parse', $iri);
+ 		}
+@@ -361,6 +362,7 @@
+ 			$match['fragment'] = null;
+ 		}
+ 		return $match;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -369,7 +371,7 @@
+ 	 * @param string $input
+ 	 * @return string
+ 	 */
+-	protected function remove_dot_segments($input) {
++	protected function remove_dot_segments(mixed $input): mixed {
+ 		$output = '';
+ 		while (strpos($input, './') !== false || strpos($input, '/.') !== false || $input === '.' || $input === '..') {
+ 			// A: If the input buffer begins with a prefix of "../" or "./",
+@@ -420,6 +422,7 @@
+ 			}
+ 		}
+ 		return $output . $input;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -431,12 +434,12 @@
+ 	 * @param bool $iprivate Allow iprivate
+ 	 * @return string
+ 	 */
+-	protected function replace_invalid_with_pct_encoding($text, $extra_chars, $iprivate = false) {
++	protected function replace_invalid_with_pct_encoding(mixed $text, mixed $extra_chars, mixed $iprivate = false): mixed {
+ 		// Normalize as many pct-encoded sections as possible
+-		$text = preg_replace_callback('/(?:%[A-Fa-f0-9]{2})+/', array($this, 'remove_iunreserved_percent_encoded'), $text);
++		$text = \wp_aot_preg_replace_callback('/(?:%[A-Fa-f0-9]{2})+/', array($this, 'remove_iunreserved_percent_encoded'), $text);
+ 
+ 		// Replace invalid percent characters
+-		$text = preg_replace('/%(?![A-Fa-f0-9]{2})/', '%25', $text);
++		$text = \wp_aot_preg_replace('/%(?![A-Fa-f0-9]{2})/', '%25', $text);
+ 
+ 		// Add unreserved and % to $extra_chars (the latter is safe because all
+ 		// pct-encoded sections are now valid).
+@@ -533,7 +536,7 @@
+ 					$position--;
+ 				}
+ 
+-				for ($j = $start; $j <= $position; $j++) {
++				for ($j = (int) $start; $j <= $position; $j++) {
+ 					$text = substr_replace($text, sprintf('%%%02X', ord($text[$j])), $j, 1);
+ 					$j += 2;
+ 					$position += 2;
+@@ -543,6 +546,7 @@
+ 		}
+ 
+ 		return $text;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -554,7 +558,7 @@
+ 	 * @param array $regex_match PCRE match
+ 	 * @return string Replacement
+ 	 */
+-	protected function remove_iunreserved_percent_encoded($regex_match) {
++	protected function remove_iunreserved_percent_encoded(mixed $regex_match): mixed {
+ 		// As we just have valid percent encoded sequences we can just explode
+ 		// and ignore the first member of the returned array (an empty string).
+ 		$bytes = explode('%', $regex_match[0]);
+@@ -567,12 +571,12 @@
+ 
+ 		// Loop over each and every byte, and set $value to its value
+ 		for ($i = 1, $len = count($bytes); $i < $len; $i++) {
+-			$value = hexdec($bytes[$i]);
++			$value = (int) hexdec($bytes[$i]);
+ 
+ 			// If we're the first byte of sequence:
+ 			if (!$remaining) {
+ 				// Start position
+-				$start = $i;
++				$start = (int) $i;
+ 
+ 				// By default we are valid
+ 				$valid = true;
+@@ -645,12 +649,12 @@
+ 					|| $character > 0x7E && $character < 0xA0
+ 					|| $character > 0xD7FF && $character < 0xF900
+ 				) {
+-					for ($j = $start; $j <= $i; $j++) {
++					for ($j = (int) $start; $j <= $i; $j++) {
+ 						$string .= '%' . strtoupper($bytes[$j]);
+ 					}
+ 				}
+ 				else {
+-					for ($j = $start; $j <= $i; $j++) {
++					for ($j = (int) $start; $j <= $i; $j++) {
+ 						$string .= chr(hexdec($bytes[$j]));
+ 					}
+ 				}
+@@ -660,15 +664,16 @@
+ 		// If we have any bytes left over they are invalid (i.e., we are
+ 		// mid-way through a multi-byte sequence)
+ 		if ($remaining) {
+-			for ($j = $start; $j < $len; $j++) {
++			for ($j = (int) $start; $j < $len; $j++) {
+ 				$string .= '%' . strtoupper($bytes[$j]);
+ 			}
+ 		}
+ 
+ 		return $string;
+-	}
+-
+-	protected function scheme_normalization() {
++		return null;
++	}
++
++	protected function scheme_normalization(): mixed {
+ 		if (isset($this->scheme, $this->normalization[$this->scheme])) {
+ 			if (isset($this->normalization[$this->scheme]['iuserinfo']) && $this->iuserinfo === $this->normalization[$this->scheme]['iuserinfo']) {
+ 				$this->iuserinfo = null;
+@@ -692,6 +697,7 @@
+ 		if (isset($this->ihost) && empty($this->ipath)) {
+ 			$this->ipath = '/';
+ 		}
++		return null;
+ 	}
+ 
+ 	/**
+@@ -700,7 +706,7 @@
+ 	 *
+ 	 * @return bool
+ 	 */
+-	public function is_valid() {
++	public function is_valid(): mixed {
+ 		$isauthority = $this->iuserinfo !== null || $this->ihost !== null || $this->port !== null;
+ 		if ($this->ipath !== '' &&
+ 			(
+@@ -717,6 +723,7 @@
+ 		}
+ 
+ 		return true;
++		return null;
+ 	}
+ 
+ 	public function __wakeup() {
+@@ -725,9 +732,9 @@
+ 		$array_props = array( 'normalization' );
+ 		foreach ( $class_props as $prop => $default_value ) {
+ 			if ( in_array( $prop, $string_props, true ) && ! is_string( $this->$prop ) ) {
+-				throw new UnexpectedValueException();
++				throw \wp_aot_require_Throwable(\wp_aot_native_new('WpOrg\\Requests\\UnexpectedValueException', array()));
+ 			} elseif ( in_array( $prop, $array_props, true ) && ! is_array( $this->$prop ) ) {
+-				throw new UnexpectedValueException();
++				throw \wp_aot_require_Throwable(\wp_aot_native_new('WpOrg\\Requests\\UnexpectedValueException', array()));
+ 			}
+ 			$this->$prop = null;
+ 		}
+@@ -740,8 +747,9 @@
+ 	 * @param string $iri
+ 	 * @return bool
+ 	 */
+-	protected function set_iri($iri) {
+-		static $cache;
++	protected function set_iri(mixed $iri): mixed {
++		static $cache_aot_cell = new \WordPressStaticValueCell();
++		$cache =& $cache_aot_cell->value;
+ 		if (!$cache) {
+ 			$cache = array();
+ 		}
+@@ -781,6 +789,7 @@
+ 							 $this->ifragment,
+ 							 $return);
+ 		return $return;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -790,11 +799,11 @@
+ 	 * @param string $scheme
+ 	 * @return bool
+ 	 */
+-	protected function set_scheme($scheme) {
++	protected function set_scheme(mixed $scheme): mixed {
+ 		if ($scheme === null) {
+ 			$this->scheme = null;
+ 		}
+-		elseif (!preg_match('/^[A-Za-z][0-9A-Za-z+\-.]*$/', $scheme)) {
++		elseif (!preg_match('/^[A-Za-z][0-9A-Za-z+\-.]*$/', \wp_aot_regex_text( $scheme ))) {
+ 			$this->scheme = null;
+ 			return false;
+ 		}
+@@ -802,6 +811,7 @@
+ 			$this->scheme = strtolower($scheme);
+ 		}
+ 		return true;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -811,8 +821,9 @@
+ 	 * @param string $authority
+ 	 * @return bool
+ 	 */
+-	protected function set_authority($authority) {
+-		static $cache;
++	protected function set_authority(mixed $authority): mixed {
++		static $cache_aot_cell = new \WordPressStaticValueCell();
++		$cache =& $cache_aot_cell->value;
+ 		if (!$cache) {
+ 			$cache = array();
+ 		}
+@@ -862,6 +873,7 @@
+ 								   $return);
+ 
+ 		return $return;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -870,7 +882,7 @@
+ 	 * @param string $iuserinfo
+ 	 * @return bool
+ 	 */
+-	protected function set_userinfo($iuserinfo) {
++	protected function set_userinfo(mixed $iuserinfo): mixed {
+ 		if ($iuserinfo === null) {
+ 			$this->iuserinfo = null;
+ 		}
+@@ -880,6 +892,7 @@
+ 		}
+ 
+ 		return true;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -889,7 +902,7 @@
+ 	 * @param string $ihost
+ 	 * @return bool
+ 	 */
+-	protected function set_host($ihost) {
++	protected function set_host(mixed $ihost): mixed {
+ 		if ($ihost === null) {
+ 			$this->ihost = null;
+ 			return true;
+@@ -927,6 +940,7 @@
+ 		$this->scheme_normalization();
+ 
+ 		return true;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -936,7 +950,7 @@
+ 	 * @param string $port
+ 	 * @return bool
+ 	 */
+-	protected function set_port($port) {
++	protected function set_port(mixed $port): mixed {
+ 		if ($port === null) {
+ 			$this->port = null;
+ 			return true;
+@@ -950,6 +964,7 @@
+ 
+ 		$this->port = null;
+ 		return false;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -958,8 +973,9 @@
+ 	 * @param string $ipath
+ 	 * @return bool
+ 	 */
+-	protected function set_path($ipath) {
+-		static $cache;
++	protected function set_path(mixed $ipath): mixed {
++		static $cache_aot_cell = new \WordPressStaticValueCell();
++		$cache =& $cache_aot_cell->value;
+ 		if (!$cache) {
+ 			$cache = array();
+ 		}
+@@ -978,6 +994,7 @@
+ 		}
+ 		$this->scheme_normalization();
+ 		return true;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -986,7 +1003,7 @@
+ 	 * @param string $iquery
+ 	 * @return bool
+ 	 */
+-	protected function set_query($iquery) {
++	protected function set_query(mixed $iquery): mixed {
+ 		if ($iquery === null) {
+ 			$this->iquery = null;
+ 		}
+@@ -995,6 +1012,7 @@
+ 			$this->scheme_normalization();
+ 		}
+ 		return true;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1003,7 +1021,7 @@
+ 	 * @param string $ifragment
+ 	 * @return bool
+ 	 */
+-	protected function set_fragment($ifragment) {
++	protected function set_fragment(mixed $ifragment): mixed {
+ 		if ($ifragment === null) {
+ 			$this->ifragment = null;
+ 		}
+@@ -1012,6 +1030,7 @@
+ 			$this->scheme_normalization();
+ 		}
+ 		return true;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1020,14 +1039,15 @@
+ 	 * @param string|bool $iri IRI to convert (or false from {@see \WpOrg\Requests\Iri::get_iri()})
+ 	 * @return string|false URI if IRI is valid, false otherwise.
+ 	 */
+-	protected function to_uri($iri) {
++	protected function to_uri(mixed $iri): mixed {
+ 		if (!is_string($iri)) {
+ 			return false;
+ 		}
+ 
+-		static $non_ascii;
++		static $non_ascii_aot_cell = new \WordPressStaticValueCell();
++		$non_ascii =& $non_ascii_aot_cell->value;
+ 		if (!$non_ascii) {
+-			$non_ascii = implode('', range("\x80", "\xFF"));
++			$non_ascii = "\x80\x81\x82\x83\x84\x85\x86\x87\x88\x89\x8A\x8B\x8C\x8D\x8E\x8F\x90\x91\x92\x93\x94\x95\x96\x97\x98\x99\x9A\x9B\x9C\x9D\x9E\x9F\xA0\xA1\xA2\xA3\xA4\xA5\xA6\xA7\xA8\xA9\xAA\xAB\xAC\xAD\xAE\xAF\xB0\xB1\xB2\xB3\xB4\xB5\xB6\xB7\xB8\xB9\xBA\xBB\xBC\xBD\xBE\xBF\xC0\xC1\xC2\xC3\xC4\xC5\xC6\xC7\xC8\xC9\xCA\xCB\xCC\xCD\xCE\xCF\xD0\xD1\xD2\xD3\xD4\xD5\xD6\xD7\xD8\xD9\xDA\xDB\xDC\xDD\xDE\xDF\xE0\xE1\xE2\xE3\xE4\xE5\xE6\xE7\xE8\xE9\xEA\xEB\xEC\xED\xEE\xEF\xF0\xF1\xF2\xF3\xF4\xF5\xF6\xF7\xF8\xF9\xFA\xFB\xFC\xFD\xFE\xFF";
+ 		}
+ 
+ 		$position = 0;
+@@ -1039,6 +1059,7 @@
+ 		}
+ 
+ 		return $iri;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1046,7 +1067,7 @@
+ 	 *
+ 	 * @return string|false
+ 	 */
+-	protected function get_iri() {
++	protected function get_iri(): mixed {
+ 		if (!$this->is_valid()) {
+ 			return false;
+ 		}
+@@ -1067,6 +1088,7 @@
+ 		}
+ 
+ 		return $iri;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1074,8 +1096,9 @@
+ 	 *
+ 	 * @return string
+ 	 */
+-	protected function get_uri() {
++	protected function get_uri(): mixed {
+ 		return $this->to_uri($this->get_iri());
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1083,7 +1106,7 @@
+ 	 *
+ 	 * @return string|null
+ 	 */
+-	protected function get_iauthority() {
++	protected function get_iauthority(): mixed {
+ 		if ($this->iuserinfo === null && $this->ihost === null && $this->port === null) {
+ 			return null;
+ 		}
+@@ -1099,6 +1122,7 @@
+ 			$iauthority .= ':' . $this->port;
+ 		}
+ 		return $iauthority;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1106,7 +1130,7 @@
+ 	 *
+ 	 * @return string
+ 	 */
+-	protected function get_authority() {
++	protected function get_authority(): mixed {
+ 		$iauthority = $this->get_iauthority();
+ 		if (is_string($iauthority)) {
+ 			return $this->to_uri($iauthority);
+@@ -1114,5 +1138,6 @@
+ 		else {
+ 			return $iauthority;
+ 		}
++		return null;
+ 	}
+ }

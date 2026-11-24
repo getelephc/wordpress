@@ -1,0 +1,104 @@
+--- a/wp-includes/php-ai-client/src/AiClient.php
++++ b/wp-includes/php-ai-client/src/AiClient.php
+@@ -182,7 +182,7 @@
+      *        The provider availability instance, provider ID, or provider class name.
+      * @return bool True if the provider is configured and available, false otherwise.
+      */
+-    public static function isConfigured($availabilityOrIdOrClassName): bool
++    public static function isConfigured(mixed $availabilityOrIdOrClassName): bool
+     {
+         // Handle direct ProviderAvailabilityInterface (backward compatibility)
+         if ($availabilityOrIdOrClassName instanceof ProviderAvailabilityInterface) {
+@@ -207,7 +207,7 @@
+      * @param ProviderRegistry|null $registry Optional custom registry. If null, uses default.
+      * @return PromptBuilder The prompt builder instance.
+      */
+-    public static function prompt($prompt = null, ?ProviderRegistry $registry = null): PromptBuilder
++    public static function prompt(mixed $prompt = null, ?ProviderRegistry $registry = null): PromptBuilder
+     {
+         return new PromptBuilder($registry ?? self::defaultRegistry(), $prompt, self::$eventDispatcher);
+     }
+@@ -229,7 +229,7 @@
+      * @throws \InvalidArgumentException If the provided model doesn't support any known generation type.
+      * @throws \RuntimeException If no suitable model can be found for the prompt.
+      */
+-    public static function generateResult($prompt, $modelOrConfig, ?ProviderRegistry $registry = null): GenerativeAiResult
++    public static function generateResult(mixed $prompt, mixed $modelOrConfig, ?ProviderRegistry $registry = null): GenerativeAiResult
+     {
+         self::validateModelOrConfigParameter($modelOrConfig);
+         return self::getConfiguredPromptBuilder($prompt, $modelOrConfig, $registry)->generateResult();
+@@ -249,7 +249,7 @@
+      * @throws \InvalidArgumentException If the prompt format is invalid.
+      * @throws \RuntimeException If no suitable model is found.
+      */
+-    public static function generateTextResult($prompt, $modelOrConfig = null, ?ProviderRegistry $registry = null): GenerativeAiResult
++    public static function generateTextResult(mixed $prompt, mixed $modelOrConfig = null, ?ProviderRegistry $registry = null): GenerativeAiResult
+     {
+         self::validateModelOrConfigParameter($modelOrConfig);
+         return self::getConfiguredPromptBuilder($prompt, $modelOrConfig, $registry)->generateTextResult();
+@@ -269,7 +269,7 @@
+      * @throws \InvalidArgumentException If the prompt format is invalid.
+      * @throws \RuntimeException If no suitable model is found.
+      */
+-    public static function generateImageResult($prompt, $modelOrConfig = null, ?ProviderRegistry $registry = null): GenerativeAiResult
++    public static function generateImageResult(mixed $prompt, mixed $modelOrConfig = null, ?ProviderRegistry $registry = null): GenerativeAiResult
+     {
+         self::validateModelOrConfigParameter($modelOrConfig);
+         return self::getConfiguredPromptBuilder($prompt, $modelOrConfig, $registry)->generateImageResult();
+@@ -289,7 +289,7 @@
+      * @throws \InvalidArgumentException If the prompt format is invalid.
+      * @throws \RuntimeException If no suitable model is found.
+      */
+-    public static function convertTextToSpeechResult($prompt, $modelOrConfig = null, ?ProviderRegistry $registry = null): GenerativeAiResult
++    public static function convertTextToSpeechResult(mixed $prompt, mixed $modelOrConfig = null, ?ProviderRegistry $registry = null): GenerativeAiResult
+     {
+         self::validateModelOrConfigParameter($modelOrConfig);
+         return self::getConfiguredPromptBuilder($prompt, $modelOrConfig, $registry)->convertTextToSpeechResult();
+@@ -309,7 +309,7 @@
+      * @throws \InvalidArgumentException If the prompt format is invalid.
+      * @throws \RuntimeException If no suitable model is found.
+      */
+-    public static function generateSpeechResult($prompt, $modelOrConfig = null, ?ProviderRegistry $registry = null): GenerativeAiResult
++    public static function generateSpeechResult(mixed $prompt, mixed $modelOrConfig = null, ?ProviderRegistry $registry = null): GenerativeAiResult
+     {
+         self::validateModelOrConfigParameter($modelOrConfig);
+         return self::getConfiguredPromptBuilder($prompt, $modelOrConfig, $registry)->generateSpeechResult();
+@@ -329,7 +329,7 @@
+      * @throws \InvalidArgumentException If the prompt format is invalid.
+      * @throws \RuntimeException If no suitable model is found.
+      */
+-    public static function generateVideoResult($prompt, $modelOrConfig = null, ?ProviderRegistry $registry = null): GenerativeAiResult
++    public static function generateVideoResult(mixed $prompt, mixed $modelOrConfig = null, ?ProviderRegistry $registry = null): GenerativeAiResult
+     {
+         self::validateModelOrConfigParameter($modelOrConfig);
+         return self::getConfiguredPromptBuilder($prompt, $modelOrConfig, $registry)->generateVideoResult();
+@@ -348,9 +348,10 @@
+      *
+      * @throws \RuntimeException When MessageBuilder is not yet available.
+      */
+-    public static function message(?string $text = null)
++    public static function message(?string $text = null): mixed
+     {
+         throw new RuntimeException('MessageBuilder is not yet available. This method depends on builder infrastructure. ' . 'Use direct generation methods (generateTextResult, generateImageResult, etc.) for now.');
++    	return null;
+     }
+     /**
+      * Validates that parameter is ModelInterface, ModelConfig, or null.
+@@ -359,7 +360,7 @@
+      * @return void
+      * @throws \InvalidArgumentException If parameter is invalid type.
+      */
+-    private static function validateModelOrConfigParameter($modelOrConfig): void
++    private static function validateModelOrConfigParameter(mixed $modelOrConfig): void
+     {
+         if ($modelOrConfig !== null && !$modelOrConfig instanceof ModelInterface && !$modelOrConfig instanceof ModelConfig) {
+             throw new InvalidArgumentException('Parameter must be a ModelInterface instance (specific model), ' . 'ModelConfig instance (for auto-discovery), or null (default auto-discovery). ' . sprintf('Received: %s', is_object($modelOrConfig) ? get_class($modelOrConfig) : gettype($modelOrConfig)));
+@@ -373,7 +374,7 @@
+      * @param ProviderRegistry|null $registry Optional custom registry to use.
+      * @return PromptBuilder Configured prompt builder.
+      */
+-    private static function getConfiguredPromptBuilder($prompt, $modelOrConfig, ?ProviderRegistry $registry = null): PromptBuilder
++    private static function getConfiguredPromptBuilder(mixed $prompt, mixed $modelOrConfig, ?ProviderRegistry $registry = null): PromptBuilder
+     {
+         $builder = self::prompt($prompt, $registry);
+         if ($modelOrConfig instanceof ModelInterface) {

@@ -1,0 +1,29 @@
+--- a/wp-admin/site-health.php
++++ b/wp-admin/site-health.php
+@@ -69,7 +69,7 @@
+ 	$result = wp_update_urls_to_https();
+ 
+ 	wp_redirect( add_query_arg( 'https_updated', (int) $result, wp_get_referer() ) );
+-	exit;
++	\wp_aot_exit();
+ }
+ 
+ $health_check_site_status = WP_Site_Health::get_instance();
+@@ -147,7 +147,7 @@
+ 		 * the remaining links will be added to a sub-navigation.
+ 		 */
+ 		if ( count( $tabs ) > 4 ) {
+-			$tabs_slice = array_slice( $tabs, 0, 3 );
++			$tabs_slice = \wp_aot_array_slice( $tabs, 0, 3 );
+ 		}
+ 
+ 		foreach ( $tabs_slice as $slug => $label ) {
+@@ -180,7 +180,7 @@
+ 				<div class="health-check-offscreen-nav">
+ 					<?php
+ 					// Remove the first few entries from the array as being already output.
+-					$tabs_slice = array_slice( $tabs, 3 );
++					$tabs_slice = \wp_aot_array_slice( $tabs, 3 );
+ 					foreach ( $tabs_slice as $slug => $label ) {
+ 						printf(
+ 							'<a href="%s" class="health-check-tab %s">%s</a>',

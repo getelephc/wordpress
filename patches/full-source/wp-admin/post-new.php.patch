@@ -1,0 +1,11 @@
+--- a/wp-admin/post-new.php
++++ b/wp-admin/post-new.php
+@@ -30,7 +30,7 @@
+ 	$submenu_file = 'post-new.php';
+ } elseif ( 'attachment' === $post_type ) {
+ 	if ( wp_redirect( admin_url( 'media-new.php' ) ) ) {
+-		exit;
++		\wp_aot_exit();
+ 	}
+ } else {
+ 	$submenu_file = "post-new.php?post_type=$post_type";

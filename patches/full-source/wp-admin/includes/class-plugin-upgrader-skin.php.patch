@@ -1,0 +1,27 @@
+--- a/wp-admin/includes/class-plugin-upgrader-skin.php
++++ b/wp-admin/includes/class-plugin-upgrader-skin.php
+@@ -54,7 +54,7 @@
+ 	 * @param array $args Optional. The plugin upgrader skin arguments to
+ 	 *                    override default options. Default empty array.
+ 	 */
+-	public function __construct( $args = array() ) {
++	public function __construct( mixed $args = array() ) {
+ 		$defaults = array(
+ 			'url'    => '',
+ 			'plugin' => '',
+@@ -76,7 +76,7 @@
+ 	 *
+ 	 * @since 2.8.0
+ 	 */
+-	public function after() {
++	public function after( mixed $title = '' ): mixed {
+ 		$this->plugin = $this->upgrader->plugin_info();
+ 		if ( ! empty( $this->plugin ) && ! is_wp_error( $this->result ) && $this->plugin_active ) {
+ 			// Currently used only when JS is off for a single plugin update?
+@@ -119,5 +119,6 @@
+ 		if ( ! empty( $update_actions ) ) {
+ 			$this->feedback( implode( ' | ', (array) $update_actions ) );
+ 		}
++		return null;
+ 	}
+ }

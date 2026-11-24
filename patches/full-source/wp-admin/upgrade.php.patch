@@ -1,0 +1,38 @@
+--- a/wp-admin/upgrade.php
++++ b/wp-admin/upgrade.php
+@@ -15,7 +15,7 @@
+ define( 'WP_INSTALLING', true );
+ 
+ /** Load WordPress Bootstrap */
+-require dirname( __DIR__ ) . '/wp-load.php';
++require_once dirname( __DIR__ ) . '/wp-load.php';
+ 
+ nocache_headers();
+ 
+@@ -28,7 +28,7 @@
+ // Do it. No output.
+ if ( 'upgrade_db' === $step ) {
+ 	wp_upgrade();
+-	die( '0' );
++	\wp_aot_exit( '0' );
+ }
+ 
+ /**
+@@ -43,7 +43,7 @@
+ $step = (int) $step;
+ 
+ $php_version   = PHP_VERSION;
+-$mysql_version = $wpdb->db_version();
++$mysql_version = \wp_aot_require_wpdb( $wpdb )->db_version();
+ $php_compat    = version_compare( $php_version, $required_php_version, '>=' );
+ if ( file_exists( WP_CONTENT_DIR . '/db.php' ) && empty( $wpdb->is_mysql ) ) {
+ 	$mysql_compat = true;
+@@ -55,7 +55,7 @@
+ 
+ if ( isset( $required_php_extensions ) && is_array( $required_php_extensions ) ) {
+ 	foreach ( $required_php_extensions as $extension ) {
+-		if ( extension_loaded( $extension ) ) {
++		if ( \wp_aot_extension_loaded( $extension ) ) {
+ 			continue;
+ 		}
+ 

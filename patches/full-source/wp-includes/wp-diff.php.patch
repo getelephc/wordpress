@@ -1,0 +1,29 @@
+--- a/wp-includes/wp-diff.php
++++ b/wp-includes/wp-diff.php
+@@ -10,19 +10,19 @@
+ 
+ // Don't load directly.
+ if ( ! defined( 'ABSPATH' ) ) {
+-	exit;
++	\wp_aot_exit();
+ }
+ 
+ if ( ! class_exists( 'Text_Diff', false ) ) {
+ 	/** Text_Diff class */
+-	require ABSPATH . WPINC . '/Text/Diff.php';
++	require_once __DIR__ . '/Text/Diff.php';
+ 	/** Text_Diff_Renderer class */
+-	require ABSPATH . WPINC . '/Text/Diff/Renderer.php';
++	require_once __DIR__ . '/Text/Diff/Renderer.php';
+ 	/** Text_Diff_Renderer_inline class */
+-	require ABSPATH . WPINC . '/Text/Diff/Renderer/inline.php';
++	require_once __DIR__ . '/Text/Diff/Renderer/inline.php';
+ 	/** Text_Exception class */
+-	require ABSPATH . WPINC . '/Text/Exception.php';
++	require_once __DIR__ . '/Text/Exception.php';
+ }
+ 
+-require ABSPATH . WPINC . '/class-wp-text-diff-renderer-table.php';
+-require ABSPATH . WPINC . '/class-wp-text-diff-renderer-inline.php';
++require_once __DIR__ . '/class-wp-text-diff-renderer-table.php';
++require_once __DIR__ . '/class-wp-text-diff-renderer-inline.php';

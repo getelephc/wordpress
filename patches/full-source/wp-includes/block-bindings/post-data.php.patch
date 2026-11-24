@@ -1,0 +1,36 @@
+--- a/wp-includes/block-bindings/post-data.php
++++ b/wp-includes/block-bindings/post-data.php
+@@ -18,7 +18,7 @@
+  * @param WP_Block $block_instance The block instance.
+  * @return mixed The value computed for the source.
+  */
+-function _block_bindings_post_data_get_value( array $source_args, $block_instance ) {
++function _block_bindings_post_data_get_value( array $source_args, mixed $block_instance ): mixed {
+ 	if ( empty( $source_args['field'] ) ) {
+ 		// Backward compatibility for when the source argument was called `key` in Gutenberg plugin.
+ 		if ( empty( $source_args['key'] ) ) {
+@@ -76,6 +76,7 @@
+ 		$permalink = get_permalink( $post_id );
+ 		return false === $permalink ? null : esc_url( $permalink );
+ 	}
++	return null;
+ }
+ 
+ /**
+@@ -84,7 +85,7 @@
+  * @since 6.9.0
+  * @access private
+  */
+-function _register_block_bindings_post_data_source() {
++function _register_block_bindings_post_data_source(): mixed {
+ 	register_block_bindings_source(
+ 		'core/post-data',
+ 		array(
+@@ -93,6 +94,7 @@
+ 			'uses_context'       => array( 'postId', 'postType' ), // Both are needed on the client side.
+ 		)
+ 	);
++	return null;
+ }
+ 
+ add_action( 'init', '_register_block_bindings_post_data_source' );

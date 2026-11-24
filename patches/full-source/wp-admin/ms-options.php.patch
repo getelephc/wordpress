@@ -1,0 +1,8 @@
+--- a/wp-admin/ms-options.php
++++ b/wp-admin/ms-options.php
+@@ -10,4 +10,4 @@
+ require_once __DIR__ . '/admin.php';
+ 
+ wp_redirect( network_admin_url( 'settings.php' ) );
+-exit;
++\wp_aot_exit();

@@ -1,0 +1,68 @@
+--- a/wp-includes/blocks/post-featured-image.php
++++ b/wp-includes/blocks/post-featured-image.php
+@@ -15,7 +15,7 @@
+  * @param WP_Block $block      Block instance.
+  * @return string Returns the featured image for the current post.
+  */
+-function render_block_core_post_featured_image( $attributes, $content, $block ) {
++function render_block_core_post_featured_image( mixed $attributes, mixed $content, mixed $block ): mixed {
+ 	if ( ! isset( $block->context['postId'] ) ) {
+ 		return '';
+ 	}
+@@ -135,6 +135,7 @@
+ 
+ 	$wrapper_attributes = get_block_wrapper_attributes();
+ 	return "<figure {$wrapper_attributes}>{$featured_image}</figure>";
++	return null;
+ }
+ 
+ /**
+@@ -146,7 +147,7 @@
+  *
+  * @return string HTML markup in string format.
+  */
+-function get_block_core_post_featured_image_overlay_element_markup( $attributes ) {
++function get_block_core_post_featured_image_overlay_element_markup( mixed $attributes ): mixed {
+ 	$has_dim_background  = isset( $attributes['dimRatio'] ) && $attributes['dimRatio'];
+ 	$has_gradient        = isset( $attributes['gradient'] ) && $attributes['gradient'];
+ 	$has_custom_gradient = isset( $attributes['customGradient'] ) && $attributes['customGradient'];
+@@ -200,6 +201,7 @@
+ 		esc_attr( implode( ' ', $class_names ) ),
+ 		esc_attr( safecss_filter_attr( implode( ' ', $styles ) ) )
+ 	);
++	return null;
+ }
+ 
+ /**
+@@ -211,7 +213,7 @@
+  * @param array $attributes The block attributes.
+  * @return array The border-related classnames and styles for the block.
+  */
+-function get_block_core_post_featured_image_border_attributes( $attributes ) {
++function get_block_core_post_featured_image_border_attributes( mixed $attributes ): mixed {
+ 	$border_styles = array();
+ 	$sides         = array( 'top', 'right', 'bottom', 'left' );
+ 
+@@ -254,6 +256,7 @@
+ 		$attributes['style'] = $styles['css'];
+ 	}
+ 	return $attributes;
++	return null;
+ }
+ 
+ /**
+@@ -261,12 +264,13 @@
+  *
+  * @since 5.8.0
+  */
+-function register_block_core_post_featured_image() {
++function register_block_core_post_featured_image(): mixed {
+ 	register_block_type_from_metadata(
+ 		__DIR__ . '/post-featured-image',
+ 		array(
+ 			'render_callback' => 'render_block_core_post_featured_image',
+ 		)
+ 	);
++	return null;
+ }
+ add_action( 'init', 'register_block_core_post_featured_image' );

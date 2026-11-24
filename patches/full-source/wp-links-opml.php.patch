@@ -1,0 +1,11 @@
+--- a/wp-links-opml.php
++++ b/wp-links-opml.php
+@@ -33,7 +33,7 @@
+ 			printf( __( 'Links for %s' ), esc_attr( get_bloginfo( 'name', 'display' ) ) );
+ 		?>
+ 		</title>
+-		<dateCreated><?php echo gmdate( 'D, d M Y H:i:s' ); ?> GMT</dateCreated>
++		<dateCreated><?php echo \wp_aot_gmdate( 'D, d M Y H:i:s' ); ?> GMT</dateCreated>
+ 		<?php
+ 		/**
+ 		 * Fires in the OPML header.

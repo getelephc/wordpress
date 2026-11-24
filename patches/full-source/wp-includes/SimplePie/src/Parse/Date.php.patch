@@ -1,0 +1,258 @@
+--- a/wp-includes/SimplePie/src/Parse/Date.php
++++ b/wp-includes/SimplePie/src/Parse/Date.php
+@@ -559,7 +559,8 @@
+         $this->day_pcre = '(' . implode('|', array_keys($this->day)) . ')';
+         $this->month_pcre = '(' . implode('|', array_keys($this->month)) . ')';
+ 
+-        static $cache;
++        static $wp_aot_cache_cell = new \WordPressStaticArrayCell();
++        $cache =& $wp_aot_cache_cell->value;
+         if (!isset($cache[get_class($this)])) {
+             $all_methods = get_class_methods($this);
+ 
+@@ -570,7 +571,7 @@
+             }
+         }
+ 
+-        foreach ($cache[get_class($this)] as $method) {
++        foreach (\wp_aot_mixed($cache)[get_class($this)] as $method) {
+             $this->built_in[] = $method;
+         }
+     }
+@@ -581,13 +582,14 @@
+      * @access public
+      * @return Date
+      */
+-    public static function get()
++    public static function get(): mixed
+     {
+         static $object;
+         if (!$object) {
+             $object = new Date();
+         }
+         return $object;
++    	return null;
+     }
+ 
+     /**
+@@ -598,7 +600,7 @@
+      * @param string $date Date to parse
+      * @return int|false Timestamp corresponding to date string, or false on failure
+      */
+-    public function parse(string $date)
++    public function parse(string $date): mixed
+     {
+         foreach ($this->user as $method) {
+             if (($returned = call_user_func($method, $date)) !== false) {
+@@ -616,6 +618,7 @@
+         }
+ 
+         return false;
++    	return null;
+     }
+ 
+     /**
+@@ -626,9 +629,10 @@
+      * @param callable $callback
+      * @return void
+      */
+-    public function add_callback(callable $callback)
++    public function add_callback(callable $callback): mixed
+     {
+         $this->user[] = $callback;
++    	return null;
+     }
+ 
+     /**
+@@ -640,7 +644,7 @@
+      * @param string $date
+      * @return int|false Timestamp
+      */
+-    public function date_w3cdtf(string $date)
++    public function date_w3cdtf(string $date): mixed
+     {
+         $pcre = <<<'PCRE'
+             /
+@@ -680,7 +684,7 @@
+             $
+             /x
+ PCRE;
+-        if (preg_match($pcre, $date, $match)) {
++        if (preg_match(\wp_aot_regex_text( $pcre ), \wp_aot_regex_text( $date ), $match)) {
+             // Fill in empty matches and convert to proper types.
+             $year = (int) $match['year'];
+             $month = isset($match['month']) ? (int) $match['month'] : 1;
+@@ -701,10 +705,11 @@
+             // Convert the number of seconds to an integer, taking decimals into account
+             $second = (int) round($second + $second_fraction);
+ 
+-            return gmmktime($hour, $minute, $second, $month, $day, $year) - $timezone;
++            return gmmktime(\wp_aot_calendar_component( $hour ), \wp_aot_calendar_component( $minute ), \wp_aot_calendar_component( $second ), \wp_aot_calendar_component( $month ), \wp_aot_calendar_component( $day ), \wp_aot_calendar_component( $year )) - $timezone;
+         }
+ 
+         return false;
++    	return null;
+     }
+ 
+     /**
+@@ -714,7 +719,7 @@
+      * @param string $string Data to strip comments from
+      * @return string Comment stripped string
+      */
+-    public function remove_rfc2822_comments(string $string)
++    public function remove_rfc2822_comments(string $string): mixed
+     {
+         $position = 0;
+         $length = strlen($string);
+@@ -754,6 +759,7 @@
+         $output .= substr($string, $position);
+ 
+         return $output;
++    	return null;
+     }
+ 
+     /**
+@@ -763,24 +769,25 @@
+      * @param string $date
+      * @return int|false Timestamp
+      */
+-    public function date_rfc2822(string $date)
++    public function date_rfc2822(string $date): mixed
+     {
+-        static $pcre;
++        static $pcre_aot_cell = new \WordPressStaticValueCell();
++        $pcre =& $pcre_aot_cell->value;
+         if (!$pcre) {
+             $wsp = '[\x09\x20]';
+             $fws = '(?:' . $wsp . '+|' . $wsp . '*(?:\x0D\x0A' . $wsp . '+)+)';
+             $optional_fws = $fws . '?';
+             $day_name = $this->day_pcre;
+-            $month = $this->month_pcre;
+-            $day = '([0-9]{1,2})';
+-            $hour = $minute = $second = '([0-9]{2})';
+-            $year = '([0-9]{2,4})';
++            $month = \wp_aot_mixed($this->month_pcre);
++            $day = \wp_aot_mixed('([0-9]{1,2})');
++            $hour = \wp_aot_mixed($minute = \wp_aot_mixed($second = \wp_aot_mixed('([0-9]{2})')));
++            $year = \wp_aot_mixed('([0-9]{2,4})');
+             $num_zone = '([+\-])([0-9]{2})([0-9]{2})';
+             $character_zone = '([A-Z]{1,5})';
+             $zone = '(?:' . $num_zone . '|' . $character_zone . ')';
+             $pcre = '/(?:' . $optional_fws . $day_name . $optional_fws . ',)?' . $optional_fws . $day . $fws . $month . $fws . $year . $fws . $hour . $optional_fws . ':' . $optional_fws . $minute . '(?:' . $optional_fws . ':' . $optional_fws . $second . ')?' . $fws . $zone . '/i';
+         }
+-        if (preg_match($pcre, $this->remove_rfc2822_comments($date), $match)) {
++        if (preg_match(\wp_aot_regex_text( $pcre ), \wp_aot_regex_text( $this->remove_rfc2822_comments($date) ), $match)) {
+             /*
+             Capturing subpatterns:
+             1: Day name
+@@ -834,10 +841,11 @@
+                 $year += 1900;
+             }
+ 
+-            return gmmktime($hour, $minute, $second, $month, $day, $year) - $timezone;
++            return gmmktime(\wp_aot_calendar_component( $hour ), \wp_aot_calendar_component( $minute ), \wp_aot_calendar_component( $second ), \wp_aot_calendar_component( $month ), \wp_aot_calendar_component( $day ), \wp_aot_calendar_component( $year )) - $timezone;
+         }
+ 
+         return false;
++    	return null;
+     }
+ 
+     /**
+@@ -847,19 +855,20 @@
+      * @param string $date
+      * @return int|false Timestamp
+      */
+-    public function date_rfc850(string $date)
++    public function date_rfc850(string $date): mixed
+     {
+-        static $pcre;
++        static $pcre_aot_cell = new \WordPressStaticValueCell();
++        $pcre =& $pcre_aot_cell->value;
+         if (!$pcre) {
+             $space = '[\x09\x20]+';
+             $day_name = $this->day_pcre;
+-            $month = $this->month_pcre;
+-            $day = '([0-9]{1,2})';
+-            $year = $hour = $minute = $second = '([0-9]{2})';
++            $month = \wp_aot_mixed($this->month_pcre);
++            $day = \wp_aot_mixed('([0-9]{1,2})');
++            $year = \wp_aot_mixed($hour = \wp_aot_mixed($minute = \wp_aot_mixed($second = \wp_aot_mixed('([0-9]{2})'))));
+             $zone = '([A-Z]{1,5})';
+             $pcre = '/^' . $day_name . ',' . $space . $day . '-' . $month . '-' . $year . $space . $hour . ':' . $minute . ':' . $second . $space . $zone . '$/i';
+         }
+-        if (preg_match($pcre, $date, $match)) {
++        if (preg_match(\wp_aot_regex_text( $pcre ), \wp_aot_regex_text( $date ), $match)) {
+             /*
+             Capturing subpatterns:
+             1: Day name
+@@ -899,10 +908,11 @@
+                 $year += 1900;
+             }
+ 
+-            return gmmktime($hour, $minute, $second, $month, $day, $year) - $timezone;
++            return gmmktime(\wp_aot_calendar_component( $hour ), \wp_aot_calendar_component( $minute ), \wp_aot_calendar_component( $second ), \wp_aot_calendar_component( $month ), \wp_aot_calendar_component( $day ), \wp_aot_calendar_component( $year )) - $timezone;
+         }
+ 
+         return false;
++    	return null;
+     }
+ 
+     /**
+@@ -912,20 +922,21 @@
+      * @param string $date
+      * @return int|false Timestamp
+      */
+-    public function date_asctime(string $date)
++    public function date_asctime(string $date): mixed
+     {
+-        static $pcre;
++        static $pcre_aot_cell = new \WordPressStaticValueCell();
++        $pcre =& $pcre_aot_cell->value;
+         if (!$pcre) {
+             $space = '[\x09\x20]+';
+             $wday_name = $this->day_pcre;
+             $mon_name = $this->month_pcre;
+-            $day = '([0-9]{1,2})';
++            $day = \wp_aot_mixed('([0-9]{1,2})');
+             $hour = $sec = $min = '([0-9]{2})';
+             $year = '([0-9]{4})';
+             $terminator = '\x0A?\x00?';
+             $pcre = '/^' . $wday_name . $space . $mon_name . $space . $day . $space . $hour . ':' . $min . ':' . $sec . $space . $year . $terminator . '$/i';
+         }
+-        if (preg_match($pcre, $date, $match)) {
++        if (preg_match(\wp_aot_regex_text( $pcre ), \wp_aot_regex_text( $date ), $match)) {
+             /*
+             Capturing subpatterns:
+             1: Day name
+@@ -938,10 +949,11 @@
+             */
+ 
+             $month = $this->month[strtolower($match[2])];
+-            return gmmktime((int) $match[4], (int) $match[5], (int) $match[6], $month, (int) $match[3], (int) $match[7]);
++            return gmmktime(\wp_aot_calendar_component( (int) $match[4] ), \wp_aot_calendar_component( (int) $match[5] ), \wp_aot_calendar_component( (int) $match[6] ), \wp_aot_calendar_component( $month ), \wp_aot_calendar_component( (int) $match[3] ), \wp_aot_calendar_component( (int) $match[7] ));
+         }
+ 
+         return false;
++    	return null;
+     }
+ 
+     /**
+@@ -951,7 +963,7 @@
+      * @param string $date
+      * @return int|false Timestamp
+      */
+-    public function date_strtotime(string $date)
++    public function date_strtotime(string $date): mixed
+     {
+         $strtotime = strtotime($date);
+         if ($strtotime === -1 || $strtotime === false) {
+@@ -959,7 +971,8 @@
+         }
+ 
+         return $strtotime;
++    	return null;
+     }
+ }
+ 
+-class_alias('SimplePie\Parse\Date', 'SimplePie_Parse_Date');
++(!defined('WP_AOT_NATIVE_RUNTIME') && (bool) \wp_aot_native_api('class_alias', array('SimplePie\Parse\Date', 'SimplePie_Parse_Date')));

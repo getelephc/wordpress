@@ -1,0 +1,52 @@
+--- a/wp-includes/rest-api/search/class-wp-rest-term-search-handler.php
++++ b/wp-includes/rest-api/search/class-wp-rest-term-search-handler.php
+@@ -50,7 +50,7 @@
+ 	 *                                      the requested taxonomy does not exist.
+ 	 * }
+ 	 */
+-	public function search_items( WP_REST_Request $request ) {
++	public function search_items( WP_REST_Request $request ): mixed {
+ 		$taxonomies = $request[ WP_REST_Search_Controller::PROP_SUBTYPE ];
+ 		if ( in_array( WP_REST_Search_Controller::TYPE_ANY, $taxonomies, true ) ) {
+ 			$taxonomies = $this->subtypes;
+@@ -107,6 +107,7 @@
+ 			self::RESULT_IDS   => $found_ids,
+ 			self::RESULT_TOTAL => $total,
+ 		);
++		return null;
+ 	}
+ 
+ 	/**
+@@ -125,7 +126,7 @@
+ 	 *     @type string $type  Optional. Term taxonomy name.
+ 	 * }
+ 	 */
+-	public function prepare_item( $id, array $fields ) {
++	public function prepare_item( mixed $id, array $fields ): mixed {
+ 		$term = get_term( $id );
+ 
+ 		$data = array();
+@@ -144,6 +145,7 @@
+ 		}
+ 
+ 		return $data;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -154,7 +156,7 @@
+ 	 * @param int $id Item ID.
+ 	 * @return array[] Array of link arrays for the given item.
+ 	 */
+-	public function prepare_item_links( $id ) {
++	public function prepare_item_links( mixed $id ): mixed {
+ 		$term = get_term( $id );
+ 
+ 		$links = array();
+@@ -172,5 +174,6 @@
+ 		);
+ 
+ 		return $links;
++		return null;
+ 	}
+ }

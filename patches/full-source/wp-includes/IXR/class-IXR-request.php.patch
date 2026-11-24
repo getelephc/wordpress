@@ -1,0 +1,45 @@
+--- a/wp-includes/IXR/class-IXR-request.php
++++ b/wp-includes/IXR/class-IXR-request.php
+@@ -8,14 +8,14 @@
+  */
+ class IXR_Request
+ {
+-    var $method;
+-    var $args;
+-    var $xml;
++    public $method;
++    public $args;
++    public $xml;
+ 
+ 	/**
+ 	 * PHP5 constructor.
+ 	 */
+-    function __construct($method, $args)
++    function __construct(mixed $method, mixed $args)
+     {
+         $this->method = $method;
+         $this->args = $args;
+@@ -38,17 +38,20 @@
+ 	/**
+ 	 * PHP4 constructor.
+ 	 */
+-	public function IXR_Request( $method, $args ) {
++	public function IXR_Request( mixed $method, mixed $args ): mixed {
+ 		self::__construct( $method, $args );
++		return null;
+ 	}
+ 
+-    function getLength()
++    function getLength(): mixed
+     {
+         return strlen($this->xml);
++    	return null;
+     }
+ 
+-    function getXml()
++    function getXml(): mixed
+     {
+         return $this->xml;
++    	return null;
+     }
+ }

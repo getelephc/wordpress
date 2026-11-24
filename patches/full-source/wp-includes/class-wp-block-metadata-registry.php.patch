@@ -1,6 +1,63 @@
 --- a/wp-includes/class-wp-block-metadata-registry.php
 +++ b/wp-includes/class-wp-block-metadata-registry.php
-@@ -172,7 +172,7 @@
+@@ -35,7 +35,7 @@
+ 	 * @since 6.7.0
+ 	 * @var string|null
+ 	 */
+-	private static $last_matched_collection = null;
++	private static mixed $last_matched_collection = null;
+ 
+ 	/**
+ 	 * Stores the default allowed collection root paths.
+@@ -43,7 +43,7 @@
+ 	 * @since 6.7.2
+ 	 * @var string[]|null
+ 	 */
+-	private static $default_collection_roots = null;
++	private static mixed $default_collection_roots = null;
+ 
+ 	/**
+ 	 * Registers a block metadata collection.
+@@ -81,7 +81,7 @@
+ 	 * @param string $manifest The absolute path to the manifest file containing the metadata collection.
+ 	 * @return bool True if the collection was registered successfully, false otherwise.
+ 	 */
+-	public static function register_collection( $path, $manifest ) {
++	public static function register_collection( mixed $path, mixed $manifest ): mixed {
+ 		$path = rtrim( wp_normalize_path( $path ), '/' );
+ 
+ 		$collection_roots = self::get_default_collection_roots();
+@@ -109,9 +109,9 @@
+ 		 */
+ 		$collection_roots = apply_filters( 'wp_allowed_block_metadata_collection_roots', $collection_roots );
+ 
+-		$collection_roots = array_unique(
+-			array_map(
+-				static function ( $allowed_root ) {
++		$collection_roots = \wp_aot_array_unique(
++			\wp_aot_array_map(
++				static function ( mixed $allowed_root ) {
+ 					return rtrim( wp_normalize_path( $allowed_root ), '/' );
+ 				},
+ 				$collection_roots
+@@ -147,6 +147,7 @@
+ 		);
+ 
+ 		return true;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -160,7 +161,7 @@
+ 	 * @param string $file_or_folder The path to the file or folder containing the block.
+ 	 * @return array|null The block metadata for the block, or null if not found.
+ 	 */
+-	public static function get_metadata( $file_or_folder ) {
++	public static function get_metadata( mixed $file_or_folder ): mixed {
+ 		$file_or_folder = wp_normalize_path( $file_or_folder );
+ 
+ 		$path = self::find_collection_path( $file_or_folder );
+@@ -172,13 +173,14 @@
  
  		if ( null === $collection['metadata'] ) {
  			// Load the manifest file if not already loaded
@@ -9,12 +66,123 @@
  		}
  
  		// Get the block name from the path.
-@@ -211,7 +211,7 @@
+ 		$block_name = self::default_identifier_callback( $file_or_folder );
+ 
+ 		return $collection['metadata'][ $block_name ] ?? null;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -195,7 +197,7 @@
+ 	 * @param string $path The absolute base path for a previously registered collection.
+ 	 * @return string[] List of block metadata file paths, or an empty array if the given `$path` is invalid.
+ 	 */
+-	public static function get_collection_block_metadata_files( $path ) {
++	public static function get_collection_block_metadata_files( mixed $path ): mixed {
+ 		$path = rtrim( wp_normalize_path( $path ), '/' );
+ 
+ 		if ( ! isset( self::$collections[ $path ] ) ) {
+@@ -211,16 +213,17 @@
  
  		if ( null === $collection['metadata'] ) {
  			// Load the manifest file if not already loaded.
 -			$collection['metadata'] = require $collection['manifest'];
+-		}
+-
+-		return array_map(
 +			$collection['metadata'] = aot_require_data( $collection['manifest'] );
++		}
++
++		return \wp_aot_array_map(
+ 			// No normalization necessary since `$path` is already normalized and `$block_name` is just a folder name.
+-			static function ( $block_name ) use ( $path ) {
++			static function ( mixed $block_name ) use ( $path ) {
+ 				return "{$path}/{$block_name}/block.json";
+ 			},
+ 			array_keys( $collection['metadata'] )
+ 		);
++		return null;
+ 	}
+ 
+ 	/**
+@@ -231,7 +234,7 @@
+ 	 * @param string $file_or_folder The normalized path to the file or folder.
+ 	 * @return string|null The normalized collection path if found, or null if not found.
+ 	 */
+-	private static function find_collection_path( $file_or_folder ) {
++	private static function find_collection_path( mixed $file_or_folder ): mixed {
+ 		if ( empty( $file_or_folder ) ) {
+ 			return null;
+ 		}
+@@ -250,6 +253,7 @@
+ 			}
+ 		}
+ 		return null;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -260,8 +264,9 @@
+ 	 * @param string $file_or_folder The path to the file or folder containing the block metadata.
+ 	 * @return bool True if metadata exists for the block, false otherwise.
+ 	 */
+-	public static function has_metadata( $file_or_folder ) {
++	public static function has_metadata( mixed $file_or_folder ): mixed {
+ 		return null !== self::get_metadata( $file_or_folder );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -285,7 +290,7 @@
+ 	 * @param string $path The normalized file or folder path to determine the block identifier from.
+ 	 * @return string The block identifier, or an empty string if the path is empty.
+ 	 */
+-	private static function default_identifier_callback( $path ) {
++	private static function default_identifier_callback( mixed $path ): mixed {
+ 		// Ensure $path is not empty to prevent unexpected behavior.
+ 		if ( empty( $path ) ) {
+ 			return '';
+@@ -298,6 +303,7 @@
+ 
+ 		// Otherwise, assume it's a directory and return its name.
+ 		return basename( $path );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -309,7 +315,7 @@
+ 	 * @param string[] $collection_roots List of normalized collection root paths, without trailing slashes.
+ 	 * @return bool True if the path is allowed, false otherwise.
+ 	 */
+-	private static function is_valid_collection_path( $path, $collection_roots ) {
++	private static function is_valid_collection_path( mixed $path, mixed $collection_roots ): mixed {
+ 		foreach ( $collection_roots as $allowed_root ) {
+ 			// If the path matches any root exactly, it is invalid.
+ 			if ( $allowed_root === $path ) {
+@@ -323,6 +329,7 @@
  		}
  
- 		return array_map(
+ 		return true;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -332,7 +339,7 @@
+ 	 *
+ 	 * @return string[] List of directory paths within which metadata collections are allowed.
+ 	 */
+-	private static function get_default_collection_roots() {
++	private static function get_default_collection_roots(): mixed {
+ 		if ( isset( self::$default_collection_roots ) ) {
+ 			return self::$default_collection_roots;
+ 		}
+@@ -352,7 +359,8 @@
+ 			$collection_roots[] = trailingslashit( wp_normalize_path( WP_CONTENT_DIR ) ) . ltrim( wp_normalize_path( $theme_root ), '/' );
+ 		}
+ 
+-		self::$default_collection_roots = array_unique( $collection_roots );
++		self::$default_collection_roots = \wp_aot_array_unique( $collection_roots );
+ 		return self::$default_collection_roots;
++		return null;
+ 	}
+ }

@@ -1,0 +1,20 @@
+--- a/wp-admin/options-privacy.php
++++ b/wp-admin/options-privacy.php
+@@ -23,7 +23,7 @@
+ 
+ add_filter(
+ 	'admin_body_class',
+-	static function ( $body_class ) {
++	static function ( mixed $body_class ) {
+ 		$body_class .= ' privacy-settings ';
+ 
+ 		return $body_class;
+@@ -116,7 +116,7 @@
+ 			update_option( 'wp_page_for_privacy_policy', $privacy_policy_page_id );
+ 
+ 			wp_redirect( admin_url( 'post.php?post=' . $privacy_policy_page_id . '&action=edit' ) );
+-			exit;
++			\wp_aot_exit();
+ 		}
+ 	}
+ }

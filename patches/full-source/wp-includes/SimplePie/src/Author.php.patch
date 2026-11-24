@@ -1,0 +1,52 @@
+--- a/wp-includes/SimplePie/src/Author.php
++++ b/wp-includes/SimplePie/src/Author.php
+@@ -69,13 +69,14 @@
+      *
+      * @return string|null
+      */
+-    public function get_name()
++    public function get_name(): mixed
+     {
+         if ($this->name !== null) {
+             return $this->name;
+         }
+ 
+         return null;
++    	return null;
+     }
+ 
+     /**
+@@ -83,13 +84,14 @@
+      *
+      * @return string|null
+      */
+-    public function get_link()
++    public function get_link(): mixed
+     {
+         if ($this->link !== null) {
+             return $this->link;
+         }
+ 
+         return null;
++    	return null;
+     }
+ 
+     /**
+@@ -97,14 +99,15 @@
+      *
+      * @return string|null
+      */
+-    public function get_email()
++    public function get_email(): mixed
+     {
+         if ($this->email !== null) {
+             return $this->email;
+         }
+ 
+         return null;
++    	return null;
+     }
+ }
+ 
+-class_alias('SimplePie\Author', 'SimplePie_Author');
++(!defined('WP_AOT_NATIVE_RUNTIME') && (bool) \wp_aot_native_api('class_alias', array('SimplePie\Author', 'SimplePie_Author')));

@@ -1,0 +1,34 @@
+--- a/wp-includes/rest-api/fields/class-wp-rest-user-meta-fields.php
++++ b/wp-includes/rest-api/fields/class-wp-rest-user-meta-fields.php
+@@ -23,8 +23,9 @@
+ 	 *
+ 	 * @return string The user meta type.
+ 	 */
+-	protected function get_meta_type() {
++	protected function get_meta_type(): mixed {
+ 		return 'user';
++		return null;
+ 	}
+ 
+ 	/**
+@@ -34,8 +35,9 @@
+ 	 *
+ 	 * @return string 'user' There are no subtypes.
+ 	 */
+-	protected function get_meta_subtype() {
++	protected function get_meta_subtype(): mixed {
+ 		return 'user';
++		return null;
+ 	}
+ 
+ 	/**
+@@ -45,7 +47,8 @@
+ 	 *
+ 	 * @return string The user REST field type.
+ 	 */
+-	public function get_rest_field_type() {
++	public function get_rest_field_type(): mixed {
+ 		return 'user';
++		return null;
+ 	}
+ }

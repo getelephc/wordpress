@@ -1,0 +1,30 @@
+--- a/wp-includes/customize/class-wp-customize-cropped-image-control.php
++++ b/wp-includes/customize/class-wp-customize-cropped-image-control.php
+@@ -61,10 +61,11 @@
+ 	 *
+ 	 * @since 4.3.0
+ 	 */
+-	public function enqueue() {
++	public function enqueue(): mixed {
+ 		wp_enqueue_script( 'customize-views' );
+ 
+ 		parent::enqueue();
++		return null;
+ 	}
+ 
+ 	/**
+@@ -74,12 +75,13 @@
+ 	 *
+ 	 * @see WP_Customize_Control::to_json()
+ 	 */
+-	public function to_json() {
++	public function to_json(): mixed {
+ 		parent::to_json();
+ 
+ 		$this->json['width']       = absint( $this->width );
+ 		$this->json['height']      = absint( $this->height );
+ 		$this->json['flex_width']  = absint( $this->flex_width );
+ 		$this->json['flex_height'] = absint( $this->flex_height );
++		return null;
+ 	}
+ }

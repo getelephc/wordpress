@@ -1,0 +1,104 @@
+--- a/wp-includes/class-wp-token-map.php
++++ b/wp-includes/class-wp-token-map.php
+@@ -324,12 +324,12 @@
+ 		 * Sort the words to ensure that no smaller substring of a match masks the full match.
+ 		 * For example, `Cap` should not match before `CapitalDifferentialD`.
+ 		 */
+-		usort( $shorts, 'WP_Token_Map::longest_first_then_alphabetical' );
++		\wp_aot_usort( $shorts, WP_Token_Map::longest_first_then_alphabetical(...) );
+ 		foreach ( $groups as $group_key => $group ) {
+-			usort(
++			\wp_aot_usort(
+ 				$groups[ $group_key ],
+ 				static function ( array $a, array $b ): int {
+-					return self::longest_first_then_alphabetical( $a[0], $b[0] );
++					return WP_Token_Map::longest_first_then_alphabetical( $a[0], $b[0] );
+ 				}
+ 			);
+ 		}
+@@ -342,7 +342,7 @@
+ 		}
+ 
+ 		$group_keys = array_keys( $groups );
+-		sort( $group_keys );
++		\wp_aot_sort( $group_keys );
+ 
+ 		foreach ( $group_keys as $group ) {
+ 			$map->groups .= "{$group}\x00";
+@@ -352,8 +352,8 @@
+ 			foreach ( $groups[ $group ] as $group_word ) {
+ 				list( $word, $mapping ) = $group_word;
+ 
+-				$word_length    = pack( 'C', strlen( $word ) );
+-				$mapping_length = pack( 'C', strlen( $mapping ) );
++				$word_length    = \wp_aot_pack( 'C', array( strlen( $word ) ));
++				$mapping_length = \wp_aot_pack( 'C', array( strlen( $mapping ) ));
+ 				$group_string  .= "{$word_length}{$word}{$mapping_length}{$mapping}";
+ 			}
+ 
+@@ -385,7 +385,7 @@
+ 	 *
+ 	 * @return WP_Token_Map Map with precomputed data loaded.
+ 	 */
+-	public static function from_precomputed_table( $state ): ?WP_Token_Map {
++	public static function from_precomputed_table( mixed $state ): ?WP_Token_Map {
+ 		$has_necessary_state = isset(
+ 			$state['storage_version'],
+ 			$state['key_length'],
+@@ -531,7 +531,7 @@
+ 	 *
+ 	 * @return string|null Mapped value of lookup key if found, otherwise `null`.
+ 	 */
+-	public function read_token( string $text, int $offset = 0, &$matched_token_byte_length = null, $case_sensitivity = 'case-sensitive' ): ?string {
++	public function read_token( string $text, int $offset = 0, mixed &$matched_token_byte_length = null, mixed $case_sensitivity = 'case-sensitive' ): ?string {
+ 		$ignore_case = 'ascii-case-insensitive' === $case_sensitivity;
+ 		$text_length = strlen( $text );
+ 
+@@ -592,7 +592,7 @@
+ 	 *
+ 	 * @return string|null Mapped value of lookup key if found, otherwise `null`.
+ 	 */
+-	private function read_small_token( string $text, int $offset = 0, &$matched_token_byte_length = null, $case_sensitivity = 'case-sensitive' ): ?string {
++	private function read_small_token( string $text, int $offset = 0, mixed &$matched_token_byte_length = null, mixed $case_sensitivity = 'case-sensitive' ): ?string {
+ 		$ignore_case  = 'ascii-case-insensitive' === $case_sensitivity;
+ 		$small_length = strlen( $this->small_words );
+ 		$search_text  = substr( $text, $offset, $this->key_length );
+@@ -619,7 +619,7 @@
+ 
+ 				if (
+ 					$search_text[ $adjust ] !== $this->small_words[ $at + $adjust ] &&
+-					( ! $ignore_case || strtoupper( $this->small_words[ $at + $adjust ] !== $search_text[ $adjust ] ) )
++					( ! $ignore_case || strtoupper( (string) ( $this->small_words[ $at + $adjust ] !== $search_text[ $adjust ] ) ) )
+ 				) {
+ 					$at += $this->key_length + 1;
+ 					continue 2;
+@@ -721,7 +721,7 @@
+ 		$output .= "{$i2}\"storage_version\" => \"{$class_version}\",\n";
+ 		$output .= "{$i2}\"key_length\" => {$this->key_length},\n";
+ 
+-		$group_line = str_replace( "\x00", "\\x00", $this->groups );
++		$group_line = \wp_aot_str_replace( "\x00", "\\x00", $this->groups );
+ 		$output    .= "{$i2}\"groups\" => \"{$group_line}\",\n";
+ 
+ 		$output .= "{$i2}\"large_words\" => array(\n";
+@@ -747,9 +747,9 @@
+ 				$token_digits   = str_pad( dechex( $token_length ), 2, '0', STR_PAD_LEFT );
+ 				$mapping_digits = str_pad( dechex( $mapping_length ), 2, '0', STR_PAD_LEFT );
+ 
+-				$mapping = preg_replace_callback(
++				$mapping = \wp_aot_preg_replace_callback(
+ 					"~[\\x00-\\x1f\\x22\\x5c]~",
+-					static function ( $match_result ) {
++					static function ( mixed $match_result ) {
+ 						switch ( $match_result[0] ) {
+ 							case '"':
+ 								return '\\"';
+@@ -785,7 +785,7 @@
+ 			$at           += $this->key_length + 1;
+ 		}
+ 
+-		$small_text = str_replace( "\x00", '\x00', implode( '', $small_words ) );
++		$small_text = \wp_aot_str_replace( "\x00", '\x00', implode( '', $small_words ) );
+ 		$output    .= "{$i2}\"small_words\" => \"{$small_text}\",\n";
+ 
+ 		$output .= "{$i2}\"small_mappings\" => array(\n";

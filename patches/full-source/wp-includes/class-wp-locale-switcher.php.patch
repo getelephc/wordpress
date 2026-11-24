@@ -1,0 +1,202 @@
+--- a/wp-includes/class-wp-locale-switcher.php
++++ b/wp-includes/class-wp-locale-switcher.php
+@@ -20,7 +20,7 @@
+ 	 * @since 6.2.0
+ 	 * @var array
+ 	 */
+-	private $stack = array();
++	private mixed $stack = array();
+ 
+ 	/**
+ 	 * Original locale.
+@@ -47,7 +47,7 @@
+ 	 */
+ 	public function __construct() {
+ 		$this->original_locale     = determine_locale();
+-		$this->available_languages = array_merge( array( 'en_US' ), get_available_languages() );
++		$this->available_languages = \wp_aot_array_merge(array( array( 'en_US' ), get_available_languages() ));
+ 	}
+ 
+ 	/**
+@@ -58,9 +58,10 @@
+ 	 *
+ 	 * @since 4.7.0
+ 	 */
+-	public function init() {
++	public function init(): mixed {
+ 		add_filter( 'locale', array( $this, 'filter_locale' ) );
+ 		add_filter( 'determine_locale', array( $this, 'filter_locale' ) );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -72,7 +73,7 @@
+ 	 * @param int|false $user_id Optional. User ID as context. Default false.
+ 	 * @return bool True on success, false on failure.
+ 	 */
+-	public function switch_to_locale( $locale, $user_id = false ) {
++	public function switch_to_locale( mixed $locale, mixed $user_id = false ): mixed {
+ 		$current_locale = determine_locale();
+ 		if ( $current_locale === $locale ) {
+ 			return false;
+@@ -98,6 +99,7 @@
+ 		do_action( 'switch_locale', $locale, $user_id );
+ 
+ 		return true;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -108,9 +110,10 @@
+ 	 * @param int $user_id User ID.
+ 	 * @return bool True on success, false on failure.
+ 	 */
+-	public function switch_to_user_locale( $user_id ) {
++	public function switch_to_user_locale( mixed $user_id ): mixed {
+ 		$locale = get_user_locale( $user_id );
+ 		return $this->switch_to_locale( $locale, $user_id );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -120,15 +123,15 @@
+ 	 *
+ 	 * @return string|false Locale on success, false on failure.
+ 	 */
+-	public function restore_previous_locale() {
+-		$previous_locale = array_pop( $this->stack );
++	public function restore_previous_locale(): mixed {
++		$previous_locale = \wp_aot_array_pop( $this->stack );
+ 
+ 		if ( null === $previous_locale ) {
+ 			// The stack is empty, bail.
+ 			return false;
+ 		}
+ 
+-		$entry  = end( $this->stack );
++		$entry  = wp_aot_array_last( $this->stack );
+ 		$locale = is_array( $entry ) ? $entry[0] : false;
+ 
+ 		if ( ! $locale ) {
+@@ -149,6 +152,7 @@
+ 		do_action( 'restore_previous_locale', $locale, $previous_locale[0] );
+ 
+ 		return $locale;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -158,7 +162,7 @@
+ 	 *
+ 	 * @return string|false Locale on success, false on failure.
+ 	 */
+-	public function restore_current_locale() {
++	public function restore_current_locale(): mixed {
+ 		if ( empty( $this->stack ) ) {
+ 			return false;
+ 		}
+@@ -166,6 +170,7 @@
+ 		$this->stack = array( array( $this->original_locale, false ) );
+ 
+ 		return $this->restore_previous_locale();
++		return null;
+ 	}
+ 
+ 	/**
+@@ -175,8 +180,9 @@
+ 	 *
+ 	 * @return bool True if the locale has been switched, false otherwise.
+ 	 */
+-	public function is_switched() {
++	public function is_switched(): mixed {
+ 		return ! empty( $this->stack );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -186,14 +192,15 @@
+ 	 *
+ 	 * @return string|false Locale if the locale has been switched, false otherwise.
+ 	 */
+-	public function get_switched_locale() {
+-		$entry = end( $this->stack );
++	public function get_switched_locale(): mixed {
++		$entry = wp_aot_array_last( $this->stack );
+ 
+ 		if ( $entry ) {
+ 			return $entry[0];
+ 		}
+ 
+ 		return false;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -203,14 +210,15 @@
+ 	 *
+ 	 * @return int|false User ID if set and if the locale has been switched, false otherwise.
+ 	 */
+-	public function get_switched_user_id() {
+-		$entry = end( $this->stack );
++	public function get_switched_user_id(): mixed {
++		$entry = wp_aot_array_last( $this->stack );
+ 
+ 		if ( $entry ) {
+ 			return $entry[1];
+ 		}
+ 
+ 		return false;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -221,7 +229,7 @@
+ 	 * @param string $locale The locale of the WordPress installation.
+ 	 * @return string The locale currently being switched to.
+ 	 */
+-	public function filter_locale( $locale ) {
++	public function filter_locale( mixed $locale ): mixed {
+ 		$switched_locale = $this->get_switched_locale();
+ 
+ 		if ( $switched_locale ) {
+@@ -229,6 +237,7 @@
+ 		}
+ 
+ 		return $locale;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -242,7 +251,7 @@
+ 	 *
+ 	 * @param string $locale The locale to load translations for.
+ 	 */
+-	private function load_translations( $locale ) {
++	private function load_translations( mixed $locale ): mixed {
+ 		global $l10n;
+ 
+ 		$domains = $l10n ? array_keys( $l10n ) : array();
+@@ -262,6 +271,7 @@
+ 			unload_textdomain( $domain, true );
+ 			get_translations_for_domain( $domain );
+ 		}
++		return null;
+ 	}
+ 
+ 	/**
+@@ -277,7 +287,7 @@
+ 	 *
+ 	 * @param string $locale The locale to change to.
+ 	 */
+-	private function change_locale( $locale ) {
++	private function change_locale( mixed $locale ): mixed {
+ 		global $wp_locale, $phpmailer;
+ 
+ 		$this->load_translations( $locale );
+@@ -298,5 +308,6 @@
+ 		 * @param string $locale The new locale.
+ 		 */
+ 		do_action( 'change_locale', $locale );
++		return null;
+ 	}
+ }

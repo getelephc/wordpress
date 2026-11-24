@@ -1,6 +1,120 @@
 --- a/wp-admin/includes/class-wp-plugin-install-list-table.php
 +++ b/wp-admin/includes/class-wp-plugin-install-list-table.php
-@@ -299,10 +299,13 @@
+@@ -25,8 +25,9 @@
+ 	/**
+ 	 * @return bool
+ 	 */
+-	public function ajax_user_can() {
++	public function ajax_user_can(): mixed {
+ 		return current_user_can( 'install_plugins' );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -39,7 +40,7 @@
+ 	 *
+ 	 * @return array
+ 	 */
+-	protected function get_installed_plugins() {
++	protected function get_installed_plugins(): mixed {
+ 		$plugins = array();
+ 
+ 		$plugin_info = get_site_transient( 'update_plugins' );
+@@ -62,6 +63,7 @@
+ 		}
+ 
+ 		return $plugins;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -75,8 +77,9 @@
+ 	 *
+ 	 * @return array
+ 	 */
+-	protected function get_installed_plugin_slugs() {
++	protected function get_installed_plugin_slugs(): mixed {
+ 		return array_keys( $this->get_installed_plugins() );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -86,7 +89,7 @@
+ 	 * @global string $type
+ 	 * @global string $term
+ 	 */
+-	public function prepare_items() {
++	public function prepare_items(): mixed {
+ 		require_once ABSPATH . 'wp-admin/includes/plugin-install.php';
+ 
+ 		global $tabs, $tab, $paged, $type, $term;
+@@ -149,12 +152,12 @@
+ 
+ 		$installed_plugins = $this->get_installed_plugins();
+ 
+-		$args = array(
++		$args = \wp_aot_mixed(array(
+ 			'page'     => $paged,
+ 			'per_page' => $per_page,
+ 			// Send the locale to the API so it can provide context-sensitive results.
+ 			'locale'   => get_user_locale(),
+-		);
++		));
+ 
+ 		switch ( $tab ) {
+ 			case 'search':
+@@ -235,20 +238,20 @@
+ 		$args = apply_filters( "install_plugins_table_api_args_{$tab}", $args );
+ 
+ 		if ( ! $args ) {
+-			return;
++			return null;
+ 		}
+ 
+ 		$api = plugins_api( 'query_plugins', $args );
+ 
+ 		if ( is_wp_error( $api ) ) {
+ 			$this->error = $api;
+-			return;
++			return null;
+ 		}
+ 
+ 		$this->items = $api->plugins;
+ 
+ 		if ( $this->orderby ) {
+-			uasort( $this->items, array( $this, 'order_callback' ) );
++			\wp_aot_uasort( $this->items, $this->order_callback(...));
+ 		}
+ 
+ 		$this->set_pagination_args(
+@@ -263,7 +266,7 @@
+ 		}
+ 
+ 		if ( $installed_plugins ) {
+-			$js_plugins = array_fill_keys(
++			$js_plugins = \wp_aot_array_fill_keys(
+ 				array( 'all', 'search', 'active', 'inactive', 'recently_activated', 'mustuse', 'dropins' ),
+ 				array()
+ 			);
+@@ -284,11 +287,12 @@
+ 				)
+ 			);
+ 		}
+-	}
+-
+-	/**
+-	 */
+-	public function no_items() {
++		return null;
++	}
++
++	/**
++	 */
++	public function no_items(): mixed {
+ 		if ( isset( $this->error ) ) {
+ 			$error_message  = '<p>' . $this->error->get_error_message() . '</p>';
+ 			$error_message .= '<p class="hide-if-no-js"><button class="button try-again">' . __( 'Try Again' ) . '</button></p>';
+@@ -299,11 +303,15 @@
  					'paragraph_wrap'     => false,
  				)
  			);
@@ -8,6 +122,7 @@
 -		<?php } else { ?>
 -			<div class="no-plugin-results"><?php _e( 'No plugins found. Try a different search.' ); ?></div>
 -			<?php
+-		}
 +			;
 +echo '		';
 +} else { ;
@@ -15,10 +130,38 @@
 +_e( 'No plugins found. Try a different search.' ); ;
 +echo '</div>
 +			';
- 		}
++		}
++		return null;
  	}
  
-@@ -349,26 +352,26 @@
+ 	/**
+@@ -312,7 +320,7 @@
+ 	 *
+ 	 * @return array
+ 	 */
+-	protected function get_views() {
++	protected function get_views(): mixed {
+ 		global $tabs, $tab;
+ 
+ 		$display_tabs = array();
+@@ -327,6 +335,7 @@
+ 		unset( $display_tabs['plugin-install-upload'] );
+ 
+ 		return $this->get_views_links( $display_tabs );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -334,7 +343,7 @@
+ 	 *
+ 	 * @global string $tab The current tab.
+ 	 */
+-	public function views() {
++	public function views(): mixed {
+ 		global $tab;
+ 
+ 		$views = $this->get_views();
+@@ -349,26 +358,27 @@
  			'<p>' . __( 'Plugins extend and expand the functionality of WordPress. You may install plugins from the <a href="%s">WordPress Plugin Directory</a> right on this page, or upload a plugin in .zip format by clicking the button above.' ) . '</p>',
  			__( 'https://wordpress.org/plugins/' )
  		);
@@ -52,10 +195,20 @@
 +		;
 +echo '</div>
 +		';
++		return null;
  	}
  
  	/**
-@@ -389,16 +392,21 @@
+@@ -378,7 +388,7 @@
+ 	 *
+ 	 * @since 4.0.0
+ 	 */
+-	public function display() {
++	public function display( mixed $wp_aot_output_empty = false ): mixed {
+ 		$singular = $this->_args['singular'];
+ 
+ 		$data_attr = '';
+@@ -389,17 +399,23 @@
  
  		$this->display_tablenav( 'top' );
  
@@ -83,9 +236,20 @@
 -		<?php
 +		';
  		$this->display_tablenav( 'bottom' );
++		return null;
  	}
  
-@@ -414,27 +422,30 @@
+ 	/**
+@@ -407,49 +423,55 @@
+ 	 *
+ 	 * @param string $which
+ 	 */
+-	protected function display_tablenav( $which ) {
++	protected function display_tablenav( mixed $which ): mixed {
+ 		if ( 'featured' === $GLOBALS['tab'] ) {
+-			return;
++			return null;
+ 		}
  
  		if ( 'top' === $which ) {
  			wp_referer_field();
@@ -124,11 +288,58 @@
 +echo '				<br class="clear" />
  			</div>
 -			<?php
+-		}
 +			';
- 		}
++		}
++		return null;
  	}
  
-@@ -606,9 +617,11 @@
+ 	/**
+ 	 * @return array
+ 	 */
+-	protected function get_table_classes() {
++	protected function get_table_classes(): mixed {
+ 		return array( 'widefat', $this->_args['plural'] );
++		return null;
+ 	}
+ 
+ 	/**
+ 	 * @return string[] Array of column titles keyed by their column name.
+ 	 */
+-	public function get_columns() {
++	public function get_columns(): mixed {
+ 		return array();
++		return null;
+ 	}
+ 
+ 	/**
+@@ -457,7 +479,7 @@
+ 	 * @param object $plugin_b
+ 	 * @return int
+ 	 */
+-	private function order_callback( $plugin_a, $plugin_b ) {
++	private function order_callback( mixed $plugin_a, mixed $plugin_b ): mixed {
+ 		$orderby = $this->orderby;
+ 		if ( ! isset( $plugin_a->$orderby, $plugin_b->$orderby ) ) {
+ 			return 0;
+@@ -469,6 +491,7 @@
+ 		return 'DESC' === $this->order ?
+ 			$b <=> $a :
+ 			$a <=> $b;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -476,7 +499,7 @@
+ 	 *
+ 	 * @since 3.1.0
+ 	 */
+-	public function display_rows() {
++	public function display_rows( mixed $wp_aot_posts = array(), mixed $wp_aot_level = 0 ): mixed {
+ 		$plugins_allowedtags = array(
+ 			'a'       => array(
+ 				'href'   => array(),
+@@ -606,9 +629,11 @@
  			$action_links = apply_filters( 'plugin_install_action_links', $action_links, $plugin );
  
  			$last_updated_timestamp = strtotime( $plugin['last_updated'] );
@@ -143,7 +354,7 @@
  			if ( ! $compatible_php || ! $compatible_wp ) {
  				$incompatible_notice_message = '';
  				if ( ! $compatible_php && ! $compatible_wp ) {
-@@ -664,37 +677,46 @@
+@@ -664,37 +689,46 @@
  					)
  				);
  			}
@@ -204,7 +415,7 @@
  					wp_star_rating(
  						array(
  							'rating' => $plugin['rating'],
-@@ -702,18 +724,22 @@
+@@ -702,18 +736,22 @@
  							'number' => $plugin['num_ratings'],
  						)
  					);
@@ -234,7 +445,7 @@
  					if ( $plugin['active_installs'] >= 1000000 ) {
  						$active_installs_millions = floor( $plugin['active_installs'] / 1000000 );
  						$active_installs_text     = sprintf(
-@@ -728,10 +754,10 @@
+@@ -728,10 +766,10 @@
  					}
  					/* translators: %s: Number of installations. */
  					printf( __( '%s Active Installations' ), $active_installs_text );
@@ -248,7 +459,7 @@
  					if ( ! $tested_wp ) {
  						echo '<span class="compatibility-untested">' . __( 'Untested with your version of WordPress' ) . '</span>';
  					} elseif ( ! $compatible_wp ) {
-@@ -739,11 +765,11 @@
+@@ -739,17 +777,18 @@
  					} else {
  						echo '<span class="compatibility-compatible">' . __( '<strong>Compatible</strong> with your version of WordPress' ) . '</span>';
  					}
@@ -263,3 +474,43 @@
  		}
  
  		// Close off the group divs of the last one.
+ 		if ( ! empty( $group ) ) {
+ 			echo '</div></div>';
+ 		}
++		return null;
+ 	}
+ 
+ 	/**
+@@ -762,7 +801,7 @@
+ 	 * @return string A notice containing a list of dependencies required by the plugin,
+ 	 *                or an empty string if none is required.
+ 	 */
+-	protected function get_dependencies_notice( $plugin_data ) {
++	protected function get_dependencies_notice( mixed $plugin_data ): mixed {
+ 		if ( empty( $plugin_data['requires_plugins'] ) ) {
+ 			return '';
+ 		}
+@@ -803,6 +842,7 @@
+ 		);
+ 
+ 		return $dependencies_notice;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -814,7 +854,7 @@
+ 	 * @param string $slug The plugin's slug.
+ 	 * @return string The 'More details' link for the plugin.
+ 	 */
+-	protected function get_more_details_link( $name, $slug ) {
++	protected function get_more_details_link( mixed $name, mixed $slug ): mixed {
+ 		$url = add_query_arg(
+ 			array(
+ 				'tab'       => 'plugin-information',
+@@ -836,5 +876,6 @@
+ 		);
+ 
+ 		return $more_details_link;
++		return null;
+ 	}
+ }

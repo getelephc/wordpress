@@ -1,0 +1,245 @@
+--- a/wp-includes/ID3/module.audio.flac.php
++++ b/wp-includes/ID3/module.audio.flac.php
+@@ -15,7 +15,7 @@
+ /////////////////////////////////////////////////////////////////
+ 
+ if (!defined('GETID3_INCLUDEPATH')) { // prevent path-exposing attacks that access modules directly on public webservers
+-	exit;
++	\wp_aot_exit();
+ }
+ getid3_lib::IncludeDependency(GETID3_INCLUDEPATH.'module.audio.ogg.php', __FILE__, true);
+ 
+@@ -29,7 +29,7 @@
+ 	/**
+ 	 * @return bool
+ 	 */
+-	public function Analyze() {
++	public function Analyze(): mixed {
+ 		$info = &$this->getid3->info;
+ 
+ 		$this->fseek($info['avdataoffset']);
+@@ -44,12 +44,13 @@
+ 
+ 		// parse flac container
+ 		return $this->parseMETAdata();
+-	}
+-
+-	/**
+-	 * @return bool
+-	 */
+-	public function parseMETAdata() {
++		return null;
++	}
++
++	/**
++	 * @return bool
++	 */
++	public function parseMETAdata(): mixed {
+ 		$info = &$this->getid3->info;
+ 		do {
+ 			$BlockOffset   = $this->ftell();
+@@ -141,7 +142,7 @@
+ 			$info['flac']['comments'] = $info['flac']['VORBIS_COMMENT']['comments'];
+ 		}
+ 		if (!empty($info['flac']['VORBIS_COMMENT']['vendor'])) {
+-			$info['audio']['encoder'] = str_replace('reference ', '', $info['flac']['VORBIS_COMMENT']['vendor']);
++			$info['audio']['encoder'] = \wp_aot_str_replace('reference ', '', $info['flac']['VORBIS_COMMENT']['vendor']);
+ 		}
+ 
+ 		// copy attachments to 'comments' array if nesesary
+@@ -188,7 +189,7 @@
+ 				for ($i = 0; $i < strlen($md5); $i++) {
+ 					$info['md5_data_source'] .= str_pad(dechex(ord($md5[$i])), 2, '00', STR_PAD_LEFT);
+ 				}
+-				if (!preg_match('/^[0-9a-f]{32}$/', $info['md5_data_source'])) {
++				if (!preg_match('/^[0-9a-f]{32}$/', \wp_aot_regex_text( $info['md5_data_source'] ))) {
+ 					unset($info['md5_data_source']);
+ 				}
+ 			}
+@@ -205,6 +206,7 @@
+ 		}
+ 
+ 		return true;
++		return null;
+ 	}
+ 
+ 
+@@ -213,7 +215,7 @@
+ 	 *
+ 	 * @return array
+ 	 */
+-	public static function parseSTREAMINFOdata($BlockData) {
++	public static function parseSTREAMINFOdata(mixed $BlockData): mixed {
+ 		$streaminfo = array();
+ 		$streaminfo['min_block_size']  = getid3_lib::BigEndian2Int(substr($BlockData, 0, 2));
+ 		$streaminfo['max_block_size']  = getid3_lib::BigEndian2Int(substr($BlockData, 2, 2));
+@@ -229,6 +231,7 @@
+ 		$streaminfo['audio_signature'] =                           substr($BlockData, 18, 16);
+ 
+ 		return $streaminfo;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -236,7 +239,7 @@
+ 	 *
+ 	 * @return bool
+ 	 */
+-	private function parseSTREAMINFO($BlockData) {
++	private function parseSTREAMINFO(mixed $BlockData): mixed {
+ 		$info = &$this->getid3->info;
+ 
+ 		$info['flac']['STREAMINFO'] = self::parseSTREAMINFOdata($BlockData);
+@@ -262,6 +265,7 @@
+ 		}
+ 
+ 		return true;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -269,7 +273,7 @@
+ 	 *
+ 	 * @return bool
+ 	 */
+-	private function parseAPPLICATION($BlockData) {
++	private function parseAPPLICATION(mixed $BlockData): mixed {
+ 		$info = &$this->getid3->info;
+ 
+ 		$ApplicationID = getid3_lib::BigEndian2Int(substr($BlockData, 0, 4));
+@@ -277,6 +281,7 @@
+ 		$info['flac']['APPLICATION'][$ApplicationID]['data'] = substr($BlockData, 4);
+ 
+ 		return true;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -284,7 +289,7 @@
+ 	 *
+ 	 * @return bool
+ 	 */
+-	private function parseSEEKTABLE($BlockData) {
++	private function parseSEEKTABLE(mixed $BlockData): mixed {
+ 		$info = &$this->getid3->info;
+ 
+ 		$offset = 0;
+@@ -311,6 +316,7 @@
+ 		}
+ 
+ 		return true;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -318,7 +324,7 @@
+ 	 *
+ 	 * @return bool
+ 	 */
+-	private function parseVORBIS_COMMENT($BlockData) {
++	private function parseVORBIS_COMMENT(mixed $BlockData): mixed {
+ 		$info = &$this->getid3->info;
+ 
+ 		$getid3_ogg = new getid3_ogg($this->getid3);
+@@ -335,6 +341,7 @@
+ 		unset($getid3_ogg);
+ 
+ 		return true;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -342,7 +349,7 @@
+ 	 *
+ 	 * @return bool
+ 	 */
+-	private function parseCUESHEET($BlockData) {
++	private function parseCUESHEET(mixed $BlockData): mixed {
+ 		$info = &$this->getid3->info;
+ 		$offset = 0;
+ 		$info['flac']['CUESHEET']['media_catalog_number'] =                              trim(substr($BlockData, $offset, 128), "\0");
+@@ -391,6 +398,7 @@
+ 		}
+ 
+ 		return true;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -399,7 +407,7 @@
+ 	 *
+ 	 * @return bool
+ 	 */
+-	public function parsePICTURE() {
++	public function parsePICTURE(): mixed {
+ 		$info = &$this->getid3->info;
+ 
+ 		$picture = array();
+@@ -420,7 +428,7 @@
+ 			$picture['data'] = $this->fread($picture['datalength']);
+ 		} else {
+ 			$picture['data'] = $this->saveAttachment(
+-				str_replace('/', '_', $picture['picturetype']).'_'.$this->ftell(),
++				\wp_aot_str_replace('/', '_', $picture['picturetype']).'_'.$this->ftell(),
+ 				$this->ftell(),
+ 				$picture['datalength'],
+ 				$picture['image_mime']);
+@@ -429,6 +437,7 @@
+ 		$info['flac']['PICTURE'][] = $picture;
+ 
+ 		return true;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -436,7 +445,7 @@
+ 	 *
+ 	 * @return string
+ 	 */
+-	public static function metaBlockTypeLookup($blocktype) {
++	public static function metaBlockTypeLookup(mixed $blocktype): mixed {
+ 		static $lookup = array(
+ 			0 => 'STREAMINFO',
+ 			1 => 'PADDING',
+@@ -447,6 +456,7 @@
+ 			6 => 'PICTURE',
+ 		);
+ 		return (isset($lookup[$blocktype]) ? $lookup[$blocktype] : 'reserved');
++		return null;
+ 	}
+ 
+ 	/**
+@@ -454,7 +464,7 @@
+ 	 *
+ 	 * @return string
+ 	 */
+-	public static function applicationIDLookup($applicationid) {
++	public static function applicationIDLookup(mixed $applicationid): mixed {
+ 		// http://flac.sourceforge.net/id.html
+ 		static $lookup = array(
+ 			0x41544348 => 'FlacFile',                                                                           // "ATCH"
+@@ -482,6 +492,7 @@
+ 			0x786D6364 => 'xmcd',                                                                               // "xmcd"
+ 		);
+ 		return (isset($lookup[$applicationid]) ? $lookup[$applicationid] : 'reserved');
++		return null;
+ 	}
+ 
+ 	/**
+@@ -489,7 +500,7 @@
+ 	 *
+ 	 * @return string
+ 	 */
+-	public static function pictureTypeLookup($type_id) {
++	public static function pictureTypeLookup(mixed $type_id): mixed {
+ 		static $lookup = array (
+ 			 0 => 'Other',
+ 			 1 => '32x32 pixels \'file icon\' (PNG only)',
+@@ -514,6 +525,7 @@
+ 			20 => 'Publisher/Studio logotype',
+ 		);
+ 		return (isset($lookup[$type_id]) ? $lookup[$type_id] : 'reserved');
++		return null;
+ 	}
+ 
+ }

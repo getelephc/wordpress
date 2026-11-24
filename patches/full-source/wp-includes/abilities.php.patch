@@ -1,0 +1,66 @@
+--- a/wp-includes/abilities.php
++++ b/wp-includes/abilities.php
+@@ -113,14 +113,14 @@
+ 				'properties'           => $site_info_properties,
+ 				'additionalProperties' => false,
+ 			),
+-			'execute_callback'    => static function ( $input = array() ) use ( $site_info_fields ): array {
++			'execute_callback'    => static function ( mixed $input = array() ) use ( $site_info_fields ): array {
+ 				$input = is_array( $input ) ? $input : array();
+ 				$requested_fields = ! empty( $input['fields'] ) ? $input['fields'] : $site_info_fields;
+ 
+ 				$result = array();
+ 				foreach ( $requested_fields as $field ) {
+ 					if ( 'language' === $field ) {
+-						$result[ $field ] = str_replace( '_', '-', get_locale() );
++						$result[ $field ] = \wp_aot_str_replace( '_', '-', get_locale() );
+ 					} else {
+ 						$result[ $field ] = get_bloginfo( $field );
+ 					}
+@@ -230,7 +230,7 @@
+ 				'properties'           => $user_info_properties,
+ 				'additionalProperties' => false,
+ 			),
+-			'execute_callback'    => static function ( $input = array() ) use ( $user_info_fields ): array {
++			'execute_callback'    => static function ( mixed $input = array() ) use ( $user_info_fields ): array {
+ 				$input            = is_array( $input ) ? $input : array();
+ 				$requested_fields = ! empty( $input['fields'] ) ? $input['fields'] : $user_info_fields;
+ 				$current_user     = wp_get_current_user();
+@@ -250,7 +250,7 @@
+ 					'user_url'      => $current_user->user_url,
+ 				);
+ 
+-				return array_intersect_key( $all, array_flip( $requested_fields ) );
++				return \wp_aot_array_intersect_key(array( $all, \wp_aot_array_flip( $requested_fields ) ));
+ 			},
+ 			'permission_callback' => static function (): bool {
+ 				return is_user_logged_in();
+@@ -317,7 +317,7 @@
+ 				'properties'           => $environment_info_properties,
+ 				'additionalProperties' => false,
+ 			),
+-			'execute_callback'    => static function ( $input = array() ) use ( $environment_info_fields ): array {
++			'execute_callback'    => static function ( mixed $input = array() ) use ( $environment_info_fields ): array {
+ 				global $wpdb;
+ 
+ 				/** @var array{ fields?: string[] } $input */
+@@ -325,8 +325,8 @@
+ 				$requested_fields = ! empty( $input['fields'] ) ? $input['fields'] : $environment_info_fields;
+ 
+ 				$db_server_info = '';
+-				if ( method_exists( $wpdb, 'db_server_info' ) ) {
+-					$db_server_info = $wpdb->db_server_info() ?? '';
++				if ( method_exists( \wp_aot_require_wpdb($wpdb), 'db_server_info' ) ) {
++					$db_server_info = \wp_aot_require_wpdb( $wpdb )->db_server_info() ?? '';
+ 				}
+ 
+ 				$all = array(
+@@ -336,7 +336,7 @@
+ 					'wp_version'     => get_bloginfo( 'version' ),
+ 				);
+ 
+-				return array_intersect_key( $all, array_flip( $requested_fields ) );
++				return \wp_aot_array_intersect_key(array( $all, \wp_aot_array_flip( $requested_fields ) ));
+ 			},
+ 			'permission_callback' => static function (): bool {
+ 				return current_user_can( 'manage_options' );

@@ -1,0 +1,127 @@
+--- a/wp-admin/includes/screen.php
++++ b/wp-admin/includes/screen.php
+@@ -14,8 +14,9 @@
+  * @param string|WP_Screen $screen The screen you want the headers for
+  * @return string[] The column header labels keyed by column ID.
+  */
+-function get_column_headers( $screen ) {
+-	static $column_headers = array();
++function get_column_headers( mixed $screen ): mixed {
++	static $column_headers_aot_cell = new \WordPressStaticArrayCell();
++	$column_headers =& $column_headers_aot_cell->value;
+ 
+ 	if ( is_string( $screen ) ) {
+ 		$screen = convert_to_screen( $screen );
+@@ -38,6 +39,7 @@
+ 	}
+ 
+ 	return $column_headers[ $screen->id ];
++	return null;
+ }
+ 
+ /**
+@@ -48,7 +50,7 @@
+  * @param string|WP_Screen $screen The screen you want the hidden columns for
+  * @return string[] Array of IDs of hidden columns.
+  */
+-function get_hidden_columns( $screen ) {
++function get_hidden_columns( mixed $screen ): mixed {
+ 	if ( is_string( $screen ) ) {
+ 		$screen = convert_to_screen( $screen );
+ 	}
+@@ -82,6 +84,7 @@
+ 	 * @param bool      $use_defaults Whether to show the default columns.
+ 	 */
+ 	return apply_filters( 'hidden_columns', $hidden, $screen, $use_defaults );
++	return null;
+ }
+ 
+ /**
+@@ -93,7 +96,7 @@
+  *
+  * @param WP_Screen $screen
+  */
+-function meta_box_prefs( $screen ) {
++function meta_box_prefs( mixed $screen ): mixed {
+ 	global $wp_meta_boxes;
+ 
+ 	if ( is_string( $screen ) ) {
+@@ -101,7 +104,7 @@
+ 	}
+ 
+ 	if ( empty( $wp_meta_boxes[ $screen->id ] ) ) {
+-		return;
++		return null;
+ 	}
+ 
+ 	$hidden = get_hidden_meta_boxes( $screen );
+@@ -139,6 +142,7 @@
+ 			}
+ 		}
+ 	}
++	return null;
+ }
+ 
+ /**
+@@ -149,7 +153,7 @@
+  * @param string|WP_Screen $screen Screen identifier
+  * @return string[] IDs of hidden meta boxes.
+  */
+-function get_hidden_meta_boxes( $screen ) {
++function get_hidden_meta_boxes( mixed $screen ): mixed {
+ 	if ( is_string( $screen ) ) {
+ 		$screen = convert_to_screen( $screen );
+ 	}
+@@ -192,6 +196,7 @@
+ 	 *                                Default true.
+ 	 */
+ 	return apply_filters( 'hidden_meta_boxes', $hidden, $screen, $use_defaults );
++	return null;
+ }
+ 
+ /**
+@@ -202,14 +207,15 @@
+  * @param string $option An option name.
+  * @param mixed  $args   Option-dependent arguments.
+  */
+-function add_screen_option( $option, $args = array() ) {
++function add_screen_option( mixed $option, mixed $args = array() ): mixed {
+ 	$current_screen = get_current_screen();
+ 
+ 	if ( ! $current_screen ) {
+-		return;
++		return null;
+ 	}
+ 
+ 	$current_screen->add_option( $option, $args );
++	return null;
+ }
+ 
+ /**
+@@ -221,7 +227,7 @@
+  *
+  * @return WP_Screen|null Current screen object or null when screen not defined.
+  */
+-function get_current_screen() {
++function get_current_screen(): mixed {
+ 	global $current_screen;
+ 
+ 	if ( ! $current_screen instanceof WP_Screen ) {
+@@ -229,6 +235,7 @@
+ 	}
+ 
+ 	return $current_screen;
++	return null;
+ }
+ 
+ /**
+@@ -239,6 +246,7 @@
+  * @param string|WP_Screen $hook_name Optional. The hook name (also known as the hook suffix) used to determine the screen,
+  *                                    or an existing screen object.
+  */
+-function set_current_screen( $hook_name = '' ) {
++function set_current_screen( mixed $hook_name = '' ): mixed {
+ 	WP_Screen::get( $hook_name )->set_current_screen();
+-}
++	return null;
++}

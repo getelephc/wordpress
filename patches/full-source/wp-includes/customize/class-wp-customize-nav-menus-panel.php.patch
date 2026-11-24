@@ -1,11 +1,43 @@
 --- a/wp-includes/customize/class-wp-customize-nav-menus-panel.php
 +++ b/wp-includes/customize/class-wp-customize-nav-menus-panel.php
-@@ -66,51 +66,54 @@
+@@ -31,7 +31,7 @@
+ 	 *
+ 	 * @since 4.3.0
+ 	 */
+-	public function render_screen_options() {
++	public function render_screen_options(): mixed {
+ 		// Adds the screen options.
+ 		require_once ABSPATH . 'wp-admin/includes/nav-menu.php';
+ 		add_filter( 'manage_nav-menus_columns', 'wp_nav_menu_manage_columns' );
+@@ -39,6 +39,7 @@
+ 		// Display screen options.
+ 		$screen = WP_Screen::get( 'nav-menus.php' );
+ 		$screen->render_screen_options( array( 'wrap' => false ) );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -49,10 +50,11 @@
+ 	 * @since 4.3.0
+ 	 * @deprecated 4.5.0 Deprecated in favor of wp_nav_menu_manage_columns().
+ 	 */
+-	public function wp_nav_menu_manage_columns() {
++	public function wp_nav_menu_manage_columns(): mixed {
+ 		_deprecated_function( __METHOD__, '4.5.0', 'wp_nav_menu_manage_columns' );
+ 		require_once ABSPATH . 'wp-admin/includes/nav-menu.php';
+ 		return wp_nav_menu_manage_columns();
++		return null;
+ 	}
+ 
+ 	/**
+@@ -65,52 +67,56 @@
+ 	 *
  	 * @see WP_Customize_Panel::print_template()
  	 */
- 	protected function content_template() {
+-	protected function content_template() {
 -		?>
 -		<li class="panel-meta customize-info accordion-section <# if ( ! data.description ) { #> cannot-expand<# } #>">
++	protected function content_template(): mixed {
 +		;
 +echo '		<li class="panel-meta customize-info accordion-section <# if ( ! data.description ) { #> cannot-expand<# } #>">
  			<button type="button" class="customize-panel-back" tabindex="-1">
@@ -73,5 +105,6 @@
 +_e( 'Menus' ); ;
 +echo '</li>
 +		';
++		return null;
  	}
  }

@@ -1,0 +1,153 @@
+--- a/wp-includes/ms-default-constants.php
++++ b/wp-includes/ms-default-constants.php
+@@ -15,12 +15,12 @@
+  *
+  * @since 3.0.0
+  */
+-function ms_upload_constants() {
++function ms_upload_constants(): mixed {
+ 	// This filter is attached in ms-default-filters.php but that file is not included during SHORTINIT.
+ 	add_filter( 'default_site_option_ms_files_rewriting', '__return_true' );
+ 
+ 	if ( ! get_site_option( 'ms_files_rewriting' ) ) {
+-		return;
++		return null;
+ 	}
+ 
+ 	// Base uploads dir relative to ABSPATH.
+@@ -42,6 +42,7 @@
+ 			define( 'BLOGUPLOADDIR', WP_CONTENT_DIR . '/blogs.dir/' . $site_id . '/files/' );
+ 		}
+ 	}
++	return null;
+ }
+ 
+ /**
+@@ -49,45 +50,46 @@
+  *
+  * @since 3.0.0
+  */
+-function ms_cookie_constants() {
++function ms_cookie_constants(): mixed {
+ 	$current_network = get_network();
+ 
+ 	/**
+ 	 * @since 1.2.0
+ 	 */
+-	if ( ! defined( 'COOKIEPATH' ) ) {
+-		define( 'COOKIEPATH', $current_network->path );
++	if ( ! \wp_aot_bootstrap_defined( 'COOKIEPATH' ) ) {
++		\wp_aot_bootstrap_mark('COOKIEPATH', define( 'COOKIEPATH', \wp_aot_bootstrap_capture_string('COOKIEPATH', (string) ($current_network->path)) ));
+ 	}
+ 
+ 	/**
+ 	 * @since 1.5.0
+ 	 */
+-	if ( ! defined( 'SITECOOKIEPATH' ) ) {
+-		define( 'SITECOOKIEPATH', $current_network->path );
++	if ( ! \wp_aot_bootstrap_defined( 'SITECOOKIEPATH' ) ) {
++		\wp_aot_bootstrap_mark('SITECOOKIEPATH', define( 'SITECOOKIEPATH', \wp_aot_bootstrap_capture_string('SITECOOKIEPATH', (string) ($current_network->path)) ));
+ 	}
+ 
+ 	/**
+ 	 * @since 2.6.0
+ 	 */
+-	if ( ! defined( 'ADMIN_COOKIE_PATH' ) ) {
++	if ( ! \wp_aot_bootstrap_defined( 'ADMIN_COOKIE_PATH' ) ) {
+ 		$site_path = parse_url( get_option( 'siteurl' ), PHP_URL_PATH );
+ 		if ( ! is_subdomain_install() || is_string( $site_path ) && trim( $site_path, '/' ) ) {
+-			define( 'ADMIN_COOKIE_PATH', SITECOOKIEPATH );
++			\wp_aot_bootstrap_mark('ADMIN_COOKIE_PATH', define( 'ADMIN_COOKIE_PATH', \wp_aot_bootstrap_capture_string('ADMIN_COOKIE_PATH', (string) (\wp_aot_bootstrap_string('SITECOOKIEPATH'))) ));
+ 		} else {
+-			define( 'ADMIN_COOKIE_PATH', SITECOOKIEPATH . 'wp-admin' );
++			\wp_aot_bootstrap_mark('ADMIN_COOKIE_PATH', define( 'ADMIN_COOKIE_PATH', \wp_aot_bootstrap_capture_string('ADMIN_COOKIE_PATH', (string) (\wp_aot_bootstrap_string('SITECOOKIEPATH') . 'wp-admin')) ));
+ 		}
+ 	}
+ 
+ 	/**
+ 	 * @since 2.0.0
+ 	 */
+-	if ( ! defined( 'COOKIE_DOMAIN' ) && is_subdomain_install() ) {
++	if ( ! \wp_aot_bootstrap_defined( 'COOKIE_DOMAIN' ) && is_subdomain_install() ) {
+ 		if ( ! empty( $current_network->cookie_domain ) ) {
+-			define( 'COOKIE_DOMAIN', '.' . $current_network->cookie_domain );
++			\wp_aot_bootstrap_mark('COOKIE_DOMAIN', define( 'COOKIE_DOMAIN', '.' . $current_network->cookie_domain ));
+ 		} else {
+-			define( 'COOKIE_DOMAIN', '.' . $current_network->domain );
++			\wp_aot_bootstrap_mark('COOKIE_DOMAIN', define( 'COOKIE_DOMAIN', '.' . $current_network->domain ));
+ 		}
+ 	}
++	return null;
+ }
+ 
+ /**
+@@ -98,7 +100,7 @@
+  *
+  * @since 3.0.0
+  */
+-function ms_file_constants() {
++function ms_file_constants(): mixed {
+ 	/**
+ 	 * Optional support for X-Sendfile header
+ 	 *
+@@ -116,6 +118,7 @@
+ 	if ( ! defined( 'WPMU_ACCEL_REDIRECT' ) ) {
+ 		define( 'WPMU_ACCEL_REDIRECT', false );
+ 	}
++	return null;
+ }
+ 
+ /**
+@@ -128,12 +131,14 @@
+  *
+  * @since 3.0.0
+  */
+-function ms_subdomain_constants() {
+-	static $subdomain_error      = null;
+-	static $subdomain_error_warn = null;
++function ms_subdomain_constants(): mixed {
++	static $subdomain_error_aot_cell = new \WordPressStaticValueCell();
++	$subdomain_error =& $subdomain_error_aot_cell->value;
++	static $subdomain_error_warn_aot_cell = new \WordPressStaticValueCell();
++	$subdomain_error_warn =& $subdomain_error_warn_aot_cell->value;
+ 
+ 	if ( false === $subdomain_error ) {
+-		return;
++		return null;
+ 	}
+ 
+ 	if ( $subdomain_error ) {
+@@ -161,23 +166,24 @@
+ 			_deprecated_argument( 'define()', '3.0.0', $vhost_deprecated );
+ 		}
+ 
+-		return;
++		return null;
+ 	}
+ 
+-	if ( defined( 'SUBDOMAIN_INSTALL' ) && defined( 'VHOST' ) ) {
++	if ( wp_aot_subdomain_defined( 'SUBDOMAIN_INSTALL' ) && wp_aot_subdomain_defined( 'VHOST' ) ) {
+ 		$subdomain_error = true;
+-		if ( SUBDOMAIN_INSTALL !== ( 'yes' === VHOST ) ) {
++		if ( wp_aot_subdomain_constant( 'SUBDOMAIN_INSTALL' ) !== ( 'yes' === wp_aot_subdomain_constant( 'VHOST' ) ) ) {
+ 			$subdomain_error_warn = true;
+ 		}
+-	} elseif ( defined( 'SUBDOMAIN_INSTALL' ) ) {
++	} elseif ( wp_aot_subdomain_defined( 'SUBDOMAIN_INSTALL' ) ) {
+ 		$subdomain_error = false;
+-		define( 'VHOST', SUBDOMAIN_INSTALL ? 'yes' : 'no' );
+-	} elseif ( defined( 'VHOST' ) ) {
++		wp_aot_subdomain_define( 'VHOST', wp_aot_subdomain_constant( 'SUBDOMAIN_INSTALL' ) ? 'yes' : 'no' );
++	} elseif ( wp_aot_subdomain_defined( 'VHOST' ) ) {
+ 		$subdomain_error = true;
+-		define( 'SUBDOMAIN_INSTALL', 'yes' === VHOST );
++		wp_aot_subdomain_define( 'SUBDOMAIN_INSTALL', 'yes' === wp_aot_subdomain_constant( 'VHOST' ) );
+ 	} else {
+ 		$subdomain_error = false;
+-		define( 'SUBDOMAIN_INSTALL', false );
+-		define( 'VHOST', 'no' );
++		wp_aot_subdomain_define( 'SUBDOMAIN_INSTALL', false );
++		wp_aot_subdomain_define( 'VHOST', 'no' );
+ 	}
++	return null;
+ }

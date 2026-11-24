@@ -1,0 +1,46 @@
+--- a/wp-includes/blocks/icon.php
++++ b/wp-includes/blocks/icon.php
+@@ -14,9 +14,9 @@
+  *
+  * @return string Returns the Icon.
+  */
+-function render_block_core_icon( $attributes ) {
++function render_block_core_icon( mixed $attributes ): mixed {
+ 	if ( empty( $attributes['icon'] ) ) {
+-		return;
++		return null;
+ 	}
+ 
+ 	// Text color and background color.
+@@ -90,7 +90,7 @@
+ 	);
+ 
+ 	if ( '' === $svg ) {
+-		return;
++		return null;
+ 	}
+ 
+ 	$processor = new WP_HTML_Tag_Processor( $svg );
+@@ -127,6 +127,7 @@
+ 
+ 	$wrapper_attributes = get_block_wrapper_attributes();
+ 	return sprintf( '<div %s>%s</div>', $wrapper_attributes, $svg );
++	return null;
+ }
+ 
+ 
+@@ -135,12 +136,13 @@
+  *
+  * @since 7.0.0
+  */
+-function register_block_core_icon() {
++function register_block_core_icon(): mixed {
+ 	register_block_type_from_metadata(
+ 		__DIR__ . '/icon',
+ 		array(
+ 			'render_callback' => 'render_block_core_icon',
+ 		)
+ 	);
++	return null;
+ }
+ add_action( 'init', 'register_block_core_icon' );

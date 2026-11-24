@@ -1,19 +1,87 @@
 --- a/wp-admin/includes/class-wp-links-list-table.php
 +++ b/wp-admin/includes/class-wp-links-list-table.php
-@@ -105,9 +105,9 @@
- 		if ( 'top' !== $which ) {
- 			return;
+@@ -25,7 +25,7 @@
+ 	 *
+ 	 * @param array $args An associative array of arguments.
+ 	 */
+-	public function __construct( $args = array() ) {
++	public function __construct( mixed $args = array() ) {
+ 		parent::__construct(
+ 			array(
+ 				'plural' => 'bookmarks',
+@@ -37,8 +37,9 @@
+ 	/**
+ 	 * @return bool
+ 	 */
+-	public function ajax_user_can() {
++	public function ajax_user_can(): mixed {
+ 		return current_user_can( 'manage_links' );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -47,7 +48,7 @@
+ 	 * @global string $orderby The field to order the links by.
+ 	 * @global string $order   The direction to order the links.
+ 	 */
+-	public function prepare_items() {
++	public function prepare_items(): mixed {
+ 		global $cat_id, $s, $orderby, $order;
+ 
+ 		$cat_id  = ! empty( $_REQUEST['cat_id'] ) ? absint( $_REQUEST['cat_id'] ) : 0;
+@@ -74,13 +75,15 @@
  		}
+ 
+ 		$this->items = get_bookmarks( $args );
++		return null;
+ 	}
+ 
+ 	/**
+ 	 * Displays the message for no items.
+ 	 */
+-	public function no_items() {
++	public function no_items(): mixed {
+ 		_e( 'No links found.' );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -88,26 +91,27 @@
+ 	 *
+ 	 * @return array
+ 	 */
+-	protected function get_bulk_actions() {
++	protected function get_bulk_actions(): mixed {
+ 		$actions           = array();
+ 		$actions['delete'] = __( 'Delete' );
+ 
+ 		return $actions;
++		return null;
+ 	}
+ 
+ 	/**
+ 	 * @global int $cat_id Link category ID.
+ 	 * @param string $which The location: 'top' or 'bottom'.
+ 	 */
+-	protected function extra_tablenav( $which ) {
++	protected function extra_tablenav( mixed $which ): mixed {
+ 		global $cat_id;
+ 
+ 		if ( 'top' !== $which ) {
+-			return;
+-		}
 -		?>
 -		<div class="alignleft actions">
 -			<?php
++			return null;
++		}
 +		;
 +echo '		<div class="alignleft actions">
 +			';
  			$dropdown_options = array(
  				'selected'        => $cat_id,
  				'name'            => 'cat_id',
-@@ -124,9 +124,9 @@
+@@ -124,15 +128,16 @@
  			wp_dropdown_categories( $dropdown_options );
  
  			submit_button( __( 'Filter' ), 'compact', 'filter_action', false, array( 'id' => 'post-query-submit' ) );
@@ -23,10 +91,58 @@
 +			;
 +echo '		</div>
 +		';
++		return null;
  	}
  
  	/**
-@@ -181,17 +181,23 @@
+ 	 * @return string[] Array of column titles keyed by their column name.
+ 	 */
+-	public function get_columns() {
++	public function get_columns(): mixed {
+ 		return array(
+ 			'cb'         => '<input type="checkbox" />',
+ 			'name'       => _x( 'Name', 'link name' ),
+@@ -142,6 +147,7 @@
+ 			'visible'    => __( 'Visible' ),
+ 			'rating'     => __( 'Rating' ),
+ 		);
++		return null;
+ 	}
+ 
+ 	/**
+@@ -149,13 +155,14 @@
+ 	 *
+ 	 * @return array
+ 	 */
+-	protected function get_sortable_columns() {
++	protected function get_sortable_columns(): mixed {
+ 		return array(
+ 			'name'    => array( 'name', false, _x( 'Name', 'link name' ), __( 'Table ordered by Name.' ), 'asc' ),
+ 			'url'     => array( 'url', false, __( 'URL' ), __( 'Table ordered by URL.' ) ),
+ 			'visible' => array( 'visible', false, __( 'Visible' ), __( 'Table ordered by Visibility.' ) ),
+ 			'rating'  => array( 'rating', false, __( 'Rating' ), __( 'Table ordered by Rating.' ) ),
+ 		);
++		return null;
+ 	}
+ 
+ 	/**
+@@ -165,8 +172,9 @@
+ 	 *
+ 	 * @return string Name of the default primary column, in this case, 'name'.
+ 	 */
+-	protected function get_default_primary_column_name() {
++	protected function get_default_primary_column_name(): mixed {
+ 		return 'name';
++		return null;
+ 	}
+ 
+ 	/**
+@@ -177,21 +185,28 @@
+ 	 *
+ 	 * @param object $item The current link object.
+ 	 */
+-	public function column_cb( $item ) {
++	public function column_cb( mixed $item ): mixed {
  		// Restores the more descriptive, specific name for use within this method.
  		$link = $item;
  
@@ -54,10 +170,117 @@
  		</label>
 -		<?php
 +		';
++		return null;
  	}
  
  	/**
-@@ -322,11 +328,14 @@
+@@ -201,7 +216,7 @@
+ 	 *
+ 	 * @param object $link The current link object.
+ 	 */
+-	public function column_name( $link ) {
++	public function column_name( mixed $link ): mixed {
+ 		$edit_link = get_edit_bookmark_link( $link );
+ 		printf(
+ 			'<strong><a class="row-title" href="%s" aria-label="%s">%s</a></strong>',
+@@ -210,6 +225,7 @@
+ 			esc_attr( sprintf( __( 'Edit &#8220;%s&#8221;' ), $link->link_name ) ),
+ 			$link->link_name
+ 		);
++		return null;
+ 	}
+ 
+ 	/**
+@@ -219,9 +235,10 @@
+ 	 *
+ 	 * @param object $link The current link object.
+ 	 */
+-	public function column_url( $link ) {
++	public function column_url( mixed $link ): mixed {
+ 		$short_url = url_shorten( $link->link_url );
+ 		echo "<a href='$link->link_url'>$short_url</a>";
++		return null;
+ 	}
+ 
+ 	/**
+@@ -233,7 +250,7 @@
+ 	 *
+ 	 * @param object $link The current link object.
+ 	 */
+-	public function column_categories( $link ) {
++	public function column_categories( mixed $link ): mixed {
+ 		global $cat_id;
+ 
+ 		$cat_names = array();
+@@ -249,6 +266,7 @@
+ 			$cat_names[] = $cat_name;
+ 		}
+ 		echo implode( ', ', $cat_names );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -258,8 +276,9 @@
+ 	 *
+ 	 * @param object $link The current link object.
+ 	 */
+-	public function column_rel( $link ) {
++	public function column_rel( mixed $link ): mixed {
+ 		echo empty( $link->link_rel ) ? '<br />' : $link->link_rel;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -269,12 +288,13 @@
+ 	 *
+ 	 * @param object $link The current link object.
+ 	 */
+-	public function column_visible( $link ) {
++	public function column_visible( mixed $link ): mixed {
+ 		if ( 'Y' === $link->link_visible ) {
+ 			_e( 'Yes' );
+ 		} else {
+ 			_e( 'No' );
+ 		}
++		return null;
+ 	}
+ 
+ 	/**
+@@ -284,8 +304,9 @@
+ 	 *
+ 	 * @param object $link The current link object.
+ 	 */
+-	public function column_rating( $link ) {
++	public function column_rating( mixed $link ): mixed {
+ 		echo $link->link_rating;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -297,7 +318,7 @@
+ 	 * @param object $item        Link object.
+ 	 * @param string $column_name Current column name.
+ 	 */
+-	public function column_default( $item, $column_name ) {
++	public function column_default( mixed $item, mixed $column_name ): mixed {
+ 		// Restores the more descriptive, specific name for use within this method.
+ 		$link = $item;
+ 
+@@ -310,6 +331,7 @@
+ 		 * @param int    $link_id     Link ID.
+ 		 */
+ 		do_action( 'manage_link_custom_column', $column_name, $link->link_id );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -317,17 +339,21 @@
+ 	 *
+ 	 * @since 3.1.0
+ 	 */
+-	public function display_rows() {
++	public function display_rows( mixed $wp_aot_posts = array(), mixed $wp_aot_level = 0 ): mixed {
+ 		foreach ( $this->items as $link ) {
  			$link                = sanitize_bookmark( $link );
  			$link->link_name     = esc_attr( $link->link_name );
  			$link->link_category = wp_get_link_cats( $link->link_id );
@@ -66,6 +289,7 @@
 -			<?php $this->single_row_columns( $link ); ?>
 -		</tr>
 -			<?php
+-		}
 +			;
 +echo '		<tr id="link-';
 +echo $link->link_id; ;
@@ -74,6 +298,39 @@
 +$this->single_row_columns( $link ); ;
 +echo '		</tr>
 +			';
- 		}
++		}
++		return null;
  	}
  
+ 	/**
+@@ -342,7 +368,7 @@
+ 	 * @return string Row actions output for links, or an empty string
+ 	 *                if the current column is not the primary column.
+ 	 */
+-	protected function handle_row_actions( $item, $column_name, $primary ) {
++	protected function handle_row_actions( mixed $item, mixed $column_name, mixed $primary ): mixed {
+ 		if ( $primary !== $column_name ) {
+ 			return '';
+ 		}
+@@ -363,6 +389,7 @@
+ 		);
+ 
+ 		return $this->row_actions( $actions );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -376,10 +403,11 @@
+ 	 * @param object $link The current link object.
+ 	 * @return string The link name.
+ 	 */
+-	protected function get_primary_column_aria_label( $link ) {
+-		$link_name = html_entity_decode( $link->link_name, ENT_QUOTES, get_bloginfo( 'charset' ) );
++	protected function get_primary_column_aria_label( mixed $link ): mixed {
++		$link_name = \wp_aot_html_entity_decode( $link->link_name, ENT_QUOTES, get_bloginfo( 'charset' ) );
+ 		$link_name = wp_strip_all_tags( $link_name );
+ 
+ 		return $link_name;
++		return null;
+ 	}
+ }

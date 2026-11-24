@@ -1,0 +1,20 @@
+--- a/wp-admin/widgets-form-blocks.php
++++ b/wp-admin/widgets-form-blocks.php
+@@ -8,7 +8,7 @@
+ 
+ // Don't load directly.
+ if ( ! defined( 'ABSPATH' ) ) {
+-	exit;
++	\wp_aot_exit();
+ }
+ 
+ // Flag that we're loading the block editor.
+@@ -26,7 +26,7 @@
+ block_editor_rest_api_preload( $preload_paths, $block_editor_context );
+ 
+ $editor_settings = get_block_editor_settings(
+-	array_merge( get_legacy_widget_block_editor_settings(), array( 'styles' => get_block_editor_theme_styles() ) ),
++	\wp_aot_array_merge(array( get_legacy_widget_block_editor_settings(), array( 'styles' => get_block_editor_theme_styles() ) )),
+ 	$block_editor_context
+ );
+ 

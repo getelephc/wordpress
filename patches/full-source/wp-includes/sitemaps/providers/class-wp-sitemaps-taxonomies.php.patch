@@ -1,0 +1,73 @@
+--- a/wp-includes/sitemaps/providers/class-wp-sitemaps-taxonomies.php
++++ b/wp-includes/sitemaps/providers/class-wp-sitemaps-taxonomies.php
+@@ -32,10 +32,10 @@
+ 	 *
+ 	 * @return WP_Taxonomy[] Array of registered taxonomy objects keyed by their name.
+ 	 */
+-	public function get_object_subtypes() {
++	public function get_object_subtypes(): mixed {
+ 		$taxonomies = get_taxonomies( array( 'public' => true ), 'objects' );
+ 
+-		$taxonomies = array_filter( $taxonomies, 'is_taxonomy_viewable' );
++		$taxonomies = \wp_aot_array_filter( $taxonomies, 'is_taxonomy_viewable' );
+ 
+ 		/**
+ 		 * Filters the list of taxonomy object subtypes available within the sitemap.
+@@ -45,6 +45,7 @@
+ 		 * @param WP_Taxonomy[] $taxonomies Array of registered taxonomy objects keyed by their name.
+ 		 */
+ 		return apply_filters( 'wp_sitemaps_taxonomies', $taxonomies );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -58,7 +59,7 @@
+ 	 * @param string $object_subtype Optional. Taxonomy name. Default empty.
+ 	 * @return array[] Array of URL information for a sitemap.
+ 	 */
+-	public function get_url_list( $page_num, $object_subtype = '' ) {
++	public function get_url_list( mixed $page_num, mixed $object_subtype = '' ): mixed {
+ 		// Restores the more descriptive, specific name for use within this method.
+ 		$taxonomy = $object_subtype;
+ 
+@@ -132,6 +133,7 @@
+ 		}
+ 
+ 		return $url_list;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -144,7 +146,7 @@
+ 	 * @param string $object_subtype Optional. Taxonomy name. Default empty.
+ 	 * @return int Total number of pages.
+ 	 */
+-	public function get_max_num_pages( $object_subtype = '' ) {
++	public function get_max_num_pages( mixed $object_subtype = '' ): mixed {
+ 		if ( empty( $object_subtype ) ) {
+ 			return 0;
+ 		}
+@@ -172,6 +174,7 @@
+ 		$term_count = wp_count_terms( $this->get_taxonomies_query_args( $taxonomy ) );
+ 
+ 		return (int) ceil( (int) $term_count / wp_sitemaps_get_max_urls( $this->object_type ) );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -182,7 +185,7 @@
+ 	 * @param string $taxonomy Taxonomy name.
+ 	 * @return array Array of WP_Term_Query arguments.
+ 	 */
+-	protected function get_taxonomies_query_args( $taxonomy ) {
++	protected function get_taxonomies_query_args( mixed $taxonomy ): mixed {
+ 		/**
+ 		 * Filters the taxonomy terms query arguments.
+ 		 *
+@@ -209,5 +212,6 @@
+ 		);
+ 
+ 		return $args;
++		return null;
+ 	}
+ }

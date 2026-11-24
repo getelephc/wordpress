@@ -1,0 +1,20 @@
+--- a/wp-admin/media.php
++++ b/wp-admin/media.php
+@@ -22,14 +22,14 @@
+ 	case 'edit':
+ 		if ( empty( $_GET['attachment_id'] ) ) {
+ 			wp_redirect( admin_url( 'upload.php?error=deprecated' ) );
+-			exit;
++			\wp_aot_exit();
+ 		}
+ 		$att_id = (int) $_GET['attachment_id'];
+ 
+ 		wp_redirect( admin_url( "upload.php?item={$att_id}&error=deprecated" ) );
+-		exit;
++		\wp_aot_exit();
+ 
+ 	default:
+ 		wp_redirect( admin_url( 'upload.php?error=deprecated' ) );
+-		exit;
++		\wp_aot_exit();
+ }

@@ -1,6 +1,32 @@
 --- a/wp-admin/includes/class-wp-privacy-data-export-requests-list-table.php
 +++ b/wp-admin/includes/class-wp-privacy-data-export-requests-list-table.php
-@@ -129,12 +129,22 @@
+@@ -43,7 +43,7 @@
+ 	 * @param WP_User_Request $item Item being shown.
+ 	 * @return string Email column markup.
+ 	 */
+-	public function column_email( $item ) {
++	public function column_email( mixed $item ): mixed {
+ 		/** This filter is documented in wp-admin/includes/ajax-actions.php */
+ 		$exporters       = apply_filters( 'wp_privacy_personal_data_exporters', array() );
+ 		$exporters_count = count( $exporters );
+@@ -99,6 +99,7 @@
+ 		}
+ 
+ 		return sprintf( '<a href="%1$s">%2$s</a> %3$s', esc_url( 'mailto:' . $item->email ), esc_html( $item->email ), $this->row_actions( $row_actions ) );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -108,7 +109,7 @@
+ 	 *
+ 	 * @param WP_User_Request $item Item being shown.
+ 	 */
+-	public function column_next_steps( $item ) {
++	public function column_next_steps( mixed $item ): mixed {
+ 		$status = $item->status;
+ 
+ 		switch ( $status ) {
+@@ -129,12 +130,22 @@
  					'data-nonce="' . esc_attr( $nonce ) .
  					'">';
  
@@ -29,3 +55,21 @@
  
  				echo '</div>';
  				break;
+@@ -156,6 +167,7 @@
+ 				) . '">' . esc_html__( 'Remove request' ) . '</a>';
+ 				break;
+ 		}
++		return null;
+ 	}
+ 
+ 	/**
+@@ -169,7 +181,8 @@
+ 	 * @param WP_User_Request $item Item being shown.
+ 	 * @return string The user request item email.
+ 	 */
+-	protected function get_primary_column_aria_label( $item ) {
++	protected function get_primary_column_aria_label( mixed $item ): mixed {
+ 		return $item->email;
++		return null;
+ 	}
+ }

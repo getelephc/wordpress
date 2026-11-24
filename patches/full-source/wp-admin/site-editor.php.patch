@@ -1,0 +1,45 @@
+--- a/wp-admin/site-editor.php
++++ b/wp-admin/site-editor.php
+@@ -29,7 +29,7 @@
+  *
+  * @return string|false The new URL to redirect to, or false if no redirection is needed.
+  */
+-function _wp_get_site_editor_redirection_url() {
++function _wp_get_site_editor_redirection_url(): mixed {
+ 	global $pagenow;
+ 	if ( 'site-editor.php' !== $pagenow || isset( $_REQUEST['p'] ) || empty( $_SERVER['QUERY_STRING'] ) ) {
+ 		return false;
+@@ -108,13 +108,14 @@
+ 	}
+ 
+ 	return add_query_arg( array( 'p' => '/' ) );
++	return null;
+ }
+ 
+ // Redirect to the site editor to the new URLs if needed.
+ $redirection = _wp_get_site_editor_redirection_url();
+ if ( false !== $redirection ) {
+ 	wp_safe_redirect( $redirection );
+-	exit;
++	\wp_aot_exit();
+ }
+ 
+ // Used in the HTML title tag.
+@@ -128,7 +129,7 @@
+ // Default to is-fullscreen-mode to avoid jumps in the UI.
+ add_filter(
+ 	'admin_body_class',
+-	static function ( $classes ) {
++	static function ( mixed $classes ) {
+ 		return "$classes is-fullscreen-mode";
+ 	}
+ );
+@@ -143,7 +144,7 @@
+ 
+ if ( ! empty( $_GET['postId'] ) && is_numeric( $_GET['postId'] ) ) {
+ 	$context_settings['post'] = get_post( (int) $_GET['postId'] );
+-} elseif ( isset( $_GET['p'] ) && preg_match( '/^\/page\/(\d+)$/', $_GET['p'], $matches ) ) {
++} elseif ( isset( $_GET['p'] ) && preg_match( '/^\/page\/(\d+)$/', \wp_aot_regex_text( $_GET['p'] ), $matches ) ) {
+ 	$context_settings['post'] = get_post( (int) $matches[1] );
+ }
+ 

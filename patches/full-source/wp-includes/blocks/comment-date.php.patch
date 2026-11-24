@@ -1,0 +1,34 @@
+--- a/wp-includes/blocks/comment-date.php
++++ b/wp-includes/blocks/comment-date.php
+@@ -15,7 +15,7 @@
+  * @param WP_Block $block      Block instance.
+  * @return string Return the post comment's date.
+  */
+-function render_block_core_comment_date( $attributes, $content, $block ) {
++function render_block_core_comment_date( mixed $attributes, mixed $content, mixed $block ): mixed {
+ 	if ( ! isset( $block->context['commentId'] ) ) {
+ 		return '';
+ 	}
+@@ -46,6 +46,7 @@
+ 		esc_attr( get_comment_date( 'c', $comment ) ),
+ 		$formatted_date
+ 	);
++	return null;
+ }
+ 
+ /**
+@@ -53,12 +54,13 @@
+  *
+  * @since 6.0.0
+  */
+-function register_block_core_comment_date() {
++function register_block_core_comment_date(): mixed {
+ 	register_block_type_from_metadata(
+ 		__DIR__ . '/comment-date',
+ 		array(
+ 			'render_callback' => 'render_block_core_comment_date',
+ 		)
+ 	);
++	return null;
+ }
+ add_action( 'init', 'register_block_core_comment_date' );

@@ -1,0 +1,33 @@
+--- a/wp-includes/Requests/src/Utility/FilteredIterator.php
++++ b/wp-includes/Requests/src/Utility/FilteredIterator.php
+@@ -33,12 +33,12 @@
+ 	 *
+ 	 * @throws \WpOrg\Requests\Exception\InvalidArgument When the passed $data argument is not iterable.
+ 	 */
+-	public function __construct($data, $callback) {
++	public function __construct(mixed $data, mixed $callback) {
+ 		if (is_object($data) === true || InputValidator::is_iterable($data) === false) {
+ 			throw InvalidArgument::create(1, '$data', 'iterable', gettype($data));
+ 		}
+ 
+-		parent::__construct($data);
++		parent::__construct(\wp_aot_require_array($data));
+ 
+ 		if (is_callable($callback)) {
+ 			$this->callback = $callback;
+@@ -75,7 +75,7 @@
+ 	 * @return string
+ 	 */
+ 	#[ReturnTypeWillChange]
+-	public function current() {
++	public function current(): mixed {
+ 		$value = parent::current();
+ 
+ 		if (is_callable($this->callback)) {
+@@ -93,5 +93,5 @@
+ 	 * @return void
+ 	 */
+ 	#[ReturnTypeWillChange]
+-	public function unserialize($data) {}
++	public function unserialize(mixed $data) {}
+ }

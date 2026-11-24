@@ -1,11 +1,131 @@
 --- a/wp-includes/class-wp-fatal-error-handler.php
 +++ b/wp-includes/class-wp-fatal-error-handler.php
-@@ -146,7 +146,7 @@
+@@ -28,21 +28,21 @@
+ 	 *
+ 	 * @global WP_Locale $wp_locale WordPress date and time locale object.
+ 	 */
+-	public function handle() {
++	public function handle(): mixed {
+ 		if ( defined( 'WP_SANDBOX_SCRAPING' ) && WP_SANDBOX_SCRAPING ) {
+-			return;
++			return null;
+ 		}
+ 
+ 		// Do not trigger the fatal error handler while updates are being installed.
+ 		if ( wp_is_maintenance_mode() ) {
+-			return;
++			return null;
+ 		}
+ 
+ 		try {
+ 			// Bail if no error found.
+ 			$error = $this->detect_error();
+ 			if ( ! $error ) {
+-				return;
++				return null;
+ 			}
+ 
+ 			if ( ! isset( $GLOBALS['wp_locale'] ) && function_exists( 'load_default_textdomain' ) ) {
+@@ -56,12 +56,13 @@
+ 			}
+ 
+ 			// Display the PHP error template if headers not sent.
+-			if ( is_admin() || ! headers_sent() ) {
++			if ( is_admin() || ! \wp_aot_native_headers_sent() ) {
+ 				$this->display_error_template( $error, $handled );
+ 			}
+ 		} catch ( Exception $e ) {
+ 			// Catch exceptions and remain silent.
+ 		}
++		return null;
+ 	}
+ 
+ 	/**
+@@ -72,7 +73,7 @@
+ 	 * @return array|null Error information returned by `error_get_last()`, or null
+ 	 *                    if none was recorded or the error should not be handled.
+ 	 */
+-	protected function detect_error() {
++	protected function detect_error(): mixed {
+ 		$error = error_get_last();
+ 
+ 		// No error, just skip the error handling code.
+@@ -86,6 +87,7 @@
+ 		}
+ 
+ 		return $error;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -97,7 +99,7 @@
+ 	 * @param array $error Error information retrieved from `error_get_last()`.
+ 	 * @return bool Whether WordPress should handle this error.
+ 	 */
+-	protected function should_handle_error( $error ) {
++	protected function should_handle_error( mixed $error ): mixed {
+ 		$error_types_to_handle = array(
+ 			E_ERROR,
+ 			E_PARSE,
+@@ -123,6 +125,7 @@
+ 		 * @param array $error               Error information retrieved from `error_get_last()`.
+ 		 */
+ 		return (bool) apply_filters( 'wp_should_handle_php_error', false, $error );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -141,19 +144,20 @@
+ 	 * @param array         $error   Error information retrieved from `error_get_last()`.
+ 	 * @param true|WP_Error $handled Whether Recovery Mode handled the fatal error.
+ 	 */
+-	protected function display_error_template( $error, $handled ) {
+-		if ( defined( 'WP_CONTENT_DIR' ) ) {
++	protected function display_error_template( mixed $error, mixed $handled ): mixed {
++		if ( \wp_aot_bootstrap_defined( 'WP_CONTENT_DIR' ) ) {
  			// Load custom PHP error template, if present.
  			$php_error_pluggable = WP_CONTENT_DIR . '/php-error.php';
  			if ( is_readable( $php_error_pluggable ) ) {
 -				require_once $php_error_pluggable;
+-
+-				return;
 +				throw new RuntimeException( 'Custom fatal-error templates are outside the finite Elephc manifest.' );
- 
- 				return;
++
++				return null;
  			}
+ 		}
+ 
+ 		// Otherwise, display the default error template.
+ 		$this->display_default_error_template( $error, $handled );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -171,17 +175,17 @@
+ 	 * @param array         $error   Error information retrieved from `error_get_last()`.
+ 	 * @param true|WP_Error $handled Whether Recovery Mode handled the fatal error.
+ 	 */
+-	protected function display_default_error_template( $error, $handled ) {
++	protected function display_default_error_template( mixed $error, mixed $handled ): mixed {
+ 		if ( ! function_exists( '__' ) ) {
+ 			wp_load_translations_early();
+ 		}
+ 
+ 		if ( ! function_exists( 'wp_die' ) ) {
+-			require_once ABSPATH . WPINC . '/functions.php';
++			require_once __DIR__ . '/functions.php';
+ 		}
+ 
+ 		if ( ! class_exists( 'WP_Error' ) ) {
+-			require_once ABSPATH . WPINC . '/class-wp-error.php';
++			require_once __DIR__ . '/class-wp-error.php';
+ 		}
+ 
+ 		if ( true === $handled && wp_is_recovery_mode() ) {
+@@ -243,5 +247,6 @@
+ 		);
+ 
+ 		wp_die( $wp_error, '', $args );
++		return null;
+ 	}
+ }

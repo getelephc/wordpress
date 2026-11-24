@@ -1,0 +1,276 @@
+--- a/wp-content/plugins/akismet/class.akismet-admin.php
++++ b/wp-content/plugins/akismet/class.akismet-admin.php
+@@ -60,7 +60,7 @@
+ 		// Redirect any links that might have been bookmarked or in browser history.
+ 		if ( isset( $_GET['page'] ) && 'akismet-stats-display' == $_GET['page'] ) {
+ 			wp_safe_redirect( esc_url_raw( self::get_page_url( 'stats' ) ), 301 );
+-			die;
++			\wp_aot_exit();
+ 		}
+ 
+ 		self::$initiated = true;
+@@ -94,7 +94,7 @@
+ 	public static function admin_init() {
+ 		if ( get_option( 'Activated_Akismet' ) ) {
+ 			delete_option( 'Activated_Akismet' );
+-			if ( ! headers_sent() ) {
++			if ( ! \wp_aot_native_headers_sent() ) {
+ 				$admin_url = self::get_page_url( 'init' );
+ 				wp_redirect( $admin_url );
+ 			}
+@@ -148,7 +148,7 @@
+ 
+ 	public static function admin_plugin_settings_link( $links ) {
+ 		$settings_link = '<a href="' . esc_url( self::get_page_url() ) . '">' . __( 'Settings', 'akismet' ) . '</a>';
+-		array_unshift( $links, $settings_link );
++		\wp_aot_array_unshift( $links,array( $settings_link ));
+ 		return $links;
+ 	}
+ 
+@@ -171,7 +171,7 @@
+ 			$hook_suffix,
+ 			apply_filters(
+ 				'akismet_admin_page_hook_suffixes',
+-				array_merge(
++				\wp_aot_array_merge(array(
+ 					array(
+ 						'index.php', // dashboard
+ 						'comment.php',
+@@ -180,7 +180,7 @@
+ 						'jetpack_page_akismet-key-config',
+ 					),
+ 					self::$activation_banner_pages
+-				)
++				))
+ 			)
+ 		) ) {
+ 			$akismet_css_path = is_rtl() ? '_inc/rtl/akismet-rtl.css' : '_inc/akismet.css';
+@@ -337,7 +337,7 @@
+ 
+ 	public static function enter_api_key() {
+ 		if ( ! current_user_can( 'manage_options' ) ) {
+-			die( __( 'Cheatin&#8217; uh?', 'akismet' ) );
++			\wp_aot_exit( __( 'Cheatin&#8217; uh?', 'akismet' ) );
+ 		}
+ 
+ 		if ( empty( $_POST['_wpnonce'] ) || ! is_string( $_POST['_wpnonce'] ) || ! wp_verify_nonce( $_POST['_wpnonce'], self::NONCE ) ) {
+@@ -358,7 +358,7 @@
+ 			return false; // shouldn't have option to save key if already defined
+ 		}
+ 
+-		$new_key = preg_replace( '/[^a-f0-9]/i', '', $_POST['key'] );
++		$new_key = \wp_aot_preg_replace( '/[^a-f0-9]/i', '', $_POST['key'] );
+ 		$old_key = Akismet::get_api_key();
+ 
+ 		if ( empty( $new_key ) ) {
+@@ -565,7 +565,7 @@
+ 		} else {
+ 			$redirect_to = isset( $_SERVER['HTTP_REFERER'] ) ? $_SERVER['HTTP_REFERER'] : admin_url( 'edit-comments.php' );
+ 			wp_safe_redirect( $redirect_to );
+-			exit;
++			\wp_aot_exit();
+ 		}
+ 	}
+ 
+@@ -582,7 +582,7 @@
+ 			$start = 0;
+ 		}
+ 
+-		$moderation = $wpdb->get_col( $wpdb->prepare( "SELECT * FROM {$wpdb->comments} WHERE comment_approved = '0' LIMIT %d OFFSET %d", $limit, $start ) );
++		$moderation = \wp_aot_require_wpdb( $wpdb )->get_col( \wp_aot_require_wpdb( $wpdb )->prepare( "SELECT * FROM {$wpdb->comments} WHERE comment_approved = '0' LIMIT %d OFFSET %d", $limit, $start ) );
+ 
+ 		$result_counts = array(
+ 			'processed' => is_countable( $moderation ) ? count( $moderation ) : 0,
+@@ -615,7 +615,7 @@
+ 				$comment['comment_author_url'] = '';
+ 				do_action( 'comment_remove_author_url' );
+ 				print( wp_update_comment( $comment ) );
+-				die();
++				\wp_aot_exit();
+ 			}
+ 		}
+ 	}
+@@ -628,7 +628,7 @@
+ 				$comment['comment_author_url'] = esc_url( $_POST['url'] );
+ 				do_action( 'comment_add_author_url' );
+ 				print( wp_update_comment( $comment ) );
+-				die();
++				\wp_aot_exit();
+ 			}
+ 		}
+ 	}
+@@ -801,14 +801,14 @@
+ 							$message = esc_html( __( 'This comment was not sent to Akismet when it was submitted because it was caught by the comment disallowed list.', 'akismet' ) );
+ 							break;
+ 						default:
+-							if ( preg_match( '/^status-changed/', $row['event'] ) ) {
++							if ( preg_match( '/^status-changed/', \wp_aot_regex_text( $row['event'] ) ) ) {
+ 								// Half of these used to be saved without the dash after 'status-changed'.
+ 								// See https://plugins.trac.wordpress.org/changeset/1150658/akismet/trunk
+-								$new_status = preg_replace( '/^status-changed-?/', '', $row['event'] );
++								$new_status = \wp_aot_preg_replace( '/^status-changed-?/', '', $row['event'] );
+ 								/* translators: The placeholder is a short string (like 'spam' or 'approved') denoting the new comment status. */
+ 								$message = sprintf( esc_html( __( 'Comment status was changed to %s', 'akismet' ) ), '<code>' . esc_html( $new_status ) . '</code>' );
+-							} elseif ( preg_match( '/^status-/', $row['event'] ) ) {
+-								$new_status = preg_replace( '/^status-/', '', $row['event'] );
++							} elseif ( preg_match( '/^status-/', \wp_aot_regex_text( $row['event'] ) ) ) {
++								$new_status = \wp_aot_preg_replace( '/^status-/', '', $row['event'] );
+ 
+ 								if ( isset( $row['user'] ) ) {
+ 									/* translators: %1$s is a username; %2$s is a short string (like 'spam' or 'approved') denoting the new comment status. */
+@@ -823,7 +823,7 @@
+ 					echo '<p>';
+ 
+ 					if ( isset( $row['time'] ) ) {
+-						$time = gmdate( 'D d M Y @ h:i:s a', (int) $row['time'] ) . ' GMT';
++						$time = \wp_aot_gmdate( 'D d M Y @ h:i:s a', (int) $row['time'] ) . ' GMT';
+ 
+ 						/* translators: The placeholder is an amount of time, like "7 seconds" or "3 days" returned by the function human_time_diff(). */
+ 						$time_html = '<span style="color: #999;" alt="' . esc_attr( $time ) . '" title="' . esc_attr( $time ) . '">' . sprintf( esc_html__( '%s ago', 'akismet' ), human_time_diff( $row['time'] ) ) . '</span>';
+@@ -876,7 +876,7 @@
+ 			$type = '';
+ 		}
+ 
+-		return (int) $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(comment_ID) FROM {$wpdb->comments} WHERE comment_approved = 'spam' AND comment_type = %s", $type ) );
++		return (int) \wp_aot_require_wpdb( $wpdb )->get_var( \wp_aot_require_wpdb( $wpdb )->prepare( "SELECT COUNT(comment_ID) FROM {$wpdb->comments} WHERE comment_approved = 'spam' AND comment_type = %s", $type ) );
+ 	}
+ 
+ 	// Check connectivity between the WordPress blog and Akismet's servers.
+@@ -1064,14 +1064,14 @@
+ 	}
+ 
+ 	public static function verify_wpcom_key( $api_key, $user_id, $extra = array() ) {
+-		$request_args = array_merge(
++		$request_args = \wp_aot_array_merge(array(
+ 			array(
+ 				'user_id'          => $user_id,
+ 				'api_key'          => $api_key,
+ 				'get_account_type' => 'true',
+ 			),
+ 			$extra
+-		);
++		));
+ 
+ 		$request_args = apply_filters( 'akismet_request_args', $request_args, 'verify-wpcom-key' );
+ 
+@@ -1081,7 +1081,7 @@
+ 			$akismet_account = json_decode( $akismet_account[1] );
+ 		}
+ 
+-		Akismet::log( compact( 'akismet_account' ) );
++		Akismet::log( \wp_aot_compact(get_defined_vars(), array( 'akismet_account' )) );
+ 
+ 		return $akismet_account;
+ 	}
+@@ -1139,7 +1139,7 @@
+ 			/*
+ 			 * The 'akismet_display_cron_disabled_notice' filter can be used to control whether the WP-Cron disabled notice is displayed.
+ 			 */
+-			if ( defined( 'DISABLE_WP_CRON' ) && DISABLE_WP_CRON && apply_filters( 'akismet_display_cron_disabled_notice', true ) ) {
++			if ( \wp_aot_bootstrap_defined( 'DISABLE_WP_CRON' ) && DISABLE_WP_CRON && apply_filters( 'akismet_display_cron_disabled_notice', true ) ) {
+ 				Akismet::view( 'notice', array( 'type' => 'spam-check-cron-disabled' ) );
+ 			} else {
+ 				/* translators: The Akismet configuration page URL. */
+@@ -1194,7 +1194,7 @@
+ 
+ 		$akismet_user = false;
+ 
+-		if ( isset( $_GET['token'] ) && preg_match( '/^(\d+)-[0-9a-f]{20}$/', $_GET['token'] ) ) {
++		if ( isset( $_GET['token'] ) && preg_match( '/^(\d+)-[0-9a-f]{20}$/', \wp_aot_regex_text( $_GET['token'] ) ) ) {
+ 			$akismet_user = self::verify_wpcom_key( '', '', array( 'token' => $_GET['token'] ) );
+ 		}
+ 
+@@ -1216,7 +1216,7 @@
+ 			}
+ 		}
+ 
+-		Akismet::view( 'start', compact( 'akismet_user' ) );
++		Akismet::view( 'start', \wp_aot_compact(get_defined_vars(), array( 'akismet_user' )) );
+ 
+ 		/*
+ 		// To see all variants when testing.
+@@ -1334,8 +1334,8 @@
+ 		// $notices[] = array( 'type' => 'alert', 'code' => 123 );
+ 		// $notices[] = array( 'type' => 'alert', 'code' => Akismet::ALERT_CODE_COMMERCIAL );
+ 
+-		Akismet::log( compact( 'stat_totals', 'akismet_user' ) );
+-		Akismet::view( 'config', compact( 'api_key', 'akismet_user', 'stat_totals', 'notices' ) );
++		Akismet::log( \wp_aot_compact(get_defined_vars(), array( 'stat_totals', 'akismet_user' )) );
++		Akismet::view( 'config', \wp_aot_compact(get_defined_vars(), array( 'api_key', 'akismet_user', 'stat_totals', 'notices' )) );
+ 	}
+ 
+ 	public static function display_notice() {
+@@ -1378,14 +1378,14 @@
+ 				$message = __( 'There were no comments to check. Akismet will only check comments awaiting moderation.', 'akismet' );
+ 			} else {
+ 				/* translators: %s: Number of comments. */
+-				$message  = sprintf( _n( 'Akismet checked %s comment.', 'Akismet checked %s comments.', $recheck_count, 'akismet' ), number_format( $recheck_count ) );
++				$message  = sprintf( _n( 'Akismet checked %s comment.', 'Akismet checked %s comments.', $recheck_count, 'akismet' ), \wp_aot_number_format( $recheck_count ) );
+ 				$message .= ' ';
+ 
+ 				if ( $spam_count === 0 ) {
+ 					$message .= __( 'No comments were caught as spam.', 'akismet' );
+ 				} else {
+ 					/* translators: %s: Number of comments. */
+-					$message .= sprintf( _n( '%s comment was caught as spam.', '%s comments were caught as spam.', $spam_count, 'akismet' ), number_format( $spam_count ) );
++					$message .= sprintf( _n( '%s comment was caught as spam.', '%s comments were caught as spam.', $spam_count, 'akismet' ), \wp_aot_number_format( $spam_count ) );
+ 				}
+ 			}
+ 
+@@ -1413,12 +1413,12 @@
+ 
+ 					if ( property_exists( $type, 'status' ) ) {
+ 						$type = wp_kses( $type->status, self::$allowed );
+-						Akismet::view( 'notice', compact( 'type', 'notice_header', 'notice_text' ) );
++						Akismet::view( 'notice', \wp_aot_compact(get_defined_vars(), array( 'type', 'notice_header', 'notice_text' )) );
+ 
+ 						unset( self::$notices[ $index ] );
+ 					}
+ 				} else {
+-					Akismet::view( 'notice', compact( 'type' ) );
++					Akismet::view( 'notice', \wp_aot_compact(get_defined_vars(), array( 'type' )) );
+ 
+ 					unset( self::$notices[ $index ] );
+ 				}
+@@ -1457,7 +1457,7 @@
+ 		$xml->addCall( 'akismet.getAPIKey' );
+ 		$xml->query();
+ 
+-		Akismet::log( compact( 'xml' ) );
++		Akismet::log( \wp_aot_compact(get_defined_vars(), array( 'xml' )) );
+ 
+ 		if ( ! $xml->isError() ) {
+ 			$responses = $xml->getResponse();
+@@ -1465,11 +1465,11 @@
+ 				// Due to a quirk in how Jetpack does multi-calls, the response order
+ 				// can't be trusted to match the call order. It's a good thing our
+ 				// return values can be mostly differentiated from each other.
+-				$first_response_value  = array_shift( $responses[0] );
+-				$second_response_value = array_shift( $responses[1] );
++				$first_response_value  = \wp_aot_array_shift( $responses[0] );
++				$second_response_value = \wp_aot_array_shift( $responses[1] );
+ 
+ 				// If WPCOM ever reaches 100 billion users, this will fail. :-)
+-				if ( preg_match( '/^[a-f0-9]{12}$/i', $first_response_value ) ) {
++				if ( preg_match( '/^[a-f0-9]{12}$/i', \wp_aot_regex_text( $first_response_value ) ) ) {
+ 					$api_key = $first_response_value;
+ 					$user_id = (int) $second_response_value;
+ 				} else {
+@@ -1477,7 +1477,7 @@
+ 					$user_id = (int) $first_response_value;
+ 				}
+ 
+-				return compact( 'api_key', 'user_id' );
++				return \wp_aot_compact(get_defined_vars(), array( 'api_key', 'user_id' ));
+ 			}
+ 		}
+ 		return false;
+@@ -1636,7 +1636,7 @@
+ 
+ 		// If the AKISMET_VERSION contains a lower-case letter, it's a development version (e.g. 5.3.1a2).
+ 		// Use the file modified time in development.
+-		if ( preg_match( '/[a-z]/', AKISMET_VERSION ) && file_exists( $full_path ) ) {
++		if ( preg_match( '/[a-z]/', \wp_aot_regex_text( AKISMET_VERSION ) ) && file_exists( $full_path ) ) {
+ 			return filemtime( $full_path );
+ 		}
+ 

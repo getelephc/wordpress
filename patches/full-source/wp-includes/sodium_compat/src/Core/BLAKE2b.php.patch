@@ -1,0 +1,21 @@
+--- a/wp-includes/sodium_compat/src/Core/BLAKE2b.php
++++ b/wp-includes/sodium_compat/src/Core/BLAKE2b.php
+@@ -277,7 +277,8 @@
+      */
+     public static function pseudoConstructor()
+     {
+-        static $called = false;
++        static $called_aot_cell = new \WordPressStaticFalseCell();
++        $called =& $called_aot_cell->value;
+         if ($called) {
+             return;
+         }
+@@ -675,7 +676,7 @@
+          */
+         $arr = $a->toArray();
+         $c = $a->count();
+-        array_unshift($arr, str_repeat('C', $c));
++        \wp_aot_array_unshift($arr,array( str_repeat('C', $c)));
+         return (string) (call_user_func_array('pack', $arr));
+     }
+ 

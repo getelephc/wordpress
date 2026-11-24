@@ -1,0 +1,20 @@
+--- a/wp-includes/class-simplepie.php
++++ b/wp-includes/class-simplepie.php
+@@ -5,7 +5,7 @@
+ }
+ 
+ // Load and register the SimplePie native autoloaders.
+-require ABSPATH . WPINC . '/SimplePie/autoloader.php';
++require_once __DIR__ . '/SimplePie/autoloader.php';
+ 
+ /**
+  * WordPress autoloader for SimplePie.
+@@ -15,6 +15,7 @@
+  *
+  * @param string $class Class name.
+  */
+-function wp_simplepie_autoload( $class ) {
++function wp_simplepie_autoload( mixed $class ): mixed {
+ 	_deprecated_function( __FUNCTION__, '6.7.0', 'SimplePie_Autoloader' );
++	return null;
+ }

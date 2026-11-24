@@ -1,0 +1,17 @@
+--- a/wp-admin/ms-delete-site.php
++++ b/wp-admin/ms-delete-site.php
+@@ -88,10 +88,10 @@
+ 	 */
+ 	$content = apply_filters( 'delete_site_email_content', $content );
+ 
+-	$content = str_replace( '###USERNAME###', $user->user_login, $content );
+-	$content = str_replace( '###URL_DELETE###', $url_delete, $content );
+-	$content = str_replace( '###SITENAME###', get_network()->site_name, $content );
+-	$content = str_replace( '###SITEURL###', network_home_url(), $content );
++	$content = \wp_aot_str_replace( '###USERNAME###', $user->user_login, $content );
++	$content = \wp_aot_str_replace( '###URL_DELETE###', $url_delete, $content );
++	$content = \wp_aot_str_replace( '###SITENAME###', get_network()->site_name, $content );
++	$content = \wp_aot_str_replace( '###SITEURL###', network_home_url(), $content );
+ 
+ 	wp_mail(
+ 		get_option( 'admin_email' ),

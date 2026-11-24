@@ -1,0 +1,46 @@
+--- a/wp-includes/blocks/post-content.php
++++ b/wp-includes/blocks/post-content.php
+@@ -15,8 +15,9 @@
+  * @param WP_Block $block      Block instance.
+  * @return string Returns the filtered post content of the current post.
+  */
+-function render_block_core_post_content( $attributes, $content, $block ) {
+-	static $seen_ids = array();
++function render_block_core_post_content( mixed $attributes, mixed $content, mixed $block ): mixed {
++	static $seen_ids_aot_cell = new \WordPressStaticArrayCell();
++	$seen_ids =& $seen_ids_aot_cell->value;
+ 
+ 	if ( ! isset( $block->context['postId'] ) ) {
+ 		return '';
+@@ -47,7 +48,7 @@
+ 	}
+ 
+ 	/** This filter is documented in wp-includes/post-template.php */
+-	$content = apply_filters( 'the_content', str_replace( ']]>', ']]&gt;', $content ) );
++	$content = apply_filters( 'the_content', \wp_aot_str_replace( ']]>', ']]&gt;', $content ) );
+ 	unset( $seen_ids[ $post_id ] );
+ 
+ 	if ( empty( $content ) ) {
+@@ -78,6 +79,7 @@
+ 		$wrapper_attributes,
+ 		$content
+ 	);
++	return null;
+ }
+ 
+ /**
+@@ -85,12 +87,13 @@
+  *
+  * @since 5.8.0
+  */
+-function register_block_core_post_content() {
++function register_block_core_post_content(): mixed {
+ 	register_block_type_from_metadata(
+ 		__DIR__ . '/post-content',
+ 		array(
+ 			'render_callback' => 'render_block_core_post_content',
+ 		)
+ 	);
++	return null;
+ }
+ add_action( 'init', 'register_block_core_post_content' );

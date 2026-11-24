@@ -1,0 +1,12 @@
+--- a/wp-includes/customize/class-wp-customize-filter-setting.php
++++ b/wp-includes/customize/class-wp-customize-filter-setting.php
+@@ -27,7 +27,8 @@
+ 	 * @param mixed $value The value to update.
+ 	 * @return true Always returns true.
+ 	 */
+-	public function update( $value ) {
++	public function update( mixed $value ): mixed {
+ 		return true;
++		return null;
+ 	}
+ }

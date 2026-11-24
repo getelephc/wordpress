@@ -1,0 +1,523 @@
+--- a/wp-includes/class-wp-image-editor-imagick.php
++++ b/wp-includes/class-wp-image-editor-imagick.php
+@@ -62,14 +62,14 @@
+ 	 * @param array $args
+ 	 * @return bool
+ 	 */
+-	public static function test( $args = array() ) {
++	public static function test( mixed $args = array() ): mixed {
+ 
+ 		// First, test Imagick's extension and classes.
+ 		if ( ! extension_loaded( 'imagick' ) || ! class_exists( 'Imagick', false ) || ! class_exists( 'ImagickPixel', false ) ) {
+ 			return false;
+ 		}
+ 
+-		if ( version_compare( phpversion( 'imagick' ), '2.2.0', '<' ) ) {
++		if ( version_compare( \wp_aot_internal_string(phpversion( 'imagick' )), '2.2.0', '<' ) ) {
+ 			return false;
+ 		}
+ 
+@@ -101,12 +101,13 @@
+ 			return false;
+ 		}
+ 
+-		$class_methods = array_map( 'strtolower', get_class_methods( 'Imagick' ) );
+-		if ( array_diff( $required_methods, $class_methods ) ) {
++		$class_methods = \wp_aot_array_map( 'strtolower', get_class_methods( 'Imagick' ) );
++		if ( \wp_aot_array_diff(array( $required_methods, $class_methods )) ) {
+ 			return false;
+ 		}
+ 
+ 		return true;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -117,7 +118,7 @@
+ 	 * @param string $mime_type
+ 	 * @return bool
+ 	 */
+-	public static function supports_mime_type( $mime_type ) {
++	public static function supports_mime_type( mixed $mime_type ): mixed {
+ 		$imagick_extension = strtoupper( self::get_extension( $mime_type ) );
+ 
+ 		if ( ! $imagick_extension ) {
+@@ -138,6 +139,7 @@
+ 		} catch ( Exception $e ) {
+ 			return false;
+ 		}
++		return null;
+ 	}
+ 
+ 	/**
+@@ -147,7 +149,7 @@
+ 	 *
+ 	 * @return true|WP_Error True if loaded; WP_Error on failure.
+ 	 */
+-	public function load() {
++	public function load(): mixed {
+ 		if ( $this->image instanceof Imagick ) {
+ 			return true;
+ 		}
+@@ -164,7 +166,7 @@
+ 		$given_filename = $this->file;
+ 		if ( 0 === strncasecmp( $given_filename, 'file://', 7 ) ) {
+ 			$given_filename = basename( substr( $given_filename, 7 ) ); // 7 is the strlen of 'file://'.
+-		} elseif ( 1 === preg_match( '~^https?://~i', $this->file ) ) {
++		} elseif ( 1 === preg_match( '~^https?://~i', \wp_aot_regex_text( $this->file ) ) ) {
+ 			/*
+ 			 * For URLs, it will be the final path segment.
+ 			 *
+@@ -218,7 +220,7 @@
+ 		$imagick_formats = array();
+ 		while (
+ 			false !== ( $format_ends_at = strpos( $given_filename, ':' ) ) &&
+-			1 !== preg_match( '~^[a-z]:~i', $given_filename )
++			1 !== preg_match( '~^[a-z]:~i', \wp_aot_regex_text( $given_filename ) )
+ 		) {
+ 			$imagick_formats[] = strtoupper( substr( $given_filename, 0, $format_ends_at ) );
+ 			$given_filename    = substr( $given_filename, $format_ends_at + 1 );
+@@ -300,7 +302,7 @@
+ 
+ 		// Reject files which Imagick will parse as PostScript.
+ 		if (
+-			array() !== array_intersect( $imagick_formats, $ps_formats ) ||
++			array() !== \wp_aot_array_intersect(array( $imagick_formats, $ps_formats )) ||
+ 			in_array( $file_extension, $ps_extensions, true ) ||
+ 			str_starts_with( $file_data, '%!' ) ||
+ 			str_starts_with( $file_data, "\x04%!" ) ||
+@@ -384,6 +386,7 @@
+ 		}
+ 
+ 		return $this->set_quality();
++		return null;
+ 	}
+ 
+ 	/**
+@@ -396,7 +399,7 @@
+ 	 * @param array $dims    Optional. Image dimensions array with 'width' and 'height' keys.
+ 	 * @return true|WP_Error True if set successfully; WP_Error on failure.
+ 	 */
+-	public function set_quality( $quality = null, $dims = array() ) {
++	public function set_quality( mixed $quality = null, mixed $dims = array() ): mixed {
+ 		$quality_result = parent::set_quality( $quality, $dims );
+ 		if ( is_wp_error( $quality_result ) ) {
+ 			return $quality_result;
+@@ -409,7 +412,7 @@
+ 				case 'image/jpeg':
+ 					$this->image->setImageCompressionQuality( $quality );
+ 					$this->image->setCompressionQuality( $quality );
+-					$this->image->setImageCompression( imagick::COMPRESSION_JPEG );
++					$this->image->setImageCompression( \wp_aot_metadata_constant('Imagick::COMPRESSION_JPEG') );
+ 					break;
+ 				case 'image/webp':
+ 					$webp_info = wp_get_webp_info( $this->file );
+@@ -427,7 +430,7 @@
+ 					break;
+ 				case 'image/avif':
+ 					// Set the AVIF encoder to work faster, with minimal impact on image size.
+-					$this->image->setOption( 'heic:speed', 7 );
++					$this->image->setOption( 'heic:speed', \wp_aot_weak_string(7) );
+ 					$this->image->setImageCompressionQuality( $quality );
+ 					$this->image->setCompressionQuality( $quality );
+ 					break;
+@@ -439,6 +442,7 @@
+ 			return new WP_Error( 'image_quality_error', $e->getMessage() );
+ 		}
+ 		return true;
++		return null;
+ 	}
+ 
+ 
+@@ -451,7 +455,7 @@
+ 	 * @param int|null $height Image height.
+ 	 * @return true|WP_Error
+ 	 */
+-	protected function update_size( $width = null, $height = null ) {
++	protected function update_size( mixed $width = null, mixed $height = null ): mixed {
+ 		$size = null;
+ 
+ 		if ( ! $width || ! $height ) {
+@@ -481,6 +485,7 @@
+ 		}
+ 
+ 		return parent::update_size( $width, $height );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -510,7 +515,7 @@
+ 	 *
+ 	 * @return int|null The new limit on success, null on failure.
+ 	 */
+-	public static function set_imagick_time_limit() {
++	public static function set_imagick_time_limit(): mixed {
+ 		_deprecated_function( __METHOD__, '6.3.0' );
+ 
+ 		if ( ! defined( 'Imagick::RESOURCETYPE_TIME' ) ) {
+@@ -518,7 +523,7 @@
+ 		}
+ 
+ 		// Returns PHP_FLOAT_MAX if unset.
+-		$imagick_timeout = Imagick::getResourceLimit( Imagick::RESOURCETYPE_TIME );
++		$imagick_timeout = Imagick::getResourceLimit( \wp_aot_metadata_constant('Imagick::RESOURCETYPE_TIME') );
+ 
+ 		// Convert to an integer, keeping in mind that: 0 === (int) PHP_FLOAT_MAX.
+ 		$imagick_timeout = $imagick_timeout > PHP_INT_MAX ? PHP_INT_MAX : (int) $imagick_timeout;
+@@ -527,10 +532,11 @@
+ 
+ 		if ( $php_timeout > 1 && $php_timeout < $imagick_timeout ) {
+ 			$limit = (float) 0.8 * $php_timeout;
+-			Imagick::setResourceLimit( Imagick::RESOURCETYPE_TIME, $limit );
++			Imagick::setResourceLimit( \wp_aot_metadata_constant('Imagick::RESOURCETYPE_TIME'), \wp_aot_weak_int($limit) );
+ 
+ 			return $limit;
+ 		}
++		return null;
+ 	}
+ 
+ 	/**
+@@ -554,7 +560,7 @@
+ 	 * }
+ 	 * @return true|WP_Error
+ 	 */
+-	public function resize( $max_w, $max_h, $crop = false ) {
++	public function resize( mixed $max_w, mixed $max_h, mixed $crop = false ): mixed {
+ 		if ( ( $this->size['width'] === $max_w ) && ( $this->size['height'] === $max_h ) ) {
+ 			return true;
+ 		}
+@@ -585,6 +591,7 @@
+ 		}
+ 
+ 		return $this->update_size( $dst_w, $dst_h );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -601,7 +608,7 @@
+ 	 * @param bool   $strip_meta  Optional. Strip all profiles, excluding color profiles, from the image. Default true.
+ 	 * @return void|WP_Error
+ 	 */
+-	protected function thumbnail_image( $dst_w, $dst_h, $filter_name = 'FILTER_TRIANGLE', $strip_meta = true ) {
++	protected function thumbnail_image( mixed $dst_w, mixed $dst_h, mixed $filter_name = 'FILTER_TRIANGLE', mixed $strip_meta = true ): mixed {
+ 		$allowed_filters = array(
+ 			'FILTER_POINT',
+ 			'FILTER_BOX',
+@@ -624,8 +631,8 @@
+ 		 * Set the filter value if '$filter_name' name is in the allowed list and the related
+ 		 * Imagick constant is defined or fall back to the default filter.
+ 		 */
+-		if ( in_array( $filter_name, $allowed_filters, true ) && defined( 'Imagick::' . $filter_name ) ) {
+-			$filter = constant( 'Imagick::' . $filter_name );
++		if ( in_array( $filter_name, $allowed_filters, true ) && \wp_aot_metadata_defined( 'Imagick::' . $filter_name ) ) {
++			$filter = \wp_aot_metadata_constant( 'Imagick::' . $filter_name );
+ 		} else {
+ 			$filter = defined( 'Imagick::FILTER_TRIANGLE' ) ? Imagick::FILTER_TRIANGLE : false;
+ 		}
+@@ -758,7 +765,7 @@
+ 					 * We need to avoid forcing indexed format for images with true alpha transparency,
+ 					 * because ImageMagick does not support saving an image with true alpha transparency as an indexed PNG.
+ 					 */
+-					if ( Imagick::COLORSPACE_GRAY === $this->image->getImageColorspace() && ! $is_indexed_png_with_true_alpha_transparency ) {
++					if ( \wp_aot_metadata_constant('Imagick::COLORSPACE_GRAY') === $this->image->getImageColorspace() && ! $is_indexed_png_with_true_alpha_transparency ) {
+ 						// Set the image format to Indexed PNG.
+ 						$this->image->setOption( 'png:format', 'png8' );
+ 					}
+@@ -778,8 +785,8 @@
+ 				&& defined( 'Imagick::ALPHACHANNEL_UNDEFINED' )
+ 				&& defined( 'Imagick::ALPHACHANNEL_OPAQUE' )
+ 			) {
+-				if ( $this->image->getImageAlphaChannel() === Imagick::ALPHACHANNEL_UNDEFINED ) {
+-					$this->image->setImageAlphaChannel( Imagick::ALPHACHANNEL_OPAQUE );
++				if ( $this->image->getImageAlphaChannel() === \wp_aot_metadata_constant('Imagick::ALPHACHANNEL_UNDEFINED') ) {
++					$this->image->setImageAlphaChannel( (int) \wp_aot_metadata_constant('Imagick::ALPHACHANNEL_OPAQUE') );
+ 				}
+ 			}
+ 
+@@ -804,6 +811,7 @@
+ 		} catch ( Exception $e ) {
+ 			return new WP_Error( 'image_resize_error', $e->getMessage() );
+ 		}
++		return null;
+ 	}
+ 
+ 	/**
+@@ -836,7 +844,7 @@
+ 	 * }
+ 	 * @return array An array of resized images' metadata by size.
+ 	 */
+-	public function multi_resize( $sizes ) {
++	public function multi_resize( mixed $sizes ): mixed {
+ 		$metadata = array();
+ 
+ 		foreach ( $sizes as $size => $size_data ) {
+@@ -848,6 +856,7 @@
+ 		}
+ 
+ 		return $metadata;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -865,7 +874,7 @@
+ 	 * @return array|WP_Error The image data array for inclusion in the `sizes` array in the image meta,
+ 	 *                        WP_Error object on error.
+ 	 */
+-	public function make_subsize( $size_data ) {
++	public function make_subsize( mixed $size_data ): mixed {
+ 		if ( ! isset( $size_data['width'] ) && ! isset( $size_data['height'] ) ) {
+ 			return new WP_Error( 'image_subsize_create_error', __( 'Cannot resize the image. Both width and height are not set.' ) );
+ 		}
+@@ -909,6 +918,7 @@
+ 		}
+ 
+ 		return $saved;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -925,7 +935,7 @@
+ 	 * @param bool $src_abs Optional. If the source crop points are absolute.
+ 	 * @return true|WP_Error
+ 	 */
+-	public function crop( $src_x, $src_y, $src_w, $src_h, $dst_w = null, $dst_h = null, $src_abs = false ) {
++	public function crop( mixed $src_x, mixed $src_y, mixed $src_w, mixed $src_h, mixed $dst_w = null, mixed $dst_h = null, mixed $src_abs = false ): mixed {
+ 		if ( $src_abs ) {
+ 			$src_w -= $src_x;
+ 			$src_h -= $src_y;
+@@ -959,6 +969,7 @@
+ 		}
+ 
+ 		return $this->update_size();
++		return null;
+ 	}
+ 
+ 	/**
+@@ -969,7 +980,7 @@
+ 	 * @param float $angle
+ 	 * @return true|WP_Error
+ 	 */
+-	public function rotate( $angle ) {
++	public function rotate( mixed $angle ): mixed {
+ 		/**
+ 		 * $angle is 360-$angle because Imagick rotates clockwise
+ 		 * (GD rotates counter-clockwise)
+@@ -994,6 +1005,7 @@
+ 		}
+ 
+ 		return true;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1005,7 +1017,7 @@
+ 	 * @param bool $vert Flip along Vertical Axis
+ 	 * @return true|WP_Error
+ 	 */
+-	public function flip( $horz, $vert ) {
++	public function flip( mixed $horz, mixed $vert ): mixed {
+ 		try {
+ 			if ( $horz ) {
+ 				$this->image->flipImage();
+@@ -1024,6 +1036,7 @@
+ 		}
+ 
+ 		return true;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1037,12 +1050,13 @@
+ 	 * @return bool|WP_Error True if the image was rotated. False if no EXIF data or if the image doesn't need rotation.
+ 	 *                       WP_Error if error while rotating.
+ 	 */
+-	public function maybe_exif_rotate() {
++	public function maybe_exif_rotate(): mixed {
+ 		if ( is_callable( array( $this->image, 'setImageOrientation' ) ) && defined( 'Imagick::ORIENTATION_TOPLEFT' ) ) {
+ 			return parent::maybe_exif_rotate();
+ 		} else {
+ 			return new WP_Error( 'write_exif_error', __( 'The image cannot be rotated because the embedded meta data cannot be updated.' ) );
+ 		}
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1064,7 +1078,7 @@
+ 	 *     @type int    $filesize  File size of the image.
+ 	 * }
+ 	 */
+-	public function save( $destfilename = null, $mime_type = null ) {
++	public function save( mixed $destfilename = null, mixed $mime_type = null ): mixed {
+ 		$saved = $this->_save( $this->image, $destfilename, $mime_type );
+ 
+ 		if ( ! is_wp_error( $saved ) ) {
+@@ -1079,6 +1093,7 @@
+ 		}
+ 
+ 		return $saved;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1086,17 +1101,18 @@
+ 	 *
+ 	 * @since 6.4.0
+ 	 */
+-	protected function remove_pdf_alpha_channel() {
++	protected function remove_pdf_alpha_channel(): mixed {
+ 		$version = Imagick::getVersion();
+ 		// Remove alpha channel if possible to avoid black backgrounds for Ghostscript >= 9.14. RemoveAlphaChannel added in ImageMagick 6.7.5.
+ 		if ( $version['versionNumber'] >= 0x675 ) {
+ 			try {
+ 				// Imagick::ALPHACHANNEL_REMOVE mapped to RemoveAlphaChannel in PHP imagick 3.2.0b2.
+-				$this->image->setImageAlphaChannel( defined( 'Imagick::ALPHACHANNEL_REMOVE' ) ? Imagick::ALPHACHANNEL_REMOVE : 12 );
++				$this->image->setImageAlphaChannel( defined( 'Imagick::ALPHACHANNEL_REMOVE' ) ? \wp_aot_metadata_constant('Imagick::ALPHACHANNEL_REMOVE') : 12 );
+ 			} catch ( Exception $e ) {
+ 				return new WP_Error( 'pdf_alpha_process_failed', $e->getMessage() );
+ 			}
+ 		}
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1117,7 +1133,7 @@
+ 	 *     @type int    $filesize  File size of the image.
+ 	 * }
+ 	 */
+-	protected function _save( $image, $filename = null, $mime_type = null ) {
++	protected function _save( mixed $image, mixed $filename = null, mixed $mime_type = null ): mixed {
+ 		list( $filename, $extension, $mime_type ) = $this->get_output_format( $filename, $mime_type );
+ 
+ 		if ( ! $filename ) {
+@@ -1133,17 +1149,17 @@
+ 			return new WP_Error( 'image_save_error', $e->getMessage(), $filename );
+ 		}
+ 
+-		if ( method_exists( $this->image, 'setInterlaceScheme' )
+-			&& method_exists( $this->image, 'getInterlaceScheme' )
++		if ( \wp_aot_native_api('method_exists', array( $this->image, 'setInterlaceScheme' ))
++			&& \wp_aot_native_api('method_exists', array( $this->image, 'getInterlaceScheme' ))
+ 			&& defined( 'Imagick::INTERLACE_PLANE' )
+ 		) {
+ 			$orig_interlace = $this->image->getInterlaceScheme();
+ 
+ 			/** This filter is documented in wp-includes/class-wp-image-editor-gd.php */
+ 			if ( apply_filters( 'image_save_progressive', false, $mime_type ) ) {
+-				$this->image->setInterlaceScheme( Imagick::INTERLACE_PLANE ); // True - line interlace output.
++				$this->image->setInterlaceScheme( \wp_aot_metadata_constant('Imagick::INTERLACE_PLANE') ); // True - line interlace output.
+ 			} else {
+-				$this->image->setInterlaceScheme( Imagick::INTERLACE_NO ); // False - no interlace output.
++				$this->image->setInterlaceScheme( \wp_aot_metadata_constant('Imagick::INTERLACE_NO') ); // False - no interlace output.
+ 			}
+ 		}
+ 
+@@ -1166,7 +1182,7 @@
+ 		// Set correct file permissions.
+ 		$stat  = stat( dirname( $filename ) );
+ 		$perms = $stat['mode'] & 0000666; // Same permissions as parent folder, strip off the executable bits.
+-		chmod( $filename, $perms );
++		chmod( $filename, \wp_aot_internal_int( $perms ) );
+ 
+ 		return array(
+ 			'path'      => $filename,
+@@ -1177,6 +1193,7 @@
+ 			'mime-type' => $mime_type,
+ 			'filesize'  => wp_filesize( $filename ),
+ 		);
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1188,7 +1205,7 @@
+ 	 * @param string  $filename The destination filename or stream URL.
+ 	 * @return true|WP_Error
+ 	 */
+-	private function write_image( $image, $filename ) {
++	private function write_image( mixed $image, mixed $filename ): mixed {
+ 		if ( wp_is_stream( $filename ) ) {
+ 			/*
+ 			 * Due to reports of issues with streams with `Imagick::writeImageFile()` and `Imagick::writeImage()`, copies the blob instead.
+@@ -1227,6 +1244,7 @@
+ 				return new WP_Error( 'image_save_error', $e->getMessage(), $filename );
+ 			}
+ 		}
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1237,7 +1255,7 @@
+ 	 * @param string $mime_type The mime type of the image.
+ 	 * @return true|WP_Error True on success, WP_Error object on failure.
+ 	 */
+-	public function stream( $mime_type = null ) {
++	public function stream( mixed $mime_type = null ): mixed {
+ 		list( $filename, $extension, $mime_type ) = $this->get_output_format( null, $mime_type );
+ 
+ 		try {
+@@ -1255,6 +1273,7 @@
+ 		}
+ 
+ 		return true;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1264,7 +1283,7 @@
+ 	 *
+ 	 * @return true|WP_Error True if stripping metadata was successful. WP_Error object on error.
+ 	 */
+-	protected function strip_meta() {
++	protected function strip_meta(): mixed {
+ 
+ 		if ( ! is_callable( array( $this->image, 'getImageProfiles' ) ) ) {
+ 			return new WP_Error(
+@@ -1317,6 +1336,7 @@
+ 		}
+ 
+ 		return true;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1327,7 +1347,7 @@
+ 	 *
+ 	 * @return string|WP_Error File to load or WP_Error on failure.
+ 	 */
+-	protected function pdf_setup() {
++	protected function pdf_setup(): mixed {
+ 		try {
+ 			/*
+ 			 * By default, PDFs are rendered in a very low resolution.
+@@ -1340,6 +1360,7 @@
+ 		} catch ( Exception $e ) {
+ 			return new WP_Error( 'pdf_setup_failed', $e->getMessage(), $this->file );
+ 		}
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1352,7 +1373,7 @@
+ 	 *
+ 	 * @return true|WP_Error
+ 	 */
+-	protected function pdf_load_source() {
++	protected function pdf_load_source(): mixed {
+ 		$filename = $this->pdf_setup();
+ 
+ 		if ( is_wp_error( $filename ) ) {
+@@ -1377,7 +1398,7 @@
+ 				 */
+ 				if ( is_string( $this->stream_file_data ) ) {
+ 					$this->image->setFilename( 'PDF:unknown.pdf[0]' );
+-					$this->image->readImageBlob( $this->stream_file_data, $this->image_given_name );
++					$this->image->readImageBlob( \wp_aot_weak_string($this->stream_file_data), $this->image_given_name );
+ 				} else {
+ 					$this->image->readImage( $filename );
+ 				}
+@@ -1389,5 +1410,6 @@
+ 		}
+ 
+ 		return new WP_Error( 'invalid_image', __( 'File is not an image.' ), $this->file );
++		return null;
+ 	}
+ }

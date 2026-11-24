@@ -1,0 +1,74 @@
+--- a/wp-includes/widgets/class-wp-widget-rss.php
++++ b/wp-includes/widgets/class-wp-widget-rss.php
+@@ -44,9 +44,9 @@
+ 	 *                        'before_widget', and 'after_widget'.
+ 	 * @param array $instance Settings for the current RSS widget instance.
+ 	 */
+-	public function widget( $args, $instance ) {
++	public function widget( mixed $args, mixed $instance ): mixed {
+ 		if ( isset( $instance['error'] ) && $instance['error'] ) {
+-			return;
++			return null;
+ 		}
+ 
+ 		$url = ! empty( $instance['url'] ) ? $instance['url'] : '';
+@@ -55,12 +55,12 @@
+ 		}
+ 
+ 		if ( empty( $url ) ) {
+-			return;
++			return null;
+ 		}
+ 
+ 		// Self-URL destruction sequence.
+ 		if ( in_array( untrailingslashit( $url ), array( site_url(), home_url() ), true ) ) {
+-			return;
++			return null;
+ 		}
+ 
+ 		$rss   = fetch_feed( $url );
+@@ -69,7 +69,7 @@
+ 		$link  = '';
+ 
+ 		if ( ! is_wp_error( $rss ) ) {
+-			$desc = esc_attr( strip_tags( html_entity_decode( $rss->get_description(), ENT_QUOTES, get_option( 'blog_charset' ) ) ) );
++			$desc = esc_attr( strip_tags( \wp_aot_html_entity_decode( $rss->get_description(), ENT_QUOTES, get_option( 'blog_charset' ) ) ) );
+ 			if ( empty( $title ) ) {
+ 				$title = strip_tags( $rss->get_title() );
+ 			}
+@@ -143,6 +143,7 @@
+ 			$rss->__destruct();
+ 		}
+ 		unset( $rss );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -155,9 +156,10 @@
+ 	 * @param array $old_instance Old settings for this instance.
+ 	 * @return array Updated settings to save.
+ 	 */
+-	public function update( $new_instance, $old_instance ) {
++	public function update( mixed $new_instance, mixed $old_instance ): mixed {
+ 		$testurl = ( isset( $new_instance['url'] ) && ( ! isset( $old_instance['url'] ) || ( $new_instance['url'] !== $old_instance['url'] ) ) );
+ 		return wp_widget_rss_process( $new_instance, $testurl );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -167,7 +169,7 @@
+ 	 *
+ 	 * @param array $instance Current settings.
+ 	 */
+-	public function form( $instance ) {
++	public function form( mixed $instance ): mixed {
+ 		if ( empty( $instance ) ) {
+ 			$instance = array(
+ 				'title'        => '',
+@@ -182,5 +184,6 @@
+ 		$instance['number'] = $this->number;
+ 
+ 		wp_widget_rss_form( $instance );
++		return null;
+ 	}
+ }

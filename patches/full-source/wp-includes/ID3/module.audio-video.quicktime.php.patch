@@ -1,0 +1,646 @@
+--- a/wp-includes/ID3/module.audio-video.quicktime.php
++++ b/wp-includes/ID3/module.audio-video.quicktime.php
+@@ -16,7 +16,7 @@
+ /////////////////////////////////////////////////////////////////
+ 
+ if (!defined('GETID3_INCLUDEPATH')) { // prevent path-exposing attacks that access modules directly on public webservers
+-	exit;
++	\wp_aot_exit();
+ }
+ getid3_lib::IncludeDependency(GETID3_INCLUDEPATH.'module.audio.mp3.php', __FILE__, true);
+ getid3_lib::IncludeDependency(GETID3_INCLUDEPATH.'module.tag.id3v2.php', __FILE__, true); // needed for ISO 639-2 language code lookup
+@@ -49,7 +49,7 @@
+ 	/**
+ 	 * @return bool
+ 	 */
+-	public function Analyze() {
++	public function Analyze(): mixed {
+ 		$info = &$this->getid3->info;
+ 
+ 		$this->metaDATAkey = 1;
+@@ -152,7 +152,7 @@
+ 			// https://en.wikipedia.org/wiki/ISO_6709
+ 			foreach ($info['quicktime']['comments']['location.ISO6709'] as $ISO6709string) {
+ 				$ISO6709parsed = array('latitude'=>false, 'longitude'=>false, 'altitude'=>false);
+-				if (preg_match('#^([\\+\\-])([0-9]{2}|[0-9]{4}|[0-9]{6})(\\.[0-9]+)?([\\+\\-])([0-9]{3}|[0-9]{5}|[0-9]{7})(\\.[0-9]+)?(([\\+\\-])([0-9]{3}|[0-9]{5}|[0-9]{7})(\\.[0-9]+)?)?/$#', $ISO6709string, $matches)) {
++				if (preg_match('#^([\\+\\-])([0-9]{2}|[0-9]{4}|[0-9]{6})(\\.[0-9]+)?([\\+\\-])([0-9]{3}|[0-9]{5}|[0-9]{7})(\\.[0-9]+)?(([\\+\\-])([0-9]{3}|[0-9]{5}|[0-9]{7})(\\.[0-9]+)?)?/$#', \wp_aot_regex_text( $ISO6709string ), $matches)) {
+ 					@list($dummy, $lat_sign, $lat_deg, $lat_deg_dec, $lon_sign, $lon_deg, $lon_deg_dec, $dummy, $alt_sign, $alt_deg, $alt_deg_dec) = $matches;
+ 
+ 					if (strlen($lat_deg) == 2) {        // [+-]DD.D
+@@ -261,6 +261,7 @@
+ 		}
+ 
+ 		return true;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -273,14 +274,14 @@
+ 	 *
+ 	 * @return array|false
+ 	 */
+-	public function QuicktimeParseAtom($atomname, $atomsize, $atom_data, $baseoffset, &$atomHierarchy, $ParseAllPossibleAtoms) {
++	public function QuicktimeParseAtom(mixed $atomname, mixed $atomsize, mixed $atom_data, mixed $baseoffset, mixed &$atomHierarchy, mixed $ParseAllPossibleAtoms): mixed {
+ 		// http://developer.apple.com/techpubs/quicktime/qtdevdocs/APIREF/INDEX/atomalphaindex.htm
+ 		// https://code.google.com/p/mp4v2/wiki/iTunesMetadata
+ 
+ 		$info = &$this->getid3->info;
+ 
+ 		$atom_parent = end($atomHierarchy); // not array_pop($atomHierarchy); see https://www.getid3.org/phpBB3/viewtopic.php?t=1717
+-		array_push($atomHierarchy, $atomname);
++		\wp_aot_array_push($atomHierarchy,array( $atomname));
+ 		$atom_structure              = array();
+ 		$atom_structure['hierarchy'] = implode(' ', $atomHierarchy);
+ 		$atom_structure['name']      = $atomname;
+@@ -484,7 +485,7 @@
+ 								$boxsmalltype =                           substr($atom_data, $atomoffset + 2, 2);
+ 								$boxsmalldata =                           substr($atom_data, $atomoffset + 4, $boxsmallsize);
+ 								if ($boxsmallsize <= 1) {
+-									$this->warning('Invalid QuickTime atom smallbox size "'.$boxsmallsize.'" in atom "'.preg_replace('#[^a-zA-Z0-9 _\\-]#', '?', $atomname).'" at offset: '.($atom_structure['offset'] + $atomoffset));
++									$this->warning('Invalid QuickTime atom smallbox size "'.$boxsmallsize.'" in atom "'.\wp_aot_preg_replace('#[^a-zA-Z0-9 _\\-]#', '?', $atomname).'" at offset: '.($atom_structure['offset'] + $atomoffset));
+ 									$atom_structure['data'] = null;
+ 									$atomoffset = strlen($atom_data);
+ 									break;
+@@ -494,7 +495,7 @@
+ 										$atom_structure['data'] = $boxsmalldata;
+ 										break;
+ 									default:
+-										$this->warning('Unknown QuickTime smallbox type: "'.preg_replace('#[^a-zA-Z0-9 _\\-]#', '?', $boxsmalltype).'" ('.trim(getid3_lib::PrintHexBytes($boxsmalltype)).') at offset '.$baseoffset);
++										$this->warning('Unknown QuickTime smallbox type: "'.\wp_aot_preg_replace('#[^a-zA-Z0-9 _\\-]#', '?', $boxsmalltype).'" ('.trim(getid3_lib::PrintHexBytes($boxsmalltype)).') at offset '.$baseoffset);
+ 										$atom_structure['data'] = $atom_data;
+ 										break;
+ 								}
+@@ -506,7 +507,7 @@
+ 								$boxtype =                           substr($atom_data, $atomoffset + 4, 4);
+ 								$boxdata =                           substr($atom_data, $atomoffset + 8, $boxsize - 8);
+ 								if ($boxsize <= 1) {
+-									$this->warning('Invalid QuickTime atom box size "'.$boxsize.'" in atom "'.preg_replace('#[^a-zA-Z0-9 _\\-]#', '?', $atomname).'" at offset: '.($atom_structure['offset'] + $atomoffset));
++									$this->warning('Invalid QuickTime atom box size "'.$boxsize.'" in atom "'.\wp_aot_preg_replace('#[^a-zA-Z0-9 _\\-]#', '?', $atomname).'" at offset: '.($atom_structure['offset'] + $atomoffset));
+ 									$atom_structure['data'] = null;
+ 									$atomoffset = strlen($atom_data);
+ 									break;
+@@ -585,11 +586,11 @@
+ 													case 'covr':
+ 														$atom_structure['data'] = substr($boxdata, 8);
+ 														// not a foolproof check, but better than nothing
+-														if (preg_match('#^\\xFF\\xD8\\xFF#', $atom_structure['data'])) {
++														if (preg_match('#^\\xFF\\xD8\\xFF#', \wp_aot_regex_text( $atom_structure['data'] ))) {
+ 															$atom_structure['image_mime'] = 'image/jpeg';
+-														} elseif (preg_match('#^\\x89\\x50\\x4E\\x47\\x0D\\x0A\\x1A\\x0A#', $atom_structure['data'])) {
++														} elseif (preg_match('#^\\x89\\x50\\x4E\\x47\\x0D\\x0A\\x1A\\x0A#', \wp_aot_regex_text( $atom_structure['data'] ))) {
+ 															$atom_structure['image_mime'] = 'image/png';
+-														} elseif (preg_match('#^GIF#', $atom_structure['data'])) {
++														} elseif (preg_match('#^GIF#', \wp_aot_regex_text( $atom_structure['data'] ))) {
+ 															$atom_structure['image_mime'] = 'image/gif';
+ 														}
+ 														$info['quicktime']['comments']['picture'][] = array('image_mime'=>$atom_structure['image_mime'], 'data'=>$atom_structure['data'], 'description'=>'cover');
+@@ -640,7 +641,7 @@
+ 										break;
+ 
+ 									default:
+-										$this->warning('Unknown QuickTime box type: "'.preg_replace('#[^a-zA-Z0-9 _\\-]#', '?', $boxtype).'" ('.trim(getid3_lib::PrintHexBytes($boxtype)).') at offset '.$baseoffset);
++										$this->warning('Unknown QuickTime box type: "'.\wp_aot_preg_replace('#[^a-zA-Z0-9 _\\-]#', '?', $boxtype).'" ('.trim(getid3_lib::PrintHexBytes($boxtype)).') at offset '.$baseoffset);
+ 										$atom_structure['data'] = $atom_data;
+ 
+ 								}
+@@ -1544,7 +1545,7 @@
+ 						&& ($chapter_string_length = getid3_lib::BigEndian2Int(substr($atom_data, $mdat_offset, 2)))
+ 						&& ($chapter_string_length < 1000)
+ 						&& ($chapter_string_length <= (strlen($atom_data) - $mdat_offset - 2))
+-						&& preg_match('#^([\x00-\xFF]{2})([\x20-\xFF]+)$#', substr($atom_data, $mdat_offset, $chapter_string_length + 2), $chapter_matches)) {
++						&& preg_match('#^([\x00-\xFF]{2})([\x20-\xFF]+)$#', \wp_aot_regex_text( substr($atom_data, $mdat_offset, $chapter_string_length + 2) ), $chapter_matches)) {
+ 							list($dummy, $chapter_string_length_hex, $chapter_string) = $chapter_matches;
+ 							$mdat_offset += (2 + $chapter_string_length);
+ 							@$info['quicktime']['comments']['chapters'][] = $chapter_string;
+@@ -1680,7 +1681,7 @@
+ 
+ 				case "\xA9".'xyz':  // GPS latitude+longitude+altitude
+ 					$atom_structure['data'] = $atom_data;
+-					if (preg_match('#([\\+\\-][0-9\\.]+)([\\+\\-][0-9\\.]+)([\\+\\-][0-9\\.]+)?/$#i', $atom_data, $matches)) {
++					if (preg_match('#([\\+\\-][0-9\\.]+)([\\+\\-][0-9\\.]+)([\\+\\-][0-9\\.]+)?/$#i', \wp_aot_regex_text( $atom_data ), $matches)) {
+ 						@list($all, $latitude, $longitude, $altitude) = $matches;
+ 						$info['quicktime']['comments']['gps_latitude'][]  = floatval($latitude);
+ 						$info['quicktime']['comments']['gps_longitude'][] = floatval($longitude);
+@@ -1702,7 +1703,7 @@
+ 				case 'NCM1': // Nikon Camera preview iMage 1
+ 				case 'NCM2': // Nikon Camera preview iMage 2
+ 					// https://exiftool.org/TagNames/Nikon.html
+-					if (preg_match('/^\xFF\xD8\xFF/', $atom_data)) {
++					if (preg_match('/^\xFF\xD8\xFF/', \wp_aot_regex_text( $atom_data ))) {
+ 						$descriptions = array(
+ 							'NCTH' => 'Nikon Camera Thumbnail Image',
+ 							'NCVW' => 'Nikon Camera Preview Image',
+@@ -1789,7 +1790,7 @@
+ 					}
+ 
+ 					if ($atom_structure['key_name'] && $atom_structure['data']) {
+-						@$info['quicktime']['comments'][str_replace('com.android.', '', str_replace('com.apple.quicktime.', '', $atom_structure['key_name']))][] = $atom_structure['data'];
++						@$info['quicktime']['comments'][\wp_aot_str_replace('com.android.', '', \wp_aot_str_replace('com.apple.quicktime.', '', $atom_structure['key_name']))][] = $atom_structure['data'];
+ 					}
+ 					break;
+ 
+@@ -1881,7 +1882,7 @@
+ 										$sensor_data_array['yaw']       = $uuid_bytes_read['yaw'];
+ 										$sensor_data_array['pitch']     = $uuid_bytes_read['pitch'];
+ 										$sensor_data_array['roll']      = $uuid_bytes_read['roll'];
+-										array_push($atom_structure['sensor_data']['data_type']['fusion_data'], $sensor_data_array);
++										\wp_aot_array_push($atom_structure['sensor_data']['data_type']['fusion_data'],array( $sensor_data_array));
+ 										break;
+ 									case 1:
+ 										$atom_structure['sensor_data']['data_type']['accel_count']++;
+@@ -1891,7 +1892,7 @@
+ 										$sensor_data_array['yaw']       = $uuid_bytes_read['yaw'];
+ 										$sensor_data_array['pitch']     = $uuid_bytes_read['pitch'];
+ 										$sensor_data_array['roll']      = $uuid_bytes_read['roll'];
+-										array_push($atom_structure['sensor_data']['data_type']['accel_data'], $sensor_data_array);
++										\wp_aot_array_push($atom_structure['sensor_data']['data_type']['accel_data'],array( $sensor_data_array));
+ 										break;
+ 									case 2:
+ 										$atom_structure['sensor_data']['data_type']['gyro_count']++;
+@@ -1901,7 +1902,7 @@
+ 										$sensor_data_array['yaw']       = $uuid_bytes_read['yaw'];
+ 										$sensor_data_array['pitch']     = $uuid_bytes_read['pitch'];
+ 										$sensor_data_array['roll']      = $uuid_bytes_read['roll'];
+-										array_push($atom_structure['sensor_data']['data_type']['gyro_data'], $sensor_data_array);
++										\wp_aot_array_push($atom_structure['sensor_data']['data_type']['gyro_data'],array( $sensor_data_array));
+ 										break;
+ 									case 3:
+ 										$atom_structure['sensor_data']['data_type']['magno_count']++;
+@@ -1911,7 +1912,7 @@
+ 										$sensor_data_array['magx']      = $uuid_bytes_read['magx'];
+ 										$sensor_data_array['magy']      = $uuid_bytes_read['magy'];
+ 										$sensor_data_array['magz']      = $uuid_bytes_read['magz'];
+-										array_push($atom_structure['sensor_data']['data_type']['magno_data'], $sensor_data_array);
++										\wp_aot_array_push($atom_structure['sensor_data']['data_type']['magno_data'],array( $sensor_data_array));
+ 										break;
+ 									case 5:
+ 										$atom_structure['sensor_data']['data_type']['gps_count']++;
+@@ -1924,7 +1925,7 @@
+ 										$sensor_data_array['speed']     = $uuid_bytes_read['speed'];
+ 										$sensor_data_array['bearing']   = $uuid_bytes_read['bearing'];
+ 										$sensor_data_array['acc']       = $uuid_bytes_read['acc'];
+-										array_push($atom_structure['sensor_data']['data_type']['gps_data'], $sensor_data_array);
++										\wp_aot_array_push($atom_structure['sensor_data']['data_type']['gps_data'],array( $sensor_data_array));
+ 										//array_push($debug_structure['debug_items'], $uuid_bytes_read['timestamp']);
+ 										break;
+ 									case 6:
+@@ -1935,7 +1936,7 @@
+ 										$sensor_data_array['rotx']      = $uuid_bytes_read['rotx'];
+ 										$sensor_data_array['roty']      = $uuid_bytes_read['roty'];
+ 										$sensor_data_array['rotz']      = $uuid_bytes_read['rotz'];
+-										array_push($atom_structure['sensor_data']['data_type']['rotation_data'], $sensor_data_array);
++										\wp_aot_array_push($atom_structure['sensor_data']['data_type']['rotation_data'],array( $sensor_data_array));
+ 										break;
+ 									default:
+ 										$atom_structure['sensor_data']['data_type']['unknown_count']++;
+@@ -1996,7 +1997,7 @@
+ 								// $GPRMC,183731,A,3907.482,N,12102.436,W,000.0,360.0,080301,015.5,E*67
+ 								// $GPRMC,002454,A,3553.5295,N,13938.6570,E,0.0,43.1,180700,7.1,W,A*3F
+ 								// $GPRMC,094347.000,A,5342.0061,N,00737.9908,W,0.01,156.75,140217,,,A*7D
+-								if (preg_match('#\\$GPRMC,([0-9\\.]*),([AV]),([0-9\\.]*),([NS]),([0-9\\.]*),([EW]),([0-9\\.]*),([0-9\\.]*),([0-9]*),([0-9\\.]*),([EW]?)(,[A])?(\\*[0-9A-F]{2})#', $GPS_free_data, $matches)) {
++								if (preg_match('#\\$GPRMC,([0-9\\.]*),([AV]),([0-9\\.]*),([NS]),([0-9\\.]*),([EW]),([0-9\\.]*),([0-9\\.]*),([0-9]*),([0-9\\.]*),([EW]?)(,[A])?(\\*[0-9A-F]{2})#', \wp_aot_regex_text( $GPS_free_data ), $matches)) {
+ 									$GPS_this_GPRMC = array();
+ 									$GPS_this_GPRMC_raw = array();
+ 									list(
+@@ -2030,7 +2031,7 @@
+ 									$GPS_this_GPRMC['active'] = ($GPS_this_GPRMC['raw']['status'] == 'A'); // A=Active,V=Void
+ 
+ 									foreach (array('latitude','longitude') as $latlon) {
+-										preg_match('#^([0-9]{1,3})([0-9]{2}\\.[0-9]+)$#', $GPS_this_GPRMC['raw'][$latlon], $matches);
++										preg_match('#^([0-9]{1,3})([0-9]{2}\\.[0-9]+)$#', \wp_aot_regex_text( $GPS_this_GPRMC['raw'][$latlon] ), $matches);
+ 										list($dummy, $deg, $min) = $matches;
+ 										$GPS_this_GPRMC[$latlon] = (int) $deg + ((float) $min / 60);
+ 									}
+@@ -2305,13 +2306,14 @@
+ 				case 'pssh': // Protection System Specific Header box
+ 				case 'sidx': // Segment InDeX box
+ 				default:
+-					$this->warning('Unknown QuickTime atom type: "'.preg_replace('#[^a-zA-Z0-9 _\\-]#', '?', $atomname).'" ('.trim(getid3_lib::PrintHexBytes($atomname)).'), '.$atomsize.' bytes at offset '.$baseoffset);
++					$this->warning('Unknown QuickTime atom type: "'.\wp_aot_preg_replace('#[^a-zA-Z0-9 _\\-]#', '?', $atomname).'" ('.trim(getid3_lib::PrintHexBytes($atomname)).'), '.$atomsize.' bytes at offset '.$baseoffset);
+ 					$atom_structure['data'] = $atom_data;
+ 					break;
+ 			}
+ 		}
+-		array_pop($atomHierarchy);
++		\wp_aot_array_pop($atomHierarchy);
+ 		return $atom_structure;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -2322,7 +2324,7 @@
+ 	 *
+ 	 * @return array|false
+ 	 */
+-	public function QuicktimeParseContainerAtom($atom_data, $baseoffset, &$atomHierarchy, $ParseAllPossibleAtoms) {
++	public function QuicktimeParseContainerAtom(mixed $atom_data, mixed $baseoffset, mixed &$atomHierarchy, mixed $ParseAllPossibleAtoms): mixed {
+ 		$atom_structure = array();
+ 		$subatomoffset  = 0;
+ 		$subatomcounter = 0;
+@@ -2358,6 +2360,7 @@
+ 		}
+ 
+ 		return $atom_structure;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -2366,7 +2369,7 @@
+ 	 *
+ 	 * @return int
+ 	 */
+-	public function quicktime_read_mp4_descr_length($data, &$offset) {
++	public function quicktime_read_mp4_descr_length(mixed $data, mixed &$offset): mixed {
+ 		// http://libquicktime.sourcearchive.com/documentation/2:1.0.2plus-pdebian-2build1/esds_8c-source.html
+ 		$num_bytes = 0;
+ 		$length    = 0;
+@@ -2375,6 +2378,7 @@
+ 			$length = ($length << 7) | ($b & 0x7F);
+ 		} while (($b & 0x80) && ($num_bytes++ < 4));
+ 		return $length;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -2382,10 +2386,11 @@
+ 	 *
+ 	 * @return string
+ 	 */
+-	public function QuicktimeLanguageLookup($languageid) {
++	public function QuicktimeLanguageLookup(mixed $languageid): mixed {
+ 		// http://developer.apple.com/library/mac/#documentation/QuickTime/QTFF/QTFFChap4/qtff4.html#//apple_ref/doc/uid/TP40000939-CH206-34353
+ 		// https://developer.apple.com/documentation/quicktime-file-format/language_code_values
+-		static $QuicktimeLanguageLookup = array();
++		static $QuicktimeLanguageLookup_aot_cell = new \WordPressStaticArrayCell();
++		$QuicktimeLanguageLookup =& $QuicktimeLanguageLookup_aot_cell->value;
+ 		if (empty($QuicktimeLanguageLookup)) {
+ 			$QuicktimeLanguageLookup[0]     = 'English';
+ 			$QuicktimeLanguageLookup[1]     = 'French';
+@@ -2518,6 +2523,7 @@
+ 			$QuicktimeLanguageLookup[$languageid] = getid3_id3v2::LanguageLookup($iso_language_id);
+ 		}
+ 		return (isset($QuicktimeLanguageLookup[$languageid]) ? $QuicktimeLanguageLookup[$languageid] : 'invalid');
++		return null;
+ 	}
+ 
+ 	/**
+@@ -2525,8 +2531,9 @@
+ 	 *
+ 	 * @return string
+ 	 */
+-	public function QuicktimeVideoCodecLookup($codecid) {
+-		static $QuicktimeVideoCodecLookup = array();
++	public function QuicktimeVideoCodecLookup(mixed $codecid): mixed {
++		static $QuicktimeVideoCodecLookup_aot_cell = new \WordPressStaticArrayCell();
++		$QuicktimeVideoCodecLookup =& $QuicktimeVideoCodecLookup_aot_cell->value;
+ 		if (empty($QuicktimeVideoCodecLookup)) {
+ 			$QuicktimeVideoCodecLookup['.SGI'] = 'SGI';
+ 			$QuicktimeVideoCodecLookup['3IV1'] = '3ivx MPEG-4 v1';
+@@ -2583,6 +2590,7 @@
+ 			$QuicktimeVideoCodecLookup['yuvu'] = 'ComponentVideoSigned';
+ 		}
+ 		return (isset($QuicktimeVideoCodecLookup[$codecid]) ? $QuicktimeVideoCodecLookup[$codecid] : '');
++		return null;
+ 	}
+ 
+ 	/**
+@@ -2590,8 +2598,9 @@
+ 	 *
+ 	 * @return mixed|string
+ 	 */
+-	public function QuicktimeAudioCodecLookup($codecid) {
+-		static $QuicktimeAudioCodecLookup = array();
++	public function QuicktimeAudioCodecLookup(mixed $codecid): mixed {
++		static $QuicktimeAudioCodecLookup_aot_cell = new \WordPressStaticArrayCell();
++		$QuicktimeAudioCodecLookup =& $QuicktimeAudioCodecLookup_aot_cell->value;
+ 		if (empty($QuicktimeAudioCodecLookup)) {
+ 			$QuicktimeAudioCodecLookup['.mp3']          = 'Fraunhofer MPEG Layer-III alias';
+ 			$QuicktimeAudioCodecLookup['aac ']          = 'ISO/IEC 14496-3 AAC';
+@@ -2633,6 +2642,7 @@
+ 			$QuicktimeAudioCodecLookup['ulaw']          = 'mu-law 2:1';
+ 		}
+ 		return (isset($QuicktimeAudioCodecLookup[$codecid]) ? $QuicktimeAudioCodecLookup[$codecid] : '');
++		return null;
+ 	}
+ 
+ 	/**
+@@ -2640,13 +2650,15 @@
+ 	 *
+ 	 * @return string
+ 	 */
+-	public function QuicktimeDCOMLookup($compressionid) {
+-		static $QuicktimeDCOMLookup = array();
++	public function QuicktimeDCOMLookup(mixed $compressionid): mixed {
++		static $QuicktimeDCOMLookup_aot_cell = new \WordPressStaticArrayCell();
++		$QuicktimeDCOMLookup =& $QuicktimeDCOMLookup_aot_cell->value;
+ 		if (empty($QuicktimeDCOMLookup)) {
+ 			$QuicktimeDCOMLookup['zlib'] = 'ZLib Deflate';
+ 			$QuicktimeDCOMLookup['adec'] = 'Apple Compression';
+ 		}
+ 		return (isset($QuicktimeDCOMLookup[$compressionid]) ? $QuicktimeDCOMLookup[$compressionid] : '');
++		return null;
+ 	}
+ 
+ 	/**
+@@ -2654,8 +2666,9 @@
+ 	 *
+ 	 * @return string
+ 	 */
+-	public function QuicktimeColorNameLookup($colordepthid) {
+-		static $QuicktimeColorNameLookup = array();
++	public function QuicktimeColorNameLookup(mixed $colordepthid): mixed {
++		static $QuicktimeColorNameLookup_aot_cell = new \WordPressStaticArrayCell();
++		$QuicktimeColorNameLookup =& $QuicktimeColorNameLookup_aot_cell->value;
+ 		if (empty($QuicktimeColorNameLookup)) {
+ 			$QuicktimeColorNameLookup[1]  = '2-color (monochrome)';
+ 			$QuicktimeColorNameLookup[2]  = '4-color';
+@@ -2670,6 +2683,7 @@
+ 			$QuicktimeColorNameLookup[40] = '256-gray';
+ 		}
+ 		return (isset($QuicktimeColorNameLookup[$colordepthid]) ? $QuicktimeColorNameLookup[$colordepthid] : 'invalid');
++		return null;
+ 	}
+ 
+ 	/**
+@@ -2677,8 +2691,9 @@
+ 	 *
+ 	 * @return string
+ 	 */
+-	public function QuicktimeSTIKLookup($stik) {
+-		static $QuicktimeSTIKLookup = array();
++	public function QuicktimeSTIKLookup(mixed $stik): mixed {
++		static $QuicktimeSTIKLookup_aot_cell = new \WordPressStaticArrayCell();
++		$QuicktimeSTIKLookup =& $QuicktimeSTIKLookup_aot_cell->value;
+ 		if (empty($QuicktimeSTIKLookup)) {
+ 			$QuicktimeSTIKLookup[0]  = 'Movie';
+ 			$QuicktimeSTIKLookup[1]  = 'Normal';
+@@ -2692,6 +2707,7 @@
+ 			$QuicktimeSTIKLookup[21] = 'Podcast';
+ 		}
+ 		return (isset($QuicktimeSTIKLookup[$stik]) ? $QuicktimeSTIKLookup[$stik] : 'invalid');
++		return null;
+ 	}
+ 
+ 	/**
+@@ -2699,8 +2715,9 @@
+ 	 *
+ 	 * @return string
+ 	 */
+-	public function QuicktimeIODSaudioProfileName($audio_profile_id) {
+-		static $QuicktimeIODSaudioProfileNameLookup = array();
++	public function QuicktimeIODSaudioProfileName(mixed $audio_profile_id): mixed {
++		static $QuicktimeIODSaudioProfileNameLookup_aot_cell = new \WordPressStaticArrayCell();
++		$QuicktimeIODSaudioProfileNameLookup =& $QuicktimeIODSaudioProfileNameLookup_aot_cell->value;
+ 		if (empty($QuicktimeIODSaudioProfileNameLookup)) {
+ 			$QuicktimeIODSaudioProfileNameLookup = array(
+ 				0x00 => 'ISO Reserved (0x00)',
+@@ -2756,6 +2773,7 @@
+ 			);
+ 		}
+ 		return (isset($QuicktimeIODSaudioProfileNameLookup[$audio_profile_id]) ? $QuicktimeIODSaudioProfileNameLookup[$audio_profile_id] : 'ISO Reserved / User Private');
++		return null;
+ 	}
+ 
+ 	/**
+@@ -2763,8 +2781,9 @@
+ 	 *
+ 	 * @return string
+ 	 */
+-	public function QuicktimeIODSvideoProfileName($video_profile_id) {
+-		static $QuicktimeIODSvideoProfileNameLookup = array();
++	public function QuicktimeIODSvideoProfileName(mixed $video_profile_id): mixed {
++		static $QuicktimeIODSvideoProfileNameLookup_aot_cell = new \WordPressStaticArrayCell();
++		$QuicktimeIODSvideoProfileNameLookup =& $QuicktimeIODSvideoProfileNameLookup_aot_cell->value;
+ 		if (empty($QuicktimeIODSvideoProfileNameLookup)) {
+ 			$QuicktimeIODSvideoProfileNameLookup = array(
+ 				0x00 => 'Reserved (0x00) Profile',
+@@ -2832,6 +2851,7 @@
+ 			);
+ 		}
+ 		return (isset($QuicktimeIODSvideoProfileNameLookup[$video_profile_id]) ? $QuicktimeIODSvideoProfileNameLookup[$video_profile_id] : 'ISO Reserved Profile');
++		return null;
+ 	}
+ 
+ 	/**
+@@ -2839,8 +2859,9 @@
+ 	 *
+ 	 * @return string
+ 	 */
+-	public function QuicktimeContentRatingLookup($rtng) {
+-		static $QuicktimeContentRatingLookup = array();
++	public function QuicktimeContentRatingLookup(mixed $rtng): mixed {
++		static $QuicktimeContentRatingLookup_aot_cell = new \WordPressStaticArrayCell();
++		$QuicktimeContentRatingLookup =& $QuicktimeContentRatingLookup_aot_cell->value;
+ 		if (empty($QuicktimeContentRatingLookup)) {
+ 			$QuicktimeContentRatingLookup[0]  = 'None';
+ 			$QuicktimeContentRatingLookup[1]  = 'Explicit';
+@@ -2848,6 +2869,7 @@
+ 			$QuicktimeContentRatingLookup[4]  = 'Explicit (old)';
+ 		}
+ 		return (isset($QuicktimeContentRatingLookup[$rtng]) ? $QuicktimeContentRatingLookup[$rtng] : 'invalid');
++		return null;
+ 	}
+ 
+ 	/**
+@@ -2855,13 +2877,15 @@
+ 	 *
+ 	 * @return string
+ 	 */
+-	public function QuicktimeStoreAccountTypeLookup($akid) {
+-		static $QuicktimeStoreAccountTypeLookup = array();
++	public function QuicktimeStoreAccountTypeLookup(mixed $akid): mixed {
++		static $QuicktimeStoreAccountTypeLookup_aot_cell = new \WordPressStaticArrayCell();
++		$QuicktimeStoreAccountTypeLookup =& $QuicktimeStoreAccountTypeLookup_aot_cell->value;
+ 		if (empty($QuicktimeStoreAccountTypeLookup)) {
+ 			$QuicktimeStoreAccountTypeLookup[0] = 'iTunes';
+ 			$QuicktimeStoreAccountTypeLookup[1] = 'AOL';
+ 		}
+ 		return (isset($QuicktimeStoreAccountTypeLookup[$akid]) ? $QuicktimeStoreAccountTypeLookup[$akid] : 'invalid');
++		return null;
+ 	}
+ 
+ 	/**
+@@ -2869,8 +2893,9 @@
+ 	 *
+ 	 * @return string
+ 	 */
+-	public function QuicktimeStoreFrontCodeLookup($sfid) {
+-		static $QuicktimeStoreFrontCodeLookup = array();
++	public function QuicktimeStoreFrontCodeLookup(mixed $sfid): mixed {
++		static $QuicktimeStoreFrontCodeLookup_aot_cell = new \WordPressStaticArrayCell();
++		$QuicktimeStoreFrontCodeLookup =& $QuicktimeStoreFrontCodeLookup_aot_cell->value;
+ 		if (empty($QuicktimeStoreFrontCodeLookup)) {
+ 			$QuicktimeStoreFrontCodeLookup[143460] = 'Australia';
+ 			$QuicktimeStoreFrontCodeLookup[143445] = 'Austria';
+@@ -2896,6 +2921,7 @@
+ 			$QuicktimeStoreFrontCodeLookup[143441] = 'United States';
+ 		}
+ 		return (isset($QuicktimeStoreFrontCodeLookup[$sfid]) ? $QuicktimeStoreFrontCodeLookup[$sfid] : 'invalid');
++		return null;
+ 	}
+ 
+ 	/**
+@@ -2905,8 +2931,9 @@
+ 	 *
+ 	 * @return bool
+ 	 */
+-	public function CopyToAppropriateCommentsSection($keyname, $data, $boxname='') {
+-		static $handyatomtranslatorarray = array();
++	public function CopyToAppropriateCommentsSection(mixed $keyname, mixed $data, mixed $boxname=''): mixed {
++		static $handyatomtranslatorarray_aot_cell = new \WordPressStaticArrayCell();
++		$handyatomtranslatorarray =& $handyatomtranslatorarray_aot_cell->value;
+ 		if (empty($handyatomtranslatorarray)) {
+ 			// http://www.geocities.com/xhelmboyx/quicktime/formats/qtm-layout.txt
+ 			// http://www.geocities.com/xhelmboyx/quicktime/formats/mp4-layout.txt
+@@ -3031,6 +3058,7 @@
+ 			}
+ 		}
+ 		return true;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -3039,7 +3067,7 @@
+ 	 *
+ 	 * @return string
+ 	 */
+-	public function LociString($lstring, &$count) {
++	public function LociString(mixed $lstring, mixed &$count): mixed {
+ 		// Loci strings are UTF-8 or UTF-16 and null (x00/x0000) terminated. UTF-16 has a BOM
+ 		// Also need to return the number of bytes the string occupied so additional fields can be extracted
+ 		$len = strlen($lstring);
+@@ -3054,7 +3082,7 @@
+ 		// check for BOM
+ 		if (($len > 2) && ((($lstring[0] == "\xFE") && ($lstring[1] == "\xFF")) || (($lstring[0] == "\xFF") && ($lstring[1] == "\xFE")))) {
+ 			// UTF-16
+-			if (preg_match('/(.*)\x00/', $lstring, $lmatches)) {
++			if (preg_match('/(.*)\x00/', \wp_aot_regex_text( $lstring ), $lmatches)) {
+ 				$count = strlen($lmatches[1]) * 2 + 2; //account for 2 byte characters and trailing \x0000
+ 				return getid3_lib::iconv_fallback_utf16_utf8($lmatches[1]);
+ 			} else {
+@@ -3062,11 +3090,12 @@
+ 			}
+ 		}
+ 		// UTF-8
+-		if (preg_match('/(.*)\x00/', $lstring, $lmatches)) {
++		if (preg_match('/(.*)\x00/', \wp_aot_regex_text( $lstring ), $lmatches)) {
+ 			$count = strlen($lmatches[1]) + 1; //account for trailing \x00
+ 			return $lmatches[1];
+ 		}
+ 		return '';
++		return null;
+ 	}
+ 
+ 	/**
+@@ -3074,12 +3103,13 @@
+ 	 *
+ 	 * @return string
+ 	 */
+-	public function NoNullString($nullterminatedstring) {
++	public function NoNullString(mixed $nullterminatedstring): mixed {
+ 		// remove the single null terminator on null terminated strings
+ 		if (substr($nullterminatedstring, strlen($nullterminatedstring) - 1, 1) === "\x00") {
+ 			return substr($nullterminatedstring, 0, strlen($nullterminatedstring) - 1);
+ 		}
+ 		return $nullterminatedstring;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -3087,9 +3117,10 @@
+ 	 *
+ 	 * @return string
+ 	 */
+-	public function Pascal2String($pascalstring) {
++	public function Pascal2String(mixed $pascalstring): mixed {
+ 		// Pascal strings have 1 unsigned byte at the beginning saying how many chars (1-255) are in the string
+ 		return substr($pascalstring, 1);
++		return null;
+ 	}
+ 
+ 	/**
+@@ -3097,7 +3128,7 @@
+ 	 *
+ 	 * @return string
+ 	 */
+-	public function MaybePascal2String($pascalstring) {
++	public function MaybePascal2String(mixed $pascalstring): mixed {
+ 		// Pascal strings have 1 unsigned byte at the beginning saying how many chars (1-255) are in the string
+ 		// Check if string actually is in this format or written incorrectly, straight string, or null-terminated string
+ 		if (strlen($pascalstring) > 0) {
+@@ -3109,6 +3140,7 @@
+ 			}
+ 		}
+ 		return $pascalstring;
++		return null;
+ 	}
+ 
+ 
+@@ -3121,7 +3153,7 @@
+ 	 * @param string $history
+ 	 * @param array  $result
+ 	 */
+-	public function search_tag_by_key($info, $tag, $history, &$result) {
++	public function search_tag_by_key(mixed $info, mixed $tag, mixed $history, mixed &$result): mixed {
+ 		foreach ($info as $key => $value) {
+ 			$key_history = $history.'/'.$key;
+ 			if ($key === $tag) {
+@@ -3132,6 +3164,7 @@
+ 				}
+ 			}
+ 		}
++		return null;
+ 	}
+ 
+ 	/**
+@@ -3141,7 +3174,7 @@
+ 	 * @param string $history
+ 	 * @param array  $result
+ 	 */
+-	public function search_tag_by_pair($info, $k, $v, $history, &$result) {
++	public function search_tag_by_pair(mixed $info, mixed $k, mixed $v, mixed $history, mixed &$result): mixed {
+ 		foreach ($info as $key => $value) {
+ 			$key_history = $history.'/'.$key;
+ 			if (($key === $k) && ($value === $v)) {
+@@ -3152,6 +3185,7 @@
+ 				}
+ 			}
+ 		}
++		return null;
+ 	}
+ 
+ 	/**
+@@ -3159,7 +3193,7 @@
+ 	 *
+ 	 * @return array
+ 	 */
+-	public function quicktime_time_to_sample_table($info) {
++	public function quicktime_time_to_sample_table(mixed $info): mixed {
+ 		$res = array();
+ 		$this->search_tag_by_pair($info['quicktime']['moov'], 'name', 'stbl', 'quicktime/moov', $res);
+ 		foreach ($res as $value) {
+@@ -3174,6 +3208,7 @@
+ 			}
+ 		}
+ 		return array();
++		return null;
+ 	}
+ 
+ 
+@@ -3182,7 +3217,7 @@
+ 	 *
+ 	 * @return int
+ 	 */
+-	public function quicktime_bookmark_time_scale($info) {
++	public function quicktime_bookmark_time_scale(mixed $info): mixed {
+ 		$time_scale = '';
+ 		$ts_prefix_len = 0;
+ 		$res = array();
+@@ -3203,6 +3238,7 @@
+ 			}
+ 		}
+ 		return $time_scale;
++		return null;
+ 	}
+ 	/*
+ 	// END helper functions for m4b audiobook chapters

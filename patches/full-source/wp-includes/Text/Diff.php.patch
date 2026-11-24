@@ -1,5 +1,23 @@
 --- a/wp-includes/Text/Diff.php
 +++ b/wp-includes/Text/Diff.php
+@@ -22,7 +22,7 @@
+      *
+      * @var array
+      */
+-    var $_edits;
++    public $_edits;
+ 
+     /**
+      * Computes diffs between sequences of strings.
+@@ -33,7 +33,7 @@
+      *                           Normally an array of two arrays, each
+      *                           containing the lines from a file.
+      */
+-    function __construct( $engine, $params )
++    function __construct( mixed $engine, mixed $params )
+     {
+         // Backward compatibility workaround.
+         if (!is_string($engine)) {
 @@ -48,9 +48,12 @@
          }
  
@@ -15,3 +33,341 @@
  
          $this->_edits = call_user_func_array(array($diff_engine, 'diff'), $params);
      }
+@@ -58,16 +61,18 @@
+ 	/**
+ 	 * PHP4 constructor.
+ 	 */
+-	public function Text_Diff( $engine, $params ) {
++	public function Text_Diff( mixed $engine, mixed $params ): mixed {
+ 		self::__construct( $engine, $params );
++		return null;
+ 	}
+ 
+     /**
+      * Returns the array of differences.
+      */
+-    function getDiff()
++    function getDiff(): mixed
+     {
+         return $this->_edits;
++    	return null;
+     }
+ 
+     /**
+@@ -77,7 +82,7 @@
+      *
+      * @return int The number of new lines
+      */
+-    function countAddedLines()
++    function countAddedLines(): mixed
+     {
+         $count = 0;
+         foreach ($this->_edits as $edit) {
+@@ -87,6 +92,7 @@
+             }
+         }
+         return $count;
++    	return null;
+     }
+ 
+     /**
+@@ -96,7 +102,7 @@
+      *
+      * @return int The number of deleted lines
+      */
+-    function countDeletedLines()
++    function countDeletedLines(): mixed
+     {
+         $count = 0;
+         foreach ($this->_edits as $edit) {
+@@ -106,6 +112,7 @@
+             }
+         }
+         return $count;
++    	return null;
+     }
+ 
+     /**
+@@ -122,7 +129,7 @@
+      *                    reference here, since this essentially is a clone()
+      *                    method.
+      */
+-    function reverse()
++    function reverse(): mixed
+     {
+         if (version_compare(zend_version(), '2', '>')) {
+             $rev = clone($this);
+@@ -134,6 +141,7 @@
+             $rev->_edits[] = $edit->reverse();
+         }
+         return $rev;
++    	return null;
+     }
+ 
+     /**
+@@ -141,7 +149,7 @@
+      *
+      * @return bool True if two sequences were identical.
+      */
+-    function isEmpty()
++    function isEmpty(): mixed
+     {
+         foreach ($this->_edits as $edit) {
+             if (!is_a($edit, 'Text_Diff_Op_copy')) {
+@@ -149,6 +157,7 @@
+             }
+         }
+         return true;
++    	return null;
+     }
+ 
+     /**
+@@ -158,7 +167,7 @@
+      *
+      * @return int The length of the LCS.
+      */
+-    function lcs()
++    function lcs(): mixed
+     {
+         $lcs = 0;
+         foreach ($this->_edits as $edit) {
+@@ -167,6 +176,7 @@
+             }
+         }
+         return $lcs;
++    	return null;
+     }
+ 
+     /**
+@@ -176,7 +186,7 @@
+      *
+      * @return array  The original sequence of strings.
+      */
+-    function getOriginal()
++    function getOriginal(): mixed
+     {
+         $lines = array();
+         foreach ($this->_edits as $edit) {
+@@ -185,6 +195,7 @@
+             }
+         }
+         return $lines;
++    	return null;
+     }
+ 
+     /**
+@@ -194,7 +205,7 @@
+      *
+      * @return array  The sequence of strings.
+      */
+-    function getFinal()
++    function getFinal(): mixed
+     {
+         $lines = array();
+         foreach ($this->_edits as $edit) {
+@@ -203,6 +214,7 @@
+             }
+         }
+         return $lines;
++    	return null;
+     }
+ 
+     /**
+@@ -212,9 +224,10 @@
+      * @param string $line  The line to trim.
+      * @param int    $key   The index of the line in the array. Not used.
+      */
+-    static function trimNewlines(&$line, $key)
+-    {
+-        $line = str_replace(array("\n", "\r"), '', $line);
++    static function trimNewlines(mixed &$line, mixed $key): mixed
++    {
++        $line = \wp_aot_str_replace(array("\n", "\r"), '', $line);
++    	return null;
+     }
+ 
+     /**
+@@ -224,9 +237,10 @@
+      *
+      * @return string  A directory name which can be used for temp files.
+      */
+-    static function _getTempDir()
++    static function _getTempDir(): mixed
+     {
+         return get_temp_dir();
++    	return null;
+     }
+ 
+     /**
+@@ -234,7 +248,7 @@
+      *
+      * This is here only for debugging purposes.
+      */
+-    function _check($from_lines, $to_lines)
++    function _check(mixed $from_lines, mixed $to_lines): mixed
+     {
+         if (serialize($from_lines) != serialize($this->getOriginal())) {
+             throw new Text_Exception("Reconstructed original does not match");
+@@ -260,6 +274,7 @@
+         }
+ 
+         return true;
++    	return null;
+     }
+ 
+ }
+@@ -286,8 +301,8 @@
+      * @param array $mapped_to_lines    This array should have the same number
+      *                                  of elements as $to_lines.
+      */
+-    function __construct($from_lines, $to_lines,
+-                             $mapped_from_lines, $mapped_to_lines)
++    function __construct(mixed $from_lines, mixed $to_lines,
++                             mixed $mapped_from_lines, mixed $mapped_to_lines)
+     {
+         assert(count($from_lines) == count($mapped_from_lines));
+         assert(count($to_lines) == count($mapped_to_lines));
+@@ -296,15 +311,17 @@
+ 
+         $xi = $yi = 0;
+         for ($i = 0; $i < count($this->_edits); $i++) {
+-            $orig = &$this->_edits[$i]->orig;
++            $orig_edit = \wp_aot_require_Text_Diff_Op($this->_edits[$i]);
++            $orig = &$orig_edit->orig;
+             if (is_array($orig)) {
+-                $orig = array_slice($from_lines, $xi, count($orig));
++                $orig = \wp_aot_array_slice($from_lines, $xi, count($orig));
+                 $xi += count($orig);
+             }
+ 
+-            $final = &$this->_edits[$i]->final;
++            $final_edit = \wp_aot_require_Text_Diff_Op($this->_edits[$i]);
++            $final = &$final_edit->final;
+             if (is_array($final)) {
+-                $final = array_slice($to_lines, $yi, count($final));
++                $final = \wp_aot_array_slice($to_lines, $yi, count($final));
+                 $yi += count($final);
+             }
+         }
+@@ -313,10 +330,11 @@
+ 	/**
+ 	 * PHP4 constructor.
+ 	 */
+-	public function Text_MappedDiff( $from_lines, $to_lines,
+-                             $mapped_from_lines, $mapped_to_lines ) {
++	public function Text_MappedDiff( mixed $from_lines, mixed $to_lines,
++                             mixed $mapped_from_lines, mixed $mapped_to_lines ): mixed {
+ 		self::__construct( $from_lines, $to_lines,
+                              $mapped_from_lines, $mapped_to_lines );
++		return null;
+ 	}
+ 
+ }
+@@ -329,19 +347,21 @@
+  */
+ abstract class Text_Diff_Op {
+ 
+-    var $orig;
+-    var $final;
++    public $orig;
++    public $final;
+ 
+     abstract function &reverse();
+ 
+-    function norig()
++    function norig(): mixed
+     {
+         return $this->orig ? count($this->orig) : 0;
+-    }
+-
+-    function nfinal()
++    	return null;
++    }
++
++    function nfinal(): mixed
+     {
+         return $this->final ? count($this->final) : 0;
++    	return null;
+     }
+ 
+ }
+@@ -357,7 +377,7 @@
+ 	/**
+ 	 * PHP5 constructor.
+ 	 */
+-    function __construct( $orig, $final = false )
++    function __construct( mixed $orig, mixed $final = false )
+     {
+         if (!is_array($final)) {
+             $final = $orig;
+@@ -369,8 +389,9 @@
+ 	/**
+ 	 * PHP4 constructor.
+ 	 */
+-	public function Text_Diff_Op_copy( $orig, $final = false ) {
++	public function Text_Diff_Op_copy( mixed $orig, mixed $final = false ): mixed {
+ 		self::__construct( $orig, $final );
++		return null;
+ 	}
+ 
+     function &reverse()
+@@ -392,7 +413,7 @@
+ 	/**
+ 	 * PHP5 constructor.
+ 	 */
+-	function __construct( $lines )
++	function __construct( mixed $lines )
+     {
+         $this->orig = $lines;
+         $this->final = false;
+@@ -401,8 +422,9 @@
+ 	/**
+ 	 * PHP4 constructor.
+ 	 */
+-	public function Text_Diff_Op_delete( $lines ) {
++	public function Text_Diff_Op_delete( mixed $lines ): mixed {
+ 		self::__construct( $lines );
++		return null;
+ 	}
+ 
+     function &reverse()
+@@ -424,7 +446,7 @@
+ 	/**
+ 	 * PHP5 constructor.
+ 	 */
+-    function __construct( $lines )
++    function __construct( mixed $lines )
+     {
+         $this->final = $lines;
+         $this->orig = false;
+@@ -433,8 +455,9 @@
+ 	/**
+ 	 * PHP4 constructor.
+ 	 */
+-	public function Text_Diff_Op_add( $lines ) {
++	public function Text_Diff_Op_add( mixed $lines ): mixed {
+ 		self::__construct( $lines );
++		return null;
+ 	}
+ 
+     function &reverse()
+@@ -456,7 +479,7 @@
+ 	/**
+ 	 * PHP5 constructor.
+ 	 */
+-    function __construct( $orig, $final )
++    function __construct( mixed $orig, mixed $final )
+     {
+         $this->orig = $orig;
+         $this->final = $final;
+@@ -465,8 +488,9 @@
+ 	/**
+ 	 * PHP4 constructor.
+ 	 */
+-	public function Text_Diff_Op_change( $orig, $final ) {
++	public function Text_Diff_Op_change( mixed $orig, mixed $final ): mixed {
+ 		self::__construct( $orig, $final );
++		return null;
+ 	}
+ 
+     function &reverse()

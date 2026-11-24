@@ -1,0 +1,18 @@
+--- a/wp-includes/php-ai-client/third-party/Http/Discovery/Psr18ClientDiscovery.php
++++ b/wp-includes/php-ai-client/third-party/Http/Discovery/Psr18ClientDiscovery.php
+@@ -19,7 +19,7 @@
+      *
+      * @throws RealNotFoundException
+      */
+-    public static function find()
++    public static function find(): mixed
+     {
+         try {
+             $client = static::findOneByType(ClientInterface::class);
+@@ -27,5 +27,6 @@
+             throw new RealNotFoundException('No PSR-18 clients found. Make sure to install a package providing "psr/http-client-implementation". Example: "php-http/guzzle7-adapter".', 0, $e);
+         }
+         return static::instantiateClass($client);
++    	return null;
+     }
+ }

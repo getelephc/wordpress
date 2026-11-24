@@ -1,13 +1,120 @@
 --- a/wp-admin/includes/class-wp-themes-list-table.php
 +++ b/wp-admin/includes/class-wp-themes-list-table.php
-@@ -140,13 +140,16 @@
- 		if ( $this->get_pagination_arg( 'total_pages' ) <= 1 ) {
- 			return;
+@@ -28,7 +28,7 @@
+ 	 *
+ 	 * @param array $args An associative array of arguments.
+ 	 */
+-	public function __construct( $args = array() ) {
++	public function __construct( mixed $args = array() ) {
+ 		parent::__construct(
+ 			array(
+ 				'ajax'   => true,
+@@ -40,18 +40,19 @@
+ 	/**
+ 	 * @return bool
+ 	 */
+-	public function ajax_user_can() {
++	public function ajax_user_can(): mixed {
+ 		// Do not check edit_theme_options here. Ajax calls for available themes require switch_themes.
+ 		return current_user_can( 'switch_themes' );
+-	}
+-
+-	/**
+-	 */
+-	public function prepare_items() {
++		return null;
++	}
++
++	/**
++	 */
++	public function prepare_items(): mixed {
+ 		$themes = wp_get_themes( array( 'allowed' => true ) );
+ 
+ 		if ( ! empty( $_REQUEST['s'] ) ) {
+-			$this->search_terms = array_unique( array_filter( array_map( 'trim', explode( ',', strtolower( wp_unslash( $_REQUEST['s'] ) ) ) ) ) );
++			$this->search_terms = \wp_aot_array_unique( \wp_aot_array_filter( \wp_aot_array_map( 'trim', explode( ',', strtolower( wp_unslash( $_REQUEST['s'] ) ) ) ) ) );
  		}
+ 
+ 		if ( ! empty( $_REQUEST['features'] ) ) {
+@@ -74,7 +75,7 @@
+ 
+ 		$start = ( $page - 1 ) * $per_page;
+ 
+-		$this->items = array_slice( $themes, $start, $per_page, true );
++		$this->items = \wp_aot_array_slice( $themes, $start, $per_page, true );
+ 
+ 		$this->set_pagination_args(
+ 			array(
+@@ -83,14 +84,15 @@
+ 				'infinite_scroll' => true,
+ 			)
+ 		);
+-	}
+-
+-	/**
+-	 */
+-	public function no_items() {
++		return null;
++	}
++
++	/**
++	 */
++	public function no_items(): mixed {
+ 		if ( $this->search_terms || $this->features ) {
+ 			_e( 'No items found.' );
+-			return;
++			return null;
+ 		}
+ 
+ 		$blog_id = get_current_blog_id();
+@@ -103,7 +105,7 @@
+ 					network_admin_url( 'theme-install.php' )
+ 				);
+ 
+-				return;
++				return null;
+ 			} elseif ( current_user_can( 'manage_network_themes' ) ) {
+ 				printf(
+ 					/* translators: %s: URL to Themes tab on Edit Site screen. */
+@@ -111,7 +113,7 @@
+ 					network_admin_url( 'site-themes.php?id=' . $blog_id )
+ 				);
+ 
+-				return;
++				return null;
+ 			}
+ 			// Else, fallthrough. install_themes doesn't help if you can't enable it.
+ 		} else {
+@@ -122,7 +124,7 @@
+ 					admin_url( 'theme-install.php' )
+ 				);
+ 
+-				return;
++				return null;
+ 			}
+ 		}
+ 		// Fallthrough.
+@@ -131,22 +133,27 @@
+ 			__( 'Only the active theme is available to you. Contact the %s administrator for information about accessing additional themes.' ),
+ 			get_site_option( 'site_name' )
+ 		);
++		return null;
+ 	}
+ 
+ 	/**
+ 	 * @param string $which
+ 	 */
+-	public function tablenav( $which = 'top' ) {
++	public function tablenav( mixed $which = 'top' ): mixed {
+ 		if ( $this->get_pagination_arg( 'total_pages' ) <= 1 ) {
+-			return;
+-		}
 -		?>
 -		<div class="tablenav themes <?php echo $which; ?>">
 -			<?php $this->pagination( $which ); ?>
 -			<span class="spinner"></span>
++			return null;
++		}
 +		;
 +echo '		<div class="tablenav themes ';
 +echo $which; ;
@@ -19,12 +126,16 @@
  		</div>
 -		<?php
 +		';
++		return null;
  	}
  
  	/**
-@@ -158,15 +161,18 @@
+@@ -156,29 +163,34 @@
+ 	 *
+ 	 * @since 3.1.0
  	 */
- 	public function display() {
+-	public function display() {
++	public function display( mixed $wp_aot_output_empty = false ): mixed {
  		wp_nonce_field( 'fetch-list-' . get_class( $this ), '_ajax_fetch_list_nonce' );
 -		?>
 -		<?php $this->tablenav( 'top' ); ?>
@@ -46,10 +157,43 @@
 +		';
 +$this->tablenav( 'bottom' ); ;
 +echo '		';
++		return null;
  	}
  
  	/**
-@@ -197,9 +203,9 @@
+ 	 * @return string[] Array of column titles keyed by their column name.
+ 	 */
+-	public function get_columns() {
++	public function get_columns(): mixed {
+ 		return array();
+-	}
+-
+-	/**
+-	 */
+-	public function display_rows_or_placeholder() {
++		return null;
++	}
++
++	/**
++	 */
++	public function display_rows_or_placeholder(): mixed {
+ 		if ( $this->has_items() ) {
+ 			$this->display_rows();
+ 		} else {
+@@ -186,6 +198,7 @@
+ 			$this->no_items();
+ 			echo '</div>';
+ 		}
++		return null;
+ 	}
+ 
+ 	/**
+@@ -193,13 +206,13 @@
+ 	 *
+ 	 * @since 3.1.0
+ 	 */
+-	public function display_rows() {
++	public function display_rows( mixed $wp_aot_posts = array(), mixed $wp_aot_level = 0 ): mixed {
  		$themes = $this->items;
  
  		foreach ( $themes as $theme ) :
@@ -62,7 +206,7 @@
  
  			$template   = $theme->get_template();
  			$stylesheet = $theme->get_stylesheet();
-@@ -245,42 +251,68 @@
+@@ -245,42 +258,68 @@
  			unset( $actions['delete'] );
  
  			$screenshot = $theme->get_screenshot();
@@ -158,7 +302,7 @@
  				if ( $theme->parent() ) {
  					printf(
  						/* translators: 1: Link to documentation on child themes, 2: Name of parent theme. */
-@@ -289,11 +321,11 @@
+@@ -289,19 +328,20 @@
  						$theme->parent()->display( 'Name' )
  					);
  				}
@@ -172,5 +316,50 @@
 -			<?php
 +			';
  		endforeach;
++		return null;
  	}
  
+ 	/**
+ 	 * @param WP_Theme $theme
+ 	 * @return bool
+ 	 */
+-	public function search_theme( $theme ) {
++	public function search_theme( mixed $theme ): mixed {
+ 		// Search the features.
+ 		foreach ( $this->features as $word ) {
+ 			if ( ! in_array( $word, $theme->get( 'Tags' ), true ) ) {
+@@ -334,6 +374,7 @@
+ 		}
+ 
+ 		return true;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -343,21 +384,22 @@
+ 	 *
+ 	 * @param array $extra_args
+ 	 */
+-	public function _js_vars( $extra_args = array() ) {
++	public function _js_vars( mixed $extra_args = array() ): mixed {
+ 		$search_string = isset( $_REQUEST['s'] ) ? esc_attr( wp_unslash( $_REQUEST['s'] ) ) : '';
+ 
+-		$args = array(
++		$args = \wp_aot_mixed(array(
+ 			'search'      => $search_string,
+ 			'features'    => $this->features,
+ 			'paged'       => $this->get_pagenum(),
+ 			'total_pages' => ! empty( $this->_pagination_args['total_pages'] ) ? $this->_pagination_args['total_pages'] : 1,
+-		);
++		));
+ 
+ 		if ( is_array( $extra_args ) ) {
+-			$args = array_merge( $args, $extra_args );
++			$args = \wp_aot_array_merge(array( $args, $extra_args ));
+ 		}
+ 
+ 		printf( "<script>var theme_list_args = %s;</script>\n", wp_json_encode( $args, JSON_HEX_TAG | JSON_UNESCAPED_SLASHES ) );
+ 		parent::_js_vars();
++		return null;
+ 	}
+ }

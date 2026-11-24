@@ -1,0 +1,11 @@
+--- a/wp-includes/SimplePie/library/SimplePie.php
++++ b/wp-includes/SimplePie/library/SimplePie.php
+@@ -36,7 +36,7 @@
+  * @todo Hardcode for release (there's no need to have to call SimplePie_Misc::get_build() only every load of simplepie.inc)
+  * @deprecated since SimplePie 1.7.0, use \SimplePie\Misc::get_build() instead.
+  */
+-define('SIMPLEPIE_BUILD', gmdate('YmdHis', \SimplePie\Misc::get_build()));
++define('SIMPLEPIE_BUILD', \wp_aot_gmdate('YmdHis', \SimplePie\Misc::get_build()));
+ 
+ /**
+  * SimplePie Website URL

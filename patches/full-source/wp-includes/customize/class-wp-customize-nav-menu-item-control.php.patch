@@ -1,11 +1,30 @@
 --- a/wp-includes/customize/class-wp-customize-nav-menu-item-control.php
 +++ b/wp-includes/customize/class-wp-customize-nav-menu-item-control.php
-@@ -62,96 +62,115 @@
+@@ -45,7 +45,7 @@
+ 	 *                                      See WP_Customize_Control::__construct() for information
+ 	 *                                      on accepted arguments. Default empty array.
+ 	 */
+-	public function __construct( $manager, $id, $args = array() ) {
++	public function __construct( mixed $manager, mixed $id, mixed $args = array() ) {
+ 		parent::__construct( $manager, $id, $args );
+ 	}
+ 
+@@ -54,104 +54,123 @@
+ 	 *
  	 * @since 4.3.0
  	 */
- 	public function content_template() {
+-	public function render_content() {}
++	public function render_content(): mixed { return null; }
+ 
+ 	/**
+ 	 * JS/Underscore template for the control UI.
+ 	 *
+ 	 * @since 4.3.0
+ 	 */
+-	public function content_template() {
 -		?>
 -		<div class="menu-item-bar">
++	public function content_template(): mixed {
 +		;
 +echo '		<div class="menu-item-bar">
  			<div class="menu-item-handle">
@@ -146,7 +165,7 @@
  			/**
  			 * Fires at the end of the form field template for nav menu items in the customizer.
  			 *
-@@ -160,26 +179,28 @@
+@@ -160,26 +179,29 @@
  			 * @since 5.4.0
  			 */
  			do_action( 'wp_nav_menu_item_custom_fields_customize_template' );
@@ -180,6 +199,21 @@
  		<ul class="menu-item-transport"></ul>
 -		<?php
 +		';
++		return null;
  	}
  
  	/**
+@@ -189,10 +211,11 @@
+ 	 *
+ 	 * @return array Exported parameters.
+ 	 */
+-	public function json() {
++	public function json(): mixed {
+ 		$exported                 = parent::json();
+-		$exported['menu_item_id'] = $this->setting->post_id;
++		$exported['menu_item_id'] = \wp_aot_mixed($this->setting)->post_id;
+ 
+ 		return $exported;
++		return null;
+ 	}
+ }

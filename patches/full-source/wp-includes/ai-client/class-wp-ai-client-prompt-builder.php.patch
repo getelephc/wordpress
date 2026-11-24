@@ -1,0 +1,52 @@
+--- a/wp-includes/ai-client/class-wp-ai-client-prompt-builder.php
++++ b/wp-includes/ai-client/class-wp-ai-client-prompt-builder.php
+@@ -182,7 +182,7 @@
+ 	 *                                   parts or messages for multi-turn
+ 	 *                                   conversations. Default null.
+ 	 */
+-	public function __construct( ProviderRegistry $registry, $prompt = null ) {
++	public function __construct( ProviderRegistry $registry, mixed $prompt = null ) {
+ 		try {
+ 			$this->builder = new PromptBuilder( $registry, $prompt, AiClient::getEventDispatcher() );
+ 		} catch ( Exception $e ) {
+@@ -234,7 +234,7 @@
+ 	 * @param WP_Ability|string ...$abilities The abilities to register, either as WP_Ability objects or ability name strings.
+ 	 * @return self The current instance for method chaining.
+ 	 */
+-	public function using_abilities( ...$abilities ): self {
++	public function using_abilities( mixed ...$abilities ): self {
+ 		$declarations = array();
+ 
+ 		foreach ( $abilities as $ability ) {
+@@ -271,10 +271,10 @@
+ 		}
+ 
+ 		if ( ! empty( $declarations ) ) {
+-			return $this->using_function_declarations( ...$declarations );
+-		}
+-
+-		return $this;
++			return \wp_aot_require_WP_AI_Client_Prompt_Builder($this->using_function_declarations( ...$declarations ));
++		}
++
++		return \wp_aot_require_WP_AI_Client_Prompt_Builder($this);
+ 	}
+ 
+ 	/**
+@@ -290,7 +290,7 @@
+ 	 * @param array<int, mixed> $arguments The method arguments.
+ 	 * @return mixed The result of the method call.
+ 	 */
+-	public function __call( string $name, array $arguments ) {
++	public function __call( string $name, array $arguments ): mixed {
+ 		/*
+ 		 * If an error occurred in a previous method call, either return the error for terminate methods,
+ 		 * or return the same instance for other methods to maintain the fluent interface.
+@@ -366,6 +366,7 @@
+ 			}
+ 			return $this;
+ 		}
++		return null;
+ 	}
+ 
+ 	/**

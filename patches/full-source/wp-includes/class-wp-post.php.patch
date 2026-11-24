@@ -1,0 +1,70 @@
+--- a/wp-includes/class-wp-post.php
++++ b/wp-includes/class-wp-post.php
+@@ -275,7 +275,7 @@
+ 	 *
+ 	 * @phpstan-param int|numeric-string $post_id
+ 	 */
+-	public static function get_instance( $post_id ) {
++	public static function get_instance( mixed $post_id ): mixed {
+ 		global $wpdb;
+ 
+ 		$post_id = (int) $post_id;
+@@ -286,7 +286,7 @@
+ 		$_post = wp_cache_get( $post_id, 'posts' );
+ 
+ 		if ( ! ( $_post instanceof stdClass ) && ! ( $_post instanceof WP_Post ) ) {
+-			$_post = $wpdb->get_row( $wpdb->prepare( "SELECT * FROM $wpdb->posts WHERE ID = %d LIMIT 1", $post_id ) );
++			$_post = \wp_aot_require_wpdb( $wpdb )->get_row( \wp_aot_require_wpdb( $wpdb )->prepare( "SELECT * FROM $wpdb->posts WHERE ID = %d LIMIT 1", $post_id ) );
+ 
+ 			if ( ! $_post ) {
+ 				return false;
+@@ -299,6 +299,7 @@
+ 		}
+ 
+ 		return new WP_Post( $_post );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -308,7 +309,7 @@
+ 	 *
+ 	 * @param object $post Post object.
+ 	 */
+-	public function __construct( $post ) {
++	public function __construct( mixed $post ) {
+ 		foreach ( get_object_vars( $post ) as $key => $value ) {
+ 			$this->$key = $value;
+ 		}
+@@ -411,7 +412,7 @@
+ 	 *     $filter is 'raw' ? WP_Post|false : WP_Post
+ 	 * )
+ 	 */
+-	public function filter( $filter ) {
++	public function filter( mixed $filter ): mixed {
+ 		if ( $this->filter === $filter ) {
+ 			return $this;
+ 		}
+@@ -421,6 +422,7 @@
+ 		}
+ 
+ 		return sanitize_post( $this, $filter );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -432,7 +434,7 @@
+ 	 *
+ 	 * @phpstan-return Data_Array
+ 	 */
+-	public function to_array() {
++	public function to_array(): mixed {
+ 		$post = get_object_vars( $this );
+ 
+ 		foreach ( array( 'ancestors', 'page_template', 'post_category', 'tags_input' ) as $key ) {
+@@ -443,5 +445,6 @@
+ 
+ 		/** @var Data_Array $post */
+ 		return $post;
++		return null;
+ 	}
+ }

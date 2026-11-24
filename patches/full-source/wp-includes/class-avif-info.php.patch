@@ -1,0 +1,212 @@
+--- a/wp-includes/class-avif-info.php
++++ b/wp-includes/class-avif-info.php
+@@ -39,7 +39,7 @@
+  * @param int           $num_bytes Number of parsed bytes.
+  * @return int                     Value.
+  */
+-function read_big_endian( $input, $num_bytes ) {
++function read_big_endian( mixed $input, mixed $num_bytes ): mixed {
+   if ( $num_bytes == 1 ) {
+     return unpack( 'C', $input ) [1];
+   } else if ( $num_bytes == 2 ) {
+@@ -52,6 +52,7 @@
+     // See https://www.php.net/manual/en/function.unpack.php#106041
+     return unpack( 'N', $input ) [1];
+   }
++	return null;
+ }
+ 
+ /**
+@@ -61,9 +62,10 @@
+  * @param int                  $num_bytes Number of bytes read. Must be greater than 0.
+  * @return binary string|false            The raw bytes or false on failure.
+  */
+-function read( $handle, $num_bytes ) {
+-  $data = fread( $handle, $num_bytes );
++function read( mixed $handle, mixed $num_bytes ): mixed {
++  $data = \wp_aot_fread( $handle, \wp_aot_internal_int( $num_bytes ) );
+   return ( $data !== false && strlen( $data ) >= $num_bytes ) ? $data : false;
++	return null;
+ }
+ 
+ /**
+@@ -74,8 +76,9 @@
+  * @return bool             True on success or false on failure.
+  */
+ // Skips 'num_bytes' from the 'stream'. 'num_bytes' can be zero.
+-function skip( $handle, $num_bytes ) {
+-  return ( fseek( $handle, $num_bytes, SEEK_CUR ) == 0 );
++function skip( mixed $handle, mixed $num_bytes ): mixed {
++  return ( fseek( $handle, \wp_aot_internal_int( $num_bytes ), SEEK_CUR ) == 0 );
++	return null;
+ }
+ 
+ //------------------------------------------------------------------------------
+@@ -127,7 +130,7 @@
+    * @param int     $tile_depth     Maximum recursion to search within tile-parent relations.
+    * @return Status                 FOUND on success or NOT_FOUND on failure.
+    */
+-  private function get_item_features( $target_item_id, $tile_depth ) {
++  private function get_item_features( mixed $target_item_id, mixed $tile_depth ): mixed {
+     foreach ( $this->props as $prop ) {
+       if ( $prop->item_id != $target_item_id ) {
+         continue;
+@@ -182,6 +185,7 @@
+       }
+     }
+     return NOT_FOUND;
++  	return null;
+   }
+ 
+   /**
+@@ -189,7 +193,7 @@
+    *
+    * @return Status FOUND on success or NOT_FOUND on failure.
+    */
+-  public function get_primary_item_features() {
++  public function get_primary_item_features(): mixed {
+     // Nothing to do without the primary item ID.
+     if ( !$this->has_primary_item ) {
+       return NOT_FOUND;
+@@ -208,6 +212,7 @@
+       ++$this->primary_item_features['num_channels'];
+     }
+     return FOUND;
++  	return null;
+   }
+ }
+ 
+@@ -228,7 +233,7 @@
+    * @param int     $num_remaining_bytes The number of bytes that should be available from the resource.
+    * @return Status                      FOUND on success or an error on failure.
+    */
+-  public function parse( $handle, &$num_parsed_boxes, $num_remaining_bytes = MAX_SIZE ) {
++  public function parse( mixed $handle, mixed &$num_parsed_boxes, mixed $num_remaining_bytes = MAX_SIZE ): mixed {
+     // See ISO/IEC 14496-12:2012(E) 4.2
+     $header_size = 8; // box 32b size + 32b type (at least)
+     if ( $header_size > $num_remaining_bytes ) {
+@@ -314,6 +319,7 @@
+     }
+     // print_r( $this ); // Uncomment to print all boxes.
+     return FOUND;
++  	return null;
+   }
+ }
+ 
+@@ -321,11 +327,11 @@
+ 
+ class Parser {
+   private $handle; // Input stream.
+-  private $num_parsed_boxes = 0;
++  private mixed $num_parsed_boxes = 0;
+   private $data_was_skipped = false;
+   public $features;
+ 
+-  function __construct( $handle ) {
++  function __construct( mixed $handle ) {
+     $this->handle   = $handle;
+     $this->features = new Features();
+   }
+@@ -340,7 +346,7 @@
+    * @param int     $num_remaining_bytes The number of bytes that should be available from the resource.
+    * @return Status                      FOUND on success or an error on failure.
+    */
+-  private function parse_ipco( $num_remaining_bytes ) {
++  private function parse_ipco( mixed $num_remaining_bytes ): mixed {
+     $box_index = 1; // 1-based index. Used for iterating over properties.
+     do {
+       $box    = new Box();
+@@ -485,6 +491,7 @@
+       $num_remaining_bytes -= $box->size;
+     } while ( $num_remaining_bytes > 0 );
+     return NOT_FOUND;
++  	return null;
+   }
+ 
+   /**
+@@ -496,7 +503,7 @@
+    * @param int     $num_remaining_bytes The number of bytes that should be available from the resource.
+    * @return Status                      FOUND on success or an error on failure.
+    */
+-  private function parse_iprp( $num_remaining_bytes ) {
++  private function parse_iprp( mixed $num_remaining_bytes ): mixed {
+     do {
+       $box    = new Box();
+       $status = $box->parse( $this->handle, $this->num_parsed_boxes, $num_remaining_bytes );
+@@ -589,6 +596,7 @@
+       $num_remaining_bytes -= $box->size;
+     } while ( $num_remaining_bytes > 0 );
+     return NOT_FOUND;
++  	return null;
+   }
+ 
+   /**
+@@ -602,7 +610,7 @@
+    * @param int     $num_remaining_bytes The number of bytes that should be available from the resource.
+    * @return Status                      FOUND on success or an error on failure.
+    */
+-  private function parse_iref( $num_remaining_bytes ) {
++  private function parse_iref( mixed $num_remaining_bytes ): mixed {
+     while ( $num_remaining_bytes > 0 ) {
+       $box    = new Box();
+       $status = $box->parse( $this->handle, $this->num_parsed_boxes, $num_remaining_bytes );
+@@ -665,6 +673,7 @@
+       $num_remaining_bytes -= $box->size;
+     }
+     return NOT_FOUND;
++  	return null;
+   }
+ 
+   /**
+@@ -677,7 +686,7 @@
+    * @param int     $num_remaining_bytes The number of bytes that should be available from the resource.
+    * @return Status                      FOUND on success or an error on failure.
+    */
+-  private function parse_meta( $num_remaining_bytes ) {
++  private function parse_meta( mixed $num_remaining_bytes ): mixed {
+     do {
+       $box    = new Box();
+       $status = $box->parse( $this->handle, $this->num_parsed_boxes, $num_remaining_bytes );
+@@ -722,6 +731,7 @@
+     } while ( $num_remaining_bytes != 0 );
+     // According to ISO/IEC 14496-12:2012(E) 8.11.1.1 there is at most one "meta".
+     return INVALID;
++  	return null;
+   }
+ 
+   /**
+@@ -731,7 +741,7 @@
+    *
+    * @return bool True if the input stream is an AVIF bitstream or false.
+    */
+-  public function parse_ftyp() {
++  public function parse_ftyp(): mixed {
+     $box    = new Box();
+     $status = $box->parse( $this->handle, $this->num_parsed_boxes );
+     if ( $status != FOUND ) {
+@@ -761,6 +771,7 @@
+ 
+     }
+     return false; // No AVIF brand no good.
++  	return null;
+   }
+ 
+   /**
+@@ -770,7 +781,7 @@
+    *
+    * @return bool True if the main features of the primary item were parsed or false.
+    */
+-  public function parse_file() {
++  public function parse_file(): mixed {
+     $box = new Box();
+     while ( $box->parse( $this->handle, $this->num_parsed_boxes ) == FOUND ) {
+       if ( $box->type === 'meta' ) {
+@@ -784,5 +795,6 @@
+       }
+     }
+     return false; // No "meta" no good.
+-  }
+-}
++  	return null;
++  }
++}

@@ -1,6 +1,30 @@
 --- a/wp-admin/includes/theme-install.php
 +++ b/wp-admin/includes/theme-install.php
-@@ -94,23 +94,36 @@
+@@ -59,7 +59,7 @@
+  *
+  * @return array
+  */
+-function install_themes_feature_list() {
++function install_themes_feature_list(): mixed {
+ 	_deprecated_function( __FUNCTION__, '3.1.0', 'get_theme_feature_list()' );
+ 
+ 	$cache = get_transient( 'wporg_theme_feature_list' );
+@@ -79,6 +79,7 @@
+ 	set_transient( 'wporg_theme_feature_list', $feature_list, 3 * HOUR_IN_SECONDS );
+ 
+ 	return $feature_list;
++	return null;
+ }
+ 
+ /**
+@@ -88,29 +89,42 @@
+  *
+  * @param bool $type_selector
+  */
+-function install_theme_search_form( $type_selector = true ) {
++function install_theme_search_form( mixed $type_selector = true ): mixed {
+ 	$type = isset( $_REQUEST['type'] ) ? wp_unslash( $_REQUEST['type'] ) : 'term';
+ 	$term = isset( $_REQUEST['s'] ) ? wp_unslash( $_REQUEST['s'] ) : '';
  	if ( ! $type_selector ) {
  		echo '<p class="install-help">' . __( 'Search for themes by keyword.' ) . '</p>';
  	}
@@ -48,7 +72,7 @@
  		switch ( $type ) {
  			case 'term':
  				/* translators: Hidden accessibility text. */
-@@ -125,20 +138,25 @@
+@@ -125,20 +139,26 @@
  				_e( 'Search by tag' );
  				break;
  		}
@@ -83,12 +107,16 @@
 +submit_button( __( 'Search' ), '', 'search', false ); ;
 +echo '</form>
 +	';
++	return null;
  }
  
  /**
-@@ -148,13 +166,17 @@
+@@ -146,15 +166,19 @@
+  *
+  * @since 2.8.0
   */
- function install_themes_dashboard() {
+-function install_themes_dashboard() {
++function install_themes_dashboard(): mixed {
  	install_theme_search_form( false );
 -	?>
 -<h4><?php _e( 'Feature Filter' ); ?></h4>
@@ -108,7 +136,7 @@
  	$feature_list = get_theme_feature_list();
  	echo '<div class="feature-filter">';
  
-@@ -166,25 +188,35 @@
+@@ -166,25 +190,36 @@
  		foreach ( $features as $feature => $feature_name ) {
  			$feature_name = esc_html( $feature_name );
  			$feature      = esc_attr( $feature );
@@ -154,19 +182,22 @@
 +submit_button( __( 'Find Themes' ), '', 'search' ); ;
 +echo '</form>
 +	';
++	return null;
  }
  
  /**
-@@ -193,20 +225,26 @@
+@@ -192,21 +227,28 @@
+  *
   * @since 2.8.0
   */
- function install_themes_upload() {
+-function install_themes_upload() {
 -	?>
 -<p class="install-help"><?php _e( 'If you have a theme in a .zip format, you may install or update it by uploading it here.' ); ?></p>
 -<form method="post" enctype="multipart/form-data" class="wp-upload-form" action="<?php echo esc_url( self_admin_url( 'update.php?action=upload-theme' ) ); ?>">
 -	<?php wp_nonce_field( 'theme-upload' ); ?>
 -	<label class="screen-reader-text" for="themezip">
 -		<?php
++function install_themes_upload(): mixed {
 +	;
 +echo '<p class="install-help">';
 +_e( 'If you have a theme in a .zip format, you may install or update it by uploading it here.' ); ;
@@ -192,6 +223,59 @@
 +submit_button( _x( 'Install Now', 'theme' ), '', 'install-theme-submit', false ); ;
 +echo '</form>
 +	';
++	return null;
  }
  
  /**
+@@ -218,7 +260,7 @@
+  *
+  * @param object $theme
+  */
+-function display_theme( $theme ) {
++function display_theme( mixed $theme ): mixed {
+ 	_deprecated_function( __FUNCTION__, '3.4.0' );
+ 	global $wp_list_table;
+ 	if ( ! isset( $wp_list_table ) ) {
+@@ -226,6 +268,7 @@
+ 	}
+ 	$wp_list_table->prepare_items();
+ 	$wp_list_table->single_row( $theme );
++	return null;
+ }
+ 
+ /**
+@@ -235,7 +278,7 @@
+  *
+  * @global WP_Theme_Install_List_Table $wp_list_table
+  */
+-function display_themes() {
++function display_themes(): mixed {
+ 	global $wp_list_table;
+ 
+ 	if ( ! isset( $wp_list_table ) ) {
+@@ -243,6 +286,7 @@
+ 	}
+ 	$wp_list_table->prepare_items();
+ 	$wp_list_table->display();
++	return null;
+ }
+ 
+ /**
+@@ -254,7 +298,7 @@
+  *
+  * @return never
+  */
+-function install_theme_information() {
++function install_theme_information(): mixed {
+ 	global $wp_list_table;
+ 
+ 	$theme = themes_api( 'theme_information', array( 'slug' => wp_unslash( $_REQUEST['theme'] ) ) );
+@@ -269,5 +313,6 @@
+ 	}
+ 	$wp_list_table->theme_installer_single( $theme );
+ 	iframe_footer();
+-	exit;
+-}
++	\wp_aot_exit();
++	return null;
++}

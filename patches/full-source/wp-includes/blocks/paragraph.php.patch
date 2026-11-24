@@ -1,0 +1,29 @@
+--- a/wp-includes/blocks/paragraph.php
++++ b/wp-includes/blocks/paragraph.php
+@@ -21,7 +21,7 @@
+  *
+  * @return string Filtered block content.
+  */
+-function block_core_paragraph_add_class( $block_content ) {
++function block_core_paragraph_add_class( mixed $block_content ): mixed {
+ 	if ( ! $block_content ) {
+ 		return $block_content;
+ 	}
+@@ -33,6 +33,7 @@
+ 	}
+ 
+ 	return $processor->get_updated_html();
++	return null;
+ }
+ 
+ add_filter( 'render_block_core/paragraph', 'block_core_paragraph_add_class' );
+@@ -42,7 +43,8 @@
+  *
+  * @since 7.0.0
+  */
+-function register_block_core_paragraph() {
++function register_block_core_paragraph(): mixed {
+ 	register_block_type_from_metadata( __DIR__ . '/paragraph' );
++	return null;
+ }
+ add_action( 'init', 'register_block_core_paragraph' );

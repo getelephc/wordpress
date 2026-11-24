@@ -1,0 +1,368 @@
+--- a/wp-includes/pomo/streams.php
++++ b/wp-includes/pomo/streams.php
+@@ -8,7 +8,6 @@
+  * @subpackage streams
+  */
+ 
+-if ( ! class_exists( 'POMO_Reader', false ) ) :
+ 	#[AllowDynamicProperties]
+ 	class POMO_Reader {
+ 
+@@ -38,9 +37,10 @@
+ 		 *
+ 		 * @see POMO_Reader::__construct()
+ 		 */
+-		public function POMO_Reader() {
++		public function POMO_Reader(): mixed {
+ 			_deprecated_constructor( self::class, '5.4.0', static::class );
+ 			self::__construct();
++			return null;
+ 		}
+ 
+ 		/**
+@@ -48,8 +48,9 @@
+ 		 *
+ 		 * @param string $endian Set the endianness of the file. Accepts 'big', or 'little'.
+ 		 */
+-		public function setEndian( $endian ) { // phpcs:ignore WordPress.NamingConventions.ValidFunctionName.MethodNameInvalid
++		public function setEndian( mixed $endian ): mixed { // phpcs:ignore WordPress.NamingConventions.ValidFunctionName.MethodNameInvalid
+ 			$this->endian = $endian;
++			return null;
+ 		}
+ 
+ 		/**
+@@ -58,14 +59,15 @@
+ 		 * @return mixed The integer, corresponding to the next 32 bits from
+ 		 *  the stream of false if there are not enough bytes or on error
+ 		 */
+-		public function readint32() {
+-			$bytes = $this->read( 4 );
++		public function readint32(): mixed {
++			$bytes = \wp_aot_mixed($this)->read( 4 );
+ 			if ( 4 !== $this->strlen( $bytes ) ) {
+ 				return false;
+ 			}
+ 			$endian_letter = ( 'big' === $this->endian ) ? 'N' : 'V';
+ 			$int           = unpack( $endian_letter, $bytes );
+ 			return reset( $int );
++			return null;
+ 		}
+ 
+ 		/**
+@@ -75,13 +77,14 @@
+ 		 * @return mixed Array of integers or false if there isn't
+ 		 *  enough data or on error
+ 		 */
+-		public function readint32array( $count ) {
+-			$bytes = $this->read( 4 * $count );
++		public function readint32array( mixed $count ): mixed {
++			$bytes = \wp_aot_mixed($this)->read( 4 * $count );
+ 			if ( 4 * $count !== $this->strlen( $bytes ) ) {
+ 				return false;
+ 			}
+ 			$endian_letter = ( 'big' === $this->endian ) ? 'N' : 'V';
+ 			return unpack( $endian_letter . $count, $bytes );
++			return null;
+ 		}
+ 
+ 		/**
+@@ -90,24 +93,26 @@
+ 		 * @param int    $length
+ 		 * @return string
+ 		 */
+-		public function substr( $input_string, $start, $length ) {
++		public function substr( mixed $input_string, mixed $start, mixed $length ): mixed {
+ 			if ( $this->is_overloaded ) {
+ 				return mb_substr( $input_string, $start, $length, 'ascii' );
+ 			} else {
+ 				return substr( $input_string, $start, $length );
+ 			}
++			return null;
+ 		}
+ 
+ 		/**
+ 		 * @param string $input_string
+ 		 * @return int
+ 		 */
+-		public function strlen( $input_string ) {
++		public function strlen( mixed $input_string ): mixed {
+ 			if ( $this->is_overloaded ) {
+ 				return mb_strlen( $input_string, 'ascii' );
+ 			} else {
+ 				return strlen( $input_string );
+ 			}
++			return null;
+ 		}
+ 
+ 		/**
+@@ -115,7 +120,7 @@
+ 		 * @param int    $chunk_size
+ 		 * @return array
+ 		 */
+-		public function str_split( $input_string, $chunk_size ) {
++		public function str_split( mixed $input_string, mixed $chunk_size ): mixed {
+ 			if ( ! function_exists( 'str_split' ) ) {
+ 				$length = $this->strlen( $input_string );
+ 				$out    = array();
+@@ -126,32 +131,34 @@
+ 			} else {
+ 				return str_split( $input_string, $chunk_size );
+ 			}
++			return null;
+ 		}
+ 
+ 		/**
+ 		 * @return int
+ 		 */
+-		public function pos() {
++		public function pos(): mixed {
+ 			return $this->_pos;
++			return null;
+ 		}
+ 
+ 		/**
+ 		 * @return true
+ 		 */
+-		public function is_resource() {
++		public function is_resource(): mixed {
+ 			return true;
++			return null;
+ 		}
+ 
+ 		/**
+ 		 * @return true
+ 		 */
+-		public function close() {
++		public function close(): mixed {
+ 			return true;
+-		}
+-	}
+-endif;
+-
+-if ( ! class_exists( 'POMO_FileReader', false ) ) :
++			return null;
++		}
++	}
++
+ 	class POMO_FileReader extends POMO_Reader {
+ 
+ 		/**
+@@ -164,7 +171,7 @@
+ 		/**
+ 		 * @param string $filename
+ 		 */
+-		public function __construct( $filename ) {
++		public function __construct( mixed $filename ) {
+ 			parent::__construct();
+ 			$this->_f = fopen( $filename, 'rb' );
+ 		}
+@@ -176,62 +183,67 @@
+ 		 *
+ 		 * @see POMO_FileReader::__construct()
+ 		 */
+-		public function POMO_FileReader( $filename ) {
++		public function POMO_FileReader( mixed $filename ): mixed {
+ 			_deprecated_constructor( self::class, '5.4.0', static::class );
+ 			self::__construct( $filename );
++			return null;
+ 		}
+ 
+ 		/**
+ 		 * @param int $bytes
+ 		 * @return string|false Returns read string, otherwise false.
+ 		 */
+-		public function read( $bytes ) {
+-			return fread( $this->_f, $bytes );
++		public function read( mixed $bytes ): mixed {
++			return \wp_aot_fread( $this->_f, \wp_aot_internal_int( $bytes ) );
++			return null;
+ 		}
+ 
+ 		/**
+ 		 * @param int $pos
+ 		 * @return bool
+ 		 */
+-		public function seekto( $pos ) {
+-			if ( -1 === fseek( $this->_f, $pos, SEEK_SET ) ) {
++		public function seekto( mixed $pos ): mixed {
++			if ( -1 === fseek( $this->_f, \wp_aot_internal_int( $pos ), SEEK_SET ) ) {
+ 				return false;
+ 			}
+ 			$this->_pos = $pos;
+ 			return true;
++			return null;
+ 		}
+ 
+ 		/**
+ 		 * @return bool
+ 		 */
+-		public function is_resource() {
++		public function is_resource(): mixed {
+ 			return is_resource( $this->_f );
++			return null;
+ 		}
+ 
+ 		/**
+ 		 * @return bool
+ 		 */
+-		public function feof() {
++		public function feof(): mixed {
+ 			return feof( $this->_f );
++			return null;
+ 		}
+ 
+ 		/**
+ 		 * @return bool
+ 		 */
+-		public function close() {
++		public function close(): mixed {
+ 			return fclose( $this->_f );
++			return null;
+ 		}
+ 
+ 		/**
+ 		 * @return string
+ 		 */
+-		public function read_all() {
++		public function read_all(): mixed {
+ 			return stream_get_contents( $this->_f );
+-		}
+-	}
+-endif;
+-
+-if ( ! class_exists( 'POMO_StringReader', false ) ) :
++			return null;
++		}
++	}
++
+ 	/**
+ 	 * Provides file-like methods for manipulating a string instead
+ 	 * of a physical file.
+@@ -243,7 +255,7 @@
+ 		/**
+ 		 * PHP5 constructor.
+ 		 */
+-		public function __construct( $str = '' ) {
++		public function __construct( mixed $str = '' ) {
+ 			parent::__construct();
+ 			$this->_str = $str;
+ 			$this->_pos = 0;
+@@ -256,53 +268,56 @@
+ 		 *
+ 		 * @see POMO_StringReader::__construct()
+ 		 */
+-		public function POMO_StringReader( $str = '' ) {
++		public function POMO_StringReader( mixed $str = '' ): mixed {
+ 			_deprecated_constructor( self::class, '5.4.0', static::class );
+ 			self::__construct( $str );
++			return null;
+ 		}
+ 
+ 		/**
+ 		 * @param string $bytes
+ 		 * @return string
+ 		 */
+-		public function read( $bytes ) {
++		public function read( mixed $bytes ): mixed {
+ 			$data        = $this->substr( $this->_str, $this->_pos, $bytes );
+ 			$this->_pos += $bytes;
+ 			if ( $this->strlen( $this->_str ) < $this->_pos ) {
+ 				$this->_pos = $this->strlen( $this->_str );
+ 			}
+ 			return $data;
++			return null;
+ 		}
+ 
+ 		/**
+ 		 * @param int $pos
+ 		 * @return int
+ 		 */
+-		public function seekto( $pos ) {
++		public function seekto( mixed $pos ): mixed {
+ 			$this->_pos = $pos;
+ 			if ( $this->strlen( $this->_str ) < $this->_pos ) {
+ 				$this->_pos = $this->strlen( $this->_str );
+ 			}
+ 			return $this->_pos;
++			return null;
+ 		}
+ 
+ 		/**
+ 		 * @return int
+ 		 */
+-		public function length() {
++		public function length(): mixed {
+ 			return $this->strlen( $this->_str );
++			return null;
+ 		}
+ 
+ 		/**
+ 		 * @return string
+ 		 */
+-		public function read_all() {
++		public function read_all(): mixed {
+ 			return $this->substr( $this->_str, $this->_pos, $this->strlen( $this->_str ) );
+-		}
+-	}
+-endif;
+-
+-if ( ! class_exists( 'POMO_CachedFileReader', false ) ) :
++			return null;
++		}
++	}
++
+ 	/**
+ 	 * Reads the contents of the file in the beginning.
+ 	 */
+@@ -310,7 +325,7 @@
+ 		/**
+ 		 * PHP5 constructor.
+ 		 */
+-		public function __construct( $filename ) {
++		public function __construct( mixed $filename ) {
+ 			parent::__construct();
+ 			$this->_str = file_get_contents( $filename );
+ 			if ( false === $this->_str ) {
+@@ -326,14 +341,13 @@
+ 		 *
+ 		 * @see POMO_CachedFileReader::__construct()
+ 		 */
+-		public function POMO_CachedFileReader( $filename ) {
++		public function POMO_CachedFileReader( mixed $filename ): mixed {
+ 			_deprecated_constructor( self::class, '5.4.0', static::class );
+ 			self::__construct( $filename );
+-		}
+-	}
+-endif;
+-
+-if ( ! class_exists( 'POMO_CachedIntFileReader', false ) ) :
++			return null;
++		}
++	}
++
+ 	/**
+ 	 * Reads the contents of the file in the beginning.
+ 	 */
+@@ -341,7 +355,7 @@
+ 		/**
+ 		 * PHP5 constructor.
+ 		 */
+-		public function __construct( $filename ) {
++		public function __construct( mixed $filename ) {
+ 			parent::__construct( $filename );
+ 		}
+ 
+@@ -352,9 +366,9 @@
+ 		 *
+ 		 * @see POMO_CachedIntFileReader::__construct()
+ 		 */
+-		public function POMO_CachedIntFileReader( $filename ) {
++		public function POMO_CachedIntFileReader( mixed $filename ): mixed {
+ 			_deprecated_constructor( self::class, '5.4.0', static::class );
+ 			self::__construct( $filename );
+-		}
+-	}
+-endif;
++			return null;
++		}
++	}

@@ -1,0 +1,92 @@
+--- a/wp-admin/includes/class-theme-installer-skin.php
++++ b/wp-admin/includes/class-theme-installer-skin.php
+@@ -32,7 +32,7 @@
+ 	 *
+ 	 * @param array $args
+ 	 */
+-	public function __construct( $args = array() ) {
++	public function __construct( mixed $args = array() ) {
+ 		$defaults = array(
+ 			'type'      => 'web',
+ 			'url'       => '',
+@@ -56,7 +56,7 @@
+ 	 *
+ 	 * @since 2.8.0
+ 	 */
+-	public function before() {
++	public function before( mixed $wp_aot_unused_1 = '' ): mixed {
+ 		if ( ! empty( $this->api ) ) {
+ 			$this->upgrader->strings['process_success'] = sprintf(
+ 				$this->upgrader->strings['process_success_specific'],
+@@ -64,6 +64,7 @@
+ 				$this->api->version
+ 			);
+ 		}
++		return null;
+ 	}
+ 
+ 	/**
+@@ -74,7 +75,7 @@
+ 	 * @param WP_Error $wp_error WP_Error object.
+ 	 * @return bool True if the error should be hidden, false otherwise.
+ 	 */
+-	public function hide_process_failed( $wp_error ) {
++	public function hide_process_failed( mixed $wp_error ): mixed {
+ 		if (
+ 			'upload' === $this->type &&
+ 			'' === $this->overwrite &&
+@@ -84,6 +85,7 @@
+ 		}
+ 
+ 		return false;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -91,18 +93,18 @@
+ 	 *
+ 	 * @since 2.8.0
+ 	 */
+-	public function after() {
++	public function after( mixed $wp_aot_unused_1 = '' ): mixed {
+ 		if ( $this->do_overwrite() ) {
+-			return;
++			return null;
+ 		}
+ 
+ 		if ( empty( $this->upgrader->result['destination_name'] ) ) {
+-			return;
++			return null;
+ 		}
+ 
+ 		$theme_info = $this->upgrader->theme_info();
+ 		if ( empty( $theme_info ) ) {
+-			return;
++			return null;
+ 		}
+ 
+ 		$name       = $theme_info->display( 'Name' );
+@@ -201,6 +203,7 @@
+ 		if ( ! empty( $install_actions ) ) {
+ 			$this->feedback( implode( ' | ', (array) $install_actions ) );
+ 		}
++		return null;
+ 	}
+ 
+ 	/**
+@@ -210,7 +213,7 @@
+ 	 *
+ 	 * @return bool Whether the theme can be overwritten and HTML was outputted.
+ 	 */
+-	private function do_overwrite() {
++	private function do_overwrite(): mixed {
+ 		if ( 'upload' !== $this->type || ! is_wp_error( $this->result ) || 'folder_exists' !== $this->result->get_error_code() ) {
+ 			return false;
+ 		}
+@@ -396,5 +399,6 @@
+ 		}
+ 
+ 		return true;
++		return null;
+ 	}
+ }

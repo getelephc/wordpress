@@ -1,0 +1,279 @@
+--- a/wp-includes/ID3/module.audio.ac3.php
++++ b/wp-includes/ID3/module.audio.ac3.php
+@@ -15,7 +15,7 @@
+ /////////////////////////////////////////////////////////////////
+ 
+ if (!defined('GETID3_INCLUDEPATH')) { // prevent path-exposing attacks that access modules directly on public webservers
+-	exit;
++	\wp_aot_exit();
+ }
+ 
+ class getid3_ac3 extends getid3_handler
+@@ -35,7 +35,7 @@
+ 	/**
+ 	 * @return bool
+ 	 */
+-	public function Analyze() {
++	public function Analyze(): mixed {
+ 		$info = &$this->getid3->info;
+ 
+ 		///AH
+@@ -483,6 +483,7 @@
+ 		$thisfile_ac3['dialogue_normalization'] = '-'.$thisfile_ac3_raw_bsi['dialnorm'].'dB';
+ 
+ 		return true;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -490,11 +491,12 @@
+ 	 *
+ 	 * @return int
+ 	 */
+-	private function readHeaderBSI($length) {
++	private function readHeaderBSI(mixed $length): mixed {
+ 		$data = substr($this->AC3header['bsi'], $this->BSIoffset, $length);
+ 		$this->BSIoffset += $length;
+ 
+ 		return bindec($data);
++		return null;
+ 	}
+ 
+ 	/**
+@@ -502,7 +504,7 @@
+ 	 *
+ 	 * @return int|string|false
+ 	 */
+-	public static function sampleRateCodeLookup($fscod) {
++	public static function sampleRateCodeLookup(mixed $fscod): mixed {
+ 		static $sampleRateCodeLookup = array(
+ 			0 => 48000,
+ 			1 => 44100,
+@@ -510,6 +512,7 @@
+ 			3 => 'reserved' // If the reserved code is indicated, the decoder should not attempt to decode audio and should mute.
+ 		);
+ 		return (isset($sampleRateCodeLookup[$fscod]) ? $sampleRateCodeLookup[$fscod] : false);
++		return null;
+ 	}
+ 
+ 	/**
+@@ -517,7 +520,7 @@
+ 	 *
+ 	 * @return int|string|false
+ 	 */
+-	public static function sampleRateCodeLookup2($fscod2) {
++	public static function sampleRateCodeLookup2(mixed $fscod2): mixed {
+ 		static $sampleRateCodeLookup2 = array(
+ 			0 => 24000,
+ 			1 => 22050,
+@@ -525,6 +528,7 @@
+ 			3 => 'reserved' // If the reserved code is indicated, the decoder should not attempt to decode audio and should mute.
+ 		);
+ 		return (isset($sampleRateCodeLookup2[$fscod2]) ? $sampleRateCodeLookup2[$fscod2] : false);
++		return null;
+ 	}
+ 
+ 	/**
+@@ -533,8 +537,9 @@
+ 	 *
+ 	 * @return string|false
+ 	 */
+-	public static function serviceTypeLookup($bsmod, $acmod) {
+-		static $serviceTypeLookup = array();
++	public static function serviceTypeLookup(mixed $bsmod, mixed $acmod): mixed {
++		static $serviceTypeLookup_aot_cell = new \WordPressStaticArrayCell();
++		$serviceTypeLookup =& $serviceTypeLookup_aot_cell->value;
+ 		if (empty($serviceTypeLookup)) {
+ 			for ($i = 0; $i <= 7; $i++) {
+ 				$serviceTypeLookup[0][$i] = 'main audio service: complete main (CM)';
+@@ -552,6 +557,7 @@
+ 			}
+ 		}
+ 		return (isset($serviceTypeLookup[$bsmod][$acmod]) ? $serviceTypeLookup[$bsmod][$acmod] : false);
++		return null;
+ 	}
+ 
+ 	/**
+@@ -559,7 +565,7 @@
+ 	 *
+ 	 * @return array|false
+ 	 */
+-	public static function audioCodingModeLookup($acmod) {
++	public static function audioCodingModeLookup(mixed $acmod): mixed {
+ 		// array(channel configuration, # channels (not incl LFE), channel order)
+ 		static $audioCodingModeLookup = array (
+ 			0 => array('channel_config'=>'1+1', 'num_channels'=>2, 'channel_order'=>'Ch1,Ch2'),
+@@ -572,6 +578,7 @@
+ 			7 => array('channel_config'=>'3/2', 'num_channels'=>5, 'channel_order'=>'L,C,R,SL,SR'),
+ 		);
+ 		return (isset($audioCodingModeLookup[$acmod]) ? $audioCodingModeLookup[$acmod] : false);
++		return null;
+ 	}
+ 
+ 	/**
+@@ -579,8 +586,9 @@
+ 	 *
+ 	 * @return int|float|string|false
+ 	 */
+-	public static function centerMixLevelLookup($cmixlev) {
+-		static $centerMixLevelLookup;
++	public static function centerMixLevelLookup(mixed $cmixlev): mixed {
++		static $centerMixLevelLookup_aot_cell = new \WordPressStaticValueCell();
++		$centerMixLevelLookup =& $centerMixLevelLookup_aot_cell->value;
+ 		if (empty($centerMixLevelLookup)) {
+ 			$centerMixLevelLookup = array(
+ 				0 => pow(2, -3.0 / 6), // 0.707 (-3.0 dB)
+@@ -590,6 +598,7 @@
+ 			);
+ 		}
+ 		return (isset($centerMixLevelLookup[$cmixlev]) ? $centerMixLevelLookup[$cmixlev] : false);
++		return null;
+ 	}
+ 
+ 	/**
+@@ -597,8 +606,9 @@
+ 	 *
+ 	 * @return int|float|string|false
+ 	 */
+-	public static function surroundMixLevelLookup($surmixlev) {
+-		static $surroundMixLevelLookup;
++	public static function surroundMixLevelLookup(mixed $surmixlev): mixed {
++		static $surroundMixLevelLookup_aot_cell = new \WordPressStaticValueCell();
++		$surroundMixLevelLookup =& $surroundMixLevelLookup_aot_cell->value;
+ 		if (empty($surroundMixLevelLookup)) {
+ 			$surroundMixLevelLookup = array(
+ 				0 => pow(2, -3.0 / 6),
+@@ -608,6 +618,7 @@
+ 			);
+ 		}
+ 		return (isset($surroundMixLevelLookup[$surmixlev]) ? $surroundMixLevelLookup[$surmixlev] : false);
++		return null;
+ 	}
+ 
+ 	/**
+@@ -615,7 +626,7 @@
+ 	 *
+ 	 * @return string|false
+ 	 */
+-	public static function dolbySurroundModeLookup($dsurmod) {
++	public static function dolbySurroundModeLookup(mixed $dsurmod): mixed {
+ 		static $dolbySurroundModeLookup = array(
+ 			0 => 'not indicated',
+ 			1 => 'Not Dolby Surround encoded',
+@@ -623,6 +634,7 @@
+ 			3 => 'reserved'
+ 		);
+ 		return (isset($dolbySurroundModeLookup[$dsurmod]) ? $dolbySurroundModeLookup[$dsurmod] : false);
++		return null;
+ 	}
+ 
+ 	/**
+@@ -631,7 +643,7 @@
+ 	 *
+ 	 * @return array
+ 	 */
+-	public static function channelsEnabledLookup($acmod, $lfeon) {
++	public static function channelsEnabledLookup(mixed $acmod, mixed $lfeon): mixed {
+ 		$lookup = array(
+ 			'ch1'=>($acmod == 0),
+ 			'ch2'=>($acmod == 0),
+@@ -654,6 +666,7 @@
+ 				break;
+ 		}
+ 		return $lookup;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -661,7 +674,7 @@
+ 	 *
+ 	 * @return float|int
+ 	 */
+-	public static function heavyCompression($compre) {
++	public static function heavyCompression(mixed $compre): mixed {
+ 		// The first four bits indicate gain changes in 6.02dB increments which can be
+ 		// implemented with an arithmetic shift operation. The following four bits
+ 		// indicate linear gain changes, and require a 5-bit multiply.
+@@ -709,6 +722,7 @@
+ 		// -42.14 - 6.02 = -48.16 dB.
+ 
+ 		return $log_gain - $lin_gain;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -716,7 +730,7 @@
+ 	 *
+ 	 * @return string|false
+ 	 */
+-	public static function roomTypeLookup($roomtyp) {
++	public static function roomTypeLookup(mixed $roomtyp): mixed {
+ 		static $roomTypeLookup = array(
+ 			0 => 'not indicated',
+ 			1 => 'large room, X curve monitor',
+@@ -724,6 +738,7 @@
+ 			3 => 'reserved'
+ 		);
+ 		return (isset($roomTypeLookup[$roomtyp]) ? $roomTypeLookup[$roomtyp] : false);
++		return null;
+ 	}
+ 
+ 	/**
+@@ -732,12 +747,13 @@
+ 	 *
+ 	 * @return int|false
+ 	 */
+-	public static function frameSizeLookup($frmsizecod, $fscod) {
++	public static function frameSizeLookup(mixed $frmsizecod, mixed $fscod): mixed {
+ 		// LSB is whether padding is used or not
+ 		$padding     = (bool) ($frmsizecod & 0x01);
+ 		$framesizeid =        ($frmsizecod & 0x3E) >> 1;
+ 
+-		static $frameSizeLookup = array();
++		static $frameSizeLookup_aot_cell = new \WordPressStaticArrayCell();
++		$frameSizeLookup =& $frameSizeLookup_aot_cell->value;
+ 		if (empty($frameSizeLookup)) {
+ 			$frameSizeLookup = array (
+ 				0  => array( 128,  138,  192),  //  32 kbps
+@@ -768,6 +784,7 @@
+ 			$paddingBytes = 2;
+ 		}
+ 		return (isset($frameSizeLookup[$framesizeid][$fscod]) ? $frameSizeLookup[$framesizeid][$fscod] + $paddingBytes : false);
++		return null;
+ 	}
+ 
+ 	/**
+@@ -775,7 +792,7 @@
+ 	 *
+ 	 * @return int|false
+ 	 */
+-	public static function bitrateLookup($frmsizecod) {
++	public static function bitrateLookup(mixed $frmsizecod): mixed {
+ 		// LSB is whether padding is used or not
+ 		$padding     = (bool) ($frmsizecod & 0x01);
+ 		$framesizeid =        ($frmsizecod & 0x3E) >> 1;
+@@ -802,6 +819,7 @@
+ 			18 => 640000,
+ 		);
+ 		return (isset($bitrateLookup[$framesizeid]) ? $bitrateLookup[$framesizeid] : false);
++		return null;
+ 	}
+ 
+ 	/**
+@@ -809,7 +827,7 @@
+ 	 *
+ 	 * @return int|false
+ 	 */
+-	public static function blocksPerSyncFrame($numblkscod) {
++	public static function blocksPerSyncFrame(mixed $numblkscod): mixed {
+ 		static $blocksPerSyncFrameLookup = array(
+ 			0 => 1,
+ 			1 => 2,
+@@ -817,6 +835,7 @@
+ 			3 => 6,
+ 		);
+ 		return (isset($blocksPerSyncFrameLookup[$numblkscod]) ? $blocksPerSyncFrameLookup[$numblkscod] : false);
++		return null;
+ 	}
+ 
+ 

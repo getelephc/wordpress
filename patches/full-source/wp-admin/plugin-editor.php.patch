@@ -1,0 +1,47 @@
+--- a/wp-admin/plugin-editor.php
++++ b/wp-admin/plugin-editor.php
+@@ -11,7 +11,7 @@
+ 
+ if ( is_multisite() && ! is_network_admin() ) {
+ 	wp_redirect( network_admin_url( 'plugin-editor.php' ) );
+-	exit;
++	\wp_aot_exit();
+ }
+ 
+ if ( ! current_user_can( 'edit_plugins' ) ) {
+@@ -41,7 +41,7 @@
+ 	</div>
+ 	<?php
+ 	require_once ABSPATH . 'wp-admin/admin-footer.php';
+-	exit;
++	\wp_aot_exit();
+ }
+ 
+ $file   = '';
+@@ -112,7 +112,7 @@
+ 				admin_url( 'plugin-editor.php' )
+ 			)
+ 		);
+-		exit;
++		\wp_aot_exit();
+ 	}
+ }
+ 
+@@ -123,7 +123,7 @@
+ 	wp_die( sprintf( '<p>%s</p>', __( 'File does not exist! Please double check the name and try again.' ) ) );
+ } else {
+ 	// Get the extension of the file.
+-	if ( preg_match( '/\.([^.]+)$/', $real_file, $matches ) ) {
++	if ( preg_match( '/\.([^.]+)$/', \wp_aot_regex_text( $real_file ), $matches ) ) {
+ 		$extension = strtolower( $matches[1] );
+ 
+ 		// If extension is not in the acceptable list, skip it.
+@@ -281,7 +281,7 @@
+ 	<?php
+ 	$plugin_editable_files = array();
+ 	foreach ( $plugin_files as $plugin_file ) {
+-		if ( preg_match( '/\.([^.]+)$/', $plugin_file, $matches ) && in_array( $matches[1], $editable_extensions, true ) ) {
++		if ( preg_match( '/\.([^.]+)$/', \wp_aot_regex_text( $plugin_file ), $matches ) && in_array( $matches[1], $editable_extensions, true ) ) {
+ 			$plugin_editable_files[] = $plugin_file;
+ 		}
+ 	}

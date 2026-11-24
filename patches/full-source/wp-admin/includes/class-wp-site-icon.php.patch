@@ -1,0 +1,118 @@
+--- a/wp-admin/includes/class-wp-site-icon.php
++++ b/wp-admin/includes/class-wp-site-icon.php
+@@ -87,12 +87,12 @@
+ 	 * @param int    $parent_attachment_id Attachment ID of parent image.
+ 	 * @return array An array with attachment object data.
+ 	 */
+-	public function create_attachment_object( $cropped, $parent_attachment_id ) {
++	public function create_attachment_object( mixed $cropped, mixed $parent_attachment_id ): mixed {
+ 		_deprecated_function( __METHOD__, '6.5.0', 'wp_copy_parent_attachment_properties()' );
+ 
+ 		$parent     = get_post( $parent_attachment_id );
+ 		$parent_url = wp_get_attachment_url( $parent->ID );
+-		$url        = str_replace( wp_basename( $parent_url ), wp_basename( $cropped ), $parent_url );
++		$url        = \wp_aot_str_replace( wp_basename( $parent_url ), wp_basename( $cropped ), $parent_url );
+ 
+ 		$size       = wp_getimagesize( $cropped );
+ 		$image_type = ( $size ) ? $size['mime'] : 'image/jpeg';
+@@ -107,6 +107,7 @@
+ 		);
+ 
+ 		return $attachment;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -118,7 +119,7 @@
+ 	 * @param string $file       File path of the attached image.
+ 	 * @return int               Attachment ID.
+ 	 */
+-	public function insert_attachment( $attachment, $file ) {
++	public function insert_attachment( mixed $attachment, mixed $file ): mixed {
+ 		$attachment_id = wp_insert_attachment( $attachment, $file );
+ 		$metadata      = wp_generate_attachment_metadata( $attachment_id, $file );
+ 
+@@ -135,6 +136,7 @@
+ 		wp_update_attachment_metadata( $attachment_id, $metadata );
+ 
+ 		return $attachment_id;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -145,7 +147,7 @@
+ 	 * @param array[] $sizes Array of arrays containing information for additional sizes.
+ 	 * @return array[] Array of arrays containing additional image sizes.
+ 	 */
+-	public function additional_sizes( $sizes = array() ) {
++	public function additional_sizes( mixed $sizes = array() ): mixed {
+ 		$only_crop_sizes = array();
+ 
+ 		/**
+@@ -158,8 +160,8 @@
+ 		$this->site_icon_sizes = apply_filters( 'site_icon_image_sizes', $this->site_icon_sizes );
+ 
+ 		// Use a natural sort of numbers.
+-		natsort( $this->site_icon_sizes );
+-		$this->site_icon_sizes = array_reverse( $this->site_icon_sizes );
++		\wp_aot_natsort( $this->site_icon_sizes );
++		$this->site_icon_sizes = \wp_aot_array_reverse( $this->site_icon_sizes );
+ 
+ 		// Ensure that we only resize the image into sizes that allow cropping.
+ 		foreach ( $sizes as $name => $size_array ) {
+@@ -179,6 +181,7 @@
+ 		}
+ 
+ 		return $only_crop_sizes;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -189,7 +192,7 @@
+ 	 * @param string[] $sizes Array of image size names.
+ 	 * @return string[] Array of image size names.
+ 	 */
+-	public function intermediate_image_sizes( $sizes = array() ) {
++	public function intermediate_image_sizes( mixed $sizes = array() ): mixed {
+ 		/** This filter is documented in wp-admin/includes/class-wp-site-icon.php */
+ 		$this->site_icon_sizes = apply_filters( 'site_icon_image_sizes', $this->site_icon_sizes );
+ 		foreach ( $this->site_icon_sizes as $size ) {
+@@ -197,6 +200,7 @@
+ 		}
+ 
+ 		return $sizes;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -206,12 +210,13 @@
+ 	 *
+ 	 * @param int $post_id Attachment ID.
+ 	 */
+-	public function delete_attachment_data( $post_id ) {
++	public function delete_attachment_data( mixed $post_id ): mixed {
+ 		$site_icon_id = (int) get_option( 'site_icon' );
+ 
+ 		if ( $site_icon_id && $post_id === $site_icon_id ) {
+ 			delete_option( 'site_icon' );
+ 		}
++		return null;
+ 	}
+ 
+ 	/**
+@@ -226,7 +231,7 @@
+ 	 * @param bool              $single   Whether to return only the first value of the specified `$meta_key`.
+ 	 * @return array|null|string The attachment metadata value, array of values, or null.
+ 	 */
+-	public function get_post_metadata( $value, $post_id, $meta_key, $single ) {
++	public function get_post_metadata( mixed $value, mixed $post_id, mixed $meta_key, mixed $single ): mixed {
+ 		if ( $single && '_wp_attachment_backup_sizes' === $meta_key ) {
+ 			$site_icon_id = (int) get_option( 'site_icon' );
+ 
+@@ -236,5 +241,6 @@
+ 		}
+ 
+ 		return $value;
++		return null;
+ 	}
+ }

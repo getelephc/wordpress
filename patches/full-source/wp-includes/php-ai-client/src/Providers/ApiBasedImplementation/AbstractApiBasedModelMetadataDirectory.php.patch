@@ -1,0 +1,20 @@
+--- a/wp-includes/php-ai-client/src/Providers/ApiBasedImplementation/AbstractApiBasedModelMetadataDirectory.php
++++ b/wp-includes/php-ai-client/src/Providers/ApiBasedImplementation/AbstractApiBasedModelMetadataDirectory.php
+@@ -62,7 +62,7 @@
+         if (!isset($modelsMetadata[$modelId])) {
+             throw new InvalidArgumentException(sprintf('No model with ID %s was found in the provider', $modelId));
+         }
+-        return $modelsMetadata[$modelId];
++        return \wp_aot_require_WordPress_AiClient_Providers_Models_DTO_ModelMetadata( $modelsMetadata[$modelId] );
+     }
+     /**
+      * Returns the map of model ID to model metadata for all models from the provider.
+@@ -74,7 +74,7 @@
+     private function getModelMetadataMap(): array
+     {
+         /** @var array<string, ModelMetadata> */
+-        return $this->cached(self::MODELS_CACHE_KEY, fn() => $this->sendListModelsRequest(), 86400);
++        return \wp_aot_require_array( $this->cached(self::MODELS_CACHE_KEY, fn() => $this->sendListModelsRequest(), 86400) );
+     }
+     /**
+      * {@inheritDoc}

@@ -1,0 +1,44 @@
+--- a/wp-includes/blocks/comment-reply-link.php
++++ b/wp-includes/blocks/comment-reply-link.php
+@@ -15,7 +15,7 @@
+  * @param WP_Block $block      Block instance.
+  * @return string Return the post comment's reply link.
+  */
+-function render_block_core_comment_reply_link( $attributes, $content, $block ) {
++function render_block_core_comment_reply_link( mixed $attributes, mixed $content, mixed $block ): mixed {
+ 	if ( ! isset( $block->context['commentId'] ) ) {
+ 		return '';
+ 	}
+@@ -50,7 +50,7 @@
+ 
+ 	// Render nothing if the generated reply link is empty.
+ 	if ( empty( $comment_reply_link ) ) {
+-		return;
++		return null;
+ 	}
+ 
+ 	$classes = array();
+@@ -68,6 +68,7 @@
+ 		$wrapper_attributes,
+ 		$comment_reply_link
+ 	);
++	return null;
+ }
+ 
+ /**
+@@ -75,13 +76,14 @@
+  *
+  * @since 6.0.0
+  */
+-function register_block_core_comment_reply_link() {
++function register_block_core_comment_reply_link(): mixed {
+ 	register_block_type_from_metadata(
+ 		__DIR__ . '/comment-reply-link',
+ 		array(
+ 			'render_callback' => 'render_block_core_comment_reply_link',
+ 		)
+ 	);
++	return null;
+ }
+ 
+ add_action( 'init', 'register_block_core_comment_reply_link' );

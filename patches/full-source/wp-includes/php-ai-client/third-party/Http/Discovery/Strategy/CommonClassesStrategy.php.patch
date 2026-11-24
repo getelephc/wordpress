@@ -1,0 +1,73 @@
+--- a/wp-includes/php-ai-client/third-party/Http/Discovery/Strategy/CommonClassesStrategy.php
++++ b/wp-includes/php-ai-client/third-party/Http/Discovery/Strategy/CommonClassesStrategy.php
+@@ -51,18 +51,19 @@
+      * @var array
+      */
+     private static $classes = [MessageFactory::class => [['class' => NyholmHttplugFactory::class, 'condition' => [NyholmHttplugFactory::class]], ['class' => GuzzleMessageFactory::class, 'condition' => [GuzzleRequest::class, GuzzleMessageFactory::class]], ['class' => DiactorosMessageFactory::class, 'condition' => [DiactorosRequest::class, DiactorosMessageFactory::class]], ['class' => SlimMessageFactory::class, 'condition' => [SlimRequest::class, SlimMessageFactory::class]]], StreamFactory::class => [['class' => NyholmHttplugFactory::class, 'condition' => [NyholmHttplugFactory::class]], ['class' => GuzzleStreamFactory::class, 'condition' => [GuzzleRequest::class, GuzzleStreamFactory::class]], ['class' => DiactorosStreamFactory::class, 'condition' => [DiactorosRequest::class, DiactorosStreamFactory::class]], ['class' => SlimStreamFactory::class, 'condition' => [SlimRequest::class, SlimStreamFactory::class]]], UriFactory::class => [['class' => NyholmHttplugFactory::class, 'condition' => [NyholmHttplugFactory::class]], ['class' => GuzzleUriFactory::class, 'condition' => [GuzzleRequest::class, GuzzleUriFactory::class]], ['class' => DiactorosUriFactory::class, 'condition' => [DiactorosRequest::class, DiactorosUriFactory::class]], ['class' => SlimUriFactory::class, 'condition' => [SlimRequest::class, SlimUriFactory::class]]], HttpAsyncClient::class => [['class' => SymfonyHttplug::class, 'condition' => [SymfonyHttplug::class, Promise::class, [self::class, 'isPsr17FactoryInstalled']]], ['class' => Guzzle7::class, 'condition' => Guzzle7::class], ['class' => Guzzle6::class, 'condition' => Guzzle6::class], ['class' => Curl::class, 'condition' => Curl::class], ['class' => React::class, 'condition' => React::class]], HttpClient::class => [['class' => SymfonyHttplug::class, 'condition' => [SymfonyHttplug::class, [self::class, 'isPsr17FactoryInstalled'], [self::class, 'isSymfonyImplementingHttpClient']]], ['class' => Guzzle7::class, 'condition' => Guzzle7::class], ['class' => Guzzle6::class, 'condition' => Guzzle6::class], ['class' => Guzzle5::class, 'condition' => Guzzle5::class], ['class' => Curl::class, 'condition' => Curl::class], ['class' => Socket::class, 'condition' => Socket::class], ['class' => Buzz::class, 'condition' => Buzz::class], ['class' => React::class, 'condition' => React::class], ['class' => Cake::class, 'condition' => Cake::class], ['class' => Artax::class, 'condition' => Artax::class], ['class' => [self::class, 'buzzInstantiate'], 'condition' => [\WordPress\AiClientDependencies\Buzz\Client\FileGetContents::class, \WordPress\AiClientDependencies\Buzz\Message\ResponseBuilder::class]]], Psr18Client::class => [['class' => [self::class, 'symfonyPsr18Instantiate'], 'condition' => [SymfonyPsr18::class, Psr17RequestFactory::class]], ['class' => GuzzleHttp::class, 'condition' => [self::class, 'isGuzzleImplementingPsr18']], ['class' => [self::class, 'buzzInstantiate'], 'condition' => [\WordPress\AiClientDependencies\Buzz\Client\FileGetContents::class, \WordPress\AiClientDependencies\Buzz\Message\ResponseBuilder::class]]]];
+-    public static function getCandidates($type)
++    public static function getCandidates(mixed $type): mixed
+     {
+         if (Psr18Client::class === $type) {
+             return self::getPsr18Candidates();
+         }
+         return self::$classes[$type] ?? [];
++    	return null;
+     }
+     /**
+      * @return array The return value is always an array with zero or more elements. Each
+      *               element is an array with two keys ['class' => string, 'condition' => mixed].
+      */
+-    private static function getPsr18Candidates()
++    private static function getPsr18Candidates(): mixed
+     {
+         $candidates = self::$classes[Psr18Client::class];
+         // HTTPlug 2.0 clients implements PSR18Client too.
+@@ -79,29 +80,34 @@
+             }
+         }
+         return $candidates;
++    	return null;
+     }
+-    public static function buzzInstantiate()
++    public static function buzzInstantiate(): mixed
+     {
+-        return new \WordPress\AiClientDependencies\Buzz\Client\FileGetContents(Psr17FactoryDiscovery::findResponseFactory());
++        throw new \Error('Class "WordPress\\AiClientDependencies\\Buzz\\Client\\FileGetContents" not found');
++    	return null;
+     }
+-    public static function symfonyPsr18Instantiate()
++    public static function symfonyPsr18Instantiate(): mixed
+     {
+-        return new SymfonyPsr18(null, Psr17FactoryDiscovery::findResponseFactory(), Psr17FactoryDiscovery::findStreamFactory());
++        throw new \Error('Class "WordPress\\AiClientDependencies\\Symfony\\Component\\HttpClient\\Psr18Client" not found');
++    	return null;
+     }
+-    public static function isGuzzleImplementingPsr18()
++    public static function isGuzzleImplementingPsr18(): mixed
+     {
+         return defined('GuzzleHttp\ClientInterface::MAJOR_VERSION');
++    	return null;
+     }
+-    public static function isSymfonyImplementingHttpClient()
++    public static function isSymfonyImplementingHttpClient(): mixed
+     {
+         return is_subclass_of(SymfonyHttplug::class, HttpClient::class);
++    	return null;
+     }
+     /**
+      * Can be used as a condition.
+      *
+      * @return bool
+      */
+-    public static function isPsr17FactoryInstalled()
++    public static function isPsr17FactoryInstalled(): mixed
+     {
+         try {
+             Psr17FactoryDiscovery::findResponseFactory();
+@@ -112,5 +118,6 @@
+             return \false;
+         }
+         return \true;
++    	return null;
+     }
+ }

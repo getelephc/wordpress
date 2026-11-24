@@ -1,0 +1,29 @@
+--- a/wp-includes/class-wp-http-ixr-client.php
++++ b/wp-includes/class-wp-http-ixr-client.php
+@@ -19,7 +19,7 @@
+ 	 * @param int|false    $port
+ 	 * @param int          $timeout
+ 	 */
+-	public function __construct( $server, $path = false, $port = false, $timeout = 15 ) {
++	public function __construct( mixed $server, mixed $path = false, mixed $port = false, mixed $timeout = 15 ) {
+ 		if ( ! $path ) {
+ 			// Assume we have been given a URL instead.
+ 			$bits         = parse_url( $server );
+@@ -53,8 +53,8 @@
+ 	 *
+ 	 * @return bool True if the request succeeded, false otherwise.
+ 	 */
+-	public function query( ...$args ) {
+-		$method  = array_shift( $args );
++	public function query( mixed ...$args ): mixed {
++		$method  = \wp_aot_array_shift( $args );
+ 		$request = new IXR_Request( $method, $args );
+ 		$xml     = $request->getXml();
+ 
+@@ -123,5 +123,6 @@
+ 
+ 		// Message must be OK.
+ 		return true;
++		return null;
+ 	}
+ }

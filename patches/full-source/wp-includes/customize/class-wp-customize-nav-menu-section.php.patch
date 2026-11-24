@@ -1,0 +1,16 @@
+--- a/wp-includes/customize/class-wp-customize-nav-menu-section.php
++++ b/wp-includes/customize/class-wp-customize-nav-menu-section.php
+@@ -32,10 +32,11 @@
+ 	 * @since 4.3.0
+ 	 * @return array Exported parameters.
+ 	 */
+-	public function json() {
++	public function json(): mixed {
+ 		$exported            = parent::json();
+-		$exported['menu_id'] = (int) preg_replace( '/^nav_menu\[(-?\d+)\]/', '$1', $this->id );
++		$exported['menu_id'] = (int) \wp_aot_preg_replace( '/^nav_menu\[(-?\d+)\]/', '$1', $this->id );
+ 
+ 		return $exported;
++		return null;
+ 	}
+ }

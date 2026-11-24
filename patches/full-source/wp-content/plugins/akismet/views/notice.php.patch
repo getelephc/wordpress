@@ -1,0 +1,40 @@
+--- a/wp-content/plugins/akismet/views/notice.php
++++ b/wp-content/plugins/akismet/views/notice.php
+@@ -110,13 +110,13 @@
+ 	<h3 class="akismet-alert__heading"><?php esc_html_e( 'Network functions are disabled.', 'akismet' ); ?></h3>
+ 	<p>
+ 		<?php
+-		echo wp_kses( __( 'Your web host or server administrator has disabled PHP&#8217;s <code>gethostbynamel</code> function.', 'akismet' ), array_merge( $kses_allow_link, $kses_allow_strong, array( 'code' => true ) ) );
++		echo wp_kses( __( 'Your web host or server administrator has disabled PHP&#8217;s <code>gethostbynamel</code> function.', 'akismet' ), \wp_aot_array_merge(array( $kses_allow_link, $kses_allow_strong, array( 'code' => true ) )) );
+ 		?>
+ 	</p>
+ 	<p>
+ 		<?php
+ 		/* translators: 1: URL, 2: hidden screen-reader text noting the link opens in a new tab. */
+-		echo wp_kses( sprintf( __( 'Please contact your web host or firewall administrator and give them <a class="akismet-external-link" href="%1$s" target="_blank" rel="noopener">this information about Akismet&#8217;s system requirements%2$s</a>', 'akismet' ), esc_url( 'https://akismet.com/akismet-hosting-faq/?utm_source=akismet_plugin&utm_campaign=plugin_static_link&utm_medium=in_plugin&utm_content=hosting_faq_php' ), $opens_in_new_tab ), array_merge( $kses_allow_link, $kses_allow_strong, array( 'code' => true ) ) );
++		echo wp_kses( sprintf( __( 'Please contact your web host or firewall administrator and give them <a class="akismet-external-link" href="%1$s" target="_blank" rel="noopener">this information about Akismet&#8217;s system requirements%2$s</a>', 'akismet' ), esc_url( 'https://akismet.com/akismet-hosting-faq/?utm_source=akismet_plugin&utm_campaign=plugin_static_link&utm_medium=in_plugin&utm_content=hosting_faq_php' ), $opens_in_new_tab ), \wp_aot_array_merge(array( $kses_allow_link, $kses_allow_strong, array( 'code' => true ) )) );
+ 		?>
+ 	</p>
+ </div>
+@@ -194,7 +194,7 @@
+ 
+ 	$check_pending_link = false;
+ 
+-	$at_least_one_comment_in_moderation = ! ! $wpdb->get_var( "SELECT comment_ID FROM {$wpdb->comments} WHERE comment_approved = '0' LIMIT 1" );
++	$at_least_one_comment_in_moderation = ! ! \wp_aot_require_wpdb( $wpdb )->get_var( "SELECT comment_ID FROM {$wpdb->comments} WHERE comment_approved = '0' LIMIT 1" );
+ 
+ 	if ( $at_least_one_comment_in_moderation ) {
+ 		$check_pending_link = 'edit-comments.php?akismet_recheck=' . wp_create_nonce( 'akismet_recheck' );
+@@ -291,9 +291,9 @@
+ 					sprintf(
+ 						/* translators: The first placeholder is a date, the second is a (formatted) number, the third is another formatted number. */
+ 						__( 'Since %1$s, your account made %2$s API calls, compared to your plan&#8217;s limit of %3$s.', 'akismet' ),
+-						esc_html( gmdate( 'F' ) . ' 1' ),
+-						number_format( $api_calls ),
+-						number_format( $usage_limit )
++						esc_html( \wp_aot_gmdate( 'F' ) . ' 1' ),
++						\wp_aot_number_format( $api_calls ),
++						\wp_aot_number_format( $usage_limit )
+ 					)
+ 				);
+ 				echo '&nbsp;';

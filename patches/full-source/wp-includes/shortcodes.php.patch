@@ -1,0 +1,459 @@
+--- a/wp-includes/shortcodes.php
++++ b/wp-includes/shortcodes.php
+@@ -60,7 +60,7 @@
+  *                           or null if not set (`$content`), and finally the shortcode tag
+  *                           itself (`$shortcode_tag`), in that order.
+  */
+-function add_shortcode( $tag, $callback ) {
++function add_shortcode( mixed $tag, mixed $callback ): mixed {
+ 	global $shortcode_tags;
+ 
+ 	if ( '' === trim( $tag ) ) {
+@@ -69,10 +69,10 @@
+ 			__( 'Invalid shortcode name: Empty name given.' ),
+ 			'4.4.0'
+ 		);
+-		return;
+-	}
+-
+-	if ( 0 !== preg_match( '@[<>&/\[\]\x00-\x20=]@', $tag ) ) {
++		return null;
++	}
++
++	if ( 0 !== preg_match( '@[<>&/\[\]\x00-\x20=]@', \wp_aot_regex_text( $tag ) ) ) {
+ 		_doing_it_wrong(
+ 			__FUNCTION__,
+ 			sprintf(
+@@ -83,10 +83,11 @@
+ 			),
+ 			'4.4.0'
+ 		);
+-		return;
++		return null;
+ 	}
+ 
+ 	$shortcode_tags[ $tag ] = $callback;
++	return null;
+ }
+ 
+ /**
+@@ -98,10 +99,11 @@
+  *
+  * @param string $tag Shortcode tag to remove hook for.
+  */
+-function remove_shortcode( $tag ) {
++function remove_shortcode( mixed $tag ): mixed {
+ 	global $shortcode_tags;
+ 
+ 	unset( $shortcode_tags[ $tag ] );
++	return null;
+ }
+ 
+ /**
+@@ -114,10 +116,11 @@
+  *
+  * @global array $shortcode_tags
+  */
+-function remove_all_shortcodes() {
++function remove_all_shortcodes(): mixed {
+ 	global $shortcode_tags;
+ 
+ 	$shortcode_tags = array();
++	return null;
+ }
+ 
+ /**
+@@ -130,9 +133,10 @@
+  * @param string $tag Shortcode tag to check.
+  * @return bool Whether the given shortcode exists.
+  */
+-function shortcode_exists( $tag ) {
++function shortcode_exists( mixed $tag ): mixed {
+ 	global $shortcode_tags;
+ 	return array_key_exists( $tag, $shortcode_tags );
++	return null;
+ }
+ 
+ /**
+@@ -146,13 +150,13 @@
+  * @param string $tag     Shortcode tag to check.
+  * @return bool Whether the passed content contains the given shortcode.
+  */
+-function has_shortcode( $content, $tag ) {
++function has_shortcode( mixed $content, mixed $tag ): mixed {
+ 	if ( ! str_contains( $content, '[' ) ) {
+ 		return false;
+ 	}
+ 
+ 	if ( shortcode_exists( $tag ) ) {
+-		preg_match_all( '/' . get_shortcode_regex() . '/', $content, $matches, PREG_SET_ORDER );
++		preg_match_all( \wp_aot_regex_text( '/' . get_shortcode_regex() . '/' ), \wp_aot_regex_text( $content ), $matches, PREG_SET_ORDER );
+ 		if ( empty( $matches ) ) {
+ 			return false;
+ 		}
+@@ -166,6 +170,7 @@
+ 		}
+ 	}
+ 	return false;
++	return null;
+ }
+ 
+ /**
+@@ -181,12 +186,12 @@
+  * @param string $content The content to check.
+  * @return string[] An array of registered shortcode names found in the content.
+  */
+-function get_shortcode_tags_in_content( $content ) {
++function get_shortcode_tags_in_content( mixed $content ): mixed {
+ 	if ( ! str_contains( $content, '[' ) ) {
+ 		return array();
+ 	}
+ 
+-	preg_match_all( '/' . get_shortcode_regex() . '/', $content, $matches, PREG_SET_ORDER );
++	preg_match_all( \wp_aot_regex_text( '/' . get_shortcode_regex() . '/' ), \wp_aot_regex_text( $content ), $matches, PREG_SET_ORDER );
+ 	if ( empty( $matches ) ) {
+ 		return array();
+ 	}
+@@ -198,12 +203,13 @@
+ 		if ( ! empty( $shortcode[5] ) ) {
+ 			$deep_tags = get_shortcode_tags_in_content( $shortcode[5] );
+ 			if ( ! empty( $deep_tags ) ) {
+-				$tags = array_merge( $tags, $deep_tags );
++				$tags = \wp_aot_array_merge(array( $tags, $deep_tags ));
+ 			}
+ 		}
+ 	}
+ 
+ 	return $tags;
++	return null;
+ }
+ 
+ /**
+@@ -220,8 +226,9 @@
+  *                            Default false.
+  * @return string Content with shortcodes filtered out.
+  */
+-function apply_shortcodes( $content, $ignore_html = false ) {
++function apply_shortcodes( mixed $content, mixed $ignore_html = false ): mixed {
+ 	return do_shortcode( $content, $ignore_html );
++	return null;
+ }
+ 
+ /**
+@@ -240,7 +247,7 @@
+  *                            Default false.
+  * @return string Content with shortcodes filtered out.
+  */
+-function do_shortcode( $content, $ignore_html = false ) {
++function do_shortcode( mixed $content, mixed $ignore_html = false ): mixed {
+ 	global $shortcode_tags;
+ 
+ 	if ( ! str_contains( $content, '[' ) ) {
+@@ -252,8 +259,8 @@
+ 	}
+ 
+ 	// Find all registered tag names in $content.
+-	preg_match_all( '@\[([^<>&/\[\]\x00-\x20=]++)@', $content, $matches );
+-	$tagnames = array_intersect( array_keys( $shortcode_tags ), $matches[1] );
++	preg_match_all( '@\[([^<>&/\[\]\x00-\x20=]++)@', \wp_aot_regex_text( $content ), $matches );
++	$tagnames = \wp_aot_array_intersect(array( array_keys( $shortcode_tags ), $matches[1] ));
+ 
+ 	if ( empty( $tagnames ) ) {
+ 		return $content;
+@@ -270,7 +277,7 @@
+ 	$content = do_shortcodes_in_html_tags( $content, $ignore_html, $tagnames );
+ 
+ 	$pattern = get_shortcode_regex( $tagnames );
+-	$content = preg_replace_callback( "/$pattern/", 'do_shortcode_tag', $content );
++	$content = \wp_aot_preg_replace_callback( "/$pattern/", 'do_shortcode_tag', $content );
+ 
+ 	// Always restore square braces so we don't break things like <!--[if IE ]>.
+ 	$content = unescape_invalid_shortcodes( $content );
+@@ -281,6 +288,7 @@
+ 	}
+ 
+ 	return $content;
++	return null;
+ }
+ 
+ /**
+@@ -294,8 +302,9 @@
+  *
+  * @return string The filtered context value for wp_get_attachment_images when doing shortcodes.
+  */
+-function _filter_do_shortcode_context() {
++function _filter_do_shortcode_context(): mixed {
+ 	return 'do_shortcode';
++	return null;
+ }
+ 
+ /**
+@@ -321,13 +330,13 @@
+  * @param array $tagnames Optional. List of shortcodes to find. Defaults to all registered shortcodes.
+  * @return string The shortcode search regular expression.
+  */
+-function get_shortcode_regex( $tagnames = null ) {
++function get_shortcode_regex( mixed $tagnames = null ): mixed {
+ 	global $shortcode_tags;
+ 
+ 	if ( empty( $tagnames ) ) {
+ 		$tagnames = array_keys( $shortcode_tags );
+ 	}
+-	$tagregexp = implode( '|', array_map( 'preg_quote', $tagnames ) );
++	$tagregexp = implode( '|', \wp_aot_array_map( 'preg_quote', $tagnames ) );
+ 
+ 	/*
+ 	 * WARNING! Do not change this regex without changing do_shortcode_tag() and strip_shortcode_tag().
+@@ -364,6 +373,7 @@
+ 		. ')'
+ 		. '(\\]?)';                          // 6: Optional second closing bracket for escaping shortcodes: [[tag]].
+ 	// phpcs:enable
++	return null;
+ }
+ 
+ /**
+@@ -389,7 +399,7 @@
+  * }
+  * @return string Shortcode output.
+  */
+-function do_shortcode_tag( $m ) {
++function do_shortcode_tag( mixed $m ): mixed {
+ 	global $shortcode_tags;
+ 
+ 	// Allow [[foo]] syntax for escaping a tag.
+@@ -445,6 +455,7 @@
+ 	 * @param array  $m      Regular expression match array.
+ 	 */
+ 	return apply_filters( 'do_shortcode_tag', $output, $tag, $attr, $m );
++	return null;
+ }
+ 
+ /**
+@@ -462,13 +473,13 @@
+  * @param array  $tagnames    List of shortcodes to find.
+  * @return string Content with shortcodes filtered out.
+  */
+-function do_shortcodes_in_html_tags( $content, $ignore_html, $tagnames ) {
++function do_shortcodes_in_html_tags( mixed $content, mixed $ignore_html, mixed $tagnames ): mixed {
+ 	// Normalize entities in unfiltered HTML before adding placeholders.
+ 	$trans   = array(
+ 		'&#91;' => '&#091;',
+ 		'&#93;' => '&#093;',
+ 	);
+-	$content = strtr( $content, $trans );
++	$content = \wp_aot_strtr( $content, $trans );
+ 	$trans   = array(
+ 		'[' => '&#91;',
+ 		']' => '&#93;',
+@@ -488,34 +499,34 @@
+ 			// This element does not contain shortcodes.
+ 			if ( $noopen xor $noclose ) {
+ 				// Need to encode stray '[' or ']' chars.
+-				$element = strtr( $element, $trans );
++				$element = \wp_aot_strtr( $element, $trans );
+ 			}
+ 			continue;
+ 		}
+ 
+ 		if ( $ignore_html || str_starts_with( $element, '<!--' ) || str_starts_with( $element, '<![CDATA[' ) ) {
+ 			// Encode all '[' and ']' chars.
+-			$element = strtr( $element, $trans );
++			$element = \wp_aot_strtr( $element, $trans );
+ 			continue;
+ 		}
+ 
+ 		$attributes = wp_kses_attr_parse( $element );
+ 		if ( false === $attributes ) {
+ 			// Some plugins are doing things like [name] <[email]>.
+-			if ( 1 === preg_match( '%^<\s*\[\[?[^\[\]]+\]%', $element ) ) {
+-				$element = preg_replace_callback( "/$pattern/", 'do_shortcode_tag', $element );
++			if ( 1 === preg_match( '%^<\s*\[\[?[^\[\]]+\]%', \wp_aot_regex_text( $element ) ) ) {
++				$element = \wp_aot_preg_replace_callback( "/$pattern/", 'do_shortcode_tag', $element );
+ 			}
+ 
+ 			// Looks like we found some unexpected unfiltered HTML. Skipping it for confidence.
+-			$element = strtr( $element, $trans );
++			$element = \wp_aot_strtr( $element, $trans );
+ 			continue;
+ 		}
+ 
+ 		// Get element name.
+-		$front   = array_shift( $attributes );
+-		$back    = array_pop( $attributes );
++		$front   = \wp_aot_array_shift( $attributes );
++		$back    = \wp_aot_array_pop( $attributes );
+ 		$matches = array();
+-		preg_match( '%[a-zA-Z0-9]+%', $front, $matches );
++		preg_match( '%[a-zA-Z0-9]+%', \wp_aot_regex_text( $front ), $matches );
+ 		$elname = $matches[0];
+ 
+ 		// Look for shortcodes in each attribute separately.
+@@ -534,14 +545,14 @@
+ 				 * was written by an administrator, so we should avoid changing the output
+ 				 * and we do not need to run KSES here.
+ 				 */
+-				$attr = preg_replace_callback( "/$pattern/", 'do_shortcode_tag', $attr );
++				$attr = \wp_aot_preg_replace_callback( "/$pattern/", 'do_shortcode_tag', $attr );
+ 			} else {
+ 				/*
+ 				 * $attr like 'name = "[shortcode]"' or "name = '[shortcode]'".
+ 				 * We do not know if $content was unfiltered. Assume KSES ran before shortcodes.
+ 				 */
+ 				$count    = 0;
+-				$new_attr = preg_replace_callback( "/$pattern/", 'do_shortcode_tag', $attr, -1, $count );
++				$new_attr = \wp_aot_preg_replace_callback( "/$pattern/", 'do_shortcode_tag', $attr, -1, $count );
+ 				if ( $count > 0 ) {
+ 					// Sanitize the shortcode output using KSES.
+ 					$new_attr = wp_kses_one_attr( $new_attr, $elname );
+@@ -555,12 +566,13 @@
+ 		$element = $front . implode( '', $attributes ) . $back;
+ 
+ 		// Now encode any remaining '[' or ']' chars.
+-		$element = strtr( $element, $trans );
++		$element = \wp_aot_strtr( $element, $trans );
+ 	}
+ 
+ 	$content = implode( '', $textarr );
+ 
+ 	return $content;
++	return null;
+ }
+ 
+ /**
+@@ -571,16 +583,17 @@
+  * @param string $content Content to search for placeholders.
+  * @return string Content with placeholders removed.
+  */
+-function unescape_invalid_shortcodes( $content ) {
++function unescape_invalid_shortcodes( mixed $content ): mixed {
+ 	// Clean up entire string, avoids re-parsing HTML.
+ 	$trans = array(
+ 		'&#91;' => '[',
+ 		'&#93;' => ']',
+ 	);
+ 
+-	$content = strtr( $content, $trans );
++	$content = \wp_aot_strtr( $content, $trans );
+ 
+ 	return $content;
++	return null;
+ }
+ 
+ /**
+@@ -590,8 +603,9 @@
+  *
+  * @return string The shortcode attribute regular expression.
+  */
+-function get_shortcode_atts_regex() {
++function get_shortcode_atts_regex(): mixed {
+ 	return '/([\w-]+)\s*=\s*"([^"]*)"(?:\s|$)|([\w-]+)\s*=\s*\'([^\']*)\'(?:\s|$)|([\w-]+)\s*=\s*([^\s\'"]+)(?:\s|$)|"([^"]*)"(?:\s|$)|\'([^\']*)\'(?:\s|$)|(\S+)(?:\s|$)/';
++	return null;
+ }
+ 
+ /**
+@@ -610,11 +624,11 @@
+  *               Returns empty array if there are no attributes
+  *               or if the original arguments string cannot be parsed.
+  */
+-function shortcode_parse_atts( $text ) {
++function shortcode_parse_atts( mixed $text ): mixed {
+ 	$atts    = array();
+ 	$pattern = get_shortcode_atts_regex();
+-	$text    = preg_replace( "/[\x{00a0}\x{200b}]+/u", ' ', $text );
+-	if ( preg_match_all( $pattern, $text, $match, PREG_SET_ORDER ) ) {
++	$text    = \wp_aot_preg_replace( "/[\x{00a0}\x{200b}]+/u", ' ', $text );
++	if ( preg_match_all( \wp_aot_regex_text( $pattern ), \wp_aot_regex_text( $text ), $match, PREG_SET_ORDER ) ) {
+ 		foreach ( $match as $m ) {
+ 			if ( ! empty( $m[1] ) ) {
+ 				$atts[ strtolower( $m[1] ) ] = stripcslashes( $m[2] );
+@@ -634,7 +648,7 @@
+ 		// Reject any unclosed HTML elements.
+ 		foreach ( $atts as &$value ) {
+ 			if ( str_contains( $value, '<' ) ) {
+-				if ( 1 !== preg_match( '/^[^<]*+(?:<[^>]*+>[^<]*+)*+$/', $value ) ) {
++				if ( 1 !== preg_match( '/^[^<]*+(?:<[^>]*+>[^<]*+)*+$/', \wp_aot_regex_text( $value ) ) ) {
+ 					$value = '';
+ 				}
+ 			}
+@@ -642,6 +656,7 @@
+ 	}
+ 
+ 	return $atts;
++	return null;
+ }
+ 
+ /**
+@@ -661,7 +676,7 @@
+  * @param string $shortcode Optional. The name of the shortcode, provided for context to enable filtering
+  * @return array Combined and filtered attribute list.
+  */
+-function shortcode_atts( $pairs, $atts, $shortcode = '' ) {
++function shortcode_atts( mixed $pairs, mixed $atts, mixed $shortcode = '' ): mixed {
+ 	$atts = (array) $atts;
+ 	$out  = array();
+ 	foreach ( $pairs as $name => $default ) {
+@@ -691,6 +706,7 @@
+ 	}
+ 
+ 	return $out;
++	return null;
+ }
+ 
+ /**
+@@ -703,7 +719,7 @@
+  * @param string $content Content to remove shortcode tags.
+  * @return string Content without shortcode tags.
+  */
+-function strip_shortcodes( $content ) {
++function strip_shortcodes( mixed $content ): mixed {
+ 	global $shortcode_tags;
+ 
+ 	if ( ! str_contains( $content, '[' ) ) {
+@@ -715,7 +731,7 @@
+ 	}
+ 
+ 	// Find all registered tag names in $content.
+-	preg_match_all( '@\[([^<>&/\[\]\x00-\x20=]++)@', $content, $matches );
++	preg_match_all( '@\[([^<>&/\[\]\x00-\x20=]++)@', \wp_aot_regex_text( $content ), $matches );
+ 
+ 	$tags_to_remove = array_keys( $shortcode_tags );
+ 
+@@ -729,7 +745,7 @@
+ 	 */
+ 	$tags_to_remove = apply_filters( 'strip_shortcodes_tagnames', $tags_to_remove, $content );
+ 
+-	$tagnames = array_intersect( $tags_to_remove, $matches[1] );
++	$tagnames = \wp_aot_array_intersect(array( $tags_to_remove, $matches[1] ));
+ 
+ 	if ( empty( $tagnames ) ) {
+ 		return $content;
+@@ -738,12 +754,13 @@
+ 	$content = do_shortcodes_in_html_tags( $content, true, $tagnames );
+ 
+ 	$pattern = get_shortcode_regex( $tagnames );
+-	$content = preg_replace_callback( "/$pattern/", 'strip_shortcode_tag', $content );
++	$content = \wp_aot_preg_replace_callback( "/$pattern/", 'strip_shortcode_tag', $content );
+ 
+ 	// Always restore square braces so we don't break things like <!--[if IE ]>.
+ 	$content = unescape_invalid_shortcodes( $content );
+ 
+ 	return $content;
++	return null;
+ }
+ 
+ /**
+@@ -754,11 +771,12 @@
+  * @param array $m RegEx matches against post content.
+  * @return string|false The content stripped of the tag, otherwise false.
+  */
+-function strip_shortcode_tag( $m ) {
++function strip_shortcode_tag( mixed $m ): mixed {
+ 	// Allow [[foo]] syntax for escaping a tag.
+ 	if ( '[' === $m[1] && ']' === $m[6] ) {
+ 		return substr( $m[0], 1, -1 );
+ 	}
+ 
+ 	return $m[1] . $m[6];
+-}
++	return null;
++}

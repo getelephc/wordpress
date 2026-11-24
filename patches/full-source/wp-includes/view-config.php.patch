@@ -1,0 +1,149 @@
+--- a/wp-includes/view-config.php
++++ b/wp-includes/view-config.php
+@@ -27,8 +27,9 @@
+  * @param string $name The entity name (e.g. `page`).
+  * @return string The filter name.
+  */
+-function wp_get_entity_view_config_hook_name( $kind, $name ) {
++function wp_get_entity_view_config_hook_name( mixed $kind, mixed $name ): mixed {
+ 	return strtolower( "get_entity_view_config_{$kind}_{$name}" );
++	return null;
+ }
+ 
+ /**
+@@ -48,7 +49,7 @@
+  *
+  * @return array The default form configuration.
+  */
+-function _wp_get_default_posttype_form() {
++function _wp_get_default_posttype_form(): mixed {
+ 	return array(
+ 		'layout' => array( 'type' => 'panel' ),
+ 		'fields' => array(
+@@ -112,6 +113,7 @@
+ 			'revisions',
+ 		),
+ 	);
++	return null;
+ }
+ 
+ /**
+@@ -136,7 +138,7 @@
+  *     @type array $form            Form configuration.
+  * }
+  */
+-function wp_get_entity_view_config( $kind, $name ) {
++function wp_get_entity_view_config( mixed $kind, mixed $name ): mixed {
+ 	$default_view    = array(
+ 		'type'       => 'table',
+ 		'filters'    => array(),
+@@ -177,6 +179,7 @@
+ 	$data = new WP_View_Config_Data( $config );
+ 
+ 	return $data->apply_filters( $kind, $name );
++	return null;
+ }
+ 
+ /**
+@@ -187,7 +190,7 @@
+  * @param WP_View_Config_Data $data The view configuration container for the entity.
+  * @return WP_View_Config_Data The updated view configuration container.
+  */
+-function _wp_get_entity_view_config_posttype_page( $data ) {
++function _wp_get_entity_view_config_posttype_page( mixed $data ): mixed {
+ 	$default_layouts = array(
+ 		'table' => array(
+ 			'layout' => array(
+@@ -317,6 +320,7 @@
+ 	$data->merge( array( 'view_list' => $view_list ), 1 );
+ 
+ 	return $data;
++	return null;
+ }
+ 
+ /**
+@@ -327,7 +331,7 @@
+  * @param WP_View_Config_Data $data The view configuration container for the entity.
+  * @return WP_View_Config_Data The updated view configuration container.
+  */
+-function _wp_get_entity_view_config_posttype_wp_block( $data ) {
++function _wp_get_entity_view_config_posttype_wp_block( mixed $data ): mixed {
+ 	$default_layouts = array(
+ 		'table' => array(
+ 			'layout' => array(
+@@ -393,7 +397,7 @@
+ 	}
+ 
+ 	// Sort categories alphabetically by label.
+-	asort( $categories, SORT_NATURAL | SORT_FLAG_CASE );
++	\wp_aot_asort( $categories, SORT_NATURAL | SORT_FLAG_CASE );
+ 
+ 	foreach ( $categories as $category_name => $label ) {
+ 		$view_list[] = array(
+@@ -435,6 +439,7 @@
+ 	);
+ 
+ 	return $data;
++	return null;
+ }
+ 
+ /**
+@@ -445,7 +450,7 @@
+  * @param WP_View_Config_Data $data The view configuration container for the entity.
+  * @return WP_View_Config_Data The updated view configuration container.
+  */
+-function _wp_get_entity_view_config_posttype_wp_template_part( $data ) {
++function _wp_get_entity_view_config_posttype_wp_template_part( mixed $data ): mixed {
+ 	$default_layouts = array(
+ 		'table' => array(
+ 			'layout' => array(
+@@ -485,15 +490,15 @@
+ 	$ordered_areas   = array();
+ 	$remaining_areas = array();
+ 	foreach ( $areas as $area ) {
+-		$position = array_search( $area['area'], $preferred_order, true );
++		$position = \wp_aot_array_search( $area['area'], $preferred_order, true );
+ 		if ( false !== $position ) {
+ 			$ordered_areas[ $position ] = $area;
+ 		} else {
+ 			$remaining_areas[] = $area;
+ 		}
+ 	}
+-	ksort( $ordered_areas );
+-	$areas = array_merge( array_values( $ordered_areas ), $remaining_areas );
++	\wp_aot_ksort( $ordered_areas );
++	$areas = \wp_aot_array_merge(array( array_values( $ordered_areas ), $remaining_areas ));
+ 
+ 	foreach ( $areas as $area ) {
+ 		$view_list[] = array(
+@@ -537,6 +542,7 @@
+ 	);
+ 
+ 	return $data;
++	return null;
+ }
+ 
+ /**
+@@ -547,7 +553,7 @@
+  * @param WP_View_Config_Data $data The view configuration container for the entity.
+  * @return WP_View_Config_Data The updated view configuration container.
+  */
+-function _wp_get_entity_view_config_posttype_wp_template( $data ) {
++function _wp_get_entity_view_config_posttype_wp_template( mixed $data ): mixed {
+ 	$default_view = array(
+ 		'type'             => 'grid',
+ 		'perPage'          => 20,
+@@ -746,11 +752,12 @@
+ 		array(
+ 			'default_view'    => $default_view,
+ 			'default_layouts' => $default_layouts,
+-			'view_list'       => array_merge( $view_list, $registered_authors, $user_authors ),
++			'view_list'       => \wp_aot_array_merge(array( $view_list, $registered_authors, $user_authors )),
+ 			'form'            => $form,
+ 		),
+ 		1
+ 	);
+ 
+ 	return $data;
++	return null;
+ }

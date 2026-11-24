@@ -1,8 +1,108 @@
 --- a/wp-includes/widgets/class-wp-widget-media-audio.php
 +++ b/wp-includes/widgets/class-wp-widget-media-audio.php
-@@ -186,10 +186,10 @@
+@@ -32,7 +32,7 @@
+ 			)
+ 		);
+ 
+-		$this->l10n = array_merge(
++		$this->l10n = \wp_aot_array_merge(array(
+ 			$this->l10n,
+ 			array(
+ 				'no_media_selected'          => __( 'No audio selected' ),
+@@ -49,7 +49,7 @@
+ 				'media_library_state_single' => __( 'Audio Widget' ),
+ 				'unsupported_file_type'      => __( 'Looks like this is not the correct kind of file. Please link to an audio file instead.' ),
+ 			)
+-		);
++		));
+ 	}
+ 
+ 	/**
+@@ -63,7 +63,7 @@
+ 	 *
+ 	 * @return array Schema for properties.
  	 */
- 	public function render_control_template_scripts() {
+-	public function get_instance_schema() {
++	public function get_instance_schema(): mixed {
+ 		$schema = array(
+ 			'preload' => array(
+ 				'type'        => 'string',
+@@ -88,7 +88,8 @@
+ 			);
+ 		}
+ 
+-		return array_merge( $schema, parent::get_instance_schema() );
++		return \wp_aot_array_merge(array( $schema, parent::get_instance_schema() ));
++		return null;
+ 	}
+ 
+ 	/**
+@@ -98,8 +99,8 @@
+ 	 *
+ 	 * @param array $instance Widget instance props.
+ 	 */
+-	public function render_media( $instance ) {
+-		$instance   = array_merge( wp_list_pluck( $this->get_instance_schema(), 'default' ), $instance );
++	public function render_media( mixed $instance ): mixed {
++		$instance   = \wp_aot_array_merge(array( wp_list_pluck( $this->get_instance_schema(), 'default' ), $instance ));
+ 		$attachment = null;
+ 
+ 		if ( $this->is_attachment_with_mime_type( $instance['attachment_id'], $this->widget_options['mime_type'] ) ) {
+@@ -113,11 +114,12 @@
+ 		}
+ 
+ 		echo wp_audio_shortcode(
+-			array_merge(
++			\wp_aot_array_merge(array(
+ 				$instance,
+-				compact( 'src' )
+-			)
+-		);
++				\wp_aot_compact(get_defined_vars(), array( 'src' ))
++			))
++		);
++		return null;
+ 	}
+ 
+ 	/**
+@@ -130,12 +132,13 @@
+ 	 *
+ 	 * @since 4.8.0
+ 	 */
+-	public function enqueue_preview_scripts() {
++	public function enqueue_preview_scripts(): mixed {
+ 		/** This filter is documented in wp-includes/media.php */
+ 		if ( 'mediaelement' === apply_filters( 'wp_audio_shortcode_library', 'mediaelement' ) ) {
+ 			wp_enqueue_style( 'wp-mediaelement' );
+ 			wp_enqueue_script( 'wp-mediaelement' );
+ 		}
++		return null;
+ 	}
+ 
+ 	/**
+@@ -143,7 +146,7 @@
+ 	 *
+ 	 * @since 4.8.0
+ 	 */
+-	public function enqueue_admin_scripts() {
++	public function enqueue_admin_scripts(): mixed {
+ 		parent::enqueue_admin_scripts();
+ 
+ 		wp_enqueue_style( 'wp-mediaelement' );
+@@ -177,6 +180,7 @@
+ 				wp_json_encode( $this->l10n, JSON_HEX_TAG | JSON_UNESCAPED_SLASHES )
+ 			)
+ 		);
++		return null;
+ 	}
+ 
+ 	/**
+@@ -184,12 +188,12 @@
+ 	 *
+ 	 * @since 4.8.0
+ 	 */
+-	public function render_control_template_scripts() {
++	public function render_control_template_scripts(): mixed {
  		parent::render_control_template_scripts()
 -		?>
 -		<script type="text/html" id="tmpl-wp-media-widget-audio-preview">
@@ -15,7 +115,7 @@
  				wp_admin_notice(
  					$this->l10n['missing_attachment'],
  					array(
-@@ -197,9 +197,9 @@
+@@ -197,9 +201,9 @@
  						'additional_classes' => array( 'notice-alt', 'notice-missing-attachment' ),
  					)
  				);
@@ -28,7 +128,7 @@
  				wp_admin_notice(
  					__( 'Unable to preview media due to an unknown error.' ),
  					array(
-@@ -207,11 +207,12 @@
+@@ -207,11 +211,13 @@
  						'additional_classes' => array( 'notice-alt' ),
  					)
  				);
@@ -44,5 +144,6 @@
  		</script>
 -		<?php
 +		';
++		return null;
  	}
  }

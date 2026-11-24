@@ -1,0 +1,129 @@
+--- a/wp-includes/class-wp-http-encoding.php
++++ b/wp-includes/class-wp-http-encoding.php
+@@ -30,8 +30,9 @@
+ 	 *                         the right compression based on what the server supports.
+ 	 * @return string|false Compressed string on success, false on failure.
+ 	 */
+-	public static function compress( $raw, $level = 9, $supports = null ) {
++	public static function compress( mixed $raw, mixed $level = 9, mixed $supports = null ): mixed {
+ 		return gzdeflate( $raw, $level );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -48,7 +49,7 @@
+ 	 * @param int    $length     The optional length of the compressed data.
+ 	 * @return string|false Decompressed string on success, false on failure.
+ 	 */
+-	public static function decompress( $compressed, $length = null ) {
++	public static function decompress( mixed $compressed, mixed $length = null ): mixed {
+ 
+ 		if ( empty( $compressed ) ) {
+ 			return $compressed;
+@@ -70,7 +71,7 @@
+ 		}
+ 
+ 		if ( function_exists( 'gzdecode' ) ) {
+-			$decompressed = @gzdecode( $compressed );
++			$decompressed = @\wp_aot_native_api('gzdecode', array( $compressed ));
+ 
+ 			if ( false !== $decompressed ) {
+ 				return $decompressed;
+@@ -78,6 +79,7 @@
+ 		}
+ 
+ 		return $compressed;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -101,7 +103,7 @@
+ 	 * @param string $gz_data String to decompress.
+ 	 * @return string|false Decompressed string on success, false on failure.
+ 	 */
+-	public static function compatible_gzinflate( $gz_data ) {
++	public static function compatible_gzinflate( mixed $gz_data ): mixed {
+ 
+ 		// Compressed data might contain a full header, if so strip it for gzinflate().
+ 		if ( str_starts_with( $gz_data, "\x1f\x8b\x08" ) ) {
+@@ -109,7 +111,7 @@
+ 			$flg = ord( substr( $gz_data, 3, 1 ) );
+ 			if ( $flg > 0 ) {
+ 				if ( $flg & 4 ) {
+-					list($xlen) = unpack( 'v', substr( $gz_data, $i, 2 ) );
++					list($xlen) = (array) unpack( 'v', substr( $gz_data, $i, 2 ) );
+ 					$i          = $i + 2 + $xlen;
+ 				}
+ 				if ( $flg & 8 ) {
+@@ -122,7 +124,7 @@
+ 					$i = $i + 2;
+ 				}
+ 			}
+-			$decompressed = @gzinflate( substr( $gz_data, $i, -8 ) );
++			$decompressed = \wp_aot_mixed(@gzinflate( substr( $gz_data, $i, -8 ) ));
+ 			if ( false !== $decompressed ) {
+ 				return $decompressed;
+ 			}
+@@ -135,6 +137,7 @@
+ 		}
+ 
+ 		return false;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -146,7 +149,7 @@
+ 	 * @param array  $args
+ 	 * @return string Types of encoding to accept.
+ 	 */
+-	public static function accept_encoding( $url, $args ) {
++	public static function accept_encoding( mixed $url, mixed $args ): mixed {
+ 		$type                = array();
+ 		$compression_enabled = self::is_available();
+ 
+@@ -184,6 +187,7 @@
+ 		$type = apply_filters( 'wp_http_accept_encoding', $type, $url, $args );
+ 
+ 		return implode( ', ', $type );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -193,8 +197,9 @@
+ 	 *
+ 	 * @return string Content-Encoding string to send in the header.
+ 	 */
+-	public static function content_encoding() {
++	public static function content_encoding(): mixed {
+ 		return 'deflate';
++		return null;
+ 	}
+ 
+ 	/**
+@@ -205,7 +210,7 @@
+ 	 * @param array|string $headers All of the available headers.
+ 	 * @return bool
+ 	 */
+-	public static function should_decode( $headers ) {
++	public static function should_decode( mixed $headers ): mixed {
+ 		if ( is_array( $headers ) ) {
+ 			if ( array_key_exists( 'content-encoding', $headers ) && ! empty( $headers['content-encoding'] ) ) {
+ 				return true;
+@@ -215,6 +220,7 @@
+ 		}
+ 
+ 		return false;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -228,7 +234,8 @@
+ 	 *
+ 	 * @return bool
+ 	 */
+-	public static function is_available() {
++	public static function is_available(): mixed {
+ 		return ( function_exists( 'gzuncompress' ) || function_exists( 'gzdeflate' ) || function_exists( 'gzinflate' ) );
++		return null;
+ 	}
+ }

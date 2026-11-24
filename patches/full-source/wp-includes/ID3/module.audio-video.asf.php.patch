@@ -1,0 +1,308 @@
+--- a/wp-includes/ID3/module.audio-video.asf.php
++++ b/wp-includes/ID3/module.audio-video.asf.php
+@@ -14,7 +14,7 @@
+ /////////////////////////////////////////////////////////////////
+ 
+ if (!defined('GETID3_INCLUDEPATH')) { // prevent path-exposing attacks that access modules directly on public webservers
+-	exit;
++	\wp_aot_exit();
+ }
+ getid3_lib::IncludeDependency(GETID3_INCLUDEPATH.'module.audio-video.riff.php', __FILE__, true);
+ 
+@@ -47,7 +47,7 @@
+ 		// initialize all GUID constants
+ 		$GUIDarray = $this->KnownGUIDs();
+ 		foreach ($GUIDarray as $GUIDname => $hexstringvalue) {
+-			if (!defined($GUIDname)) {
++			if (!\wp_aot_metadata_defined($GUIDname)) {
+ 				define($GUIDname, $this->GUIDtoBytestring($hexstringvalue));
+ 			}
+ 		}
+@@ -56,7 +56,7 @@
+ 	/**
+ 	 * @return bool
+ 	 */
+-	public function Analyze() {
++	public function Analyze(): mixed {
+ 		$info = &$this->getid3->info;
+ 
+ 		// Shortcuts
+@@ -389,7 +389,7 @@
+ 								$thisfile_audio['codec'] = $this->TrimConvert($thisfile_asf_codeclistobject_codecentries_current['name']);
+ 
+ 								if (!isset($thisfile_audio['bitrate']) && strstr($AudioCodecBitrate, 'kbps')) {
+-									$thisfile_audio['bitrate'] = (int) trim(str_replace('kbps', '', $AudioCodecBitrate)) * 1000;
++									$thisfile_audio['bitrate'] = (int) trim(\wp_aot_str_replace('kbps', '', $AudioCodecBitrate)) * 1000;
+ 								}
+ 								//if (!isset($thisfile_video['bitrate']) && isset($thisfile_audio['bitrate']) && isset($thisfile_asf['file_properties_object']['max_bitrate']) && ($thisfile_asf_codeclistobject['codec_entries_count'] > 1)) {
+ 								if (empty($thisfile_video['bitrate']) && !empty($thisfile_audio['bitrate']) && !empty($info['bitrate'])) {
+@@ -397,7 +397,7 @@
+ 									$thisfile_video['bitrate'] = $info['bitrate'] - $thisfile_audio['bitrate'];
+ 								}
+ 
+-								$AudioCodecFrequency = (int) trim(str_replace('kHz', '', $AudioCodecFrequency));
++								$AudioCodecFrequency = (int) trim(\wp_aot_str_replace('kHz', '', $AudioCodecFrequency));
+ 								switch ($AudioCodecFrequency) {
+ 									case 8:
+ 									case 8000:
+@@ -832,8 +832,8 @@
+ 								// be careful casting to int: casting unicode strings to int gives unexpected results (stops parsing at first non-numeric character)
+ 								$thisfile_asf_comments['track_number'] = array($this->TrimTerm($thisfile_asf_extendedcontentdescriptionobject_contentdescriptor_current['value']));
+ 								foreach ($thisfile_asf_comments['track_number'] as $key => $value) {
+-									if (preg_match('/^[0-9\x00]+$/', $value)) {
+-										$thisfile_asf_comments['track_number'][$key] = intval(str_replace("\x00", '', $value));
++									if (preg_match('/^[0-9\x00]+$/', \wp_aot_regex_text( $value ))) {
++										$thisfile_asf_comments['track_number'][$key] = intval(\wp_aot_str_replace("\x00", '', $value));
+ 									}
+ 								}
+ 								break;
+@@ -929,7 +929,7 @@
+ 								switch ($thisfile_asf_extendedcontentdescriptionobject_contentdescriptor_current['value_type']) {
+ 									case 0: // Unicode string
+ 										if (substr($this->TrimConvert($thisfile_asf_extendedcontentdescriptionobject_contentdescriptor_current['name']), 0, 3) == 'WM/') {
+-											$thisfile_asf_comments[str_replace('wm/', '', strtolower($this->TrimConvert($thisfile_asf_extendedcontentdescriptionobject_contentdescriptor_current['name'])))] = array($this->TrimTerm($thisfile_asf_extendedcontentdescriptionobject_contentdescriptor_current['value']));
++											$thisfile_asf_comments[\wp_aot_str_replace('wm/', '', strtolower($this->TrimConvert($thisfile_asf_extendedcontentdescriptionobject_contentdescriptor_current['name'])))] = array($this->TrimTerm($thisfile_asf_extendedcontentdescriptionobject_contentdescriptor_current['value']));
+ 										}
+ 										break;
+ 
+@@ -1485,6 +1485,7 @@
+ 		}
+ 
+ 		return true;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1492,7 +1493,7 @@
+ 	 *
+ 	 * @return string
+ 	 */
+-	public static function codecListObjectTypeLookup($CodecListType) {
++	public static function codecListObjectTypeLookup(mixed $CodecListType): mixed {
+ 		static $lookup = array(
+ 			0x0001 => 'Video Codec',
+ 			0x0002 => 'Audio Codec',
+@@ -1500,12 +1501,13 @@
+ 		);
+ 
+ 		return (isset($lookup[$CodecListType]) ? $lookup[$CodecListType] : 'Invalid Codec Type');
++		return null;
+ 	}
+ 
+ 	/**
+ 	 * @return array
+ 	 */
+-	public static function KnownGUIDs() {
++	public static function KnownGUIDs(): mixed {
+ 		static $GUIDarray = array(
+ 			'GETID3_ASF_Extended_Stream_Properties_Object'   => '14E6A5CB-C672-4332-8399-A96952065B5A',
+ 			'GETID3_ASF_Padding_Object'                      => '1806D474-CADF-4509-A4BA-9AABCB96AAE8',
+@@ -1618,6 +1620,7 @@
+ 			'GETID3_ASF_Media_Object_Index_Parameters_Object'=> '6B203BAD-3F11-48E4-ACA8-D7613DE2CFA7',
+ 		);
+ 		return $GUIDarray;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1625,12 +1628,14 @@
+ 	 *
+ 	 * @return string|false
+ 	 */
+-	public static function GUIDname($GUIDstring) {
+-		static $GUIDarray = array();
++	public static function GUIDname(mixed $GUIDstring): mixed {
++		static $GUIDarray_aot_cell = new \WordPressStaticArrayCell();
++		$GUIDarray =& $GUIDarray_aot_cell->value;
+ 		if (empty($GUIDarray)) {
+ 			$GUIDarray = self::KnownGUIDs();
+ 		}
+-		return array_search($GUIDstring, $GUIDarray);
++		return \wp_aot_array_search($GUIDstring, $GUIDarray);
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1638,14 +1643,16 @@
+ 	 *
+ 	 * @return string
+ 	 */
+-	public static function ASFIndexObjectIndexTypeLookup($id) {
+-		static $ASFIndexObjectIndexTypeLookup = array();
++	public static function ASFIndexObjectIndexTypeLookup(mixed $id): mixed {
++		static $ASFIndexObjectIndexTypeLookup_aot_cell = new \WordPressStaticArrayCell();
++		$ASFIndexObjectIndexTypeLookup =& $ASFIndexObjectIndexTypeLookup_aot_cell->value;
+ 		if (empty($ASFIndexObjectIndexTypeLookup)) {
+ 			$ASFIndexObjectIndexTypeLookup[1] = 'Nearest Past Data Packet';
+ 			$ASFIndexObjectIndexTypeLookup[2] = 'Nearest Past Media Object';
+ 			$ASFIndexObjectIndexTypeLookup[3] = 'Nearest Past Cleanpoint';
+ 		}
+ 		return (isset($ASFIndexObjectIndexTypeLookup[$id]) ? $ASFIndexObjectIndexTypeLookup[$id] : 'invalid');
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1653,7 +1660,7 @@
+ 	 *
+ 	 * @return string
+ 	 */
+-	public static function GUIDtoBytestring($GUIDstring) {
++	public static function GUIDtoBytestring(mixed $GUIDstring): mixed {
+ 		// Microsoft defines these 16-byte (128-bit) GUIDs in the strangest way:
+ 		// first 4 bytes are in little-endian order
+ 		// next 2 bytes are appended in little-endian order
+@@ -1686,6 +1693,7 @@
+ 		$hexbytecharstring .= chr(hexdec(substr($GUIDstring, 34, 2)));
+ 
+ 		return $hexbytecharstring;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1693,7 +1701,7 @@
+ 	 *
+ 	 * @return string
+ 	 */
+-	public static function BytestringToGUID($Bytestring) {
++	public static function BytestringToGUID(mixed $Bytestring): mixed {
+ 		$GUIDstring  = str_pad(dechex(ord($Bytestring[3])),  2, '0', STR_PAD_LEFT);
+ 		$GUIDstring .= str_pad(dechex(ord($Bytestring[2])),  2, '0', STR_PAD_LEFT);
+ 		$GUIDstring .= str_pad(dechex(ord($Bytestring[1])),  2, '0', STR_PAD_LEFT);
+@@ -1716,6 +1724,7 @@
+ 		$GUIDstring .= str_pad(dechex(ord($Bytestring[15])), 2, '0', STR_PAD_LEFT);
+ 
+ 		return strtoupper($GUIDstring);
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1724,7 +1733,7 @@
+ 	 *
+ 	 * @return float|int
+ 	 */
+-	public static function FILETIMEtoUNIXtime($FILETIME, $round=true) {
++	public static function FILETIMEtoUNIXtime(mixed $FILETIME, mixed $round=true): mixed {
+ 		// FILETIME is a 64-bit unsigned integer representing
+ 		// the number of 100-nanosecond intervals since January 1, 1601
+ 		// UNIX timestamp is number of seconds since January 1, 1970
+@@ -1733,6 +1742,7 @@
+ 			return intval(round(($FILETIME - 116444736000000000) / 10000000));
+ 		}
+ 		return ($FILETIME - 116444736000000000) / 10000000;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1740,8 +1750,9 @@
+ 	 *
+ 	 * @return string
+ 	 */
+-	public static function WMpictureTypeLookup($WMpictureType) {
+-		static $lookup = null;
++	public static function WMpictureTypeLookup(mixed $WMpictureType): mixed {
++		static $lookup_aot_cell = new \WordPressStaticValueCell();
++		$lookup =& $lookup_aot_cell->value;
+ 		if ($lookup === null) {
+ 			$lookup = array(
+ 				0x03 => 'Front Cover',
+@@ -1763,12 +1774,13 @@
+ 				0x13 => 'Band Logotype',
+ 				0x14 => 'Publisher Logotype'
+ 			);
+-			$lookup = array_map(function($str) {
++			$lookup = \wp_aot_array_map(function(mixed $str) {
+ 				return getid3_lib::iconv_fallback('UTF-8', 'UTF-16LE', $str);
+ 			}, $lookup);
+ 		}
+ 
+ 		return (isset($lookup[$WMpictureType]) ? $lookup[$WMpictureType] : '');
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1777,7 +1789,7 @@
+ 	 *
+ 	 * @return array
+ 	 */
+-	public function HeaderExtensionObjectDataParse(&$asf_header_extension_object_data, &$unhandled_sections) {
++	public function HeaderExtensionObjectDataParse(mixed &$asf_header_extension_object_data, mixed &$unhandled_sections): mixed {
+ 		// https://web.archive.org/web/20140419205228/http://msdn.microsoft.com/en-us/library/bb643323.aspx
+ 
+ 		$offset = 0;
+@@ -2029,7 +2041,7 @@
+ 						$descriptionRecord['data']                =                              substr($asf_header_extension_object_data, $offset,  $descriptionRecord['data_length']);
+ 						$offset += $descriptionRecord['data_length'];
+ 
+-						if (preg_match('#^WM/Picture$#', str_replace("\x00", '', trim($descriptionRecord['name'])))) {
++						if (preg_match('#^WM/Picture$#', \wp_aot_regex_text( \wp_aot_str_replace("\x00", '', trim($descriptionRecord['name'])) ))) {
+ 							$WMpicture = $this->ASF_WMpicture($descriptionRecord['data']);
+ 							foreach ($WMpicture as $key => $value) {
+ 								$descriptionRecord['data'] = $WMpicture;
+@@ -2152,6 +2164,7 @@
+ 			$objectOffset += $thisObject['size'];
+ 		}
+ 		return $HeaderExtensionObjectParsed;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -2159,7 +2172,7 @@
+ 	 *
+ 	 * @return string
+ 	 */
+-	public static function metadataLibraryObjectDataTypeLookup($id) {
++	public static function metadataLibraryObjectDataTypeLookup(mixed $id): mixed {
+ 		static $lookup = array(
+ 			0x0000 => 'Unicode string', // The data consists of a sequence of Unicode characters
+ 			0x0001 => 'BYTE array',     // The type of the data is implementation-specific
+@@ -2170,6 +2183,7 @@
+ 			0x0006 => 'GUID',           // The data is 16 bytes long and should be interpreted as a 128-bit GUID
+ 		);
+ 		return (isset($lookup[$id]) ? $lookup[$id] : 'invalid');
++		return null;
+ 	}
+ 
+ 	/**
+@@ -2177,7 +2191,7 @@
+ 	 *
+ 	 * @return array
+ 	 */
+-	public function ASF_WMpicture(&$data) {
++	public function ASF_WMpicture(mixed &$data): mixed {
+ 		//typedef struct _WMPicture{
+ 		//  LPWSTR  pwszMIMEType;
+ 		//  BYTE  bPictureType;
+@@ -2225,6 +2239,7 @@
+ 		$this->getid3->info['asf']['comments']['picture'][] = array('data'=>$WMpicture['data'], 'image_mime'=>$WMpicture['image_mime']);
+ 
+ 		return $WMpicture;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -2234,8 +2249,9 @@
+ 	 *
+ 	 * @return string
+ 	 */
+-	public static function TrimConvert($string) {
++	public static function TrimConvert(mixed $string): mixed {
+ 		return trim(getid3_lib::iconv_fallback('UTF-16LE', 'ISO-8859-1', self::TrimTerm($string)), ' ');
++		return null;
+ 	}
+ 
+ 	/**
+@@ -2245,12 +2261,13 @@
+ 	 *
+ 	 * @return string
+ 	 */
+-	public static function TrimTerm($string) {
++	public static function TrimTerm(mixed $string): mixed {
+ 		// remove terminator, only if present (it should be, but...)
+ 		if (substr($string, -2) === "\x00\x00") {
+ 			$string = substr($string, 0, -2);
+ 		}
+ 		return $string;
++		return null;
+ 	}
+ 
+ }

@@ -1,0 +1,97 @@
+--- a/wp-includes/class-wp-http-cookie.php
++++ b/wp-includes/class-wp-http-cookie.php
+@@ -107,7 +107,7 @@
+ 	 * @param string       $requested_url The URL which the cookie was set on, used for default $domain
+ 	 *                                    and $port values.
+ 	 */
+-	public function __construct( $data, $requested_url = '' ) {
++	public function __construct( mixed $data, mixed $requested_url = '' ) {
+ 		if ( $requested_url ) {
+ 			$parsed_url = parse_url( $requested_url );
+ 		}
+@@ -130,7 +130,7 @@
+ 			$this->value = urldecode( $value );
+ 
+ 			// Removes name=value from items.
+-			array_shift( $pairs );
++			\wp_aot_array_shift( $pairs );
+ 
+ 			// Set everything else as a property.
+ 			foreach ( $pairs as $pair ) {
+@@ -144,7 +144,7 @@
+ 				list( $key, $val ) = strpos( $pair, '=' ) ? explode( '=', $pair ) : array( $pair, '' );
+ 				$key               = strtolower( trim( $key ) );
+ 				if ( 'expires' === $key ) {
+-					$val = strtotime( $val );
++					$val = \wp_aot_mixed(strtotime( $val ));
+ 				}
+ 				$this->$key = $val;
+ 			}
+@@ -178,7 +178,7 @@
+ 	 * @param string $url URL you intend to send this cookie to
+ 	 * @return bool true if allowed, false otherwise.
+ 	 */
+-	public function test( $url ) {
++	public function test( mixed $url ): mixed {
+ 		if ( is_null( $this->name ) ) {
+ 			return false;
+ 		}
+@@ -208,7 +208,7 @@
+ 		}
+ 
+ 		// Port - supports "port-lists" in the format: "80,8000,8080".
+-		if ( ! empty( $port ) && ! in_array( $url['port'], array_map( 'intval', explode( ',', $port ) ), true ) ) {
++		if ( ! empty( $port ) && ! in_array( $url['port'], \wp_aot_array_map( 'intval', explode( ',', $port ) ), true ) ) {
+ 			return false;
+ 		}
+ 
+@@ -218,6 +218,7 @@
+ 		}
+ 
+ 		return true;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -227,7 +228,7 @@
+ 	 *
+ 	 * @return string Header encoded cookie name and value.
+ 	 */
+-	public function getHeaderValue() { // phpcs:ignore WordPress.NamingConventions.ValidFunctionName.MethodNameInvalid
++	public function getHeaderValue(): mixed { // phpcs:ignore WordPress.NamingConventions.ValidFunctionName.MethodNameInvalid
+ 		if ( ! isset( $this->name ) || ! isset( $this->value ) ) {
+ 			return '';
+ 		}
+@@ -241,6 +242,7 @@
+ 		 * @param string $name  The cookie name.
+ 		 */
+ 		return $this->name . '=' . apply_filters( 'wp_http_cookie_value', $this->value, $this->name );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -250,8 +252,9 @@
+ 	 *
+ 	 * @return string
+ 	 */
+-	public function getFullHeader() { // phpcs:ignore WordPress.NamingConventions.ValidFunctionName.MethodNameInvalid
++	public function getFullHeader(): mixed { // phpcs:ignore WordPress.NamingConventions.ValidFunctionName.MethodNameInvalid
+ 		return 'Cookie: ' . $this->getHeaderValue();
++		return null;
+ 	}
+ 
+ 	/**
+@@ -267,11 +270,12 @@
+ 	 *     @type string          $domain  Cookie domain.
+ 	 * }
+ 	 */
+-	public function get_attributes() {
++	public function get_attributes(): mixed {
+ 		return array(
+ 			'expires' => $this->expires,
+ 			'path'    => $this->path,
+ 			'domain'  => $this->domain,
+ 		);
++		return null;
+ 	}
+ }

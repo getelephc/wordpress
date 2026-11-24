@@ -1,10 +1,333 @@
 --- a/wp-includes/SimplePie/src/Source.php
 +++ b/wp-includes/SimplePie/src/Source.php
-@@ -378,12 +378,12 @@
+@@ -35,9 +35,10 @@
+     /**
+      * @return void
+      */
+-    public function set_registry(\SimplePie\Registry $registry)
++    public function set_registry(\SimplePie\Registry $registry): mixed
+     {
+         $this->registry = $registry;
++    	return null;
+     }
+ 
+     /**
+@@ -53,22 +54,24 @@
+      * @param string $tag
+      * @return array<array<string, mixed>>|null
+      */
+-    public function get_source_tags(string $namespace, string $tag)
++    public function get_source_tags(string $namespace, string $tag): mixed
+     {
+         if (isset($this->data['child'][$namespace][$tag])) {
+             return $this->data['child'][$namespace][$tag];
+         }
+ 
+         return null;
++    	return null;
+     }
+ 
+     /**
+      * @param array<string, mixed> $element
+      * @return string
+      */
+-    public function get_base(array $element = [])
+-    {
+-        return $this->item->get_base($element);
++    public function get_base(array $element = []): mixed
++    {
++        return $this->item->get_base(\wp_aot_array_input($element));
++    	return null;
+     }
+ 
+     /**
+@@ -77,34 +80,36 @@
+      * @param string $base
+      * @return string
+      */
+-    public function sanitize(string $data, $type, string $base = '')
++    public function sanitize(string $data, mixed $type, string $base = ''): mixed
+     {
+         return $this->item->sanitize($data, $type, $base);
++    	return null;
+     }
+ 
+     /**
+      * @return Item
+      */
+-    public function get_item()
++    public function get_item(): mixed
+     {
+         return $this->item;
+-    }
+-
+-    /**
+-     * @return string|null
+-     */
+-    public function get_title()
++    	return null;
++    }
++
++    /**
++     * @return string|null
++     */
++    public function get_title(): mixed
+     {
+         if ($return = $this->get_source_tags(\SimplePie\SimplePie::NAMESPACE_ATOM_10, 'title')) {
+-            return $this->sanitize($return[0]['data'], $this->registry->call(Misc::class, 'atom_10_construct_type', [$return[0]['attribs']]), $this->get_base($return[0]));
++            return $this->sanitize($return[0]['data'], $this->registry->call(Misc::class, 'atom_10_construct_type', [$return[0]['attribs']]), $this->get_base(\wp_aot_array_input($return[0])));
+         } elseif ($return = $this->get_source_tags(\SimplePie\SimplePie::NAMESPACE_ATOM_03, 'title')) {
+-            return $this->sanitize($return[0]['data'], $this->registry->call(Misc::class, 'atom_03_construct_type', [$return[0]['attribs']]), $this->get_base($return[0]));
++            return $this->sanitize($return[0]['data'], $this->registry->call(Misc::class, 'atom_03_construct_type', [$return[0]['attribs']]), $this->get_base(\wp_aot_array_input($return[0])));
+         } elseif ($return = $this->get_source_tags(\SimplePie\SimplePie::NAMESPACE_RSS_10, 'title')) {
+-            return $this->sanitize($return[0]['data'], \SimplePie\SimplePie::CONSTRUCT_MAYBE_HTML, $this->get_base($return[0]));
++            return $this->sanitize($return[0]['data'], \SimplePie\SimplePie::CONSTRUCT_MAYBE_HTML, $this->get_base(\wp_aot_array_input($return[0])));
+         } elseif ($return = $this->get_source_tags(\SimplePie\SimplePie::NAMESPACE_RSS_090, 'title')) {
+-            return $this->sanitize($return[0]['data'], \SimplePie\SimplePie::CONSTRUCT_MAYBE_HTML, $this->get_base($return[0]));
++            return $this->sanitize($return[0]['data'], \SimplePie\SimplePie::CONSTRUCT_MAYBE_HTML, $this->get_base(\wp_aot_array_input($return[0])));
+         } elseif ($return = $this->get_source_tags(\SimplePie\SimplePie::NAMESPACE_RSS_20, 'title')) {
+-            return $this->sanitize($return[0]['data'], \SimplePie\SimplePie::CONSTRUCT_MAYBE_HTML, $this->get_base($return[0]));
++            return $this->sanitize($return[0]['data'], \SimplePie\SimplePie::CONSTRUCT_MAYBE_HTML, $this->get_base(\wp_aot_array_input($return[0])));
+         } elseif ($return = $this->get_source_tags(\SimplePie\SimplePie::NAMESPACE_DC_11, 'title')) {
+             return $this->sanitize($return[0]['data'], \SimplePie\SimplePie::CONSTRUCT_TEXT);
+         } elseif ($return = $this->get_source_tags(\SimplePie\SimplePie::NAMESPACE_DC_10, 'title')) {
+@@ -112,13 +117,14 @@
+         }
+ 
+         return null;
++    	return null;
+     }
+ 
+     /**
+      * @param int $key
+      * @return Category|null
+      */
+-    public function get_category(int $key = 0)
++    public function get_category(int $key = 0): mixed
+     {
+         $categories = $this->get_categories();
+         if (isset($categories[$key])) {
+@@ -126,12 +132,13 @@
+         }
+ 
+         return null;
++    	return null;
+     }
+ 
+     /**
+      * @return array<Category>|null
+      */
+-    public function get_categories()
++    public function get_categories(): mixed
+     {
+         $categories = [];
+ 
+@@ -169,17 +176,18 @@
+         }
+ 
+         if (!empty($categories)) {
+-            return array_unique($categories);
+-        }
+-
+-        return null;
++            return \wp_aot_array_unique($categories);
++        }
++
++        return null;
++    	return null;
+     }
+ 
+     /**
+      * @param int $key
+      * @return Author|null
+      */
+-    public function get_author(int $key = 0)
++    public function get_author(int $key = 0): mixed
+     {
+         $authors = $this->get_authors();
+         if (isset($authors[$key])) {
+@@ -187,12 +195,13 @@
+         }
+ 
+         return null;
++    	return null;
+     }
+ 
+     /**
+      * @return array<Author>|null
+      */
+-    public function get_authors()
++    public function get_authors(): mixed
+     {
+         $authors = [];
+         foreach ((array) $this->get_source_tags(\SimplePie\SimplePie::NAMESPACE_ATOM_10, 'author') as $author) {
+@@ -204,7 +213,7 @@
+             }
+             if (isset($author['child'][\SimplePie\SimplePie::NAMESPACE_ATOM_10]['uri'][0]['data'])) {
+                 $uri = $author['child'][\SimplePie\SimplePie::NAMESPACE_ATOM_10]['uri'][0];
+-                $uri = $this->sanitize($uri['data'], \SimplePie\SimplePie::CONSTRUCT_IRI, $this->get_base($uri));
++                $uri = $this->sanitize($uri['data'], \SimplePie\SimplePie::CONSTRUCT_IRI, $this->get_base(\wp_aot_array_input($uri)));
+             }
+             if (isset($author['child'][\SimplePie\SimplePie::NAMESPACE_ATOM_10]['email'][0]['data'])) {
+                 $email = $this->sanitize($author['child'][\SimplePie\SimplePie::NAMESPACE_ATOM_10]['email'][0]['data'], \SimplePie\SimplePie::CONSTRUCT_TEXT);
+@@ -222,7 +231,7 @@
+             }
+             if (isset($author[0]['child'][\SimplePie\SimplePie::NAMESPACE_ATOM_03]['url'][0]['data'])) {
+                 $url = $author[0]['child'][\SimplePie\SimplePie::NAMESPACE_ATOM_03]['url'][0];
+-                $url = $this->sanitize($url['data'], \SimplePie\SimplePie::CONSTRUCT_IRI, $this->get_base($url));
++                $url = $this->sanitize($url['data'], \SimplePie\SimplePie::CONSTRUCT_IRI, $this->get_base(\wp_aot_array_input($url)));
+             }
+             if (isset($author[0]['child'][\SimplePie\SimplePie::NAMESPACE_ATOM_03]['email'][0]['data'])) {
+                 $email = $this->sanitize($author[0]['child'][\SimplePie\SimplePie::NAMESPACE_ATOM_03]['email'][0]['data'], \SimplePie\SimplePie::CONSTRUCT_TEXT);
+@@ -242,17 +251,18 @@
+         }
+ 
+         if (!empty($authors)) {
+-            return array_unique($authors);
+-        }
+-
+-        return null;
++            return \wp_aot_array_unique($authors);
++        }
++
++        return null;
++    	return null;
+     }
+ 
+     /**
+      * @param int $key
+      * @return Author|null
+      */
+-    public function get_contributor(int $key = 0)
++    public function get_contributor(int $key = 0): mixed
+     {
+         $contributors = $this->get_contributors();
+         if (isset($contributors[$key])) {
+@@ -260,12 +270,13 @@
+         }
+ 
+         return null;
++    	return null;
+     }
+ 
+     /**
+      * @return array<Author>|null
+      */
+-    public function get_contributors()
++    public function get_contributors(): mixed
+     {
+         $contributors = [];
+         foreach ((array) $this->get_source_tags(\SimplePie\SimplePie::NAMESPACE_ATOM_10, 'contributor') as $contributor) {
+@@ -277,7 +288,7 @@
+             }
+             if (isset($contributor['child'][\SimplePie\SimplePie::NAMESPACE_ATOM_10]['uri'][0]['data'])) {
+                 $uri = $contributor['child'][\SimplePie\SimplePie::NAMESPACE_ATOM_10]['uri'][0];
+-                $uri = $this->sanitize($uri['data'], \SimplePie\SimplePie::CONSTRUCT_IRI, $this->get_base($uri));
++                $uri = $this->sanitize($uri['data'], \SimplePie\SimplePie::CONSTRUCT_IRI, $this->get_base(\wp_aot_array_input($uri)));
+             }
+             if (isset($contributor['child'][\SimplePie\SimplePie::NAMESPACE_ATOM_10]['email'][0]['data'])) {
+                 $email = $this->sanitize($contributor['child'][\SimplePie\SimplePie::NAMESPACE_ATOM_10]['email'][0]['data'], \SimplePie\SimplePie::CONSTRUCT_TEXT);
+@@ -295,7 +306,7 @@
+             }
+             if (isset($contributor['child'][\SimplePie\SimplePie::NAMESPACE_ATOM_03]['url'][0]['data'])) {
+                 $url = $contributor['child'][\SimplePie\SimplePie::NAMESPACE_ATOM_03]['url'][0];
+-                $url = $this->sanitize($url['data'], \SimplePie\SimplePie::CONSTRUCT_IRI, $this->get_base($url));
++                $url = $this->sanitize($url['data'], \SimplePie\SimplePie::CONSTRUCT_IRI, $this->get_base(\wp_aot_array_input($url)));
+             }
+             if (isset($contributor['child'][\SimplePie\SimplePie::NAMESPACE_ATOM_03]['email'][0]['data'])) {
+                 $email = $this->sanitize($contributor['child'][\SimplePie\SimplePie::NAMESPACE_ATOM_03]['email'][0]['data'], \SimplePie\SimplePie::CONSTRUCT_TEXT);
+@@ -306,10 +317,11 @@
+         }
+ 
+         if (!empty($contributors)) {
+-            return array_unique($contributors);
+-        }
+-
+-        return null;
++            return \wp_aot_array_unique($contributors);
++        }
++
++        return null;
++    	return null;
+     }
+ 
+     /**
+@@ -317,7 +329,7 @@
+      * @param string $rel
+      * @return string|null
+      */
+-    public function get_link(int $key = 0, string $rel = 'alternate')
++    public function get_link(int $key = 0, string $rel = 'alternate'): mixed
+     {
+         $links = $this->get_links($rel);
+         if (isset($links[$key])) {
+@@ -325,6 +337,7 @@
+         }
+ 
+         return null;
++    	return null;
+     }
+ 
+     /**
+@@ -332,16 +345,17 @@
+      *
+      * @return string|null
+      */
+-    public function get_permalink()
++    public function get_permalink(): mixed
+     {
+         return $this->get_link(0);
++    	return null;
+     }
+ 
+     /**
+      * @param string $rel
+      * @return array<string>|null
+      */
+-    public function get_links(string $rel = 'alternate')
++    public function get_links(string $rel = 'alternate'): mixed
+     {
+         if (!isset($this->data['links'])) {
+             $this->data['links'] = [];
+@@ -349,7 +363,7 @@
+                 foreach ($links as $link) {
+                     if (isset($link['attribs']['']['href'])) {
+                         $link_rel = (isset($link['attribs']['']['rel'])) ? $link['attribs']['']['rel'] : 'alternate';
+-                        $this->data['links'][$link_rel][] = $this->sanitize($link['attribs']['']['href'], \SimplePie\SimplePie::CONSTRUCT_IRI, $this->get_base($link));
++                        $this->data['links'][$link_rel][] = $this->sanitize($link['attribs']['']['href'], \SimplePie\SimplePie::CONSTRUCT_IRI, $this->get_base(\wp_aot_array_input($link)));
+                     }
+                 }
+             }
+@@ -357,18 +371,18 @@
+                 foreach ($links as $link) {
+                     if (isset($link['attribs']['']['href'])) {
+                         $link_rel = (isset($link['attribs']['']['rel'])) ? $link['attribs']['']['rel'] : 'alternate';
+-                        $this->data['links'][$link_rel][] = $this->sanitize($link['attribs']['']['href'], \SimplePie\SimplePie::CONSTRUCT_IRI, $this->get_base($link));
++                        $this->data['links'][$link_rel][] = $this->sanitize($link['attribs']['']['href'], \SimplePie\SimplePie::CONSTRUCT_IRI, $this->get_base(\wp_aot_array_input($link)));
+                     }
+                 }
+             }
+             if ($links = $this->get_source_tags(\SimplePie\SimplePie::NAMESPACE_RSS_10, 'link')) {
+-                $this->data['links']['alternate'][] = $this->sanitize($links[0]['data'], \SimplePie\SimplePie::CONSTRUCT_IRI, $this->get_base($links[0]));
++                $this->data['links']['alternate'][] = $this->sanitize($links[0]['data'], \SimplePie\SimplePie::CONSTRUCT_IRI, $this->get_base(\wp_aot_array_input($links[0])));
+             }
+             if ($links = $this->get_source_tags(\SimplePie\SimplePie::NAMESPACE_RSS_090, 'link')) {
+-                $this->data['links']['alternate'][] = $this->sanitize($links[0]['data'], \SimplePie\SimplePie::CONSTRUCT_IRI, $this->get_base($links[0]));
++                $this->data['links']['alternate'][] = $this->sanitize($links[0]['data'], \SimplePie\SimplePie::CONSTRUCT_IRI, $this->get_base(\wp_aot_array_input($links[0])));
+             }
+             if ($links = $this->get_source_tags(\SimplePie\SimplePie::NAMESPACE_RSS_20, 'link')) {
+-                $this->data['links']['alternate'][] = $this->sanitize($links[0]['data'], \SimplePie\SimplePie::CONSTRUCT_IRI, $this->get_base($links[0]));
++                $this->data['links']['alternate'][] = $this->sanitize($links[0]['data'], \SimplePie\SimplePie::CONSTRUCT_IRI, $this->get_base(\wp_aot_array_input($links[0])));
+             }
+ 
+             $keys = array_keys($this->data['links']);
+@@ -377,15 +391,15 @@
+ 
                  if ($this->registry->call(Misc::class, 'is_isegment_nz_nc', [$key])) {
                      if (isset($this->data['links'][\SimplePie\SimplePie::IANA_LINK_RELATIONS_REGISTRY . $key])) {
-                         $this->data['links'][\SimplePie\SimplePie::IANA_LINK_RELATIONS_REGISTRY . $key] = array_merge($this->data['links'][$key], $this->data['links'][\SimplePie\SimplePie::IANA_LINK_RELATIONS_REGISTRY . $key]);
+-                        $this->data['links'][\SimplePie\SimplePie::IANA_LINK_RELATIONS_REGISTRY . $key] = array_merge($this->data['links'][$key], $this->data['links'][\SimplePie\SimplePie::IANA_LINK_RELATIONS_REGISTRY . $key]);
 -                        $this->data['links'][$key] = &$this->data['links'][\SimplePie\SimplePie::IANA_LINK_RELATIONS_REGISTRY . $key];
++                        $this->data['links'][\SimplePie\SimplePie::IANA_LINK_RELATIONS_REGISTRY . $key] = \wp_aot_array_merge(array($this->data['links'][$key], $this->data['links'][\SimplePie\SimplePie::IANA_LINK_RELATIONS_REGISTRY . $key]));
 +                        throw new \RuntimeException('RSS link-reference maps are outside the finite bootstrap fixture.');
                      } else {
 -                        $this->data['links'][\SimplePie\SimplePie::IANA_LINK_RELATIONS_REGISTRY . $key] = &$this->data['links'][$key];
@@ -14,5 +337,182 @@
 -                    $this->data['links'][substr($key, 41)] = &$this->data['links'][$key];
 +                    throw new \RuntimeException('RSS link-reference maps are outside the finite bootstrap fixture.');
                  }
-                 $this->data['links'][$key] = array_unique($this->data['links'][$key]);
+-                $this->data['links'][$key] = array_unique($this->data['links'][$key]);
++                $this->data['links'][$key] = \wp_aot_array_unique($this->data['links'][$key]);
              }
+         }
+ 
+@@ -394,45 +408,47 @@
+         }
+ 
+         return null;
+-    }
+-
+-    /**
+-     * @return string|null
+-     */
+-    public function get_description()
++    	return null;
++    }
++
++    /**
++     * @return string|null
++     */
++    public function get_description(): mixed
+     {
+         if ($return = $this->get_source_tags(\SimplePie\SimplePie::NAMESPACE_ATOM_10, 'subtitle')) {
+-            return $this->sanitize($return[0]['data'], $this->registry->call(Misc::class, 'atom_10_construct_type', [$return[0]['attribs']]), $this->get_base($return[0]));
++            return $this->sanitize($return[0]['data'], $this->registry->call(Misc::class, 'atom_10_construct_type', [$return[0]['attribs']]), $this->get_base(\wp_aot_array_input($return[0])));
+         } elseif ($return = $this->get_source_tags(\SimplePie\SimplePie::NAMESPACE_ATOM_03, 'tagline')) {
+-            return $this->sanitize($return[0]['data'], $this->registry->call(Misc::class, 'atom_03_construct_type', [$return[0]['attribs']]), $this->get_base($return[0]));
++            return $this->sanitize($return[0]['data'], $this->registry->call(Misc::class, 'atom_03_construct_type', [$return[0]['attribs']]), $this->get_base(\wp_aot_array_input($return[0])));
+         } elseif ($return = $this->get_source_tags(\SimplePie\SimplePie::NAMESPACE_RSS_10, 'description')) {
+-            return $this->sanitize($return[0]['data'], \SimplePie\SimplePie::CONSTRUCT_MAYBE_HTML, $this->get_base($return[0]));
++            return $this->sanitize($return[0]['data'], \SimplePie\SimplePie::CONSTRUCT_MAYBE_HTML, $this->get_base(\wp_aot_array_input($return[0])));
+         } elseif ($return = $this->get_source_tags(\SimplePie\SimplePie::NAMESPACE_RSS_090, 'description')) {
+-            return $this->sanitize($return[0]['data'], \SimplePie\SimplePie::CONSTRUCT_MAYBE_HTML, $this->get_base($return[0]));
++            return $this->sanitize($return[0]['data'], \SimplePie\SimplePie::CONSTRUCT_MAYBE_HTML, $this->get_base(\wp_aot_array_input($return[0])));
+         } elseif ($return = $this->get_source_tags(\SimplePie\SimplePie::NAMESPACE_RSS_20, 'description')) {
+-            return $this->sanitize($return[0]['data'], \SimplePie\SimplePie::CONSTRUCT_MAYBE_HTML, $this->get_base($return[0]));
++            return $this->sanitize($return[0]['data'], \SimplePie\SimplePie::CONSTRUCT_MAYBE_HTML, $this->get_base(\wp_aot_array_input($return[0])));
+         } elseif ($return = $this->get_source_tags(\SimplePie\SimplePie::NAMESPACE_DC_11, 'description')) {
+             return $this->sanitize($return[0]['data'], \SimplePie\SimplePie::CONSTRUCT_TEXT);
+         } elseif ($return = $this->get_source_tags(\SimplePie\SimplePie::NAMESPACE_DC_10, 'description')) {
+             return $this->sanitize($return[0]['data'], \SimplePie\SimplePie::CONSTRUCT_TEXT);
+         } elseif ($return = $this->get_source_tags(\SimplePie\SimplePie::NAMESPACE_ITUNES, 'summary')) {
+-            return $this->sanitize($return[0]['data'], \SimplePie\SimplePie::CONSTRUCT_HTML, $this->get_base($return[0]));
++            return $this->sanitize($return[0]['data'], \SimplePie\SimplePie::CONSTRUCT_HTML, $this->get_base(\wp_aot_array_input($return[0])));
+         } elseif ($return = $this->get_source_tags(\SimplePie\SimplePie::NAMESPACE_ITUNES, 'subtitle')) {
+-            return $this->sanitize($return[0]['data'], \SimplePie\SimplePie::CONSTRUCT_HTML, $this->get_base($return[0]));
+-        }
+-
+-        return null;
+-    }
+-
+-    /**
+-     * @return string|null
+-     */
+-    public function get_copyright()
++            return $this->sanitize($return[0]['data'], \SimplePie\SimplePie::CONSTRUCT_HTML, $this->get_base(\wp_aot_array_input($return[0])));
++        }
++
++        return null;
++    	return null;
++    }
++
++    /**
++     * @return string|null
++     */
++    public function get_copyright(): mixed
+     {
+         if ($return = $this->get_source_tags(\SimplePie\SimplePie::NAMESPACE_ATOM_10, 'rights')) {
+-            return $this->sanitize($return[0]['data'], $this->registry->call(Misc::class, 'atom_10_construct_type', [$return[0]['attribs']]), $this->get_base($return[0]));
++            return $this->sanitize($return[0]['data'], $this->registry->call(Misc::class, 'atom_10_construct_type', [$return[0]['attribs']]), $this->get_base(\wp_aot_array_input($return[0])));
+         } elseif ($return = $this->get_source_tags(\SimplePie\SimplePie::NAMESPACE_ATOM_03, 'copyright')) {
+-            return $this->sanitize($return[0]['data'], $this->registry->call(Misc::class, 'atom_03_construct_type', [$return[0]['attribs']]), $this->get_base($return[0]));
++            return $this->sanitize($return[0]['data'], $this->registry->call(Misc::class, 'atom_03_construct_type', [$return[0]['attribs']]), $this->get_base(\wp_aot_array_input($return[0])));
+         } elseif ($return = $this->get_source_tags(\SimplePie\SimplePie::NAMESPACE_RSS_20, 'copyright')) {
+             return $this->sanitize($return[0]['data'], \SimplePie\SimplePie::CONSTRUCT_TEXT);
+         } elseif ($return = $this->get_source_tags(\SimplePie\SimplePie::NAMESPACE_DC_11, 'rights')) {
+@@ -442,12 +458,13 @@
+         }
+ 
+         return null;
+-    }
+-
+-    /**
+-     * @return string|null
+-     */
+-    public function get_language()
++    	return null;
++    }
++
++    /**
++     * @return string|null
++     */
++    public function get_language(): mixed
+     {
+         if ($return = $this->get_source_tags(\SimplePie\SimplePie::NAMESPACE_RSS_20, 'language')) {
+             return $this->sanitize($return[0]['data'], \SimplePie\SimplePie::CONSTRUCT_TEXT);
+@@ -460,53 +477,57 @@
+         }
+ 
+         return null;
++    	return null;
+     }
+ 
+     /**
+      * @return float|null
+      */
+-    public function get_latitude()
++    public function get_latitude(): mixed
+     {
+         if ($return = $this->get_source_tags(\SimplePie\SimplePie::NAMESPACE_W3C_BASIC_GEO, 'lat')) {
+             return (float) $return[0]['data'];
+-        } elseif (($return = $this->get_source_tags(\SimplePie\SimplePie::NAMESPACE_GEORSS, 'point')) && preg_match('/^((?:-)?[0-9]+(?:\.[0-9]+)) ((?:-)?[0-9]+(?:\.[0-9]+))$/', trim($return[0]['data']), $match)) {
+-            return (float) $match[1];
+-        }
+-
+-        return null;
++        } elseif (($return = $this->get_source_tags(\SimplePie\SimplePie::NAMESPACE_GEORSS, 'point')) && preg_match('/^((?:-)?[0-9]+(?:\.[0-9]+)) ((?:-)?[0-9]+(?:\.[0-9]+))$/', \wp_aot_regex_text( trim($return[0]['data']) ), $match)) {
++            return (float) \wp_aot_mixed($match)[1];
++        }
++
++        return null;
++    	return null;
+     }
+ 
+     /**
+      * @return float|null
+      */
+-    public function get_longitude()
++    public function get_longitude(): mixed
+     {
+         if ($return = $this->get_source_tags(\SimplePie\SimplePie::NAMESPACE_W3C_BASIC_GEO, 'long')) {
+             return (float) $return[0]['data'];
+         } elseif ($return = $this->get_source_tags(\SimplePie\SimplePie::NAMESPACE_W3C_BASIC_GEO, 'lon')) {
+             return (float) $return[0]['data'];
+-        } elseif (($return = $this->get_source_tags(\SimplePie\SimplePie::NAMESPACE_GEORSS, 'point')) && preg_match('/^((?:-)?[0-9]+(?:\.[0-9]+)) ((?:-)?[0-9]+(?:\.[0-9]+))$/', trim($return[0]['data']), $match)) {
+-            return (float) $match[2];
+-        }
+-
+-        return null;
+-    }
+-
+-    /**
+-     * @return string|null
+-     */
+-    public function get_image_url()
++        } elseif (($return = $this->get_source_tags(\SimplePie\SimplePie::NAMESPACE_GEORSS, 'point')) && preg_match('/^((?:-)?[0-9]+(?:\.[0-9]+)) ((?:-)?[0-9]+(?:\.[0-9]+))$/', \wp_aot_regex_text( trim($return[0]['data']) ), $match)) {
++            return (float) \wp_aot_mixed($match)[2];
++        }
++
++        return null;
++    	return null;
++    }
++
++    /**
++     * @return string|null
++     */
++    public function get_image_url(): mixed
+     {
+         if ($return = $this->get_source_tags(\SimplePie\SimplePie::NAMESPACE_ITUNES, 'image')) {
+             return $this->sanitize($return[0]['attribs']['']['href'], \SimplePie\SimplePie::CONSTRUCT_IRI);
+         } elseif ($return = $this->get_source_tags(\SimplePie\SimplePie::NAMESPACE_ATOM_10, 'logo')) {
+-            return $this->sanitize($return[0]['data'], \SimplePie\SimplePie::CONSTRUCT_IRI, $this->get_base($return[0]));
++            return $this->sanitize($return[0]['data'], \SimplePie\SimplePie::CONSTRUCT_IRI, $this->get_base(\wp_aot_array_input($return[0])));
+         } elseif ($return = $this->get_source_tags(\SimplePie\SimplePie::NAMESPACE_ATOM_10, 'icon')) {
+-            return $this->sanitize($return[0]['data'], \SimplePie\SimplePie::CONSTRUCT_IRI, $this->get_base($return[0]));
+-        }
+-
+-        return null;
++            return $this->sanitize($return[0]['data'], \SimplePie\SimplePie::CONSTRUCT_IRI, $this->get_base(\wp_aot_array_input($return[0])));
++        }
++
++        return null;
++    	return null;
+     }
+ }
+ 
+-class_alias('SimplePie\Source', 'SimplePie_Source');
++(!defined('WP_AOT_NATIVE_RUNTIME') && (bool) \wp_aot_native_api('class_alias', array('SimplePie\Source', 'SimplePie_Source')));

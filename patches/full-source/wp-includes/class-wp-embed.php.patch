@@ -1,11 +1,45 @@
 --- a/wp-includes/class-wp-embed.php
 +++ b/wp-includes/class-wp-embed.php
-@@ -87,13 +87,15 @@
+@@ -8,7 +8,7 @@
+  */
+ #[AllowDynamicProperties]
+ class WP_Embed {
+-	public $handlers = array();
++	public mixed $handlers = array();
+ 	public $post_ID;
+ 	public $usecache      = true;
+ 	public $linkifunknown = true;
+@@ -59,7 +59,7 @@
+ 	 * @param string $content Content to parse.
+ 	 * @return string Content with shortcode parsed.
+ 	 */
+-	public function run_shortcode( $content ) {
++	public function run_shortcode( mixed $content ): mixed {
+ 		global $shortcode_tags;
+ 
+ 		// Back up current registered shortcodes and clear them all out.
+@@ -75,25 +75,29 @@
+ 		$shortcode_tags = $orig_shortcode_tags;
+ 
+ 		return $content;
++		return null;
+ 	}
+ 
+ 	/**
+ 	 * If a post/page was saved, then output JavaScript to make
+ 	 * an Ajax request that will call WP_Embed::cache_oembed().
+ 	 */
+-	public function maybe_run_ajax_cache() {
++	public function maybe_run_ajax_cache(): mixed {
+ 		$post = get_post();
+ 
  		if ( ! $post || empty( $_GET['message'] ) ) {
- 			return;
- 		}
+-			return;
+-		}
 -		?>
 -<script>
++			return null;
++		}
 +		;
 +echo '<script>
  	jQuery( function($) {
@@ -17,6 +51,244 @@
  </script>
 -		<?php
 +		';
++		return null;
  	}
  
  	/**
+@@ -110,11 +114,12 @@
+ 	 *                           Lower numbers correspond with earlier testing, and handlers with the same priority are
+ 	 *                           tested in the order in which they were added to the action. Default 10.
+ 	 */
+-	public function register_handler( $id, $regex, $callback, $priority = 10 ) {
++	public function register_handler( mixed $id, mixed $regex, mixed $callback, mixed $priority = 10 ): mixed {
+ 		$this->handlers[ $priority ][ $id ] = array(
+ 			'regex'    => $regex,
+ 			'callback' => $callback,
+ 		);
++		return null;
+ 	}
+ 
+ 	/**
+@@ -125,8 +130,9 @@
+ 	 * @param string $id       The handler ID that should be removed.
+ 	 * @param int    $priority Optional. The priority of the handler to be removed (default: 10).
+ 	 */
+-	public function unregister_handler( $id, $priority = 10 ) {
++	public function unregister_handler( mixed $id, mixed $priority = 10 ): mixed {
+ 		unset( $this->handlers[ $priority ][ $id ] );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -146,14 +152,14 @@
+ 	 * @param string $url The URL attempting to be embedded.
+ 	 * @return string|false The embed HTML on success, false otherwise.
+ 	 */
+-	public function get_embed_handler_html( $attr, $url ) {
++	public function get_embed_handler_html( mixed $attr, mixed $url ): mixed {
+ 		$rawattr = $attr;
+ 		$attr    = wp_parse_args( $attr, wp_embed_defaults( $url ) );
+ 
+-		ksort( $this->handlers );
++		\wp_aot_ksort( $this->handlers );
+ 		foreach ( $this->handlers as $priority => $handlers ) {
+ 			foreach ( $handlers as $id => $handler ) {
+-				if ( preg_match( $handler['regex'], $url, $matches ) && is_callable( $handler['callback'] ) ) {
++				if ( preg_match( \wp_aot_regex_text( $handler['regex'] ), \wp_aot_regex_text( $url ), $matches ) && is_callable( $handler['callback'] ) ) {
+ 					$return = call_user_func( $handler['callback'], $matches, $attr, $url, $rawattr );
+ 					if ( false !== $return ) {
+ 						/**
+@@ -174,6 +180,7 @@
+ 		}
+ 
+ 		return false;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -193,7 +200,7 @@
+ 	 * @return string|false The embed HTML on success, otherwise the original URL.
+ 	 *                      `->maybe_make_link()` can return false on failure.
+ 	 */
+-	public function shortcode( $attr, $url = '' ) {
++	public function shortcode( mixed $attr, mixed $url = '' ): mixed {
+ 		$post = get_post();
+ 
+ 		if ( empty( $url ) && ! empty( $attr['src'] ) ) {
+@@ -216,7 +223,7 @@
+ 		 * KSES converts & into &amp; and we need to undo this.
+ 		 * See https://core.trac.wordpress.org/ticket/11311
+ 		 */
+-		$url = str_replace( '&amp;', '&', $url );
++		$url = \wp_aot_str_replace( '&amp;', '&', $url );
+ 
+ 		// Look for known internal handlers.
+ 		$embed_handler_html = $this->get_embed_handler_html( $rawattr, $url );
+@@ -249,7 +256,7 @@
+ 		$ttl = apply_filters( 'oembed_ttl', DAY_IN_SECONDS, $url, $attr, $post_id );
+ 
+ 		$cache      = '';
+-		$cache_time = 0;
++		$cache_time = \wp_aot_mixed(0);
+ 
+ 		$cached_post_id = $this->find_oembed_post_id( $key_suffix );
+ 
+@@ -341,24 +348,24 @@
+ 				} else {
+ 					wp_insert_post(
+ 						wp_slash(
+-							array_merge(
++							\wp_aot_array_merge(array(
+ 								$insert_post_args,
+ 								array(
+ 									'post_content' => $html,
+ 								)
+-							)
++							))
+ 						)
+ 					);
+ 				}
+ 			} elseif ( ! $cache ) {
+ 				wp_insert_post(
+ 					wp_slash(
+-						array_merge(
++						\wp_aot_array_merge(array(
+ 							$insert_post_args,
+ 							array(
+ 								'post_content' => '{{unknown}}',
+ 							)
+-						)
++						))
+ 					)
+ 				);
+ 			}
+@@ -376,6 +383,7 @@
+ 
+ 		// Still unknown.
+ 		return $this->maybe_make_link( $url );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -383,10 +391,10 @@
+ 	 *
+ 	 * @param int $post_id Post ID to delete the caches for.
+ 	 */
+-	public function delete_oembed_caches( $post_id ) {
++	public function delete_oembed_caches( mixed $post_id ): mixed {
+ 		$post_metas = get_post_custom_keys( $post_id );
+ 		if ( empty( $post_metas ) ) {
+-			return;
++			return null;
+ 		}
+ 
+ 		foreach ( $post_metas as $post_meta_key ) {
+@@ -394,6 +402,7 @@
+ 				delete_post_meta( $post_id, $post_meta_key );
+ 			}
+ 		}
++		return null;
+ 	}
+ 
+ 	/**
+@@ -401,7 +410,7 @@
+ 	 *
+ 	 * @param int $post_id Post ID to do the caching for.
+ 	 */
+-	public function cache_oembed( $post_id ) {
++	public function cache_oembed( mixed $post_id ): mixed {
+ 		$post = get_post( $post_id );
+ 
+ 		$post_types = get_post_types( array( 'show_ui' => true ) );
+@@ -416,7 +425,7 @@
+ 		$cache_oembed_types = apply_filters( 'embed_cache_oembed_types', $post_types );
+ 
+ 		if ( empty( $post->ID ) || ! in_array( $post->post_type, $cache_oembed_types, true ) ) {
+-			return;
++			return null;
+ 		}
+ 
+ 		// Trigger a caching.
+@@ -429,6 +438,7 @@
+ 
+ 			$this->usecache = true;
+ 		}
++		return null;
+ 	}
+ 
+ 	/**
+@@ -439,19 +449,20 @@
+ 	 * @param string $content The content to be searched.
+ 	 * @return string Potentially modified $content.
+ 	 */
+-	public function autoembed( $content ) {
++	public function autoembed( mixed $content ): mixed {
+ 		// Replace line breaks from all HTML elements with placeholders.
+ 		$content = wp_replace_in_html_tags( $content, array( "\n" => '<!-- wp-line-break -->' ) );
+ 
+-		if ( preg_match( '#(^|\s|>)https?://#i', $content ) ) {
++		if ( preg_match( '#(^|\s|>)https?://#i', \wp_aot_regex_text( $content ) ) ) {
+ 			// Find URLs on their own line.
+-			$content = preg_replace_callback( '|^(\s*)(https?://[^\s<>"]+)(\s*)$|im', array( $this, 'autoembed_callback' ), $content );
++			$content = \wp_aot_preg_replace_callback( '|^(\s*)(https?://[^\s<>"]+)(\s*)$|im', array( $this, 'autoembed_callback' ), $content );
+ 			// Find URLs in their own paragraph.
+-			$content = preg_replace_callback( '|(<p(?: [^>]*)?>\s*)(https?://[^\s<>"]+)(\s*<\/p>)|i', array( $this, 'autoembed_callback' ), $content );
++			$content = \wp_aot_preg_replace_callback( '|(<p(?: [^>]*)?>\s*)(https?://[^\s<>"]+)(\s*<\/p>)|i', array( $this, 'autoembed_callback' ), $content );
+ 		}
+ 
+ 		// Put the line breaks back.
+-		return str_replace( '<!-- wp-line-break -->', "\n", $content );
++		return \wp_aot_str_replace( '<!-- wp-line-break -->', "\n", $content );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -460,13 +471,14 @@
+ 	 * @param array $matches A regex match array.
+ 	 * @return string The embed HTML on success, otherwise the original URL.
+ 	 */
+-	public function autoembed_callback( $matches ) {
++	public function autoembed_callback( mixed $matches ): mixed {
+ 		$oldval              = $this->linkifunknown;
+ 		$this->linkifunknown = false;
+ 		$return              = $this->shortcode( array(), $matches[2] );
+ 		$this->linkifunknown = $oldval;
+ 
+ 		return $matches[1] . $return . $matches[3];
++		return null;
+ 	}
+ 
+ 	/**
+@@ -475,7 +487,7 @@
+ 	 * @param string $url URL to potentially be linked.
+ 	 * @return string|false Linked URL or the original URL. False if 'return_false_on_fail' is true.
+ 	 */
+-	public function maybe_make_link( $url ) {
++	public function maybe_make_link( mixed $url ): mixed {
+ 		if ( $this->return_false_on_fail ) {
+ 			return false;
+ 		}
+@@ -491,6 +503,7 @@
+ 		 * @param string $url    The original URL.
+ 		 */
+ 		return apply_filters( 'embed_maybe_make_link', $output, $url );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -501,7 +514,7 @@
+ 	 * @param string $cache_key oEmbed cache key.
+ 	 * @return int|null Post ID on success, null on failure.
+ 	 */
+-	public function find_oembed_post_id( $cache_key ) {
++	public function find_oembed_post_id( mixed $cache_key ): mixed {
+ 		$cache_group    = 'oembed_cache_post';
+ 		$oembed_post_id = wp_cache_get( $cache_key, $cache_group );
+ 
+@@ -532,5 +545,6 @@
+ 		}
+ 
+ 		return null;
++		return null;
+ 	}
+ }

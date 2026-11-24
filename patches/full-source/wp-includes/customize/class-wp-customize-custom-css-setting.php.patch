@@ -1,0 +1,94 @@
+--- a/wp-includes/customize/class-wp-customize-custom-css-setting.php
++++ b/wp-includes/customize/class-wp-customize-custom-css-setting.php
+@@ -62,7 +62,7 @@
+ 	 *                                      Can be a theme mod or option name.
+ 	 * @param array                $args    Setting arguments.
+ 	 */
+-	public function __construct( $manager, $id, $args = array() ) {
++	public function __construct( mixed $manager, mixed $id, mixed $args = array() ) {
+ 		parent::__construct( $manager, $id, $args );
+ 		if ( 'custom_css' !== $this->id_data['base'] ) {
+ 			throw new Exception( 'Expected custom_css id_base.' );
+@@ -80,13 +80,14 @@
+ 	 *
+ 	 * @return bool False when preview short-circuits due no change needing to be previewed.
+ 	 */
+-	public function preview() {
++	public function preview(): mixed {
+ 		if ( $this->is_previewed ) {
+ 			return false;
+ 		}
+ 		$this->is_previewed = true;
+ 		add_filter( 'wp_get_custom_css', array( $this, 'filter_previewed_wp_get_custom_css' ), 9, 2 );
+ 		return true;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -102,7 +103,7 @@
+ 	 * @param string $stylesheet Current stylesheet.
+ 	 * @return string CSS.
+ 	 */
+-	public function filter_previewed_wp_get_custom_css( $css, $stylesheet ) {
++	public function filter_previewed_wp_get_custom_css( mixed $css, mixed $stylesheet ): mixed {
+ 		if ( $stylesheet === $this->stylesheet ) {
+ 			$customized_value = $this->post_value( null );
+ 			if ( ! is_null( $customized_value ) ) {
+@@ -110,6 +111,7 @@
+ 			}
+ 		}
+ 		return $css;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -121,7 +123,7 @@
+ 	 *
+ 	 * @return string
+ 	 */
+-	public function value() {
++	public function value(): mixed {
+ 		if ( $this->is_previewed ) {
+ 			$post_value = $this->post_value( null );
+ 			if ( null !== $post_value ) {
+@@ -142,6 +144,7 @@
+ 		$value = apply_filters( "customize_value_{$id_base}", $value, $this );
+ 
+ 		return $value;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -162,7 +165,7 @@
+ 	 * @param string $value CSS to validate.
+ 	 * @return true|WP_Error True if the input was validated, otherwise WP_Error.
+ 	 */
+-	public function validate( $value ) {
++	public function validate( mixed $value ): mixed {
+ 		// Restores the more descriptive, specific name for use within this method.
+ 		$css = $value;
+ 
+@@ -241,6 +244,7 @@
+ 			$validity = parent::validate( $css );
+ 		}
+ 		return $validity;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -252,7 +256,7 @@
+ 	 * @param string $value CSS to update.
+ 	 * @return int|false The post ID or false if the value could not be saved.
+ 	 */
+-	public function update( $value ) {
++	public function update( mixed $value ): mixed {
+ 		// Restores the more descriptive, specific name for use within this method.
+ 		$css = $value;
+ 
+@@ -279,5 +283,6 @@
+ 		}
+ 
+ 		return $post_id;
++		return null;
+ 	}
+ }

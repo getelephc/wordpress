@@ -1,15 +1,69 @@
 --- a/wp-includes/class-wp-comment-query.php
 +++ b/wp-includes/class-wp-comment-query.php
-@@ -350,7 +350,7 @@
+@@ -128,11 +128,12 @@
+ 	 * @param array  $arguments Arguments to pass when calling.
+ 	 * @return mixed|false Return value of the callback, false otherwise.
+ 	 */
+-	public function __call( $name, $arguments ) {
++	public function __call( $name, $arguments ): mixed {
+ 		if ( 'get_search_sql' === $name ) {
+ 			return $this->get_search_sql( ...$arguments );
+ 		}
+ 		return false;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -275,7 +276,7 @@
+ 	 *                                                      Default false.
+ 	 * }
+ 	 */
+-	public function __construct( $query = '' ) {
++	public function __construct( mixed $query = '' ) {
+ 		$this->query_var_defaults = array(
+ 			'author_email'              => '',
+ 			'author_url'                => '',
+@@ -336,7 +337,7 @@
+ 	 *
+ 	 * @param string|array $query WP_Comment_Query arguments. See WP_Comment_Query::__construct() for accepted arguments.
+ 	 */
+-	public function parse_query( $query = '' ) {
++	public function parse_query( mixed $query = '' ): mixed {
+ 		if ( empty( $query ) ) {
+ 			$query = $this->query_vars;
+ 		}
+@@ -350,7 +351,8 @@
  		 *
  		 * @param WP_Comment_Query $query The WP_Comment_Query instance (passed by reference).
  		 */
 -		do_action_ref_array( 'parse_comment_query', array( &$this ) );
 +		do_action_ref_array( 'parse_comment_query', array( $this ) );
++		return null;
  	}
  
  	/**
-@@ -398,7 +398,7 @@
+@@ -367,9 +369,10 @@
+ 	 * @return WP_Comment[]|int[]|int List of comments, or number of comments when 'count' is passed as a query var.
+ 	 * @phpstan-return array<int, WP_Comment>|non-negative-int[]|non-negative-int
+ 	 */
+-	public function query( $query ) {
++	public function query( mixed $query ): mixed {
+ 		$this->query_vars = wp_parse_args( $query );
+ 		return $this->get_comments();
++		return null;
+ 	}
+ 
+ 	/**
+@@ -382,7 +385,7 @@
+ 	 * @return int|int[]|WP_Comment[] List of comments or number of found comments if `$count` argument is true.
+ 	 * @phpstan-return array<int, WP_Comment>|non-negative-int[]|non-negative-int
+ 	 */
+-	public function get_comments() {
++	public function get_comments(): mixed {
+ 		global $wpdb;
+ 
+ 		$this->parse_query();
+@@ -398,7 +401,7 @@
  		 *
  		 * @param WP_Comment_Query $query Current instance of WP_Comment_Query (passed by reference).
  		 */
@@ -18,7 +72,7 @@
  
  		// Reparse query vars, in case they were modified in a 'pre_get_comments' callback.
  		$this->meta_query->parse_query_vars( $this->query_vars );
-@@ -438,7 +438,7 @@
+@@ -438,7 +441,7 @@
  		 *                                       or null to allow WP to run its normal queries.
  		 * @param WP_Comment_Query $query        The WP_Comment_Query instance, passed by reference.
  		 */
@@ -27,7 +81,20 @@
  
  		if ( null !== $comment_data ) {
  			if ( is_array( $comment_data ) && ! $this->query_vars['count'] ) {
-@@ -526,7 +526,7 @@
+@@ -486,10 +489,10 @@
+ 			return (int) $comment_ids;
+ 		}
+ 
+-		$comment_ids = array_map( 'intval', $comment_ids );
++		$comment_ids = \wp_aot_array_map( 'intval', $comment_ids );
+ 
+ 		if ( $this->query_vars['update_comment_meta_cache'] ) {
+-			wp_lazyload_comment_meta( $comment_ids );
++			wp_lazyload_comment_meta( \wp_aot_array_input($comment_ids ));
+ 		}
+ 
+ 		if ( 'ids' === $this->query_vars['fields'] ) {
+@@ -526,10 +529,10 @@
  		 * @param WP_Comment[]     $_comments An array of comments.
  		 * @param WP_Comment_Query $query     Current instance of WP_Comment_Query (passed by reference).
  		 */
@@ -35,13 +102,368 @@
 +		$_comments = apply_filters_ref_array( 'the_comments', array( $_comments, $this ) );
  
  		// Convert to WP_Comment instances.
- 		$comments = array_map( 'get_comment', $_comments );
-@@ -955,7 +955,7 @@
+-		$comments = array_map( 'get_comment', $_comments );
++		$comments = \wp_aot_array_map( 'get_comment', $_comments );
+ 
+ 		if ( $this->query_vars['hierarchical'] ) {
+ 			$comments = $this->fill_descendants( $comments );
+@@ -537,6 +540,7 @@
+ 
+ 		$this->comments = $comments;
+ 		return $this->comments;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -550,7 +554,7 @@
+ 	 * @return int|array A single count of comment IDs if a count query. An array of comment IDs if a full query.
+ 	 * @phpstan-return non-negative-int|list<non-negative-int>
+ 	 */
+-	protected function get_comment_ids() {
++	protected function get_comment_ids(): mixed {
+ 		global $wpdb;
+ 
+ 		// Assemble clauses related to 'comment_approved'.
+@@ -583,7 +587,7 @@
+ 						break;
+ 
+ 					default:
+-						$status_clauses[] = $wpdb->prepare( 'comment_approved = %s', $status );
++						$status_clauses[] = \wp_aot_require_wpdb( $wpdb )->prepare( 'comment_approved = %s', $status );
+ 						break;
+ 				}
+ 			}
+@@ -598,15 +602,15 @@
+ 			foreach ( $include_unapproved as $unapproved_identifier ) {
+ 				// Numeric values are assumed to be user IDs.
+ 				if ( is_numeric( $unapproved_identifier ) ) {
+-					$approved_clauses[] = $wpdb->prepare( "( user_id = %d AND comment_approved = '0' )", $unapproved_identifier );
++					$approved_clauses[] = \wp_aot_require_wpdb( $wpdb )->prepare( "( user_id = %d AND comment_approved = '0' )", $unapproved_identifier );
+ 				} else {
+ 					// Otherwise we match against email addresses.
+ 					if ( ! empty( $_GET['unapproved'] ) && ! empty( $_GET['moderation-hash'] ) ) {
+ 						// Only include requested comment.
+-						$approved_clauses[] = $wpdb->prepare( "( comment_author_email = %s AND comment_approved = '0' AND {$wpdb->comments}.comment_ID = %d )", $unapproved_identifier, (int) $_GET['unapproved'] );
++						$approved_clauses[] = \wp_aot_require_wpdb( $wpdb )->prepare( "( comment_author_email = %s AND comment_approved = '0' AND {$wpdb->comments}.comment_ID = %d )", $unapproved_identifier, (int) $_GET['unapproved'] );
+ 					} else {
+ 						// Include all of the author's unapproved comments.
+-						$approved_clauses[] = $wpdb->prepare( "( comment_author_email = %s AND comment_approved = '0' )", $unapproved_identifier );
++						$approved_clauses[] = \wp_aot_require_wpdb( $wpdb )->prepare( "( comment_author_email = %s AND comment_approved = '0' )", $unapproved_identifier );
+ 					}
+ 				}
+ 			}
+@@ -629,7 +633,7 @@
+ 		} elseif ( ! empty( $this->query_vars['orderby'] ) ) {
+ 			$ordersby = is_array( $this->query_vars['orderby'] ) ?
+ 				$this->query_vars['orderby'] :
+-				preg_split( '/[,\s]/', $this->query_vars['orderby'] );
++				\wp_aot_preg_split( '/[,\s]/', \wp_aot_regex_text( $this->query_vars['orderby'] ) );
+ 
+ 			$orderby_array            = array();
+ 			$found_orderby_comment_id = false;
+@@ -675,7 +679,7 @@
+ 
+ 				// Inherit order from comment_date or comment_date_gmt, if available.
+ 				foreach ( $orderby_array as $orderby_clause ) {
+-					if ( preg_match( '/comment_date(?:_gmt)*\ (ASC|DESC)/', $orderby_clause, $match ) ) {
++					if ( preg_match( '/comment_date(?:_gmt)*\ (ASC|DESC)/', \wp_aot_regex_text( $orderby_clause ), $match ) ) {
+ 						$comment_id_order = $match[1];
+ 						break;
+ 					}
+@@ -728,7 +732,7 @@
+ 
+ 		$post_id = absint( $this->query_vars['post_id'] );
+ 		if ( ! empty( $post_id ) ) {
+-			$this->sql_clauses['where']['post_id'] = $wpdb->prepare( 'comment_post_ID = %d', $post_id );
++			$this->sql_clauses['where']['post_id'] = \wp_aot_require_wpdb( $wpdb )->prepare( 'comment_post_ID = %d', $post_id );
+ 		}
+ 
+ 		// Parse comment IDs for an IN clause.
+@@ -762,20 +766,20 @@
+ 		}
+ 
+ 		if ( '' !== $this->query_vars['author_email'] ) {
+-			$this->sql_clauses['where']['author_email'] = $wpdb->prepare( 'comment_author_email = %s', $this->query_vars['author_email'] );
++			$this->sql_clauses['where']['author_email'] = \wp_aot_require_wpdb( $wpdb )->prepare( 'comment_author_email = %s', $this->query_vars['author_email'] );
+ 		}
+ 
+ 		if ( '' !== $this->query_vars['author_url'] ) {
+-			$this->sql_clauses['where']['author_url'] = $wpdb->prepare( 'comment_author_url = %s', $this->query_vars['author_url'] );
++			$this->sql_clauses['where']['author_url'] = \wp_aot_require_wpdb( $wpdb )->prepare( 'comment_author_url = %s', $this->query_vars['author_url'] );
+ 		}
+ 
+ 		if ( '' !== $this->query_vars['karma'] ) {
+-			$this->sql_clauses['where']['karma'] = $wpdb->prepare( 'comment_karma = %d', $this->query_vars['karma'] );
++			$this->sql_clauses['where']['karma'] = \wp_aot_require_wpdb( $wpdb )->prepare( 'comment_karma = %d', $this->query_vars['karma'] );
+ 		}
+ 
+ 		// Filtering by comment_type: 'type', 'type__in', 'type__not_in'.
+ 		$raw_types = array(
+-			'IN'     => array_merge( (array) $this->query_vars['type'], (array) $this->query_vars['type__in'] ),
++			'IN'     => \wp_aot_array_merge(array( (array) $this->query_vars['type'], (array) $this->query_vars['type__in'] )),
+ 			'NOT IN' => (array) $this->query_vars['type__not_in'],
+ 		);
+ 
+@@ -790,7 +794,7 @@
+ 
+ 		$comment_types = array();
+ 		foreach ( $raw_types as $operator => $_raw_types ) {
+-			$_raw_types = array_unique( $_raw_types );
++			$_raw_types = \wp_aot_array_unique( $_raw_types );
+ 
+ 			foreach ( $_raw_types as $type ) {
+ 				switch ( $type ) {
+@@ -811,14 +815,14 @@
+ 						break;
+ 
+ 					default:
+-						$comment_types[ $operator ][] = $wpdb->prepare( '%s', $type );
++						$comment_types[ $operator ][] = \wp_aot_require_wpdb( $wpdb )->prepare( '%s', $type );
+ 						break;
+ 				}
+ 			}
+ 
+ 			if ( ! empty( $comment_types[ $operator ] ) ) {
+ 				$types_sql = implode( ', ', $comment_types[ $operator ] );
+-				$this->sql_clauses['where'][ 'comment_type__' . strtolower( str_replace( ' ', '_', $operator ) ) ] = "comment_type $operator ($types_sql)";
++				$this->sql_clauses['where'][ 'comment_type__' . strtolower( \wp_aot_str_replace( ' ', '_', $operator ) ) ] = "comment_type $operator ($types_sql)";
+ 			}
+ 		}
+ 
+@@ -828,13 +832,13 @@
+ 		}
+ 
+ 		if ( '' !== $parent ) {
+-			$this->sql_clauses['where']['parent'] = $wpdb->prepare( 'comment_parent = %d', $parent );
++			$this->sql_clauses['where']['parent'] = \wp_aot_require_wpdb( $wpdb )->prepare( 'comment_parent = %d', $parent );
+ 		}
+ 
+ 		if ( is_array( $this->query_vars['user_id'] ) ) {
+-			$this->sql_clauses['where']['user_id'] = 'user_id IN (' . implode( ',', array_map( 'absint', $this->query_vars['user_id'] ) ) . ')';
++			$this->sql_clauses['where']['user_id'] = 'user_id IN (' . implode( ',', \wp_aot_array_map( 'absint', $this->query_vars['user_id'] ) ) . ')';
+ 		} elseif ( '' !== $this->query_vars['user_id'] ) {
+-			$this->sql_clauses['where']['user_id'] = $wpdb->prepare( 'user_id = %d', $this->query_vars['user_id'] );
++			$this->sql_clauses['where']['user_id'] = \wp_aot_require_wpdb( $wpdb )->prepare( 'user_id = %d', $this->query_vars['user_id'] );
+ 		}
+ 
+ 		// Falsey search strings are ignored.
+@@ -845,13 +849,13 @@
+ 			);
+ 
+ 			// Strip leading 'AND'.
+-			$this->sql_clauses['where']['search'] = preg_replace( '/^\s*AND\s*/', '', $search_sql );
++			$this->sql_clauses['where']['search'] = \wp_aot_preg_replace( '/^\s*AND\s*/', '', $search_sql );
+ 		}
+ 
+ 		// If any post-related query vars are passed, join the posts table.
+ 		$join_posts_table = false;
+ 		$plucked          = wp_array_slice_assoc( $this->query_vars, array( 'post_author', 'post_name', 'post_parent' ) );
+-		$post_fields      = array_filter( $plucked );
++		$post_fields      = \wp_aot_array_filter( $plucked );
+ 
+ 		if ( ! empty( $post_fields ) ) {
+ 			$join_posts_table = true;
+@@ -860,7 +864,7 @@
+ 				$esses = array_fill( 0, count( (array) $field_value ), '%s' );
+ 
+ 				// phpcs:ignore WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare
+-				$this->sql_clauses['where'][ $field_name ] = $wpdb->prepare( " {$wpdb->posts}.{$field_name} IN (" . implode( ',', $esses ) . ')', $field_value );
++				$this->sql_clauses['where'][ $field_name ] = \wp_aot_require_wpdb( $wpdb )->prepare( " {$wpdb->posts}.{$field_name} IN (" . implode( ',', $esses ) . ')', $field_value );
+ 			}
+ 		}
+ 
+@@ -883,7 +887,7 @@
+ 				$esses = array_fill( 0, count( $q_values ), '%s' );
+ 
+ 				// phpcs:ignore WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare
+-				$this->sql_clauses['where'][ $field_name ] = $wpdb->prepare( " {$wpdb->posts}.{$field_name} IN (" . implode( ',', $esses ) . ')', $q_values );
++				$this->sql_clauses['where'][ $field_name ] = \wp_aot_require_wpdb( $wpdb )->prepare( " {$wpdb->posts}.{$field_name} IN (" . implode( ',', $esses ) . ')', $q_values );
+ 			}
+ 		}
+ 
+@@ -920,7 +924,7 @@
+ 			$join .= $this->meta_query_clauses['join'];
+ 
+ 			// Strip leading 'AND'.
+-			$this->sql_clauses['where']['meta_query'] = preg_replace( '/^\s*AND\s*/', '', $this->meta_query_clauses['where'] );
++			$this->sql_clauses['where']['meta_query'] = \wp_aot_preg_replace( '/^\s*AND\s*/', '', $this->meta_query_clauses['where'] );
+ 
+ 			if ( ! $this->query_vars['count'] ) {
+ 				$groupby = "{$wpdb->comments}.comment_ID";
+@@ -931,7 +935,7 @@
+ 			$this->date_query = new WP_Date_Query( $this->query_vars['date_query'], 'comment_date' );
+ 
+ 			// Strip leading 'AND'.
+-			$this->sql_clauses['where']['date_query'] = preg_replace( '/^\s*AND\s*/', '', $this->date_query->get_sql() );
++			$this->sql_clauses['where']['date_query'] = \wp_aot_preg_replace( '/^\s*AND\s*/', '', $this->date_query->get_sql() );
+ 		}
+ 
+ 		$where = implode( ' AND ', $this->sql_clauses['where'] );
+@@ -955,7 +959,7 @@
  		 * }
  		 * @param WP_Comment_Query $query   Current instance of WP_Comment_Query (passed by reference).
  		 */
 -		$clauses = apply_filters_ref_array( 'comments_clauses', array( compact( $pieces ), &$this ) );
-+		$clauses = apply_filters_ref_array( 'comments_clauses', array( compact( $pieces ), $this ) );
++		$clauses = apply_filters_ref_array( 'comments_clauses', array( \wp_aot_compact(get_defined_vars(), array( $pieces )), $this ) );
  
  		$fields  = $clauses['fields'] ?? '';
  		$join    = $clauses['join'] ?? '';
+@@ -999,11 +1003,12 @@
+ 			 {$this->sql_clauses['limits']}";
+ 
+ 		if ( $this->query_vars['count'] ) {
+-			return (int) $wpdb->get_var( $this->request );
++			return (int) \wp_aot_require_wpdb( $wpdb )->get_var( $this->request );
+ 		} else {
+-			$comment_ids = $wpdb->get_col( $this->request );
+-			return array_map( 'intval', $comment_ids );
+-		}
++			$comment_ids = \wp_aot_require_wpdb( $wpdb )->get_col( $this->request );
++			return \wp_aot_array_map( 'intval', $comment_ids );
++		}
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1014,7 +1019,7 @@
+ 	 *
+ 	 * @global wpdb $wpdb WordPress database abstraction object.
+ 	 */
+-	private function set_found_comments() {
++	private function set_found_comments(): mixed {
+ 		global $wpdb;
+ 
+ 		if ( $this->query_vars['number'] && ! $this->query_vars['no_found_rows'] ) {
+@@ -1028,8 +1033,9 @@
+ 			 */
+ 			$found_comments_query = apply_filters( 'found_comments_query', 'SELECT FOUND_ROWS()', $this );
+ 
+-			$this->found_comments = (int) $wpdb->get_var( $found_comments_query );
+-		}
++			$this->found_comments = (int) \wp_aot_require_wpdb( $wpdb )->get_var( $found_comments_query );
++		}
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1043,7 +1049,7 @@
+ 	 * @param WP_Comment[] $comments Array of top-level comments whose descendants should be filled in.
+ 	 * @return array
+ 	 */
+-	protected function fill_descendants( $comments ) {
++	protected function fill_descendants( mixed $comments ): mixed {
+ 		$levels = array(
+ 			0 => wp_list_pluck( $comments, 'comment_ID' ),
+ 		);
+@@ -1068,7 +1074,7 @@
+ 				foreach ( $_parent_ids as $parent_id ) {
+ 					$parent_child_ids = $cache_data[ $cache_keys[ $parent_id ] ];
+ 					if ( false !== $parent_child_ids ) {
+-						$child_ids = array_merge( $child_ids, $parent_child_ids );
++						$child_ids = \wp_aot_array_merge(array( $child_ids, $parent_child_ids ));
+ 					} else {
+ 						$uncached_parent_ids[] = $parent_id;
+ 					}
+@@ -1090,7 +1096,7 @@
+ 				$level_comments = get_comments( $parent_query_args );
+ 
+ 				// Cache parent-child relationships.
+-				$parent_map = array_fill_keys( $uncached_parent_ids, array() );
++				$parent_map = \wp_aot_array_fill_keys( $uncached_parent_ids, array() );
+ 				foreach ( $level_comments as $level_comment ) {
+ 					$parent_map[ $level_comment->comment_parent ][] = $level_comment->comment_ID;
+ 					$child_ids[]                                    = $level_comment->comment_ID;
+@@ -1111,7 +1117,7 @@
+ 		// Prime comment caches for non-top-level comments.
+ 		$descendant_ids = array();
+ 		for ( $i = 1, $c = count( $levels ); $i < $c; $i++ ) {
+-			$descendant_ids = array_merge( $descendant_ids, $levels[ $i ] );
++			$descendant_ids = \wp_aot_array_merge(array( $descendant_ids, $levels[ $i ] ));
+ 		}
+ 
+ 		_prime_comment_caches( $descendant_ids, $this->query_vars['update_comment_meta_cache'] );
+@@ -1153,6 +1159,7 @@
+ 		}
+ 
+ 		return $comments;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1166,17 +1173,18 @@
+ 	 * @param string[] $columns Array of columns to search.
+ 	 * @return string Search SQL.
+ 	 */
+-	protected function get_search_sql( $search, $columns ) {
++	protected function get_search_sql( mixed $search, mixed $columns ): mixed {
+ 		global $wpdb;
+ 
+-		$like = '%' . $wpdb->esc_like( $search ) . '%';
++		$like = '%' . \wp_aot_require_wpdb( $wpdb )->esc_like( $search ) . '%';
+ 
+ 		$searches = array();
+ 		foreach ( $columns as $column ) {
+-			$searches[] = $wpdb->prepare( "$column LIKE %s", $like );
++			$searches[] = \wp_aot_require_wpdb( $wpdb )->prepare( "$column LIKE %s", $like );
+ 		}
+ 
+ 		return ' AND (' . implode( ' OR ', $searches ) . ')';
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1189,7 +1197,7 @@
+ 	 * @param string $orderby Alias for the field to order by.
+ 	 * @return string|false Value to used in the ORDER clause. False otherwise.
+ 	 */
+-	protected function parse_orderby( $orderby ) {
++	protected function parse_orderby( mixed $orderby ): mixed {
+ 		global $wpdb;
+ 
+ 		$allowed_keys = array(
+@@ -1218,16 +1226,16 @@
+ 
+ 		$meta_query_clauses = $this->meta_query->get_clauses();
+ 		if ( $meta_query_clauses ) {
+-			$allowed_keys = array_merge( $allowed_keys, array_keys( $meta_query_clauses ) );
+-		}
+-
+-		$parsed = false;
++			$allowed_keys = \wp_aot_array_merge(array( $allowed_keys, array_keys( $meta_query_clauses ) ));
++		}
++
++		$parsed = \wp_aot_mixed(false);
+ 		if ( $this->query_vars['meta_key'] === $orderby || 'meta_value' === $orderby ) {
+ 			$parsed = "$wpdb->commentmeta.meta_value";
+ 		} elseif ( 'meta_value_num' === $orderby ) {
+ 			$parsed = "$wpdb->commentmeta.meta_value+0";
+ 		} elseif ( 'comment__in' === $orderby ) {
+-			$comment__in = implode( ',', array_map( 'absint', $this->query_vars['comment__in'] ) );
++			$comment__in = implode( ',', \wp_aot_array_map( 'absint', $this->query_vars['comment__in'] ) );
+ 			$parsed      = "FIELD( {$wpdb->comments}.comment_ID, $comment__in )";
+ 		} elseif ( in_array( $orderby, $allowed_keys, true ) ) {
+ 
+@@ -1240,6 +1248,7 @@
+ 		}
+ 
+ 		return $parsed;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1250,7 +1259,7 @@
+ 	 * @param string $order The 'order' query variable.
+ 	 * @return string The sanitized 'order' query variable.
+ 	 */
+-	protected function parse_order( $order ) {
++	protected function parse_order( mixed $order ): mixed {
+ 		if ( ! is_string( $order ) || empty( $order ) ) {
+ 			return 'DESC';
+ 		}
+@@ -1260,5 +1269,6 @@
+ 		} else {
+ 			return 'DESC';
+ 		}
++		return null;
+ 	}
+ }

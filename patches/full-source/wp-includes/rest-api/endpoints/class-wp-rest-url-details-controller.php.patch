@@ -1,0 +1,293 @@
+--- a/wp-includes/rest-api/endpoints/class-wp-rest-url-details-controller.php
++++ b/wp-includes/rest-api/endpoints/class-wp-rest-url-details-controller.php
+@@ -32,7 +32,7 @@
+ 	 *
+ 	 * @since 5.9.0
+ 	 */
+-	public function register_routes() {
++	public function register_routes(): mixed {
+ 		register_rest_route(
+ 			$this->namespace,
+ 			'/' . $this->rest_base,
+@@ -55,6 +55,7 @@
+ 				),
+ 			)
+ 		);
++		return null;
+ 	}
+ 
+ 	/**
+@@ -64,7 +65,7 @@
+ 	 *
+ 	 * @return array Item schema data.
+ 	 */
+-	public function get_item_schema() {
++	public function get_item_schema(): mixed {
+ 		if ( $this->schema ) {
+ 			return $this->add_additional_fields_schema( $this->schema );
+ 		}
+@@ -121,6 +122,7 @@
+ 		);
+ 
+ 		return $this->add_additional_fields_schema( $this->schema );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -131,7 +133,7 @@
+ 	 * @param WP_REST_Request $request Full details about the request.
+ 	 * @return WP_REST_Response|WP_Error The parsed details as a response object. WP_Error if there are errors.
+ 	 */
+-	public function parse_url_details( $request ) {
++	public function parse_url_details( mixed $request ): mixed {
+ 		$url = untrailingslashit( $request['url'] );
+ 
+ 		if ( empty( $url ) ) {
+@@ -185,6 +187,7 @@
+ 		 * @param string           $remote_url_response HTTP response body from the remote URL.
+ 		 */
+ 		return apply_filters( 'rest_prepare_url_details', $response, $url, $request, $remote_url_response );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -194,7 +197,7 @@
+ 	 *
+ 	 * @return true|WP_Error True if the request has permission, else WP_Error.
+ 	 */
+-	public function permissions_check() {
++	public function permissions_check(): mixed {
+ 		if ( current_user_can( 'edit_posts' ) ) {
+ 			return true;
+ 		}
+@@ -210,6 +213,7 @@
+ 			__( 'Sorry, you are not allowed to process remote URLs.' ),
+ 			array( 'status' => rest_authorization_required_code() )
+ 		);
++		return null;
+ 	}
+ 
+ 	/**
+@@ -221,7 +225,7 @@
+ 	 * @return string|WP_Error The HTTP response from the remote URL on success.
+ 	 *                         WP_Error if no response or no content.
+ 	 */
+-	private function get_remote_url( $url ) {
++	private function get_remote_url( mixed $url ): mixed {
+ 
+ 		/*
+ 		 * Provide a modified UA string to workaround web properties which block WordPress "Pingbacks".
+@@ -273,6 +277,7 @@
+ 		}
+ 
+ 		return $remote_body;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -283,9 +288,9 @@
+ 	 * @param string $html The HTML from the remote website at URL.
+ 	 * @return string The title tag contents on success. Empty string if not found.
+ 	 */
+-	private function get_title( $html ) {
++	private function get_title( mixed $html ): mixed {
+ 		$pattern = '#<title[^>]*>(.*?)<\s*/\s*title>#is';
+-		preg_match( $pattern, $html, $match_title );
++		preg_match( \wp_aot_regex_text( $pattern ), \wp_aot_regex_text( $html ), $match_title );
+ 
+ 		if ( empty( $match_title[1] ) || ! is_string( $match_title[1] ) ) {
+ 			return '';
+@@ -294,6 +299,7 @@
+ 		$title = trim( $match_title[1] );
+ 
+ 		return $this->prepare_metadata_for_output( $title );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -305,22 +311,22 @@
+ 	 * @param string $url  The target website URL.
+ 	 * @return string The icon URI on success. Empty string if not found.
+ 	 */
+-	private function get_icon( $html, $url ) {
++	private function get_icon( mixed $html, mixed $url ): mixed {
+ 		// Grab the icon's link element.
+ 		$pattern = '#<link\s[^>]*rel=(?:[\"\']??)\s*(?:icon|shortcut icon|icon shortcut)\s*(?:[\"\']??)[^>]*\/?>#isU';
+-		preg_match( $pattern, $html, $element );
++		preg_match( \wp_aot_regex_text( $pattern ), \wp_aot_regex_text( $html ), $element );
+ 		if ( empty( $element[0] ) || ! is_string( $element[0] ) ) {
+ 			return '';
+ 		}
+-		$element = trim( $element[0] );
++		$element = \wp_aot_mixed(trim( $element[0] ));
+ 
+ 		// Get the icon's href value.
+ 		$pattern = '#href=([\"\']??)([^\" >]*?)\\1[^>]*#isU';
+-		preg_match( $pattern, $element, $icon );
++		preg_match( \wp_aot_regex_text( $pattern ), \wp_aot_regex_text( $element ), $icon );
+ 		if ( empty( $icon[2] ) || ! is_string( $icon[2] ) ) {
+ 			return '';
+ 		}
+-		$icon = trim( $icon[2] );
++		$icon = \wp_aot_mixed(trim( $icon[2] ));
+ 
+ 		// If the icon is a data URL, return it.
+ 		$parsed_icon = parse_url( $icon );
+@@ -339,6 +345,7 @@
+ 		}
+ 
+ 		return $icon;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -355,7 +362,7 @@
+ 	 * }
+ 	 * @return string The meta description contents on success. Empty string if not found.
+ 	 */
+-	private function get_description( $meta_elements ) {
++	private function get_description( mixed $meta_elements ): mixed {
+ 		// Bail out if there are no meta elements.
+ 		if ( empty( $meta_elements[0] ) ) {
+ 			return '';
+@@ -373,6 +380,7 @@
+ 		}
+ 
+ 		return $this->prepare_metadata_for_output( $description );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -392,7 +400,7 @@
+ 	 * @param string $url The target website URL.
+ 	 * @return string The OG image on success. Empty string if not found.
+ 	 */
+-	private function get_image( $meta_elements, $url ) {
++	private function get_image( mixed $meta_elements, mixed $url ): mixed {
+ 		$image = $this->get_metadata_from_meta_element(
+ 			$meta_elements,
+ 			'property',
+@@ -412,6 +420,7 @@
+ 		}
+ 
+ 		return $image;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -424,10 +433,11 @@
+ 	 * @param string $metadata The metadata content to prepare.
+ 	 * @return string The prepared metadata.
+ 	 */
+-	private function prepare_metadata_for_output( $metadata ) {
+-		$metadata = html_entity_decode( $metadata, ENT_QUOTES, get_bloginfo( 'charset' ) );
++	private function prepare_metadata_for_output( mixed $metadata ): mixed {
++		$metadata = \wp_aot_html_entity_decode( $metadata, ENT_QUOTES, get_bloginfo( 'charset' ) );
+ 		$metadata = wp_strip_all_tags( $metadata );
+ 		return $metadata;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -438,8 +448,9 @@
+ 	 * @param string $url The URL for which to build a cache key.
+ 	 * @return string The cache key.
+ 	 */
+-	private function build_cache_key_for_url( $url ) {
++	private function build_cache_key_for_url( mixed $url ): mixed {
+ 		return 'g_url_details_response_' . md5( $url );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -450,8 +461,9 @@
+ 	 * @param string $key The cache key.
+ 	 * @return mixed The value from the cache.
+ 	 */
+-	private function get_cache( $key ) {
++	private function get_cache( mixed $key ): mixed {
+ 		return get_site_transient( $key );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -463,7 +475,7 @@
+ 	 * @param string $data The data to be stored at the given cache key.
+ 	 * @return bool True when transient set. False if not set.
+ 	 */
+-	private function set_cache( $key, $data = '' ) {
++	private function set_cache( mixed $key, mixed $data = '' ): mixed {
+ 		$ttl = HOUR_IN_SECONDS;
+ 
+ 		/**
+@@ -479,6 +491,7 @@
+ 		$cache_expiration = apply_filters( 'rest_url_details_cache_expiration', $ttl );
+ 
+ 		return set_site_transient( $key, $data, $cache_expiration );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -489,7 +502,7 @@
+ 	 * @param string $html The string of HTML to parse.
+ 	 * @return string The `<head>..</head>` section on success. Given `$html` if not found.
+ 	 */
+-	private function get_document_head( $html ) {
++	private function get_document_head( mixed $html ): mixed {
+ 		$head_html = $html;
+ 
+ 		// Find the opening `<head>` tag.
+@@ -516,6 +529,7 @@
+ 		$head_html .= '</head>';
+ 
+ 		return $head_html;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -532,7 +546,7 @@
+ 	 *     @type string[] $2 Content attribute's value for each meta element.
+ 	 * }
+ 	 */
+-	private function get_meta_with_content_elements( $html ) {
++	private function get_meta_with_content_elements( mixed $html ): mixed {
+ 		/*
+ 		 * Parse all meta elements with a content attribute.
+ 		 *
+@@ -594,9 +608,10 @@
+ 				*/
+ 				'isU';
+ 
+-		preg_match_all( $pattern, $html, $elements );
++		preg_match_all( \wp_aot_regex_text( $pattern ), \wp_aot_regex_text( $html ), $elements );
+ 
+ 		return $elements;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -615,7 +630,7 @@
+ 	 * @param string $attr_value The attribute's value that identifies the element with the target metadata.
+ 	 * @return string The metadata on success. Empty string if not found.
+ 	 */
+-	private function get_metadata_from_meta_element( $meta_elements, $attr, $attr_value ) {
++	private function get_metadata_from_meta_element( mixed $meta_elements, mixed $attr, mixed $attr_value ): mixed {
+ 		// Bail out if there are no meta elements.
+ 		if ( empty( $meta_elements[0] ) ) {
+ 			return '';
+@@ -645,7 +660,7 @@
+ 
+ 		// Find the metadata element.
+ 		foreach ( $meta_elements[0] as $index => $element ) {
+-			preg_match( $pattern, $element, $match );
++			preg_match( \wp_aot_regex_text( $pattern ), \wp_aot_regex_text( $element ), $match );
+ 
+ 			// This is not the metadata element. Skip it.
+ 			if ( empty( $match ) ) {
+@@ -664,5 +679,6 @@
+ 		}
+ 
+ 		return $metadata;
++		return null;
+ 	}
+ }

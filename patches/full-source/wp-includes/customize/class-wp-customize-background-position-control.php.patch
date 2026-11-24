@@ -1,5 +1,22 @@
 --- a/wp-includes/customize/class-wp-customize-background-position-control.php
 +++ b/wp-includes/customize/class-wp-customize-background-position-control.php
+@@ -29,14 +29,14 @@
+ 	 *
+ 	 * @since 4.7.0
+ 	 */
+-	public function render_content() {}
++	public function render_content(): mixed { return null; }
+ 
+ 	/**
+ 	 * Render a JS template for the content of the position control.
+ 	 *
+ 	 * @since 4.7.0
+ 	 */
+-	public function content_template() {
++	public function content_template(): mixed {
+ 		$options = array(
+ 			array(
+ 				'left top'   => array(
 @@ -81,8 +81,8 @@
  				),
  			),
@@ -11,7 +28,7 @@
  			<span class="customize-control-title">{{{ data.label }}}</span>
  		<# } #>
  		<# if ( data.description ) { #>
-@@ -91,26 +91,36 @@
+@@ -91,26 +91,37 @@
  		<div class="customize-control-content">
  			<fieldset>
  				<legend class="screen-reader-text"><span>
@@ -61,5 +78,6 @@
  		</div>
 -		<?php
 +		';
++		return null;
  	}
  }

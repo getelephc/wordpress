@@ -1,5 +1,14 @@
 --- a/wp-includes/widgets/class-wp-widget-archives.php
 +++ b/wp-includes/widgets/class-wp-widget-archives.php
+@@ -40,7 +40,7 @@
+ 	 *                        'before_widget', and 'after_widget'.
+ 	 * @param array $instance Settings for the current Archives widget instance.
+ 	 */
+-	public function widget( $args, $instance ) {
++	public function widget( mixed $args, mixed $instance ): mixed {
+ 		$default_title = __( 'Archives' );
+ 		$title         = ! empty( $instance['title'] ) ? $instance['title'] : $default_title;
+ 
 @@ -58,10 +58,16 @@
  
  		if ( $dropdown ) {
@@ -99,7 +108,7 @@
  				wp_get_archives(
  					/**
  					 * Filters the arguments for the Archives widget.
-@@ -175,10 +187,10 @@
+@@ -175,16 +187,17 @@
  						$instance
  					)
  				);
@@ -114,7 +123,40 @@
  			if ( 'html5' === $format ) {
  				echo '</nav>';
  			}
-@@ -230,18 +242,48 @@
+ 		}
+ 
+ 		echo $args['after_widget'];
++		return null;
+ 	}
+ 
+ 	/**
+@@ -197,7 +210,7 @@
+ 	 * @param array $old_instance Old settings for this instance.
+ 	 * @return array Updated settings to save.
+ 	 */
+-	public function update( $new_instance, $old_instance ) {
++	public function update( mixed $new_instance, mixed $old_instance ): mixed {
+ 		$instance             = $old_instance;
+ 		$new_instance         = wp_parse_args(
+ 			(array) $new_instance,
+@@ -212,6 +225,7 @@
+ 		$instance['dropdown'] = $new_instance['dropdown'] ? 1 : 0;
+ 
+ 		return $instance;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -221,7 +235,7 @@
+ 	 *
+ 	 * @param array $instance Current settings.
+ 	 */
+-	public function form( $instance ) {
++	public function form( mixed $instance ): mixed {
+ 		$instance = wp_parse_args(
+ 			(array) $instance,
+ 			array(
+@@ -230,18 +244,49 @@
  				'dropdown' => '',
  			)
  		);
@@ -170,5 +212,6 @@
  		</p>
 -		<?php
 +		';
++		return null;
  	}
  }

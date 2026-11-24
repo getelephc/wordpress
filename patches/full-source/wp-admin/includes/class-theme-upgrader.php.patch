@@ -1,0 +1,209 @@
+--- a/wp-admin/includes/class-theme-upgrader.php
++++ b/wp-admin/includes/class-theme-upgrader.php
+@@ -52,7 +52,7 @@
+ 	 *
+ 	 * @since 2.8.0
+ 	 */
+-	public function upgrade_strings() {
++	public function upgrade_strings(): mixed {
+ 		$this->strings['up_to_date'] = __( 'The theme is at the latest version.' );
+ 		$this->strings['no_package'] = __( 'Update package not available.' );
+ 		/* translators: %s: Package URL. */
+@@ -62,6 +62,7 @@
+ 		$this->strings['remove_old_failed']   = __( 'Could not remove the old theme.' );
+ 		$this->strings['process_failed']      = __( 'Theme update failed.' );
+ 		$this->strings['process_success']     = __( 'Theme updated successfully.' );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -69,7 +70,7 @@
+ 	 *
+ 	 * @since 2.8.0
+ 	 */
+-	public function install_strings() {
++	public function install_strings(): mixed {
+ 		$this->strings['no_package'] = __( 'Installation package not available.' );
+ 		/* translators: %s: Package URL. */
+ 		$this->strings['downloading_package'] = sprintf( __( 'Downloading installation package from %s&#8230;' ), '<span class="code pre">%s</span>' );
+@@ -107,6 +108,7 @@
+ 				$this->strings['process_success']    = __( 'Theme downgraded successfully.' );
+ 			}
+ 		}
++		return null;
+ 	}
+ 
+ 	/**
+@@ -121,7 +123,7 @@
+ 	 * @param array $child_result
+ 	 * @return bool
+ 	 */
+-	public function check_parent_theme_filter( $install_result, $hook_extra, $child_result ) {
++	public function check_parent_theme_filter( mixed $install_result, mixed $hook_extra, mixed $child_result ): mixed {
+ 		// Check to see if we need to install a parent theme.
+ 		$theme_info = $this->theme_info();
+ 
+@@ -192,6 +194,7 @@
+ 		$this->strings['process_success'] = $child_success_message;
+ 
+ 		return $install_result;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -206,9 +209,10 @@
+ 	 * @param array $actions Preview actions.
+ 	 * @return array
+ 	 */
+-	public function hide_activate_preview_actions( $actions ) {
++	public function hide_activate_preview_actions( mixed $actions ): mixed {
+ 		unset( $actions['activate'], $actions['preview'] );
+ 		return $actions;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -227,7 +231,7 @@
+ 	 *
+ 	 * @return bool|WP_Error True if the installation was successful, false or a WP_Error object otherwise.
+ 	 */
+-	public function install( $package, $args = array() ) {
++	public function install( mixed $package, mixed $args = array() ): mixed {
+ 		$defaults    = array(
+ 			'clear_update_cache' => true,
+ 			'overwrite_package'  => false, // Do not overwrite files.
+@@ -275,6 +279,7 @@
+ 		}
+ 
+ 		return true;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -292,7 +297,7 @@
+ 	 * }
+ 	 * @return bool|WP_Error True if the upgrade was successful, false or a WP_Error object otherwise.
+ 	 */
+-	public function upgrade( $theme, $args = array() ) {
++	public function upgrade( mixed $theme, mixed $args = array() ): mixed {
+ 		$defaults    = array(
+ 			'clear_update_cache' => true,
+ 		);
+@@ -363,6 +368,7 @@
+ 		}
+ 
+ 		return true;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -380,7 +386,7 @@
+ 	 * }
+ 	 * @return array[]|false An array of results, or false if unable to connect to the filesystem.
+ 	 */
+-	public function bulk_upgrade( $themes, $args = array() ) {
++	public function bulk_upgrade( mixed $themes, mixed $args = array() ): mixed {
+ 		$wp_version  = wp_get_wp_version();
+ 		$defaults    = array(
+ 			'clear_update_cache' => true,
+@@ -545,6 +551,7 @@
+ 		update_option( 'auto_plugin_theme_update_emails', $past_failure_emails );
+ 
+ 		return $results;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -559,7 +566,7 @@
+ 	 * @param string $source The path to the downloaded package source.
+ 	 * @return string|WP_Error The source as passed, or a WP_Error object on failure.
+ 	 */
+-	public function check_package( $source ) {
++	public function check_package( mixed $source ): mixed {
+ 		global $wp_filesystem;
+ 
+ 		$wp_version           = wp_get_wp_version();
+@@ -570,7 +577,7 @@
+ 		}
+ 
+ 		// Check that the folder contains a valid theme.
+-		$working_directory = str_replace( $wp_filesystem->wp_content_dir(), trailingslashit( WP_CONTENT_DIR ), $source );
++		$working_directory = \wp_aot_str_replace( $wp_filesystem->wp_content_dir(), trailingslashit( WP_CONTENT_DIR ), $source );
+ 		if ( ! is_dir( $working_directory ) ) { // Confidence check, if the above fails, let's not prevent installation.
+ 			return $source;
+ 		}
+@@ -666,6 +673,7 @@
+ 		$this->new_theme_data = $new_theme_data;
+ 
+ 		return $source;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -680,7 +688,7 @@
+ 	 * @param array         $theme    Theme arguments.
+ 	 * @return bool|WP_Error The original `$response` parameter or WP_Error.
+ 	 */
+-	public function current_before( $response, $theme ) {
++	public function current_before( mixed $response, mixed $theme ): mixed {
+ 		if ( is_wp_error( $response ) ) {
+ 			return $response;
+ 		}
+@@ -698,6 +706,7 @@
+ 		}
+ 
+ 		return $response;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -712,7 +721,7 @@
+ 	 * @param array         $theme    Theme arguments.
+ 	 * @return bool|WP_Error The original `$response` parameter or WP_Error.
+ 	 */
+-	public function current_after( $response, $theme ) {
++	public function current_after( mixed $response, mixed $theme ): mixed {
+ 		if ( is_wp_error( $response ) ) {
+ 			return $response;
+ 		}
+@@ -736,6 +745,7 @@
+ 			$this->maintenance_mode( false );
+ 		}
+ 		return $response;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -754,7 +764,7 @@
+ 	 * @param array  $theme
+ 	 * @return bool
+ 	 */
+-	public function delete_old_theme( $removed, $local_destination, $remote_destination, $theme ) {
++	public function delete_old_theme( mixed $removed, mixed $local_destination, mixed $remote_destination, mixed $theme ): mixed {
+ 		global $wp_filesystem;
+ 
+ 		if ( is_wp_error( $removed ) ) {
+@@ -774,6 +784,7 @@
+ 		}
+ 
+ 		return true;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -787,7 +798,7 @@
+ 	 * @return WP_Theme|false The theme's info object, or false `$theme` is not supplied
+ 	 *                        and the last result isn't set.
+ 	 */
+-	public function theme_info( $theme = null ) {
++	public function theme_info( mixed $theme = null ): mixed {
+ 		if ( empty( $theme ) ) {
+ 			if ( ! empty( $this->result['destination_name'] ) ) {
+ 				$theme = $this->result['destination_name'];
+@@ -800,5 +811,6 @@
+ 		$theme->cache_delete();
+ 
+ 		return $theme;
++		return null;
+ 	}
+ }

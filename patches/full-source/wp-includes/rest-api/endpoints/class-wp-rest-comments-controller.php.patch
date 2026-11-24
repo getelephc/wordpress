@@ -1,0 +1,462 @@
+--- a/wp-includes/rest-api/endpoints/class-wp-rest-comments-controller.php
++++ b/wp-includes/rest-api/endpoints/class-wp-rest-comments-controller.php
+@@ -43,7 +43,7 @@
+ 	 *
+ 	 * @see register_rest_route()
+ 	 */
+-	public function register_routes() {
++	public function register_routes(): mixed {
+ 
+ 		register_rest_route(
+ 			$this->namespace,
+@@ -112,6 +112,7 @@
+ 				'schema' => array( $this, 'get_public_item_schema' ),
+ 			)
+ 		);
++		return null;
+ 	}
+ 
+ 	/**
+@@ -122,7 +123,7 @@
+ 	 * @param WP_REST_Request $request Full details about the request.
+ 	 * @return true|WP_Error True if the request has read access, error object otherwise.
+ 	 */
+-	public function get_items_permissions_check( $request ) {
++	public function get_items_permissions_check( mixed $request ): mixed {
+ 		$is_note          = 'note' === $request['type'];
+ 		$is_edit_context  = 'edit' === $request['context'];
+ 		$protected_params = array( 'author', 'author_exclude', 'author_email', 'type', 'status' );
+@@ -223,6 +224,7 @@
+ 		}
+ 
+ 		return true;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -233,7 +235,7 @@
+ 	 * @param WP_REST_Request $request Full details about the request.
+ 	 * @return WP_REST_Response|WP_Error Response object on success, or error object on failure.
+ 	 */
+-	public function get_items( $request ) {
++	public function get_items( mixed $request ): mixed {
+ 
+ 		// Retrieve the list of registered collection query parameters.
+ 		$registered = $this->get_collection_params();
+@@ -381,6 +383,7 @@
+ 		}
+ 
+ 		return $response;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -391,7 +394,7 @@
+ 	 * @param int $id Supplied ID.
+ 	 * @return WP_Comment|WP_Error Comment object if ID is valid, WP_Error otherwise.
+ 	 */
+-	protected function get_comment( $id ) {
++	protected function get_comment( mixed $id ): mixed {
+ 		$error = new WP_Error(
+ 			'rest_comment_invalid_id',
+ 			__( 'Invalid comment ID.' ),
+@@ -421,6 +424,7 @@
+ 		}
+ 
+ 		return $comment;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -431,7 +435,7 @@
+ 	 * @param WP_REST_Request $request Full details about the request.
+ 	 * @return true|WP_Error True if the request has read access for the item, error object otherwise.
+ 	 */
+-	public function get_item_permissions_check( $request ) {
++	public function get_item_permissions_check( mixed $request ): mixed {
+ 		$comment = $this->get_comment( $request['id'] );
+ 		if ( is_wp_error( $comment ) ) {
+ 			return $comment;
+@@ -466,6 +470,7 @@
+ 		}
+ 
+ 		return true;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -476,7 +481,7 @@
+ 	 * @param WP_REST_Request $request Full details about the request.
+ 	 * @return WP_REST_Response|WP_Error Response object on success, or error object on failure.
+ 	 */
+-	public function get_item( $request ) {
++	public function get_item( mixed $request ): mixed {
+ 		$comment = $this->get_comment( $request['id'] );
+ 		if ( is_wp_error( $comment ) ) {
+ 			return $comment;
+@@ -486,6 +491,7 @@
+ 		$response = rest_ensure_response( $data );
+ 
+ 		return $response;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -496,7 +502,7 @@
+ 	 * @param WP_REST_Request $request Full details about the request.
+ 	 * @return true|WP_Error True if the request has access to create items, error object otherwise.
+ 	 */
+-	public function create_item_permissions_check( $request ) {
++	public function create_item_permissions_check( mixed $request ): mixed {
+ 		$is_note = ! empty( $request['type'] ) && 'note' === $request['type'];
+ 
+ 		if ( ! is_user_logged_in() && $is_note ) {
+@@ -639,6 +645,7 @@
+ 		}
+ 
+ 		return true;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -649,7 +656,7 @@
+ 	 * @param WP_REST_Request $request Full details about the request.
+ 	 * @return WP_REST_Response|WP_Error Response object on success, or error object on failure.
+ 	 */
+-	public function create_item( $request ) {
++	public function create_item( mixed $request ): mixed {
+ 		if ( ! empty( $request['id'] ) ) {
+ 			return new WP_Error(
+ 				'rest_comment_exists',
+@@ -858,6 +865,7 @@
+ 		$response->header( 'Location', rest_url( sprintf( '%s/%s/%d', $this->namespace, $this->rest_base, $comment_id ) ) );
+ 
+ 		return $response;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -869,7 +877,7 @@
+ 	 * @param WP_REST_Request $request Full details about the request.
+ 	 * @return true|WP_Error True if the request has access to update the item, error object otherwise.
+ 	 */
+-	public function update_item_permissions_check( $request ) {
++	public function update_item_permissions_check( mixed $request ): mixed {
+ 		$comment = $this->get_comment( $request['id'] );
+ 		if ( is_wp_error( $comment ) ) {
+ 			return $comment;
+@@ -904,6 +912,7 @@
+ 		}
+ 
+ 		return true;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -914,7 +923,7 @@
+ 	 * @param WP_REST_Request $request Full details about the request.
+ 	 * @return WP_REST_Response|WP_Error Response object on success, or error object on failure.
+ 	 */
+-	public function update_item( $request ) {
++	public function update_item( mixed $request ): mixed {
+ 		$comment = $this->get_comment( $request['id'] );
+ 		if ( is_wp_error( $comment ) ) {
+ 			return $comment;
+@@ -1028,6 +1037,7 @@
+ 		$response = $this->prepare_item_for_response( $comment, $request );
+ 
+ 		return rest_ensure_response( $response );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1038,7 +1048,7 @@
+ 	 * @param WP_REST_Request $request Full details about the request.
+ 	 * @return true|WP_Error True if the request has access to delete the item, error object otherwise.
+ 	 */
+-	public function delete_item_permissions_check( $request ) {
++	public function delete_item_permissions_check( mixed $request ): mixed {
+ 		$comment = $this->get_comment( $request['id'] );
+ 		if ( is_wp_error( $comment ) ) {
+ 			return $comment;
+@@ -1052,6 +1062,7 @@
+ 			);
+ 		}
+ 		return true;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1062,7 +1073,7 @@
+ 	 * @param WP_REST_Request $request Full details about the request.
+ 	 * @return WP_REST_Response|WP_Error Response object on success, or error object on failure.
+ 	 */
+-	public function delete_item( $request ) {
++	public function delete_item( mixed $request ): mixed {
+ 		$comment = $this->get_comment( $request['id'] );
+ 		if ( is_wp_error( $comment ) ) {
+ 			return $comment;
+@@ -1138,6 +1149,7 @@
+ 		do_action( 'rest_delete_comment', $comment, $response, $request );
+ 
+ 		return $response;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1150,7 +1162,7 @@
+ 	 * @param WP_REST_Request $request Request object.
+ 	 * @return WP_REST_Response Response object.
+ 	 */
+-	public function prepare_item_for_response( $item, $request ) {
++	public function prepare_item_for_response( mixed $item, mixed $request ): mixed {
+ 		// Restores the more descriptive, specific name for use within this method.
+ 		$comment = $item;
+ 
+@@ -1258,6 +1270,7 @@
+ 		 * @param WP_REST_Request   $request  Request used to generate the response.
+ 		 */
+ 		return apply_filters( 'rest_prepare_comment', $response, $comment, $request );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1268,7 +1281,7 @@
+ 	 * @param WP_Comment $comment Comment object.
+ 	 * @return array Links for the given comment.
+ 	 */
+-	protected function prepare_links( $comment ) {
++	protected function prepare_links( mixed $comment ): mixed {
+ 		$links = array(
+ 			'self'       => array(
+ 				'href' => rest_url( sprintf( '%s/%s/%d', $this->namespace, $this->rest_base, $comment->comment_ID ) ),
+@@ -1344,6 +1357,7 @@
+ 		}
+ 
+ 		return $links;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1354,7 +1368,7 @@
+ 	 * @param string $query_param Query parameter.
+ 	 * @return string The normalized query parameter.
+ 	 */
+-	protected function normalize_query_param( $query_param ) {
++	protected function normalize_query_param( mixed $query_param ): mixed {
+ 		$prefix = 'comment_';
+ 
+ 		switch ( $query_param ) {
+@@ -1376,6 +1390,7 @@
+ 		}
+ 
+ 		return $normalized;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1386,7 +1401,7 @@
+ 	 * @param string $comment_approved Comment status.
+ 	 * @return string Comment status.
+ 	 */
+-	protected function prepare_status_response( $comment_approved ) {
++	protected function prepare_status_response( mixed $comment_approved ): mixed {
+ 
+ 		switch ( $comment_approved ) {
+ 			case 'hold':
+@@ -1407,6 +1422,7 @@
+ 		}
+ 
+ 		return $status;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1417,7 +1433,7 @@
+ 	 * @param WP_REST_Request $request Request object.
+ 	 * @return array|WP_Error Prepared comment, otherwise WP_Error object.
+ 	 */
+-	protected function prepare_item_for_database( $request ) {
++	protected function prepare_item_for_database( mixed $request ): mixed {
+ 		$prepared_comment = array();
+ 
+ 		/*
+@@ -1506,6 +1522,7 @@
+ 		 * @param WP_REST_Request $request          The current request.
+ 		 */
+ 		return apply_filters( 'rest_preprocess_comment', $prepared_comment, $request );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1515,7 +1532,7 @@
+ 	 *
+ 	 * @return array
+ 	 */
+-	public function get_item_schema() {
++	public function get_item_schema(): mixed {
+ 		if ( $this->schema ) {
+ 			return $this->add_additional_fields_schema( $this->schema );
+ 		}
+@@ -1674,6 +1691,7 @@
+ 		$this->schema = $schema;
+ 
+ 		return $this->add_additional_fields_schema( $this->schema );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1683,7 +1701,7 @@
+ 	 *
+ 	 * @return array Comments collection parameters.
+ 	 */
+-	public function get_collection_params() {
++	public function get_collection_params(): mixed {
+ 		$query_params = parent::get_collection_params();
+ 
+ 		$query_params['context']['default'] = 'view';
+@@ -1831,6 +1849,7 @@
+ 		 * @param array $query_params JSON Schema-formatted collection parameters.
+ 		 */
+ 		return apply_filters( 'rest_comment_collection_params', $query_params );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1842,7 +1861,7 @@
+ 	 * @param int        $comment_id Comment ID.
+ 	 * @return bool Whether the status was changed.
+ 	 */
+-	protected function handle_status_param( $new_status, $comment_id ) {
++	protected function handle_status_param( mixed $new_status, mixed $comment_id ): mixed {
+ 		$old_status = wp_get_comment_status( $comment_id );
+ 
+ 		if ( $new_status === $old_status ) {
+@@ -1877,6 +1896,7 @@
+ 		}
+ 
+ 		return $changed;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1890,7 +1910,7 @@
+ 	 * @param WP_REST_Request $request Request data to check.
+ 	 * @return bool Whether post can be read.
+ 	 */
+-	protected function check_read_post_permission( $post, $request ) {
++	protected function check_read_post_permission( mixed $post, mixed $request ): mixed {
+ 		$post_type = get_post_type_object( $post->post_type );
+ 
+ 		// Return false if custom post type doesn't exist
+@@ -1930,6 +1950,7 @@
+ 		}
+ 
+ 		return $result;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1941,7 +1962,7 @@
+ 	 * @param WP_REST_Request $request Request data to check.
+ 	 * @return bool Whether the comment can be read.
+ 	 */
+-	protected function check_read_permission( $comment, $request ) {
++	protected function check_read_permission( mixed $comment, mixed $request ): mixed {
+ 		if ( 'note' !== $comment->comment_type && ! empty( $comment->comment_post_ID ) ) {
+ 			$post = get_post( $comment->comment_post_ID );
+ 			if ( $post ) {
+@@ -1964,6 +1985,7 @@
+ 		}
+ 
+ 		return current_user_can( 'edit_comment', $comment->comment_ID );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1974,7 +1996,7 @@
+ 	 * @param WP_Comment $comment Comment object.
+ 	 * @return bool Whether the comment can be edited or deleted.
+ 	 */
+-	protected function check_edit_permission( $comment ) {
++	protected function check_edit_permission( mixed $comment ): mixed {
+ 		if ( 0 === (int) get_current_user_id() ) {
+ 			return false;
+ 		}
+@@ -1992,6 +2014,7 @@
+ 		}
+ 
+ 		return current_user_can( 'edit_comment', $comment->comment_ID );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -2009,7 +2032,7 @@
+ 	 * @return string|WP_Error The sanitized email address, if valid,
+ 	 *                         otherwise an error.
+ 	 */
+-	public function check_comment_author_email( $value, $request, $param ) {
++	public function check_comment_author_email( mixed $value, mixed $request, mixed $param ): mixed {
+ 		$email = (string) $value;
+ 		if ( empty( $email ) ) {
+ 			return $email;
+@@ -2021,6 +2044,7 @@
+ 		}
+ 
+ 		return $email;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -2031,7 +2055,7 @@
+ 	 * @param array $prepared_comment The prepared comment data.
+ 	 * @return bool True if the content is allowed, false otherwise.
+ 	 */
+-	protected function check_is_comment_content_allowed( $prepared_comment ) {
++	protected function check_is_comment_content_allowed( mixed $prepared_comment ): mixed {
+ 		if ( ! isset( $prepared_comment['comment_content'] ) ) {
+ 			return true;
+ 		}
+@@ -2070,6 +2094,7 @@
+ 		 * comment_content. See wp_handle_comment_submission().
+ 		 */
+ 		return '' !== $check['comment_content'];
++		return null;
+ 	}
+ 
+ 	/**
+@@ -2086,7 +2111,7 @@
+ 	 * @param bool            $is_note Optional. Whether the comment is a note. Default false.
+ 	 * @return true|WP_Error True if the post can receive the comment, error object otherwise.
+ 	 */
+-	protected function check_target_post_permission( int $post_id, WP_REST_Request $request, bool $is_note = false ) {
++	protected function check_target_post_permission( int $post_id, WP_REST_Request $request, bool $is_note = false ): mixed {
+ 		if ( ! $post_id ) {
+ 			return new WP_Error(
+ 				'rest_comment_invalid_post_id',
+@@ -2170,6 +2195,7 @@
+ 		}
+ 
+ 		return true;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -2178,7 +2204,7 @@
+ 	 * @param string $post_type Post type name.
+ 	 * @return bool True if post type supports notes, false otherwise.
+ 	 */
+-	private function check_post_type_supports_notes( $post_type ) {
++	private function check_post_type_supports_notes( mixed $post_type ): mixed {
+ 		$supports = get_all_post_type_supports( $post_type );
+ 
+ 		if ( ! isset( $supports['editor'] ) ) {
+@@ -2189,6 +2215,7 @@
+ 			return false;
+ 		}
+ 
+-		return array_any( $supports['editor'], fn( $item ) => ! empty( $item['notes'] ) );
++		return array_any( $supports['editor'], fn( mixed $item ) => ! empty( $item['notes'] ) );
++		return null;
+ 	}
+ }

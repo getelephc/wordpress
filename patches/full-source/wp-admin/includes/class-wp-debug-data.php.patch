@@ -1,0 +1,362 @@
+--- a/wp-admin/includes/class-wp-debug-data.php
++++ b/wp-admin/includes/class-wp-debug-data.php
+@@ -14,10 +14,11 @@
+ 	 *
+ 	 * @since 5.2.0
+ 	 */
+-	public static function check_for_updates() {
++	public static function check_for_updates(): mixed {
+ 		wp_version_check();
+ 		wp_update_plugins();
+ 		wp_update_themes();
++		return null;
+ 	}
+ 
+ 	/**
+@@ -33,7 +34,7 @@
+ 	 *
+ 	 * @return array The debug data for the site.
+ 	 */
+-	public static function debug_data() {
++	public static function debug_data(): mixed {
+ 		/*
+ 		 * Set up the array that holds all debug information.
+ 		 *
+@@ -65,9 +66,9 @@
+ 		 * allowed to return `null`, which communicates that the category
+ 		 * of debug data isn't relevant and shouldn't be passed through.
+ 		 */
+-		$info = array_filter(
++		$info = \wp_aot_array_filter(
+ 			$info,
+-			static function ( $section ) {
++			static function ( mixed $section ) {
+ 				return isset( $section );
+ 			}
+ 		);
+@@ -135,6 +136,7 @@
+ 		$info = apply_filters( 'debug_information', $info );
+ 
+ 		return $info;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -329,7 +331,7 @@
+ 			'description' => sprintf(
+ 				/* translators: %s: wp-content directory name. */
+ 				__( 'Drop-ins are single files, found in the %s directory, that replace or enhance WordPress features in ways that are not possible for traditional plugins.' ),
+-				'<code>' . str_replace( ABSPATH, '', WP_CONTENT_DIR ) . '</code>'
++				'<code>' . \wp_aot_str_replace( ABSPATH, '', WP_CONTENT_DIR ) . '</code>'
+ 			),
+ 			'fields'      => $fields,
+ 		);
+@@ -441,7 +443,7 @@
+ 		}
+ 
+ 		// SUHOSIN.
+-		$suhosin_loaded = ( extension_loaded( 'suhosin' ) || ( defined( 'SUHOSIN_PATCH' ) && constant( 'SUHOSIN_PATCH' ) ) );
++		$suhosin_loaded = ( extension_loaded( 'suhosin' ) || ( defined( 'SUHOSIN_PATCH' ) && \wp_aot_metadata_constant( 'SUHOSIN_PATCH' ) ) );
+ 
+ 		$fields['suhosin'] = array(
+ 			'label' => __( 'Is SUHOSIN installed?' ),
+@@ -550,7 +552,7 @@
+ 			$htaccess_content = file_get_contents( ABSPATH . '.htaccess' );
+ 
+ 			// Filter away the core WordPress rules.
+-			$filtered_htaccess_content = trim( preg_replace( '/\# BEGIN WordPress[\s\S]+?# END WordPress/si', '', $htaccess_content ) );
++			$filtered_htaccess_content = \wp_aot_mixed(trim( \wp_aot_preg_replace( '/\# BEGIN WordPress[\s\S]+?# END WordPress/si', '', $htaccess_content ) ));
+ 			$filtered_htaccess_content = ! empty( $filtered_htaccess_content );
+ 
+ 			if ( $filtered_htaccess_content ) {
+@@ -696,23 +698,23 @@
+ 		// If Imagick is used as our editor, provide some more information about its limitations.
+ 		if ( 'WP_Image_Editor_Imagick' === _wp_image_editor_choose() && isset( $imagick ) && $imagick instanceof Imagick ) {
+ 			$limits = array(
+-				'area'   => ( defined( 'imagick::RESOURCETYPE_AREA' ) ? size_format( $imagick->getResourceLimit( imagick::RESOURCETYPE_AREA ) ) : $not_available ),
+-				'disk'   => ( defined( 'imagick::RESOURCETYPE_DISK' ) ? $imagick->getResourceLimit( imagick::RESOURCETYPE_DISK ) : $not_available ),
+-				'file'   => ( defined( 'imagick::RESOURCETYPE_FILE' ) ? $imagick->getResourceLimit( imagick::RESOURCETYPE_FILE ) : $not_available ),
+-				'map'    => ( defined( 'imagick::RESOURCETYPE_MAP' ) ? size_format( $imagick->getResourceLimit( imagick::RESOURCETYPE_MAP ) ) : $not_available ),
+-				'memory' => ( defined( 'imagick::RESOURCETYPE_MEMORY' ) ? size_format( $imagick->getResourceLimit( imagick::RESOURCETYPE_MEMORY ) ) : $not_available ),
+-				'thread' => ( defined( 'imagick::RESOURCETYPE_THREAD' ) ? $imagick->getResourceLimit( imagick::RESOURCETYPE_THREAD ) : $not_available ),
+-				'time'   => ( defined( 'imagick::RESOURCETYPE_TIME' ) ? $imagick->getResourceLimit( imagick::RESOURCETYPE_TIME ) : $not_available ),
++				'area'   => ( defined( 'imagick::RESOURCETYPE_AREA' ) ? size_format( $imagick->getResourceLimit( \wp_aot_metadata_constant('Imagick::RESOURCETYPE_AREA') ) ) : $not_available ),
++				'disk'   => ( defined( 'imagick::RESOURCETYPE_DISK' ) ? $imagick->getResourceLimit( (int) \wp_aot_metadata_constant('Imagick::RESOURCETYPE_DISK') ) : $not_available ),
++				'file'   => ( defined( 'imagick::RESOURCETYPE_FILE' ) ? $imagick->getResourceLimit( (int) \wp_aot_metadata_constant('imagick::RESOURCETYPE_FILE') ) : $not_available ),
++				'map'    => ( defined( 'imagick::RESOURCETYPE_MAP' ) ? size_format( $imagick->getResourceLimit( (int) \wp_aot_metadata_constant('imagick::RESOURCETYPE_MAP') ) ) : $not_available ),
++				'memory' => ( defined( 'imagick::RESOURCETYPE_MEMORY' ) ? size_format( $imagick->getResourceLimit( (int) \wp_aot_metadata_constant('imagick::RESOURCETYPE_MEMORY') ) ) : $not_available ),
++				'thread' => ( defined( 'imagick::RESOURCETYPE_THREAD' ) ? $imagick->getResourceLimit( (int) \wp_aot_metadata_constant('imagick::RESOURCETYPE_THREAD') ) : $not_available ),
++				'time'   => ( defined( 'imagick::RESOURCETYPE_TIME' ) ? $imagick->getResourceLimit( (int) \wp_aot_metadata_constant('imagick::RESOURCETYPE_TIME') ) : $not_available ),
+ 			);
+ 
+ 			$limits_debug = array(
+-				'imagick::RESOURCETYPE_AREA'   => ( defined( 'imagick::RESOURCETYPE_AREA' ) ? size_format( $imagick->getResourceLimit( imagick::RESOURCETYPE_AREA ) ) : 'not available' ),
+-				'imagick::RESOURCETYPE_DISK'   => ( defined( 'imagick::RESOURCETYPE_DISK' ) ? $imagick->getResourceLimit( imagick::RESOURCETYPE_DISK ) : 'not available' ),
+-				'imagick::RESOURCETYPE_FILE'   => ( defined( 'imagick::RESOURCETYPE_FILE' ) ? $imagick->getResourceLimit( imagick::RESOURCETYPE_FILE ) : 'not available' ),
+-				'imagick::RESOURCETYPE_MAP'    => ( defined( 'imagick::RESOURCETYPE_MAP' ) ? size_format( $imagick->getResourceLimit( imagick::RESOURCETYPE_MAP ) ) : 'not available' ),
+-				'imagick::RESOURCETYPE_MEMORY' => ( defined( 'imagick::RESOURCETYPE_MEMORY' ) ? size_format( $imagick->getResourceLimit( imagick::RESOURCETYPE_MEMORY ) ) : 'not available' ),
+-				'imagick::RESOURCETYPE_THREAD' => ( defined( 'imagick::RESOURCETYPE_THREAD' ) ? $imagick->getResourceLimit( imagick::RESOURCETYPE_THREAD ) : 'not available' ),
+-				'imagick::RESOURCETYPE_TIME'   => ( defined( 'imagick::RESOURCETYPE_TIME' ) ? $imagick->getResourceLimit( imagick::RESOURCETYPE_TIME ) : 'not available' ),
++				'imagick::RESOURCETYPE_AREA'   => ( defined( 'imagick::RESOURCETYPE_AREA' ) ? size_format( $imagick->getResourceLimit( \wp_aot_metadata_constant('Imagick::RESOURCETYPE_AREA') ) ) : 'not available' ),
++				'imagick::RESOURCETYPE_DISK'   => ( defined( 'imagick::RESOURCETYPE_DISK' ) ? $imagick->getResourceLimit( (int) \wp_aot_metadata_constant('Imagick::RESOURCETYPE_DISK') ) : 'not available' ),
++				'imagick::RESOURCETYPE_FILE'   => ( defined( 'imagick::RESOURCETYPE_FILE' ) ? $imagick->getResourceLimit( (int) \wp_aot_metadata_constant('imagick::RESOURCETYPE_FILE') ) : 'not available' ),
++				'imagick::RESOURCETYPE_MAP'    => ( defined( 'imagick::RESOURCETYPE_MAP' ) ? size_format( $imagick->getResourceLimit( (int) \wp_aot_metadata_constant('imagick::RESOURCETYPE_MAP') ) ) : 'not available' ),
++				'imagick::RESOURCETYPE_MEMORY' => ( defined( 'imagick::RESOURCETYPE_MEMORY' ) ? size_format( $imagick->getResourceLimit( (int) \wp_aot_metadata_constant('imagick::RESOURCETYPE_MEMORY') ) ) : 'not available' ),
++				'imagick::RESOURCETYPE_THREAD' => ( defined( 'imagick::RESOURCETYPE_THREAD' ) ? $imagick->getResourceLimit( (int) \wp_aot_metadata_constant('imagick::RESOURCETYPE_THREAD') ) : 'not available' ),
++				'imagick::RESOURCETYPE_TIME'   => ( defined( 'imagick::RESOURCETYPE_TIME' ) ? $imagick->getResourceLimit( (int) \wp_aot_metadata_constant('imagick::RESOURCETYPE_TIME') ) : 'not available' ),
+ 			);
+ 
+ 			$fields['imagick_limits'] = array(
+@@ -755,7 +757,7 @@
+ 
+ 		// Get GD information, if available.
+ 		if ( function_exists( 'gd_info' ) ) {
+-			$gd = gd_info();
++			$gd = \wp_aot_mixed(gd_info());
+ 		} else {
+ 			$gd = false;
+ 		}
+@@ -782,7 +784,7 @@
+ 		foreach ( $gd_supported_formats as $format_key => $format ) {
+ 			$index = $format_key . ' Support';
+ 			if ( isset( $gd[ $index ] ) && $gd[ $index ] ) {
+-				array_push( $gd_image_formats, $format );
++				\wp_aot_array_push( $gd_image_formats,array( $format ));
+ 			}
+ 		}
+ 
+@@ -994,7 +996,7 @@
+ 		$plugin_updates = get_plugin_updates();
+ 		$transient      = get_site_transient( 'update_plugins' );
+ 
+-		$auto_updates = array();
++		$auto_updates = \wp_aot_mixed(array());
+ 		$fields       = array(
+ 			'wp-plugins-active'   => array(),
+ 			'wp-plugins-inactive' => array(),
+@@ -1130,7 +1132,7 @@
+ 		$active_theme_version       = $active_theme->version;
+ 		$active_theme_version_debug = $active_theme_version;
+ 
+-		$auto_updates         = array();
++		$auto_updates         = \wp_aot_mixed(array());
+ 		$auto_updates_enabled = wp_is_auto_update_enabled_for_type( 'theme' );
+ 		if ( $auto_updates_enabled ) {
+ 			$auto_updates = (array) get_site_option( 'auto_update_themes', array() );
+@@ -1259,7 +1261,7 @@
+ 		$theme_updates = get_theme_updates();
+ 		$transient     = get_site_transient( 'update_themes' );
+ 
+-		$auto_updates         = array();
++		$auto_updates         = \wp_aot_mixed(array());
+ 		$auto_updates_enabled = wp_is_auto_update_enabled_for_type( 'theme' );
+ 		if ( $auto_updates_enabled ) {
+ 			$auto_updates = (array) get_site_option( 'auto_update_themes', array() );
+@@ -1373,7 +1375,7 @@
+ 		$theme_updates = get_theme_updates();
+ 		$transient     = get_site_transient( 'update_themes' );
+ 
+-		$auto_updates         = array();
++		$auto_updates         = \wp_aot_mixed(array());
+ 		$auto_updates_enabled = wp_is_auto_update_enabled_for_type( 'theme' );
+ 		if ( $auto_updates_enabled ) {
+ 			$auto_updates = (array) get_site_option( 'auto_update_themes', array() );
+@@ -1509,8 +1511,8 @@
+ 
+ 		// Check CONCATENATE_SCRIPTS.
+ 		if ( defined( 'CONCATENATE_SCRIPTS' ) ) {
+-			$concatenate_scripts       = CONCATENATE_SCRIPTS ? __( 'Enabled' ) : __( 'Disabled' );
+-			$concatenate_scripts_debug = CONCATENATE_SCRIPTS ? 'true' : 'false';
++			$concatenate_scripts       = \wp_aot_undefined_constant('CONCATENATE_SCRIPTS') ? __( 'Enabled' ) : __( 'Disabled' );
++			$concatenate_scripts_debug = \wp_aot_undefined_constant('CONCATENATE_SCRIPTS') ? 'true' : 'false';
+ 		} else {
+ 			$concatenate_scripts       = __( 'Undefined' );
+ 			$concatenate_scripts_debug = 'undefined';
+@@ -1518,8 +1520,8 @@
+ 
+ 		// Check COMPRESS_SCRIPTS.
+ 		if ( defined( 'COMPRESS_SCRIPTS' ) ) {
+-			$compress_scripts       = COMPRESS_SCRIPTS ? __( 'Enabled' ) : __( 'Disabled' );
+-			$compress_scripts_debug = COMPRESS_SCRIPTS ? 'true' : 'false';
++			$compress_scripts       = \wp_aot_undefined_constant('COMPRESS_SCRIPTS') ? __( 'Enabled' ) : __( 'Disabled' );
++			$compress_scripts_debug = \wp_aot_undefined_constant('COMPRESS_SCRIPTS') ? 'true' : 'false';
+ 		} else {
+ 			$compress_scripts       = __( 'Undefined' );
+ 			$compress_scripts_debug = 'undefined';
+@@ -1527,8 +1529,8 @@
+ 
+ 		// Check COMPRESS_CSS.
+ 		if ( defined( 'COMPRESS_CSS' ) ) {
+-			$compress_css       = COMPRESS_CSS ? __( 'Enabled' ) : __( 'Disabled' );
+-			$compress_css_debug = COMPRESS_CSS ? 'true' : 'false';
++			$compress_css       = \wp_aot_undefined_constant('COMPRESS_CSS') ? __( 'Enabled' ) : __( 'Disabled' );
++			$compress_css_debug = \wp_aot_undefined_constant('COMPRESS_CSS') ? 'true' : 'false';
+ 		} else {
+ 			$compress_css       = __( 'Undefined' );
+ 			$compress_css_debug = 'undefined';
+@@ -1536,15 +1538,15 @@
+ 
+ 		// Check WP_ENVIRONMENT_TYPE.
+ 		if ( defined( 'WP_ENVIRONMENT_TYPE' ) ) {
+-			$wp_environment_type       = WP_ENVIRONMENT_TYPE ? WP_ENVIRONMENT_TYPE : __( 'Empty value' );
+-			$wp_environment_type_debug = WP_ENVIRONMENT_TYPE;
++			$wp_environment_type       = \wp_aot_undefined_constant('WP_ENVIRONMENT_TYPE') ? \wp_aot_undefined_constant('WP_ENVIRONMENT_TYPE') : __( 'Empty value' );
++			$wp_environment_type_debug = \wp_aot_mixed(\wp_aot_undefined_constant('WP_ENVIRONMENT_TYPE'));
+ 		} else {
+ 			$wp_environment_type       = __( 'Undefined' );
+ 			$wp_environment_type_debug = 'undefined';
+ 		}
+ 
+ 		// Check DB_COLLATE.
+-		if ( defined( 'DB_COLLATE' ) ) {
++		if ( \wp_aot_bootstrap_defined( 'DB_COLLATE' ) ) {
+ 			$db_collate       = DB_COLLATE ? DB_COLLATE : __( 'Empty value' );
+ 			$db_collate_debug = DB_COLLATE;
+ 		} else {
+@@ -1560,13 +1562,13 @@
+ 			),
+ 			'WP_HOME'             => array(
+ 				'label' => 'WP_HOME',
+-				'value' => ( defined( 'WP_HOME' ) ? WP_HOME : __( 'Undefined' ) ),
+-				'debug' => ( defined( 'WP_HOME' ) ? WP_HOME : 'undefined' ),
++				'value' => ( defined( 'WP_HOME' ) ? \wp_aot_undefined_constant('WP_HOME') : __( 'Undefined' ) ),
++				'debug' => ( defined( 'WP_HOME' ) ? \wp_aot_undefined_constant('WP_HOME') : 'undefined' ),
+ 			),
+ 			'WP_SITEURL'          => array(
+ 				'label' => 'WP_SITEURL',
+-				'value' => ( defined( 'WP_SITEURL' ) ? WP_SITEURL : __( 'Undefined' ) ),
+-				'debug' => ( defined( 'WP_SITEURL' ) ? WP_SITEURL : 'undefined' ),
++				'value' => ( defined( 'WP_SITEURL' ) ? \wp_aot_undefined_constant('WP_SITEURL') : __( 'Undefined' ) ),
++				'debug' => ( defined( 'WP_SITEURL' ) ? \wp_aot_undefined_constant('WP_SITEURL') : 'undefined' ),
+ 			),
+ 			'WP_CONTENT_DIR'      => array(
+ 				'label' => 'WP_CONTENT_DIR',
+@@ -1578,11 +1580,11 @@
+ 			),
+ 			'WP_MEMORY_LIMIT'     => array(
+ 				'label' => 'WP_MEMORY_LIMIT',
+-				'value' => WP_MEMORY_LIMIT,
++				'value' => \wp_aot_metadata_constant('WP_MEMORY_LIMIT'),
+ 			),
+ 			'WP_MAX_MEMORY_LIMIT' => array(
+ 				'label' => 'WP_MAX_MEMORY_LIMIT',
+-				'value' => WP_MAX_MEMORY_LIMIT,
++				'value' => \wp_aot_bootstrap_string('WP_MAX_MEMORY_LIMIT'),
+ 			),
+ 			'WP_DEBUG'            => array(
+ 				'label' => 'WP_DEBUG',
+@@ -1636,8 +1638,8 @@
+ 			),
+ 			'DB_CHARSET'          => array(
+ 				'label' => 'DB_CHARSET',
+-				'value' => ( defined( 'DB_CHARSET' ) ? DB_CHARSET : __( 'Undefined' ) ),
+-				'debug' => ( defined( 'DB_CHARSET' ) ? DB_CHARSET : 'undefined' ),
++				'value' => ( \wp_aot_bootstrap_defined( 'DB_CHARSET' ) ? DB_CHARSET : __( 'Undefined' ) ),
++				'debug' => ( \wp_aot_bootstrap_defined( 'DB_CHARSET' ) ? DB_CHARSET : 'undefined' ),
+ 			),
+ 			'DB_COLLATE'          => array(
+ 				'label' => 'DB_COLLATE',
+@@ -1679,7 +1681,7 @@
+ 			$extension = null;
+ 		}
+ 
+-		$server = $wpdb->get_var( 'SELECT VERSION()' );
++		$server = \wp_aot_require_wpdb( $wpdb )->get_var( 'SELECT VERSION()' );
+ 
+ 		$client_version = $wpdb->dbh->client_info;
+ 
+@@ -1797,7 +1799,7 @@
+ 		);
+ 
+ 		// Add more filesystem checks.
+-		if ( defined( 'WPMU_PLUGIN_DIR' ) && is_dir( WPMU_PLUGIN_DIR ) ) {
++		if ( \wp_aot_bootstrap_defined( 'WPMU_PLUGIN_DIR' ) && is_dir( WPMU_PLUGIN_DIR ) ) {
+ 			$is_writable_wpmu_plugin_dir = wp_is_writable( WPMU_PLUGIN_DIR );
+ 
+ 			$fields['mu-plugins'] = array(
+@@ -1824,11 +1826,11 @@
+ 	 * @param string $mysql_var Name of the MySQL system variable.
+ 	 * @return string|null The variable value on success. Null if the variable does not exist.
+ 	 */
+-	public static function get_mysql_var( $mysql_var ) {
++	public static function get_mysql_var( mixed $mysql_var ): mixed {
+ 		global $wpdb;
+ 
+-		$result = $wpdb->get_row(
+-			$wpdb->prepare( 'SHOW VARIABLES LIKE %s', $mysql_var ),
++		$result = \wp_aot_require_wpdb( $wpdb )->get_row(
++			\wp_aot_require_wpdb( $wpdb )->prepare( 'SHOW VARIABLES LIKE %s', $mysql_var ),
+ 			ARRAY_A
+ 		);
+ 
+@@ -1836,6 +1838,7 @@
+ 			return $result['Value'];
+ 		}
+ 
++		return null;
+ 		return null;
+ 	}
+ 
+@@ -1848,7 +1851,7 @@
+ 	 * @param string $data_type  The data type to return, either 'info' or 'debug'.
+ 	 * @return string The formatted data.
+ 	 */
+-	public static function format( $info_array, $data_type ) {
++	public static function format( mixed $info_array, mixed $data_type ): mixed {
+ 		$return = "`\n";
+ 
+ 		foreach ( $info_array as $section => $details ) {
+@@ -1906,6 +1909,7 @@
+ 		$return .= '`';
+ 
+ 		return $return;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1917,10 +1921,10 @@
+ 	 *
+ 	 * @return int The size of the database, in bytes.
+ 	 */
+-	public static function get_database_size() {
++	public static function get_database_size(): mixed {
+ 		global $wpdb;
+ 		$size = 0;
+-		$rows = $wpdb->get_results( 'SHOW TABLE STATUS', ARRAY_A );
++		$rows = \wp_aot_require_wpdb( $wpdb )->get_results( 'SHOW TABLE STATUS', ARRAY_A );
+ 
+ 		if ( $wpdb->num_rows > 0 ) {
+ 			foreach ( $rows as $row ) {
+@@ -1929,6 +1933,7 @@
+ 		}
+ 
+ 		return (int) $size;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1941,7 +1946,7 @@
+ 	 *
+ 	 * @return array The sizes of the directories, also the database size and total installation size.
+ 	 */
+-	public static function get_sizes() {
++	public static function get_sizes(): mixed {
+ 		_deprecated_function( __METHOD__, '5.6.0', 'WP_REST_Site_Health_Controller::get_directory_sizes()' );
+ 
+ 		$size_db    = self::get_database_size();
+@@ -1952,7 +1957,7 @@
+ 		 * from causing a timeout. The default value is 30 seconds, and some
+ 		 * hosts do not allow you to read configuration values.
+ 		 */
+-		$max_execution_time = ini_get( 'max_execution_time' );
++		$max_execution_time = \wp_aot_mixed(ini_get( 'max_execution_time' ));
+ 
+ 		/*
+ 		 * The max_execution_time defaults to 0 when PHP runs from cli.
+@@ -2076,5 +2081,6 @@
+ 		}
+ 
+ 		return $all_sizes;
++		return null;
+ 	}
+ }

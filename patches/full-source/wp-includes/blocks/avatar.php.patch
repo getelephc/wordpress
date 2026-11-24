@@ -1,0 +1,51 @@
+--- a/wp-includes/blocks/avatar.php
++++ b/wp-includes/blocks/avatar.php
+@@ -15,7 +15,7 @@
+  * @param WP_Block $block      Block instance.
+  * @return string Return the avatar.
+  */
+-function render_block_core_avatar( $attributes, $content, $block ) {
++function render_block_core_avatar( mixed $attributes, mixed $content, mixed $block ): mixed {
+ 	$size               = $attributes['size'] ?? 96;
+ 	$wrapper_attributes = get_block_wrapper_attributes();
+ 	$border_attributes  = get_block_core_avatar_border_attributes( $attributes );
+@@ -94,6 +94,7 @@
+ 		$avatar_block = sprintf( '<a href="%1$s" target="%2$s" %3$s class="wp-block-avatar__link">%4$s</a>', esc_url( $comment->comment_author_url ), esc_attr( $attributes['linkTarget'] ), $label, $avatar_block );
+ 	}
+ 	return sprintf( '<div %1$s>%2$s</div>', $wrapper_attributes, $avatar_block );
++	return null;
+ }
+ 
+ /**
+@@ -105,7 +106,7 @@
+  * @param array $attributes The block attributes.
+  * @return array The border-related classnames and styles for the block.
+  */
+-function get_block_core_avatar_border_attributes( $attributes ) {
++function get_block_core_avatar_border_attributes( mixed $attributes ): mixed {
+ 	$border_styles = array();
+ 	$sides         = array( 'top', 'right', 'bottom', 'left' );
+ 
+@@ -148,6 +149,7 @@
+ 		$attributes['style'] = $styles['css'];
+ 	}
+ 	return $attributes;
++	return null;
+ }
+ 
+ /**
+@@ -155,12 +157,13 @@
+  *
+  * @since 6.0.0
+  */
+-function register_block_core_avatar() {
++function register_block_core_avatar(): mixed {
+ 	register_block_type_from_metadata(
+ 		__DIR__ . '/avatar',
+ 		array(
+ 			'render_callback' => 'render_block_core_avatar',
+ 		)
+ 	);
++	return null;
+ }
+ add_action( 'init', 'register_block_core_avatar' );

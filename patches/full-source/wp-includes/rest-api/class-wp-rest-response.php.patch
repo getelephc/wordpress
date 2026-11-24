@@ -1,0 +1,174 @@
+--- a/wp-includes/rest-api/class-wp-rest-response.php
++++ b/wp-includes/rest-api/class-wp-rest-response.php
+@@ -55,7 +55,7 @@
+ 	 * @param string $href       Target URI for the link.
+ 	 * @param array  $attributes Optional. Link parameters to send along with the URL. Default empty array.
+ 	 */
+-	public function add_link( $rel, $href, $attributes = array() ) {
++	public function add_link( mixed $rel, mixed $href, mixed $attributes = array() ): mixed {
+ 		if ( empty( $this->links[ $rel ] ) ) {
+ 			$this->links[ $rel ] = array();
+ 		}
+@@ -69,6 +69,7 @@
+ 			'href'       => $href,
+ 			'attributes' => $attributes,
+ 		);
++		return null;
+ 	}
+ 
+ 	/**
+@@ -80,9 +81,9 @@
+ 	 * @param string|null $href Optional. Only remove links for the relation matching the given href.
+ 	 *                          Default null.
+ 	 */
+-	public function remove_link( $rel, $href = null ) {
++	public function remove_link( mixed $rel, mixed $href = null ): mixed {
+ 		if ( ! isset( $this->links[ $rel ] ) ) {
+-			return;
++			return null;
+ 		}
+ 
+ 		if ( $href ) {
+@@ -94,6 +95,7 @@
+ 		if ( ! $this->links[ $rel ] ) {
+ 			unset( $this->links[ $rel ] );
+ 		}
++		return null;
+ 	}
+ 
+ 	/**
+@@ -108,7 +110,7 @@
+ 	 *
+ 	 * @param array $links Map of link relation to list of links.
+ 	 */
+-	public function add_links( $links ) {
++	public function add_links( mixed $links ): mixed {
+ 		foreach ( $links as $rel => $set ) {
+ 			// If it's a single link, wrap with an array for consistent handling.
+ 			if ( isset( $set['href'] ) ) {
+@@ -119,6 +121,7 @@
+ 				$this->add_link( $rel, $attributes['href'], $attributes );
+ 			}
+ 		}
++		return null;
+ 	}
+ 
+ 	/**
+@@ -128,8 +131,9 @@
+ 	 *
+ 	 * @return array List of links.
+ 	 */
+-	public function get_links() {
++	public function get_links(): mixed {
+ 		return $this->links;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -147,7 +151,7 @@
+ 	 * @param array  $other Optional. Other parameters to send, as an associative array.
+ 	 *                      Default empty array.
+ 	 */
+-	public function link_header( $rel, $link, $other = array() ) {
++	public function link_header( mixed $rel, mixed $link, mixed $other = array() ): mixed {
+ 		$header = '<' . $link . '>; rel="' . $rel . '"';
+ 
+ 		foreach ( $other as $key => $value ) {
+@@ -158,6 +162,7 @@
+ 			$header .= '; ' . $key . '=' . $value;
+ 		}
+ 		$this->header( 'Link', $header, false );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -167,8 +172,9 @@
+ 	 *
+ 	 * @return string The matched route.
+ 	 */
+-	public function get_matched_route() {
++	public function get_matched_route(): mixed {
+ 		return $this->matched_route;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -178,8 +184,9 @@
+ 	 *
+ 	 * @param string $route Route name.
+ 	 */
+-	public function set_matched_route( $route ) {
++	public function set_matched_route( mixed $route ): mixed {
+ 		$this->matched_route = $route;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -189,8 +196,9 @@
+ 	 *
+ 	 * @return null|array The handler that was used to create the response.
+ 	 */
+-	public function get_matched_handler() {
++	public function get_matched_handler(): mixed {
+ 		return $this->matched_handler;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -200,8 +208,9 @@
+ 	 *
+ 	 * @param array $handler The matched handler.
+ 	 */
+-	public function set_matched_handler( $handler ) {
++	public function set_matched_handler( mixed $handler ): mixed {
+ 		$this->matched_handler = $handler;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -211,8 +220,9 @@
+ 	 *
+ 	 * @return bool Whether the response is an error.
+ 	 */
+-	public function is_error() {
++	public function is_error(): mixed {
+ 		return $this->get_status() >= 400;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -222,7 +232,7 @@
+ 	 *
+ 	 * @return WP_Error|null WP_Error or null on not an errored response.
+ 	 */
+-	public function as_error() {
++	public function as_error(): mixed {
+ 		if ( ! $this->is_error() ) {
+ 			return null;
+ 		}
+@@ -243,6 +253,7 @@
+ 		}
+ 
+ 		return $error;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -252,7 +263,7 @@
+ 	 *
+ 	 * @return array Compact URIs.
+ 	 */
+-	public function get_curies() {
++	public function get_curies(): mixed {
+ 		$curies = array(
+ 			array(
+ 				'name'      => 'wp',
+@@ -288,6 +299,7 @@
+ 		 */
+ 		$additional = apply_filters( 'rest_response_link_curies', array() );
+ 
+-		return array_merge( $curies, $additional );
++		return \wp_aot_array_merge(array( $curies, $additional ));
++		return null;
+ 	}
+ }

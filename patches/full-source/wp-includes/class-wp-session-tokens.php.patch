@@ -1,0 +1,217 @@
+--- a/wp-includes/class-wp-session-tokens.php
++++ b/wp-includes/class-wp-session-tokens.php
+@@ -30,7 +30,7 @@
+ 	 *
+ 	 * @param int $user_id User whose session to manage.
+ 	 */
+-	protected function __construct( $user_id ) {
++	protected function __construct( mixed $user_id ) {
+ 		$this->user_id = $user_id;
+ 	}
+ 
+@@ -46,7 +46,7 @@
+ 	 * @return WP_Session_Tokens The session object, which is by default an instance of
+ 	 *                           the `WP_User_Meta_Session_Tokens` class.
+ 	 */
+-	final public static function get_instance( $user_id ) {
++	final public static function get_instance( mixed $user_id ): mixed {
+ 		/**
+ 		 * Filters the class name for the session token manager.
+ 		 *
+@@ -57,6 +57,7 @@
+ 		 */
+ 		$manager = apply_filters( 'session_token_manager', 'WP_User_Meta_Session_Tokens' );
+ 		return new $manager( $user_id );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -67,8 +68,9 @@
+ 	 * @param string $token Session token to hash.
+ 	 * @return string A hash of the session token (a verifier).
+ 	 */
+-	private function hash_token( $token ) {
++	private function hash_token( mixed $token ): mixed {
+ 		return hash( 'sha256', $token );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -79,9 +81,10 @@
+ 	 * @param string $token Session token.
+ 	 * @return array|null The session, or null if it does not exist.
+ 	 */
+-	final public function get( $token ) {
++	final public function get( mixed $token ): mixed {
+ 		$verifier = $this->hash_token( $token );
+ 		return $this->get_session( $verifier );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -94,9 +97,10 @@
+ 	 * @param string $token Token to verify.
+ 	 * @return bool Whether the token is valid for the user.
+ 	 */
+-	final public function verify( $token ) {
++	final public function verify( mixed $token ): mixed {
+ 		$verifier = $this->hash_token( $token );
+ 		return (bool) $this->get_session( $verifier );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -115,7 +119,7 @@
+ 	 * @param int $expiration Session expiration timestamp.
+ 	 * @return string Session token.
+ 	 */
+-	final public function create( $expiration ) {
++	final public function create( mixed $expiration ): mixed {
+ 		/**
+ 		 * Filters the information attached to the newly created session.
+ 		 *
+@@ -147,6 +151,7 @@
+ 		$this->update( $token, $session );
+ 
+ 		return $token;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -157,9 +162,10 @@
+ 	 * @param string $token Session token to update.
+ 	 * @param array  $session Session information.
+ 	 */
+-	final public function update( $token, $session ) {
++	final public function update( mixed $token, mixed $session ): mixed {
+ 		$verifier = $this->hash_token( $token );
+ 		$this->update_session( $verifier, $session );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -169,9 +175,10 @@
+ 	 *
+ 	 * @param string $token Session token to destroy.
+ 	 */
+-	final public function destroy( $token ) {
++	final public function destroy( mixed $token ): mixed {
+ 		$verifier = $this->hash_token( $token );
+ 		$this->update_session( $verifier, null );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -181,7 +188,7 @@
+ 	 *
+ 	 * @param string $token_to_keep Session token to keep.
+ 	 */
+-	final public function destroy_others( $token_to_keep ) {
++	final public function destroy_others( mixed $token_to_keep ): mixed {
+ 		$verifier = $this->hash_token( $token_to_keep );
+ 		$session  = $this->get_session( $verifier );
+ 		if ( $session ) {
+@@ -189,6 +196,7 @@
+ 		} else {
+ 			$this->destroy_all_sessions();
+ 		}
++		return null;
+ 	}
+ 
+ 	/**
+@@ -199,8 +207,9 @@
+ 	 * @param array $session Session to check.
+ 	 * @return bool Whether session is valid.
+ 	 */
+-	final protected function is_still_valid( $session ) {
++	final protected function is_still_valid( mixed $session ): mixed {
+ 		return $session['expiration'] >= time();
++		return null;
+ 	}
+ 
+ 	/**
+@@ -208,8 +217,9 @@
+ 	 *
+ 	 * @since 4.0.0
+ 	 */
+-	final public function destroy_all() {
++	final public function destroy_all(): mixed {
+ 		$this->destroy_all_sessions();
++		return null;
+ 	}
+ 
+ 	/**
+@@ -217,10 +227,11 @@
+ 	 *
+ 	 * @since 4.0.0
+ 	 */
+-	final public static function destroy_all_for_all_users() {
++	final public static function destroy_all_for_all_users(): mixed {
+ 		/** This filter is documented in wp-includes/class-wp-session-tokens.php */
+ 		$manager = apply_filters( 'session_token_manager', 'WP_User_Meta_Session_Tokens' );
+ 		call_user_func( array( $manager, 'drop_sessions' ) );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -230,8 +241,9 @@
+ 	 *
+ 	 * @return array Sessions for a user.
+ 	 */
+-	final public function get_all() {
++	final public function get_all(): mixed {
+ 		return array_values( $this->get_sessions() );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -241,7 +253,7 @@
+ 	 *
+ 	 * @return array Sessions of the user.
+ 	 */
+-	abstract protected function get_sessions();
++	abstract protected function get_sessions(): mixed;
+ 
+ 	/**
+ 	 * Retrieves a session based on its verifier (token hash).
+@@ -251,7 +263,7 @@
+ 	 * @param string $verifier Verifier for the session to retrieve.
+ 	 * @return array|null The session, or null if it does not exist.
+ 	 */
+-	abstract protected function get_session( $verifier );
++	abstract protected function get_session( mixed $verifier ): mixed;
+ 
+ 	/**
+ 	 * Updates a session based on its verifier (token hash).
+@@ -263,7 +275,7 @@
+ 	 * @param string $verifier Verifier for the session to update.
+ 	 * @param array  $session  Optional. Session. Omitting this argument destroys the session.
+ 	 */
+-	abstract protected function update_session( $verifier, $session = null );
++	abstract protected function update_session( mixed $verifier, mixed $session = null ): mixed;
+ 
+ 	/**
+ 	 * Destroys all sessions for this user, except the single session with the given verifier.
+@@ -272,19 +284,19 @@
+ 	 *
+ 	 * @param string $verifier Verifier of the session to keep.
+ 	 */
+-	abstract protected function destroy_other_sessions( $verifier );
++	abstract protected function destroy_other_sessions( mixed $verifier ): mixed;
+ 
+ 	/**
+ 	 * Destroys all sessions for the user.
+ 	 *
+ 	 * @since 4.0.0
+ 	 */
+-	abstract protected function destroy_all_sessions();
++	abstract protected function destroy_all_sessions(): mixed;
+ 
+ 	/**
+ 	 * Destroys all sessions for all users.
+ 	 *
+ 	 * @since 4.0.0
+ 	 */
+-	public static function drop_sessions() {}
++	public static function drop_sessions(): mixed { return null; }
+ }

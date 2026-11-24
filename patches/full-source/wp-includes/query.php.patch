@@ -1,0 +1,873 @@
+--- a/wp-includes/query.php
++++ b/wp-includes/query.php
+@@ -24,9 +24,10 @@
+  *                              Default empty string.
+  * @return mixed Contents of the query variable.
+  */
+-function get_query_var( $query_var, $default_value = '' ) {
++function get_query_var( mixed $query_var, mixed $default_value = '' ): mixed {
+ 	global $wp_query;
+ 	return $wp_query->get( $query_var, $default_value );
++	return null;
+ }
+ 
+ /**
+@@ -40,9 +41,10 @@
+  *
+  * @return WP_Term|WP_Post_Type|WP_Post|WP_User|null The queried object.
+  */
+-function get_queried_object() {
++function get_queried_object(): mixed {
+ 	global $wp_query;
+ 	return $wp_query->get_queried_object();
++	return null;
+ }
+ 
+ /**
+@@ -56,9 +58,10 @@
+  *
+  * @return int ID of the queried object.
+  */
+-function get_queried_object_id() {
++function get_queried_object_id(): mixed {
+ 	global $wp_query;
+ 	return $wp_query->get_queried_object_id();
++	return null;
+ }
+ 
+ /**
+@@ -71,9 +74,10 @@
+  * @param string $query_var Query variable key.
+  * @param mixed  $value     Query variable value.
+  */
+-function set_query_var( $query_var, $value ) {
++function set_query_var( mixed $query_var, mixed $value ): mixed {
+ 	global $wp_query;
+ 	$wp_query->set( $query_var, $value );
++	return null;
+ }
+ 
+ /**
+@@ -94,9 +98,10 @@
+  * @param array|string $query Array or string of WP_Query arguments.
+  * @return WP_Post[]|int[] Array of post objects or post IDs.
+  */
+-function query_posts( $query ) {
++function query_posts( mixed $query ): mixed {
+ 	$GLOBALS['wp_query'] = new WP_Query();
+ 	return $GLOBALS['wp_query']->query( $query );
++	return null;
+ }
+ 
+ /**
+@@ -111,9 +116,10 @@
+  * @global WP_Query $wp_query     WordPress Query object.
+  * @global WP_Query $wp_the_query Copy of the global WP_Query instance created during wp_reset_query().
+  */
+-function wp_reset_query() {
++function wp_reset_query(): mixed {
+ 	$GLOBALS['wp_query'] = $GLOBALS['wp_the_query'];
+ 	wp_reset_postdata();
++	return null;
+ }
+ 
+ /**
+@@ -124,12 +130,13 @@
+  *
+  * @global WP_Query $wp_query WordPress Query object.
+  */
+-function wp_reset_postdata() {
++function wp_reset_postdata(): mixed {
+ 	global $wp_query;
+ 
+ 	if ( isset( $wp_query ) ) {
+ 		$wp_query->reset_postdata();
+ 	}
++	return null;
+ }
+ 
+ /*
+@@ -158,7 +165,7 @@
+  *
+  * @return bool Whether the query is for an existing archive page.
+  */
+-function is_archive() {
++function is_archive(): mixed {
+ 	global $wp_query;
+ 
+ 	if ( ! isset( $wp_query ) ) {
+@@ -167,6 +174,7 @@
+ 	}
+ 
+ 	return $wp_query->is_archive();
++	return null;
+ }
+ 
+ /**
+@@ -184,7 +192,7 @@
+  *                                    to check against. Default empty.
+  * @return bool Whether the query is for an existing post type archive page.
+  */
+-function is_post_type_archive( $post_types = '' ) {
++function is_post_type_archive( mixed $post_types = '' ): mixed {
+ 	global $wp_query;
+ 
+ 	if ( ! isset( $wp_query ) ) {
+@@ -193,6 +201,7 @@
+ 	}
+ 
+ 	return $wp_query->is_post_type_archive( $post_types );
++	return null;
+ }
+ 
+ /**
+@@ -210,7 +219,7 @@
+  *                                              to check against. Default empty.
+  * @return bool Whether the query is for an existing attachment page.
+  */
+-function is_attachment( $attachment = '' ) {
++function is_attachment( mixed $attachment = '' ): mixed {
+ 	global $wp_query;
+ 
+ 	if ( ! isset( $wp_query ) ) {
+@@ -219,6 +228,7 @@
+ 	}
+ 
+ 	return $wp_query->is_attachment( $attachment );
++	return null;
+ }
+ 
+ /**
+@@ -239,7 +249,7 @@
+  *                                          to check against. Default empty.
+  * @return bool Whether the query is for an existing author archive page.
+  */
+-function is_author( $author = '' ) {
++function is_author( mixed $author = '' ): mixed {
+ 	global $wp_query;
+ 
+ 	if ( ! isset( $wp_query ) ) {
+@@ -248,6 +258,7 @@
+ 	}
+ 
+ 	return $wp_query->is_author( $author );
++	return null;
+ }
+ 
+ /**
+@@ -268,7 +279,7 @@
+  *                                            to check against. Default empty.
+  * @return bool Whether the query is for an existing category archive page.
+  */
+-function is_category( $category = '' ) {
++function is_category( mixed $category = '' ): mixed {
+ 	global $wp_query;
+ 
+ 	if ( ! isset( $wp_query ) ) {
+@@ -277,6 +288,7 @@
+ 	}
+ 
+ 	return $wp_query->is_category( $category );
++	return null;
+ }
+ 
+ /**
+@@ -297,7 +309,7 @@
+  *                                       to check against. Default empty.
+  * @return bool Whether the query is for an existing tag archive page.
+  */
+-function is_tag( $tag = '' ) {
++function is_tag( mixed $tag = '' ): mixed {
+ 	global $wp_query;
+ 
+ 	if ( ! isset( $wp_query ) ) {
+@@ -306,6 +318,7 @@
+ 	}
+ 
+ 	return $wp_query->is_tag( $tag );
++	return null;
+ }
+ 
+ /**
+@@ -334,7 +347,7 @@
+  *              True for custom taxonomy archive pages, false for built-in taxonomies
+  *              (category and tag archives).
+  */
+-function is_tax( $taxonomy = '', $term = '' ) {
++function is_tax( mixed $taxonomy = '', mixed $term = '' ): mixed {
+ 	global $wp_query;
+ 
+ 	if ( ! isset( $wp_query ) ) {
+@@ -343,6 +356,7 @@
+ 	}
+ 
+ 	return $wp_query->is_tax( $taxonomy, $term );
++	return null;
+ }
+ 
+ /**
+@@ -358,7 +372,7 @@
+  *
+  * @return bool Whether the query is for an existing date archive.
+  */
+-function is_date() {
++function is_date(): mixed {
+ 	global $wp_query;
+ 
+ 	if ( ! isset( $wp_query ) ) {
+@@ -367,6 +381,7 @@
+ 	}
+ 
+ 	return $wp_query->is_date();
++	return null;
+ }
+ 
+ /**
+@@ -384,7 +399,7 @@
+  *
+  * @return bool Whether the query is for an existing day archive.
+  */
+-function is_day() {
++function is_day(): mixed {
+ 	global $wp_query;
+ 
+ 	if ( ! isset( $wp_query ) ) {
+@@ -393,6 +408,7 @@
+ 	}
+ 
+ 	return $wp_query->is_day();
++	return null;
+ }
+ 
+ /**
+@@ -410,7 +426,7 @@
+  *                                         to check against. Default empty.
+  * @return bool Whether the query is for a feed.
+  */
+-function is_feed( $feeds = '' ) {
++function is_feed( mixed $feeds = '' ): mixed {
+ 	global $wp_query;
+ 
+ 	if ( ! isset( $wp_query ) ) {
+@@ -419,6 +435,7 @@
+ 	}
+ 
+ 	return $wp_query->is_feed( $feeds );
++	return null;
+ }
+ 
+ /**
+@@ -430,7 +447,7 @@
+  *
+  * @return bool Whether the query is for a comments feed.
+  */
+-function is_comment_feed() {
++function is_comment_feed(): mixed {
+ 	global $wp_query;
+ 
+ 	if ( ! isset( $wp_query ) ) {
+@@ -439,6 +456,7 @@
+ 	}
+ 
+ 	return $wp_query->is_comment_feed();
++	return null;
+ }
+ 
+ /**
+@@ -463,7 +481,7 @@
+  *
+  * @return bool Whether the query is for the front page of the site.
+  */
+-function is_front_page() {
++function is_front_page(): mixed {
+ 	global $wp_query;
+ 
+ 	if ( ! isset( $wp_query ) ) {
+@@ -472,6 +490,7 @@
+ 	}
+ 
+ 	return $wp_query->is_front_page();
++	return null;
+ }
+ 
+ /**
+@@ -496,7 +515,7 @@
+  *
+  * @return bool Whether the query is for the blog homepage.
+  */
+-function is_home() {
++function is_home(): mixed {
+ 	global $wp_query;
+ 
+ 	if ( ! isset( $wp_query ) ) {
+@@ -505,6 +524,7 @@
+ 	}
+ 
+ 	return $wp_query->is_home();
++	return null;
+ }
+ 
+ /**
+@@ -526,7 +546,7 @@
+  *
+  * @return bool Whether the query is for the Privacy Policy page.
+  */
+-function is_privacy_policy() {
++function is_privacy_policy(): mixed {
+ 	global $wp_query;
+ 
+ 	if ( ! isset( $wp_query ) ) {
+@@ -535,6 +555,7 @@
+ 	}
+ 
+ 	return $wp_query->is_privacy_policy();
++	return null;
+ }
+ 
+ /**
+@@ -550,7 +571,7 @@
+  *
+  * @return bool Whether the query is for an existing month archive.
+  */
+-function is_month() {
++function is_month(): mixed {
+ 	global $wp_query;
+ 
+ 	if ( ! isset( $wp_query ) ) {
+@@ -559,6 +580,7 @@
+ 	}
+ 
+ 	return $wp_query->is_month();
++	return null;
+ }
+ 
+ /**
+@@ -581,7 +603,7 @@
+  *                                        to check against. Default empty.
+  * @return bool Whether the query is for an existing single page.
+  */
+-function is_page( $page = '' ) {
++function is_page( mixed $page = '' ): mixed {
+ 	global $wp_query;
+ 
+ 	if ( ! isset( $wp_query ) ) {
+@@ -590,6 +612,7 @@
+ 	}
+ 
+ 	return $wp_query->is_page( $page );
++	return null;
+ }
+ 
+ /**
+@@ -605,7 +628,7 @@
+  *
+  * @return bool Whether the query is for a paged result.
+  */
+-function is_paged() {
++function is_paged(): mixed {
+ 	global $wp_query;
+ 
+ 	if ( ! isset( $wp_query ) ) {
+@@ -614,6 +637,7 @@
+ 	}
+ 
+ 	return $wp_query->is_paged();
++	return null;
+ }
+ 
+ /**
+@@ -629,7 +653,7 @@
+  *
+  * @return bool Whether the query is for a post or page preview.
+  */
+-function is_preview() {
++function is_preview(): mixed {
+ 	global $wp_query;
+ 
+ 	if ( ! isset( $wp_query ) ) {
+@@ -638,6 +662,7 @@
+ 	}
+ 
+ 	return $wp_query->is_preview();
++	return null;
+ }
+ 
+ /**
+@@ -649,7 +674,7 @@
+  *
+  * @return bool Whether the query is for the robots.txt file.
+  */
+-function is_robots() {
++function is_robots(): mixed {
+ 	global $wp_query;
+ 
+ 	if ( ! isset( $wp_query ) ) {
+@@ -658,6 +683,7 @@
+ 	}
+ 
+ 	return $wp_query->is_robots();
++	return null;
+ }
+ 
+ /**
+@@ -669,7 +695,7 @@
+  *
+  * @return bool Whether the query is for the favicon.ico file.
+  */
+-function is_favicon() {
++function is_favicon(): mixed {
+ 	global $wp_query;
+ 
+ 	if ( ! isset( $wp_query ) ) {
+@@ -678,6 +704,7 @@
+ 	}
+ 
+ 	return $wp_query->is_favicon();
++	return null;
+ }
+ 
+ /**
+@@ -713,7 +740,7 @@
+  *
+  * @return bool Whether the query is for a search.
+  */
+-function is_search() {
++function is_search(): mixed {
+ 	global $wp_query;
+ 
+ 	if ( ! isset( $wp_query ) ) {
+@@ -722,6 +749,7 @@
+ 	}
+ 
+ 	return $wp_query->is_search();
++	return null;
+ }
+ 
+ /**
+@@ -746,7 +774,7 @@
+  *                                        to check against. Default empty.
+  * @return bool Whether the query is for an existing single post.
+  */
+-function is_single( $post = '' ) {
++function is_single( mixed $post = '' ): mixed {
+ 	global $wp_query;
+ 
+ 	if ( ! isset( $wp_query ) ) {
+@@ -755,6 +783,7 @@
+ 	}
+ 
+ 	return $wp_query->is_single( $post );
++	return null;
+ }
+ 
+ /**
+@@ -779,7 +808,7 @@
+  * @return bool Whether the query is for an existing single post
+  *              or any of the given post types.
+  */
+-function is_singular( $post_types = '' ) {
++function is_singular( mixed $post_types = '' ): mixed {
+ 	global $wp_query;
+ 
+ 	if ( ! isset( $wp_query ) ) {
+@@ -788,6 +817,7 @@
+ 	}
+ 
+ 	return $wp_query->is_singular( $post_types );
++	return null;
+ }
+ 
+ /**
+@@ -803,7 +833,7 @@
+  *
+  * @return bool Whether the query is for a specific time.
+  */
+-function is_time() {
++function is_time(): mixed {
+ 	global $wp_query;
+ 
+ 	if ( ! isset( $wp_query ) ) {
+@@ -812,6 +842,7 @@
+ 	}
+ 
+ 	return $wp_query->is_time();
++	return null;
+ }
+ 
+ /**
+@@ -827,7 +858,7 @@
+  *
+  * @return bool Whether the query is for a trackback endpoint call.
+  */
+-function is_trackback() {
++function is_trackback(): mixed {
+ 	global $wp_query;
+ 
+ 	if ( ! isset( $wp_query ) ) {
+@@ -836,6 +867,7 @@
+ 	}
+ 
+ 	return $wp_query->is_trackback();
++	return null;
+ }
+ 
+ /**
+@@ -851,7 +883,7 @@
+  *
+  * @return bool Whether the query is for an existing year archive.
+  */
+-function is_year() {
++function is_year(): mixed {
+ 	global $wp_query;
+ 
+ 	if ( ! isset( $wp_query ) ) {
+@@ -860,6 +892,7 @@
+ 	}
+ 
+ 	return $wp_query->is_year();
++	return null;
+ }
+ 
+ /**
+@@ -875,7 +908,7 @@
+  *
+  * @return bool Whether the query is a 404 error.
+  */
+-function is_404() {
++function is_404(): mixed {
+ 	global $wp_query;
+ 
+ 	if ( ! isset( $wp_query ) ) {
+@@ -884,6 +917,7 @@
+ 	}
+ 
+ 	return $wp_query->is_404();
++	return null;
+ }
+ 
+ /**
+@@ -895,7 +929,7 @@
+  *
+  * @return bool Whether the query is for an embedded post.
+  */
+-function is_embed() {
++function is_embed(): mixed {
+ 	global $wp_query;
+ 
+ 	if ( ! isset( $wp_query ) ) {
+@@ -904,6 +938,7 @@
+ 	}
+ 
+ 	return $wp_query->is_embed();
++	return null;
+ }
+ 
+ /**
+@@ -919,7 +954,7 @@
+  *
+  * @return bool Whether the query is the main query.
+  */
+-function is_main_query() {
++function is_main_query(): mixed {
+ 	global $wp_query;
+ 
+ 	if ( ! isset( $wp_query ) ) {
+@@ -943,6 +978,7 @@
+ 	}
+ 
+ 	return $wp_query->is_main_query();
++	return null;
+ }
+ 
+ /*
+@@ -958,7 +994,7 @@
+  *
+  * @return bool True if posts are available, false if end of the loop.
+  */
+-function have_posts() {
++function have_posts(): mixed {
+ 	global $wp_query;
+ 
+ 	if ( ! isset( $wp_query ) ) {
+@@ -966,6 +1002,7 @@
+ 	}
+ 
+ 	return $wp_query->have_posts();
++	return null;
+ }
+ 
+ /**
+@@ -981,7 +1018,7 @@
+  *
+  * @return bool True if caller is within loop, false if loop hasn't started or ended.
+  */
+-function in_the_loop() {
++function in_the_loop(): mixed {
+ 	global $wp_query;
+ 
+ 	if ( ! isset( $wp_query ) ) {
+@@ -989,6 +1026,7 @@
+ 	}
+ 
+ 	return $wp_query->in_the_loop;
++	return null;
+ }
+ 
+ /**
+@@ -998,14 +1036,15 @@
+  *
+  * @global WP_Query $wp_query WordPress Query object.
+  */
+-function rewind_posts() {
+-	global $wp_query;
+-
+-	if ( ! isset( $wp_query ) ) {
+-		return;
++function rewind_posts(): mixed {
++	global $wp_query;
++
++	if ( ! isset( $wp_query ) ) {
++		return null;
+ 	}
+ 
+ 	$wp_query->rewind_posts();
++	return null;
+ }
+ 
+ /**
+@@ -1015,14 +1054,15 @@
+  *
+  * @global WP_Query $wp_query WordPress Query object.
+  */
+-function the_post() {
+-	global $wp_query;
+-
+-	if ( ! isset( $wp_query ) ) {
+-		return;
++function the_post(): mixed {
++	global $wp_query;
++
++	if ( ! isset( $wp_query ) ) {
++		return null;
+ 	}
+ 
+ 	$wp_query->the_post();
++	return null;
+ }
+ 
+ /*
+@@ -1038,7 +1078,7 @@
+  *
+  * @return bool True if comments are available, false if no more comments.
+  */
+-function have_comments() {
++function have_comments(): mixed {
+ 	global $wp_query;
+ 
+ 	if ( ! isset( $wp_query ) ) {
+@@ -1046,6 +1086,7 @@
+ 	}
+ 
+ 	return $wp_query->have_comments();
++	return null;
+ }
+ 
+ /**
+@@ -1055,14 +1096,15 @@
+  *
+  * @global WP_Query $wp_query WordPress Query object.
+  */
+-function the_comment() {
+-	global $wp_query;
+-
+-	if ( ! isset( $wp_query ) ) {
+-		return;
++function the_comment(): mixed {
++	global $wp_query;
++
++	if ( ! isset( $wp_query ) ) {
++		return null;
+ 	}
+ 
+ 	$wp_query->the_comment();
++	return null;
+ }
+ 
+ /**
+@@ -1072,7 +1114,7 @@
+  *
+  * @since 2.1.0
+  */
+-function wp_old_slug_redirect() {
++function wp_old_slug_redirect(): mixed {
+ 	if ( is_404() && '' !== get_query_var( 'name' ) ) {
+ 		// Guess the current post type based on the query vars.
+ 		if ( get_query_var( 'post_type' ) ) {
+@@ -1087,14 +1129,14 @@
+ 
+ 		if ( is_array( $post_type ) ) {
+ 			if ( count( $post_type ) > 1 ) {
+-				return;
++				return null;
+ 			}
+ 			$post_type = reset( $post_type );
+ 		}
+ 
+ 		// Do not attempt redirect for hierarchical post types.
+ 		if ( is_post_type_hierarchical( $post_type ) ) {
+-			return;
++			return null;
+ 		}
+ 
+ 		$id = _find_post_by_old_slug( $post_type );
+@@ -1113,7 +1155,7 @@
+ 		$id = apply_filters( 'old_slug_redirect_post_id', $id );
+ 
+ 		if ( ! $id ) {
+-			return;
++			return null;
+ 		}
+ 
+ 		$link = get_permalink( $id );
+@@ -1134,12 +1176,13 @@
+ 		$link = apply_filters( 'old_slug_redirect_url', $link );
+ 
+ 		if ( ! $link ) {
+-			return;
++			return null;
+ 		}
+ 
+ 		wp_redirect( $link, 301 ); // Permanent redirect.
+-		exit;
+-	}
++		\wp_aot_exit();
++	}
++	return null;
+ }
+ 
+ /**
+@@ -1154,23 +1197,23 @@
+  * @param string $post_type The current post type based on the query vars.
+  * @return int The Post ID.
+  */
+-function _find_post_by_old_slug( $post_type ) {
++function _find_post_by_old_slug( mixed $post_type ): mixed {
+ 	global $wpdb;
+ 
+-	$query = $wpdb->prepare( "SELECT post_id FROM $wpdb->postmeta, $wpdb->posts WHERE ID = post_id AND post_type = %s AND meta_key = '_wp_old_slug' AND meta_value = %s", $post_type, get_query_var( 'name' ) );
++	$query = \wp_aot_require_wpdb( $wpdb )->prepare( "SELECT post_id FROM $wpdb->postmeta, $wpdb->posts WHERE ID = post_id AND post_type = %s AND meta_key = '_wp_old_slug' AND meta_value = %s", $post_type, get_query_var( 'name' ) );
+ 
+ 	/*
+ 	 * If year, monthnum, or day have been specified, make our query more precise
+ 	 * just in case there are multiple identical _wp_old_slug values.
+ 	 */
+ 	if ( get_query_var( 'year' ) ) {
+-		$query .= $wpdb->prepare( ' AND YEAR(post_date) = %d', get_query_var( 'year' ) );
++		$query .= \wp_aot_require_wpdb( $wpdb )->prepare( ' AND YEAR(post_date) = %d', get_query_var( 'year' ) );
+ 	}
+ 	if ( get_query_var( 'monthnum' ) ) {
+-		$query .= $wpdb->prepare( ' AND MONTH(post_date) = %d', get_query_var( 'monthnum' ) );
++		$query .= \wp_aot_require_wpdb( $wpdb )->prepare( ' AND MONTH(post_date) = %d', get_query_var( 'monthnum' ) );
+ 	}
+ 	if ( get_query_var( 'day' ) ) {
+-		$query .= $wpdb->prepare( ' AND DAYOFMONTH(post_date) = %d', get_query_var( 'day' ) );
++		$query .= \wp_aot_require_wpdb( $wpdb )->prepare( ' AND DAYOFMONTH(post_date) = %d', get_query_var( 'day' ) );
+ 	}
+ 
+ 	$key          = md5( $query );
+@@ -1180,11 +1223,12 @@
+ 	if ( false !== $cache ) {
+ 		$id = $cache;
+ 	} else {
+-		$id = (int) $wpdb->get_var( $query );
++		$id = (int) \wp_aot_require_wpdb( $wpdb )->get_var( $query );
+ 		wp_cache_set_salted( $cache_key, $id, 'post-queries', $last_changed );
+ 	}
+ 
+ 	return $id;
++	return null;
+ }
+ 
+ /**
+@@ -1199,23 +1243,23 @@
+  * @param string $post_type The current post type based on the query vars.
+  * @return int The Post ID.
+  */
+-function _find_post_by_old_date( $post_type ) {
++function _find_post_by_old_date( mixed $post_type ): mixed {
+ 	global $wpdb;
+ 
+ 	$date_query = '';
+ 	if ( get_query_var( 'year' ) ) {
+-		$date_query .= $wpdb->prepare( ' AND YEAR(pm_date.meta_value) = %d', get_query_var( 'year' ) );
++		$date_query .= \wp_aot_require_wpdb( $wpdb )->prepare( ' AND YEAR(pm_date.meta_value) = %d', get_query_var( 'year' ) );
+ 	}
+ 	if ( get_query_var( 'monthnum' ) ) {
+-		$date_query .= $wpdb->prepare( ' AND MONTH(pm_date.meta_value) = %d', get_query_var( 'monthnum' ) );
++		$date_query .= \wp_aot_require_wpdb( $wpdb )->prepare( ' AND MONTH(pm_date.meta_value) = %d', get_query_var( 'monthnum' ) );
+ 	}
+ 	if ( get_query_var( 'day' ) ) {
+-		$date_query .= $wpdb->prepare( ' AND DAYOFMONTH(pm_date.meta_value) = %d', get_query_var( 'day' ) );
++		$date_query .= \wp_aot_require_wpdb( $wpdb )->prepare( ' AND DAYOFMONTH(pm_date.meta_value) = %d', get_query_var( 'day' ) );
+ 	}
+ 
+ 	$id = 0;
+ 	if ( $date_query ) {
+-		$query        = $wpdb->prepare( "SELECT post_id FROM $wpdb->postmeta AS pm_date, $wpdb->posts WHERE ID = post_id AND post_type = %s AND meta_key = '_wp_old_date' AND post_name = %s" . $date_query, $post_type, get_query_var( 'name' ) );
++		$query        = \wp_aot_require_wpdb( $wpdb )->prepare( "SELECT post_id FROM $wpdb->postmeta AS pm_date, $wpdb->posts WHERE ID = post_id AND post_type = %s AND meta_key = '_wp_old_date' AND post_name = %s" . $date_query, $post_type, get_query_var( 'name' ) );
+ 		$key          = md5( $query );
+ 		$last_changed = wp_cache_get_last_changed( 'posts' );
+ 		$cache_key    = "find_post_by_old_date:$key";
+@@ -1223,16 +1267,17 @@
+ 		if ( false !== $cache ) {
+ 			$id = $cache;
+ 		} else {
+-			$id = (int) $wpdb->get_var( $query );
++			$id = (int) \wp_aot_require_wpdb( $wpdb )->get_var( $query );
+ 			if ( ! $id ) {
+ 				// Check to see if an old slug matches the old date.
+-				$id = (int) $wpdb->get_var( $wpdb->prepare( "SELECT ID FROM $wpdb->posts, $wpdb->postmeta AS pm_slug, $wpdb->postmeta AS pm_date WHERE ID = pm_slug.post_id AND ID = pm_date.post_id AND post_type = %s AND pm_slug.meta_key = '_wp_old_slug' AND pm_slug.meta_value = %s AND pm_date.meta_key = '_wp_old_date'" . $date_query, $post_type, get_query_var( 'name' ) ) );
++				$id = (int) \wp_aot_require_wpdb( $wpdb )->get_var( \wp_aot_require_wpdb( $wpdb )->prepare( "SELECT ID FROM $wpdb->posts, $wpdb->postmeta AS pm_slug, $wpdb->postmeta AS pm_date WHERE ID = pm_slug.post_id AND ID = pm_date.post_id AND post_type = %s AND pm_slug.meta_key = '_wp_old_slug' AND pm_slug.meta_value = %s AND pm_date.meta_key = '_wp_old_date'" . $date_query, $post_type, get_query_var( 'name' ) ) );
+ 			}
+ 			wp_cache_set_salted( $cache_key, $id, 'post-queries', $last_changed );
+ 		}
+ 	}
+ 
+ 	return $id;
++	return null;
+ }
+ 
+ /**
+@@ -1246,7 +1291,7 @@
+  * @param WP_Post|object|int $post WP_Post instance or Post ID/object.
+  * @return bool True when finished.
+  */
+-function setup_postdata( $post ) {
++function setup_postdata( mixed $post ): mixed {
+ 	global $wp_query;
+ 
+ 	if ( ! empty( $wp_query ) && $wp_query instanceof WP_Query ) {
+@@ -1254,6 +1299,7 @@
+ 	}
+ 
+ 	return false;
++	return null;
+ }
+ 
+ /**
+@@ -1266,7 +1312,7 @@
+  * @param WP_Post|object|int $post WP_Post instance or Post ID/object.
+  * @return array|false Elements of post, or false on failure.
+  */
+-function generate_postdata( $post ) {
++function generate_postdata( mixed $post ): mixed {
+ 	global $wp_query;
+ 
+ 	if ( ! empty( $wp_query ) && $wp_query instanceof WP_Query ) {
+@@ -1274,4 +1320,5 @@
+ 	}
+ 
+ 	return false;
+-}
++	return null;
++}

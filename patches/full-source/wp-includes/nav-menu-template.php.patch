@@ -1,0 +1,183 @@
+--- a/wp-includes/nav-menu-template.php
++++ b/wp-includes/nav-menu-template.php
+@@ -9,11 +9,11 @@
+ 
+ // Don't load directly.
+ if ( ! defined( 'ABSPATH' ) ) {
+-	exit;
++	\wp_aot_exit();
+ }
+ 
+ /** Walker_Nav_Menu class */
+-require_once ABSPATH . WPINC . '/class-walker-nav-menu.php';
++require_once __DIR__ . '/class-walker-nav-menu.php';
+ 
+ /**
+  * Displays a navigation menu.
+@@ -59,8 +59,9 @@
+  * @return void|string|false Void if 'echo' argument is true, menu output if 'echo' is false.
+  *                           False if there are no items or no menu was found.
+  */
+-function wp_nav_menu( $args = array() ) {
+-	static $menu_id_slugs = array();
++function wp_nav_menu( mixed $args = array() ): mixed {
++	static $menu_id_slugs_aot_cell = new \WordPressStaticArrayCell();
++	$menu_id_slugs =& $menu_id_slugs_aot_cell->value;
+ 
+ 	$defaults = array(
+ 		'menu'                 => '',
+@@ -120,7 +121,7 @@
+ 	if ( null !== $nav_menu ) {
+ 		if ( $args->echo ) {
+ 			echo $nav_menu;
+-			return;
++			return null;
+ 		}
+ 
+ 		return $nav_menu;
+@@ -248,14 +249,14 @@
+ 		$wrap_id = 'menu-' . $menu->slug;
+ 
+ 		while ( in_array( $wrap_id, $menu_id_slugs, true ) ) {
+-			if ( preg_match( '#-(\d+)$#', $wrap_id, $matches ) ) {
+-				$wrap_id = preg_replace( '#-(\d+)$#', '-' . ++$matches[1], $wrap_id );
++			if ( preg_match( '#-(\d+)$#', \wp_aot_regex_text( $wrap_id ), $matches ) ) {
++				$wrap_id = \wp_aot_preg_replace( '#-(\d+)$#', '-' . ++$matches[1], $wrap_id );
+ 			} else {
+ 				$wrap_id = $wrap_id . '-1';
+ 			}
+ 		}
+ 	}
+-	$menu_id_slugs[] = $wrap_id;
++	\wp_aot_array_push( $menu_id_slugs, array( $wrap_id ) );
+ 
+ 	$wrap_class = $args->menu_class ? $args->menu_class : '';
+ 
+@@ -311,6 +312,7 @@
+ 	} else {
+ 		return $nav_menu;
+ 	}
++	return null;
+ }
+ 
+ /**
+@@ -324,7 +326,7 @@
+  *
+  * @param array $menu_items The current menu item objects to which to add the class property information.
+  */
+-function _wp_menu_item_classes_by_context( &$menu_items ) {
++function _wp_menu_item_classes_by_context( mixed &$menu_items ): mixed {
+ 	global $wp_query, $wp_rewrite;
+ 
+ 	$queried_object    = $wp_query->get_queried_object();
+@@ -344,7 +346,7 @@
+ 				$term_hierarchy = _get_term_hierarchy( $taxonomy );
+ 				$terms          = wp_get_object_terms( $queried_object_id, $taxonomy, array( 'fields' => 'ids' ) );
+ 				if ( is_array( $terms ) ) {
+-					$possible_object_parents = array_merge( $possible_object_parents, $terms );
++					$possible_object_parents = \wp_aot_array_merge(array( $possible_object_parents, $terms ));
+ 					$term_to_ancestor        = array();
+ 					foreach ( (array) $term_hierarchy as $ancestor => $descendents ) {
+ 						foreach ( (array) $descendents as $desc ) {
+@@ -388,7 +390,7 @@
+ 		} while ( ! empty( $desc ) );
+ 	}
+ 
+-	$possible_object_parents = array_filter( $possible_object_parents );
++	$possible_object_parents = \wp_aot_array_filter( $possible_object_parents );
+ 
+ 	$front_page_url         = home_url();
+ 	$front_page_id          = (int) get_option( 'page_on_front' );
+@@ -485,7 +487,7 @@
+ 			$current_url        = set_url_scheme( 'http://' . $_SERVER['HTTP_HOST'] . $_root_relative_current );
+ 			$raw_item_url       = strpos( $menu_item->url, '#' ) ? substr( $menu_item->url, 0, strpos( $menu_item->url, '#' ) ) : $menu_item->url;
+ 			$item_url           = set_url_scheme( untrailingslashit( $raw_item_url ) );
+-			$_indexless_current = untrailingslashit( preg_replace( '/' . preg_quote( $wp_rewrite->index, '/' ) . '$/', '', $current_url ) );
++			$_indexless_current = untrailingslashit( \wp_aot_preg_replace( '/' . preg_quote( \wp_aot_regex_text( $wp_rewrite->index ), '/' ) . '$/', '', $current_url ) );
+ 
+ 			$matches = array(
+ 				$current_url,
+@@ -533,11 +535,11 @@
+ 			$classes[] = 'current_page_parent';
+ 		}
+ 
+-		$menu_items[ $key ]->classes = array_unique( $classes );
+-	}
+-	$active_ancestor_item_ids = array_filter( array_unique( $active_ancestor_item_ids ) );
+-	$active_parent_item_ids   = array_filter( array_unique( $active_parent_item_ids ) );
+-	$active_parent_object_ids = array_filter( array_unique( $active_parent_object_ids ) );
++		$menu_items[ $key ]->classes = \wp_aot_array_unique( $classes );
++	}
++	$active_ancestor_item_ids = \wp_aot_array_filter( \wp_aot_array_unique( $active_ancestor_item_ids ) );
++	$active_parent_item_ids   = \wp_aot_array_filter( \wp_aot_array_unique( $active_parent_item_ids ) );
++	$active_parent_object_ids = \wp_aot_array_filter( \wp_aot_array_unique( $active_parent_object_ids ) );
+ 
+ 	// Set parent's class.
+ 	foreach ( (array) $menu_items as $key => $parent_item ) {
+@@ -600,8 +602,9 @@
+ 			}
+ 		}
+ 
+-		$menu_items[ $key ]->classes = array_unique( $classes );
+-	}
++		$menu_items[ $key ]->classes = \wp_aot_array_unique( $classes );
++	}
++	return null;
+ }
+ 
+ /**
+@@ -615,10 +618,11 @@
+  * @param stdClass $args  An object containing wp_nav_menu() arguments.
+  * @return string The HTML list content for the menu items.
+  */
+-function walk_nav_menu_tree( $items, $depth, $args ) {
++function walk_nav_menu_tree( mixed $items, mixed $depth, mixed $args ): mixed {
+ 	$walker = ( empty( $args->walker ) ) ? new Walker_Nav_Menu() : $args->walker;
+ 
+ 	return $walker->walk( $items, $depth, $args );
++	return null;
+ }
+ 
+ /**
+@@ -631,16 +635,18 @@
+  * @param object $item
+  * @return string
+  */
+-function _nav_menu_item_id_use_once( $id, $item ) {
+-	static $_used_ids = array();
++function _nav_menu_item_id_use_once( mixed $id, mixed $item ): mixed {
++	static $_used_ids_aot_cell = new \WordPressStaticArrayCell();
++	$_used_ids =& $_used_ids_aot_cell->value;
+ 
+ 	if ( in_array( $item->ID, $_used_ids, true ) ) {
+ 		return '';
+ 	}
+ 
+-	$_used_ids[] = $item->ID;
++	\wp_aot_array_push( $_used_ids, array( $item->ID ) );
+ 
+ 	return $id;
++	return null;
+ }
+ 
+ /**
+@@ -661,7 +667,7 @@
+  * @param int|false      $depth     Depth of menu item. Default false ($depth unspecified when filter is called).
+  * @return string[] Modified nav menu classes.
+  */
+-function wp_nav_menu_remove_menu_item_has_children_class( $classes, $menu_item, $args = false, $depth = false ) {
++function wp_nav_menu_remove_menu_item_has_children_class( mixed $classes, mixed $menu_item, mixed $args = false, mixed $depth = false ): mixed {
+ 	/*
+ 	 * Account for the filter being called without the $args or $depth parameters.
+ 	 *
+@@ -694,8 +700,9 @@
+ 	 * be removed from all menu items.
+ 	 */
+ 	if ( -1 === $max_depth || $depth >= $max_depth ) {
+-		$classes = array_diff( $classes, array( 'menu-item-has-children' ) );
++		$classes = \wp_aot_array_diff(array( $classes, array( 'menu-item-has-children' ) ));
+ 	}
+ 
+ 	return $classes;
++	return null;
+ }

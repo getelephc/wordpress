@@ -1,7 +1,73 @@
 --- a/wp-includes/widgets/class-wp-widget-recent-comments.php
 +++ b/wp-includes/widgets/class-wp-widget-recent-comments.php
-@@ -187,17 +187,37 @@
- 	public function form( $instance ) {
+@@ -41,7 +41,7 @@
+ 	 *
+ 	 * @since 2.8.0
+ 	 */
+-	public function recent_comments_style() {
++	public function recent_comments_style(): mixed {
+ 		/**
+ 		 * Filters the Recent Comments default widget styles.
+ 		 *
+@@ -52,10 +52,11 @@
+ 		 */
+ 		if ( ! current_theme_supports( 'widgets' ) // Temp hack #14876.
+ 			|| ! apply_filters( 'show_recent_comments_widget_style', true, $this->id_base ) ) {
+-			return;
++			return null;
+ 		}
+ 
+ 		echo '<style>.recentcomments a{display:inline !important;padding:0 !important;margin:0 !important;}</style>';
++		return null;
+ 	}
+ 
+ 	/**
+@@ -69,7 +70,7 @@
+ 	 *                        'before_widget', and 'after_widget'.
+ 	 * @param array $instance Settings for the current Recent Comments widget instance.
+ 	 */
+-	public function widget( $args, $instance ) {
++	public function widget( mixed $args, mixed $instance ): mixed {
+ 		static $first_instance = true;
+ 
+ 		if ( ! isset( $args['widget_id'] ) ) {
+@@ -135,7 +136,7 @@
+ 		$output .= '<ul id="' . esc_attr( $recent_comments_id ) . '">';
+ 		if ( is_array( $comments ) && $comments ) {
+ 			// Prime cache for associated posts. (Prime post term cache if we need it for permalinks.)
+-			$post_ids = array_unique( wp_list_pluck( $comments, 'comment_post_ID' ) );
++			$post_ids = \wp_aot_array_unique( wp_list_pluck( $comments, 'comment_post_ID' ) );
+ 			_prime_post_caches( $post_ids, strpos( get_option( 'permalink_structure' ), '%category%' ), false );
+ 
+ 			foreach ( (array) $comments as $comment ) {
+@@ -158,6 +159,7 @@
+ 		$output .= $args['after_widget'];
+ 
+ 		echo $output;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -170,11 +172,12 @@
+ 	 * @param array $old_instance Old settings for this instance.
+ 	 * @return array Updated settings to save.
+ 	 */
+-	public function update( $new_instance, $old_instance ) {
++	public function update( mixed $new_instance, mixed $old_instance ): mixed {
+ 		$instance           = $old_instance;
+ 		$instance['title']  = sanitize_text_field( $new_instance['title'] );
+ 		$instance['number'] = absint( $new_instance['number'] );
+ 		return $instance;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -184,20 +187,41 @@
+ 	 *
+ 	 * @param array $instance Current settings.
+ 	 */
+-	public function form( $instance ) {
++	public function form( mixed $instance ): mixed {
  		$title  = $instance['title'] ?? '';
  		$number = isset( $instance['number'] ) ? absint( $instance['number'] ) : 5;
 -		?>
@@ -44,6 +110,17 @@
 -		</p>
 -		<?php
 +		';
++		return null;
  	}
  
  	/**
+@@ -207,7 +231,8 @@
+ 	 *
+ 	 * @deprecated 4.4.0 Fragment caching was removed in favor of split queries.
+ 	 */
+-	public function flush_widget_cache() {
++	public function flush_widget_cache(): mixed {
+ 		_deprecated_function( __METHOD__, '4.4.0' );
++		return null;
+ 	}
+ }

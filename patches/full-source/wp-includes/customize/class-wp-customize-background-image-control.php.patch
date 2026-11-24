@@ -1,0 +1,27 @@
+--- a/wp-includes/customize/class-wp-customize-background-image-control.php
++++ b/wp-includes/customize/class-wp-customize-background-image-control.php
+@@ -32,7 +32,7 @@
+ 	 *
+ 	 * @param WP_Customize_Manager $manager Customizer bootstrap instance.
+ 	 */
+-	public function __construct( $manager ) {
++	public function __construct( mixed $manager ) {
+ 		parent::__construct(
+ 			$manager,
+ 			'background_image',
+@@ -48,7 +48,7 @@
+ 	 *
+ 	 * @since 4.1.0
+ 	 */
+-	public function enqueue() {
++	public function enqueue(): mixed {
+ 		parent::enqueue();
+ 
+ 		$custom_background = get_theme_support( 'custom-background' );
+@@ -62,5 +62,6 @@
+ 				),
+ 			)
+ 		);
++		return null;
+ 	}
+ }

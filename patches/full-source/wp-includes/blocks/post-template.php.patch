@@ -1,0 +1,61 @@
+--- a/wp-includes/blocks/post-template.php
++++ b/wp-includes/blocks/post-template.php
+@@ -14,7 +14,7 @@
+  *
+  * @return bool Whether the block list contains a block that uses the featured image.
+  */
+-function block_core_post_template_uses_featured_image( $inner_blocks ) {
++function block_core_post_template_uses_featured_image( mixed $inner_blocks ): mixed {
+ 	foreach ( $inner_blocks as $block ) {
+ 		if ( 'core/post-featured-image' === $block->name ) {
+ 			return true;
+@@ -31,6 +31,7 @@
+ 	}
+ 
+ 	return false;
++	return null;
+ }
+ 
+ /**
+@@ -46,7 +47,7 @@
+  *
+  * @return string Returns the output of the query, structured using the layout defined by the block's inner blocks.
+  */
+-function render_block_core_post_template( $attributes, $content, $block ) {
++function render_block_core_post_template( mixed $attributes, mixed $content, mixed $block ): mixed {
+ 	$page_key            = isset( $block->context['queryId'] ) ? 'query-' . $block->context['queryId'] . '-page' : 'query-page';
+ 	$enhanced_pagination = (bool) ( $block->context['enhancedPagination'] ?? false );
+ 	$page                = empty( $_GET[ $page_key ] ) ? 1 : (int) $_GET[ $page_key ];
+@@ -113,7 +114,7 @@
+ 
+ 		$post_id              = get_the_ID();
+ 		$post_type            = get_post_type();
+-		$filter_block_context = static function ( $context ) use ( $post_id, $post_type ) {
++		$filter_block_context = static function ( mixed $context ) use ( $post_id, $post_type ) {
+ 			$context['postType'] = $post_type;
+ 			$context['postId']   = $post_id;
+ 			return $context;
+@@ -146,6 +147,7 @@
+ 		$wrapper_attributes,
+ 		$content
+ 	);
++	return null;
+ }
+ 
+ /**
+@@ -153,7 +155,7 @@
+  *
+  * @since 5.8.0
+  */
+-function register_block_core_post_template() {
++function register_block_core_post_template(): mixed {
+ 	register_block_type_from_metadata(
+ 		__DIR__ . '/post-template',
+ 		array(
+@@ -161,5 +163,6 @@
+ 			'skip_inner_blocks' => true,
+ 		)
+ 	);
++	return null;
+ }
+ add_action( 'init', 'register_block_core_post_template' );

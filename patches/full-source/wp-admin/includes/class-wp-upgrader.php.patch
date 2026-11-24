@@ -1,0 +1,359 @@
+--- a/wp-admin/includes/class-wp-upgrader.php
++++ b/wp-admin/includes/class-wp-upgrader.php
+@@ -140,7 +140,7 @@
+ 	 * @param WP_Upgrader_Skin $skin The upgrader skin to use. Default is a WP_Upgrader_Skin
+ 	 *                               instance.
+ 	 */
+-	public function __construct( $skin = null ) {
++	public function __construct( mixed $skin = null ) {
+ 		if ( null === $skin ) {
+ 			$this->skin = new WP_Upgrader_Skin();
+ 		} else {
+@@ -159,13 +159,14 @@
+ 	 * @since 2.8.0
+ 	 * @since 6.3.0 Added the `schedule_temp_backup_cleanup()` task.
+ 	 */
+-	public function init() {
++	public function init(): mixed {
+ 		$this->skin->set_upgrader( $this );
+ 		$this->generic_strings();
+ 
+ 		if ( ! wp_installing() ) {
+ 			$this->schedule_temp_backup_cleanup();
+ 		}
++		return null;
+ 	}
+ 
+ 	/**
+@@ -173,10 +174,11 @@
+ 	 *
+ 	 * @since 6.3.0
+ 	 */
+-	protected function schedule_temp_backup_cleanup() {
++	protected function schedule_temp_backup_cleanup(): mixed {
+ 		if ( false === wp_next_scheduled( 'wp_delete_temp_updater_backups' ) ) {
+ 			wp_schedule_event( time(), 'weekly', 'wp_delete_temp_updater_backups' );
+ 		}
++		return null;
+ 	}
+ 
+ 	/**
+@@ -184,7 +186,7 @@
+ 	 *
+ 	 * @since 2.8.0
+ 	 */
+-	public function generic_strings() {
++	public function generic_strings(): mixed {
+ 		$this->strings['bad_request']    = __( 'Invalid data provided.' );
+ 		$this->strings['fs_unavailable'] = __( 'Could not access filesystem.' );
+ 		$this->strings['fs_error']       = __( 'Filesystem error.' );
+@@ -217,6 +219,7 @@
+ 		$this->strings['temp_backup_restore_failed'] = __( 'Could not restore the original version of %s.' );
+ 		/* translators: %s: The plugin or theme slug. */
+ 		$this->strings['temp_backup_delete_failed'] = __( 'Could not delete the temporary backup directory for %s.' );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -233,7 +236,7 @@
+ 	 *                                               Default false.
+ 	 * @return bool|WP_Error True if able to connect, false or a WP_Error otherwise.
+ 	 */
+-	public function fs_connect( $directories = array(), $allow_relaxed_file_ownership = false ) {
++	public function fs_connect( mixed $directories = array(), mixed $allow_relaxed_file_ownership = false ): mixed {
+ 		global $wp_filesystem;
+ 
+ 		$credentials = $this->skin->request_filesystem_credentials( false, $directories[0], $allow_relaxed_file_ownership );
+@@ -289,6 +292,7 @@
+ 			}
+ 		}
+ 		return true;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -304,7 +308,7 @@
+ 	 * @param array  $hook_extra       Extra arguments to pass to the filter hooks. Default empty array.
+ 	 * @return string|WP_Error The full path to the downloaded package file, or a WP_Error object.
+ 	 */
+-	public function download_package( $package, $check_signatures = false, $hook_extra = array() ) {
++	public function download_package( mixed $package, mixed $check_signatures = false, mixed $hook_extra = array() ): mixed {
+ 		/**
+ 		 * Filters whether to download a package for a WordPress core, plugin, theme, or translation upgrade.
+ 		 *
+@@ -324,7 +328,7 @@
+ 			return $reply;
+ 		}
+ 
+-		if ( ! preg_match( '!^(http|https|ftp)://!i', $package ) && file_exists( $package ) ) { // Local file or remote?
++		if ( ! preg_match( '!^(http|https|ftp)://!i', \wp_aot_regex_text( $package ) ) && file_exists( $package ) ) { // Local file or remote?
+ 			return $package; // Must be a local file.
+ 		}
+ 
+@@ -341,6 +345,7 @@
+ 		}
+ 
+ 		return $download_file;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -351,11 +356,12 @@
+ 	 * @param string $package The full local path or URI of the package.
+ 	 * @return string The directory name, without a path.
+ 	 */
+-	private function get_working_dir_name( $package ) {
++	private function get_working_dir_name( mixed $package ): mixed {
+ 		// Strip off any .tmp or .zip suffixes.
+ 		$name = basename( basename( $package, '.tmp' ), '.zip' );
+ 
+ 		return $name . '-' . wp_generate_password( 16, false );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -370,7 +376,7 @@
+ 	 *                               to unpack it. Default true.
+ 	 * @return string|WP_Error The path to the unpacked contents, or a WP_Error on failure.
+ 	 */
+-	public function unpack_package( $package, $delete_package = true ) {
++	public function unpack_package( mixed $package, mixed $delete_package = true ): mixed {
+ 		global $wp_filesystem;
+ 
+ 		$this->skin->feedback( 'unpack_package' );
+@@ -430,6 +436,7 @@
+ 		}
+ 
+ 		return $working_dir;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -441,7 +448,7 @@
+ 	 * @param string $path         Relative path to prepend to child nodes. Optional.
+ 	 * @return array A flattened array of the $nested_files specified.
+ 	 */
+-	protected function flatten_dirlist( $nested_files, $path = '' ) {
++	protected function flatten_dirlist( mixed $nested_files, mixed $path = '' ): mixed {
+ 		$files = array();
+ 
+ 		foreach ( $nested_files as $name => $details ) {
+@@ -457,6 +464,7 @@
+ 		}
+ 
+ 		return $files;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -469,7 +477,7 @@
+ 	 * @param string $remote_destination The location on the remote filesystem to be cleared.
+ 	 * @return true|WP_Error True upon success, WP_Error on failure.
+ 	 */
+-	public function clear_destination( $remote_destination ) {
++	public function clear_destination( mixed $remote_destination ): mixed {
+ 		global $wp_filesystem;
+ 
+ 		$files = $wp_filesystem->dirlist( $remote_destination, true, true );
+@@ -505,6 +513,7 @@
+ 		}
+ 
+ 		return true;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -538,7 +547,7 @@
+ 	 *
+ 	 * @return array|WP_Error The result (also stored in `WP_Upgrader::$result`), or a WP_Error on failure.
+ 	 */
+-	public function install_package( $args = array() ) {
++	public function install_package( mixed $args = array() ): mixed {
+ 		global $wp_filesystem, $wp_theme_directories;
+ 
+ 		$defaults = array(
+@@ -562,7 +571,7 @@
+ 		 * downloading and unpacking in WP_Upgrader->run().
+ 		 */
+ 		if ( function_exists( 'set_time_limit' ) ) {
+-			set_time_limit( 300 );
++			\wp_aot_native_api('set_time_limit', array( 300 ));
+ 		}
+ 
+ 		if (
+@@ -663,10 +672,10 @@
+ 		 * to copy the directory into the directory, whilst they pass the source
+ 		 * as the actual files to copy.
+ 		 */
+-		$protected_directories = array( ABSPATH, WP_CONTENT_DIR, WP_PLUGIN_DIR, WP_CONTENT_DIR . '/themes' );
++		$protected_directories = \wp_aot_mixed(array( ABSPATH, WP_CONTENT_DIR, WP_PLUGIN_DIR, WP_CONTENT_DIR . '/themes' ));
+ 
+ 		if ( is_array( $wp_theme_directories ) ) {
+-			$protected_directories = array_merge( $protected_directories, $wp_theme_directories );
++			$protected_directories = \wp_aot_array_merge(array( $protected_directories, $wp_theme_directories ));
+ 		}
+ 
+ 		if ( in_array( $destination, $protected_directories, true ) ) {
+@@ -742,12 +751,12 @@
+ 			return $result;
+ 		}
+ 
+-		$destination_name = basename( str_replace( $local_destination, '', $destination ) );
++		$destination_name = basename( \wp_aot_str_replace( $local_destination, '', $destination ) );
+ 		if ( '.' === $destination_name ) {
+ 			$destination_name = '';
+ 		}
+ 
+-		$this->result = compact( 'source', 'source_files', 'destination', 'destination_name', 'local_destination', 'remote_destination', 'clear_destination' );
++		$this->result = \wp_aot_compact(get_defined_vars(), array( 'source', 'source_files', 'destination', 'destination_name', 'local_destination', 'remote_destination', 'clear_destination' ));
+ 
+ 		/**
+ 		 * Filters the installation response after the installation has finished.
+@@ -767,6 +776,7 @@
+ 
+ 		// Bombard the calling function will all the info which we've just used.
+ 		return $this->result;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -802,7 +812,7 @@
+ 	 * @return array|false|WP_Error The result from self::install_package() on success, otherwise a WP_Error,
+ 	 *                              or false if unable to connect to the filesystem.
+ 	 */
+-	public function run( $options ) {
++	public function run( mixed $options ): mixed {
+ 
+ 		$defaults = array(
+ 			'package'                     => '', // Please always pass this.
+@@ -968,7 +978,7 @@
+ 			}
+ 			$this->skin->error( $result );
+ 
+-			if ( ! method_exists( $this->skin, 'hide_process_failed' ) || ! $this->skin->hide_process_failed( $result ) ) {
++			if ( ! \wp_aot_native_api('method_exists', array( $this->skin, 'hide_process_failed' )) || ! $this->skin->hide_process_failed( $result ) ) {
+ 				$this->skin->feedback( 'process_failed' );
+ 			}
+ 		} else {
+@@ -1022,6 +1032,7 @@
+ 		}
+ 
+ 		return $result;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1035,7 +1046,7 @@
+ 	 *
+ 	 * @param bool $enable True to enable maintenance mode, false to disable.
+ 	 */
+-	public function maintenance_mode( $enable = false ) {
++	public function maintenance_mode( mixed $enable = false ): mixed {
+ 		global $wp_filesystem;
+ 
+ 		if ( ! $wp_filesystem ) {
+@@ -1049,7 +1060,7 @@
+ 
+ 			if ( false === $credentials || ! WP_Filesystem( $credentials ) ) {
+ 				wp_trigger_error( __FUNCTION__, __( 'Could not access filesystem.' ) );
+-				return;
++				return null;
+ 			}
+ 		}
+ 
+@@ -1071,6 +1082,7 @@
+ 
+ 			$wp_filesystem->delete( $file );
+ 		}
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1085,7 +1097,7 @@
+ 	 *                                Default: 1 hour.
+ 	 * @return bool False if a lock couldn't be created or if the lock is still valid. True otherwise.
+ 	 */
+-	public static function create_lock( $lock_name, $release_timeout = null ) {
++	public static function create_lock( mixed $lock_name, mixed $release_timeout = null ): mixed {
+ 		global $wpdb;
+ 		if ( ! $release_timeout ) {
+ 			$release_timeout = HOUR_IN_SECONDS;
+@@ -1093,7 +1105,7 @@
+ 		$lock_option = $lock_name . '.lock';
+ 
+ 		// Try to lock.
+-		$lock_result = $wpdb->query( $wpdb->prepare( "INSERT IGNORE INTO `$wpdb->options` ( `option_name`, `option_value`, `autoload` ) VALUES (%s, %s, 'off') /* LOCK */", $lock_option, time() ) );
++		$lock_result = \wp_aot_require_wpdb( $wpdb )->query( \wp_aot_require_wpdb( $wpdb )->prepare( "INSERT IGNORE INTO `$wpdb->options` ( `option_name`, `option_value`, `autoload` ) VALUES (%s, %s, 'off') /* LOCK */", $lock_option, time() ) );
+ 
+ 		if ( ! $lock_result ) {
+ 			$lock_result = get_option( $lock_option );
+@@ -1118,6 +1130,7 @@
+ 		update_option( $lock_option, time(), false );
+ 
+ 		return true;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1130,8 +1143,9 @@
+ 	 * @param string $lock_name The name of this unique lock.
+ 	 * @return bool True if the lock was successfully released. False on failure.
+ 	 */
+-	public static function release_lock( $lock_name ) {
++	public static function release_lock( mixed $lock_name ): mixed {
+ 		return delete_option( $lock_name . '.lock' );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1151,7 +1165,7 @@
+ 	 *
+ 	 * @return bool|WP_Error True on success, false on early exit, otherwise WP_Error.
+ 	 */
+-	public function move_to_temp_backup_dir( $args ) {
++	public function move_to_temp_backup_dir( mixed $args ): mixed {
+ 		global $wp_filesystem;
+ 
+ 		if ( empty( $args['slug'] ) || empty( $args['src'] ) || empty( $args['dir'] ) ) {
+@@ -1204,6 +1218,7 @@
+ 		}
+ 
+ 		return true;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1227,7 +1242,7 @@
+ 	 * }
+ 	 * @return bool|WP_Error True on success, false on early exit, otherwise WP_Error.
+ 	 */
+-	public function restore_temp_backup( array $temp_backups = array() ) {
++	public function restore_temp_backup( array $temp_backups = array() ): mixed {
+ 		global $wp_filesystem;
+ 
+ 		$errors = new WP_Error();
+@@ -1273,6 +1288,7 @@
+ 		}
+ 
+ 		return $errors->has_errors() ? $errors : true;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1296,7 +1312,7 @@
+ 	 * }
+ 	 * @return bool|WP_Error True on success, false on early exit, otherwise WP_Error.
+ 	 */
+-	public function delete_temp_backup( array $temp_backups = array() ) {
++	public function delete_temp_backup( array $temp_backups = array() ): mixed {
+ 		global $wp_filesystem;
+ 
+ 		$errors = new WP_Error();
+@@ -1327,6 +1343,7 @@
+ 		}
+ 
+ 		return $errors->has_errors() ? $errors : true;
++		return null;
+ 	}
+ }
+ 

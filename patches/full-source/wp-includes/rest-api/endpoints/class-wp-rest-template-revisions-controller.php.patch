@@ -1,0 +1,112 @@
+--- a/wp-includes/rest-api/endpoints/class-wp-rest-template-revisions-controller.php
++++ b/wp-includes/rest-api/endpoints/class-wp-rest-template-revisions-controller.php
+@@ -46,7 +46,7 @@
+ 	 *
+ 	 * @param string $parent_post_type Post type of the parent.
+ 	 */
+-	public function __construct( $parent_post_type ) {
++	public function __construct( mixed $parent_post_type ) {
+ 		parent::__construct( $parent_post_type );
+ 		$this->parent_post_type = $parent_post_type;
+ 		$post_type_object       = get_post_type_object( $parent_post_type );
+@@ -69,7 +69,7 @@
+ 	 *
+ 	 * @see register_rest_route()
+ 	 */
+-	public function register_routes() {
++	public function register_routes(): mixed {
+ 
+ 		register_rest_route(
+ 			$this->namespace,
+@@ -153,6 +153,7 @@
+ 				'schema' => array( $this, 'get_public_item_schema' ),
+ 			)
+ 		);
++		return null;
+ 	}
+ 
+ 	/**
+@@ -163,7 +164,7 @@
+ 	 * @param string $parent_template_id Supplied ID.
+ 	 * @return WP_Post|WP_Error Post object if ID is valid, WP_Error otherwise.
+ 	 */
+-	protected function get_parent( $parent_template_id ) {
++	protected function get_parent( mixed $parent_template_id ): mixed {
+ 		$template = get_block_template( $parent_template_id, $this->parent_post_type );
+ 
+ 		if ( ! $template ) {
+@@ -185,6 +186,7 @@
+ 		}
+ 
+ 		return get_post( $template->wp_id );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -196,7 +198,7 @@
+ 	 * @param WP_REST_Request $request Request object.
+ 	 * @return WP_REST_Response Response object.
+ 	 */
+-	public function prepare_item_for_response( $item, $request ) {
++	public function prepare_item_for_response( mixed $item, mixed $request ): mixed {
+ 		$template = _build_block_template_result_from_post( $item );
+ 		$response = $this->parent_controller->prepare_item_for_response( $template, $request );
+ 
+@@ -224,6 +226,7 @@
+ 		}
+ 
+ 		return $response;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -234,7 +237,7 @@
+ 	 * @param WP_REST_Request $request Full details about the request.
+ 	 * @return true|WP_Error True if the request has access to delete the item, WP_Error object otherwise.
+ 	 */
+-	public function delete_item_permissions_check( $request ) {
++	public function delete_item_permissions_check( mixed $request ): mixed {
+ 		$parent = $this->get_parent( $request['parent'] );
+ 		if ( is_wp_error( $parent ) ) {
+ 			return $parent;
+@@ -262,6 +265,7 @@
+ 		}
+ 
+ 		return true;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -272,7 +276,7 @@
+ 	 * @param WP_Block_Template $template Template.
+ 	 * @return array Links for the given post.
+ 	 */
+-	protected function prepare_links( $template ) {
++	protected function prepare_links( mixed $template ): mixed {
+ 		$links = array(
+ 			'self'   => array(
+ 				'href' => rest_url( sprintf( '/%s/%s/%s/%s/%d', $this->namespace, $this->parent_base, $template->id, $this->rest_base, $template->wp_id ) ),
+@@ -283,6 +287,7 @@
+ 		);
+ 
+ 		return $links;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -292,7 +297,7 @@
+ 	 *
+ 	 * @return array Item schema data.
+ 	 */
+-	public function get_item_schema() {
++	public function get_item_schema(): mixed {
+ 		if ( $this->schema ) {
+ 			return $this->add_additional_fields_schema( $this->schema );
+ 		}
+@@ -308,5 +313,6 @@
+ 		$this->schema = $schema;
+ 
+ 		return $this->add_additional_fields_schema( $this->schema );
++		return null;
+ 	}
+ }

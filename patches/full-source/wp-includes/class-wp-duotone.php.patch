@@ -1,6 +1,313 @@
 --- a/wp-includes/class-wp-duotone.php
 +++ b/wp-includes/class-wp-duotone.php
-@@ -695,8 +695,8 @@
+@@ -164,8 +164,9 @@
+ 	 * @param float $max    The maximum value.
+ 	 * @return float The clamped value.
+ 	 */
+-	private static function colord_clamp( $number, $min = 0, $max = 1 ) {
++	private static function colord_clamp( mixed $number, mixed $min = 0, mixed $max = 1 ): mixed {
+ 		return $number > $max ? $max : ( $number > $min ? $number : $min );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -182,9 +183,10 @@
+ 	 * @param float $degrees The hue to clamp.
+ 	 * @return float The clamped hue.
+ 	 */
+-	private static function colord_clamp_hue( $degrees ) {
++	private static function colord_clamp_hue( mixed $degrees ): mixed {
+ 		$degrees = is_finite( $degrees ) ? $degrees % 360 : 0;
+ 		return $degrees > 0 ? $degrees : $degrees + 360;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -202,7 +204,7 @@
+ 	 * @param string $unit  The unit of the hue value.
+ 	 * @return float The parsed hue value.
+ 	 */
+-	private static function colord_parse_hue( $value, $unit = 'deg' ) {
++	private static function colord_parse_hue( mixed $value, mixed $unit = 'deg' ): mixed {
+ 		$angle_units = array(
+ 			'grad' => 360 / 400,
+ 			'turn' => 360,
+@@ -212,6 +214,7 @@
+ 		$factor = $angle_units[ $unit ] ?? 1;
+ 
+ 		return (float) $value * $factor;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -228,10 +231,10 @@
+ 	 * @param string $hex The hex string to parse.
+ 	 * @return array|null An array of RGBA values or null if the hex string is invalid.
+ 	 */
+-	private static function colord_parse_hex( $hex ) {
++	private static function colord_parse_hex( mixed $hex ): mixed {
+ 		$is_match = preg_match(
+ 			'/^#([0-9a-f]{3,8})$/i',
+-			$hex,
++			\wp_aot_regex_text( $hex ),
+ 			$hex_match
+ 		);
+ 
+@@ -260,6 +263,7 @@
+ 		}
+ 
+ 		return null;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -276,13 +280,14 @@
+ 	 * @param array $rgba The RGBA array to clamp.
+ 	 * @return array The clamped RGBA array.
+ 	 */
+-	private static function colord_clamp_rgba( $rgba ) {
++	private static function colord_clamp_rgba( mixed $rgba ): mixed {
+ 		$rgba['r'] = self::colord_clamp( $rgba['r'], 0, 255 );
+ 		$rgba['g'] = self::colord_clamp( $rgba['g'], 0, 255 );
+ 		$rgba['b'] = self::colord_clamp( $rgba['b'], 0, 255 );
+ 		$rgba['a'] = self::colord_clamp( $rgba['a'] );
+ 
+ 		return $rgba;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -299,11 +304,11 @@
+ 	 * @param string $input The RGBA string to parse.
+ 	 * @return array|null An array of RGBA values or null if the RGB string is invalid.
+ 	 */
+-	private static function colord_parse_rgba_string( $input ) {
++	private static function colord_parse_rgba_string( mixed $input ): mixed {
+ 		// Functional syntax.
+ 		$is_match = preg_match(
+ 			'/^rgba?\(\s*([+-]?\d*\.?\d+)(%)?\s*,\s*([+-]?\d*\.?\d+)(%)?\s*,\s*([+-]?\d*\.?\d+)(%)?\s*(?:,\s*([+-]?\d*\.?\d+)(%)?\s*)?\)$/i',
+-			$input,
++			\wp_aot_regex_text( $input ),
+ 			$match
+ 		);
+ 
+@@ -311,7 +316,7 @@
+ 			// Whitespace syntax.
+ 			$is_match = preg_match(
+ 				'/^rgba?\(\s*([+-]?\d*\.?\d+)(%)?\s+([+-]?\d*\.?\d+)(%)?\s+([+-]?\d*\.?\d+)(%)?\s*(?:\/\s*([+-]?\d*\.?\d+)(%)?\s*)?\)$/i',
+-				$input,
++				\wp_aot_regex_text( $input ),
+ 				$match
+ 			);
+ 		}
+@@ -342,6 +347,7 @@
+ 				'a' => '' === $match[7] ? 1 : (float) $match[7] / ( $match[8] ? 100 : 1 ),
+ 			)
+ 		);
++		return null;
+ 	}
+ 
+ 	/**
+@@ -358,13 +364,14 @@
+ 	 * @param array $hsla The HSLA array to clamp.
+ 	 * @return array The clamped HSLA array.
+ 	 */
+-	private static function colord_clamp_hsla( $hsla ) {
++	private static function colord_clamp_hsla( mixed $hsla ): mixed {
+ 		$hsla['h'] = self::colord_clamp_hue( $hsla['h'] );
+ 		$hsla['s'] = self::colord_clamp( $hsla['s'], 0, 100 );
+ 		$hsla['l'] = self::colord_clamp( $hsla['l'], 0, 100 );
+ 		$hsla['a'] = self::colord_clamp( $hsla['a'] );
+ 
+ 		return $hsla;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -381,7 +388,7 @@
+ 	 * @param array $hsva The HSVA array to convert.
+ 	 * @return array The RGBA array.
+ 	 */
+-	private static function colord_hsva_to_rgba( $hsva ) {
++	private static function colord_hsva_to_rgba( mixed $hsva ): mixed {
+ 		$h = ( $hsva['h'] / 360 ) * 6;
+ 		$s = $hsva['s'] / 100;
+ 		$v = $hsva['v'] / 100;
+@@ -399,6 +406,7 @@
+ 			'b' => array( $b, $b, $d, $v, $v, $c )[ $module ] * 255,
+ 			'a' => $a,
+ 		);
++		return null;
+ 	}
+ 
+ 	/**
+@@ -415,7 +423,7 @@
+ 	 * @param array $hsla The HSLA array to convert.
+ 	 * @return array The HSVA array.
+ 	 */
+-	private static function colord_hsla_to_hsva( $hsla ) {
++	private static function colord_hsla_to_hsva( mixed $hsla ): mixed {
+ 		$h = $hsla['h'];
+ 		$s = $hsla['s'];
+ 		$l = $hsla['l'];
+@@ -429,6 +437,7 @@
+ 			'v' => $l + $s,
+ 			'a' => $a,
+ 		);
++		return null;
+ 	}
+ 
+ 	/**
+@@ -445,8 +454,9 @@
+ 	 * @param array $hsla The HSLA array to convert.
+ 	 * @return array The RGBA array.
+ 	 */
+-	private static function colord_hsla_to_rgba( $hsla ) {
++	private static function colord_hsla_to_rgba( mixed $hsla ): mixed {
+ 		return self::colord_hsva_to_rgba( self::colord_hsla_to_hsva( $hsla ) );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -463,11 +473,11 @@
+ 	 * @param string $input The HSLA string to parse.
+ 	 * @return array|null An array of RGBA values or null if the RGB string is invalid.
+ 	 */
+-	private static function colord_parse_hsla_string( $input ) {
++	private static function colord_parse_hsla_string( mixed $input ): mixed {
+ 		// Functional syntax.
+ 		$is_match = preg_match(
+ 			'/^hsla?\(\s*([+-]?\d*\.?\d+)(deg|rad|grad|turn)?\s*,\s*([+-]?\d*\.?\d+)%\s*,\s*([+-]?\d*\.?\d+)%\s*(?:,\s*([+-]?\d*\.?\d+)(%)?\s*)?\)$/i',
+-			$input,
++			\wp_aot_regex_text( $input ),
+ 			$match
+ 		);
+ 
+@@ -475,7 +485,7 @@
+ 			// Whitespace syntax.
+ 			$is_match = preg_match(
+ 				'/^hsla?\(\s*([+-]?\d*\.?\d+)(deg|rad|grad|turn)?\s+([+-]?\d*\.?\d+)%\s+([+-]?\d*\.?\d+)%\s*(?:\/\s*([+-]?\d*\.?\d+)(%)?\s*)?\)$/i',
+-				$input,
++				\wp_aot_regex_text( $input ),
+ 				$match
+ 			);
+ 		}
+@@ -504,6 +514,7 @@
+ 		);
+ 
+ 		return self::colord_hsla_to_rgba( $hsla );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -521,7 +532,7 @@
+ 	 * @param string $input The string to parse.
+ 	 * @return array|null An array of RGBA values or null if the string is invalid.
+ 	 */
+-	private static function colord_parse( $input ) {
++	private static function colord_parse( mixed $input ): mixed {
+ 		$result = self::colord_parse_hex( $input );
+ 
+ 		if ( ! $result ) {
+@@ -533,6 +544,7 @@
+ 		}
+ 
+ 		return $result;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -549,15 +561,16 @@
+ 	 * @param string|string[] $duotone_attr The duotone attribute from a block.
+ 	 * @return string The slug of the duotone preset or an empty string if no slug is found (including when an array was passed).
+ 	 */
+-	private static function get_slug_from_attribute( $duotone_attr ) {
++	private static function get_slug_from_attribute( mixed $duotone_attr ): mixed {
+ 		if ( ! is_string( $duotone_attr ) ) {
+ 			return '';
+ 		}
+ 
+ 		// Uses Branch Reset Groups `(?|…)` to return one capture group.
+-		preg_match( '/(?|var:preset\|duotone\|(\S+)|var\(--wp--preset--duotone--(\S+)\))/', $duotone_attr, $matches );
++		preg_match( '/(?|var:preset\|duotone\|(\S+)|var\(--wp--preset--duotone--(\S+)\))/', \wp_aot_regex_text( $duotone_attr ), $matches );
+ 
+ 		return ! empty( $matches[1] ) ? $matches[1] : '';
++		return null;
+ 	}
+ 
+ 	/**
+@@ -572,7 +585,7 @@
+ 	 * @param string|string[] $duotone_attr The duotone attribute from a block.
+ 	 * @return bool True if the duotone preset present and valid.
+ 	 */
+-	private static function is_preset( $duotone_attr ) {
++	private static function is_preset( mixed $duotone_attr ): mixed {
+ 		if ( ! is_string( $duotone_attr ) ) {
+ 			return false;
+ 		}
+@@ -581,6 +594,7 @@
+ 		$filter_id = self::get_filter_id( $slug );
+ 
+ 		return array_key_exists( $filter_id, self::get_all_global_styles_presets() );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -596,8 +610,9 @@
+ 	 * @param string $slug The slug of the duotone preset.
+ 	 * @return string The CSS variable name.
+ 	 */
+-	private static function get_css_custom_property_name( $slug ) {
++	private static function get_css_custom_property_name( mixed $slug ): mixed {
+ 		return "--wp--preset--duotone--$slug";
++		return null;
+ 	}
+ 
+ 	/**
+@@ -613,8 +628,9 @@
+ 	 * @param string $slug The slug of the duotone preset.
+ 	 * @return string The ID of the duotone filter.
+ 	 */
+-	private static function get_filter_id( $slug ) {
++	private static function get_filter_id( mixed $slug ): mixed {
+ 		return "wp-duotone-$slug";
++		return null;
+ 	}
+ 
+ 	/**
+@@ -630,9 +646,10 @@
+ 	 * @param string $slug The slug of the duotone preset.
+ 	 * @return string The CSS variable.
+ 	 */
+-	private static function get_css_var( $slug ) {
++	private static function get_css_var( mixed $slug ): mixed {
+ 		$name = self::get_css_custom_property_name( $slug );
+ 		return "var($name)";
++		return null;
+ 	}
+ 
+ 	/**
+@@ -648,8 +665,9 @@
+ 	 * @param string $filter_id The ID of the filter.
+ 	 * @return string The URL for the duotone filter.
+ 	 */
+-	private static function get_filter_url( $filter_id ) {
++	private static function get_filter_url( mixed $filter_id ): mixed {
+ 		return "url(#$filter_id)";
++		return null;
+ 	}
+ 
+ 	/**
+@@ -665,7 +683,7 @@
+ 	 * @param array  $colors    An array of color strings.
+ 	 * @return string An SVG with a duotone filter definition.
+ 	 */
+-	private static function get_filter_svg( $filter_id, $colors ) {
++	private static function get_filter_svg( mixed $filter_id, mixed $colors ): mixed {
+ 		$duotone_values = array(
+ 			'r' => array(),
+ 			'g' => array(),
+@@ -695,8 +713,8 @@
  
  		ob_start();
  
@@ -11,7 +318,7 @@
  		<svg
  			xmlns="http://www.w3.org/2000/svg"
  			viewBox="0 0 0 0"
-@@ -707,7 +707,9 @@
+@@ -707,7 +725,9 @@
  			style="visibility: hidden; position: absolute; left: -9999px; overflow: hidden;"
  		>
  			<defs>
@@ -22,7 +329,7 @@
  					<feColorMatrix
  						color-interpolation-filters="sRGB"
  						type="matrix"
-@@ -719,17 +721,25 @@
+@@ -719,28 +739,37 @@
  						"
  					/>
  					<feComponentTransfer color-interpolation-filters="sRGB" >
@@ -53,3 +360,340 @@
  
  		$svg = ob_get_clean();
  
+ 		if ( ! SCRIPT_DEBUG ) {
+ 			// Clean up the whitespace.
+-			$svg = preg_replace( "/[\r\n\t ]+/", ' ', $svg );
+-			$svg = str_replace( '> <', '><', $svg );
++			$svg = \wp_aot_preg_replace( "/[\r\n\t ]+/", ' ', $svg );
++			$svg = \wp_aot_str_replace( '> <', '><', $svg );
+ 			$svg = trim( $svg );
+ 		}
+ 
+ 		return $svg;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -756,7 +785,7 @@
+ 	 * @param  array $preset Duotone preset value as seen in theme.json.
+ 	 * @return string        Duotone filter CSS id.
+ 	 */
+-	public static function get_filter_id_from_preset( $preset ) {
++	public static function get_filter_id_from_preset( mixed $preset ): mixed {
+ 		_deprecated_function( __FUNCTION__, '6.3.0' );
+ 
+ 		$filter_id = '';
+@@ -764,6 +793,7 @@
+ 			$filter_id = self::get_filter_id( $preset['slug'] );
+ 		}
+ 		return $filter_id;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -779,11 +809,12 @@
+ 	 * @param array $preset The duotone preset.
+ 	 * @return string The SVG for the filter definition.
+ 	 */
+-	public static function get_filter_svg_from_preset( $preset ) {
++	public static function get_filter_svg_from_preset( mixed $preset ): mixed {
+ 		_deprecated_function( __FUNCTION__, '6.3.0' );
+ 
+ 		$filter_id = self::get_filter_id_from_preset( $preset );
+ 		return self::get_filter_svg( $filter_id, $preset['colors'] );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -799,13 +830,14 @@
+ 	 * @param array $sources The duotone presets.
+ 	 * @return string The SVGs for the duotone filters.
+ 	 */
+-	private static function get_svg_definitions( $sources ) {
++	private static function get_svg_definitions( mixed $sources ): mixed {
+ 		$svgs = '';
+ 		foreach ( $sources as $filter_id => $filter_data ) {
+ 			$colors = $filter_data['colors'];
+ 			$svgs  .= self::get_filter_svg( $filter_id, $colors );
+ 		}
+ 		return $svgs;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -822,7 +854,7 @@
+ 	 * @param array $sources The duotone presets.
+ 	 * @return string The CSS for global styles.
+ 	 */
+-	private static function get_global_styles_presets( $sources ) {
++	private static function get_global_styles_presets( mixed $sources ): mixed {
+ 		$css = WP_Theme_JSON::ROOT_CSS_PROPERTIES_SELECTOR . '{';
+ 		foreach ( $sources as $filter_id => $filter_data ) {
+ 			$slug              = $filter_data['slug'];
+@@ -833,6 +865,7 @@
+ 		}
+ 		$css .= '}';
+ 		return $css;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -848,7 +881,7 @@
+ 	 * @param string $duotone_selector The block's duotone selector. e.g. '.wp-block-image img'.
+ 	 * @param string $filter_value     The filter CSS value. e.g. 'url(#wp-duotone-000000-ffffff-2)' or 'unset'.
+ 	 */
+-	private static function enqueue_block_css( $filter_id, $duotone_selector, $filter_value ) {
++	private static function enqueue_block_css( mixed $filter_id, mixed $duotone_selector, mixed $filter_value ): mixed {
+ 		// Build the CSS selectors to which the filter will be applied.
+ 		$selectors = explode( ',', $duotone_selector );
+ 
+@@ -870,6 +903,7 @@
+ 				'filter' => $filter_value,
+ 			),
+ 		);
++		return null;
+ 	}
+ 
+ 	/**
+@@ -886,9 +920,10 @@
+ 	 * @param string $filter_value     The filter CSS value. e.g. 'url(#wp-duotone-000000-ffffff-2)' or 'unset'.
+ 	 * @param array  $filter_data      Duotone filter data with 'slug' and 'colors' keys.
+ 	 */
+-	private static function enqueue_custom_filter( $filter_id, $duotone_selector, $filter_value, $filter_data ) {
++	private static function enqueue_custom_filter( mixed $filter_id, mixed $duotone_selector, mixed $filter_value, mixed $filter_data ): mixed {
+ 		self::$used_svg_filter_data[ $filter_id ] = $filter_data;
+ 		self::enqueue_block_css( $filter_id, $duotone_selector, $filter_value );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -904,7 +939,7 @@
+ 	 * @param string $duotone_selector The block's duotone selector. e.g. '.wp-block-image img'.
+ 	 * @param string $filter_value     The filter CSS value. e.g. 'url(#wp-duotone-blue-orange)' or 'unset'.
+ 	 */
+-	private static function enqueue_global_styles_preset( $filter_id, $duotone_selector, $filter_value ) {
++	private static function enqueue_global_styles_preset( mixed $filter_id, mixed $duotone_selector, mixed $filter_value ): mixed {
+ 		$global_styles_presets = self::get_all_global_styles_presets();
+ 		if ( ! array_key_exists( $filter_id, $global_styles_presets ) ) {
+ 			$error_message = sprintf(
+@@ -914,10 +949,11 @@
+ 				'theme.json'
+ 			);
+ 			_doing_it_wrong( __METHOD__, $error_message, '6.3.0' );
+-			return;
++			return null;
+ 		}
+ 		self::$used_global_styles_presets[ $filter_id ] = $global_styles_presets[ $filter_id ];
+ 		self::enqueue_custom_filter( $filter_id, $duotone_selector, $filter_value, $global_styles_presets[ $filter_id ] );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -929,7 +965,7 @@
+ 	 *
+ 	 * @param WP_Block_Type $block_type Block Type.
+ 	 */
+-	public static function register_duotone_support( $block_type ) {
++	public static function register_duotone_support( mixed $block_type ): mixed {
+ 		/*
+ 		 * Previous `color.__experimentalDuotone` support flag is migrated
+ 		 * to `filter.duotone` via `block_type_metadata_settings` filter.
+@@ -945,6 +981,7 @@
+ 				);
+ 			}
+ 		}
++		return null;
+ 	}
+ 
+ 	/**
+@@ -959,7 +996,7 @@
+ 	 * @param WP_Block_Type $block_type Block type to check for support.
+ 	 * @return string|null The CSS selector or null if there is no support.
+ 	 */
+-	private static function get_selector( $block_type ) {
++	private static function get_selector( mixed $block_type ): mixed {
+ 		if ( ! ( $block_type instanceof WP_Block_Type ) ) {
+ 			return null;
+ 		}
+@@ -990,6 +1027,7 @@
+ 
+ 		// Regular filter.duotone support uses filter.duotone selectors with fallbacks.
+ 		return wp_get_block_css_selector( $block_type, array( 'filter', 'duotone' ), true );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1003,7 +1041,7 @@
+ 	 *
+ 	 * @return array An array of global styles presets, keyed on the filter ID.
+ 	 */
+-	private static function get_all_global_styles_presets() {
++	private static function get_all_global_styles_presets(): mixed {
+ 		if ( isset( self::$global_styles_presets ) ) {
+ 			return self::$global_styles_presets;
+ 		}
+@@ -1021,6 +1059,7 @@
+ 		}
+ 
+ 		return self::$global_styles_presets;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1033,7 +1072,7 @@
+ 	 *
+ 	 * @return string[] An array of global style block slugs, keyed on the block name.
+ 	 */
+-	private static function get_all_global_style_block_names() {
++	private static function get_all_global_style_block_names(): mixed {
+ 		if ( isset( self::$global_styles_block_names ) ) {
+ 			return self::$global_styles_block_names;
+ 		}
+@@ -1051,7 +1090,7 @@
+ 			}
+ 
+ 			// Value looks like this: 'var(--wp--preset--duotone--blue-orange)' or 'var:preset|duotone|blue-orange'.
+-			$duotone_attr_path = array_merge( $block_node['path'], array( 'filter', 'duotone' ) );
++			$duotone_attr_path = \wp_aot_array_merge(array( $block_node['path'], array( 'filter', 'duotone' ) ));
+ 			$duotone_attr      = _wp_array_get( $theme_json, $duotone_attr_path, array() );
+ 
+ 			if ( empty( $duotone_attr ) ) {
+@@ -1070,6 +1109,7 @@
+ 			}
+ 		}
+ 		return self::$global_styles_block_names;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1085,7 +1125,7 @@
+ 	 * @param  WP_Block $wp_block      The block instance.
+ 	 * @return string Filtered block content.
+ 	 */
+-	public static function render_duotone_support( $block_content, $block, $wp_block ) {
++	public static function render_duotone_support( mixed $block_content, mixed $block, mixed $wp_block ): mixed {
+ 		if ( ! $block['blockName'] ) {
+ 			return $block_content;
+ 		}
+@@ -1163,6 +1203,7 @@
+ 			$tags->add_class( $filter_id );
+ 		}
+ 		return $tags->get_updated_html();
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1174,7 +1215,7 @@
+ 	 * @param string $block_content Rendered block content.
+ 	 * @return string Filtered block content.
+ 	 */
+-	public static function restore_image_outer_container( $block_content ) {
++	public static function restore_image_outer_container( mixed $block_content ): mixed {
+ 		if ( wp_theme_has_theme_json() ) {
+ 			return $block_content;
+ 		}
+@@ -1201,6 +1242,7 @@
+ 		}
+ 
+ 		return $tags->get_updated_html();
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1210,7 +1252,7 @@
+ 	 *
+ 	 * @since 6.3.0
+ 	 */
+-	public static function output_block_styles() {
++	public static function output_block_styles(): mixed {
+ 		if ( ! empty( self::$block_css_declarations ) ) {
+ 			wp_style_engine_get_stylesheet_from_css_rules(
+ 				self::$block_css_declarations,
+@@ -1219,6 +1261,7 @@
+ 				)
+ 			);
+ 		}
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1229,10 +1272,11 @@
+ 	 *
+ 	 * @since 6.3.0
+ 	 */
+-	public static function output_global_styles() {
++	public static function output_global_styles(): mixed {
+ 		if ( ! empty( self::$used_global_styles_presets ) ) {
+ 			wp_add_inline_style( 'global-styles', self::get_global_styles_presets( self::$used_global_styles_presets ) );
+ 		}
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1243,7 +1287,7 @@
+ 	 *
+ 	 * @since 6.3.0
+ 	 */
+-	public static function output_footer_assets() {
++	public static function output_footer_assets(): mixed {
+ 		if ( ! empty( self::$used_svg_filter_data ) ) {
+ 			echo self::get_svg_definitions( self::$used_svg_filter_data );
+ 		}
+@@ -1260,6 +1304,7 @@
+ 			}
+ 			wp_enqueue_style( $style_tag_id );
+ 		}
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1273,7 +1318,7 @@
+ 	 * @param array $settings The block editor settings from the `block_editor_settings_all` filter.
+ 	 * @return array The editor settings with duotone SVGs and CSS custom properties.
+ 	 */
+-	public static function add_editor_settings( $settings ) {
++	public static function add_editor_settings( mixed $settings ): mixed {
+ 		$global_styles_presets = self::get_all_global_styles_presets();
+ 		if ( ! empty( $global_styles_presets ) ) {
+ 			if ( ! isset( $settings['styles'] ) ) {
+@@ -1300,6 +1345,7 @@
+ 		}
+ 
+ 		return $settings;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1313,7 +1359,7 @@
+ 	 * @param array $metadata Block metadata as read in via block.json.
+ 	 * @return array Filtered block type settings.
+ 	 */
+-	public static function migrate_experimental_duotone_support_flag( $settings, $metadata ) {
++	public static function migrate_experimental_duotone_support_flag( mixed $settings, mixed $metadata ): mixed {
+ 		$duotone_support = $metadata['supports']['color']['__experimentalDuotone'] ?? null;
+ 
+ 		if ( ! isset( $settings['supports']['filter']['duotone'] ) && null !== $duotone_support ) {
+@@ -1321,6 +1367,7 @@
+ 		}
+ 
+ 		return $settings;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1336,7 +1383,7 @@
+ 	 * @param array $preset The duotone preset.
+ 	 * @return string The CSS filter property value.
+ 	 */
+-	public static function get_filter_css_property_value_from_preset( $preset ) {
++	public static function get_filter_css_property_value_from_preset( mixed $preset ): mixed {
+ 		_deprecated_function( __FUNCTION__, '6.3.0' );
+ 
+ 		if ( isset( $preset['colors'] ) && is_string( $preset['colors'] ) ) {
+@@ -1346,5 +1393,6 @@
+ 		$filter_id = self::get_filter_id_from_preset( $preset );
+ 
+ 		return 'url(#' . $filter_id . ')';
++		return null;
+ 	}
+ }

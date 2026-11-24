@@ -1,0 +1,42 @@
+--- a/wp-includes/php-ai-client/src/Files/ValueObjects/MimeType.php
++++ b/wp-includes/php-ai-client/src/Files/ValueObjects/MimeType.php
+@@ -116,7 +116,7 @@
+     public function toExtension(): string
+     {
+         // Reverse lookup for the MIME type to find the extension.
+-        $extension = array_search($this->value, self::$extensionMap, \true);
++        $extension = \wp_aot_array_search($this->value, \wp_aot_require_array( self::$extensionMap ), \true);
+         if ($extension === \false) {
+             throw new InvalidArgumentException(sprintf('No known extension for MIME type: %s', $this->value));
+         }
+@@ -137,7 +137,7 @@
+         if (!isset(self::$extensionMap[$extension])) {
+             throw new InvalidArgumentException(sprintf('Unknown file extension: %s', $extension));
+         }
+-        return new self(self::$extensionMap[$extension]);
++        return new \WordPress\AiClient\Files\ValueObjects\MimeType(self::$extensionMap[$extension]);
+     }
+     /**
+      * Checks if a MIME type string is valid.
+@@ -150,7 +150,7 @@
+     public static function isValid(string $mimeType): bool
+     {
+         // Basic MIME type validation: type/subtype
+-        return (bool) preg_match('/^[a-zA-Z0-9][a-zA-Z0-9!#$&\-\^_+.]*\/[a-zA-Z0-9][a-zA-Z0-9!#$&\-\^_+.]*$/', $mimeType);
++        return (bool) preg_match('/^[a-zA-Z0-9][a-zA-Z0-9!#$&\-\^_+.]*\/[a-zA-Z0-9][a-zA-Z0-9!#$&\-\^_+.]*$/', \wp_aot_regex_text( (string) ($mimeType) ));
+     }
+     /**
+      * Checks if this MIME type is a specific type.
+@@ -231,9 +231,9 @@
+      * @return bool True if equal.
+      * @throws InvalidArgumentException If the other MIME type is invalid.
+      */
+-    public function equals($other): bool
+-    {
+-        if ($other instanceof self) {
++    public function equals(mixed $other): bool
++    {
++        if ($other instanceof \WordPress\AiClient\Files\ValueObjects\MimeType) {
+             return $this->value === $other->value;
+         }
+         if (is_string($other)) {

@@ -1,6 +1,88 @@
 --- a/wp-includes/build/pages/options-connectors/page.php
 +++ b/wp-includes/build/pages/options-connectors/page.php
-@@ -155,7 +155,7 @@
+@@ -19,7 +19,7 @@
+  * @param string|null $content_module Script module ID for content (stage/inspector).
+  * @param string|null $route_module   Script module ID for route lifecycle hooks.
+  */
+-function wp_register_options_connectors_route( $path, $content_module = null, $route_module = null ) {
++function wp_register_options_connectors_route( mixed $path, mixed $content_module = null, mixed $route_module = null ): mixed {
+ 	global $wp_options_connectors_routes;
+ 
+ 	$route = array( 'path' => $path );
+@@ -31,6 +31,7 @@
+ 	}
+ 
+ 	$wp_options_connectors_routes[] = $route;
++	return null;
+ }
+ 
+ /**
+@@ -42,7 +43,7 @@
+  * @param string $parent_id   Optional. Parent menu item ID.
+  * @param string $parent_type Optional. Parent type: 'drilldown' or 'dropdown'.
+  */
+-function wp_register_options_connectors_menu_item( $id, $label, $to, $parent_id = '', $parent_type = '' ) {
++function wp_register_options_connectors_menu_item( mixed $id, mixed $label, mixed $to, mixed $parent_id = '', mixed $parent_type = '' ): mixed {
+ 	global $wp_options_connectors_menu_items;
+ 
+ 	$menu_item = array(
+@@ -60,6 +61,7 @@
+ 	}
+ 
+ 	$wp_options_connectors_menu_items[] = $menu_item;
++	return null;
+ }
+ 
+ /**
+@@ -67,9 +69,10 @@
+  *
+  * @return array Array of route objects.
+  */
+-function wp_get_options_connectors_routes() {
++function wp_get_options_connectors_routes(): mixed {
+ 	global $wp_options_connectors_routes;
+ 	return $wp_options_connectors_routes ?? array();
++	return null;
+ }
+ 
+ /**
+@@ -77,16 +80,17 @@
+  *
+  * @return array Array of menu item objects.
+  */
+-function wp_get_options_connectors_menu_items() {
++function wp_get_options_connectors_menu_items(): mixed {
+ 	global $wp_options_connectors_menu_items;
+ 	return $wp_options_connectors_menu_items ?? array();
++	return null;
+ }
+ 
+ /**
+  * Preload REST API data for the options-connectors page.
+  * Automatically called during page rendering.
+  */
+-function wp_options_connectors_preload_data() {
++function wp_options_connectors_preload_data(): mixed {
+ 	// Define paths to preload - same for all pages
+ 	// This must exactly match the _fields list in packages/core-data/src/entities.js,
+ 	// same fields in the same order, or the preload is never consumed.
+@@ -111,13 +115,14 @@
+ 		),
+ 		'after'
+ 	);
++	return null;
+ }
+ 
+ /**
+  * Render the options-connectors page.
+  * Call this function from add_menu_page or add_submenu_page.
+  */
+-function wp_options_connectors_render_page() {
++function wp_options_connectors_render_page(): mixed {
+ 	// Load build constants
+ 	$build_constants = require __DIR__ . '/../../constants.php';
+ 
+@@ -155,7 +160,7 @@
  	// Get boot module asset file for dependencies
  	$asset_file = ABSPATH . WPINC . '/js/dist/script-modules/boot/index.min.asset.php';
  	if ( file_exists( $asset_file ) ) {
@@ -9,7 +91,30 @@
  
  		// This script serves two purposes:
  		// 1. It ensures all the globals that are made available to the modules are loaded.
-@@ -241,13 +241,19 @@
+@@ -177,9 +182,9 @@
+ 		);
+ 
+ 		// Register prerequisites style by filtering script dependencies to find registered styles
+-		$style_dependencies = array_filter(
++		$style_dependencies = \wp_aot_array_filter(
+ 			$asset['dependencies'],
+-			function ( $handle ) {
++			function ( mixed $handle ) {
+ 				return wp_style_is( $handle, 'registered' );
+ 			}
+ 		);
+@@ -231,8 +236,8 @@
+ 		wp_register_script_module(
+ 			'options-connectors',
+ 			$build_constants['build_url'] . 'pages/options-connectors/loader.js',
+-			$boot_dependencies
+-		);
++			\wp_aot_array_input($boot_dependencies
++		));
+ 
+ 		// Enqueue the boot scripts and styles
+ 		wp_enqueue_script( 'options-connectors-prerequisites' );
+@@ -241,13 +246,19 @@
  	}
  
  	// Output the HTML
@@ -34,7 +139,7 @@
  		<style>
  			html {
  				background: #f1f1f1;
-@@ -261,7 +267,7 @@
+@@ -261,7 +272,7 @@
  			}
  			#wpadminbar { display: none; }
  		</style>
@@ -43,7 +148,7 @@
  	global $hook_suffix;
  	// phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited
  	$hook_suffix = 'options-connectors';
-@@ -276,11 +282,11 @@
+@@ -276,11 +287,11 @@
  	/** This action is documented in wp-admin/admin-header.php */
  	do_action( 'admin_head' );
  	// END see wp-admin/admin-header.php
@@ -58,7 +163,7 @@
  	// BEGIN see wp-admin/admin-footer.php
  
  	/** This action is documented in wp-admin/admin-footer.php */
-@@ -296,10 +302,10 @@
+@@ -296,18 +307,19 @@
  	/** This action is documented in wp-admin/admin-footer.php */
  	do_action( "admin_footer-{$hook_suffix}" ); // phpcs:ignore WordPress.NamingConventions.ValidHookName.UseUnderscores
  	// END see wp-admin/admin-footer.php
@@ -68,7 +173,30 @@
 +echo '	</body>
  	</html>
 -	<?php
+-	exit;
 +	';
- 	exit;
++	\wp_aot_exit();
++	return null;
  }
  
+ /**
+  * Intercept admin_init to render the page early.
+  * This bypasses the default WordPress admin template.
+  */
+-function wp_options_connectors_intercept_render() {
++function wp_options_connectors_intercept_render(): mixed {
+ 	// phpcs:ignore WordPress.Security.NonceVerification.Recommended
+ 	if ( isset( $_GET['page'] ) && 'options-connectors' === $_GET['page'] ) {
+ 		// The page renders outside the menu page callback flow, so it must
+@@ -327,8 +339,9 @@
+ 		}
+ 
+ 		wp_options_connectors_render_page();
+-		exit;
+-	}
++		\wp_aot_exit();
++	}
++	return null;
+ }
+ 
+ // Hook the interceptor to admin_init

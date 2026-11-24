@@ -1,0 +1,70 @@
+--- a/wp-includes/IXR/class-IXR-value.php
++++ b/wp-includes/IXR/class-IXR-value.php
+@@ -6,13 +6,13 @@
+  * @since 1.5.0
+  */
+ class IXR_Value {
+-    var $data;
+-    var $type;
++    public $data;
++    public $type;
+ 
+ 	/**
+ 	 * PHP5 constructor.
+ 	 */
+-	function __construct( $data, $type = false )
++	function __construct( mixed $data, mixed $type = false )
+     {
+         $this->data = $data;
+         if (!$type) {
+@@ -35,11 +35,12 @@
+ 	/**
+ 	 * PHP4 constructor.
+ 	 */
+-	public function IXR_Value( $data, $type = false ) {
++	public function IXR_Value( mixed $data, mixed $type = false ): mixed {
+ 		self::__construct( $data, $type );
++		return null;
+ 	}
+ 
+-    function calculateType()
++    function calculateType(): mixed
+     {
+         if ($this->data === true || $this->data === false) {
+             return 'boolean';
+@@ -74,9 +75,10 @@
+         } else {
+             return 'array';
+         }
++    	return null;
+     }
+ 
+-    function getXml()
++    function getXml(): mixed
+     {
+         // Return XML for this value
+         switch ($this->type) {
+@@ -116,6 +118,7 @@
+                 break;
+         }
+         return false;
++    	return null;
+     }
+ 
+     /**
+@@ -124,7 +127,7 @@
+      * @param array $array
+      * @return bool
+      */
+-    function isStruct($array)
++    function isStruct(mixed $array): mixed
+     {
+         $expected = 0;
+         foreach ($array as $key => $value) {
+@@ -134,5 +137,6 @@
+             $expected++;
+         }
+         return false;
++    	return null;
+     }
+ }

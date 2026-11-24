@@ -1,0 +1,155 @@
+--- a/wp-includes/rest-api/endpoints/class-wp-rest-font-collections-controller.php
++++ b/wp-includes/rest-api/endpoints/class-wp-rest-font-collections-controller.php
+@@ -31,7 +31,7 @@
+ 	 *
+ 	 * @since 6.5.0
+ 	 */
+-	public function register_routes() {
++	public function register_routes(): mixed {
+ 		register_rest_route(
+ 			$this->namespace,
+ 			'/' . $this->rest_base,
+@@ -62,6 +62,7 @@
+ 				'schema' => array( $this, 'get_public_item_schema' ),
+ 			)
+ 		);
++		return null;
+ 	}
+ 
+ 	/**
+@@ -72,7 +73,7 @@
+ 	 * @param WP_REST_Request $request Full details about the request.
+ 	 * @return WP_REST_Response|WP_Error Response object on success, or WP_Error object on failure.
+ 	 */
+-	public function get_items( $request ) {
++	public function get_items( mixed $request ): mixed {
+ 		$collections_all = WP_Font_Library::get_instance()->get_font_collections();
+ 
+ 		$page        = $request['page'];
+@@ -88,7 +89,7 @@
+ 			);
+ 		}
+ 
+-		$collections_page = array_slice( $collections_all, ( $page - 1 ) * $per_page, $per_page );
++		$collections_page = \wp_aot_array_slice( $collections_all, ( $page - 1 ) * $per_page, $per_page );
+ 
+ 		$is_head_request = $request->is_method( 'HEAD' );
+ 
+@@ -141,6 +142,7 @@
+ 		}
+ 
+ 		return $response;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -151,7 +153,7 @@
+ 	 * @param WP_REST_Request $request Full details about the request.
+ 	 * @return WP_REST_Response|WP_Error Response object on success, or WP_Error object on failure.
+ 	 */
+-	public function get_item( $request ) {
++	public function get_item( mixed $request ): mixed {
+ 		$slug       = $request->get_param( 'slug' );
+ 		$collection = WP_Font_Library::get_instance()->get_font_collection( $slug );
+ 
+@@ -160,6 +162,7 @@
+ 		}
+ 
+ 		return $this->prepare_item_for_response( $collection, $request );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -171,7 +174,7 @@
+ 	* @param WP_REST_Request    $request Request object.
+ 	* @return WP_REST_Response|WP_Error Response object on success, or WP_Error object on failure.
+ 	*/
+-	public function prepare_item_for_response( $item, $request ) {
++	public function prepare_item_for_response( mixed $item, mixed $request ): mixed {
+ 		$fields = $this->get_fields_for_response( $request );
+ 		$data   = array();
+ 
+@@ -181,7 +184,7 @@
+ 
+ 		// If any data fields are requested, get the collection data.
+ 		$data_fields = array( 'name', 'description', 'font_families', 'categories' );
+-		if ( ! empty( array_intersect( $fields, $data_fields ) ) ) {
++		if ( ! empty( \wp_aot_array_intersect(array( $fields, $data_fields )) ) ) {
+ 			$collection_data = $item->get_data();
+ 			if ( is_wp_error( $collection_data ) ) {
+ 				$collection_data->add_data( array( 'status' => 500 ) );
+@@ -234,6 +237,7 @@
+ 		 * @param WP_REST_Request    $request  Request used to generate the response.
+ 		 */
+ 		return apply_filters( 'rest_prepare_font_collection', $response, $item, $request );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -243,7 +247,7 @@
+ 	 *
+ 	 * @return array Item schema data.
+ 	 */
+-	public function get_item_schema() {
++	public function get_item_schema(): mixed {
+ 		if ( $this->schema ) {
+ 			return $this->add_additional_fields_schema( $this->schema );
+ 		}
+@@ -285,6 +289,7 @@
+ 		$this->schema = $schema;
+ 
+ 		return $this->add_additional_fields_schema( $this->schema );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -295,7 +300,7 @@
+ 	 * @param WP_Font_Collection $collection Font collection data
+ 	 * @return array Links for the given font collection.
+ 	 */
+-	protected function prepare_links( $collection ) {
++	protected function prepare_links( mixed $collection ): mixed {
+ 		return array(
+ 			'self'       => array(
+ 				'href' => rest_url( sprintf( '%s/%s/%s', $this->namespace, $this->rest_base, $collection->slug ) ),
+@@ -304,6 +309,7 @@
+ 				'href' => rest_url( sprintf( '%s/%s', $this->namespace, $this->rest_base ) ),
+ 			),
+ 		);
++		return null;
+ 	}
+ 
+ 	/**
+@@ -313,7 +319,7 @@
+ 	 *
+ 	 * @return array Collection parameters.
+ 	 */
+-	public function get_collection_params() {
++	public function get_collection_params(): mixed {
+ 		$query_params = parent::get_collection_params();
+ 
+ 		$query_params['context'] = $this->get_context_param( array( 'default' => 'view' ) );
+@@ -328,6 +334,7 @@
+ 		 * @param array $query_params JSON Schema-formatted collection parameters.
+ 		 */
+ 		return apply_filters( 'rest_font_collections_collection_params', $query_params );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -337,7 +344,7 @@
+ 	 *
+ 	 * @return true|WP_Error True if the request has write access for the item, WP_Error object otherwise.
+ 	 */
+-	public function get_items_permissions_check( $request ) {
++	public function get_items_permissions_check( mixed $request ): mixed {
+ 		if ( current_user_can( 'edit_theme_options' ) ) {
+ 			return true;
+ 		}
+@@ -349,5 +356,6 @@
+ 				'status' => rest_authorization_required_code(),
+ 			)
+ 		);
++		return null;
+ 	}
+ }

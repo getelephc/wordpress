@@ -1,0 +1,58 @@
+--- a/wp-includes/speculative-loading.php
++++ b/wp-includes/speculative-loading.php
+@@ -122,13 +122,13 @@
+  * }
+  */
+ function wp_get_speculation_rules_default_configuration(): array {
+-	$default_mode = 'prefetch';
++	$default_mode = \wp_aot_mixed('prefetch');
+ 	$mode         = wp_get_speculative_loading_override( 'WP_SPECULATIVE_LOADING_DEFAULT_MODE' );
+ 	if ( WP_Speculation_Rules::is_valid_mode( $mode ) ) {
+ 		$default_mode = $mode;
+ 	}
+ 
+-	$default_eagerness = 'conservative';
++	$default_eagerness = \wp_aot_mixed('conservative');
+ 	$eagerness         = wp_get_speculative_loading_override( 'WP_SPECULATIVE_LOADING_DEFAULT_EAGERNESS' );
+ 	if (
+ 		WP_Speculation_Rules::is_valid_eagerness( $eagerness ) &&
+@@ -167,8 +167,8 @@
+ 	}
+ 
+ 	// Fetch the value from a constant, which overrides the environment variable.
+-	if ( defined( $name ) ) {
+-		$has_constant = constant( $name );
++	if ( \wp_aot_metadata_defined( $name ) ) {
++		$has_constant = \wp_aot_metadata_constant( $name );
+ 		if ( is_string( $has_constant ) ) {
+ 			$value = $has_constant;
+ 		}
+@@ -239,23 +239,23 @@
+ 	 * @param string   $mode               Mode used to apply speculative loading. Either 'prefetch' or 'prerender'.
+ 	 */
+ 	$href_exclude_paths = (array) apply_filters( 'wp_speculation_rules_href_exclude_paths', array(), $mode );
+-	$href_exclude_paths = array_filter( $href_exclude_paths, 'is_string' );
++	$href_exclude_paths = \wp_aot_array_filter( $href_exclude_paths, 'is_string' );
+ 
+ 	// Ensure that:
+ 	// 1. There are no duplicates.
+ 	// 2. The base paths cannot be removed.
+ 	// 3. The array has sequential keys (i.e. array_is_list()).
+ 	$href_exclude_paths = array_values(
+-		array_unique(
+-			array_merge(
++		\wp_aot_array_unique(
++			\wp_aot_array_merge(array(
+ 				$base_href_exclude_paths,
+-				array_map(
++				\wp_aot_array_map(
+ 					static function ( string $href_exclude_path ) use ( $prefixer ): string {
+ 						return $prefixer->prefix_path_pattern( $href_exclude_path );
+ 					},
+ 					$href_exclude_paths
+ 				)
+-			)
++			))
+ 		)
+ 	);
+ 

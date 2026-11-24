@@ -1,0 +1,11 @@
+--- a/wp-content/plugins/akismet/views/setup-jetpack.php
++++ b/wp-content/plugins/akismet/views/setup-jetpack.php
+@@ -45,7 +45,7 @@
+ 				<?php esc_html_e( "Your Jetpack account is connected, but it doesn't have an active Akismet subscription yet. To continue, please choose a plan on Akismet.com.", 'akismet' ); ?>
+ 			</p>
+ 
+-			<a href="https://akismet.com/get?utm_source=akismet_plugin&amp;utm_campaign=plugin_static_link&amp;utm_medium=in_plugin&amp;utm_content=jetpack_flow_<?php echo esc_attr( str_replace( '-', '_', $user_status ) ); ?>" class="akismet-setup__connection-button akismet-button">
++			<a href="https://akismet.com/get?utm_source=akismet_plugin&amp;utm_campaign=plugin_static_link&amp;utm_medium=in_plugin&amp;utm_content=jetpack_flow_<?php echo esc_attr( \wp_aot_str_replace( '-', '_', $user_status ) ); ?>" class="akismet-setup__connection-button akismet-button">
+ 				<?php esc_html_e( 'Choose a plan on Akismet.com', 'akismet' ); ?>
+ 			</a>
+ 

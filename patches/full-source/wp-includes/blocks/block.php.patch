@@ -1,0 +1,37 @@
+--- a/wp-includes/blocks/block.php
++++ b/wp-includes/blocks/block.php
+@@ -16,8 +16,9 @@
+  *
+  * @return string Rendered HTML of the referenced block.
+  */
+-function render_block_core_block( $attributes, $content, $block_instance ) {
+-	static $seen_refs = array();
++function render_block_core_block( mixed $attributes, mixed $content, mixed $block_instance ): mixed {
++	static $seen_refs_aot_cell = new \WordPressStaticArrayCell();
++	$seen_refs =& $seen_refs_aot_cell->value;
+ 
+ 	if ( empty( $attributes['ref'] ) ) {
+ 		return '';
+@@ -89,6 +90,7 @@
+ 	unset( $seen_refs[ $attributes['ref'] ] );
+ 
+ 	return $content;
++	return null;
+ }
+ 
+ /**
+@@ -96,12 +98,13 @@
+  *
+  * @since 5.3.0
+  */
+-function register_block_core_block() {
++function register_block_core_block(): mixed {
+ 	register_block_type_from_metadata(
+ 		__DIR__ . '/block',
+ 		array(
+ 			'render_callback' => 'render_block_core_block',
+ 		)
+ 	);
++	return null;
+ }
+ add_action( 'init', 'register_block_core_block' );

@@ -1,0 +1,65 @@
+--- a/wp-trackback.php
++++ b/wp-trackback.php
+@@ -39,7 +39,7 @@
+ 		echo "<error>1</error>\n";
+ 		echo '<message>' . esc_xml( $error_message ) . "</message>\n";
+ 		echo '</response>';
+-		die();
++		\wp_aot_exit();
+ 	} else {
+ 		echo '<?xml version="1.0" encoding="utf-8"?' . ">\n";
+ 		echo "<response>\n";
+@@ -62,7 +62,7 @@
+ $blog_name = isset( $_POST['blog_name'] ) ? sanitize_text_field( wp_unslash( $_POST['blog_name'] ) ) : '';
+ 
+ if ( $charset ) {
+-	$charset = str_replace( array( ',', ' ' ), '', strtoupper( trim( $charset ) ) );
++	$charset = \wp_aot_str_replace( array( ',', ' ' ), '', strtoupper( trim( $charset ) ) );
+ 
+ 	// Validate the specified "sender" charset is available on the receiving site.
+ 	if ( function_exists( 'mb_list_encodings' ) && ! in_array( $charset, mb_list_encodings(), true ) ) {
+@@ -76,7 +76,7 @@
+ 
+ // No valid uses for UTF-7.
+ if ( str_contains( $charset, 'UTF-7' ) ) {
+-	die;
++	\wp_aot_exit();
+ }
+ 
+ // For international trackbacks.
+@@ -102,7 +102,7 @@
+ if ( empty( $title ) && empty( $trackback_url ) && empty( $blog_name ) ) {
+ 	// If it doesn't look like a trackback at all.
+ 	wp_redirect( get_permalink( $post_id ) );
+-	exit;
++	\wp_aot_exit();
+ }
+ 
+ if ( ! empty( $trackback_url ) && ! empty( $title ) ) {
+@@ -136,8 +136,8 @@
+ 	$comment_content      = "<strong>$title</strong>\n\n$excerpt";
+ 	$comment_type         = 'trackback';
+ 
+-	$dupe = $wpdb->get_results(
+-		$wpdb->prepare(
++	$dupe = \wp_aot_require_wpdb( $wpdb )->get_results(
++		\wp_aot_require_wpdb( $wpdb )->prepare(
+ 			"SELECT * FROM $wpdb->comments WHERE comment_post_ID = %d AND comment_author_url = %s",
+ 			$comment_post_id,
+ 			$comment_author_url
+@@ -152,13 +152,13 @@
+ 		'comment_post_ID' => $comment_post_id,
+ 	);
+ 
+-	$commentdata += compact(
++	$commentdata += \wp_aot_compact(get_defined_vars(), array(
+ 		'comment_author',
+ 		'comment_author_email',
+ 		'comment_author_url',
+ 		'comment_content',
+ 		'comment_type'
+-	);
++	));
+ 
+ 	$result = wp_new_comment( $commentdata );
+ 

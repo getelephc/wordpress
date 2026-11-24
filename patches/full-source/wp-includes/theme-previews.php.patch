@@ -1,8 +1,49 @@
 --- a/wp-includes/theme-previews.php
 +++ b/wp-includes/theme-previews.php
-@@ -68,11 +68,13 @@
+@@ -13,7 +13,7 @@
+  * @param string $current_stylesheet The current theme's stylesheet or template path.
+  * @return string The previewed theme's stylesheet or template path.
   */
- function wp_block_theme_activate_nonce() {
+-function wp_get_theme_preview_path( $current_stylesheet = null ) {
++function wp_get_theme_preview_path( mixed $current_stylesheet = null ): mixed {
+ 	if ( ! current_user_can( 'switch_themes' ) ) {
+ 		return $current_stylesheet;
+ 	}
+@@ -31,6 +31,7 @@
+ 	}
+ 
+ 	return $current_stylesheet;
++	return null;
+ }
+ 
+ /**
+@@ -39,10 +40,10 @@
+  *
+  * @since 6.3.0
+  */
+-function wp_attach_theme_preview_middleware() {
++function wp_attach_theme_preview_middleware(): mixed {
+ 	// Don't allow non-admins to preview themes.
+ 	if ( ! current_user_can( 'switch_themes' ) ) {
+-		return;
++		return null;
+ 	}
+ 
+ 	wp_add_inline_script(
+@@ -53,6 +54,7 @@
+ 		),
+ 		'after'
+ 	);
++	return null;
+ }
+ 
+ /**
+@@ -66,13 +68,16 @@
+  * @since 6.3.0
+  * @access private
+  */
+-function wp_block_theme_activate_nonce() {
++function wp_block_theme_activate_nonce(): mixed {
  	$nonce_handle = 'switch-theme_' . wp_get_theme_preview_path();
 -	?>
 -	<script>
@@ -15,6 +56,21 @@
  	</script>
 -	<?php
 +	';
++	return null;
  }
  
  /**
+@@ -83,11 +88,12 @@
+  *
+  * @since 6.3.2
+  */
+-function wp_initialize_theme_preview_hooks() {
++function wp_initialize_theme_preview_hooks(): mixed {
+ 	if ( ! empty( $_GET['wp_theme_preview'] ) ) {
+ 		add_filter( 'stylesheet', 'wp_get_theme_preview_path' );
+ 		add_filter( 'template', 'wp_get_theme_preview_path' );
+ 		add_action( 'init', 'wp_attach_theme_preview_middleware' );
+ 		add_action( 'admin_head', 'wp_block_theme_activate_nonce' );
+ 	}
++	return null;
+ }

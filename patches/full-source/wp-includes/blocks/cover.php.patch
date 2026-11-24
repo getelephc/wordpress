@@ -1,0 +1,59 @@
+--- a/wp-includes/blocks/cover.php
++++ b/wp-includes/blocks/cover.php
+@@ -15,7 +15,7 @@
+  *
+  * @return string Returns the cover block markup, if useFeaturedImage is true.
+  */
+-function render_block_core_cover( $attributes, $content ) {
++function render_block_core_cover( mixed $attributes, mixed $content ): mixed {
+ 	// Handle embed video background.
+ 	if (
+ 		isset( $attributes['backgroundType'] ) &&
+@@ -31,7 +31,7 @@
+ 
+ 		if ( $oembed_html ) {
+ 			// Extract iframe src from the oEmbed HTML.
+-			preg_match( '/src=["\']([^"\']+)["\']/', $oembed_html, $src_matches );
++			preg_match( '/src=["\']([^"\']+)["\']/', \wp_aot_regex_text( $oembed_html ), $src_matches );
+ 			if ( ! empty( $src_matches[1] ) ) {
+ 				$iframe_src = $src_matches[1];
+ 
+@@ -115,7 +115,7 @@
+ 					// Use regex with PREG_OFFSET_CAPTURE to find the position of the figure element.
+ 					// This follows the same pattern used for featured image insertion below.
+ 					$figure_pattern = '/<figure\s+[^>]*\bwp-block-embed\b[^>]*>.*?<\/figure>/is';
+-					if ( 1 === preg_match( $figure_pattern, $content, $matches, PREG_OFFSET_CAPTURE ) ) {
++					if ( 1 === \wp_aot_preg_match( $figure_pattern, $content, $matches, PREG_OFFSET_CAPTURE ) ) {
+ 						$figure_start  = $matches[0][1];
+ 						$figure_length = strlen( $matches[0][0] );
+ 						$figure_end    = $figure_start + $figure_length;
+@@ -191,12 +191,13 @@
+ 	 * and removes eventual whitespace characters between the two (typically introduced at template level)
+ 	 */
+ 	$inner_container_start = '/<div\b[^>]+wp-block-cover__inner-container[\s|"][^>]*>/U';
+-	if ( 1 === preg_match( $inner_container_start, $content, $matches, PREG_OFFSET_CAPTURE ) ) {
++	if ( 1 === \wp_aot_preg_match( $inner_container_start, $content, $matches, PREG_OFFSET_CAPTURE ) ) {
+ 		$offset  = $matches[0][1];
+ 		$content = substr( $content, 0, $offset ) . $image . substr( $content, $offset );
+ 	}
+ 
+ 	return $content;
++	return null;
+ }
+ 
+ /**
+@@ -204,12 +205,13 @@
+  *
+  * @since 6.0.0
+  */
+-function register_block_core_cover() {
++function register_block_core_cover(): mixed {
+ 	register_block_type_from_metadata(
+ 		__DIR__ . '/cover',
+ 		array(
+ 			'render_callback' => 'render_block_core_cover',
+ 		)
+ 	);
++	return null;
+ }
+ add_action( 'init', 'register_block_core_cover' );

@@ -1,0 +1,114 @@
+--- a/wp-includes/php-ai-client/src/Providers/Models/DTO/ModelConfig.php
++++ b/wp-includes/php-ai-client/src/Providers/Models/DTO/ModelConfig.php
+@@ -46,7 +46,7 @@
+  *     customOptions?: array<string, mixed>
+  * }
+  *
+- * @extends AbstractDataTransferObject<ModelConfigArrayShape>
++ * @phpstan-extends AbstractDataTransferObject<ModelConfigArrayShape>
+  */
+ class ModelConfig extends AbstractDataTransferObject
+ {
+@@ -594,7 +594,7 @@
+     public function setOutputMediaOrientation(MediaOrientationEnum $outputMediaOrientation): void
+     {
+         if ($this->outputMediaAspectRatio) {
+-            $this->validateMediaOrientationAspectRatioCompatibility($outputMediaOrientation, $this->outputMediaAspectRatio);
++            $this->validateMediaOrientationAspectRatioCompatibility($outputMediaOrientation, \wp_aot_require_string( $this->outputMediaAspectRatio ));
+         }
+         $this->outputMediaOrientation = $outputMediaOrientation;
+     }
+@@ -620,7 +620,7 @@
+      */
+     public function setOutputMediaAspectRatio(string $outputMediaAspectRatio): void
+     {
+-        if (!preg_match('/^\d+:\d+$/', $outputMediaAspectRatio)) {
++        if (!preg_match('/^\d+:\d+$/', \wp_aot_regex_text( (string) ($outputMediaAspectRatio) ))) {
+             throw new InvalidArgumentException('Output media aspect ratio must be in the format "width:height" (e.g. 3:2, 16:9).');
+         }
+         if ($this->outputMediaOrientation) {
+@@ -690,7 +690,7 @@
+      * @param string $key   The option key.
+      * @param mixed  $value The option value.
+      */
+-    public function setCustomOption(string $key, $value): void
++    public function setCustomOption(string $key, mixed $value): void
+     {
+         $this->customOptions[$key] = $value;
+     }
+@@ -736,7 +736,7 @@
+     {
+         $data = [];
+         if ($this->outputModalities !== null) {
+-            $data[self::KEY_OUTPUT_MODALITIES] = array_map(static function (ModalityEnum $modality): string {
++            $data[self::KEY_OUTPUT_MODALITIES] = \wp_aot_array_map(static function (ModalityEnum $modality): string {
+                 return $modality->value;
+             }, $this->outputModalities);
+         }
+@@ -774,7 +774,7 @@
+             $data[self::KEY_TOP_LOGPROBS] = $this->topLogprobs;
+         }
+         if ($this->functionDeclarations !== null) {
+-            $data[self::KEY_FUNCTION_DECLARATIONS] = array_map(static function (FunctionDeclaration $functionDeclaration): array {
++            $data[self::KEY_FUNCTION_DECLARATIONS] = \wp_aot_array_map(static function (FunctionDeclaration $functionDeclaration): array {
+                 return $functionDeclaration->toArray();
+             }, $this->functionDeclarations);
+         }
+@@ -813,7 +813,7 @@
+     {
+         $config = new self();
+         if (isset($array[self::KEY_OUTPUT_MODALITIES])) {
+-            $config->setOutputModalities(array_map(static fn(string $modality): ModalityEnum => ModalityEnum::from($modality), $array[self::KEY_OUTPUT_MODALITIES]));
++            $config->setOutputModalities(\wp_aot_array_map(static fn(string $modality): ModalityEnum => \wp_aot_require_WordPress_AiClient_Messages_Enums_ModalityEnum(ModalityEnum::from($modality)), \wp_aot_require_array( $array[self::KEY_OUTPUT_MODALITIES] )));
+         }
+         if (isset($array[self::KEY_SYSTEM_INSTRUCTION])) {
+             $config->setSystemInstruction($array[self::KEY_SYSTEM_INSTRUCTION]);
+@@ -834,7 +834,7 @@
+             $config->setTopK($array[self::KEY_TOP_K]);
+         }
+         if (isset($array[self::KEY_STOP_SEQUENCES])) {
+-            $config->setStopSequences($array[self::KEY_STOP_SEQUENCES]);
++            $config->setStopSequences(\wp_aot_require_array( $array[self::KEY_STOP_SEQUENCES] ));
+         }
+         if (isset($array[self::KEY_PRESENCE_PENALTY])) {
+             $config->setPresencePenalty($array[self::KEY_PRESENCE_PENALTY]);
+@@ -849,24 +849,24 @@
+             $config->setTopLogprobs($array[self::KEY_TOP_LOGPROBS]);
+         }
+         if (isset($array[self::KEY_FUNCTION_DECLARATIONS])) {
+-            $config->setFunctionDeclarations(array_map(static function (array $functionDeclarationData): FunctionDeclaration {
++            $config->setFunctionDeclarations(\wp_aot_array_map(static function (array $functionDeclarationData): FunctionDeclaration {
+                 return FunctionDeclaration::fromArray($functionDeclarationData);
+-            }, $array[self::KEY_FUNCTION_DECLARATIONS]));
++            }, \wp_aot_require_array( $array[self::KEY_FUNCTION_DECLARATIONS] )));
+         }
+         if (isset($array[self::KEY_WEB_SEARCH])) {
+-            $config->setWebSearch(WebSearch::fromArray($array[self::KEY_WEB_SEARCH]));
++            $config->setWebSearch(WebSearch::fromArray(\wp_aot_require_array( $array[self::KEY_WEB_SEARCH] )));
+         }
+         if (isset($array[self::KEY_OUTPUT_FILE_TYPE])) {
+-            $config->setOutputFileType(FileTypeEnum::from($array[self::KEY_OUTPUT_FILE_TYPE]));
++            $config->setOutputFileType(\wp_aot_require_WordPress_AiClient_Files_Enums_FileTypeEnum( FileTypeEnum::from($array[self::KEY_OUTPUT_FILE_TYPE]) ));
+         }
+         if (isset($array[self::KEY_OUTPUT_MIME_TYPE])) {
+             $config->setOutputMimeType($array[self::KEY_OUTPUT_MIME_TYPE]);
+         }
+         if (isset($array[self::KEY_OUTPUT_SCHEMA])) {
+-            $config->setOutputSchema($array[self::KEY_OUTPUT_SCHEMA]);
++            $config->setOutputSchema(\wp_aot_require_array( $array[self::KEY_OUTPUT_SCHEMA] ));
+         }
+         if (isset($array[self::KEY_OUTPUT_MEDIA_ORIENTATION])) {
+-            $config->setOutputMediaOrientation(MediaOrientationEnum::from($array[self::KEY_OUTPUT_MEDIA_ORIENTATION]));
++            $config->setOutputMediaOrientation(\wp_aot_require_WordPress_AiClient_Files_Enums_MediaOrientationEnum( MediaOrientationEnum::from($array[self::KEY_OUTPUT_MEDIA_ORIENTATION]) ));
+         }
+         if (isset($array[self::KEY_OUTPUT_MEDIA_ASPECT_RATIO])) {
+             $config->setOutputMediaAspectRatio($array[self::KEY_OUTPUT_MEDIA_ASPECT_RATIO]);
+@@ -875,7 +875,7 @@
+             $config->setOutputSpeechVoice($array[self::KEY_OUTPUT_SPEECH_VOICE]);
+         }
+         if (isset($array[self::KEY_CUSTOM_OPTIONS])) {
+-            $config->setCustomOptions($array[self::KEY_CUSTOM_OPTIONS]);
++            $config->setCustomOptions(\wp_aot_require_array( $array[self::KEY_CUSTOM_OPTIONS] ));
+         }
+         return $config;
+     }

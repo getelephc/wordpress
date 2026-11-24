@@ -1,0 +1,214 @@
+--- a/wp-includes/ID3/module.audio.ogg.php
++++ b/wp-includes/ID3/module.audio.ogg.php
+@@ -15,7 +15,7 @@
+ /////////////////////////////////////////////////////////////////
+ 
+ if (!defined('GETID3_INCLUDEPATH')) { // prevent path-exposing attacks that access modules directly on public webservers
+-	exit;
++	\wp_aot_exit();
+ }
+ getid3_lib::IncludeDependency(GETID3_INCLUDEPATH.'module.audio.flac.php', __FILE__, true);
+ 
+@@ -26,7 +26,7 @@
+ 	 *
+ 	 * @return bool
+ 	 */
+-	public function Analyze() {
++	public function Analyze(): mixed {
+ 		$info = &$this->getid3->info;
+ 
+ 		$info['fileformat'] = 'ogg';
+@@ -387,13 +387,13 @@
+ 		}
+ 
+ 		if (isset($info['ogg']['vendor'])) {
+-			$info['audio']['encoder'] = preg_replace('/^Encoded with /', '', $info['ogg']['vendor']);
++			$info['audio']['encoder'] = \wp_aot_preg_replace('/^Encoded with /', '', $info['ogg']['vendor']);
+ 
+ 			// Vorbis only
+ 			if ($info['audio']['dataformat'] == 'vorbis') {
+ 
+ 				// Vorbis 1.0 starts with Xiph.Org
+-				if  (preg_match('/^Xiph.Org/', $info['audio']['encoder'])) {
++				if  (preg_match('/^Xiph.Org/', \wp_aot_regex_text( $info['audio']['encoder'] ))) {
+ 
+ 					if ($info['audio']['bitrate_mode'] == 'abr') {
+ 
+@@ -414,6 +414,7 @@
+ 		}
+ 
+ 		return true;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -423,7 +424,7 @@
+ 	 *
+ 	 * @return bool
+ 	 */
+-	public function ParseVorbisPageHeader(&$filedata, &$filedataoffset, &$oggpageinfo) {
++	public function ParseVorbisPageHeader(mixed &$filedata, mixed &$filedataoffset, mixed &$oggpageinfo): mixed {
+ 		$info = &$this->getid3->info;
+ 		$info['audio']['dataformat'] = 'vorbis';
+ 		$info['audio']['lossless']   = false;
+@@ -469,6 +470,7 @@
+ 			$info['audio']['bitrate_mode'] = 'abr';
+ 		}
+ 		return true;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -480,7 +482,7 @@
+ 	 *
+ 	 * @return bool
+ 	 */
+-	public function ParseOpusPageHeader(&$filedata, &$filedataoffset, &$oggpageinfo) {
++	public function ParseOpusPageHeader(mixed &$filedata, mixed &$filedataoffset, mixed &$oggpageinfo): mixed {
+ 		$info = &$this->getid3->info;
+ 		$info['audio']['dataformat']   = 'opus';
+ 		$info['mime_type']             = 'audio/ogg; codecs=opus';
+@@ -528,12 +530,13 @@
+ 		$info['audio']['sample_rate_input'] = $info['opus']['sample_rate_input'];
+ 		$info['audio']['sample_rate']       = 48000; // "All Opus audio is coded at 48 kHz, and should also be decoded at 48 kHz for playback (unless the target hardware does not support this sampling rate). However, this field may be used to resample the audio back to the original sampling rate, for example, when saving the output to a file." -- https://mf4.xiph.org/jenkins/view/opus/job/opusfile-unix/ws/doc/html/structOpusHead.html
+ 		return true;
++		return null;
+ 	}
+ 
+ 	/**
+ 	 * @return array|false
+ 	 */
+-	public function ParseOggPageHeader() {
++	public function ParseOggPageHeader(): mixed {
+ 		// http://xiph.org/ogg/vorbis/doc/framing.html
+ 		$oggheader = array();
+ 		$oggheader['page_start_offset'] = $this->ftell(); // where we started from in the file
+@@ -583,6 +586,7 @@
+ 		$this->fseek($oggheader['header_end_offset']);
+ 
+ 		return $oggheader;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -590,7 +594,7 @@
+ 	 *
+ 	 * @return bool
+ 	 */
+-	public function ParseVorbisComments() {
++	public function ParseVorbisComments(): mixed {
+ 		$info = &$this->getid3->info;
+ 
+ 		$OriginalOffset = $this->ftell();
+@@ -681,7 +685,7 @@
+ 			$commentdataoffset += 4;
+ 			while ((strlen($commentdata) - $commentdataoffset) < $ThisFileInfo_ogg_comments_raw[$i]['size']) {
+ 				if (($ThisFileInfo_ogg_comments_raw[$i]['size'] > $info['avdataend']) || ($ThisFileInfo_ogg_comments_raw[$i]['size'] < 0)) {
+-					$this->warning('Invalid Ogg comment size (comment #'.$i.', claims to be '.number_format($ThisFileInfo_ogg_comments_raw[$i]['size']).' bytes) - aborting reading comments');
++					$this->warning('Invalid Ogg comment size (comment #'.$i.', claims to be '.\wp_aot_number_format($ThisFileInfo_ogg_comments_raw[$i]['size']).' bytes) - aborting reading comments');
+ 					break 2;
+ 				}
+ 
+@@ -829,6 +833,7 @@
+ 		$this->fseek($OriginalOffset);
+ 
+ 		return true;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -836,14 +841,16 @@
+ 	 *
+ 	 * @return string|null
+ 	 */
+-	public static function SpeexBandModeLookup($mode) {
+-		static $SpeexBandModeLookup = array();
++	public static function SpeexBandModeLookup(mixed $mode): mixed {
++		static $SpeexBandModeLookup_aot_cell = new \WordPressStaticArrayCell();
++		$SpeexBandModeLookup =& $SpeexBandModeLookup_aot_cell->value;
+ 		if (empty($SpeexBandModeLookup)) {
+ 			$SpeexBandModeLookup[0] = 'narrow';
+ 			$SpeexBandModeLookup[1] = 'wide';
+ 			$SpeexBandModeLookup[2] = 'ultra-wide';
+ 		}
+ 		return (isset($SpeexBandModeLookup[$mode]) ? $SpeexBandModeLookup[$mode] : null);
++		return null;
+ 	}
+ 
+ 	/**
+@@ -852,7 +859,7 @@
+ 	 *
+ 	 * @return int
+ 	 */
+-	public static function OggPageSegmentLength($OggInfoArray, $SegmentNumber=1) {
++	public static function OggPageSegmentLength(mixed $OggInfoArray, mixed $SegmentNumber=1): mixed {
+ 		$segmentlength = 0;
+ 		for ($i = 0; $i < $SegmentNumber; $i++) {
+ 			$segmentlength = 0;
+@@ -864,6 +871,7 @@
+ 			}
+ 		}
+ 		return $segmentlength;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -871,7 +879,7 @@
+ 	 *
+ 	 * @return float
+ 	 */
+-	public static function get_quality_from_nominal_bitrate($nominal_bitrate) {
++	public static function get_quality_from_nominal_bitrate(mixed $nominal_bitrate): mixed {
+ 
+ 		// decrease precision
+ 		$nominal_bitrate = $nominal_bitrate / 1000;
+@@ -892,6 +900,7 @@
+ 		//return $qval; // 5.031324
+ 		//return intval($qval); // 5
+ 		return round($qval, 1); // 5 or 4.9
++		return null;
+ 	}
+ 
+ 	/**
+@@ -899,9 +908,10 @@
+ 	 *
+ 	 * @return string|null
+ 	 */
+-	public static function TheoraColorSpace($colorspace_id) {
++	public static function TheoraColorSpace(mixed $colorspace_id): mixed {
+ 		// http://www.theora.org/doc/Theora.pdf (table 6.3)
+-		static $TheoraColorSpaceLookup = array();
++		static $TheoraColorSpaceLookup_aot_cell = new \WordPressStaticArrayCell();
++		$TheoraColorSpaceLookup =& $TheoraColorSpaceLookup_aot_cell->value;
+ 		if (empty($TheoraColorSpaceLookup)) {
+ 			$TheoraColorSpaceLookup[0] = 'Undefined';
+ 			$TheoraColorSpaceLookup[1] = 'Rec. 470M';
+@@ -909,6 +919,7 @@
+ 			$TheoraColorSpaceLookup[3] = 'Reserved';
+ 		}
+ 		return (isset($TheoraColorSpaceLookup[$colorspace_id]) ? $TheoraColorSpaceLookup[$colorspace_id] : null);
++		return null;
+ 	}
+ 
+ 	/**
+@@ -916,9 +927,10 @@
+ 	 *
+ 	 * @return string|null
+ 	 */
+-	public static function TheoraPixelFormat($pixelformat_id) {
++	public static function TheoraPixelFormat(mixed $pixelformat_id): mixed {
+ 		// http://www.theora.org/doc/Theora.pdf (table 6.4)
+-		static $TheoraPixelFormatLookup = array();
++		static $TheoraPixelFormatLookup_aot_cell = new \WordPressStaticArrayCell();
++		$TheoraPixelFormatLookup =& $TheoraPixelFormatLookup_aot_cell->value;
+ 		if (empty($TheoraPixelFormatLookup)) {
+ 			$TheoraPixelFormatLookup[0] = '4:2:0';
+ 			$TheoraPixelFormatLookup[1] = 'Reserved';
+@@ -926,6 +938,7 @@
+ 			$TheoraPixelFormatLookup[3] = '4:4:4';
+ 		}
+ 		return (isset($TheoraPixelFormatLookup[$pixelformat_id]) ? $TheoraPixelFormatLookup[$pixelformat_id] : null);
++		return null;
+ 	}
+ 
+ }

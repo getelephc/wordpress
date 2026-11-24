@@ -1,0 +1,1266 @@
+--- a/wp-includes/ID3/getid3.lib.php
++++ b/wp-includes/ID3/getid3.lib.php
+@@ -34,13 +34,13 @@
+ 	 *
+ 	 * @return string
+ 	 */
+-	public static function PrintHexBytes($string, $hex=true, $spaces=true, $htmlencoding='UTF-8') {
++	public static function PrintHexBytes(mixed $string, mixed $hex=true, mixed $spaces=true, mixed $htmlencoding='UTF-8'): mixed {
+ 		$returnstring = '';
+ 		for ($i = 0; $i < strlen($string); $i++) {
+ 			if ($hex) {
+ 				$returnstring .= str_pad(dechex(ord($string[$i])), 2, '0', STR_PAD_LEFT);
+ 			} else {
+-				$returnstring .= ' '.(preg_match("#[\x20-\x7E]#", $string[$i]) ? $string[$i] : '¤');
++				$returnstring .= ' '.(preg_match("#[\x20-\x7E]#", \wp_aot_regex_text( $string[$i] )) ? $string[$i] : '¤');
+ 			}
+ 			if ($spaces) {
+ 				$returnstring .= ' ';
+@@ -53,6 +53,7 @@
+ 			$returnstring = htmlentities($returnstring, ENT_QUOTES, $htmlencoding);
+ 		}
+ 		return $returnstring;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -62,7 +63,7 @@
+ 	 *
+ 	 * @return float|int returns int (if possible, otherwise float)
+ 	 */
+-	public static function trunc($floatnumber) {
++	public static function trunc(mixed $floatnumber): mixed {
+ 		if ($floatnumber >= 1) {
+ 			$truncatednumber = floor($floatnumber);
+ 		} elseif ($floatnumber <= -1) {
+@@ -74,6 +75,7 @@
+ 			$truncatednumber = (int) $truncatednumber;
+ 		}
+ 		return $truncatednumber;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -83,13 +85,14 @@
+ 	 *
+ 	 * @return bool
+ 	 */
+-	public static function safe_inc(&$variable, $increment=1) {
++	public static function safe_inc(mixed &$variable, mixed $increment=1): mixed {
+ 		if (isset($variable)) {
+ 			$variable += $increment;
+ 		} else {
+ 			$variable = $increment;
+ 		}
+ 		return true;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -97,7 +100,7 @@
+ 	 *
+ 	 * @return int|float
+ 	 */
+-	public static function CastAsInt($floatnum) {
++	public static function CastAsInt(mixed $floatnum): mixed {
+ 		// convert to float if not already
+ 		$floatnum = (float) $floatnum;
+ 
+@@ -110,6 +113,7 @@
+ 			}
+ 		}
+ 		return $floatnum;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -117,9 +121,10 @@
+ 	 *
+ 	 * @return bool
+ 	 */
+-	public static function intValueSupported($num) {
++	public static function intValueSupported(mixed $num): mixed {
+ 		// really should be <= and >= but trying "(int)9.2233720368548E+18" results in PHP warning "The float 9.2233720368548E+18 is not representable as an int, cast occurred"
+ 		return (($num < PHP_INT_MAX) && ($num > PHP_INT_MIN));
++		return null;
+ 	}
+ 
+ 	/**
+@@ -130,8 +135,9 @@
+ 	 * @param float|int $fallback
+ 	 * @return float|int
+ 	 */
+-	public static function SafeDiv($numerator, $denominator, $fallback = 0) {
++	public static function SafeDiv(mixed $numerator, mixed $denominator, mixed $fallback = 0): mixed {
+ 		return $denominator ? $numerator / $denominator : $fallback;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -139,9 +145,10 @@
+ 	 *
+ 	 * @return float
+ 	 */
+-	public static function DecimalizeFraction($fraction) {
++	public static function DecimalizeFraction(mixed $fraction): mixed {
+ 		list($numerator, $denominator) = explode('/', $fraction);
+ 		return (int) $numerator / ($denominator ? $denominator : 1);
++		return null;
+ 	}
+ 
+ 	/**
+@@ -149,10 +156,11 @@
+ 	 *
+ 	 * @return float
+ 	 */
+-	public static function DecimalBinary2Float($binarynumerator) {
++	public static function DecimalBinary2Float(mixed $binarynumerator): mixed {
+ 		$numerator   = self::Bin2Dec($binarynumerator);
+ 		$denominator = self::Bin2Dec('1'.str_repeat('0', strlen($binarynumerator)));
+ 		return ($numerator / $denominator);
++		return null;
+ 	}
+ 
+ 	/**
+@@ -163,7 +171,7 @@
+ 	 *
+ 	 * @return array
+ 	 */
+-	public static function NormalizeBinaryPoint($binarypointnumber, $maxbits=52) {
++	public static function NormalizeBinaryPoint(mixed $binarypointnumber, mixed $maxbits=52): mixed {
+ 		if (strpos($binarypointnumber, '.') === false) {
+ 			$binarypointnumber = '0.'.$binarypointnumber;
+ 		} elseif ($binarypointnumber[0] == '.') {
+@@ -177,12 +185,13 @@
+ 			} else {
+ 				$pointpos = strpos($binarypointnumber, '.');
+ 				$exponent += ($pointpos - 1);
+-				$binarypointnumber = str_replace('.', '', $binarypointnumber);
++				$binarypointnumber = \wp_aot_str_replace('.', '', $binarypointnumber);
+ 				$binarypointnumber = $binarypointnumber[0].'.'.substr($binarypointnumber, 1);
+ 			}
+ 		}
+ 		$binarypointnumber = str_pad(substr($binarypointnumber, 0, $maxbits + 2), $maxbits + 2, '0', STR_PAD_RIGHT);
+ 		return array('normalized'=>$binarypointnumber, 'exponent'=>(int) $exponent);
++		return null;
+ 	}
+ 
+ 	/**
+@@ -192,7 +201,7 @@
+ 	 *
+ 	 * @return string
+ 	 */
+-	public static function Float2BinaryDecimal($floatvalue) {
++	public static function Float2BinaryDecimal(mixed $floatvalue): mixed {
+ 		$maxbits = 128; // to how many bits of precision should the calculations be taken?
+ 		$intpart   = self::trunc($floatvalue);
+ 		$floatpart = abs($floatvalue - $intpart);
+@@ -204,6 +213,7 @@
+ 		}
+ 		$binarypointnumber = decbin($intpart).'.'.$pointbitstring;
+ 		return $binarypointnumber;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -214,7 +224,7 @@
+ 	 *
+ 	 * @return string|false
+ 	 */
+-	public static function Float2String($floatvalue, $bits) {
++	public static function Float2String(mixed $floatvalue, mixed $bits): mixed {
+ 		$exponentbits = 0;
+ 		$fractionbits = 0;
+ 		switch ($bits) {
+@@ -242,6 +252,7 @@
+ 		$fractionbitstring = str_pad(substr($normalizedbinary['normalized'], 2), $fractionbits, '0', STR_PAD_RIGHT);
+ 
+ 		return self::BigEndian2String(self::Bin2Dec($signbit.$exponentbitstring.$fractionbitstring), $bits % 8, false);
++		return null;
+ 	}
+ 
+ 	/**
+@@ -249,8 +260,9 @@
+ 	 *
+ 	 * @return float|false
+ 	 */
+-	public static function LittleEndian2Float($byteword) {
++	public static function LittleEndian2Float(mixed $byteword): mixed {
+ 		return self::BigEndian2Float(strrev($byteword));
++		return null;
+ 	}
+ 
+ 	/**
+@@ -263,7 +275,7 @@
+ 	 *
+ 	 * @return float|false
+ 	 */
+-	public static function BigEndian2Float($byteword) {
++	public static function BigEndian2Float(mixed $byteword): mixed {
+ 		$bitword = self::BigEndian2Bin($byteword);
+ 		if (!$bitword) {
+ 			return 0;
+@@ -334,6 +346,7 @@
+ 			}
+ 		}
+ 		return (float) $floatvalue;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -344,7 +357,7 @@
+ 	 * @return int|float|false
+ 	 * @throws Exception
+ 	 */
+-	public static function BigEndian2Int($byteword, $synchsafe=false, $signed=false) {
++	public static function BigEndian2Int(mixed $byteword, mixed $synchsafe=false, mixed $signed=false): mixed {
+ 		$intvalue = 0;
+ 		$bytewordlen = strlen($byteword);
+ 		if ($bytewordlen == 0) {
+@@ -370,6 +383,7 @@
+ 			}
+ 		}
+ 		return self::CastAsInt($intvalue);
++		return null;
+ 	}
+ 
+ 	/**
+@@ -378,8 +392,9 @@
+ 	 *
+ 	 * @return int|float|false
+ 	 */
+-	public static function LittleEndian2Int($byteword, $signed=false) {
++	public static function LittleEndian2Int(mixed $byteword, mixed $signed=false): mixed {
+ 		return self::BigEndian2Int(strrev($byteword), false, $signed);
++		return null;
+ 	}
+ 
+ 	/**
+@@ -387,8 +402,9 @@
+ 	 *
+ 	 * @return string
+ 	 */
+-	public static function LittleEndian2Bin($byteword) {
++	public static function LittleEndian2Bin(mixed $byteword): mixed {
+ 		return self::BigEndian2Bin(strrev($byteword));
++		return null;
+ 	}
+ 
+ 	/**
+@@ -396,13 +412,14 @@
+ 	 *
+ 	 * @return string
+ 	 */
+-	public static function BigEndian2Bin($byteword) {
++	public static function BigEndian2Bin(mixed $byteword): mixed {
+ 		$binvalue = '';
+ 		$bytewordlen = strlen($byteword);
+ 		for ($i = 0; $i < $bytewordlen; $i++) {
+ 			$binvalue .= str_pad(decbin(ord($byteword[$i])), 8, '0', STR_PAD_LEFT);
+ 		}
+ 		return $binvalue;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -414,7 +431,7 @@
+ 	 * @return string
+ 	 * @throws Exception
+ 	 */
+-	public static function BigEndian2String($number, $minbytes=1, $synchsafe=false, $signed=false) {
++	public static function BigEndian2String(mixed $number, mixed $minbytes=1, mixed $synchsafe=false, mixed $signed=false): mixed {
+ 		if ($number < 0) {
+ 			throw new Exception('ERROR: self::BigEndian2String() does not support negative numbers');
+ 		}
+@@ -432,6 +449,7 @@
+ 			$number = floor($quotient);
+ 		}
+ 		return str_pad($intstring, $minbytes, "\x00", STR_PAD_LEFT);
++		return null;
+ 	}
+ 
+ 	/**
+@@ -439,7 +457,7 @@
+ 	 *
+ 	 * @return string
+ 	 */
+-	public static function Dec2Bin($number) {
++	public static function Dec2Bin(mixed $number): mixed {
+ 		if (!is_numeric($number)) {
+ 			// https://github.com/JamesHeinrich/getID3/issues/299
+ 			trigger_error('TypeError: Dec2Bin(): Argument #1 ($number) must be numeric, '.gettype($number).' given', E_USER_WARNING);
+@@ -456,6 +474,7 @@
+ 			$binstring = (($i == count($bytes) - 1) ? decbin($byte) : str_pad(decbin($byte), 8, '0', STR_PAD_LEFT)).$binstring;
+ 		}
+ 		return $binstring;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -464,7 +483,7 @@
+ 	 *
+ 	 * @return int|float
+ 	 */
+-	public static function Bin2Dec($binstring, $signed=false) {
++	public static function Bin2Dec(mixed $binstring, mixed $signed=false): mixed {
+ 		$signmult = 1;
+ 		if ($signed) {
+ 			if ($binstring[0] == '1') {
+@@ -477,6 +496,7 @@
+ 			$decvalue += ((int) substr($binstring, strlen($binstring) - $i - 1, 1)) * pow(2, $i);
+ 		}
+ 		return self::CastAsInt($decvalue * $signmult);
++		return null;
+ 	}
+ 
+ 	/**
+@@ -484,7 +504,7 @@
+ 	 *
+ 	 * @return string
+ 	 */
+-	public static function Bin2String($binstring) {
++	public static function Bin2String(mixed $binstring): mixed {
+ 		// return 'hi' for input of '0110100001101001'
+ 		$string = '';
+ 		$binstringreversed = strrev($binstring);
+@@ -492,6 +512,7 @@
+ 			$string = chr(self::Bin2Dec(strrev(substr($binstringreversed, $i, 8)))).$string;
+ 		}
+ 		return $string;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -501,7 +522,7 @@
+ 	 *
+ 	 * @return string
+ 	 */
+-	public static function LittleEndian2String($number, $minbytes=1, $synchsafe=false) {
++	public static function LittleEndian2String(mixed $number, mixed $minbytes=1, mixed $synchsafe=false): mixed {
+ 		$intstring = '';
+ 		while ($number > 0) {
+ 			if ($synchsafe) {
+@@ -513,6 +534,7 @@
+ 			}
+ 		}
+ 		return str_pad($intstring, $minbytes, "\x00", STR_PAD_RIGHT);
++		return null;
+ 	}
+ 
+ 	/**
+@@ -521,7 +543,7 @@
+ 	 *
+ 	 * @return array|false
+ 	 */
+-	public static function array_merge_clobber($array1, $array2) {
++	public static function array_merge_clobber(mixed $array1, mixed $array2): mixed {
+ 		// written by kcØhireability*com
+ 		// taken from http://www.php.net/manual/en/function.array-merge-recursive.php
+ 		if (!is_array($array1) || !is_array($array2)) {
+@@ -536,6 +558,7 @@
+ 			}
+ 		}
+ 		return $newarray;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -544,7 +567,7 @@
+ 	 *
+ 	 * @return array|false
+ 	 */
+-	public static function array_merge_noclobber($array1, $array2) {
++	public static function array_merge_noclobber(mixed $array1, mixed $array2): mixed {
+ 		if (!is_array($array1) || !is_array($array2)) {
+ 			return false;
+ 		}
+@@ -557,6 +580,7 @@
+ 			}
+ 		}
+ 		return $newarray;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -565,18 +589,19 @@
+ 	 *
+ 	 * @return array|false|null
+ 	 */
+-	public static function flipped_array_merge_noclobber($array1, $array2) {
++	public static function flipped_array_merge_noclobber(mixed $array1, mixed $array2): mixed {
+ 		if (!is_array($array1) || !is_array($array2)) {
+ 			return false;
+ 		}
+ 		# naturally, this only works non-recursively
+-		$newarray = array_flip($array1);
+-		foreach (array_flip($array2) as $key => $val) {
++		$newarray = \wp_aot_array_flip($array1);
++		foreach (\wp_aot_array_flip($array2) as $key => $val) {
+ 			if (!isset($newarray[$key])) {
+ 				$newarray[$key] = count($newarray);
+ 			}
+ 		}
+-		return array_flip($newarray);
++		return \wp_aot_array_flip($newarray);
++		return null;
+ 	}
+ 
+ 	/**
+@@ -584,14 +609,15 @@
+ 	 *
+ 	 * @return bool
+ 	 */
+-	public static function ksort_recursive(&$theArray) {
+-		ksort($theArray);
++	public static function ksort_recursive(mixed &$theArray): mixed {
++		\wp_aot_ksort($theArray);
+ 		foreach ($theArray as $key => $value) {
+ 			if (is_array($value)) {
+ 				self::ksort_recursive($theArray[$key]);
+ 			}
+ 		}
+ 		return true;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -600,7 +626,7 @@
+ 	 *
+ 	 * @return string
+ 	 */
+-	public static function fileextension($filename, $numextensions=1) {
++	public static function fileextension(mixed $filename, mixed $numextensions=1): mixed {
+ 		if (strstr($filename, '.')) {
+ 			$reversedfilename = strrev($filename);
+ 			$offset = 0;
+@@ -613,6 +639,7 @@
+ 			return strrev(substr($reversedfilename, 0, $offset));
+ 		}
+ 		return '';
++		return null;
+ 	}
+ 
+ 	/**
+@@ -620,13 +647,14 @@
+ 	 *
+ 	 * @return string
+ 	 */
+-	public static function PlaytimeString($seconds) {
++	public static function PlaytimeString(mixed $seconds): mixed {
+ 		$sign = (($seconds < 0) ? '-' : '');
+ 		$seconds = round(abs($seconds));
+ 		$H = (int) floor( $seconds                            / 3600);
+ 		$M = (int) floor(($seconds - (3600 * $H)            ) /   60);
+ 		$S = (int) round( $seconds - (3600 * $H) - (60 * $M)        );
+ 		return $sign.($H ? $H.':' : '').($H ? str_pad($M, 2, '0', STR_PAD_LEFT) : intval($M)).':'.str_pad($S, 2, 0, STR_PAD_LEFT);
++		return null;
+ 	}
+ 
+ 	/**
+@@ -634,10 +662,11 @@
+ 	 *
+ 	 * @return int|float
+ 	 */
+-	public static function DateMac2Unix($macdate) {
++	public static function DateMac2Unix(mixed $macdate): mixed {
+ 		// Macintosh timestamp: seconds since 00:00h January 1, 1904
+ 		// UNIX timestamp:      seconds since 00:00h January 1, 1970
+ 		return self::CastAsInt($macdate - 2082844800);
++		return null;
+ 	}
+ 
+ 	/**
+@@ -645,8 +674,9 @@
+ 	 *
+ 	 * @return float
+ 	 */
+-	public static function FixedPoint8_8($rawdata) {
++	public static function FixedPoint8_8(mixed $rawdata): mixed {
+ 		return self::BigEndian2Int(substr($rawdata, 0, 1)) + (float) (self::BigEndian2Int(substr($rawdata, 1, 1)) / pow(2, 8));
++		return null;
+ 	}
+ 
+ 	/**
+@@ -654,8 +684,9 @@
+ 	 *
+ 	 * @return float
+ 	 */
+-	public static function FixedPoint16_16($rawdata) {
++	public static function FixedPoint16_16(mixed $rawdata): mixed {
+ 		return self::BigEndian2Int(substr($rawdata, 0, 2)) + (float) (self::BigEndian2Int(substr($rawdata, 2, 2)) / pow(2, 16));
++		return null;
+ 	}
+ 
+ 	/**
+@@ -663,9 +694,10 @@
+ 	 *
+ 	 * @return float
+ 	 */
+-	public static function FixedPoint2_30($rawdata) {
++	public static function FixedPoint2_30(mixed $rawdata): mixed {
+ 		$binarystring = self::BigEndian2Bin($rawdata);
+ 		return self::Bin2Dec(substr($binarystring, 0, 2)) + (float) (self::Bin2Dec(substr($binarystring, 2, 30)) / pow(2, 30));
++		return null;
+ 	}
+ 
+ 
+@@ -676,7 +708,7 @@
+ 	 *
+ 	 * @return array
+ 	 */
+-	public static function CreateDeepArray($ArrayPath, $Separator, $Value) {
++	public static function CreateDeepArray(mixed $ArrayPath, mixed $Separator, mixed $Value): mixed {
+ 		// assigns $Value to a nested array path:
+ 		//   $foo = self::CreateDeepArray('/path/to/my', '/', 'file.txt')
+ 		// is the same as:
+@@ -691,6 +723,7 @@
+ 			$ReturnedArray[$ArrayPath] = $Value;
+ 		}
+ 		return $ReturnedArray;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -699,7 +732,7 @@
+ 	 *
+ 	 * @return int|false
+ 	 */
+-	public static function array_max($arraydata, $returnkey=false) {
++	public static function array_max(mixed $arraydata, mixed $returnkey=false): mixed {
+ 		$maxvalue = false;
+ 		$maxkey   = false;
+ 		foreach ($arraydata as $key => $value) {
+@@ -711,6 +744,7 @@
+ 			}
+ 		}
+ 		return ($returnkey ? $maxkey : $maxvalue);
++		return null;
+ 	}
+ 
+ 	/**
+@@ -719,7 +753,7 @@
+ 	 *
+ 	 * @return int|false
+ 	 */
+-	public static function array_min($arraydata, $returnkey=false) {
++	public static function array_min(mixed $arraydata, mixed $returnkey=false): mixed {
+ 		$minvalue = false;
+ 		$minkey   = false;
+ 		foreach ($arraydata as $key => $value) {
+@@ -731,6 +765,7 @@
+ 			}
+ 		}
+ 		return ($returnkey ? $minkey : $minvalue);
++		return null;
+ 	}
+ 
+ 	/**
+@@ -738,7 +773,7 @@
+ 	 *
+ 	 * @return array|false
+ 	 */
+-	public static function XML2array($XMLstring) {
++	public static function XML2array(mixed $XMLstring): mixed {
+ 		if (function_exists('simplexml_load_string')) {
+ 			if (PHP_VERSION_ID < 80000) {
+ 				if (function_exists('libxml_disable_entity_loader')) {
+@@ -746,10 +781,10 @@
+ 					// https://core.trac.wordpress.org/changeset/29378
+ 					// This function has been deprecated in PHP 8.0 because in libxml 2.9.0, external entity loading is
+ 					// disabled by default, but is still needed when LIBXML_NOENT is used.
+-					$loader = @libxml_disable_entity_loader(true);
++					$loader = @\wp_aot_native_api('libxml_disable_entity_loader', array(true));
+ 					$XMLobject = simplexml_load_string($XMLstring, 'SimpleXMLElement', GETID3_LIBXML_OPTIONS);
+ 					$return = self::SimpleXMLelement2array($XMLobject);
+-					@libxml_disable_entity_loader($loader);
++					@\wp_aot_native_api('libxml_disable_entity_loader', array($loader));
+ 					return $return;
+ 				}
+ 			} else {
+@@ -771,6 +806,7 @@
+ 			}
+ 		}
+ 		return false;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -778,7 +814,7 @@
+ 	*
+ 	* @return mixed
+ 	*/
+-	public static function SimpleXMLelement2array($XMLobject) {
++	public static function SimpleXMLelement2array(mixed $XMLobject): mixed {
+ 		if (!is_object($XMLobject) && !is_array($XMLobject)) {
+ 			return $XMLobject;
+ 		}
+@@ -787,6 +823,7 @@
+ 			$XMLarray[$key] = self::SimpleXMLelement2array($value);
+ 		}
+ 		return $XMLarray;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -800,7 +837,7 @@
+ 	 * @return string|false
+ 	 * @throws getid3_exception
+ 	 */
+-	public static function hash_data($file, $offset, $end, $algorithm) {
++	public static function hash_data(mixed $file, mixed $offset, mixed $end, mixed $algorithm): mixed {
+ 		if (!self::intValueSupported($end)) {
+ 			return false;
+ 		}
+@@ -811,10 +848,10 @@
+ 		$size = $end - $offset;
+ 
+ 		$fp = fopen($file, 'rb');
+-		fseek($fp, $offset);
++		fseek($fp, \wp_aot_internal_int( $offset ));
+ 		$ctx = hash_init($algorithm);
+ 		while ($size > 0) {
+-			$buffer = fread($fp, min($size, getID3::FREAD_BUFFER_SIZE));
++			$buffer = \wp_aot_fread($fp, \wp_aot_internal_int( min($size, getID3::FREAD_BUFFER_SIZE) ));
+ 			hash_update($ctx, $buffer);
+ 			$size -= getID3::FREAD_BUFFER_SIZE;
+ 		}
+@@ -822,6 +859,7 @@
+ 		fclose($fp);
+ 
+ 		return $hash;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -835,16 +873,16 @@
+ 	 *
+ 	 * @deprecated Unused, may be removed in future versions of getID3
+ 	 */
+-	public static function CopyFileParts($filename_source, $filename_dest, $offset, $length) {
++	public static function CopyFileParts(mixed $filename_source, mixed $filename_dest, mixed $offset, mixed $length): mixed {
+ 		if (!self::intValueSupported($offset + $length)) {
+ 			throw new Exception('cannot copy file portion, it extends beyond the '.round(PHP_INT_MAX / 1073741824).'GB limit');
+ 		}
+ 		if (is_readable($filename_source) && is_file($filename_source) && ($fp_src = fopen($filename_source, 'rb'))) {
+ 			if (($fp_dest = fopen($filename_dest, 'wb'))) {
+-				if (fseek($fp_src, $offset) == 0) {
++				if (fseek($fp_src, \wp_aot_internal_int( $offset )) == 0) {
+ 					$byteslefttowrite = $length;
+-					while (($byteslefttowrite > 0) && ($buffer = fread($fp_src, min($byteslefttowrite, getID3::FREAD_BUFFER_SIZE)))) {
+-						$byteswritten = fwrite($fp_dest, $buffer, $byteslefttowrite);
++					while (($byteslefttowrite > 0) && ($buffer = \wp_aot_fread($fp_src, \wp_aot_internal_int( min($byteslefttowrite, getID3::FREAD_BUFFER_SIZE) )))) {
++						$byteswritten = \wp_aot_fwrite($fp_dest, $buffer, \wp_aot_nullable_int( $byteslefttowrite ));
+ 						$byteslefttowrite -= $byteswritten;
+ 					}
+ 					fclose($fp_dest);
+@@ -859,6 +897,7 @@
+ 		} else {
+ 			throw new Exception('failed to open file for reading '.$filename_source);
+ 		}
++		return null;
+ 	}
+ 
+ 	/**
+@@ -866,7 +905,7 @@
+ 	 *
+ 	 * @return string
+ 	 */
+-	public static function iconv_fallback_int_utf8($charval) {
++	public static function iconv_fallback_int_utf8(mixed $charval): mixed {
+ 		if ($charval < 128) {
+ 			// 0bbbbbbb
+ 			$newcharstring = chr($charval);
+@@ -887,6 +926,7 @@
+ 			$newcharstring .= chr(($charval & 0x3F) | 0x80);
+ 		}
+ 		return $newcharstring;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -897,7 +937,7 @@
+ 	 *
+ 	 * @return string
+ 	 */
+-	public static function iconv_fallback_iso88591_utf8($string, $bom=false) {
++	public static function iconv_fallback_iso88591_utf8(mixed $string, mixed $bom=false): mixed {
+ 		$newcharstring = '';
+ 		if ($bom) {
+ 			$newcharstring .= "\xEF\xBB\xBF";
+@@ -907,6 +947,7 @@
+ 			$newcharstring .= self::iconv_fallback_int_utf8($charval);
+ 		}
+ 		return $newcharstring;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -917,7 +958,7 @@
+ 	 *
+ 	 * @return string
+ 	 */
+-	public static function iconv_fallback_iso88591_utf16be($string, $bom=false) {
++	public static function iconv_fallback_iso88591_utf16be(mixed $string, mixed $bom=false): mixed {
+ 		$newcharstring = '';
+ 		if ($bom) {
+ 			$newcharstring .= "\xFE\xFF";
+@@ -926,6 +967,7 @@
+ 			$newcharstring .= "\x00".$string[$i];
+ 		}
+ 		return $newcharstring;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -936,7 +978,7 @@
+ 	 *
+ 	 * @return string
+ 	 */
+-	public static function iconv_fallback_iso88591_utf16le($string, $bom=false) {
++	public static function iconv_fallback_iso88591_utf16le(mixed $string, mixed $bom=false): mixed {
+ 		$newcharstring = '';
+ 		if ($bom) {
+ 			$newcharstring .= "\xFF\xFE";
+@@ -945,6 +987,7 @@
+ 			$newcharstring .= $string[$i]."\x00";
+ 		}
+ 		return $newcharstring;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -954,8 +997,9 @@
+ 	 *
+ 	 * @return string
+ 	 */
+-	public static function iconv_fallback_iso88591_utf16($string) {
++	public static function iconv_fallback_iso88591_utf16(mixed $string): mixed {
+ 		return self::iconv_fallback_iso88591_utf16le($string, true);
++		return null;
+ 	}
+ 
+ 	/**
+@@ -965,7 +1009,7 @@
+ 	 *
+ 	 * @return string
+ 	 */
+-	public static function iconv_fallback_utf8_iso88591($string) {
++	public static function iconv_fallback_utf8_iso88591(mixed $string): mixed {
+ 		$newcharstring = '';
+ 		$offset = 0;
+ 		$stringlength = strlen($string);
+@@ -1002,6 +1046,7 @@
+ 			}
+ 		}
+ 		return $newcharstring;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1012,7 +1057,7 @@
+ 	 *
+ 	 * @return string
+ 	 */
+-	public static function iconv_fallback_utf8_utf16be($string, $bom=false) {
++	public static function iconv_fallback_utf8_utf16be(mixed $string, mixed $bom=false): mixed {
+ 		$newcharstring = '';
+ 		if ($bom) {
+ 			$newcharstring .= "\xFE\xFF";
+@@ -1052,6 +1097,7 @@
+ 			}
+ 		}
+ 		return $newcharstring;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1062,7 +1108,7 @@
+ 	 *
+ 	 * @return string
+ 	 */
+-	public static function iconv_fallback_utf8_utf16le($string, $bom=false) {
++	public static function iconv_fallback_utf8_utf16le(mixed $string, mixed $bom=false): mixed {
+ 		$newcharstring = '';
+ 		if ($bom) {
+ 			$newcharstring .= "\xFF\xFE";
+@@ -1102,6 +1148,7 @@
+ 			}
+ 		}
+ 		return $newcharstring;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1111,8 +1158,9 @@
+ 	 *
+ 	 * @return string
+ 	 */
+-	public static function iconv_fallback_utf8_utf16($string) {
++	public static function iconv_fallback_utf8_utf16(mixed $string): mixed {
+ 		return self::iconv_fallback_utf8_utf16le($string, true);
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1122,7 +1170,7 @@
+ 	 *
+ 	 * @return string
+ 	 */
+-	public static function iconv_fallback_utf16be_utf8($string) {
++	public static function iconv_fallback_utf16be_utf8(mixed $string): mixed {
+ 		if (substr($string, 0, 2) == "\xFE\xFF") {
+ 			// strip BOM
+ 			$string = substr($string, 2);
+@@ -1133,6 +1181,7 @@
+ 			$newcharstring .= self::iconv_fallback_int_utf8($charval);
+ 		}
+ 		return $newcharstring;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1142,7 +1191,7 @@
+ 	 *
+ 	 * @return string
+ 	 */
+-	public static function iconv_fallback_utf16le_utf8($string) {
++	public static function iconv_fallback_utf16le_utf8(mixed $string): mixed {
+ 		if (substr($string, 0, 2) == "\xFF\xFE") {
+ 			// strip BOM
+ 			$string = substr($string, 2);
+@@ -1153,6 +1202,7 @@
+ 			$newcharstring .= self::iconv_fallback_int_utf8($charval);
+ 		}
+ 		return $newcharstring;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1162,7 +1212,7 @@
+ 	 *
+ 	 * @return string
+ 	 */
+-	public static function iconv_fallback_utf16be_iso88591($string) {
++	public static function iconv_fallback_utf16be_iso88591(mixed $string): mixed {
+ 		if (substr($string, 0, 2) == "\xFE\xFF") {
+ 			// strip BOM
+ 			$string = substr($string, 2);
+@@ -1173,6 +1223,7 @@
+ 			$newcharstring .= (($charval < 256) ? chr($charval) : '?');
+ 		}
+ 		return $newcharstring;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1182,7 +1233,7 @@
+ 	 *
+ 	 * @return string
+ 	 */
+-	public static function iconv_fallback_utf16le_iso88591($string) {
++	public static function iconv_fallback_utf16le_iso88591(mixed $string): mixed {
+ 		if (substr($string, 0, 2) == "\xFF\xFE") {
+ 			// strip BOM
+ 			$string = substr($string, 2);
+@@ -1193,6 +1244,7 @@
+ 			$newcharstring .= (($charval < 256) ? chr($charval) : '?');
+ 		}
+ 		return $newcharstring;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1202,7 +1254,7 @@
+ 	 *
+ 	 * @return string
+ 	 */
+-	public static function iconv_fallback_utf16_iso88591($string) {
++	public static function iconv_fallback_utf16_iso88591(mixed $string): mixed {
+ 		$bom = substr($string, 0, 2);
+ 		if ($bom == "\xFE\xFF") {
+ 			return self::iconv_fallback_utf16be_iso88591(substr($string, 2));
+@@ -1210,6 +1262,7 @@
+ 			return self::iconv_fallback_utf16le_iso88591(substr($string, 2));
+ 		}
+ 		return $string;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1219,7 +1272,7 @@
+ 	 *
+ 	 * @return string
+ 	 */
+-	public static function iconv_fallback_utf16_utf8($string) {
++	public static function iconv_fallback_utf16_utf8(mixed $string): mixed {
+ 		$bom = substr($string, 0, 2);
+ 		if ($bom == "\xFE\xFF") {
+ 			return self::iconv_fallback_utf16be_utf8(substr($string, 2));
+@@ -1227,6 +1280,7 @@
+ 			return self::iconv_fallback_utf16le_utf8(substr($string, 2));
+ 		}
+ 		return $string;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1237,7 +1291,7 @@
+ 	 * @return string
+ 	 * @throws Exception
+ 	 */
+-	public static function iconv_fallback($in_charset, $out_charset, $string) {
++	public static function iconv_fallback(mixed $in_charset, mixed $out_charset, mixed $string): mixed {
+ 
+ 		if ($in_charset == $out_charset) {
+ 			return $string;
+@@ -1283,7 +1337,8 @@
+ 
+ 
+ 		// neither mb_convert_encoding or iconv() is available
+-		static $ConversionFunctionList = array();
++		static $ConversionFunctionList_aot_cell = new \WordPressStaticArrayCell();
++		$ConversionFunctionList =& $ConversionFunctionList_aot_cell->value;
+ 		if (empty($ConversionFunctionList)) {
+ 			$ConversionFunctionList['ISO-8859-1']['UTF-8']    = 'iconv_fallback_iso88591_utf8';
+ 			$ConversionFunctionList['ISO-8859-1']['UTF-16']   = 'iconv_fallback_iso88591_utf16';
+@@ -1305,6 +1360,7 @@
+ 			return self::$ConversionFunction($string);
+ 		}
+ 		throw new Exception('PHP does not has mb_convert_encoding() or iconv() support - cannot convert from '.$in_charset.' to '.$out_charset);
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1313,7 +1369,7 @@
+ 	 *
+ 	 * @return mixed
+ 	 */
+-	public static function recursiveMultiByteCharString2HTML($data, $charset='ISO-8859-1') {
++	public static function recursiveMultiByteCharString2HTML(mixed $data, mixed $charset='ISO-8859-1'): mixed {
+ 		if (is_string($data)) {
+ 			return self::MultiByteCharString2HTML($data, $charset);
+ 		} elseif (is_array($data)) {
+@@ -1325,6 +1381,7 @@
+ 		}
+ 		// integer, float, objects, resources, etc
+ 		return $data;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1333,7 +1390,7 @@
+ 	 *
+ 	 * @return string
+ 	 */
+-	public static function MultiByteCharString2HTML($string, $charset='ISO-8859-1') {
++	public static function MultiByteCharString2HTML(mixed $string, mixed $charset='ISO-8859-1'): mixed {
+ 		$string = (string) $string; // in case trying to pass a numeric (float, int) string, would otherwise return an empty string
+ 		$HTMLstring = '';
+ 
+@@ -1423,6 +1480,7 @@
+ 				break;
+ 		}
+ 		return $HTMLstring;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1430,8 +1488,9 @@
+ 	 *
+ 	 * @return string
+ 	 */
+-	public static function RGADnameLookup($namecode) {
+-		static $RGADname = array();
++	public static function RGADnameLookup(mixed $namecode): mixed {
++		static $RGADname_aot_cell = new \WordPressStaticArrayCell();
++		$RGADname =& $RGADname_aot_cell->value;
+ 		if (empty($RGADname)) {
+ 			$RGADname[0] = 'not set';
+ 			$RGADname[1] = 'Track Gain Adjustment';
+@@ -1439,6 +1498,7 @@
+ 		}
+ 
+ 		return (isset($RGADname[$namecode]) ? $RGADname[$namecode] : '');
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1446,8 +1506,9 @@
+ 	 *
+ 	 * @return string
+ 	 */
+-	public static function RGADoriginatorLookup($originatorcode) {
+-		static $RGADoriginator = array();
++	public static function RGADoriginatorLookup(mixed $originatorcode): mixed {
++		static $RGADoriginator_aot_cell = new \WordPressStaticArrayCell();
++		$RGADoriginator =& $RGADoriginator_aot_cell->value;
+ 		if (empty($RGADoriginator)) {
+ 			$RGADoriginator[0] = 'unspecified';
+ 			$RGADoriginator[1] = 'pre-set by artist/producer/mastering engineer';
+@@ -1456,6 +1517,7 @@
+ 		}
+ 
+ 		return (isset($RGADoriginator[$originatorcode]) ? $RGADoriginator[$originatorcode] : '');
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1464,12 +1526,13 @@
+ 	 *
+ 	 * @return float
+ 	 */
+-	public static function RGADadjustmentLookup($rawadjustment, $signbit) {
++	public static function RGADadjustmentLookup(mixed $rawadjustment, mixed $signbit): mixed {
+ 		$adjustment = (float) $rawadjustment / 10;
+ 		if ($signbit == 1) {
+ 			$adjustment *= -1;
+ 		}
+ 		return $adjustment;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1479,7 +1542,7 @@
+ 	 *
+ 	 * @return string
+ 	 */
+-	public static function RGADgainString($namecode, $originatorcode, $replaygain) {
++	public static function RGADgainString(mixed $namecode, mixed $originatorcode, mixed $replaygain): mixed {
+ 		if ($replaygain < 0) {
+ 			$signbit = '1';
+ 		} else {
+@@ -1492,6 +1555,7 @@
+ 		$gainstring .= str_pad(decbin($storedreplaygain), 9, '0', STR_PAD_LEFT);
+ 
+ 		return $gainstring;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1499,8 +1563,9 @@
+ 	 *
+ 	 * @return float
+ 	 */
+-	public static function RGADamplitude2dB($amplitude) {
++	public static function RGADamplitude2dB(mixed $amplitude): mixed {
+ 		return 20 * log10($amplitude);
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1509,7 +1574,7 @@
+ 	 *
+ 	 * @return array|false
+ 	 */
+-	public static function GetDataImageSize($imgData, &$imageinfo=array()) {
++	public static function GetDataImageSize(mixed $imgData, mixed &$imageinfo=array()): mixed {
+ 		if (PHP_VERSION_ID >= 50400) {
+ 			$GetDataImageSize = @getimagesizefromstring($imgData, $imageinfo);
+ 			if ($GetDataImageSize === false) {
+@@ -1519,7 +1584,8 @@
+ 			$GetDataImageSize['width'] = $GetDataImageSize[1];
+ 			return $GetDataImageSize;
+ 		}
+-		static $tempdir = '';
++		static $tempdir_aot_cell = new \WordPressStaticStringCell();
++		$tempdir =& $tempdir_aot_cell->value;
+ 		if (empty($tempdir)) {
+ 			if (function_exists('sys_get_temp_dir')) {
+ 				$tempdir = sys_get_temp_dir(); // https://github.com/JamesHeinrich/getID3/issues/52
+@@ -1537,7 +1603,7 @@
+ 		$GetDataImageSize = false;
+ 		if ($tempfilename = tempnam($tempdir, 'gI3')) {
+ 			if (is_writable($tempfilename) && is_file($tempfilename) && ($tmp = fopen($tempfilename, 'wb'))) {
+-				fwrite($tmp, $imgData);
++				\wp_aot_fwrite($tmp, $imgData);
+ 				fclose($tmp);
+ 				$GetDataImageSize = @getimagesize($tempfilename, $imageinfo);
+ 				if ($GetDataImageSize === false) {
+@@ -1549,6 +1615,7 @@
+ 			unlink($tempfilename);
+ 		}
+ 		return $GetDataImageSize;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1556,9 +1623,10 @@
+ 	 *
+ 	 * @return string
+ 	 */
+-	public static function ImageExtFromMime($mime_type) {
++	public static function ImageExtFromMime(mixed $mime_type): mixed {
+ 		// temporary way, works OK for now, but should be reworked in the future
+-		return str_replace(array('image/', 'x-', 'jpeg'), array('', '', 'jpg'), $mime_type);
++		return \wp_aot_str_replace(array('image/', 'x-', 'jpeg'), array('', '', 'jpg'), $mime_type);
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1567,7 +1635,7 @@
+ 	 *
+ 	 * @return bool
+ 	 */
+-	public static function CopyTagsToComments(&$ThisFileInfo, $option_tags_html=true) {
++	public static function CopyTagsToComments(mixed &$ThisFileInfo, mixed $option_tags_html=true): mixed {
+ 		// Copy all entries from ['tags'] into common ['comments']
+ 		if (!empty($ThisFileInfo['tags'])) {
+ 
+@@ -1678,7 +1746,7 @@
+ 							if (is_array($value)) {
+ 								$ThisFileInfo['comments_html'][$field][$index] = $value;
+ 							} else {
+-								$ThisFileInfo['comments_html'][$field][$index] = str_replace('&#0;', '', self::MultiByteCharString2HTML($value, $ThisFileInfo['encoding']));
++								$ThisFileInfo['comments_html'][$field][$index] = \wp_aot_str_replace('&#0;', '', self::MultiByteCharString2HTML($value, $ThisFileInfo['encoding']));
+ 							}
+ 						}
+ 					}
+@@ -1687,6 +1755,7 @@
+ 
+ 		}
+ 		return true;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1698,10 +1767,11 @@
+ 	 *
+ 	 * @return string
+ 	 */
+-	public static function EmbeddedLookup($key, $begin, $end, $file, $name) {
++	public static function EmbeddedLookup(mixed $key, mixed $begin, mixed $end, mixed $file, mixed $name): mixed {
+ 
+ 		// Cached
+-		static $cache;
++		static $cache_aot_cell = new \WordPressStaticValueCell();
++		$cache =& $cache_aot_cell->value;
+ 		if (isset($cache[$file][$name])) {
+ 			return (isset($cache[$file][$name][$key]) ? $cache[$file][$name][$key] : '');
+ 		}
+@@ -1715,14 +1785,14 @@
+ 
+ 		// Discard $begin lines
+ 		for ($i = 0; $i < ($begin + 3); $i++) {
+-			fgets($fp, 1024);
++			\wp_aot_fgets($fp, 1024);
+ 		}
+ 
+ 		// Loop thru line
+ 		while (0 < $line_count--) {
+ 
+ 			// Read line
+-			$line = ltrim(fgets($fp, 1024), "\t ");
++			$line = ltrim(\wp_aot_fgets($fp, 1024), "\t ");
+ 
+ 			// METHOD A: only cache the matching key - less memory but slower on next lookup of not-previously-looked-up key
+ 			//$keycheck = substr($line, 0, $keylength);
+@@ -1742,6 +1812,7 @@
+ 		// Close and return
+ 		fclose($fp);
+ 		return (isset($cache[$file][$name][$key]) ? $cache[$file][$name][$key] : '');
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1752,7 +1823,7 @@
+ 	 * @return bool
+ 	 * @throws Exception
+ 	 */
+-	public static function IncludeDependency($filename, $sourcefile, $DieOnFailure=false) {
++	public static function IncludeDependency(mixed $filename, mixed $sourcefile, mixed $DieOnFailure=false): mixed {
+ 		global $GETID3_ERRORARRAY;
+ 
+ 		if (file_exists($filename)) {
+@@ -1770,6 +1841,7 @@
+ 			$GETID3_ERRORARRAY[] = $diemessage;
+ 		}
+ 		return false;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1777,8 +1849,9 @@
+ 	 *
+ 	 * @return string
+ 	 */
+-	public static function trimNullByte($string) {
++	public static function trimNullByte(mixed $string): mixed {
+ 		return trim($string, "\x00");
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1786,7 +1859,7 @@
+ 	 *
+ 	 * @return float|bool
+ 	 */
+-	public static function getFileSizeSyscall($path) {
++	public static function getFileSizeSyscall(mixed $path): mixed {
+ 		$commandline = null;
+ 		$filesize = false;
+ 
+@@ -1797,10 +1870,10 @@
+ 				$filesize = $file->Size();
+ 				unset($filesystem, $file);
+ 			} else {
+-				$commandline = 'for %I in ('.escapeshellarg($path).') do @echo %~zI';
++				$commandline = 'for %I in ('.\wp_aot_native_api('escapeshellarg', array($path)).') do @echo %~zI';
+ 			}
+ 		} else {
+-			$commandline = 'ls -l '.escapeshellarg($path).' | awk \'{print $5}\'';
++			$commandline = 'ls -l '.\wp_aot_native_api('escapeshellarg', array($path)).' | awk \'{print $5}\'';
+ 		}
+ 		if (isset($commandline)) {
+ 			$output = trim(shell_exec($commandline));
+@@ -1809,6 +1882,7 @@
+ 			}
+ 		}
+ 		return $filesize;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1816,18 +1890,18 @@
+ 	 *
+ 	 * @return string|false
+ 	 */
+-	public static function truepath($filename) {
++	public static function truepath(mixed $filename): mixed {
+ 		// 2017-11-08: this could use some improvement, patches welcome
+-		if (preg_match('#^(\\\\\\\\|//)[a-z0-9]#i', $filename, $matches)) {
++		if (preg_match('#^(\\\\\\\\|//)[a-z0-9]#i', \wp_aot_regex_text( $filename ), $matches)) {
+ 			// PHP's built-in realpath function does not work on UNC Windows shares
+ 			$goodpath = array();
+-			foreach (explode('/', str_replace('\\', '/', $filename)) as $part) {
++			foreach (explode('/', \wp_aot_str_replace('\\', '/', $filename)) as $part) {
+ 				if ($part == '.') {
+ 					continue;
+ 				}
+ 				if ($part == '..') {
+ 					if (count($goodpath)) {
+-						array_pop($goodpath);
++						\wp_aot_array_pop($goodpath);
+ 					} else {
+ 						// cannot step above this level, already at top level
+ 						return false;
+@@ -1839,6 +1913,7 @@
+ 			return implode(DIRECTORY_SEPARATOR, $goodpath);
+ 		}
+ 		return realpath($filename);
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1849,9 +1924,10 @@
+ 	 *
+ 	 * @return string
+ 	 */
+-	public static function mb_basename($path, $suffix = '') {
+-		$splited = preg_split('#/#', rtrim($path, '/ '));
++	public static function mb_basename(mixed $path, mixed $suffix = ''): mixed {
++		$splited = \wp_aot_preg_split('#/#', \wp_aot_regex_text( rtrim($path, '/ ') ));
+ 		return substr(basename('X'.$splited[count($splited) - 1], $suffix), 1);
++		return null;
+ 	}
+ 
+ }

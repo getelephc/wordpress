@@ -1,11 +1,206 @@
 --- a/wp-admin/includes/class-wp-upgrader-skin.php
 +++ b/wp-admin/includes/class-wp-upgrader-skin.php
-@@ -85,7 +85,7 @@
+@@ -66,7 +66,7 @@
+ 	 * @param array $args Optional. The WordPress upgrader skin arguments to
+ 	 *                    override default options. Default empty array.
  	 */
- 	public function set_upgrader( &$upgrader ) {
+-	public function __construct( $args = array() ) {
++	public function __construct( mixed $args = array() ) {
+ 		$defaults      = array(
+ 			'url'     => '',
+ 			'nonce'   => '',
+@@ -83,11 +83,12 @@
+ 	 *
+ 	 * @param WP_Upgrader $upgrader
+ 	 */
+-	public function set_upgrader( &$upgrader ) {
++	public function set_upgrader( mixed &$upgrader ): mixed {
  		if ( is_object( $upgrader ) ) {
 -			$this->upgrader =& $upgrader;
 +			$this->upgrader = $upgrader;
  		}
  		$this->add_strings();
++		return null;
  	}
+ 
+ 	/**
+@@ -95,7 +96,8 @@
+ 	 *
+ 	 * @since 3.0.0
+ 	 */
+-	public function add_strings() {
++	public function add_strings(): mixed {
++		return null;
+ 	}
+ 
+ 	/**
+@@ -105,8 +107,9 @@
+ 	 *
+ 	 * @param string|bool|WP_Error $result The result of an upgrade.
+ 	 */
+-	public function set_result( $result ) {
++	public function set_result( mixed $result ): mixed {
+ 		$this->result = $result;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -125,7 +128,7 @@
+ 	 * @param bool          $allow_relaxed_file_ownership Optional. Whether to allow Group/World writable. Default false.
+ 	 * @return bool True on success, false on failure.
+ 	 */
+-	public function request_filesystem_credentials( $error = false, $context = '', $allow_relaxed_file_ownership = false ) {
++	public function request_filesystem_credentials( mixed $error = false, mixed $context = '', mixed $allow_relaxed_file_ownership = false ): mixed {
+ 		$url = $this->options['url'];
+ 		if ( ! $context ) {
+ 			$context = $this->options['context'];
+@@ -137,6 +140,7 @@
+ 		$extra_fields = array();
+ 
+ 		return request_filesystem_credentials( $url, '', $error, $context, $extra_fields, $allow_relaxed_file_ownership );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -144,13 +148,14 @@
+ 	 *
+ 	 * @since 2.8.0
+ 	 */
+-	public function header() {
++	public function header(): mixed {
+ 		if ( $this->done_header ) {
+-			return;
++			return null;
+ 		}
+ 		$this->done_header = true;
+ 		echo '<div class="wrap">';
+ 		echo '<h1>' . $this->options['title'] . '</h1>';
++		return null;
+ 	}
+ 
+ 	/**
+@@ -158,12 +163,13 @@
+ 	 *
+ 	 * @since 2.8.0
+ 	 */
+-	public function footer() {
++	public function footer(): mixed {
+ 		if ( $this->done_footer ) {
+-			return;
++			return null;
+ 		}
+ 		$this->done_footer = true;
+ 		echo '</div>';
++		return null;
+ 	}
+ 
+ 	/**
+@@ -173,7 +179,7 @@
+ 	 *
+ 	 * @param string|WP_Error $errors Errors.
+ 	 */
+-	public function error( $errors ) {
++	public function error( mixed $errors, mixed ...$args ): mixed {
+ 		if ( ! $this->done_header ) {
+ 			$this->header();
+ 		}
+@@ -188,6 +194,7 @@
+ 				}
+ 			}
+ 		}
++		return null;
+ 	}
+ 
+ 	/**
+@@ -199,22 +206,23 @@
+ 	 * @param string $feedback Message data.
+ 	 * @param mixed  ...$args  Optional text replacements.
+ 	 */
+-	public function feedback( $feedback, ...$args ) {
++	public function feedback( mixed $feedback, mixed ...$args ): mixed {
+ 		if ( isset( $this->upgrader->strings[ $feedback ] ) ) {
+ 			$feedback = $this->upgrader->strings[ $feedback ];
+ 		}
+ 
+ 		if ( str_contains( $feedback, '%' ) ) {
+ 			if ( $args ) {
+-				$args     = array_map( 'strip_tags', $args );
+-				$args     = array_map( 'esc_html', $args );
++				$args     = \wp_aot_array_map( 'strip_tags', $args );
++				$args     = \wp_aot_array_map( 'esc_html', $args );
+ 				$feedback = vsprintf( $feedback, $args );
+ 			}
+ 		}
+ 		if ( empty( $feedback ) ) {
+-			return;
++			return null;
+ 		}
+ 		show_message( $feedback );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -222,14 +230,14 @@
+ 	 *
+ 	 * @since 2.8.0
+ 	 */
+-	public function before() {}
++	public function before( mixed $title = '' ): mixed { return null; }
+ 
+ 	/**
+ 	 * Performs an action following an update.
+ 	 *
+ 	 * @since 2.8.0
+ 	 */
+-	public function after() {}
++	public function after( mixed $title = '' ): mixed { return null; }
+ 
+ 	/**
+ 	 * Outputs JavaScript that calls function to decrement the update counts.
+@@ -239,9 +247,9 @@
+ 	 * @param string $type Type of update count to decrement. Likely values include 'plugin',
+ 	 *                     'theme', 'translation', etc.
+ 	 */
+-	protected function decrement_update_count( $type ) {
++	protected function decrement_update_count( mixed $type ): mixed {
+ 		if ( ! $this->result || is_wp_error( $this->result ) || 'up_to_date' === $this->result ) {
+-			return;
++			return null;
+ 		}
+ 
+ 		if ( defined( 'IFRAME_REQUEST' ) ) {
+@@ -266,6 +274,7 @@
+ 					})( window.wp );
+ 				</script>';
+ 		}
++		return null;
+ 	}
+ 
+ 	/**
+@@ -273,14 +282,14 @@
+ 	 *
+ 	 * @since 3.0.0
+ 	 */
+-	public function bulk_header() {}
++	public function bulk_header(): mixed { return null; }
+ 
+ 	/**
+ 	 * Displays the footer following the bulk update process.
+ 	 *
+ 	 * @since 3.0.0
+ 	 */
+-	public function bulk_footer() {}
++	public function bulk_footer(): mixed { return null; }
+ 
+ 	/**
+ 	 * Hides the `process_failed` error message when updating by uploading a zip file.
+@@ -290,7 +299,8 @@
+ 	 * @param WP_Error $wp_error WP_Error object.
+ 	 * @return bool True if the error should be hidden, false otherwise.
+ 	 */
+-	public function hide_process_failed( $wp_error ) {
++	public function hide_process_failed( mixed $wp_error ): mixed {
+ 		return false;
++		return null;
+ 	}
+ }

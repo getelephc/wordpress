@@ -1,11 +1,1485 @@
 --- a/wp-includes/class-wpdb.php
 +++ b/wp-includes/class-wpdb.php
-@@ -2002,7 +2002,7 @@
+@@ -197,7 +197,7 @@
+ 	 *
+ 	 * @var array
+ 	 */
+-	protected $col_info;
++	protected mixed $col_info = null;
+ 
+ 	/**
+ 	 * Log of queries that were executed, for debugging purposes.
+@@ -749,11 +749,11 @@
+ 	 * @param string $dbhost     Database host.
+ 	 */
+ 	public function __construct(
+-		$dbuser,
++		mixed $dbuser,
+ 		#[\SensitiveParameter]
+ 		$dbpassword,
+-		$dbname,
+-		$dbhost
++		mixed $dbname,
++		mixed $dbhost
+ 	) {
+ 		if ( WP_DEBUG && WP_DEBUG_DISPLAY ) {
+ 			$this->show_errors();
+@@ -837,22 +837,22 @@
+ 	 *
+ 	 * @since 3.1.0
+ 	 */
+-	public function init_charset() {
++	public function init_charset(): mixed {
+ 		$charset = '';
+ 		$collate = '';
+ 
+ 		if ( function_exists( 'is_multisite' ) && is_multisite() ) {
+ 			$charset = 'utf8';
+-			if ( defined( 'DB_COLLATE' ) && DB_COLLATE ) {
++			if ( \wp_aot_bootstrap_defined( 'DB_COLLATE' ) && DB_COLLATE ) {
+ 				$collate = DB_COLLATE;
+ 			} else {
+ 				$collate = 'utf8_general_ci';
+ 			}
+-		} elseif ( defined( 'DB_COLLATE' ) ) {
++		} elseif ( \wp_aot_bootstrap_defined( 'DB_COLLATE' ) ) {
+ 			$collate = DB_COLLATE;
+ 		}
+ 
+-		if ( defined( 'DB_CHARSET' ) ) {
++		if ( \wp_aot_bootstrap_defined( 'DB_CHARSET' ) ) {
+ 			$charset = DB_CHARSET;
+ 		}
+ 
+@@ -860,6 +860,7 @@
+ 
+ 		$this->charset = $charset_collate['charset'];
+ 		$this->collate = $charset_collate['collate'];
++		return null;
+ 	}
+ 
+ 	/**
+@@ -878,9 +879,9 @@
+ 	 *     @type string $collate Collation.
+ 	 * }
+ 	 */
+-	public function determine_charset( $charset, $collate ) {
++	public function determine_charset( mixed $charset, mixed $collate ): mixed {
+ 		if ( ( ! ( $this->dbh instanceof mysqli ) ) || empty( $this->dbh ) ) {
+-			return compact( 'charset', 'collate' );
++			return \wp_aot_compact(get_defined_vars(), array( 'charset', 'collate' ));
+ 		}
+ 
+ 		if ( 'utf8' === $charset ) {
+@@ -892,7 +893,7 @@
+ 			if ( ! $collate || 'utf8_general_ci' === $collate ) {
+ 				$collate = 'utf8mb4_unicode_ci';
+ 			} else {
+-				$collate = str_replace( 'utf8_', 'utf8mb4_', $collate );
++				$collate = \wp_aot_str_replace( 'utf8_', 'utf8mb4_', $collate );
+ 			}
+ 		}
+ 
+@@ -901,7 +902,8 @@
+ 			$collate = 'utf8mb4_unicode_520_ci';
+ 		}
+ 
+-		return compact( 'charset', 'collate' );
++		return \wp_aot_compact(get_defined_vars(), array( 'charset', 'collate' ));
++		return null;
+ 	}
+ 
+ 	/**
+@@ -913,7 +915,7 @@
+ 	 * @param string $charset Optional. The character set. Default null.
+ 	 * @param string $collate Optional. The collation. Default null.
+ 	 */
+-	public function set_charset( $dbh, $charset = null, $collate = null ) {
++	public function set_charset( mixed $dbh, mixed $charset = null, mixed $collate = null ): mixed {
+ 		if ( ! isset( $charset ) ) {
+ 			$charset = $this->charset;
+ 		}
+@@ -935,6 +937,7 @@
+ 				mysqli_query( $dbh, $query );
+ 			}
+ 		}
++		return null;
+ 	}
+ 
+ 	/**
+@@ -946,24 +949,24 @@
+ 	 *
+ 	 * @param array $modes Optional. A list of SQL modes to set. Default empty array.
+ 	 */
+-	public function set_sql_mode( $modes = array() ) {
++	public function set_sql_mode( mixed $modes = array() ): mixed {
+ 		if ( empty( $modes ) ) {
+ 			$res = mysqli_query( $this->dbh, 'SELECT @@SESSION.sql_mode' );
+ 
+ 			if ( empty( $res ) ) {
+-				return;
++				return null;
+ 			}
+ 
+ 			$modes_array = mysqli_fetch_array( $res );
+ 
+ 			if ( empty( $modes_array[0] ) ) {
+-				return;
++				return null;
+ 			}
+ 
+ 			$modes = explode( ',', $modes_array[0] );
+ 		}
+ 
+-		$modes = array_change_key_case( $modes, CASE_UPPER );
++		$modes = \wp_aot_array_change_key_case( $modes, CASE_UPPER );
+ 
+ 		/**
+ 		 * Filters the list of incompatible SQL modes to exclude.
+@@ -983,6 +986,7 @@
+ 		$modes_str = implode( ',', $modes );
+ 
+ 		mysqli_query( $this->dbh, "SET SESSION sql_mode='$modes_str'" );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -995,9 +999,9 @@
+ 	 *                                should be updated or not. Default true.
+ 	 * @return string|WP_Error Old prefix or WP_Error on error.
+ 	 */
+-	public function set_prefix( $prefix, $set_table_names = true ) {
+-
+-		if ( preg_match( '|[^a-z0-9_]|i', $prefix ) ) {
++	public function set_prefix( mixed $prefix, mixed $set_table_names = true ): mixed {
++
++		if ( preg_match( '|[^a-z0-9_]|i', \wp_aot_regex_text( $prefix ) ) ) {
+ 			return new WP_Error( 'invalid_db_prefix', 'Invalid database prefix' );
+ 		}
+ 
+@@ -1029,6 +1033,7 @@
+ 			}
+ 		}
+ 		return $old_prefix;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1040,7 +1045,7 @@
+ 	 * @param int $network_id Optional. Network ID. Default 0.
+ 	 * @return int Previous blog ID.
+ 	 */
+-	public function set_blog_id( $blog_id, $network_id = 0 ) {
++	public function set_blog_id( mixed $blog_id, mixed $network_id = 0 ): mixed {
+ 		if ( ! empty( $network_id ) ) {
+ 			$this->siteid = $network_id;
+ 		}
+@@ -1059,6 +1064,7 @@
+ 		}
+ 
+ 		return $old_blog_id;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1070,7 +1076,7 @@
+ 	 *                     Defaults to the current blog ID.
+ 	 * @return string Blog prefix.
+ 	 */
+-	public function get_blog_prefix( $blog_id = null ) {
++	public function get_blog_prefix( mixed $blog_id = null ): mixed {
+ 		if ( is_multisite() ) {
+ 			if ( null === $blog_id ) {
+ 				$blog_id = $this->blogid;
+@@ -1086,6 +1092,7 @@
+ 		} else {
+ 			return $this->base_prefix;
+ 		}
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1119,30 +1126,30 @@
+ 	 *                        Defaults to `wpdb::$blogid`.
+ 	 * @return string[] Table names. When a prefix is requested, the key is the unprefixed table name.
+ 	 */
+-	public function tables( $scope = 'all', $prefix = true, $blog_id = 0 ) {
++	public function tables( mixed $scope = 'all', mixed $prefix = true, mixed $blog_id = 0 ): mixed {
+ 		switch ( $scope ) {
+ 			case 'all':
+-				$tables = array_merge( $this->global_tables, $this->tables );
++				$tables = \wp_aot_mixed(\wp_aot_array_merge(array( $this->global_tables, $this->tables )));
+ 				if ( is_multisite() ) {
+-					$tables = array_merge( $tables, $this->ms_global_tables );
++					$tables = \wp_aot_array_merge(array( $tables, $this->ms_global_tables ));
+ 				}
+ 				break;
+ 			case 'blog':
+-				$tables = $this->tables;
++				$tables = \wp_aot_mixed($this->tables);
+ 				break;
+ 			case 'global':
+-				$tables = $this->global_tables;
++				$tables = \wp_aot_mixed($this->global_tables);
+ 				if ( is_multisite() ) {
+-					$tables = array_merge( $tables, $this->ms_global_tables );
++					$tables = \wp_aot_array_merge(array( $tables, $this->ms_global_tables ));
+ 				}
+ 				break;
+ 			case 'ms_global':
+-				$tables = $this->ms_global_tables;
++				$tables = \wp_aot_mixed($this->ms_global_tables);
+ 				break;
+ 			case 'old':
+-				$tables = $this->old_tables;
++				$tables = \wp_aot_mixed($this->old_tables);
+ 				if ( is_multisite() ) {
+-					$tables = array_merge( $tables, $this->old_ms_global_tables );
++					$tables = \wp_aot_array_merge(array( $tables, $this->old_ms_global_tables ));
+ 				}
+ 				break;
+ 			default:
+@@ -1155,7 +1162,7 @@
+ 			}
+ 			$blog_prefix   = $this->get_blog_prefix( $blog_id );
+ 			$base_prefix   = $this->base_prefix;
+-			$global_tables = array_merge( $this->global_tables, $this->ms_global_tables );
++			$global_tables = \wp_aot_array_merge(array( $this->global_tables, $this->ms_global_tables ));
+ 			foreach ( $tables as $k => $table ) {
+ 				if ( in_array( $table, $global_tables, true ) ) {
+ 					$tables[ $table ] = $base_prefix . $table;
+@@ -1166,15 +1173,16 @@
+ 			}
+ 
+ 			if ( isset( $tables['users'] ) && defined( 'CUSTOM_USER_TABLE' ) ) {
+-				$tables['users'] = CUSTOM_USER_TABLE;
++				$tables['users'] = \wp_aot_undefined_constant('CUSTOM_USER_TABLE');
+ 			}
+ 
+ 			if ( isset( $tables['usermeta'] ) && defined( 'CUSTOM_USER_META_TABLE' ) ) {
+-				$tables['usermeta'] = CUSTOM_USER_META_TABLE;
++				$tables['usermeta'] = \wp_aot_undefined_constant('CUSTOM_USER_META_TABLE');
+ 			}
+ 		}
+ 
+ 		return $tables;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1189,7 +1197,7 @@
+ 	 * @param mysqli $dbh Optional. Database connection.
+ 	 *                    Defaults to the current database handle.
+ 	 */
+-	public function select( $db, $dbh = null ) {
++	public function select( mixed $db, mixed $dbh = null ): mixed {
+ 		if ( is_null( $dbh ) ) {
+ 			$dbh = $this->dbh;
+ 		}
+@@ -1236,6 +1244,7 @@
+ 				$this->bail( $message, 'db_select_fail' );
+ 			}
+ 		}
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1251,11 +1260,12 @@
+ 	 * @param string $data
+ 	 * @return string
+ 	 */
+-	public function _weak_escape( $data ) {
++	public function _weak_escape( mixed $data ): mixed {
+ 		if ( func_num_args() === 1 && function_exists( '_deprecated_function' ) ) {
+ 			_deprecated_function( __METHOD__, '3.6.0', 'wpdb::prepare() or esc_sql()' );
+ 		}
+ 		return addslashes( $data );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1268,7 +1278,7 @@
+ 	 * @param string $data String to escape.
+ 	 * @return string Escaped string.
+ 	 */
+-	public function _real_escape( $data ) {
++	public function _real_escape( mixed $data ): mixed {
+ 		if ( ! is_scalar( $data ) ) {
+ 			return '';
+ 		}
+@@ -1286,6 +1296,7 @@
+ 		}
+ 
+ 		return $this->add_placeholder_escape( $escaped );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1298,7 +1309,7 @@
+ 	 * @param string|array $data Data to escape.
+ 	 * @return string|array Escaped data, in the same type as supplied.
+ 	 */
+-	public function _escape( $data ) {
++	public function _escape( mixed $data ): mixed {
+ 		if ( is_array( $data ) ) {
+ 			foreach ( $data as $k => $v ) {
+ 				if ( is_array( $v ) ) {
+@@ -1312,6 +1323,7 @@
+ 		}
+ 
+ 		return $data;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1327,7 +1339,7 @@
+ 	 * @param string|array $data Data to escape.
+ 	 * @return string|array Escaped data, in the same type as supplied.
+ 	 */
+-	public function escape( $data ) {
++	public function escape( mixed $data ): mixed {
+ 		if ( func_num_args() === 1 && function_exists( '_deprecated_function' ) ) {
+ 			_deprecated_function( __METHOD__, '3.6.0', 'wpdb::prepare() or esc_sql()' );
+ 		}
+@@ -1344,6 +1356,7 @@
+ 		}
+ 
+ 		return $data;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1355,10 +1368,11 @@
+ 	 *
+ 	 * @param string $data String to escape.
+ 	 */
+-	public function escape_by_ref( &$data ) {
++	public function escape_by_ref( mixed &$data ): mixed {
+ 		if ( ! is_float( $data ) ) {
+ 			$data = $this->_real_escape( $data );
+ 		}
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1369,8 +1383,9 @@
+ 	 * @param string $identifier Identifier to escape.
+ 	 * @return string Escaped identifier.
+ 	 */
+-	public function quote_identifier( $identifier ) {
++	public function quote_identifier( mixed $identifier ): mixed {
+ 		return '`' . $this->_escape_identifier_value( $identifier ) . '`';
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1387,8 +1402,9 @@
+ 	 * @param string $identifier Identifier to escape.
+ 	 * @return string Escaped identifier.
+ 	 */
+-	private function _escape_identifier_value( $identifier ) {
+-		return str_replace( '`', '``', $identifier );
++	private function _escape_identifier_value( mixed $identifier ): mixed {
++		return \wp_aot_str_replace( '`', '``', $identifier );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1455,7 +1471,7 @@
+ 	 *                             if being called with individual arguments.
+ 	 * @return string|null Sanitized query string, if there is a query to prepare.
+ 	 */
+-	public function prepare( $query, ...$args ) {
++	public function prepare( mixed $query, mixed ...$args ): mixed {
+ 		if ( is_null( $query ) ) {
+ 			return null;
+ 		}
+@@ -1498,14 +1514,14 @@
+ 		 * For backward compatibility, this is only applied to %s, and not to placeholders like %1$s,
+ 		 * which are frequently used in the middle of longer strings, or as table name placeholders.
+ 		 */
+-		$query = str_replace( "'%s'", '%s', $query ); // Strip any existing single quotes.
+-		$query = str_replace( '"%s"', '%s', $query ); // Strip any existing double quotes.
++		$query = \wp_aot_str_replace( "'%s'", '%s', $query ); // Strip any existing single quotes.
++		$query = \wp_aot_str_replace( '"%s"', '%s', $query ); // Strip any existing double quotes.
+ 
+ 		// Escape any unescaped percents (i.e. anything unrecognised).
+-		$query = preg_replace( "/%(?:%|$|(?!($allowed_format)?[sdfFi]))/", '%%\\1', $query );
++		$query = \wp_aot_preg_replace( "/%(?:%|$|(?!($allowed_format)?[sdfFi]))/", '%%\\1', $query );
+ 
+ 		// Extract placeholders from the query.
+-		$split_query = preg_split( "/(^|[^%]|(?:%%)+)(%(?:$allowed_format)?[sdfFi])/", $query, -1, PREG_SPLIT_DELIM_CAPTURE );
++		$split_query = \wp_aot_preg_split( \wp_aot_regex_text( "/(^|[^%]|(?:%%)+)(%(?:$allowed_format)?[sdfFi])/" ), \wp_aot_regex_text( $query ), -1, PREG_SPLIT_DELIM_CAPTURE );
+ 
+ 		$split_query_count = count( $split_query );
+ 
+@@ -1513,7 +1529,7 @@
+ 		 * Split always returns with 1 value before the first placeholder (even with $query = "%s"),
+ 		 * then 3 additional values per placeholder.
+ 		 */
+-		$placeholder_count = ( ( $split_query_count - 1 ) / 3 );
++		$placeholder_count = (int) ( ( $split_query_count - 1 ) / 3 );
+ 
+ 		// If args were passed as an array, as in vsprintf(), move them up.
+ 		$passed_as_array = ( isset( $args[0] ) && is_array( $args[0] ) && 1 === count( $args ) );
+@@ -1573,7 +1589,7 @@
+ 				if ( 'i' === $type ) {
+ 					$placeholder = '`%' . $format . 's`';
+ 					// Using a simple strpos() due to previous checking (e.g. $allowed_format).
+-					$argnum_pos = strpos( $format, '$' );
++					$argnum_pos = \wp_aot_mixed(strpos( $format, '$' ));
+ 
+ 					if ( false !== $argnum_pos ) {
+ 						// sprintf() argnum starts at 1, $arg_id from 0.
+@@ -1622,7 +1638,7 @@
+ 		// Replace $query; and add remaining $query characters, or index 0 if there were no placeholders.
+ 		$query = $new_query . $split_query[ $key - 2 ];
+ 
+-		$dual_use = array_intersect( $arg_identifiers, $arg_strings );
++		$dual_use = \wp_aot_array_intersect(array( $arg_identifiers, $arg_strings ));
+ 
+ 		if ( count( $dual_use ) > 0 ) {
+ 			wp_load_translations_early();
+@@ -1757,6 +1773,7 @@
+ 		$query = vsprintf( $query, $args_escaped );
+ 
+ 		return $this->add_placeholder_escape( $query );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1782,8 +1799,9 @@
+ 	 * @return string Text in the form of a LIKE phrase. The output is not SQL safe.
+ 	 *                Call wpdb::prepare() or wpdb::_real_escape() next.
+ 	 */
+-	public function esc_like( $text ) {
++	public function esc_like( mixed $text ): mixed {
+ 		return addcslashes( $text, '_%\\' );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1796,7 +1814,7 @@
+ 	 * @param string $str The error to display.
+ 	 * @return null|false Null if the showing of errors is enabled, false if disabled.
+ 	 */
+-	public function print_error( $str = '' ) {
++	public function print_error( mixed $str = '' ): mixed {
+ 		global $EZSQL_ERROR;
+ 
+ 		if ( ! $str ) {
+@@ -1820,7 +1838,7 @@
+ 			$error_str = sprintf( 'WordPress database error %1$s for query %2$s', $str, $this->last_query );
+ 		}
+ 
+-		error_log( $error_str );
++		\wp_aot_native_api('error_log', array( $error_str ));
+ 
+ 		// Are we showing errors?
+ 		if ( ! $this->show_errors ) {
+@@ -1839,7 +1857,7 @@
+ 			);
+ 
+ 			if ( defined( 'ERRORLOGFILE' ) ) {
+-				error_log( $msg, 3, ERRORLOGFILE );
++				\wp_aot_native_api('error_log', array( $msg, 3, \wp_aot_undefined_constant('ERRORLOGFILE') ));
+ 			}
+ 			if ( defined( 'DIEONDBERROR' ) ) {
+ 				wp_die( $msg );
+@@ -1857,6 +1875,7 @@
+ 		}
+ 
+ 		return null;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1872,10 +1891,11 @@
+ 	 * @param bool $show Optional. Whether to show errors. Default true.
+ 	 * @return bool Whether showing of errors was previously active.
+ 	 */
+-	public function show_errors( $show = true ) {
++	public function show_errors( mixed $show = true ): mixed {
+ 		$errors            = $this->show_errors;
+ 		$this->show_errors = $show;
+ 		return $errors;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1889,10 +1909,11 @@
+ 	 *
+ 	 * @return bool Whether showing of errors was previously active.
+ 	 */
+-	public function hide_errors() {
++	public function hide_errors(): mixed {
+ 		$show              = $this->show_errors;
+ 		$this->show_errors = false;
+ 		return $show;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1907,10 +1928,11 @@
+ 	 * @param bool $suppress Optional. Whether to suppress errors. Default true.
+ 	 * @return bool Whether suppressing of errors was previously active.
+ 	 */
+-	public function suppress_errors( $suppress = true ) {
++	public function suppress_errors( mixed $suppress = true ): mixed {
+ 		$errors                = $this->suppress_errors;
+ 		$this->suppress_errors = (bool) $suppress;
+ 		return $errors;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1918,7 +1940,7 @@
+ 	 *
+ 	 * @since 0.71
+ 	 */
+-	public function flush() {
++	public function flush(): mixed {
+ 		$this->last_result   = array();
+ 		$this->col_info      = null;
+ 		$this->last_query    = null;
+@@ -1932,7 +1954,7 @@
+ 
+ 			// Confidence check before using the handle.
+ 			if ( empty( $this->dbh ) || ! ( $this->dbh instanceof mysqli ) ) {
+-				return;
++				return null;
+ 			}
+ 
+ 			// Clear out any results from a multi-query.
+@@ -1940,6 +1962,7 @@
+ 				mysqli_next_result( $this->dbh );
+ 			}
+ 		}
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1953,10 +1976,10 @@
+ 	 * @param bool $allow_bail Optional. Allows the function to bail. Default true.
+ 	 * @return bool True with a successful connection, false on failure.
+ 	 */
+-	public function db_connect( $allow_bail = true ) {
++	public function db_connect( mixed $allow_bail = true ): mixed {
+ 		$this->is_mysql = true;
+ 
+-		$client_flags = defined( 'MYSQL_CLIENT_FLAGS' ) ? MYSQL_CLIENT_FLAGS : 0;
++		$client_flags = defined( 'MYSQL_CLIENT_FLAGS' ) ? \wp_aot_undefined_constant('MYSQL_CLIENT_FLAGS') : 0;
+ 
+ 		/*
+ 		 * Switch error reporting off because WordPress handles its own.
+@@ -2002,8 +2025,8 @@
  
  			// Load custom DB error template, if present.
  			if ( file_exists( WP_CONTENT_DIR . '/db-error.php' ) ) {
 -				require_once WP_CONTENT_DIR . '/db-error.php';
+-				die();
 +				throw new RuntimeException( 'Custom database error drop-ins are outside the finite Elephc fixture.' );
- 				die();
++				\wp_aot_exit();
  			}
  
+ 			$message = '<h1>' . __( 'Error establishing a database connection' ) . "</h1>\n";
+@@ -2047,6 +2070,7 @@
+ 		}
+ 
+ 		return false;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -2070,7 +2094,7 @@
+ 	 *     @type bool        $3 Whether it is an IPv6 address.
+ 	 * }
+ 	 */
+-	public function parse_db_host( $host ) {
++	public function parse_db_host( mixed $host ): mixed {
+ 		$socket  = null;
+ 		$is_ipv6 = false;
+ 
+@@ -2094,7 +2118,7 @@
+ 		}
+ 
+ 		$matches = array();
+-		$result  = preg_match( $pattern, $host, $matches );
++		$result  = preg_match( \wp_aot_regex_text( $pattern ), \wp_aot_regex_text( $host ), $matches );
+ 
+ 		if ( 1 !== $result ) {
+ 			// Couldn't parse the address, bail.
+@@ -2106,6 +2130,7 @@
+ 		$port = ! empty( $matches['port'] ) ? absint( $matches['port'] ) : null;
+ 
+ 		return array( $host, $port, $socket, $is_ipv6 );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -2121,7 +2146,7 @@
+ 	 * @param bool $allow_bail Optional. Allows the function to bail. Default true.
+ 	 * @return bool Whether the connection is up. Exits if down and $allow_bail is true.
+ 	 */
+-	public function check_connection( $allow_bail = true ) {
++	public function check_connection( mixed $allow_bail = true ): mixed {
+ 		// Check if the connection is alive.
+ 		if ( ! empty( $this->dbh ) && mysqli_query( $this->dbh, 'DO 1' ) !== false ) {
+ 			return true;
+@@ -2196,6 +2221,7 @@
+ 		 * It has ceased to be (at least temporarily).
+ 		 */
+ 		dead_db();
++		return null;
+ 	}
+ 
+ 	/**
+@@ -2211,7 +2237,7 @@
+ 	 * @return int|bool Boolean true for CREATE, ALTER, TRUNCATE and DROP queries. Number of rows
+ 	 *                  affected/selected for all other queries. Boolean false on error.
+ 	 */
+-	public function query( $query ) {
++	public function query( mixed $query ): mixed {
+ 		if ( ! $this->ready ) {
+ 			$this->check_current_query = true;
+ 			return false;
+@@ -2297,7 +2323,7 @@
+ 
+ 		if ( $this->last_error ) {
+ 			// Clear insert_id on a subsequent failed insert.
+-			if ( $this->insert_id && preg_match( '/^\s*(insert|replace)\s/i', $query ) ) {
++			if ( $this->insert_id && preg_match( '/^\s*(insert|replace)\s/i', \wp_aot_regex_text( $query ) ) ) {
+ 				$this->insert_id = 0;
+ 			}
+ 
+@@ -2305,13 +2331,13 @@
+ 			return false;
+ 		}
+ 
+-		if ( preg_match( '/^\s*(create|alter|truncate|drop)\s/i', $query ) ) {
+-			$return_val = $this->result;
+-		} elseif ( preg_match( '/^\s*(insert|delete|update|replace)\s/i', $query ) ) {
++		if ( preg_match( '/^\s*(create|alter|truncate|drop)\s/i', \wp_aot_regex_text( $query ) ) ) {
++			$return_val = \wp_aot_mixed($this->result);
++		} elseif ( preg_match( '/^\s*(insert|delete|update|replace)\s/i', \wp_aot_regex_text( $query ) ) ) {
+ 			$this->rows_affected = mysqli_affected_rows( $this->dbh );
+ 
+ 			// Take note of the insert_id.
+-			if ( preg_match( '/^\s*(insert|replace)\s/i', $query ) ) {
++			if ( preg_match( '/^\s*(insert|replace)\s/i', \wp_aot_regex_text( $query ) ) ) {
+ 				$this->insert_id = mysqli_insert_id( $this->dbh );
+ 			}
+ 
+@@ -2333,6 +2359,7 @@
+ 		}
+ 
+ 		return $return_val;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -2344,8 +2371,8 @@
+ 	 *
+ 	 * @param string $query The query to run.
+ 	 */
+-	private function _do_query( $query ) {
+-		if ( defined( 'SAVEQUERIES' ) && SAVEQUERIES ) {
++	private function _do_query( mixed $query ): mixed {
++		if ( defined( 'SAVEQUERIES' ) && \wp_aot_undefined_constant('SAVEQUERIES') ) {
+ 			$this->timer_start();
+ 		}
+ 
+@@ -2355,7 +2382,7 @@
+ 
+ 		++$this->num_queries;
+ 
+-		if ( defined( 'SAVEQUERIES' ) && SAVEQUERIES ) {
++		if ( defined( 'SAVEQUERIES' ) && \wp_aot_undefined_constant('SAVEQUERIES') ) {
+ 			$this->log_query(
+ 				$query,
+ 				$this->timer_stop(),
+@@ -2364,6 +2391,7 @@
+ 				array()
+ 			);
+ 		}
++		return null;
+ 	}
+ 
+ 	/**
+@@ -2377,7 +2405,7 @@
+ 	 * @param float  $query_start     Unix timestamp of the time at the start of the query.
+ 	 * @param array  $query_data      Custom query data.
+ 	 */
+-	public function log_query( $query, $query_time, $query_callstack, $query_start, $query_data ) {
++	public function log_query( mixed $query, mixed $query_time, mixed $query_callstack, mixed $query_start, mixed $query_data ): mixed {
+ 		/**
+ 		 * Filters the custom data to log alongside a query.
+ 		 *
+@@ -2401,6 +2429,7 @@
+ 			$query_start,
+ 			$query_data,
+ 		);
++		return null;
+ 	}
+ 
+ 	/**
+@@ -2410,14 +2439,15 @@
+ 	 *
+ 	 * @return string String to escape placeholders.
+ 	 */
+-	public function placeholder_escape() {
+-		static $placeholder;
++	public function placeholder_escape(): mixed {
++		static $placeholder_aot_cell = new \WordPressStaticValueCell();
++		$placeholder =& $placeholder_aot_cell->value;
+ 
+ 		if ( ! $placeholder ) {
+ 			// Old WP installs may not have AUTH_SALT defined.
+-			$salt = defined( 'AUTH_SALT' ) && AUTH_SALT ? AUTH_SALT : (string) rand();
+-
+-			$placeholder = '{' . hash_hmac( 'sha256', uniqid( $salt, true ), $salt ) . '}';
++			$salt = defined( 'AUTH_SALT' ) && \wp_aot_metadata_constant('AUTH_SALT') ? \wp_aot_metadata_constant('AUTH_SALT') : (string) rand();
++
++			$placeholder = '{' . hash_hmac( 'sha256', \wp_aot_native_api('uniqid', array( $salt, true )), $salt ) . '}';
+ 		}
+ 
+ 		/*
+@@ -2429,6 +2459,7 @@
+ 		}
+ 
+ 		return $placeholder;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -2439,12 +2470,13 @@
+ 	 * @param string $query The query to escape.
+ 	 * @return string The query with the placeholder escape string inserted where necessary.
+ 	 */
+-	public function add_placeholder_escape( $query ) {
++	public function add_placeholder_escape( mixed $query ): mixed {
+ 		/*
+ 		 * To prevent returning anything that even vaguely resembles a placeholder,
+ 		 * we clobber every % we can find.
+ 		 */
+-		return str_replace( '%', $this->placeholder_escape(), $query );
++		return \wp_aot_str_replace( '%', $this->placeholder_escape(), $query );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -2455,8 +2487,9 @@
+ 	 * @param string $query The query from which the placeholder will be removed.
+ 	 * @return string The query with the placeholder removed.
+ 	 */
+-	public function remove_placeholder_escape( $query ) {
+-		return str_replace( $this->placeholder_escape(), '%', $query );
++	public function remove_placeholder_escape( mixed $query ): mixed {
++		return \wp_aot_str_replace( $this->placeholder_escape(), '%', $query );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -2501,8 +2534,9 @@
+ 	 *                                specified in wpdb::$field_types. Default null.
+ 	 * @return int|false The number of rows inserted, or false on error.
+ 	 */
+-	public function insert( $table, $data, $format = null ) {
++	public function insert( mixed $table, mixed $data, mixed $format = null ): mixed {
+ 		return $this->_insert_replace_helper( $table, $data, $format, 'INSERT' );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -2554,8 +2588,9 @@
+ 	 *                                specified in wpdb::$field_types. Default null.
+ 	 * @return int|false The number of rows affected, or false on error.
+ 	 */
+-	public function replace( $table, $data, $format = null ) {
++	public function replace( mixed $table, mixed $data, mixed $format = null ): mixed {
+ 		return $this->_insert_replace_helper( $table, $data, $format, 'REPLACE' );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -2583,7 +2618,7 @@
+ 	 *                                Default 'INSERT'.
+ 	 * @return int|false The number of rows affected, or false on error.
+ 	 */
+-	public function _insert_replace_helper( $table, $data, $format = null, $type = 'INSERT' ) {
++	public function _insert_replace_helper( mixed $table, mixed $data, mixed $format = null, mixed $type = 'INSERT' ): mixed {
+ 		$this->insert_id = 0;
+ 
+ 		if ( ! in_array( strtoupper( $type ), array( 'REPLACE', 'INSERT' ), true ) ) {
+@@ -2614,6 +2649,7 @@
+ 
+ 		$this->check_current_query = false;
+ 		return $this->query( $this->prepare( $sql, $values ) );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -2677,7 +2713,7 @@
+ 	 *                                      specified in wpdb::$field_types. Default null.
+ 	 * @return int|false The number of rows updated, or false on error.
+ 	 */
+-	public function update( $table, $data, $where, $format = null, $where_format = null ) {
++	public function update( mixed $table, mixed $data, mixed $where, mixed $format = null, mixed $where_format = null ): mixed {
+ 		if ( ! is_array( $data ) || ! is_array( $where ) ) {
+ 			return false;
+ 		}
+@@ -2720,6 +2756,7 @@
+ 
+ 		$this->check_current_query = false;
+ 		return $this->query( $this->prepare( $sql, $values ) );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -2762,7 +2799,7 @@
+ 	 *                                      specified in wpdb::$field_types. Default null.
+ 	 * @return int|false The number of rows deleted, or false on error.
+ 	 */
+-	public function delete( $table, $where, $where_format = null ) {
++	public function delete( mixed $table, mixed $where, mixed $where_format = null ): mixed {
+ 		if ( ! is_array( $where ) ) {
+ 			return false;
+ 		}
+@@ -2790,6 +2827,7 @@
+ 
+ 		$this->check_current_query = false;
+ 		return $this->query( $this->prepare( $sql, $values ) );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -2809,7 +2847,7 @@
+ 	 * @return array|false An array of fields that contain paired value and formats.
+ 	 *                     False for invalid values.
+ 	 */
+-	protected function process_fields( $table, $data, $format ) {
++	protected function process_fields( mixed $table, mixed $data, mixed $format ): mixed {
+ 		$data = $this->process_field_formats( $data, $format );
+ 		if ( false === $data ) {
+ 			return false;
+@@ -2856,6 +2894,7 @@
+ 		}
+ 
+ 		return $data;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -2876,7 +2915,7 @@
+ 	 *     }
+ 	 * }
+ 	 */
+-	protected function process_field_formats( $data, $format ) {
++	protected function process_field_formats( mixed $data, mixed $format ): mixed {
+ 		$formats          = (array) $format;
+ 		$original_formats = $formats;
+ 
+@@ -2887,7 +2926,7 @@
+ 			);
+ 
+ 			if ( ! empty( $format ) ) {
+-				$value['format'] = array_shift( $formats );
++				$value['format'] = \wp_aot_array_shift( $formats );
+ 				if ( ! $value['format'] ) {
+ 					$value['format'] = reset( $original_formats );
+ 				}
+@@ -2899,6 +2938,7 @@
+ 		}
+ 
+ 		return $data;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -2931,7 +2971,7 @@
+ 	 *     }
+ 	 * }
+ 	 */
+-	protected function process_field_charsets( $data, $table ) {
++	protected function process_field_charsets( mixed $data, mixed $table ): mixed {
+ 		foreach ( $data as $field => $value ) {
+ 			if ( '%d' === $value['format'] || '%f' === $value['format'] ) {
+ 				/*
+@@ -2950,6 +2990,7 @@
+ 		}
+ 
+ 		return $data;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -2990,7 +3031,7 @@
+ 	 *     }
+ 	 * }
+ 	 */
+-	protected function process_field_lengths( $data, $table ) {
++	protected function process_field_lengths( mixed $data, mixed $table ): mixed {
+ 		foreach ( $data as $field => $value ) {
+ 			if ( '%d' === $value['format'] || '%f' === $value['format'] ) {
+ 				/*
+@@ -3009,6 +3050,7 @@
+ 		}
+ 
+ 		return $data;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -3030,7 +3072,7 @@
+ 	 * @return string|null Database query result (as string), or null on failure or when the value is an empty string.
+ 	 * @phpstan-return non-empty-string|null
+ 	 */
+-	public function get_var( $query = null, $x = 0, $y = 0 ) {
++	public function get_var( mixed $query = null, mixed $x = 0, mixed $y = 0 ): mixed {
+ 		$this->func_call = "\$db->get_var(\"$query\", $x, $y)";
+ 
+ 		if ( $query ) {
+@@ -3042,6 +3084,7 @@
+ 		}
+ 
+ 		// Extract var out of cached results based on x,y vals.
++		$values = \wp_aot_empty_request_array();
+ 		if ( ! empty( $this->last_result[ $y ] ) ) {
+ 			/**
+ 			 * Column values.
+@@ -3056,6 +3099,7 @@
+ 
+ 		// If there is a value return it, else return null.
+ 		return ( isset( $values[ $x ] ) && '' !== $values[ $x ] ) ? $values[ $x ] : null;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -3090,7 +3134,7 @@
+ 	 *         : null
+ 	 * )
+ 	 */
+-	public function get_row( $query = null, $output = OBJECT, $y = 0 ) {
++	public function get_row( mixed $query = null, mixed $output = OBJECT, mixed $y = 0 ): mixed {
+ 		$this->func_call = "\$db->get_row(\"$query\",$output,$y)";
+ 
+ 		if ( $query ) {
+@@ -3120,6 +3164,7 @@
+ 			$this->print_error( ' $db->get_row(string query, output type, int offset) -- Output type must be one of: OBJECT, ARRAY_A, ARRAY_N' );
+ 		}
+ 		return null;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -3136,7 +3181,7 @@
+ 	 * @return array Database query result. Array indexed from 0 by SQL result row number.
+ 	 * @phpstan-return list<non-empty-string|null>
+ 	 */
+-	public function get_col( $query = null, $x = 0 ) {
++	public function get_col( mixed $query = null, mixed $x = 0 ): mixed {
+ 		if ( $query ) {
+ 			if ( $this->check_current_query && $this->check_safe_collation( $query ) ) {
+ 				$this->check_current_query = false;
+@@ -3153,6 +3198,7 @@
+ 			}
+ 		}
+ 		return $new_array;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -3202,7 +3248,7 @@
+ 	 *         : null
+ 	 * )
+ 	 */
+-	public function get_results( $query = null, $output = OBJECT ) {
++	public function get_results( mixed $query = null, mixed $output = OBJECT ): mixed {
+ 		$this->func_call = "\$db->get_results(\"$query\", $output)";
+ 
+ 		if ( $query ) {
+@@ -3235,7 +3281,7 @@
+ 					 *
+ 					 * @var array-key $key
+ 					 */
+-					$key = array_shift( $var_by_ref ) ?? '';
++					$key = \wp_aot_array_shift( $var_by_ref ) ?? '';
+ 					if ( ! isset( $new_array[ $key ] ) ) {
+ 						$new_array[ $key ] = $row;
+ 					}
+@@ -3263,6 +3309,7 @@
+ 			return $this->last_result;
+ 		}
+ 		return null;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -3273,7 +3320,7 @@
+ 	 * @param string $table Table name.
+ 	 * @return string|WP_Error Table character set, WP_Error object if it couldn't be found.
+ 	 */
+-	protected function get_table_charset( $table ) {
++	protected function get_table_charset( mixed $table ): mixed {
+ 		$tablekey = strtolower( $table );
+ 
+ 		/**
+@@ -3360,6 +3407,7 @@
+ 
+ 		$this->table_charset[ $tablekey ] = $charset;
+ 		return $charset;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -3372,7 +3420,7 @@
+ 	 * @return string|false|WP_Error Column character set as a string. False if the column has
+ 	 *                               no character set. WP_Error object if there was an error.
+ 	 */
+-	public function get_col_charset( $table, $column ) {
++	public function get_col_charset( mixed $table, mixed $column ): mixed {
+ 		$tablekey  = strtolower( $table );
+ 		$columnkey = strtolower( $column );
+ 
+@@ -3423,6 +3471,7 @@
+ 
+ 		list( $charset ) = explode( '_', $this->col_meta[ $tablekey ][ $columnkey ]->Collation );
+ 		return $charset;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -3442,7 +3491,7 @@
+ 	 *     @type int    $length The column length.
+ 	 * }
+ 	 */
+-	public function get_col_length( $table, $column ) {
++	public function get_col_length( mixed $table, mixed $column ): mixed {
+ 		$tablekey  = strtolower( $table );
+ 		$columnkey = strtolower( $column );
+ 
+@@ -3467,7 +3516,7 @@
+ 
+ 		$type = strtolower( $typeinfo[0] );
+ 		if ( ! empty( $typeinfo[1] ) ) {
+-			$length = trim( $typeinfo[1], ')' );
++			$length = \wp_aot_mixed(trim( $typeinfo[1], ')' ));
+ 		} else {
+ 			$length = false;
+ 		}
+@@ -3518,6 +3567,7 @@
+ 			default:
+ 				return false;
+ 		}
++		return null;
+ 	}
+ 
+ 	/**
+@@ -3531,16 +3581,17 @@
+ 	 * @param string $input_string String to check.
+ 	 * @return bool True if ASCII, false if not.
+ 	 */
+-	protected function check_ascii( $input_string ) {
++	protected function check_ascii( mixed $input_string ): mixed {
+ 		if ( function_exists( 'mb_check_encoding' ) ) {
+ 			if ( mb_check_encoding( $input_string, 'ASCII' ) ) {
+ 				return true;
+ 			}
+-		} elseif ( ! preg_match( '/[^\x00-\x7F]/', $input_string ) ) {
++		} elseif ( ! preg_match( '/[^\x00-\x7F]/', \wp_aot_regex_text( $input_string ) ) ) {
+ 			return true;
+ 		}
+ 
+ 		return false;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -3551,14 +3602,14 @@
+ 	 * @param string $query The query to check.
+ 	 * @return bool True if the collation is safe, false if it isn't.
+ 	 */
+-	protected function check_safe_collation( $query ) {
++	protected function check_safe_collation( mixed $query ): mixed {
+ 		if ( $this->checking_collation ) {
+ 			return true;
+ 		}
+ 
+ 		// We don't need to check the collation for queries that don't read data.
+ 		$query = ltrim( $query, "\r\n\t (" );
+-		if ( preg_match( '/^(?:SHOW|DESCRIBE|DESC|EXPLAIN|CREATE)\s/i', $query ) ) {
++		if ( preg_match( '/^(?:SHOW|DESCRIBE|DESC|EXPLAIN|CREATE)\s/i', \wp_aot_regex_text( $query ) ) ) {
+ 			return true;
+ 		}
+ 
+@@ -3607,6 +3658,7 @@
+ 		}
+ 
+ 		return true;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -3621,7 +3673,7 @@
+ 	 *                        retained in each value array. If we cannot remove invalid characters,
+ 	 *                        a WP_Error object is returned.
+ 	 */
+-	protected function strip_invalid_text( $data ) {
++	protected function strip_invalid_text( mixed $data ): mixed {
+ 		$db_check_string = false;
+ 
+ 		foreach ( $data as &$value ) {
+@@ -3696,7 +3748,7 @@
+ 					)
+ 					| .                                  # anything else
+ 					/x';
+-				$value['value'] = preg_replace( $regex, '$1', $value['value'] );
++				$value['value'] = \wp_aot_preg_replace( $regex, '$1', $value['value'] );
+ 
+ 				if ( false !== $length && mb_strlen( $value['value'], 'UTF-8' ) > $length ) {
+ 					$value['value'] = mb_substr( $value['value'], 0, $length, 'UTF-8' );
+@@ -3763,6 +3815,7 @@
+ 		}
+ 
+ 		return $data;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -3773,10 +3826,10 @@
+ 	 * @param string $query Query to convert.
+ 	 * @return string|WP_Error The converted query, or a WP_Error object if the conversion fails.
+ 	 */
+-	protected function strip_invalid_text_from_query( $query ) {
++	protected function strip_invalid_text_from_query( mixed $query ): mixed {
+ 		// We don't need to check the collation for queries that don't read data.
+ 		$trimmed_query = ltrim( $query, "\r\n\t (" );
+-		if ( preg_match( '/^(?:SHOW|DESCRIBE|DESC|EXPLAIN|CREATE)\s/i', $trimmed_query ) ) {
++		if ( preg_match( '/^(?:SHOW|DESCRIBE|DESC|EXPLAIN|CREATE)\s/i', \wp_aot_regex_text( $trimmed_query ) ) ) {
+ 			return $query;
+ 		}
+ 
+@@ -3808,6 +3861,7 @@
+ 		}
+ 
+ 		return $data[0]['value'];
++		return null;
+ 	}
+ 
+ 	/**
+@@ -3820,7 +3874,7 @@
+ 	 * @param string $value  The text to check.
+ 	 * @return string|WP_Error The converted string, or a WP_Error object if the conversion fails.
+ 	 */
+-	public function strip_invalid_text_for_column( $table, $column, $value ) {
++	public function strip_invalid_text_for_column( mixed $table, mixed $column, mixed $value ): mixed {
+ 		if ( ! is_string( $value ) ) {
+ 			return $value;
+ 		}
+@@ -3848,6 +3902,7 @@
+ 		}
+ 
+ 		return $data[ $column ]['value'];
++		return null;
+ 	}
+ 
+ 	/**
+@@ -3858,7 +3913,7 @@
+ 	 * @param string $query The query to search.
+ 	 * @return string|false The table name found, or false if a table couldn't be found.
+ 	 */
+-	protected function get_table_from_query( $query ) {
++	protected function get_table_from_query( mixed $query ): mixed {
+ 		// Remove characters that can legally trail the table name.
+ 		$query = rtrim( $query, ';/-#' );
+ 
+@@ -3866,28 +3921,28 @@
+ 		$query = ltrim( $query, "\r\n\t (" );
+ 
+ 		// Strip everything between parentheses except nested selects.
+-		$query = preg_replace( '/\((?!\s*select)[^(]*?\)/is', '()', $query );
++		$query = \wp_aot_preg_replace( '/\((?!\s*select)[^(]*?\)/is', '()', $query );
+ 
+ 		// Strip any leading SET STATEMENT statements.
+-		$query = preg_replace( '/^SET STATEMENT.+?\sFOR\s+/is', '', $query );
++		$query = \wp_aot_preg_replace( '/^SET STATEMENT.+?\sFOR\s+/is', '', $query );
+ 
+ 		// Quickly match most common queries.
+ 		if ( preg_match(
+-			'/^\s*(?:'
++			\wp_aot_regex_text( '/^\s*(?:'
+ 				. 'SELECT.*?\s+FROM'
+ 				. '|INSERT(?:\s+LOW_PRIORITY|\s+DELAYED|\s+HIGH_PRIORITY)?(?:\s+IGNORE)?(?:\s+INTO)?'
+ 				. '|REPLACE(?:\s+LOW_PRIORITY|\s+DELAYED)?(?:\s+INTO)?'
+ 				. '|UPDATE(?:\s+LOW_PRIORITY)?(?:\s+IGNORE)?'
+ 				. '|DELETE(?:\s+LOW_PRIORITY|\s+QUICK|\s+IGNORE)*(?:.+?FROM)?'
+-			. ')\s+((?:[0-9a-zA-Z$_.`-]|[\xC2-\xDF][\x80-\xBF])+)/is',
+-			$query,
++			. ')\s+((?:[0-9a-zA-Z$_.`-]|[\xC2-\xDF][\x80-\xBF])+)/is' ),
++			\wp_aot_regex_text( $query ),
+ 			$maybe
+ 		) ) {
+-			return str_replace( '`', '', $maybe[1] );
++			return \wp_aot_str_replace( '`', '', $maybe[1] );
+ 		}
+ 
+ 		// SHOW TABLE STATUS and SHOW TABLES WHERE Name = 'wp_posts'
+-		if ( preg_match( '/^\s*SHOW\s+(?:TABLE\s+STATUS|(?:FULL\s+)?TABLES).+WHERE\s+Name\s*=\s*("|\')((?:[0-9a-zA-Z$_.-]|[\xC2-\xDF][\x80-\xBF])+)\\1/is', $query, $maybe ) ) {
++		if ( preg_match( '/^\s*SHOW\s+(?:TABLE\s+STATUS|(?:FULL\s+)?TABLES).+WHERE\s+Name\s*=\s*("|\')((?:[0-9a-zA-Z$_.-]|[\xC2-\xDF][\x80-\xBF])+)\\1/is', \wp_aot_regex_text( $query ), $maybe ) ) {
+ 			return $maybe[2];
+ 		}
+ 
+@@ -3898,13 +3953,13 @@
+ 		 * strip the trailing % and unescape the _ to get 'wp_123_'
+ 		 * which drop-ins can use for routing these SQL statements.
+ 		 */
+-		if ( preg_match( '/^\s*SHOW\s+(?:TABLE\s+STATUS|(?:FULL\s+)?TABLES)\s+(?:WHERE\s+Name\s+)?LIKE\s*("|\')((?:[\\\\0-9a-zA-Z$_.-]|[\xC2-\xDF][\x80-\xBF])+)%?\\1/is', $query, $maybe ) ) {
+-			return str_replace( '\\_', '_', $maybe[2] );
++		if ( preg_match( '/^\s*SHOW\s+(?:TABLE\s+STATUS|(?:FULL\s+)?TABLES)\s+(?:WHERE\s+Name\s+)?LIKE\s*("|\')((?:[\\\\0-9a-zA-Z$_.-]|[\xC2-\xDF][\x80-\xBF])+)%?\\1/is', \wp_aot_regex_text( $query ), $maybe ) ) {
++			return \wp_aot_str_replace( '\\_', '_', $maybe[2] );
+ 		}
+ 
+ 		// Big pattern for the rest of the table-related queries.
+ 		if ( preg_match(
+-			'/^\s*(?:'
++			\wp_aot_regex_text( '/^\s*(?:'
+ 				. '(?:EXPLAIN\s+(?:EXTENDED\s+)?)?SELECT.*?\s+FROM'
+ 				. '|DESCRIBE|DESC|EXPLAIN|HANDLER'
+ 				. '|(?:LOCK|UNLOCK)\s+TABLE(?:S)?'
+@@ -3918,14 +3973,15 @@
+ 				. '|LOAD\s+DATA.*INFILE.*INTO\s+TABLE'
+ 				. '|(?:GRANT|REVOKE).*ON\s+TABLE'
+ 				. '|SHOW\s+(?:.*FROM|.*TABLE)'
+-			. ')\s+\(*\s*((?:[0-9a-zA-Z$_.`-]|[\xC2-\xDF][\x80-\xBF])+)\s*\)*/is',
+-			$query,
++			. ')\s+\(*\s*((?:[0-9a-zA-Z$_.`-]|[\xC2-\xDF][\x80-\xBF])+)\s*\)*/is' ),
++			\wp_aot_regex_text( $query ),
+ 			$maybe
+ 		) ) {
+-			return str_replace( '`', '', $maybe[1] );
++			return \wp_aot_str_replace( '`', '', $maybe[1] );
+ 		}
+ 
+ 		return false;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -3933,9 +3989,9 @@
+ 	 *
+ 	 * @since 3.5.0
+ 	 */
+-	protected function load_col_info() {
++	protected function load_col_info(): mixed {
+ 		if ( $this->col_info ) {
+-			return;
++			return null;
+ 		}
+ 
+ 		$num_fields = mysqli_num_fields( $this->result );
+@@ -3943,6 +3999,7 @@
+ 		for ( $i = 0; $i < $num_fields; $i++ ) {
+ 			$this->col_info[ $i ] = mysqli_fetch_field( $this->result );
+ 		}
++		return null;
+ 	}
+ 
+ 	/**
+@@ -3957,7 +4014,7 @@
+ 	 *                           3: if the col is numeric. 4: col's type. Default -1.
+ 	 * @return mixed Column results.
+ 	 */
+-	public function get_col_info( $info_type = 'name', $col_offset = -1 ) {
++	public function get_col_info( mixed $info_type = 'name', mixed $col_offset = -1 ): mixed {
+ 		$this->load_col_info();
+ 
+ 		if ( $this->col_info ) {
+@@ -3965,15 +4022,16 @@
+ 				$i         = 0;
+ 				$new_array = array();
+ 				foreach ( (array) $this->col_info as $col ) {
+-					$new_array[ $i ] = $col->{$info_type};
++					$new_array[ $i ] = \wp_aot_mixed($col)->{$info_type};
+ 					++$i;
+ 				}
+ 				return $new_array;
+ 			} else {
+-				return $this->col_info[ $col_offset ]->{$info_type};
+-			}
+-		}
+-
++				return \wp_aot_mixed($this->col_info)[ $col_offset ]->{$info_type};
++			}
++		}
++
++		return null;
+ 		return null;
+ 	}
+ 
+@@ -3984,9 +4042,10 @@
+ 	 *
+ 	 * @return true
+ 	 */
+-	public function timer_start() {
++	public function timer_start(): mixed {
+ 		$this->time_start = microtime( true );
+ 		return true;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -3996,8 +4055,9 @@
+ 	 *
+ 	 * @return float Total time spent on the query, in seconds.
+ 	 */
+-	public function timer_stop() {
++	public function timer_stop(): mixed {
+ 		return ( microtime( true ) - $this->time_start );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -4012,9 +4072,9 @@
+ 	 *                           Default '500'.
+ 	 * @return false False if the showing of errors is disabled.
+ 	 */
+-	public function bail( $message, $error_code = '500' ) {
++	public function bail( mixed $message, mixed $error_code = '500' ): mixed {
+ 		if ( $this->show_errors ) {
+-			$error = '';
++			$error = \wp_aot_mixed('');
+ 
+ 			if ( $this->dbh instanceof mysqli ) {
+ 				$error = mysqli_error( $this->dbh );
+@@ -4036,6 +4096,7 @@
+ 
+ 			return false;
+ 		}
++		return null;
+ 	}
+ 
+ 	/**
+@@ -4046,7 +4107,7 @@
+ 	 * @return bool True if the connection was successfully closed,
+ 	 *              false if it wasn't, or if the connection doesn't exist.
+ 	 */
+-	public function close() {
++	public function close(): mixed {
+ 		if ( ! $this->dbh ) {
+ 			return false;
+ 		}
+@@ -4060,6 +4121,7 @@
+ 		}
+ 
+ 		return $closed;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -4070,7 +4132,7 @@
+ 	 * @global string $required_mysql_version The minimum required MySQL version string.
+ 	 * @return WP_Error|null
+ 	 */
+-	public function check_database_version() {
++	public function check_database_version(): mixed {
+ 		global $required_mysql_version;
+ 		$wp_version = wp_get_wp_version();
+ 
+@@ -4081,6 +4143,7 @@
+ 		}
+ 
+ 		return null;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -4095,9 +4158,10 @@
+ 	 *
+ 	 * @return bool True if collation is supported, false if not.
+ 	 */
+-	public function supports_collation() {
++	public function supports_collation(): mixed {
+ 		_deprecated_function( __FUNCTION__, '3.5.0', 'wpdb::has_cap( \'collation\' )' );
+ 		return $this->has_cap( 'collation' );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -4107,7 +4171,7 @@
+ 	 *
+ 	 * @return string The database character collate.
+ 	 */
+-	public function get_charset_collate() {
++	public function get_charset_collate(): mixed {
+ 		$charset_collate = '';
+ 
+ 		if ( ! empty( $this->charset ) ) {
+@@ -4118,6 +4182,7 @@
+ 		}
+ 
+ 		return $charset_collate;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -4144,7 +4209,7 @@
+ 	 *                       or 'identifier_placeholders'.
+ 	 * @return bool True when the database feature is supported, false otherwise.
+ 	 */
+-	public function has_cap( $db_cap ) {
++	public function has_cap( mixed $db_cap ): mixed {
+ 		$db_version     = $this->db_version();
+ 		$db_server_info = $this->db_server_info();
+ 
+@@ -4160,8 +4225,8 @@
+ 				|| 80100 <= PHP_VERSION_ID && PHP_VERSION_ID <= 80102 ) // PHP 8.1.0 to PHP 8.1.2.
+ 		) {
+ 			// Strip the '5.5.5-' prefix and set the version to the correct value.
+-			$db_server_info = preg_replace( '/^5\.5\.5-(.*)/', '$1', $db_server_info );
+-			$db_version     = preg_replace( '/[^0-9.].*/', '', $db_server_info );
++			$db_server_info = \wp_aot_preg_replace( '/^5\.5\.5-(.*)/', '$1', $db_server_info );
++			$db_version     = \wp_aot_preg_replace( '/[^0-9.].*/', '', $db_server_info );
+ 		}
+ 
+ 		switch ( strtolower( $db_cap ) ) {
+@@ -4184,6 +4249,7 @@
+ 		}
+ 
+ 		return false;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -4193,8 +4259,9 @@
+ 	 *
+ 	 * @return string Comma-separated list of the calling functions.
+ 	 */
+-	public function get_caller() {
++	public function get_caller(): mixed {
+ 		return wp_debug_backtrace_summary( __CLASS__ );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -4204,8 +4271,9 @@
+ 	 *
+ 	 * @return string|null Version number on success, null on failure.
+ 	 */
+-	public function db_version() {
+-		return preg_replace( '/[^0-9.].*/', '', $this->db_server_info() );
++	public function db_version(): mixed {
++		return \wp_aot_preg_replace( '/[^0-9.].*/', '', $this->db_server_info() );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -4215,7 +4283,8 @@
+ 	 *
+ 	 * @return string Database server version as a string.
+ 	 */
+-	public function db_server_info() {
++	public function db_server_info(): mixed {
+ 		return mysqli_get_server_info( $this->dbh );
++		return null;
+ 	}
+ }

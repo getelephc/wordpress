@@ -1,0 +1,113 @@
+--- a/wp-admin/includes/translation-install.php
++++ b/wp-admin/includes/translation-install.php
+@@ -33,7 +33,7 @@
+  *     }
+  * }
+  */
+-function translations_api( $type, $args = null ) {
++function translations_api( mixed $type, mixed $args = null ): mixed {
+ 	if ( ! in_array( $type, array( 'plugins', 'themes', 'core' ), true ) ) {
+ 		return new WP_Error( 'invalid_type', __( 'Invalid translation type.' ) );
+ 	}
+@@ -80,7 +80,7 @@
+ 					__( 'An unexpected error occurred. Something may be wrong with WordPress.org or this server&#8217;s configuration. If you continue to have problems, please try the <a href="%s">support forums</a>.' ),
+ 					__( 'https://wordpress.org/support/forums/' )
+ 				) . ' ' . __( '(WordPress could not establish a secure connection to WordPress.org. Please contact your server administrator.)' ),
+-				headers_sent() || WP_DEBUG ? E_USER_WARNING : E_USER_NOTICE
++				\wp_aot_native_headers_sent() || WP_DEBUG ? E_USER_WARNING : E_USER_NOTICE
+ 			);
+ 
+ 			$request = wp_remote_post( $http_url, $options );
+@@ -139,6 +139,7 @@
+ 	 * @param object         $args Translation API arguments.
+ 	 */
+ 	return apply_filters( 'translations_api_result', $res, $type, $args );
++	return null;
+ }
+ 
+ /**
+@@ -164,7 +165,7 @@
+  *     }
+  * }
+  */
+-function wp_get_available_translations() {
++function wp_get_available_translations(): mixed {
+ 	if ( ! wp_installing() ) {
+ 		$translations = get_site_transient( 'available_translations' );
+ 		if ( false !== $translations ) {
+@@ -189,6 +190,7 @@
+ 	}
+ 
+ 	return $translations;
++	return null;
+ }
+ 
+ /**
+@@ -200,7 +202,7 @@
+  *
+  * @param array[] $languages Array of available languages (populated via the Translation API).
+  */
+-function wp_install_language_form( $languages ) {
++function wp_install_language_form( mixed $languages ): mixed {
+ 	global $wp_local_package;
+ 
+ 	$installed_languages = get_available_languages();
+@@ -216,7 +218,7 @@
+ 			printf(
+ 				'<option value="%s" lang="%s" data-continue="%s"%s>%s</option>' . "\n",
+ 				esc_attr( $language['language'] ),
+-				esc_attr( current( $language['iso'] ) ),
++				esc_attr( \wp_aot_array_current_value( $language['iso'] ) ),
+ 				esc_attr( $language['strings']['continue'] ? $language['strings']['continue'] : 'Continue' ),
+ 				in_array( $language['language'], $installed_languages, true ) ? ' data-installed="1"' : '',
+ 				esc_html( $language['native_name'] )
+@@ -230,7 +232,7 @@
+ 		printf(
+ 			'<option value="%s" lang="%s" data-continue="%s"%s>%s</option>' . "\n",
+ 			esc_attr( $language['language'] ),
+-			esc_attr( current( $language['iso'] ) ),
++			esc_attr( \wp_aot_array_current_value( $language['iso'] ) ),
+ 			esc_attr( $language['strings']['continue'] ? $language['strings']['continue'] : 'Continue' ),
+ 			in_array( $language['language'], $installed_languages, true ) ? ' data-installed="1"' : '',
+ 			esc_html( $language['native_name'] )
+@@ -238,6 +240,7 @@
+ 	}
+ 	echo "</select>\n";
+ 	echo '<p class="step"><span class="spinner"></span><input id="language-continue" type="submit" class="button button-primary button-large" value="Continue" /></p>';
++	return null;
+ }
+ 
+ /**
+@@ -251,7 +254,7 @@
+  * @return string|false Returns the language code if successfully downloaded
+  *                      (or already installed), or false on failure.
+  */
+-function wp_download_language_pack( $download ) {
++function wp_download_language_pack( mixed $download ): mixed {
+ 	// Check if the translation is already installed.
+ 	if ( in_array( $download, get_available_languages(), true ) ) {
+ 		return $download;
+@@ -289,6 +292,7 @@
+ 	}
+ 
+ 	return $translation->language;
++	return null;
+ }
+ 
+ /**
+@@ -299,7 +303,7 @@
+  *
+  * @return bool Returns true on success, false on failure.
+  */
+-function wp_can_install_language_pack() {
++function wp_can_install_language_pack(): mixed {
+ 	if ( ! wp_is_file_mod_allowed( 'can_install_language_pack' ) ) {
+ 		return false;
+ 	}
+@@ -316,4 +320,5 @@
+ 	}
+ 
+ 	return true;
+-}
++	return null;
++}

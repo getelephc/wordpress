@@ -1,0 +1,58 @@
+--- a/wp-includes/rest-api/endpoints/class-wp-rest-edit-site-export-controller.php
++++ b/wp-includes/rest-api/endpoints/class-wp-rest-edit-site-export-controller.php
+@@ -31,7 +31,7 @@
+ 	 *
+ 	 * @since 5.9.0
+ 	 */
+-	public function register_routes() {
++	public function register_routes(): mixed {
+ 		register_rest_route(
+ 			$this->namespace,
+ 			'/' . $this->rest_base,
+@@ -43,6 +43,7 @@
+ 				),
+ 			)
+ 		);
++		return null;
+ 	}
+ 
+ 	/**
+@@ -52,7 +53,7 @@
+ 	 *
+ 	 * @return true|WP_Error True if the request has access, or WP_Error object.
+ 	 */
+-	public function permissions_check() {
++	public function permissions_check(): mixed {
+ 		if ( current_user_can( 'export' ) ) {
+ 			return true;
+ 		}
+@@ -62,6 +63,7 @@
+ 			__( 'Sorry, you are not allowed to export templates and template parts.' ),
+ 			array( 'status' => rest_authorization_required_code() )
+ 		);
++		return null;
+ 	}
+ 
+ 	/**
+@@ -72,7 +74,7 @@
+ 	 *
+ 	 * @return void|WP_Error
+ 	 */
+-	public function export() {
++	public function export(): mixed {
+ 		// Generate the export file.
+ 		$filename = wp_generate_block_templates_export_file();
+ 
+@@ -86,9 +88,10 @@
+ 		header( 'Content-Type: application/zip' );
+ 		header( 'Content-Disposition: attachment; filename=' . $theme_name . '.zip' );
+ 		header( 'Content-Length: ' . filesize( $filename ) );
+-		flush();
++		\wp_aot_native_api('flush', array());
+ 		readfile( $filename );
+ 		unlink( $filename );
+-		exit;
++		\wp_aot_exit();
++		return null;
+ 	}
+ }

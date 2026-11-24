@@ -1,0 +1,20 @@
+--- a/wp-admin/user/admin.php
++++ b/wp-admin/user/admin.php
+@@ -13,7 +13,7 @@
+ 
+ if ( ! is_multisite() ) {
+ 	wp_redirect( admin_url() );
+-	exit;
++	\wp_aot_exit();
+ }
+ 
+ $redirect_user_admin_request = ( 0 !== strcasecmp( $current_blog->domain, $current_site->domain ) || 0 !== strcasecmp( $current_blog->path, $current_site->path ) );
+@@ -29,7 +29,7 @@
+ 
+ if ( $redirect_user_admin_request ) {
+ 	wp_redirect( user_admin_url() );
+-	exit;
++	\wp_aot_exit();
+ }
+ 
+ unset( $redirect_user_admin_request );

@@ -1,6 +1,112 @@
 --- a/wp-includes/blocks.php
 +++ b/wp-includes/blocks.php
-@@ -195,7 +195,7 @@
+@@ -15,7 +15,7 @@
+  * @param string $asset_handle_or_path Asset handle or prefixed path.
+  * @return string Path without the prefix or the original value.
+  */
+-function remove_block_asset_path_prefix( $asset_handle_or_path ) {
++function remove_block_asset_path_prefix( mixed $asset_handle_or_path ): mixed {
+ 	$path_prefix = 'file:';
+ 	if ( ! str_starts_with( $asset_handle_or_path, $path_prefix ) ) {
+ 		return $asset_handle_or_path;
+@@ -28,6 +28,7 @@
+ 		$path = substr( $path, 2 );
+ 	}
+ 	return $path;
++	return null;
+ }
+ 
+ /**
+@@ -49,9 +50,9 @@
+  * @phpstan-param int<0, max> $index
+  * @phpstan-return non-falsy-string
+  */
+-function generate_block_asset_handle( $block_name, $field_name, $index = 0 ) {
++function generate_block_asset_handle( mixed $block_name, mixed $field_name, mixed $index = 0 ): mixed {
+ 	if ( str_starts_with( $block_name, 'core/' ) ) {
+-		$asset_handle = str_replace( 'core/', 'wp-block-', $block_name );
++		$asset_handle = \wp_aot_str_replace( 'core/', 'wp-block-', $block_name );
+ 		if ( str_starts_with( $field_name, 'editor' ) ) {
+ 			$asset_handle .= '-editor';
+ 		}
+@@ -76,12 +77,13 @@
+ 		'viewScriptModule' => 'view-script-module',
+ 		'viewStyle'        => 'view-style',
+ 	);
+-	$asset_handle   = str_replace( '/', '-', $block_name ) .
++	$asset_handle   = \wp_aot_str_replace( '/', '-', $block_name ) .
+ 		'-' . $field_mappings[ $field_name ];
+ 	if ( $index > 0 ) {
+ 		$asset_handle .= '-' . ( $index + 1 );
+ 	}
+ 	return $asset_handle;
++	return null;
+ }
+ 
+ /**
+@@ -94,23 +96,25 @@
+  *
+  * @phpstan-return non-falsy-string|false
+  */
+-function get_block_asset_url( $path ) {
++function get_block_asset_url( mixed $path ): mixed {
+ 	if ( empty( $path ) ) {
+ 		return false;
+ 	}
+ 
+ 	// Path needs to be normalized to work in Windows env.
+-	static $wpinc_path_norm = '';
++	static $wpinc_path_norm_aot_cell = new \WordPressStaticStringCell();
++	$wpinc_path_norm =& $wpinc_path_norm_aot_cell->value;
+ 	if ( ! $wpinc_path_norm ) {
+ 		$wpinc_path_norm = wp_normalize_path( realpath( ABSPATH . WPINC ) );
+ 	}
+ 
+ 	if ( str_starts_with( $path, $wpinc_path_norm ) ) {
+-		return includes_url( str_replace( $wpinc_path_norm, '', $path ) );
++		return includes_url( \wp_aot_str_replace( $wpinc_path_norm, '', $path ) );
+ 	}
+ 
+ 	/** @var array<string, string> $template_paths_norm */
+-	static $template_paths_norm = array();
++	static $template_paths_norm_aot_cell = new \WordPressStaticArrayCell();
++	$template_paths_norm =& $template_paths_norm_aot_cell->value;
+ 
+ 	$template = get_template();
+ 	if ( ! isset( $template_paths_norm[ $template ] ) ) {
+@@ -118,7 +122,7 @@
+ 	}
+ 
+ 	if ( str_starts_with( $path, trailingslashit( $template_paths_norm[ $template ] ) ) ) {
+-		return get_theme_file_uri( str_replace( $template_paths_norm[ $template ], '', $path ) );
++		return get_theme_file_uri( \wp_aot_str_replace( $template_paths_norm[ $template ], '', $path ) );
+ 	}
+ 
+ 	if ( is_child_theme() ) {
+@@ -128,11 +132,12 @@
+ 		}
+ 
+ 		if ( str_starts_with( $path, trailingslashit( $template_paths_norm[ $stylesheet ] ) ) ) {
+-			return get_theme_file_uri( str_replace( $template_paths_norm[ $stylesheet ], '', $path ) );
++			return get_theme_file_uri( \wp_aot_str_replace( $template_paths_norm[ $stylesheet ], '', $path ) );
+ 		}
+ 	}
+ 
+ 	return plugins_url( basename( $path ), $path );
++	return null;
+ }
+ 
+ /**
+@@ -166,7 +171,7 @@
+  * @phpstan-param int<0, max> $index
+  * @phpstan-return non-falsy-string|false
+  */
+-function register_block_script_module_id( $metadata, $field_name, $index = 0 ) {
++function register_block_script_module_id( mixed $metadata, mixed $field_name, mixed $index = 0 ): mixed {
+ 	if ( empty( $metadata[ $field_name ] ) ) {
+ 		return false;
+ 	}
+@@ -195,7 +200,7 @@
  	$module_uri       = get_block_asset_url( $module_path_norm );
  
  	/** @var array{ dependencies?: list<non-falsy-string|array{id: non-falsy-string, import?: 'static'|'dynamic'}>, version?: string|false|null, ... } $module_asset */
@@ -9,7 +115,31 @@
  	$module_dependencies = $module_asset['dependencies'] ?? array();
  	$block_version       = $metadata['version'] ?? false;
  	$module_version      = $module_asset['version'] ?? $block_version;
-@@ -290,7 +290,7 @@
+@@ -222,12 +227,13 @@
+ 	wp_register_script_module(
+ 		$module_id,
+ 		$module_uri,
+-		$module_dependencies,
++		\wp_aot_array_input($module_dependencies),
+ 		$module_version,
+ 		$args
+ 	);
+ 
+ 	return $module_id;
++	return null;
+ }
+ 
+ /**
+@@ -264,7 +270,7 @@
+  * @phpstan-param int<0, max> $index
+  * @phpstan-return non-falsy-string|false
+  */
+-function register_block_script_handle( $metadata, $field_name, $index = 0 ) {
++function register_block_script_handle( mixed $metadata, mixed $field_name, mixed $index = 0 ): mixed {
+ 	if ( empty( $metadata[ $field_name ] ) ) {
+ 		return false;
+ 	}
+@@ -290,7 +296,7 @@
  
  	// Asset file for blocks is optional. See https://core.trac.wordpress.org/ticket/60460.
  	/** @var array{ handle?: non-falsy-string, dependencies?: list<non-falsy-string>, version?: string|false|null, ... } $script_asset */
@@ -18,16 +148,140 @@
  	$script_handle = $script_asset['handle'] ??
  		generate_block_asset_handle( $metadata['name'], $field_name, $index );
  	if ( wp_script_is( $script_handle, 'registered' ) ) {
-@@ -628,7 +628,7 @@
+@@ -323,6 +329,7 @@
+ 	}
+ 
+ 	return $script_handle;
++	return null;
+ }
+ 
+ /**
+@@ -357,7 +364,7 @@
+  * @phpstan-param int<0, max> $index
+  * @phpstan-return non-falsy-string|false
+  */
+-function register_block_style_handle( $metadata, $field_name, $index = 0 ) {
++function register_block_style_handle( mixed $metadata, mixed $field_name, mixed $index = 0 ): mixed {
+ 	if ( empty( $metadata[ $field_name ] ) ) {
+ 		return false;
+ 	}
+@@ -376,7 +383,8 @@
+ 		return $style_handle_name;
+ 	}
+ 
+-	static $wpinc_path_norm = '';
++	static $wpinc_path_norm_aot_cell = new \WordPressStaticStringCell();
++	$wpinc_path_norm =& $wpinc_path_norm_aot_cell->value;
+ 	if ( ! $wpinc_path_norm ) {
+ 		$wpinc_path_norm = wp_normalize_path( realpath( ABSPATH . WPINC ) );
+ 	}
+@@ -408,7 +416,7 @@
+ 	$style_uri       = get_block_asset_url( $style_path_norm );
+ 
+ 	$block_version = ! $is_core_block && isset( $metadata['version'] ) ? $metadata['version'] : false;
+-	$version       = $style_path_norm && defined( 'SCRIPT_DEBUG' ) && SCRIPT_DEBUG ? filemtime( $style_path_norm ) : $block_version;
++	$version       = $style_path_norm && \wp_aot_bootstrap_defined( 'SCRIPT_DEBUG' ) && SCRIPT_DEBUG ? filemtime( $style_path_norm ) : $block_version;
+ 	$result        = wp_register_style(
+ 		$style_handle_name,
+ 		$style_uri,
+@@ -423,9 +431,9 @@
+ 		wp_style_add_data( $style_handle_name, 'path', $style_path_norm );
+ 
+ 		if ( $is_core_block ) {
+-			$rtl_file = str_replace( "{$suffix}.css", "-rtl{$suffix}.css", $style_path_norm );
++			$rtl_file = \wp_aot_str_replace( "{$suffix}.css", "-rtl{$suffix}.css", $style_path_norm );
+ 		} else {
+-			$rtl_file = str_replace( '.css', '-rtl.css', $style_path_norm );
++			$rtl_file = \wp_aot_str_replace( '.css', '-rtl.css', $style_path_norm );
+ 		}
+ 
+ 		if ( is_rtl() && file_exists( $rtl_file ) ) {
+@@ -436,6 +444,7 @@
+ 	}
+ 
+ 	return $style_handle_name;
++	return null;
+ }
+ 
+ /**
+@@ -445,14 +454,16 @@
+  *
+  * @return object The schema for block's metadata.
+  */
+-function get_block_metadata_i18n_schema() {
+-	static $i18n_block_schema;
++function get_block_metadata_i18n_schema(): mixed {
++	static $i18n_block_schema_aot_cell = new \WordPressStaticValueCell();
++	$i18n_block_schema =& $i18n_block_schema_aot_cell->value;
+ 
+ 	if ( ! isset( $i18n_block_schema ) ) {
+ 		$i18n_block_schema = wp_json_file_decode( __DIR__ . '/block-i18n.json' );
+ 	}
+ 
+ 	return $i18n_block_schema;
++	return null;
+ }
+ 
+ /**
+@@ -470,7 +481,7 @@
+  *                         order to register the collection. If this parameter is not provided, the `$path` parameter
+  *                         must reference a previously registered block metadata collection.
+  */
+-function wp_register_block_types_from_metadata_collection( $path, $manifest = '' ) {
++function wp_register_block_types_from_metadata_collection( mixed $path, mixed $manifest = '' ): mixed {
+ 	if ( $manifest ) {
+ 		wp_register_block_metadata_collection( $path, $manifest );
+ 	}
+@@ -479,6 +490,7 @@
+ 	foreach ( $block_metadata_files as $block_metadata_file ) {
+ 		register_block_type_from_metadata( $block_metadata_file );
+ 	}
++	return null;
+ }
+ 
+ /**
+@@ -493,8 +505,9 @@
+  * @param string $path     The base path in which block files for the collection reside.
+  * @param string $manifest The path to the manifest file for the collection.
+  */
+-function wp_register_block_metadata_collection( $path, $manifest ) {
++function wp_register_block_metadata_collection( mixed $path, mixed $manifest ): mixed {
+ 	WP_Block_Metadata_Registry::register_collection( $path, $manifest );
++	return null;
+ }
+ 
+ /**
+@@ -517,7 +530,7 @@
+  *                               on accepted arguments. Default empty array.
+  * @return WP_Block_Type|false The registered block type on success, or false on failure.
+  */
+-function register_block_type_from_metadata( $file_or_folder, $args = array() ) {
++function register_block_type_from_metadata( mixed $file_or_folder, mixed $args = array() ): mixed {
+ 	/*
+ 	 * Get an array of metadata from a PHP file.
+ 	 * This improves performance for core blocks as it's only necessary to read a single PHP file
+@@ -560,7 +573,7 @@
+ 
+ 	// Add `style` and `editor_style` for core blocks if missing.
+ 	if ( ! empty( $metadata['name'] ) && str_starts_with( $metadata['name'], 'core/' ) ) {
+-		$block_name = str_replace( 'core/', '', $metadata['name'] );
++		$block_name = \wp_aot_str_replace( 'core/', '', $metadata['name'] );
+ 
+ 		if ( ! isset( $metadata['style'] ) ) {
+ 			$metadata['style'] = "wp-block-$block_name";
+@@ -626,9 +639,9 @@
+ 			 *
+ 			 * @return string Returns the block content.
  			 */
- 			$settings['render_callback'] = static function ( $attributes, $content, $block ) use ( $template_path ) {
+-			$settings['render_callback'] = static function ( $attributes, $content, $block ) use ( $template_path ) {
++			$settings['render_callback'] = static function ( mixed $attributes, mixed $content, mixed $block ) use ( $template_path ) {
  				ob_start();
 -				require $template_path;
 +				throw new RuntimeException( 'Custom PHP block render templates are outside the finite source manifest.' );
  				return ob_get_clean();
  			};
  		}
-@@ -652,7 +652,7 @@
+@@ -652,7 +665,7 @@
  			 * @return string Returns the list of block variations.
  			 */
  			$settings['variation_callback'] = static function () use ( $variations_path ) {
@@ -36,7 +290,350 @@
  				return $variations;
  			};
  			// The block instance's `variations` field is only allowed to be an array
-@@ -1618,16 +1618,10 @@
+@@ -662,7 +675,7 @@
+ 		}
+ 	}
+ 
+-	$settings = array_merge( $settings, $args );
++	$settings = \wp_aot_array_merge(array( $settings, $args ));
+ 
+ 	$script_fields = array(
+ 		'editorScript' => 'editor_script_handles',
+@@ -819,6 +832,7 @@
+ 		$metadata['name'],
+ 		$settings
+ 	);
++	return null;
+ }
+ 
+ /**
+@@ -839,12 +853,13 @@
+  *
+  * @return WP_Block_Type|false The registered block type on success, or false on failure.
+  */
+-function register_block_type( $block_type, $args = array() ) {
++function register_block_type( mixed $block_type, mixed $args = array() ): mixed {
+ 	if ( is_string( $block_type ) && file_exists( $block_type ) ) {
+ 		return register_block_type_from_metadata( $block_type, $args );
+ 	}
+ 
+ 	return WP_Block_Type_Registry::get_instance()->register( $block_type, $args );
++	return null;
+ }
+ 
+ /**
+@@ -856,8 +871,9 @@
+  *                                   a complete WP_Block_Type instance.
+  * @return WP_Block_Type|false The unregistered block type on success, or false on failure.
+  */
+-function unregister_block_type( $name ) {
++function unregister_block_type( mixed $name ): mixed {
+ 	return WP_Block_Type_Registry::get_instance()->unregister( $name );
++	return null;
+ }
+ 
+ /**
+@@ -875,7 +891,7 @@
+  *                                      Defaults to global $post.
+  * @return bool Whether the post has blocks.
+  */
+-function has_blocks( $post = null ) {
++function has_blocks( mixed $post = null ): mixed {
+ 	if ( ! is_string( $post ) ) {
+ 		$wp_post = get_post( $post );
+ 
+@@ -887,6 +903,7 @@
+ 	}
+ 
+ 	return str_contains( (string) $post, '<!-- wp:' );
++	return null;
+ }
+ 
+ /**
+@@ -906,7 +923,7 @@
+  *                                            Defaults to global $post.
+  * @return bool Whether the post content contains the specified block.
+  */
+-function has_block( $block_name, $post = null ) {
++function has_block( mixed $block_name, mixed $post = null ): mixed {
+ 	if ( ! has_blocks( $post ) ) {
+ 		return false;
+ 	}
+@@ -942,6 +959,7 @@
+ 	}
+ 
+ 	return $has_block;
++	return null;
+ }
+ 
+ /**
+@@ -951,7 +969,7 @@
+  *
+  * @return string[] Array of dynamic block names.
+  */
+-function get_dynamic_block_names() {
++function get_dynamic_block_names(): mixed {
+ 	$dynamic_block_names = array();
+ 
+ 	$block_types = WP_Block_Type_Registry::get_instance()->get_all_registered();
+@@ -962,6 +980,7 @@
+ 	}
+ 
+ 	return $dynamic_block_names;
++	return null;
+ }
+ 
+ /**
+@@ -971,7 +990,7 @@
+  *
+  * @return array[] Array of block types grouped by anchor block type and the relative position.
+  */
+-function get_hooked_blocks() {
++function get_hooked_blocks(): mixed {
+ 	$block_types   = WP_Block_Type_Registry::get_instance()->get_all_registered();
+ 	$hooked_blocks = array();
+ 	foreach ( $block_types as $block_type ) {
+@@ -990,6 +1009,7 @@
+ 	}
+ 
+ 	return $hooked_blocks;
++	return null;
+ }
+ 
+ /**
+@@ -1005,7 +1025,7 @@
+  * @param WP_Block_Template|WP_Post|array $context             The block template, template part, or pattern that the anchor block belongs to.
+  * @return string
+  */
+-function insert_hooked_blocks( &$parsed_anchor_block, $relative_position, $hooked_blocks, $context ) {
++function insert_hooked_blocks( mixed &$parsed_anchor_block, mixed $relative_position, mixed $hooked_blocks, mixed $context ): mixed {
+ 	$anchor_block_type  = $parsed_anchor_block['blockName'];
+ 	$hooked_block_types = isset( $anchor_block_type, $hooked_blocks[ $anchor_block_type ][ $relative_position ] )
+ 		? $hooked_blocks[ $anchor_block_type ][ $relative_position ]
+@@ -1080,6 +1100,7 @@
+ 	}
+ 
+ 	return $markup;
++	return null;
+ }
+ 
+ /**
+@@ -1097,7 +1118,7 @@
+  * @param WP_Block_Template|WP_Post|array $context             The block template, template part, or pattern that the anchor block belongs to.
+  * @return string Empty string.
+  */
+-function set_ignored_hooked_blocks_metadata( &$parsed_anchor_block, $relative_position, $hooked_blocks, $context ) {
++function set_ignored_hooked_blocks_metadata( mixed &$parsed_anchor_block, mixed $relative_position, mixed $hooked_blocks, mixed $context ): mixed {
+ 	$anchor_block_type  = $parsed_anchor_block['blockName'];
+ 	$hooked_block_types = isset( $anchor_block_type, $hooked_blocks[ $anchor_block_type ][ $relative_position ] )
+ 		? $hooked_blocks[ $anchor_block_type ][ $relative_position ]
+@@ -1130,15 +1151,16 @@
+ 
+ 	$previously_ignored_hooked_blocks = $parsed_anchor_block['attrs']['metadata']['ignoredHookedBlocks'] ?? array();
+ 
+-	$parsed_anchor_block['attrs']['metadata']['ignoredHookedBlocks'] = array_unique(
+-		array_merge(
++	$parsed_anchor_block['attrs']['metadata']['ignoredHookedBlocks'] = \wp_aot_array_unique(
++		\wp_aot_array_merge(array(
+ 			$previously_ignored_hooked_blocks,
+ 			$hooked_block_types
+-		)
++		))
+ 	);
+ 
+ 	// Markup for the hooked blocks has already been created (in `insert_hooked_blocks`).
+ 	return '';
++	return null;
+ }
+ 
+ /**
+@@ -1159,7 +1181,7 @@
+  *                                                       Default: 'insert_hooked_blocks'.
+  * @return string The serialized markup.
+  */
+-function apply_block_hooks_to_content( $content, $context = null, $callback = 'insert_hooked_blocks' ) {
++function apply_block_hooks_to_content( mixed $content, mixed $context = null, mixed $callback = 'insert_hooked_blocks' ): mixed {
+ 	// Default to the current post if no context is provided.
+ 	if ( null === $context ) {
+ 		$context = get_post();
+@@ -1208,8 +1230,9 @@
+ 	 * We also need to cover the case where the hooked block is not present in
+ 	 * `$content` at first and we're allowed to insert it once -- but not again.
+ 	 */
+-	$suppress_single_instance_blocks = static function ( $hooked_block_types ) use ( &$block_allows_multiple_instances, $content ) {
+-		static $single_instance_blocks_present_in_content = array();
++	$suppress_single_instance_blocks = static function ( mixed $hooked_block_types ) use ( &$block_allows_multiple_instances, $content ) {
++		static $single_instance_blocks_present_in_content_aot_cell = new \WordPressStaticArrayCell();
++		$single_instance_blocks_present_in_content =& $single_instance_blocks_present_in_content_aot_cell->value;
+ 		foreach ( $hooked_block_types as $index => $hooked_block_type ) {
+ 			if ( ! isset( $block_allows_multiple_instances[ $hooked_block_type ] ) ) {
+ 				$hooked_block_type_definition =
+@@ -1231,7 +1254,7 @@
+ 				unset( $hooked_block_types[ $index ] );
+ 			} else {
+ 				// We can insert the block once, but need to remember not to insert it again.
+-				$single_instance_blocks_present_in_content[] = $hooked_block_type;
++				\wp_aot_array_push( $single_instance_blocks_present_in_content, array( $hooked_block_type ) );
+ 			}
+ 		}
+ 		return $hooked_block_types;
+@@ -1245,6 +1268,7 @@
+ 	remove_filter( 'hooked_block_types', $suppress_single_instance_blocks, PHP_INT_MAX );
+ 
+ 	return $content;
++	return null;
+ }
+ 
+ /**
+@@ -1272,11 +1296,11 @@
+  * @return string The serialized markup.
+  */
+ function apply_block_hooks_to_content_from_post_object(
+-	$content,
+-	$post = null,
+-	$callback = 'insert_hooked_blocks',
+-	&$ignored_hooked_blocks_at_root = null
+-) {
++	mixed $content,
++	mixed $post = null,
++	mixed $callback = 'insert_hooked_blocks',
++	mixed &$ignored_hooked_blocks_at_root = null
++): mixed {
+ 	// Default to the current post if no context is provided.
+ 	if ( null === $post ) {
+ 		$post = get_post();
+@@ -1341,7 +1365,7 @@
+ 	 * of the temporary wrapper block that we create to wrap the content.
+ 	 * See https://core.trac.wordpress.org/ticket/63287 for more details.
+ 	 */
+-	$suppress_blocks_from_insertion_before_and_after_wrapper_block = static function ( $hooked_block_types, $relative_position, $anchor_block_type ) use ( $wrapper_block_type ) {
++	$suppress_blocks_from_insertion_before_and_after_wrapper_block = static function ( mixed $hooked_block_types, mixed $relative_position, mixed $anchor_block_type ) use ( $wrapper_block_type ) {
+ 		if (
+ 			$wrapper_block_type === $anchor_block_type &&
+ 			in_array( $relative_position, array( 'before', 'after' ), true )
+@@ -1377,10 +1401,11 @@
+ 		 * However, there might now be a hooked block inserted next to it
+ 		 * (as first or last child of the parent).
+ 		 */
+-		$content = str_replace( $content_wrapped_in_classic_block, $original_content, $content );
++		$content = \wp_aot_str_replace( $content_wrapped_in_classic_block, $original_content, $content );
+ 	}
+ 
+ 	return $content;
++	return null;
+ }
+ 
+ /**
+@@ -1392,10 +1417,11 @@
+  * @param string $serialized_block The serialized markup of a block and its inner blocks.
+  * @return string The serialized markup of the inner blocks.
+  */
+-function remove_serialized_parent_block( $serialized_block ) {
++function remove_serialized_parent_block( mixed $serialized_block ): mixed {
+ 	$start = strpos( $serialized_block, '-->' ) + strlen( '-->' );
+ 	$end   = strrpos( $serialized_block, '<!--' );
+ 	return substr( $serialized_block, $start, $end - $start );
++	return null;
+ }
+ 
+ /**
+@@ -1409,10 +1435,11 @@
+  * @param string $serialized_block The serialized markup of a block and its inner blocks.
+  * @return string The serialized markup of the wrapper block.
+  */
+-function extract_serialized_parent_block( $serialized_block ) {
++function extract_serialized_parent_block( mixed $serialized_block ): mixed {
+ 	$start = strpos( $serialized_block, '-->' ) + strlen( '-->' );
+ 	$end   = strrpos( $serialized_block, '<!--' );
+ 	return substr( $serialized_block, 0, $start ) . substr( $serialized_block, $end );
++	return null;
+ }
+ 
+ /**
+@@ -1426,7 +1453,7 @@
+  * @param stdClass $post Post object.
+  * @return stdClass The updated post object.
+  */
+-function update_ignored_hooked_blocks_postmeta( $post ) {
++function update_ignored_hooked_blocks_postmeta( mixed $post ): mixed {
+ 	/*
+ 	 * In this scenario the user has likely tried to create a new post object via the REST API.
+ 	 * In which case we won't have a post ID to work with and store meta against.
+@@ -1476,7 +1503,7 @@
+ 
+ 	$existing_post = get_post( $post->ID );
+ 	// Merge the existing post object with the updated post object to pass to the block hooks algorithm for context.
+-	$context          = (object) array_merge( (array) $existing_post, (array) $post );
++	$context          = (object) \wp_aot_array_merge(array( (array) $existing_post, (array) $post ));
+ 	$context          = new WP_Post( $context ); // Convert to WP_Post object.
+ 	$serialized_block = apply_block_hooks_to_content( $markup, $context, 'set_ignored_hooked_blocks_metadata' );
+ 	$root_block       = parse_blocks( $serialized_block )[0];
+@@ -1487,7 +1514,7 @@
+ 		$existing_ignored_hooked_blocks = get_post_meta( $post->ID, '_wp_ignored_hooked_blocks', true );
+ 		if ( ! empty( $existing_ignored_hooked_blocks ) ) {
+ 			$existing_ignored_hooked_blocks = json_decode( $existing_ignored_hooked_blocks, true );
+-			$ignored_hooked_blocks          = array_unique( array_merge( $ignored_hooked_blocks, $existing_ignored_hooked_blocks ) );
++			$ignored_hooked_blocks          = \wp_aot_array_unique( \wp_aot_array_merge(array( $ignored_hooked_blocks, $existing_ignored_hooked_blocks )) );
+ 		}
+ 
+ 		if ( ! isset( $post->meta_input ) ) {
+@@ -1498,6 +1525,7 @@
+ 
+ 	$post->post_content = remove_serialized_parent_block( $serialized_block );
+ 	return $post;
++	return null;
+ }
+ 
+ /**
+@@ -1516,11 +1544,12 @@
+  * @param WP_Block_Template|WP_Post|array $context             The block template, template part, or pattern that the anchor block belongs to.
+  * @return string
+  */
+-function insert_hooked_blocks_and_set_ignored_hooked_blocks_metadata( &$parsed_anchor_block, $relative_position, $hooked_blocks, $context ) {
++function insert_hooked_blocks_and_set_ignored_hooked_blocks_metadata( mixed &$parsed_anchor_block, mixed $relative_position, mixed $hooked_blocks, mixed $context ): mixed {
+ 	$markup  = insert_hooked_blocks( $parsed_anchor_block, $relative_position, $hooked_blocks, $context );
+ 	$markup .= set_ignored_hooked_blocks_metadata( $parsed_anchor_block, $relative_position, $hooked_blocks, $context );
+ 
+ 	return $markup;
++	return null;
+ }
+ 
+ /**
+@@ -1534,7 +1563,7 @@
+  * @param WP_Post          $post     Post object.
+  * @return WP_REST_Response The response object.
+  */
+-function insert_hooked_blocks_into_rest_response( $response, $post ) {
++function insert_hooked_blocks_into_rest_response( mixed $response, mixed $post ): mixed {
+ 	if ( empty( $response->data['content']['raw'] ) ) {
+ 		return $response;
+ 	}
+@@ -1574,6 +1603,7 @@
+ 	}
+ 
+ 	return $response;
++	return null;
+ }
+ 
+ /**
+@@ -1598,7 +1628,7 @@
+  * @return callable A function that returns the serialized markup for the given block,
+  *                  including the markup for any hooked blocks before it.
+  */
+-function make_before_block_visitor( $hooked_blocks, $context, $callback = 'insert_hooked_blocks' ) {
++function make_before_block_visitor( mixed $hooked_blocks, mixed $context, mixed $callback = 'insert_hooked_blocks' ): mixed {
+ 	/**
+ 	 * Injects hooked blocks before the given block, injects the `theme` attribute into Template Part blocks, and returns the serialized markup.
+ 	 *
+@@ -1611,26 +1641,21 @@
+ 	 * @param array $prev         The previous sibling block of the given block. Default null.
+ 	 * @return string The serialized markup for the given block, with the markup for any hooked blocks prepended to it.
+ 	 */
+-	return function ( &$block, &$parent_block = null, $prev = null ) use ( $hooked_blocks, $context, $callback ) {
++	return function ( mixed &$block, mixed &$parent_block = null, mixed $prev = null ) use ( $hooked_blocks, $context, $callback ) {
+ 		_inject_theme_attribute_in_template_part_block( $block );
+ 
+ 		$markup = '';
  
  		if ( $parent_block && ! $prev ) {
  			// Candidate for first-child insertion.
@@ -57,14 +654,29 @@
  
  		return $markup;
  	};
-@@ -1668,17 +1662,11 @@
++	return null;
+ }
+ 
+ /**
+@@ -1655,7 +1680,7 @@
+  * @return callable A function that returns the serialized markup for the given block,
+  *                  including the markup for any hooked blocks after it.
+  */
+-function make_after_block_visitor( $hooked_blocks, $context, $callback = 'insert_hooked_blocks' ) {
++function make_after_block_visitor( mixed $hooked_blocks, mixed $context, mixed $callback = 'insert_hooked_blocks' ): mixed {
+ 	/**
+ 	 * Injects hooked blocks after the given block, and returns the serialized markup.
+ 	 *
+@@ -1667,22 +1692,17 @@
+ 	 * @param array $next         The next sibling block of the given block. Default null.
  	 * @return string The serialized markup for the given block, with the markup for any hooked blocks appended to it.
  	 */
- 	return function ( &$block, &$parent_block = null, $next = null ) use ( $hooked_blocks, $context, $callback ) {
+-	return function ( &$block, &$parent_block = null, $next = null ) use ( $hooked_blocks, $context, $callback ) {
 -		$markup = call_user_func_array(
 -			$callback,
 -			array( &$block, 'after', $hooked_blocks, $context )
 -		);
++	return function ( mixed &$block, mixed &$parent_block = null, mixed $next = null ) use ( $hooked_blocks, $context, $callback ) {
 +		$markup = $callback( $block, 'after', $hooked_blocks, $context );
  
  		if ( $parent_block && ! $next ) {
@@ -77,7 +689,103 @@
  		}
  
  		return $markup;
-@@ -1887,10 +1875,7 @@
+ 	};
++	return null;
+ }
+ 
+ /**
+@@ -1702,10 +1722,10 @@
+  * @param array $block_attributes Attributes object.
+  * @return string Serialized attributes.
+  */
+-function serialize_block_attributes( $block_attributes ) {
++function serialize_block_attributes( mixed $block_attributes ): mixed {
+ 	$encoded_attributes = wp_json_encode( $block_attributes, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE );
+ 
+-	return strtr(
++	return \wp_aot_strtr(
+ 		$encoded_attributes,
+ 		array(
+ 			'\\\\' => '\\u005c',
+@@ -1716,6 +1736,7 @@
+ 			'\\"'  => '\\u0022',
+ 		)
+ 	);
++	return null;
+ }
+ 
+ /**
+@@ -1728,12 +1749,13 @@
+  *                                e.g. Classic blocks have their name set to null. Default null.
+  * @return string Block name to use for serialization.
+  */
+-function strip_core_block_namespace( $block_name = null ) {
++function strip_core_block_namespace( mixed $block_name = null ): mixed {
+ 	if ( is_string( $block_name ) && str_starts_with( $block_name, 'core/' ) ) {
+ 		return substr( $block_name, 5 );
+ 	}
+ 
+ 	return $block_name;
++	return null;
+ }
+ 
+ /**
+@@ -1747,7 +1769,7 @@
+  * @param string      $block_content    Block save content.
+  * @return string Comment-delimited block content.
+  */
+-function get_comment_delimited_block_content( $block_name, $block_attributes, $block_content ) {
++function get_comment_delimited_block_content( mixed $block_name, mixed $block_attributes, mixed $block_content ): mixed {
+ 	if ( is_null( $block_name ) ) {
+ 		return $block_content;
+ 	}
+@@ -1766,6 +1788,7 @@
+ 		$block_content,
+ 		$serialized_block_name
+ 	);
++	return null;
+ }
+ 
+ /**
+@@ -1792,7 +1815,7 @@
+  * }
+  * @return string String of rendered HTML.
+  */
+-function serialize_block( $block ) {
++function serialize_block( mixed $block ): mixed {
+ 	$block_content = '';
+ 
+ 	$index = 0;
+@@ -1809,6 +1832,7 @@
+ 		$block['attrs'],
+ 		$block_content
+ 	);
++	return null;
+ }
+ 
+ /**
+@@ -1834,8 +1858,9 @@
+  * }
+  * @return string String of rendered HTML.
+  */
+-function serialize_blocks( $blocks ) {
+-	return implode( '', array_map( 'serialize_block', $blocks ) );
++function serialize_blocks( mixed $blocks ): mixed {
++	return implode( '', \wp_aot_array_map( 'serialize_block', $blocks ) );
++	return null;
+ }
+ 
+ /**
+@@ -1872,7 +1897,7 @@
+  *                                Its string return value will be appended to the serialized block markup.
+  * @return string Serialized block markup.
+  */
+-function traverse_and_serialize_block( $block, $pre_callback = null, $post_callback = null ) {
++function traverse_and_serialize_block( mixed $block, mixed $pre_callback = null, mixed $post_callback = null ): mixed {
+ 	$block_content = '';
+ 	$block_index   = 0;
+ 
+@@ -1887,10 +1912,7 @@
  					? null
  					: $block['innerBlocks'][ $block_index - 1 ];
  
@@ -89,7 +797,7 @@
  			}
  
  			if ( is_callable( $post_callback ) ) {
-@@ -1898,10 +1883,7 @@
+@@ -1898,10 +1920,7 @@
  					? null
  					: $block['innerBlocks'][ $block_index + 1 ];
  
@@ -101,7 +809,66 @@
  			}
  
  			$block_content .= traverse_and_serialize_block( $inner_block, $pre_callback, $post_callback );
-@@ -2080,10 +2062,7 @@
+@@ -1920,6 +1939,7 @@
+ 		$block['attrs'],
+ 		$block_content
+ 	);
++	return null;
+ }
+ 
+ /**
+@@ -1932,10 +1952,12 @@
+  *
+  * @return array An array of blocks with patterns replaced by their content.
+  */
+-function resolve_pattern_blocks( $blocks ) {
+-	static $inner_content;
++function resolve_pattern_blocks( mixed $blocks ): mixed {
++	static $inner_content_aot_cell = new \WordPressStaticValueCell();
++	$inner_content =& $inner_content_aot_cell->value;
+ 	// Keep track of seen references to avoid infinite loops.
+-	static $seen_refs = array();
++	static $seen_refs_aot_cell = new \WordPressStaticArrayCell();
++	$seen_refs =& $seen_refs_aot_cell->value;
+ 	$i                = 0;
+ 	while ( $i < count( $blocks ) ) {
+ 		if ( 'core/pattern' === $blocks[ $i ]['blockName'] ) {
+@@ -1988,7 +2010,7 @@
+ 					$value = $pattern[ $pattern_key ] ?? $block_metadata[ $key ] ?? null;
+ 					if ( $value ) {
+ 						$block_metadata[ $key ] = is_array( $value )
+-							? array_map( 'sanitize_text_field', $value )
++							? \wp_aot_array_map( 'sanitize_text_field', $value )
+ 							: sanitize_text_field( $value );
+ 					}
+ 				}
+@@ -2008,7 +2030,7 @@
+ 			// inner content array, otherwise serialize_blocks will skip
+ 			// blocks.
+ 			if ( $inner_content ) {
+-				$null_indices  = array_keys( $inner_content, null, true );
++				$null_indices  = \wp_aot_array_keys( $inner_content, null, true , true);
+ 				$content_index = $null_indices[ $i ];
+ 				$nulls         = array_fill( 0, count( $blocks_to_insert ), null );
+ 				array_splice( $inner_content, $content_index, 1, $nulls );
+@@ -2030,6 +2052,7 @@
+ 		}
+ 	}
+ 	return $blocks;
++	return null;
+ }
+ 
+ /**
+@@ -2067,7 +2090,7 @@
+  *                                Its string return value will be appended to the serialized block markup.
+  * @return string Serialized block markup.
+  */
+-function traverse_and_serialize_blocks( $blocks, $pre_callback = null, $post_callback = null ) {
++function traverse_and_serialize_blocks( mixed $blocks, mixed $pre_callback = null, mixed $post_callback = null ): mixed {
+ 	$result       = '';
+ 	$parent_block = null; // At the top level, there is no parent block to pass to the callbacks; yet the callbacks expect a reference.
+ 
+@@ -2080,10 +2103,7 @@
  				? null
  				: $blocks[ $index - 1 ];
  
@@ -113,7 +880,7 @@
  		}
  
  		if ( $post_callback_is_callable ) {
-@@ -2091,10 +2070,7 @@
+@@ -2091,10 +2111,7 @@
  				? null
  				: $blocks[ $index + 1 ];
  
@@ -125,3 +892,610 @@
  		}
  
  		$result .= traverse_and_serialize_block( $block, $pre_callback, $post_callback );
+@@ -2102,6 +2119,7 @@
+ 	}
+ 
+ 	return $result;
++	return null;
+ }
+ 
+ /**
+@@ -2118,11 +2136,11 @@
+  *                                          Defaults to the result of wp_allowed_protocols().
+  * @return string The filtered and sanitized content result.
+  */
+-function filter_block_content( $text, $allowed_html = 'post', $allowed_protocols = array() ) {
++function filter_block_content( mixed $text, mixed $allowed_html = 'post', mixed $allowed_protocols = array() ): mixed {
+ 	$result = '';
+ 
+ 	if ( str_contains( $text, '<!--' ) && str_contains( $text, '--->' ) ) {
+-		$text = preg_replace_callback( '%<!--(.*?)--->%', '_filter_block_content_callback', $text );
++		$text = \wp_aot_preg_replace_callback( '%<!--(.*?)--->%', '_filter_block_content_callback', $text );
+ 	}
+ 
+ 	$blocks = parse_blocks( $text );
+@@ -2132,6 +2150,7 @@
+ 	}
+ 
+ 	return $result;
++	return null;
+ }
+ 
+ /**
+@@ -2143,8 +2162,9 @@
+  * @param array $matches Array of preg_replace_callback matches.
+  * @return string Replacement string.
+  */
+-function _filter_block_content_callback( $matches ) {
++function _filter_block_content_callback( mixed $matches ): mixed {
+ 	return '<!--' . rtrim( $matches[1], '-' ) . '-->';
++	return null;
+ }
+ 
+ /**
+@@ -2161,7 +2181,7 @@
+  *                                                 Defaults to the result of wp_allowed_protocols().
+  * @return array The filtered and sanitized block object result.
+  */
+-function filter_block_kses( $block, $allowed_html, $allowed_protocols = array() ) {
++function filter_block_kses( mixed $block, mixed $allowed_html, mixed $allowed_protocols = array() ): mixed {
+ 	$block['attrs'] = filter_block_kses_value( $block['attrs'], $allowed_html, $allowed_protocols, $block );
+ 
+ 	if ( is_array( $block['innerBlocks'] ) ) {
+@@ -2171,6 +2191,7 @@
+ 	}
+ 
+ 	return $block;
++	return null;
+ }
+ 
+ /**
+@@ -2189,7 +2210,7 @@
+  * @param array           $block_context     Optional. The block the attribute belongs to, in parsed block array format.
+  * @return string[]|string The filtered and sanitized result.
+  */
+-function filter_block_kses_value( $value, $allowed_html, $allowed_protocols = array(), $block_context = null ) {
++function filter_block_kses_value( mixed $value, mixed $allowed_html, mixed $allowed_protocols = array(), mixed $block_context = null ): mixed {
+ 	if ( is_array( $value ) ) {
+ 		foreach ( $value as $key => $inner_value ) {
+ 			$filtered_key   = filter_block_kses_value( $key, $allowed_html, $allowed_protocols, $block_context );
+@@ -2209,6 +2230,7 @@
+ 	}
+ 
+ 	return $value;
++	return null;
+ }
+ 
+ /**
+@@ -2223,7 +2245,7 @@
+  *                                        for the list of accepted context names.
+  * @return string The sanitized attribute value.
+  */
+-function filter_block_core_template_part_attributes( $attribute_value, $attribute_name, $allowed_html ) {
++function filter_block_core_template_part_attributes( mixed $attribute_value, mixed $attribute_name, mixed $allowed_html ): mixed {
+ 	if ( empty( $attribute_value ) || 'tagName' !== $attribute_name ) {
+ 		return $attribute_value;
+ 	}
+@@ -2231,6 +2253,7 @@
+ 		$allowed_html = wp_kses_allowed_html( $allowed_html );
+ 	}
+ 	return isset( $allowed_html[ $attribute_value ] ) ? $attribute_value : '';
++	return null;
+ }
+ 
+ /**
+@@ -2244,7 +2267,7 @@
+  * @param string $content The content to parse.
+  * @return string The parsed and filtered content.
+  */
+-function excerpt_remove_blocks( $content ) {
++function excerpt_remove_blocks( mixed $content ): mixed {
+ 	if ( ! has_blocks( $content ) ) {
+ 		return $content;
+ 	}
+@@ -2281,7 +2304,7 @@
+ 	 */
+ 	$allowed_wrapper_blocks = apply_filters( 'excerpt_allowed_wrapper_blocks', $allowed_wrapper_blocks );
+ 
+-	$allowed_blocks = array_merge( $allowed_inner_blocks, $allowed_wrapper_blocks );
++	$allowed_blocks = \wp_aot_array_merge(array( $allowed_inner_blocks, $allowed_wrapper_blocks ));
+ 
+ 	/**
+ 	 * Filters the list of blocks that can contribute to the excerpt.
+@@ -2329,6 +2352,7 @@
+ 	}
+ 
+ 	return $output;
++	return null;
+ }
+ 
+ /**
+@@ -2340,16 +2364,17 @@
+  * @param string $content The content to parse.
+  * @return string The parsed and filtered content.
+  */
+-function excerpt_remove_footnotes( $content ) {
++function excerpt_remove_footnotes( mixed $content ): mixed {
+ 	if ( ! str_contains( $content, 'data-fn=' ) ) {
+ 		return $content;
+ 	}
+ 
+-	return preg_replace(
++	return \wp_aot_preg_replace(
+ 		'_<sup data-fn="[^"]+" class="[^"]+">\s*<a href="[^"]+" id="[^"]+">\d+</a>\s*</sup>_',
+ 		'',
+ 		$content
+ 	);
++	return null;
+ }
+ 
+ /**
+@@ -2363,7 +2388,7 @@
+  * @param array $allowed_blocks The list of allowed inner blocks.
+  * @return string The rendered inner blocks.
+  */
+-function _excerpt_render_inner_blocks( $parsed_block, $allowed_blocks ) {
++function _excerpt_render_inner_blocks( mixed $parsed_block, mixed $allowed_blocks ): mixed {
+ 	$output = '';
+ 
+ 	foreach ( $parsed_block['innerBlocks'] as $inner_block ) {
+@@ -2387,6 +2412,7 @@
+ 	}
+ 
+ 	return $output;
++	return null;
+ }
+ 
+ /**
+@@ -2409,7 +2435,7 @@
+  * }
+  * @return string String of rendered HTML.
+  */
+-function render_block( $parsed_block ) {
++function render_block( mixed $parsed_block ): mixed {
+ 	global $post;
+ 	$parent_block = null;
+ 
+@@ -2512,6 +2538,7 @@
+ 	$block = new WP_Block( $parsed_block, $context );
+ 
+ 	return $block->render();
++	return null;
+ }
+ 
+ /**
+@@ -2547,7 +2574,7 @@
+  *     }
+  * }
+  */
+-function parse_blocks( $content ) {
++function parse_blocks( mixed $content ): mixed {
+ 	/**
+ 	 * Filter to allow plugins to replace the server-side block parser.
+ 	 *
+@@ -2559,6 +2586,7 @@
+ 
+ 	$parser = new $parser_class();
+ 	return $parser->parse( $content );
++	return null;
+ }
+ 
+ /**
+@@ -2569,7 +2597,7 @@
+  * @param string $content Post content.
+  * @return string Updated post content.
+  */
+-function do_blocks( $content ) {
++function do_blocks( mixed $content ): mixed {
+ 	$blocks                = parse_blocks( $content );
+ 	$top_level_block_count = count( $blocks );
+ 	$output                = '';
+@@ -2606,6 +2634,7 @@
+ 	}
+ 
+ 	return $output;
++	return null;
+ }
+ 
+ /**
+@@ -2618,13 +2647,14 @@
+  * @param string $content The post content running through this filter.
+  * @return string The unmodified content.
+  */
+-function _restore_wpautop_hook( $content ) {
++function _restore_wpautop_hook( mixed $content ): mixed {
+ 	$current_priority = has_filter( 'the_content', '_restore_wpautop_hook' );
+ 
+ 	add_filter( 'the_content', 'wpautop', $current_priority - 1 );
+ 	remove_filter( 'the_content', '_restore_wpautop_hook', $current_priority );
+ 
+ 	return $content;
++	return null;
+ }
+ 
+ /**
+@@ -2647,7 +2677,7 @@
+  *                              $seen_ids. Default null.
+  * @return string The processed content.
+  */
+-function _wp_apply_block_content_filters( $content, $context = '', &$seen_ids = null, $id = null ) {
++function _wp_apply_block_content_filters( mixed $content, mixed $context = '', mixed &$seen_ids = null, mixed $id = null ): mixed {
+ 	$content = shortcode_unautop( $content );
+ 	$content = do_shortcode( $content );
+ 
+@@ -2671,6 +2701,7 @@
+ 	$content = $wp_embed->autoembed( $content );
+ 
+ 	return $content;
++	return null;
+ }
+ 
+ /**
+@@ -2683,8 +2714,9 @@
+  * @param string $content Content to test.
+  * @return int The block format version is 1 if the content contains one or more blocks, 0 otherwise.
+  */
+-function block_version( $content ) {
++function block_version( mixed $content ): mixed {
+ 	return has_blocks( $content ) ? 1 : 0;
++	return null;
+ }
+ 
+ /**
+@@ -2703,8 +2735,9 @@
+  *                                          See WP_Block_Styles_Registry::register().
+  * @return bool True if the block style was registered with success and false otherwise.
+  */
+-function register_block_style( $block_name, $style_properties ) {
++function register_block_style( mixed $block_name, mixed $style_properties ): mixed {
+ 	return WP_Block_Styles_Registry::get_instance()->register( $block_name, $style_properties );
++	return null;
+ }
+ 
+ /**
+@@ -2716,8 +2749,9 @@
+  * @param string $block_style_name Block style name.
+  * @return bool True if the block style was unregistered with success and false otherwise.
+  */
+-function unregister_block_style( $block_name, $block_style_name ) {
++function unregister_block_style( mixed $block_name, mixed $block_style_name ): mixed {
+ 	return WP_Block_Styles_Registry::get_instance()->unregister( $block_name, $block_style_name );
++	return null;
+ }
+ 
+ /**
+@@ -2731,7 +2765,7 @@
+  * @param mixed              $default_value Optional. Fallback value for feature support. Default false.
+  * @return bool Whether the feature is supported.
+  */
+-function block_has_support( $block_type, $feature, $default_value = false ) {
++function block_has_support( mixed $block_type, mixed $feature, mixed $default_value = false ): mixed {
+ 	$block_support = $default_value;
+ 	if ( $block_type instanceof WP_Block_Type ) {
+ 		if ( is_array( $feature ) && count( $feature ) === 1 ) {
+@@ -2741,11 +2775,12 @@
+ 		if ( is_array( $feature ) ) {
+ 			$block_support = _wp_array_get( $block_type->supports, $feature, $default_value );
+ 		} elseif ( isset( $block_type->supports[ $feature ] ) ) {
+-			$block_support = $block_type->supports[ $feature ];
++			$block_support = \wp_aot_mixed($block_type->supports)[ $feature ];
+ 		}
+ 	}
+ 
+ 	return true === $block_support || is_array( $block_support );
++	return null;
+ }
+ 
+ /**
+@@ -2758,7 +2793,7 @@
+  * @param array $metadata Metadata for registering a block type.
+  * @return array Filtered metadata for registering a block type.
+  */
+-function wp_migrate_old_typography_shape( $metadata ) {
++function wp_migrate_old_typography_shape( mixed $metadata ): mixed {
+ 	if ( ! isset( $metadata['supports'] ) ) {
+ 		return $metadata;
+ 	}
+@@ -2798,6 +2833,7 @@
+ 	}
+ 
+ 	return $metadata;
++	return null;
+ }
+ 
+ /**
+@@ -2817,7 +2853,7 @@
+  *
+  * @return array Returns the constructed WP_Query arguments.
+  */
+-function build_query_vars_from_query_block( $block, $page ) {
++function build_query_vars_from_query_block( mixed $block, mixed $page ): mixed {
+ 	$query = array(
+ 		'post_type'    => 'post',
+ 		'order'        => 'DESC',
+@@ -2846,15 +2882,15 @@
+ 				$query['post__in']            = ! empty( $sticky ) ? $sticky : array( 0 );
+ 				$query['ignore_sticky_posts'] = 1;
+ 			} elseif ( 'exclude' === $block->context['query']['sticky'] ) {
+-				$query['post__not_in'] = array_merge( $query['post__not_in'], $sticky );
++				$query['post__not_in'] = \wp_aot_array_merge(array( $query['post__not_in'], $sticky ));
+ 			} elseif ( 'ignore' === $block->context['query']['sticky'] ) {
+ 				$query['ignore_sticky_posts'] = 1;
+ 			}
+ 		}
+ 		if ( ! empty( $block->context['query']['exclude'] ) ) {
+-			$excluded_post_ids     = array_map( 'intval', $block->context['query']['exclude'] );
+-			$excluded_post_ids     = array_filter( $excluded_post_ids );
+-			$query['post__not_in'] = array_merge( $query['post__not_in'], $excluded_post_ids );
++			$excluded_post_ids     = \wp_aot_array_map( 'intval', $block->context['query']['exclude'] );
++			$excluded_post_ids     = \wp_aot_array_filter( $excluded_post_ids );
++			$query['post__not_in'] = \wp_aot_array_merge(array( $query['post__not_in'], $excluded_post_ids ));
+ 		}
+ 		if ( ! empty( $block->context['query']['excludeCurrent'] ) ) {
+ 			$current_post_id = get_the_ID();
+@@ -2885,31 +2921,31 @@
+ 			if ( ! empty( $block->context['query']['categoryIds'] ) ) {
+ 				$tax_query_back_compat[] = array(
+ 					'taxonomy'         => 'category',
+-					'terms'            => array_filter( array_map( 'intval', $block->context['query']['categoryIds'] ) ),
++					'terms'            => \wp_aot_array_filter( \wp_aot_array_map( 'intval', $block->context['query']['categoryIds'] ) ),
+ 					'include_children' => false,
+ 				);
+ 			}
+ 			if ( ! empty( $block->context['query']['tagIds'] ) ) {
+ 				$tax_query_back_compat[] = array(
+ 					'taxonomy'         => 'post_tag',
+-					'terms'            => array_filter( array_map( 'intval', $block->context['query']['tagIds'] ) ),
++					'terms'            => \wp_aot_array_filter( \wp_aot_array_map( 'intval', $block->context['query']['tagIds'] ) ),
+ 					'include_children' => false,
+ 				);
+ 			}
+-			$query['tax_query'] = array_merge( $query['tax_query'], $tax_query_back_compat );
++			$query['tax_query'] = \wp_aot_array_merge(array( $query['tax_query'], $tax_query_back_compat ));
+ 		}
+ 
+ 		if ( ! empty( $block->context['query']['taxQuery'] ) && is_array( $block->context['query']['taxQuery'] ) ) {
+ 			$tax_query_input = $block->context['query']['taxQuery'];
+-			$tax_query       = array();
++			$tax_query       = \wp_aot_mixed(array());
+ 			// If there are keys other than include/exclude, it's the old
+ 			// format e.g. "taxQuery":{"category":[4]}
+-			if ( ! empty( array_diff( array_keys( $tax_query_input ), array( 'include', 'exclude' ) ) ) ) {
++			if ( ! empty( \wp_aot_array_diff(array( \wp_aot_array_keys( $tax_query_input ), array( 'include', 'exclude' ) )) ) ) {
+ 				foreach ( $block->context['query']['taxQuery'] as $taxonomy => $terms ) {
+ 					if ( is_taxonomy_viewable( $taxonomy ) && ! empty( $terms ) ) {
+ 						$tax_query[] = array(
+ 							'taxonomy'         => $taxonomy,
+-							'terms'            => array_filter( array_map( 'intval', $terms ) ),
++							'terms'            => \wp_aot_array_filter( \wp_aot_array_map( 'intval', $terms ) ),
+ 							'include_children' => false,
+ 						);
+ 					}
+@@ -2918,14 +2954,14 @@
+ 				// This is the new format e.g. "taxQuery":{"include":{"category":[4]},"exclude":{"post_tag":[5]}}
+ 
+ 				// Helper function to build tax_query conditions from taxonomy terms.
+-				$build_conditions = static function ( $terms, string $operator = 'IN' ): array {
++				$build_conditions = static function ( mixed $terms, string $operator = 'IN' ): array {
+ 					$terms      = (array) $terms;
+ 					$conditions = array();
+ 					foreach ( $terms as $taxonomy => $tax_terms ) {
+ 						if ( ! empty( $tax_terms ) && is_taxonomy_viewable( $taxonomy ) ) {
+ 							$conditions[] = array(
+ 								'taxonomy'         => $taxonomy,
+-								'terms'            => array_filter( array_map( 'intval', $tax_terms ) ),
++								'terms'            => \wp_aot_array_filter( \wp_aot_array_map( 'intval', $tax_terms ) ),
+ 								'operator'         => $operator,
+ 								'include_children' => false,
+ 							);
+@@ -2942,15 +2978,15 @@
+ 					? $tax_query_input['include']
+ 					: array();
+ 
+-				$tax_query = array_merge(
++				$tax_query = \wp_aot_array_merge(array(
+ 					$build_conditions( $include_terms ),
+ 					$build_conditions( $exclude_terms, 'NOT IN' )
+-				);
++				));
+ 			}
+ 
+ 			if ( ! empty( $tax_query ) ) {
+ 				// Merge with any existing `tax_query` conditions.
+-				$query['tax_query'] = array_merge( $query['tax_query'], $tax_query );
++				$query['tax_query'] = \wp_aot_array_merge(array( $query['tax_query'], $tax_query ));
+ 			}
+ 		}
+ 		if ( ! empty( $block->context['query']['format'] ) && is_array( $block->context['query']['format'] ) ) {
+@@ -2960,8 +2996,8 @@
+ 			 * - First, add `standard` to the array of valid formats.
+ 			 * - Then, remove any invalid formats.
+ 			 */
+-			$valid_formats = array_merge( array( 'standard' ), get_post_format_slugs() );
+-			$formats       = array_intersect( $formats, $valid_formats );
++			$valid_formats = \wp_aot_array_merge(array( array( 'standard' ), get_post_format_slugs() ));
++			$formats       = \wp_aot_array_intersect(array( $formats, $valid_formats ));
+ 
+ 			/*
+ 			 * The relation needs to be set to `OR` since the request can contain
+@@ -2982,13 +3018,13 @@
+ 					'operator' => 'NOT EXISTS',
+ 				);
+ 				// Remove the `standard` format, since it cannot be queried.
+-				unset( $formats[ array_search( 'standard', $formats, true ) ] );
++				unset( $formats[ \wp_aot_array_search( 'standard', $formats, true ) ] );
+ 			}
+ 			// Add any remaining formats to the formats query.
+ 			if ( ! empty( $formats ) ) {
+ 				// Add the `post-format-` prefix.
+-				$terms           = array_map(
+-					static function ( $format ) {
++				$terms           = \wp_aot_array_map(
++					static function ( mixed $format ) {
+ 						return "post-format-$format";
+ 					},
+ 					$formats
+@@ -3033,9 +3069,9 @@
+ 			isset( $block->context['query']['author'] )
+ 		) {
+ 			if ( is_array( $block->context['query']['author'] ) ) {
+-				$query['author__in'] = array_filter( array_map( 'intval', $block->context['query']['author'] ) );
++				$query['author__in'] = \wp_aot_array_filter( \wp_aot_array_map( 'intval', $block->context['query']['author'] ) );
+ 			} elseif ( is_string( $block->context['query']['author'] ) ) {
+-				$query['author__in'] = array_filter( array_map( 'intval', explode( ',', $block->context['query']['author'] ) ) );
++				$query['author__in'] = \wp_aot_array_filter( \wp_aot_array_map( 'intval', explode( ',', $block->context['query']['author'] ) ) );
+ 			} elseif ( is_int( $block->context['query']['author'] ) && $block->context['query']['author'] > 0 ) {
+ 				$query['author'] = $block->context['query']['author'];
+ 			}
+@@ -3044,7 +3080,7 @@
+ 			$query['s'] = $block->context['query']['search'];
+ 		}
+ 		if ( ! empty( $block->context['query']['parents'] ) && is_post_type_hierarchical( $query['post_type'] ) ) {
+-			$query['post_parent__in'] = array_unique( array_map( 'intval', $block->context['query']['parents'] ) );
++			$query['post_parent__in'] = \wp_aot_array_unique( \wp_aot_array_map( 'intval', $block->context['query']['parents'] ) );
+ 		}
+ 	}
+ 
+@@ -3069,6 +3105,7 @@
+ 	 * @param int      $page  Current query's page.
+ 	 */
+ 	return apply_filters( 'query_loop_block_query_vars', $query, $block, $page );
++	return null;
+ }
+ 
+ /**
+@@ -3084,7 +3121,7 @@
+  * @param bool     $is_next Flag for handling `next/previous` blocks.
+  * @return string|null The pagination arrow HTML or null if there is none.
+  */
+-function get_query_pagination_arrow( $block, $is_next ) {
++function get_query_pagination_arrow( mixed $block, mixed $is_next ): mixed {
+ 	$arrow_map = array(
+ 		'none'    => '',
+ 		'arrow'   => array(
+@@ -3104,6 +3141,7 @@
+ 		return "<span class='$arrow_classes' aria-hidden='true'>$arrow</span>";
+ 	}
+ 	return null;
++	return null;
+ }
+ 
+ /**
+@@ -3118,7 +3156,7 @@
+  * @return array Returns the comment query parameters to use with the
+  *               WP_Comment_Query constructor.
+  */
+-function build_comment_query_vars_from_block( $block ) {
++function build_comment_query_vars_from_block( mixed $block ): mixed {
+ 
+ 	$comment_args = array(
+ 		'orderby'       => 'comment_date_gmt',
+@@ -3168,6 +3206,7 @@
+ 	}
+ 
+ 	return $comment_args;
++	return null;
+ }
+ 
+ /**
+@@ -3184,7 +3223,7 @@
+  *                                  Accepts 'next' or 'previous'. Default 'next'.
+  * @return string|null The pagination arrow HTML or null if there is none.
+  */
+-function get_comments_pagination_arrow( $block, $pagination_type = 'next' ) {
++function get_comments_pagination_arrow( mixed $block, mixed $pagination_type = 'next' ): mixed {
+ 	$arrow_map = array(
+ 		'none'    => '',
+ 		'arrow'   => array(
+@@ -3203,6 +3242,7 @@
+ 		return "<span class='$arrow_classes' aria-hidden='true'>$arrow</span>";
+ 	}
+ 	return null;
++	return null;
+ }
+ 
+ /**
+@@ -3216,7 +3256,7 @@
+  * @param string $footnotes JSON-encoded string of an array containing the content and ID of each footnote.
+  * @return string Filtered content without any HTML on the footnote content and with the sanitized ID.
+  */
+-function _wp_filter_post_meta_footnotes( $footnotes ) {
++function _wp_filter_post_meta_footnotes( mixed $footnotes ): mixed {
+ 	$footnotes_decoded = json_decode( $footnotes, true );
+ 	if ( ! is_array( $footnotes_decoded ) ) {
+ 		return '';
+@@ -3231,6 +3271,7 @@
+ 		}
+ 	}
+ 	return wp_json_encode( $footnotes_sanitized );
++	return null;
+ }
+ 
+ /**
+@@ -3239,8 +3280,9 @@
+  * @access private
+  * @since 6.3.2
+  */
+-function _wp_footnotes_kses_init_filters() {
++function _wp_footnotes_kses_init_filters(): mixed {
+ 	add_filter( 'sanitize_post_meta_footnotes', '_wp_filter_post_meta_footnotes' );
++	return null;
+ }
+ 
+ /**
+@@ -3249,8 +3291,9 @@
+  * @access private
+  * @since 6.3.2
+  */
+-function _wp_footnotes_remove_filters() {
++function _wp_footnotes_remove_filters(): mixed {
+ 	remove_filter( 'sanitize_post_meta_footnotes', '_wp_filter_post_meta_footnotes' );
++	return null;
+ }
+ 
+ /**
+@@ -3259,11 +3302,12 @@
+  * @access private
+  * @since 6.3.2
+  */
+-function _wp_footnotes_kses_init() {
++function _wp_footnotes_kses_init(): mixed {
+ 	_wp_footnotes_remove_filters();
+ 	if ( ! current_user_can( 'unfiltered_html' ) ) {
+ 		_wp_footnotes_kses_init_filters();
+ 	}
++	return null;
+ }
+ 
+ /**
+@@ -3280,12 +3324,13 @@
+  * @param string $arg Input argument of the filter.
+  * @return string Input argument of the filter.
+  */
+-function _wp_footnotes_force_filtered_html_on_import_filter( $arg ) {
++function _wp_footnotes_force_filtered_html_on_import_filter( mixed $arg ): mixed {
+ 	// If `force_filtered_html_on_import` is true, we need to init the global styles kses filters.
+ 	if ( $arg ) {
+ 		_wp_footnotes_kses_init_filters();
+ 	}
+ 	return $arg;
++	return null;
+ }
+ 
+ /**
+@@ -3297,7 +3342,7 @@
+  * @access private
+  * @since 7.0.0
+  */
+-function _wp_enqueue_auto_register_blocks() {
++function _wp_enqueue_auto_register_blocks(): mixed {
+ 	$auto_register_blocks = array();
+ 	$registered_blocks    = WP_Block_Type_Registry::get_instance()->get_all_registered();
+ 
+@@ -3314,4 +3359,5 @@
+ 			'before'
+ 		);
+ 	}
+-}
++	return null;
++}

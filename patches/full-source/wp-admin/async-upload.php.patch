@@ -1,0 +1,47 @@
+--- a/wp-admin/async-upload.php
++++ b/wp-admin/async-upload.php
+@@ -22,13 +22,13 @@
+ header( 'Content-Type: text/plain; charset=' . get_option( 'blog_charset' ) );
+ 
+ if ( isset( $_REQUEST['action'] ) && 'upload-attachment' === $_REQUEST['action'] ) {
+-	require ABSPATH . 'wp-admin/includes/ajax-actions.php';
++	require_once ABSPATH . 'wp-admin/includes/ajax-actions.php';
+ 
+ 	send_nosniff_header();
+ 	nocache_headers();
+ 
+ 	wp_ajax_upload_attachment();
+-	die( '0' );
++	\wp_aot_exit( '0' );
+ }
+ 
+ if ( ! current_user_can( 'upload_files' ) ) {
+@@ -97,7 +97,7 @@
+ 			echo get_media_item( $id );
+ 			break;
+ 	}
+-	exit;
++	\wp_aot_exit();
+ }
+ 
+ check_admin_referer( 'media-form' );
+@@ -112,8 +112,8 @@
+ 
+ $id = media_handle_upload( 'async-upload', $post_id );
+ if ( is_wp_error( $id ) ) {
+-	$button_unique_id     = uniqid( 'dismiss-' );
+-	$error_description_id = uniqid( 'error-description-' );
++	$button_unique_id     = \wp_aot_native_api('uniqid', array( 'dismiss-' ));
++	$error_description_id = \wp_aot_native_api('uniqid', array( 'error-description-' ));
+ 	$message              = sprintf(
+ 		'%s <strong>%s</strong><br />%s',
+ 		sprintf(
+@@ -146,7 +146,7 @@
+ 	);
+ 
+ 	echo '<script>_.delay(function() {wp.a11y.speak(' . wp_json_encode( $speak_message, JSON_HEX_TAG | JSON_UNESCAPED_SLASHES ) . ");}, 1500);jQuery( 'button#{$button_unique_id}' ).on( 'click', function() {jQuery(this).parents('div.media-item').slideUp(200, function(){jQuery(this).remove();wp.a11y.speak( wp.i18n.__( 'Error dismissed.' ) );jQuery( '#plupload-browse-button' ).trigger( 'focus' );})});</script>\n";
+-	exit;
++	\wp_aot_exit();
+ }
+ 
+ if ( $_REQUEST['short'] ) {

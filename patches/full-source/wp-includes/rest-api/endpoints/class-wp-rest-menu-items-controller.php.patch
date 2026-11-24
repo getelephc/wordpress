@@ -1,0 +1,323 @@
+--- a/wp-includes/rest-api/endpoints/class-wp-rest-menu-items-controller.php
++++ b/wp-includes/rest-api/endpoints/class-wp-rest-menu-items-controller.php
+@@ -24,13 +24,14 @@
+ 	 * @param int $id Supplied ID.
+ 	 * @return object|WP_Error Post object if ID is valid, WP_Error otherwise.
+ 	 */
+-	protected function get_nav_menu_item( $id ) {
++	protected function get_nav_menu_item( mixed $id ): mixed {
+ 		$post = $this->get_post( $id );
+ 		if ( is_wp_error( $post ) ) {
+ 			return $post;
+ 		}
+ 
+ 		return wp_setup_nav_menu_item( $post );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -41,7 +42,7 @@
+ 	 * @param WP_REST_Request $request Full details about the request.
+ 	 * @return true|WP_Error True if the request has read access, WP_Error object otherwise.
+ 	 */
+-	public function get_items_permissions_check( $request ) {
++	public function get_items_permissions_check( mixed $request ): mixed {
+ 		$has_permission = parent::get_items_permissions_check( $request );
+ 
+ 		if ( true !== $has_permission ) {
+@@ -49,6 +50,7 @@
+ 		}
+ 
+ 		return $this->check_has_read_only_access( $request );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -59,7 +61,7 @@
+ 	 * @param WP_REST_Request $request Full details about the request.
+ 	 * @return bool|WP_Error True if the request has read access for the item, WP_Error object or false otherwise.
+ 	 */
+-	public function get_item_permissions_check( $request ) {
++	public function get_item_permissions_check( mixed $request ): mixed {
+ 		$permission_check = parent::get_item_permissions_check( $request );
+ 
+ 		if ( true !== $permission_check ) {
+@@ -67,6 +69,7 @@
+ 		}
+ 
+ 		return $this->check_has_read_only_access( $request );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -79,7 +82,7 @@
+ 	 * @param WP_REST_Request $request Full details about the request.
+ 	 * @return true|WP_Error True if the request has read access for the item, WP_Error object otherwise.
+ 	 */
+-	protected function check_has_read_only_access( $request ) {
++	protected function check_has_read_only_access( mixed $request ): mixed {
+ 		/**
+ 		 * Filters whether the current user has read access to menu items via the REST API.
+ 		 *
+@@ -114,6 +117,7 @@
+ 			__( 'Sorry, you are not allowed to view menu items.' ),
+ 			array( 'status' => rest_authorization_required_code() )
+ 		);
++		return null;
+ 	}
+ 
+ 	/**
+@@ -124,7 +128,7 @@
+ 	 * @param WP_REST_Request $request Full details about the request.
+ 	 * @return WP_REST_Response|WP_Error Response object on success, or WP_Error object on failure.
+ 	 */
+-	public function create_item( $request ) {
++	public function create_item( mixed $request ): mixed {
+ 		if ( ! empty( $request['id'] ) ) {
+ 			return new WP_Error( 'rest_post_exists', __( 'Cannot create existing post.' ), array( 'status' => 400 ) );
+ 		}
+@@ -205,6 +209,7 @@
+ 		$response->header( 'Location', rest_url( sprintf( '%s/%s/%d', $this->namespace, $this->rest_base, $nav_menu_item_id ) ) );
+ 
+ 		return $response;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -215,7 +220,7 @@
+ 	 * @param WP_REST_Request $request Full details about the request.
+ 	 * @return WP_REST_Response|WP_Error Response object on success, or WP_Error object on failure.
+ 	 */
+-	public function update_item( $request ) {
++	public function update_item( mixed $request ): mixed {
+ 		$valid_check = $this->get_nav_menu_item( $request['id'] );
+ 		if ( is_wp_error( $valid_check ) ) {
+ 			return $valid_check;
+@@ -279,6 +284,7 @@
+ 		$response = $this->prepare_item_for_response( get_post( $nav_menu_item_id ), $request );
+ 
+ 		return rest_ensure_response( $response );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -289,7 +295,7 @@
+ 	 * @param WP_REST_Request $request Full details about the request.
+ 	 * @return WP_REST_Response|WP_Error True on success, or WP_Error object on failure.
+ 	 */
+-	public function delete_item( $request ) {
++	public function delete_item( mixed $request ): mixed {
+ 		$menu_item = $this->get_nav_menu_item( $request['id'] );
+ 		if ( is_wp_error( $menu_item ) ) {
+ 			return $menu_item;
+@@ -329,6 +335,7 @@
+ 		do_action( 'rest_delete_nav_menu_item', $menu_item, $response, $request );
+ 
+ 		return $response;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -340,7 +347,7 @@
+ 	 *
+ 	 * @return object|WP_Error
+ 	 */
+-	protected function prepare_item_for_database( $request ) {
++	protected function prepare_item_for_database( mixed $request ): mixed {
+ 		$menu_item_db_id = $request['id'];
+ 		$menu_item_obj   = $this->get_nav_menu_item( $menu_item_db_id );
+ 		// Need to persist the menu item data. See https://core.trac.wordpress.org/ticket/28138
+@@ -348,7 +355,7 @@
+ 			// Correct the menu position if this was the first item. See https://core.trac.wordpress.org/ticket/28140
+ 			$position = ( 0 === $menu_item_obj->menu_order ) ? 1 : $menu_item_obj->menu_order;
+ 
+-			$prepared_nav_item = array(
++			$prepared_nav_item = \wp_aot_mixed(array(
+ 				'menu-item-db-id'       => $menu_item_db_id,
+ 				'menu-item-object-id'   => $menu_item_obj->object_id,
+ 				'menu-item-object'      => $menu_item_obj->object,
+@@ -365,7 +372,7 @@
+ 				'menu-item-xfn'         => explode( ' ', $menu_item_obj->xfn ),
+ 				'menu-item-status'      => $menu_item_obj->post_status,
+ 				'menu-id'               => $this->get_menu_id( $menu_item_db_id ),
+-			);
++			));
+ 		} else {
+ 			$prepared_nav_item = array(
+ 				'menu-id'               => 0,
+@@ -494,6 +501,7 @@
+ 		 * @param WP_REST_Request $request           Request object.
+ 		 */
+ 		return apply_filters( 'rest_pre_insert_nav_menu_item', $prepared_nav_item, $request );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -505,7 +513,7 @@
+ 	 * @param WP_REST_Request $request Request object.
+ 	 * @return WP_REST_Response Response object.
+ 	 */
+-	public function prepare_item_for_response( $item, $request ) {
++	public function prepare_item_for_response( mixed $item, mixed $request ): mixed {
+ 		// Base fields for every post.
+ 		$fields    = $this->get_fields_for_response( $request );
+ 		$menu_item = $this->get_nav_menu_item( $item->ID );
+@@ -590,7 +598,7 @@
+ 		}
+ 
+ 		if ( rest_is_field_included( 'xfn', $fields ) ) {
+-			$data['xfn'] = array_map( 'sanitize_html_class', explode( ' ', $menu_item->xfn ) );
++			$data['xfn'] = \wp_aot_array_map( 'sanitize_html_class', explode( ' ', $menu_item->xfn ) );
+ 		}
+ 
+ 		if ( rest_is_field_included( 'invalid', $fields ) ) {
+@@ -613,7 +621,7 @@
+ 				}
+ 				$term_ids = $terms ? array_values( wp_list_pluck( $terms, 'term_id' ) ) : array();
+ 				if ( 'nav_menu' === $taxonomy->name ) {
+-					$data[ $base ] = $term_ids ? array_shift( $term_ids ) : 0;
++					$data[ $base ] = $term_ids ? \wp_aot_array_shift( $term_ids ) : 0;
+ 				} else {
+ 					$data[ $base ] = $term_ids;
+ 				}
+@@ -652,6 +660,7 @@
+ 		 * @param WP_REST_Request  $request   Request object.
+ 		 */
+ 		return apply_filters( 'rest_prepare_nav_menu_item', $response, $menu_item, $request );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -662,7 +671,7 @@
+ 	 * @param WP_Post $post Post object.
+ 	 * @return array Links for the given post.
+ 	 */
+-	protected function prepare_links( $post ) {
++	protected function prepare_links( mixed $post ): mixed {
+ 		$links     = parent::prepare_links( $post );
+ 		$menu_item = $this->get_nav_menu_item( $post->ID );
+ 
+@@ -690,6 +699,7 @@
+ 		}
+ 
+ 		return $links;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -699,7 +709,7 @@
+ 	 *
+ 	 * @return array
+ 	 */
+-	protected function get_schema_links() {
++	protected function get_schema_links(): mixed {
+ 		$links   = parent::get_schema_links();
+ 		$href    = rest_url( "{$this->namespace}/{$this->rest_base}/{id}" );
+ 		$links[] = array(
+@@ -717,6 +727,7 @@
+ 		);
+ 
+ 		return $links;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -726,7 +737,7 @@
+ 	 *
+ 	 * @return array Item schema data.
+ 	 */
+-	public function get_item_schema() {
++	public function get_item_schema(): mixed {
+ 		if ( $this->schema ) {
+ 			return $this->add_additional_fields_schema( $this->schema );
+ 		}
+@@ -813,8 +824,8 @@
+ 			),
+ 			'context'     => array( 'view', 'edit', 'embed' ),
+ 			'arg_options' => array(
+-				'sanitize_callback' => static function ( $value ) {
+-					return array_map( 'sanitize_html_class', wp_parse_list( $value ) );
++				'sanitize_callback' => static function ( mixed $value ) {
++					return \wp_aot_array_map( 'sanitize_html_class', wp_parse_list( $value ) );
+ 				},
+ 			),
+ 		);
+@@ -869,7 +880,7 @@
+ 			'format'      => 'uri',
+ 			'context'     => array( 'view', 'edit', 'embed' ),
+ 			'arg_options' => array(
+-				'validate_callback' => static function ( $url ) {
++				'validate_callback' => static function ( mixed $url ) {
+ 					if ( '' === $url ) {
+ 						return true;
+ 					}
+@@ -894,8 +905,8 @@
+ 			),
+ 			'context'     => array( 'view', 'edit', 'embed' ),
+ 			'arg_options' => array(
+-				'sanitize_callback' => static function ( $value ) {
+-					return array_map( 'sanitize_html_class', wp_parse_list( $value ) );
++				'sanitize_callback' => static function ( mixed $value ) {
++					return \wp_aot_array_map( 'sanitize_html_class', wp_parse_list( $value ) );
+ 				},
+ 			),
+ 		);
+@@ -938,6 +949,7 @@
+ 		$this->schema = $schema;
+ 
+ 		return $this->add_additional_fields_schema( $this->schema );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -947,7 +959,7 @@
+ 	 *
+ 	 * @return array Collection parameters.
+ 	 */
+-	public function get_collection_params() {
++	public function get_collection_params(): mixed {
+ 		$query_params = parent::get_collection_params();
+ 
+ 		$query_params['menu_order'] = array(
+@@ -984,6 +996,7 @@
+ 		$query_params['per_page']['default'] = 100;
+ 
+ 		return $query_params;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -996,7 +1009,7 @@
+ 	 * @param WP_REST_Request $request       Optional. Full details about the request.
+ 	 * @return array Items query arguments.
+ 	 */
+-	protected function prepare_items_query( $prepared_args = array(), $request = null ) {
++	protected function prepare_items_query( mixed $prepared_args = array(), mixed $request = null ): mixed {
+ 		$query_args = parent::prepare_items_query( $prepared_args, $request );
+ 
+ 		// Map to proper WP_Query orderby param.
+@@ -1017,6 +1030,7 @@
+ 		$query_args['update_menu_item_cache'] = true;
+ 
+ 		return $query_args;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1027,13 +1041,14 @@
+ 	 * @param int $menu_item_id Menu item id.
+ 	 * @return int
+ 	 */
+-	protected function get_menu_id( $menu_item_id ) {
++	protected function get_menu_id( mixed $menu_item_id ): mixed {
+ 		$menu_ids = wp_get_post_terms( $menu_item_id, 'nav_menu', array( 'fields' => 'ids' ) );
+ 		$menu_id  = 0;
+ 		if ( $menu_ids && ! is_wp_error( $menu_ids ) ) {
+-			$menu_id = array_shift( $menu_ids );
++			$menu_id = \wp_aot_array_shift( $menu_ids );
+ 		}
+ 
+ 		return $menu_id;
++		return null;
+ 	}
+ }

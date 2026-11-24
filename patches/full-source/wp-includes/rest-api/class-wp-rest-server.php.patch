@@ -1,0 +1,689 @@
+--- a/wp-includes/rest-api/class-wp-rest-server.php
++++ b/wp-includes/rest-api/class-wp-rest-server.php
+@@ -93,7 +93,7 @@
+ 	 * @since 6.5.0
+ 	 * @var array
+ 	 */
+-	protected $dispatching_requests = array();
++	protected mixed $dispatching_requests = array();
+ 
+ 	/**
+ 	 * Instantiates the REST server.
+@@ -169,7 +169,7 @@
+ 	 * @return WP_Error|null|true WP_Error if authentication error occurred, null if authentication
+ 	 *                            method wasn't used, true if authentication succeeded.
+ 	 */
+-	public function check_authentication() {
++	public function check_authentication(): mixed {
+ 		/**
+ 		 * Filters REST API authentication errors.
+ 		 *
+@@ -195,6 +195,7 @@
+ 		 *                                   method wasn't used, true if authentication succeeded.
+ 		 */
+ 		return apply_filters( 'rest_authentication_errors', null );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -210,8 +211,9 @@
+ 	 * @param WP_Error $error WP_Error instance.
+ 	 * @return WP_REST_Response List of associative arrays with code and message keys.
+ 	 */
+-	protected function error_to_response( $error ) {
++	protected function error_to_response( mixed $error ): mixed {
+ 		return rest_convert_error_to_response( $error );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -229,14 +231,15 @@
+ 	 * @param int|null $status  Optional. HTTP status code to send. Default null.
+ 	 * @return string JSON representation of the error.
+ 	 */
+-	protected function json_error( $code, $message, $status = null ) {
++	protected function json_error( mixed $code, mixed $message, mixed $status = null ): mixed {
+ 		if ( $status ) {
+ 			$this->set_status( $status );
+ 		}
+ 
+-		$error = compact( 'code', 'message' );
++		$error = \wp_aot_compact(get_defined_vars(), array( 'code', 'message' ));
+ 
+ 		return wp_json_encode( $error );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -248,7 +251,7 @@
+ 	 *
+ 	 * @return int The JSON encode options.
+ 	 */
+-	protected function get_json_encode_options( WP_REST_Request $request ) {
++	protected function get_json_encode_options( WP_REST_Request $request ): mixed {
+ 		$options = 0;
+ 
+ 		if ( $request->has_param( '_pretty' ) ) {
+@@ -264,6 +267,7 @@
+ 		 * @param WP_REST_Request $request Current request object.
+ 		 */
+ 		return apply_filters( 'rest_json_encode_options', $options, $request );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -282,7 +286,7 @@
+ 	 *                          Default null.
+ 	 * @return null|false Null if not served and a HEAD request, false otherwise.
+ 	 */
+-	public function serve_request( $path = null ) {
++	public function serve_request( mixed $path = null ): mixed {
+ 		// Refuse to start a fresh top-level REST cycle while another dispatch
+ 		// is already in flight. Internal sub-requests must use dispatch().
+ 		if ( $this->is_dispatching() ) {
+@@ -569,6 +573,7 @@
+ 		}
+ 
+ 		return null;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -586,7 +591,7 @@
+ 	 *     @type array $_embedded Embedded objects.
+ 	 * }
+ 	 */
+-	public function response_to_data( $response, $embed ) {
++	public function response_to_data( mixed $response, mixed $embed ): mixed {
+ 		$data  = $response->get_data();
+ 		$links = self::get_compact_response_links( $response );
+ 
+@@ -609,6 +614,7 @@
+ 		}
+ 
+ 		return $data;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -622,7 +628,7 @@
+ 	 * @param WP_REST_Response $response Response to extract links from.
+ 	 * @return array Map of link relation to list of link hashes.
+ 	 */
+-	public static function get_response_links( $response ) {
++	public static function get_response_links( mixed $response ): mixed {
+ 		$links = $response->get_links();
+ 
+ 		if ( empty( $links ) ) {
+@@ -653,6 +659,7 @@
+ 		}
+ 
+ 		return $data;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -663,7 +670,7 @@
+ 	 * @param array $link The link to get target hints for.
+ 	 * @return array|null
+ 	 */
+-	protected static function get_target_hints_for_link( $link ) {
++	protected static function get_target_hints_for_link( mixed $link ): mixed {
+ 		// Prefer targetHints that were specifically designated by the developer.
+ 		if ( isset( $link['targetHints']['allow'] ) ) {
+ 			return null;
+@@ -699,10 +706,11 @@
+ 		foreach ( $headers as $name => $value ) {
+ 			$name = WP_REST_Request::canonicalize_header_name( $name );
+ 
+-			$target_hints[ $name ] = array_map( 'trim', explode( ',', $value ) );
++			$target_hints[ $name ] = \wp_aot_array_map( 'trim', explode( ',', $value ) );
+ 		}
+ 
+ 		return $target_hints;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -716,7 +724,7 @@
+ 	 * @param WP_REST_Response $response Response to extract links from.
+ 	 * @return array Map of link relation to list of link hashes.
+ 	 */
+-	public static function get_compact_response_links( $response ) {
++	public static function get_compact_response_links( mixed $response ): mixed {
+ 		$links = self::get_response_links( $response );
+ 
+ 		if ( empty( $links ) ) {
+@@ -736,8 +744,8 @@
+ 				}
+ 
+ 				// Relation now changes from '$uri' to '$curie:$relation'.
+-				$rel_regex = str_replace( '\{rel\}', '(.+)', preg_quote( $curie['href'], '!' ) );
+-				preg_match( '!' . $rel_regex . '!', $rel, $matches );
++				$rel_regex = \wp_aot_str_replace( '\{rel\}', '(.+)', preg_quote( \wp_aot_regex_text( $curie['href'] ), '!' ) );
++				preg_match( \wp_aot_regex_text( '!' . $rel_regex . '!' ), \wp_aot_regex_text( $rel ), $matches );
+ 				if ( $matches ) {
+ 					$new_rel                       = $curie['name'] . ':' . $matches[1];
+ 					$used_curies[ $curie['name'] ] = $curie;
+@@ -754,6 +762,7 @@
+ 		}
+ 
+ 		return $links;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -772,7 +781,7 @@
+ 	 *     @type array $_embedded Embedded objects.
+ 	 * }
+ 	 */
+-	protected function embed_links( $data, $embed = true ) {
++	protected function embed_links( mixed $data, mixed $embed = true ): mixed {
+ 		if ( empty( $data['_links'] ) ) {
+ 			return $data;
+ 		}
+@@ -830,7 +839,7 @@
+ 			}
+ 
+ 			// Determine if any real links were found.
+-			$has_links = count( array_filter( $embeds ) );
++			$has_links = count( \wp_aot_array_filter( $embeds ) );
+ 
+ 			if ( $has_links ) {
+ 				$embedded[ $rel ] = $embeds;
+@@ -842,6 +851,7 @@
+ 		}
+ 
+ 		return $data;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -858,7 +868,7 @@
+ 	 * @param bool|string[]    $embed    Whether to embed all links, a filtered list of link relations, or no links.
+ 	 * @return WP_REST_Response New response with wrapped data
+ 	 */
+-	public function envelope_response( $response, $embed ) {
++	public function envelope_response( mixed $response, mixed $embed ): mixed {
+ 		$envelope = array(
+ 			'body'    => $this->response_to_data( $response, $embed ),
+ 			'status'  => $response->get_status(),
+@@ -883,6 +893,7 @@
+ 
+ 		// Ensure it's still a response and return.
+ 		return rest_ensure_response( $envelope );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -896,7 +907,7 @@
+ 	 * @param bool   $override        Optional. Whether the route should be overridden if it already exists.
+ 	 *                                Default false.
+ 	 */
+-	public function register_route( $route_namespace, $route, $route_args, $override = false ) {
++	public function register_route( mixed $route_namespace, mixed $route, mixed $route_args, mixed $override = false ): mixed {
+ 		if ( ! isset( $this->namespaces[ $route_namespace ] ) ) {
+ 			$this->namespaces[ $route_namespace ] = array();
+ 
+@@ -928,8 +939,9 @@
+ 		if ( $override || empty( $this->endpoints[ $route ] ) ) {
+ 			$this->endpoints[ $route ] = $route_args;
+ 		} else {
+-			$this->endpoints[ $route ] = array_merge( $this->endpoints[ $route ], $route_args );
+-		}
++			$this->endpoints[ $route ] = \wp_aot_array_merge(array( $this->endpoints[ $route ], $route_args ));
++		}
++		return null;
+ 	}
+ 
+ 	/**
+@@ -954,7 +966,7 @@
+ 	 * @return array `'/path/regex' => array( $callback, $bitmask )` or
+ 	 *               `'/path/regex' => array( array( $callback, $bitmask ), ...)`.
+ 	 */
+-	public function get_routes( $route_namespace = '' ) {
++	public function get_routes( mixed $route_namespace = '' ): mixed {
+ 		$endpoints = $this->endpoints;
+ 
+ 		if ( $route_namespace ) {
+@@ -1023,6 +1035,7 @@
+ 		}
+ 
+ 		return $endpoints;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1032,8 +1045,9 @@
+ 	 *
+ 	 * @return string[] List of registered namespaces.
+ 	 */
+-	public function get_namespaces() {
++	public function get_namespaces(): mixed {
+ 		return array_keys( $this->namespaces );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1044,12 +1058,13 @@
+ 	 * @param string $route Route pattern to fetch options for.
+ 	 * @return array|null Data as an associative array if found, or null if not found.
+ 	 */
+-	public function get_route_options( $route ) {
++	public function get_route_options( mixed $route ): mixed {
+ 		if ( ! isset( $this->route_options[ $route ] ) ) {
+ 			return null;
+ 		}
+ 
+ 		return $this->route_options[ $route ];
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1060,7 +1075,7 @@
+ 	 * @param WP_REST_Request $request Request to attempt dispatching.
+ 	 * @return WP_REST_Response Response returned by the callback.
+ 	 */
+-	public function dispatch( $request ) {
++	public function dispatch( mixed $request ): mixed {
+ 		$this->dispatching_requests[] = $request;
+ 
+ 		/**
+@@ -1088,7 +1103,7 @@
+ 				$result = $this->error_to_response( $result );
+ 			}
+ 
+-			array_pop( $this->dispatching_requests );
++			\wp_aot_array_pop( $this->dispatching_requests );
+ 			return $result;
+ 		}
+ 
+@@ -1097,7 +1112,7 @@
+ 
+ 		if ( is_wp_error( $matched ) ) {
+ 			$response = $this->error_to_response( $matched );
+-			array_pop( $this->dispatching_requests );
++			\wp_aot_array_pop( $this->dispatching_requests );
+ 			return $response;
+ 		}
+ 
+@@ -1124,8 +1139,9 @@
+ 		}
+ 
+ 		$response = $this->respond_to_request( $request, $route, $handler, $error );
+-		array_pop( $this->dispatching_requests );
++		\wp_aot_array_pop( $this->dispatching_requests );
+ 		return $response;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1137,8 +1153,9 @@
+ 	 *
+ 	 * @return bool Whether the REST server is currently handling a request.
+ 	 */
+-	public function is_dispatching() {
++	public function is_dispatching(): mixed {
+ 		return (bool) $this->dispatching_requests;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1150,7 +1167,7 @@
+ 	 * @param WP_REST_Request $request The request object.
+ 	 * @return array|WP_Error The route and request handler on success or a WP_Error instance if no handler was found.
+ 	 */
+-	protected function match_request_to_handler( $request ) {
++	protected function match_request_to_handler( mixed $request ): mixed {
+ 		$method = $request->get_method();
+ 		$path   = $request->get_route();
+ 
+@@ -1163,13 +1180,13 @@
+ 		}
+ 
+ 		if ( $with_namespace ) {
+-			$routes = array_merge( ...$with_namespace );
++			$routes = \wp_aot_array_merge(array( ...$with_namespace ));
+ 		} else {
+ 			$routes = $this->get_routes();
+ 		}
+ 
+ 		foreach ( $routes as $route => $handlers ) {
+-			$match = preg_match( '@^' . $route . '$@i', $path, $matches );
++			$match = preg_match( \wp_aot_regex_text( '@^' . $route . '$@i' ), \wp_aot_regex_text( $path ), $matches );
+ 
+ 			if ( ! $match ) {
+ 				continue;
+@@ -1221,6 +1238,7 @@
+ 			__( 'No route was found matching the URL and request method.' ),
+ 			array( 'status' => 404 )
+ 		);
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1235,7 +1253,7 @@
+ 	 * @param WP_Error|null   $response The current error object if any.
+ 	 * @return WP_REST_Response
+ 	 */
+-	protected function respond_to_request( $request, $route, $handler, $response ) {
++	protected function respond_to_request( mixed $request, mixed $route, mixed $handler, mixed $response ): mixed {
+ 		/**
+ 		 * Filters the response before executing any REST API callbacks.
+ 		 *
+@@ -1327,6 +1345,7 @@
+ 		$response->set_matched_handler( $handler );
+ 
+ 		return $response;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1339,12 +1358,13 @@
+ 	 *
+ 	 * @return false|string Boolean false or string error message.
+ 	 */
+-	protected function get_json_last_error() {
++	protected function get_json_last_error(): mixed {
+ 		if ( JSON_ERROR_NONE === json_last_error() ) {
+ 			return false;
+ 		}
+ 
+ 		return json_last_error_msg();
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1357,7 +1377,7 @@
+ 	 * @param WP_REST_Request $request Request data.
+ 	 * @return WP_REST_Response The API root index data.
+ 	 */
+-	public function get_index( $request ) {
++	public function get_index( mixed $request ): mixed {
+ 		// General site data.
+ 		$available = array(
+ 			'name'            => get_option( 'blogname' ),
+@@ -1440,6 +1460,7 @@
+ 		 * @param WP_REST_Request  $request  Request data.
+ 		 */
+ 		return apply_filters( 'rest_index', $response, $request );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1449,7 +1470,7 @@
+ 	 *
+ 	 * @param WP_REST_Response $response REST API response.
+ 	 */
+-	protected function add_active_theme_link_to_index( WP_REST_Response $response ) {
++	protected function add_active_theme_link_to_index( WP_REST_Response $response ): mixed {
+ 		$should_add = current_user_can( 'switch_themes' ) || current_user_can( 'manage_network_themes' );
+ 
+ 		if ( ! $should_add && current_user_can( 'edit_posts' ) ) {
+@@ -1469,6 +1490,7 @@
+ 			$theme = wp_get_theme();
+ 			$response->add_link( 'https://api.w.org/active-theme', rest_url( 'wp/v2/themes/' . $theme->get_stylesheet() ) );
+ 		}
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1481,10 +1503,11 @@
+ 	 *
+ 	 * @param WP_REST_Response $response REST API response.
+ 	 */
+-	protected function add_site_logo_to_index( WP_REST_Response $response ) {
++	protected function add_site_logo_to_index( WP_REST_Response $response ): mixed {
+ 		$site_logo_id = get_theme_mod( 'custom_logo', 0 );
+ 
+ 		$this->add_image_to_index( $response, $site_logo_id, 'site_logo' );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1497,12 +1520,13 @@
+ 	 *
+ 	 * @param WP_REST_Response $response REST API response.
+ 	 */
+-	protected function add_site_icon_to_index( WP_REST_Response $response ) {
++	protected function add_site_icon_to_index( WP_REST_Response $response ): mixed {
+ 		$site_icon_id = get_option( 'site_icon', 0 );
+ 
+ 		$this->add_image_to_index( $response, $site_icon_id, 'site_icon' );
+ 
+ 		$response->data['site_icon_url'] = get_site_icon_url();
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1516,7 +1540,7 @@
+ 	 * @param int              $image_id Image attachment ID.
+ 	 * @param string           $type     Type of Image.
+ 	 */
+-	protected function add_image_to_index( WP_REST_Response $response, $image_id, $type ) {
++	protected function add_image_to_index( WP_REST_Response $response, mixed $image_id, mixed $type ): mixed {
+ 		$response->data[ $type ] = (int) $image_id;
+ 		if ( $image_id ) {
+ 			$response->add_link(
+@@ -1528,6 +1552,7 @@
+ 				)
+ 			);
+ 		}
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1539,7 +1564,7 @@
+ 	 * @return WP_REST_Response|WP_Error WP_REST_Response instance if the index was found,
+ 	 *                                   WP_Error if the namespace isn't set.
+ 	 */
+-	public function get_namespace_index( $request ) {
++	public function get_namespace_index( mixed $request ): mixed {
+ 		$namespace = $request['namespace'];
+ 
+ 		if ( ! isset( $this->namespaces[ $namespace ] ) ) {
+@@ -1551,7 +1576,7 @@
+ 		}
+ 
+ 		$routes    = $this->namespaces[ $namespace ];
+-		$endpoints = array_intersect_key( $this->get_routes(), $routes );
++		$endpoints = \wp_aot_array_intersect_key(array( $this->get_routes(), $routes ));
+ 
+ 		$data     = array(
+ 			'namespace' => $namespace,
+@@ -1574,6 +1599,7 @@
+ 		 * @param WP_REST_Request  $request  Request data. The namespace is passed as the 'namespace' parameter.
+ 		 */
+ 		return apply_filters( 'rest_namespace_index', $response, $request );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1585,7 +1611,7 @@
+ 	 * @param string $context Optional. Context for data. Accepts 'view' or 'help'. Default 'view'.
+ 	 * @return array[] Route data to expose in indexes, keyed by route.
+ 	 */
+-	public function get_data_for_routes( $routes, $context = 'view' ) {
++	public function get_data_for_routes( mixed $routes, mixed $context = 'view' ): mixed {
+ 		$available = array();
+ 
+ 		// Find the available routes.
+@@ -1618,6 +1644,7 @@
+ 		 * @param array   $routes    Internal route data as an associative array.
+ 		 */
+ 		return apply_filters( 'rest_route_data', $available, $routes );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1630,7 +1657,7 @@
+ 	 * @param string $context   Optional. Context for the data. Accepts 'view' or 'help'. Default 'view'.
+ 	 * @return array|null Data for the route, or null if no publicly-visible data.
+ 	 */
+-	public function get_data_for_route( $route, $callbacks, $context = 'view' ) {
++	public function get_data_for_route( mixed $route, mixed $callbacks, mixed $context = 'view' ): mixed {
+ 		$data = array(
+ 			'namespace' => '',
+ 			'methods'   => array(),
+@@ -1653,9 +1680,9 @@
+ 			}
+ 		}
+ 
+-		$allowed_schema_keywords = array_flip( wp_get_json_schema_allowed_keywords( 'rest-api' ) );
+-
+-		$route = preg_replace( '#\(\?P<(\w+?)>.*?\)#', '{$1}', $route );
++		$allowed_schema_keywords = \wp_aot_array_flip( wp_get_json_schema_allowed_keywords( 'rest-api' ) );
++
++		$route = \wp_aot_preg_replace( '#\(\?P<(\w+?)>.*?\)#', '{$1}', $route );
+ 
+ 		foreach ( $callbacks as $callback ) {
+ 			// Skip to the next route if any callback is hidden.
+@@ -1663,7 +1690,7 @@
+ 				continue;
+ 			}
+ 
+-			$data['methods'] = array_merge( $data['methods'], array_keys( $callback['methods'] ) );
++			$data['methods'] = \wp_aot_array_merge(array( $data['methods'], array_keys( $callback['methods'] ) ));
+ 			$endpoint_data   = array(
+ 				'methods' => array_keys( $callback['methods'] ),
+ 			);
+@@ -1683,7 +1710,7 @@
+ 					} elseif ( ! is_array( $opts ) ) {
+ 						$opts = array();
+ 					}
+-					$arg_data             = array_intersect_key( $opts, $allowed_schema_keywords );
++					$arg_data             = \wp_aot_array_intersect_key(array( $opts, $allowed_schema_keywords ));
+ 					$arg_data['required'] = ! empty( $opts['required'] );
+ 
+ 					$endpoint_data['args'][ $key ] = $arg_data;
+@@ -1710,6 +1737,7 @@
+ 		}
+ 
+ 		return $data;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1719,7 +1747,7 @@
+ 	 *
+ 	 * @return int The maximum requests.
+ 	 */
+-	protected function get_max_batch_size() {
++	protected function get_max_batch_size(): mixed {
+ 		/**
+ 		 * Filters the maximum number of REST API requests that can be included in a batch.
+ 		 *
+@@ -1728,6 +1756,7 @@
+ 		 * @param int $max_size The maximum size.
+ 		 */
+ 		return apply_filters( 'rest_get_max_batch_size', 25 );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1738,7 +1767,7 @@
+ 	 * @param WP_REST_Request $batch_request The batch request object.
+ 	 * @return WP_REST_Response The generated response object.
+ 	 */
+-	public function serve_batch_request_v1( WP_REST_Request $batch_request ) {
++	public function serve_batch_request_v1( WP_REST_Request $batch_request ): mixed {
+ 		$requests = array();
+ 
+ 		foreach ( $batch_request['requests'] as $args ) {
+@@ -1897,6 +1926,7 @@
+ 		}
+ 
+ 		return new WP_REST_Response( array( 'responses' => $responses ), WP_Http::MULTI_STATUS );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1906,8 +1936,9 @@
+ 	 *
+ 	 * @param int $code HTTP status.
+ 	 */
+-	protected function set_status( $code ) {
++	protected function set_status( mixed $code ): mixed {
+ 		status_header( $code );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1918,7 +1949,7 @@
+ 	 * @param string $key Header key.
+ 	 * @param string $value Header value.
+ 	 */
+-	public function send_header( $key, $value ) {
++	public function send_header( mixed $key, mixed $value ): mixed {
+ 		/*
+ 		 * Sanitize as per RFC2616 (Section 4.2):
+ 		 *
+@@ -1926,8 +1957,9 @@
+ 		 * single SP before interpreting the field value or forwarding the
+ 		 * message downstream.
+ 		 */
+-		$value = preg_replace( '/\s+/', ' ', $value );
++		$value = \wp_aot_preg_replace( '/\s+/', ' ', $value );
+ 		header( sprintf( '%s: %s', $key, $value ) );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1937,10 +1969,11 @@
+ 	 *
+ 	 * @param array $headers Map of header name to header value.
+ 	 */
+-	public function send_headers( $headers ) {
++	public function send_headers( mixed $headers ): mixed {
+ 		foreach ( $headers as $key => $value ) {
+ 			$this->send_header( $key, $value );
+ 		}
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1950,8 +1983,9 @@
+ 	 *
+ 	 * @param string $key Header key.
+ 	 */
+-	public function remove_header( $key ) {
+-		header_remove( $key );
++	public function remove_header( mixed $key ): mixed {
++		\wp_aot_native_api('header_remove', array( $key ));
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1963,7 +1997,7 @@
+ 	 *
+ 	 * @return string Raw request data.
+ 	 */
+-	public static function get_raw_data() {
++	public static function get_raw_data(): mixed {
+ 		// phpcs:disable PHPCompatibility.Variables.RemovedPredefinedGlobalVariables.http_raw_post_dataDeprecatedRemoved
+ 		global $HTTP_RAW_POST_DATA;
+ 
+@@ -1974,6 +2008,7 @@
+ 
+ 		return $HTTP_RAW_POST_DATA;
+ 		// phpcs:enable
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1984,7 +2019,7 @@
+ 	 * @param array $server Associative array similar to `$_SERVER`.
+ 	 * @return array Headers extracted from the input.
+ 	 */
+-	public function get_headers( $server ) {
++	public function get_headers( mixed $server ): mixed {
+ 		$headers = array();
+ 
+ 		// CONTENT_* headers are not prefixed with HTTP_.
+@@ -2009,5 +2044,6 @@
+ 		}
+ 
+ 		return $headers;
++		return null;
+ 	}
+ }

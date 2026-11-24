@@ -1,0 +1,262 @@
+--- a/wp-admin/plugins.php
++++ b/wp-admin/plugins.php
+@@ -52,7 +52,7 @@
+ 
+ 			if ( is_multisite() && ! is_network_admin() && is_network_only_plugin( $plugin ) ) {
+ 				wp_redirect( self_admin_url( "plugins.php?plugin_status=$status&paged=$page&s=$s" ) );
+-				exit;
++				\wp_aot_exit();
+ 			}
+ 
+ 			check_admin_referer( 'activate-plugin_' . $plugin );
+@@ -62,7 +62,7 @@
+ 				if ( 'unexpected_output' === $result->get_error_code() ) {
+ 					$redirect = self_admin_url( 'plugins.php?error=true&charsout=' . strlen( $result->get_error_data() ) . '&plugin=' . urlencode( $plugin ) . "&plugin_status=$status&paged=$page&s=$s" );
+ 					wp_redirect( add_query_arg( '_error_nonce', wp_create_nonce( 'plugin-activation-error_' . $plugin ), $redirect ) );
+-					exit;
++					\wp_aot_exit();
+ 				} else {
+ 					wp_die( $result );
+ 				}
+@@ -80,14 +80,14 @@
+ 
+ 			if ( isset( $_GET['from'] ) && 'import' === $_GET['from'] ) {
+ 				// Overrides the ?error=true one above and redirects to the Imports page, stripping the -importer suffix.
+-				wp_redirect( self_admin_url( 'import.php?import=' . str_replace( '-importer', '', dirname( $plugin ) ) ) );
++				wp_redirect( self_admin_url( 'import.php?import=' . \wp_aot_str_replace( '-importer', '', dirname( $plugin ) ) ) );
+ 			} elseif ( isset( $_GET['from'] ) && 'press-this' === $_GET['from'] ) {
+ 				wp_redirect( self_admin_url( 'press-this.php' ) );
+ 			} else {
+ 				// Overrides the ?error=true one above.
+ 				wp_redirect( self_admin_url( "plugins.php?activate=true&plugin_status=$status&paged=$page&s=$s" ) );
+ 			}
+-			exit;
++			\wp_aot_exit();
+ 
+ 		case 'activate-selected':
+ 			if ( ! current_user_can( 'activate_plugins' ) ) {
+@@ -120,7 +120,7 @@
+ 
+ 			if ( empty( $plugins ) ) {
+ 				wp_redirect( self_admin_url( "plugins.php?plugin_status=$status&paged=$page&s=$s" ) );
+-				exit;
++				\wp_aot_exit();
+ 			}
+ 
+ 			activate_plugins( $plugins, self_admin_url( 'plugins.php?error=true' ), is_network_admin() );
+@@ -142,7 +142,7 @@
+ 			}
+ 
+ 			wp_redirect( self_admin_url( "plugins.php?activate-multi=true&plugin_status=$status&paged=$page&s=$s" ) );
+-			exit;
++			\wp_aot_exit();
+ 
+ 		case 'update-selected':
+ 			check_admin_referer( 'bulk-plugins' );
+@@ -171,7 +171,7 @@
+ 			echo "<iframe src='$url' style='width: 100%; height:100%; min-height:850px;'></iframe>";
+ 			echo '</div>';
+ 			require_once ABSPATH . 'wp-admin/admin-footer.php';
+-			exit;
++			\wp_aot_exit();
+ 
+ 		case 'error_scrape':
+ 			if ( ! current_user_can( 'activate_plugin', $plugin ) ) {
+@@ -194,7 +194,7 @@
+ 			plugin_sandbox_scrape( $plugin );
+ 			/** This action is documented in wp-admin/includes/plugin.php */
+ 			do_action( "activate_{$plugin}", is_network_admin() );
+-			exit;
++			\wp_aot_exit();
+ 
+ 		case 'deactivate':
+ 			if ( ! current_user_can( 'deactivate_plugin', $plugin ) ) {
+@@ -205,7 +205,7 @@
+ 
+ 			if ( ! is_network_admin() && is_plugin_active_for_network( $plugin ) ) {
+ 				wp_redirect( self_admin_url( "plugins.php?plugin_status=$status&paged=$page&s=$s" ) );
+-				exit;
++				\wp_aot_exit();
+ 			}
+ 
+ 			deactivate_plugins( $plugin, false, is_network_admin() );
+@@ -216,12 +216,12 @@
+ 				update_site_option( 'recently_activated', array( $plugin => time() ) + (array) get_site_option( 'recently_activated' ) );
+ 			}
+ 
+-			if ( headers_sent() ) {
++			if ( \wp_aot_native_headers_sent() ) {
+ 				echo "<meta http-equiv='refresh' content='" . esc_attr( "0;url=plugins.php?deactivate=true&plugin_status=$status&paged=$page&s=$s" ) . "' />";
+ 			} else {
+ 				wp_redirect( self_admin_url( "plugins.php?deactivate=true&plugin_status=$status&paged=$page&s=$s" ) );
+ 			}
+-			exit;
++			\wp_aot_exit();
+ 
+ 		case 'deactivate-selected':
+ 			if ( ! current_user_can( 'deactivate_plugins' ) ) {
+@@ -233,10 +233,10 @@
+ 			$plugins = isset( $_POST['checked'] ) ? (array) wp_unslash( $_POST['checked'] ) : array();
+ 			// Do not deactivate plugins which are already deactivated.
+ 			if ( is_network_admin() ) {
+-				$plugins = array_filter( $plugins, 'is_plugin_active_for_network' );
+-			} else {
+-				$plugins = array_filter( $plugins, 'is_plugin_active' );
+-				$plugins = array_diff( $plugins, array_filter( $plugins, 'is_plugin_active_for_network' ) );
++				$plugins = \wp_aot_array_filter( $plugins, 'is_plugin_active_for_network' );
++			} else {
++				$plugins = \wp_aot_array_filter( $plugins, 'is_plugin_active' );
++				$plugins = \wp_aot_array_diff(array( $plugins, \wp_aot_array_filter( $plugins, 'is_plugin_active_for_network' ) ));
+ 
+ 				foreach ( $plugins as $i => $plugin ) {
+ 					// Only deactivate plugins which the user can deactivate.
+@@ -247,7 +247,7 @@
+ 			}
+ 			if ( empty( $plugins ) ) {
+ 				wp_redirect( self_admin_url( "plugins.php?plugin_status=$status&paged=$page&s=$s" ) );
+-				exit;
++				\wp_aot_exit();
+ 			}
+ 
+ 			deactivate_plugins( $plugins, false, is_network_admin() );
+@@ -264,7 +264,7 @@
+ 			}
+ 
+ 			wp_redirect( self_admin_url( "plugins.php?deactivate-multi=true&plugin_status=$status&paged=$page&s=$s" ) );
+-			exit;
++			\wp_aot_exit();
+ 
+ 		case 'delete-selected':
+ 			if ( ! current_user_can( 'delete_plugins' ) ) {
+@@ -277,21 +277,21 @@
+ 			$plugins = isset( $_REQUEST['checked'] ) ? (array) wp_unslash( $_REQUEST['checked'] ) : array();
+ 			if ( empty( $plugins ) ) {
+ 				wp_redirect( self_admin_url( "plugins.php?plugin_status=$status&paged=$page&s=$s" ) );
+-				exit;
+-			}
+-
+-			$plugins = array_filter( $plugins, 'is_plugin_inactive' ); // Do not allow to delete activated plugins.
++				\wp_aot_exit();
++			}
++
++			$plugins = \wp_aot_array_filter( $plugins, 'is_plugin_inactive' ); // Do not allow to delete activated plugins.
+ 			if ( empty( $plugins ) ) {
+ 				wp_redirect( self_admin_url( "plugins.php?error=true&main=true&plugin_status=$status&paged=$page&s=$s" ) );
+-				exit;
++				\wp_aot_exit();
+ 			}
+ 
+ 			// Bail on all if any paths are invalid.
+ 			// validate_file() returns truthy for invalid files.
+-			$invalid_plugin_files = array_filter( $plugins, 'validate_file' );
++			$invalid_plugin_files = \wp_aot_array_filter( $plugins, 'validate_file' );
+ 			if ( $invalid_plugin_files ) {
+ 				wp_redirect( self_admin_url( "plugins.php?plugin_status=$status&paged=$page&s=$s" ) );
+-				exit;
++				\wp_aot_exit();
+ 			}
+ 
+ 			require ABSPATH . 'wp-admin/update.php';
+@@ -422,7 +422,7 @@
+ 				<?php
+ 
+ 				require_once ABSPATH . 'wp-admin/admin-footer.php';
+-				exit;
++				\wp_aot_exit();
+ 			} else {
+ 				$plugins_to_delete = count( $plugins );
+ 			} // End if verify-delete.
+@@ -433,7 +433,7 @@
+ 			// Cannot use transient/cache, as that could get flushed if any plugin flushes data on uninstall/delete.
+ 			update_option( 'plugins_delete_result_' . $user_ID, $delete_result, false );
+ 			wp_redirect( self_admin_url( "plugins.php?deleted=$plugins_to_delete&plugin_status=$status&paged=$page&s=$s" ) );
+-			exit;
++			\wp_aot_exit();
+ 		case 'clear-recent-list':
+ 			if ( ! is_network_admin() ) {
+ 				update_option( 'recently_activated', array(), false );
+@@ -460,7 +460,7 @@
+ 			}
+ 
+ 			wp_redirect( self_admin_url( "plugins.php?resume=true&plugin_status=$status&paged=$page&s=$s" ) );
+-			exit;
++			\wp_aot_exit();
+ 		case 'enable-auto-update':
+ 		case 'disable-auto-update':
+ 		case 'enable-auto-update-selected':
+@@ -478,14 +478,14 @@
+ 			if ( 'enable-auto-update' === $action || 'disable-auto-update' === $action ) {
+ 				if ( empty( $plugin ) ) {
+ 					wp_redirect( $redirect );
+-					exit;
++					\wp_aot_exit();
+ 				}
+ 
+ 				check_admin_referer( 'updates' );
+ 			} else {
+ 				if ( empty( $_POST['checked'] ) ) {
+ 					wp_redirect( $redirect );
+-					exit;
++					\wp_aot_exit();
+ 				}
+ 
+ 				check_admin_referer( 'bulk-plugins' );
+@@ -495,20 +495,20 @@
+ 
+ 			if ( 'enable-auto-update' === $action ) {
+ 				$auto_updates[] = $plugin;
+-				$auto_updates   = array_unique( $auto_updates );
++				$auto_updates   = \wp_aot_array_unique( $auto_updates );
+ 				$redirect       = add_query_arg( array( 'enabled-auto-update' => 'true' ), $redirect );
+ 			} elseif ( 'disable-auto-update' === $action ) {
+-				$auto_updates = array_diff( $auto_updates, array( $plugin ) );
++				$auto_updates = \wp_aot_array_diff(array( $auto_updates, array( $plugin ) ));
+ 				$redirect     = add_query_arg( array( 'disabled-auto-update' => 'true' ), $redirect );
+ 			} else {
+ 				$plugins = (array) wp_unslash( $_POST['checked'] );
+ 
+ 				if ( 'enable-auto-update-selected' === $action ) {
+-					$new_auto_updates = array_merge( $auto_updates, $plugins );
+-					$new_auto_updates = array_unique( $new_auto_updates );
++					$new_auto_updates = \wp_aot_array_merge(array( $auto_updates, $plugins ));
++					$new_auto_updates = \wp_aot_array_unique( $new_auto_updates );
+ 					$query_args       = array( 'enabled-auto-update-multi' => 'true' );
+ 				} else {
+-					$new_auto_updates = array_diff( $auto_updates, $plugins );
++					$new_auto_updates = \wp_aot_array_diff(array( $auto_updates, $plugins ));
+ 					$query_args       = array( 'disabled-auto-update-multi' => 'true' );
+ 				}
+ 
+@@ -516,7 +516,7 @@
+ 				// Must use non-strict comparison, so that array order is not treated as significant.
+ 				if ( $new_auto_updates == $auto_updates ) { // phpcs:ignore Universal.Operators.StrictComparisons.LooseEqual
+ 					wp_redirect( $redirect );
+-					exit;
++					\wp_aot_exit();
+ 				}
+ 
+ 				$auto_updates = $new_auto_updates;
+@@ -527,12 +527,12 @@
+ 			$all_items = apply_filters( 'all_plugins', get_plugins() );
+ 
+ 			// Remove plugins that don't exist or have been deleted since the option was last updated.
+-			$auto_updates = array_intersect( $auto_updates, array_keys( $all_items ) );
++			$auto_updates = \wp_aot_array_intersect(array( $auto_updates, array_keys( $all_items ) ));
+ 
+ 			update_site_option( 'auto_update_plugins', $auto_updates );
+ 
+ 			wp_redirect( $redirect );
+-			exit;
++			\wp_aot_exit();
+ 		default:
+ 			if ( isset( $_POST['checked'] ) ) {
+ 				check_admin_referer( 'bulk-plugins' );
+@@ -544,7 +544,7 @@
+ 				/** This action is documented in wp-admin/edit.php */
+ 				$sendback = apply_filters( "handle_bulk_actions-{$screen}", $sendback, $action, $plugins ); // phpcs:ignore WordPress.NamingConventions.ValidHookName.UseUnderscores
+ 				wp_safe_redirect( $sendback );
+-				exit;
++				\wp_aot_exit();
+ 			}
+ 			break;
+ 	}

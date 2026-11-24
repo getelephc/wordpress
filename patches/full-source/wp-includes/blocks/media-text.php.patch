@@ -1,0 +1,45 @@
+--- a/wp-includes/blocks/media-text.php
++++ b/wp-includes/blocks/media-text.php
+@@ -15,7 +15,7 @@
+  *
+  * @return string Returns the Media & Text block markup, if useFeaturedImage is true.
+  */
+-function render_block_core_media_text( $attributes, $content ) {
++function render_block_core_media_text( mixed $attributes, mixed $content ): mixed {
+ 	if ( false === $attributes['useFeaturedImage'] ) {
+ 		return $content;
+ 	}
+@@ -79,8 +79,8 @@
+ 	// in order to display the featured image.
+ 	$media_size_slug = $attributes['mediaSizeSlug'] ?? 'full';
+ 	$image_tag       = '<img class="wp-block-media-text__featured_image">';
+-	$content         = preg_replace(
+-		'/(<figure\s+id="' . preg_quote( $unique_id, '/' ) . '"\s+class="wp-block-media-text__media"\s*>)/',
++	$content         = \wp_aot_preg_replace(
++		'/(<figure\s+id="' . preg_quote( \wp_aot_regex_text( $unique_id ), '/' ) . '"\s+class="wp-block-media-text__media"\s*>)/',
+ 		'$1' . $image_tag,
+ 		$content
+ 	);
+@@ -113,6 +113,7 @@
+ 	}
+ 
+ 	return $content;
++	return null;
+ }
+ 
+ /**
+@@ -120,12 +121,13 @@
+  *
+  * @since 6.6.0
+  */
+-function register_block_core_media_text() {
++function register_block_core_media_text(): mixed {
+ 	register_block_type_from_metadata(
+ 		__DIR__ . '/media-text',
+ 		array(
+ 			'render_callback' => 'render_block_core_media_text',
+ 		)
+ 	);
++	return null;
+ }
+ add_action( 'init', 'register_block_core_media_text' );

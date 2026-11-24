@@ -1,0 +1,425 @@
+--- a/wp-includes/SimplePie/src/IRI.php
++++ b/wp-includes/SimplePie/src/IRI.php
+@@ -185,7 +185,7 @@
+      */
+     public function __isset(string $name)
+     {
+-        return method_exists($this, 'get_' . $name) || isset($this->$name);
++        return \wp_aot_native_api('method_exists', array($this, 'get_' . $name)) || isset($this->$name);
+     }
+ 
+     /**
+@@ -232,7 +232,7 @@
+      * @param IRI|string $relative Relative IRI
+      * @return IRI|false
+      */
+-    public static function absolutize($base, $relative)
++    public static function absolutize(mixed $base, mixed $relative): mixed
+     {
+         if (!($relative instanceof IRI)) {
+             $relative = new IRI($relative);
+@@ -288,6 +288,7 @@
+ 
+             return false;
+         }
++    	return null;
+     }
+ 
+     /**
+@@ -302,10 +303,10 @@
+      *   fragment: string|null,
+      * }|false
+      */
+-    protected function parse_iri(string $iri)
++    protected function parse_iri(string $iri): mixed
+     {
+         $iri = trim($iri, "\x20\x09\x0A\x0C\x0D");
+-        if (preg_match('/^(?:(?P<scheme>[^:\/?#]+):)?(:?\/\/(?P<authority>[^\/?#]*))?(?P<path>[^?#]*)(?:\?(?P<query>[^#]*))?(?:#(?P<fragment>.*))?$/', $iri, $match, \PREG_UNMATCHED_AS_NULL)) {
++        if (\wp_aot_preg_match('/^(?:(?P<scheme>[^:\/?#]+):)?(:?\/\/(?P<authority>[^\/?#]*))?(?P<path>[^?#]*)(?:\?(?P<query>[^#]*))?(?:#(?P<fragment>.*))?$/', $iri, $match, \PREG_UNMATCHED_AS_NULL)) {
+             // TODO: Remove once we require PHP ≥ 7.4.
+             $match['query'] = $match['query'] ?? null;
+             $match['fragment'] = $match['fragment'] ?? null;
+@@ -314,6 +315,7 @@
+ 
+         // This can occur when a paragraph is accidentally parsed as a URI
+         return false;
++    	return null;
+     }
+ 
+     /**
+@@ -322,7 +324,7 @@
+      * @param string $input
+      * @return string
+      */
+-    protected function remove_dot_segments(string $input)
++    protected function remove_dot_segments(string $input): mixed
+     {
+         $output = '';
+         while (strpos($input, './') !== false || strpos($input, '/.') !== false || $input === '.' || $input === '..') {
+@@ -360,6 +362,7 @@
+             }
+         }
+         return $output . $input;
++    	return null;
+     }
+ 
+     /**
+@@ -371,14 +374,14 @@
+      * @param bool $iprivate Allow iprivate
+      * @return string
+      */
+-    protected function replace_invalid_with_pct_encoding(string $string, string $extra_chars, bool $iprivate = false)
++    protected function replace_invalid_with_pct_encoding(string $string, string $extra_chars, bool $iprivate = false): mixed
+     {
+         // Normalize as many pct-encoded sections as possible
+-        $string = preg_replace_callback('/(?:%[A-Fa-f0-9]{2})+/', [$this, 'remove_iunreserved_percent_encoded'], $string);
++        $string = \wp_aot_preg_replace_callback('/(?:%[A-Fa-f0-9]{2})+/', [$this, 'remove_iunreserved_percent_encoded'], $string);
+         \assert(\is_string($string), "For PHPStan: Should not occur, the regex is valid");
+ 
+         // Replace invalid percent characters
+-        $string = preg_replace('/%(?![A-Fa-f0-9]{2})/', '%25', $string);
++        $string = \wp_aot_preg_replace('/%(?![A-Fa-f0-9]{2})/', '%25', $string);
+         \assert(\is_string($string), "For PHPStan: Should not occur, the regex is valid");
+ 
+         // Add unreserved and % to $extra_chars (the latter is safe because all
+@@ -486,6 +489,7 @@
+         }
+ 
+         return $string;
++    	return null;
+     }
+ 
+     /**
+@@ -497,7 +501,7 @@
+      * @param array{string} $match PCRE match, a capture group #0 consisting of a sequence of valid percent-encoded bytes
+      * @return string Replacement
+      */
+-    protected function remove_iunreserved_percent_encoded(array $match)
++    protected function remove_iunreserved_percent_encoded(array $match): mixed
+     {
+         // As we just have valid percent encoded sequences we can just explode
+         // and ignore the first member of the returned array (an empty string).
+@@ -595,7 +599,7 @@
+                     || $character > 0x7E && $character < 0xA0
+                     || $character > 0xD7FF && $character < 0xF900
+                 ) {
+-                    for ($j = $start; $j <= $i; $j++) {
++                    for ($j = \wp_aot_mixed($start); $j <= $i; $j++) {
+                         $string .= '%' . strtoupper($bytes[$j]);
+                     }
+                 } else {
+@@ -616,15 +620,16 @@
+         }
+ 
+         return $string;
++    	return null;
+     }
+ 
+     /**
+      * @return void
+      */
+-    protected function scheme_normalization()
++    protected function scheme_normalization(): mixed
+     {
+         if ($this->scheme === null) {
+-            return;
++            return null;
+         }
+ 
+         if (isset($this->normalization[$this->scheme]['iuserinfo']) && $this->iuserinfo === $this->normalization[$this->scheme]['iuserinfo']) {
+@@ -645,6 +650,7 @@
+         if (isset($this->normalization[$this->scheme]['ifragment']) && $this->ifragment === $this->normalization[$this->scheme]['ifragment']) {
+             $this->ifragment = null;
+         }
++    	return null;
+     }
+ 
+     /**
+@@ -653,7 +659,7 @@
+      *
+      * @return bool
+      */
+-    public function is_valid()
++    public function is_valid(): mixed
+     {
+         if ($this->ipath === '') {
+             return true;
+@@ -679,6 +685,7 @@
+         }
+ 
+         return true;
++    	return null;
+     }
+ 
+     /**
+@@ -688,9 +695,10 @@
+      * @param string|null $iri
+      * @return bool
+      */
+-    public function set_iri(?string $iri, bool $clear_cache = false)
+-    {
+-        static $cache;
++    public function set_iri(?string $iri, bool $clear_cache = false): mixed
++    {
++        static $cache_aot_cell = new \WordPressStaticValueCell();
++        $cache =& $cache_aot_cell->value;
+         if ($clear_cache) {
+             $cache = null;
+             return false;
+@@ -739,6 +747,7 @@
+         ];
+ 
+         return $return;
++    	return null;
+     }
+ 
+     /**
+@@ -748,17 +757,18 @@
+      * @param string|null $scheme
+      * @return bool
+      */
+-    public function set_scheme(?string $scheme)
++    public function set_scheme(?string $scheme): mixed
+     {
+         if ($scheme === null) {
+             $this->scheme = null;
+-        } elseif (!preg_match('/^[A-Za-z][0-9A-Za-z+\-.]*$/', $scheme)) {
++        } elseif (!preg_match('/^[A-Za-z][0-9A-Za-z+\-.]*$/', \wp_aot_regex_text( $scheme ))) {
+             $this->scheme = null;
+             return false;
+         } else {
+             $this->scheme = strtolower($scheme);
+         }
+         return true;
++    	return null;
+     }
+ 
+     /**
+@@ -768,9 +778,10 @@
+      * @param string|null $authority
+      * @return bool
+      */
+-    public function set_authority(?string $authority, bool $clear_cache = false)
+-    {
+-        static $cache;
++    public function set_authority(?string $authority, bool $clear_cache = false): mixed
++    {
++        static $cache_aot_cell = new \WordPressStaticValueCell();
++        $cache =& $cache_aot_cell->value;
+         if ($clear_cache) {
+             $cache = null;
+             return false;
+@@ -826,6 +837,7 @@
+         ];
+ 
+         return $return;
++    	return null;
+     }
+ 
+     /**
+@@ -834,7 +846,7 @@
+      * @param string|null $iuserinfo
+      * @return bool
+      */
+-    public function set_userinfo(?string $iuserinfo)
++    public function set_userinfo(?string $iuserinfo): mixed
+     {
+         if ($iuserinfo === null) {
+             $this->iuserinfo = null;
+@@ -844,6 +856,7 @@
+         }
+ 
+         return true;
++    	return null;
+     }
+ 
+     /**
+@@ -853,7 +866,7 @@
+      * @param string|null $ihost
+      * @return bool
+      */
+-    public function set_host(?string $ihost)
++    public function set_host(?string $ihost): mixed
+     {
+         if ($ihost === null) {
+             $this->ihost = null;
+@@ -888,6 +901,7 @@
+         $this->scheme_normalization();
+ 
+         return true;
++    	return null;
+     }
+ 
+     /**
+@@ -897,7 +911,7 @@
+      * @param string|int|null $port
+      * @return bool
+      */
+-    public function set_port($port)
++    public function set_port(mixed $port): mixed
+     {
+         if ($port === null) {
+             $this->port = null;
+@@ -910,6 +924,7 @@
+ 
+         $this->port = null;
+         return false;
++    	return null;
+     }
+ 
+     /**
+@@ -918,9 +933,10 @@
+      * @param string|null $ipath
+      * @return bool
+      */
+-    public function set_path(?string $ipath, bool $clear_cache = false)
+-    {
+-        static $cache;
++    public function set_path(?string $ipath, bool $clear_cache = false): mixed
++    {
++        static $cache_aot_cell = new \WordPressStaticValueCell();
++        $cache =& $cache_aot_cell->value;
+         if ($clear_cache) {
+             $cache = null;
+             return false;
+@@ -934,7 +950,7 @@
+         if (isset($cache[$ipath])) {
+             $this->ipath = $cache[$ipath][(int) ($this->scheme !== null)];
+         } else {
+-            $valid = $this->replace_invalid_with_pct_encoding($ipath, '!$&\'()*+,;=@:/');
++            $valid = $this->replace_invalid_with_pct_encoding(\wp_aot_require_string($ipath), '!$&\'()*+,;=@:/');
+             $removed = $this->remove_dot_segments($valid);
+ 
+             $cache[$ipath] = [$valid, $removed];
+@@ -943,6 +959,7 @@
+ 
+         $this->scheme_normalization();
+         return true;
++    	return null;
+     }
+ 
+     /**
+@@ -951,7 +968,7 @@
+      * @param string|null $iquery
+      * @return bool
+      */
+-    public function set_query(?string $iquery)
++    public function set_query(?string $iquery): mixed
+     {
+         if ($iquery === null) {
+             $this->iquery = null;
+@@ -960,6 +977,7 @@
+             $this->scheme_normalization();
+         }
+         return true;
++    	return null;
+     }
+ 
+     /**
+@@ -968,7 +986,7 @@
+      * @param string|null $ifragment
+      * @return bool
+      */
+-    public function set_fragment(?string $ifragment)
++    public function set_fragment(?string $ifragment): mixed
+     {
+         if ($ifragment === null) {
+             $this->ifragment = null;
+@@ -977,6 +995,7 @@
+             $this->scheme_normalization();
+         }
+         return true;
++    	return null;
+     }
+ 
+     /**
+@@ -985,11 +1004,12 @@
+      * @param string $string
+      * @return string
+      */
+-    public function to_uri(string $string)
+-    {
+-        static $non_ascii;
++    public function to_uri(string $string): mixed
++    {
++        static $non_ascii_aot_cell = new \WordPressStaticValueCell();
++        $non_ascii =& $non_ascii_aot_cell->value;
+         if (!$non_ascii) {
+-            $non_ascii = implode('', range("\x80", "\xFF"));
++            $non_ascii = "\x80\x81\x82\x83\x84\x85\x86\x87\x88\x89\x8A\x8B\x8C\x8D\x8E\x8F\x90\x91\x92\x93\x94\x95\x96\x97\x98\x99\x9A\x9B\x9C\x9D\x9E\x9F\xA0\xA1\xA2\xA3\xA4\xA5\xA6\xA7\xA8\xA9\xAA\xAB\xAC\xAD\xAE\xAF\xB0\xB1\xB2\xB3\xB4\xB5\xB6\xB7\xB8\xB9\xBA\xBB\xBC\xBD\xBE\xBF\xC0\xC1\xC2\xC3\xC4\xC5\xC6\xC7\xC8\xC9\xCA\xCB\xCC\xCD\xCE\xCF\xD0\xD1\xD2\xD3\xD4\xD5\xD6\xD7\xD8\xD9\xDA\xDB\xDC\xDD\xDE\xDF\xE0\xE1\xE2\xE3\xE4\xE5\xE6\xE7\xE8\xE9\xEA\xEB\xEC\xED\xEE\xEF\xF0\xF1\xF2\xF3\xF4\xF5\xF6\xF7\xF8\xF9\xFA\xFB\xFC\xFD\xFE\xFF";
+         }
+ 
+         $position = 0;
+@@ -1001,6 +1021,7 @@
+         }
+ 
+         return $string;
++    	return null;
+     }
+ 
+     /**
+@@ -1008,7 +1029,7 @@
+      *
+      * @return string|false
+      */
+-    public function get_iri()
++    public function get_iri(): mixed
+     {
+         if (!$this->is_valid()) {
+             return false;
+@@ -1034,6 +1055,7 @@
+         }
+ 
+         return $iri;
++    	return null;
+     }
+ 
+     /**
+@@ -1041,9 +1063,10 @@
+      *
+      * @return string
+      */
+-    public function get_uri()
++    public function get_uri(): mixed
+     {
+         return $this->to_uri((string) $this->get_iri());
++    	return null;
+     }
+ 
+     /**
+@@ -1051,7 +1074,7 @@
+      *
+      * @return ?string
+      */
+-    protected function get_iauthority()
++    protected function get_iauthority(): mixed
+     {
+         if ($this->iuserinfo !== null || $this->ihost !== null || $this->port !== null) {
+             $iauthority = '';
+@@ -1068,6 +1091,7 @@
+         }
+ 
+         return null;
++    	return null;
+     }
+ 
+     /**
+@@ -1075,7 +1099,7 @@
+      *
+      * @return ?string
+      */
+-    protected function get_authority()
++    protected function get_authority(): mixed
+     {
+         $iauthority = $this->get_iauthority();
+         if (is_string($iauthority)) {
+@@ -1083,7 +1107,8 @@
+         }
+ 
+         return $iauthority;
++    	return null;
+     }
+ }
+ 
+-class_alias('SimplePie\IRI', 'SimplePie_IRI');
++(!defined('WP_AOT_NATIVE_RUNTIME') && (bool) \wp_aot_native_api('class_alias', array('SimplePie\IRI', 'SimplePie_IRI')));

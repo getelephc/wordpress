@@ -1,0 +1,53 @@
+--- a/wp-includes/interactivity-api/class-wp-interactivity-api-directives-processor.php
++++ b/wp-includes/interactivity-api/class-wp-interactivity-api-directives-processor.php
+@@ -46,7 +46,7 @@
+ 	 * @return string|null The content between the current opener template tag and its matching closer tag or null if it
+ 	 *                     doesn't find the matching closing tag or the current tag is not a template opener tag.
+ 	 */
+-	public function get_content_between_balanced_template_tags() {
++	public function get_content_between_balanced_template_tags(): mixed {
+ 		if ( 'TEMPLATE' !== $this->get_tag() ) {
+ 			return null;
+ 		}
+@@ -58,6 +58,7 @@
+ 		list( $after_opener_tag, $before_closer_tag ) = $positions;
+ 
+ 		return substr( $this->html, $after_opener_tag, $before_closer_tag - $after_opener_tag );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -132,7 +133,7 @@
+ 	 * @param bool $rewind Optional. Whether to seek back to the opener tag after finding the positions. Defaults to false.
+ 	 * @return array|null Start and end byte position, or null when no balanced tag bookmarks.
+ 	 */
+-	private function get_after_opener_tag_and_before_closer_tag_positions( bool $rewind = false ) {
++	private function get_after_opener_tag_and_before_closer_tag_positions( bool $rewind = false ): mixed {
+ 		// Flushes any changes.
+ 		$this->get_updated_html();
+ 
+@@ -153,6 +154,7 @@
+ 		$this->release_bookmark( $closer_tag );
+ 
+ 		return array( $after_opener_tag, $before_closer_tag );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -166,7 +168,7 @@
+ 	 *
+ 	 * @return array|null A pair of bookmarks, or null if there's no matching closing tag.
+ 	 */
+-	private function get_balanced_tag_bookmarks() {
++	private function get_balanced_tag_bookmarks(): mixed {
+ 		static $i   = 0;
+ 		$opener_tag = 'opener_tag_of_balanced_tag_' . ++$i;
+ 
+@@ -180,6 +182,7 @@
+ 		$this->set_bookmark( $closer_tag );
+ 
+ 		return array( $opener_tag, $closer_tag );
++		return null;
+ 	}
+ 
+ 	/**

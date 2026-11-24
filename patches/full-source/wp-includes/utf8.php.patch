@@ -1,0 +1,81 @@
+--- a/wp-includes/utf8.php
++++ b/wp-includes/utf8.php
+@@ -1,6 +1,6 @@
+ <?php
+ 
+-if ( extension_loaded( 'mbstring' ) ) :
++if ( false ) :
+ 	/**
+ 	 * Determines if a given byte string represents a valid UTF-8 encoding.
+ 	 *
+@@ -36,10 +36,10 @@
+ 	 * @param string $bytes String which might contain text encoded as UTF-8.
+ 	 * @return bool Whether the provided bytes can decode as valid UTF-8.
+ 	 */
+-	function wp_is_valid_utf8( string $bytes ): bool {
++	function wp_aot_optional_wp_is_valid_utf8( string $bytes ): bool {
+ 		return mb_check_encoding( $bytes, 'UTF-8' );
+ 	}
+-else :
++endif;
+ 	/**
+ 	 * Fallback function for validating UTF-8.
+ 	 *
+@@ -51,13 +51,9 @@
+ 	function wp_is_valid_utf8( string $string ): bool {
+ 		return _wp_is_valid_utf8_fallback( $string );
+ 	}
+-endif;
+ 
+-if (
+-	extension_loaded( 'mbstring' ) &&
+-	// Maximal subpart substitution introduced by php/php-src@04e59c916f12b322ac55f22314e31bd0176d01cb.
+-	version_compare( PHP_VERSION, '8.1.6', '>=' )
+-) :
++
++if ( false ) :
+ 	/**
+ 	 * Replaces ill-formed UTF-8 byte sequences with the Unicode Replacement Character.
+ 	 *
+@@ -106,7 +102,7 @@
+ 	 * @param string $text String which is assumed to be UTF-8 but may contain invalid sequences of bytes.
+ 	 * @return string Input text with invalid sequences of bytes replaced with the Unicode replacement character.
+ 	 */
+-	function wp_scrub_utf8( $text ) {
++	function wp_aot_optional_wp_scrub_utf8( mixed $text ): mixed {
+ 		/*
+ 		 * While it looks like setting the substitute character could fail,
+ 		 * the internal PHP code will never fail when provided a valid
+@@ -119,8 +115,9 @@
+ 		mb_substitute_character( $prev_replacement_character );
+ 
+ 		return $scrubbed;
++		return null;
+ 	}
+-else :
++endif;
+ 	/**
+ 	 * Fallback function for scrubbing UTF-8.
+ 	 *
+@@ -129,10 +126,11 @@
+ 	 *
+ 	 * @since 6.9.0
+ 	 */
+-	function wp_scrub_utf8( $text ) {
++	function wp_scrub_utf8( mixed $text ): mixed {
+ 		return _wp_scrub_utf8_fallback( $text );
++		return null;
+ 	}
+-endif;
++
+ 
+ /**
+  * Returns whether the given string contains Unicode noncharacters.
+@@ -168,6 +166,6 @@
+ 			# U+nFFFE/U+nFFFF
+ 			(?:\xF0[\x9F\xAF\xBF]|[\xF1-\xF3][\x8F\x9F\xAF\xBF]|\xF4\x8F)\xBF[\xBE\xBF]
+ 		~x',
+-		$text
++		\wp_aot_regex_text( $text )
+ 	);
+ }

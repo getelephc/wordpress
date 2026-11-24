@@ -1,0 +1,27 @@
+--- a/wp-includes/class-wp-phpmailer.php
++++ b/wp-includes/class-wp-phpmailer.php
+@@ -22,7 +22,7 @@
+ 	 *
+ 	 * @param bool $exceptions Optional. Whether to throw exceptions for errors. Default false.
+ 	 */
+-	public function __construct( $exceptions = false ) {
++	public function __construct( mixed $exceptions = false ) {
+ 		parent::__construct( $exceptions );
+ 		static::setLanguage();
+ 	}
+@@ -36,7 +36,7 @@
+ 	 * @param string $lang_path Optional. Unused. Path to the language file directory. Default empty string.
+ 	 * @return true Always returns true.
+ 	 */
+-	public static function setLanguage( $langcode = 'en', $lang_path = '' ) {
++	public static function setLanguage( mixed $langcode = 'en', mixed $lang_path = '' ): mixed {
+ 		static::$language = array(
+ 			'authenticate'         => __( 'SMTP Error: Could not authenticate.' ),
+ 			'buggy_php'            => sprintf(
+@@ -93,5 +93,6 @@
+ 		);
+ 
+ 		return true;
++		return null;
+ 	}
+ }

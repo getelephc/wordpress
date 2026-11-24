@@ -1,0 +1,10 @@
+--- a/wp-includes/php-ai-client/src/Messages/DTO/UserMessage.php
++++ b/wp-includes/php-ai-client/src/Messages/DTO/UserMessage.php
+@@ -26,6 +26,6 @@
+      */
+     public function __construct(array $parts)
+     {
+-        parent::__construct(MessageRoleEnum::user(), $parts);
++        parent::__construct(\wp_aot_require_WordPress_AiClient_Messages_Enums_MessageRoleEnum( MessageRoleEnum::user() ), $parts);
+     }
+ }

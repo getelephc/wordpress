@@ -1,0 +1,11 @@
+--- a/wp-includes/php-ai-client/src/Providers/Http/Util/ErrorMessageExtractor.php
++++ b/wp-includes/php-ai-client/src/Providers/Http/Util/ErrorMessageExtractor.php
+@@ -27,7 +27,7 @@
+      * @param mixed $data The response data to extract error message from.
+      * @return string|null The extracted error message, or null if none found.
+      */
+-    public static function extractFromResponseData($data): ?string
++    public static function extractFromResponseData(mixed $data): ?string
+     {
+         if (!is_array($data)) {
+             return null;

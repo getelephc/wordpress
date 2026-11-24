@@ -1,6 +1,395 @@
 --- a/wp-admin/includes/export.php
 +++ b/wp-admin/includes/export.php
-@@ -503,9 +503,9 @@
+@@ -54,7 +54,7 @@
+  *                              'trash'. Default false (all statuses except 'auto-draft').
+  * }
+  */
+-function export_wp( $args = array() ) {
++function export_wp( mixed $args = array() ): mixed {
+ 	global $wpdb, $post;
+ 
+ 	$defaults = array(
+@@ -80,7 +80,7 @@
+ 	if ( ! empty( $sitename ) ) {
+ 		$sitename .= '.';
+ 	}
+-	$date        = gmdate( 'Y-m-d' );
++	$date        = \wp_aot_gmdate( 'Y-m-d' );
+ 	$wp_filename = $sitename . 'WordPress.' . $date . '.xml';
+ 	/**
+ 	 * Filters the export filename.
+@@ -103,17 +103,17 @@
+ 			$args['content'] = 'post';
+ 		}
+ 
+-		$where = $wpdb->prepare( "{$wpdb->posts}.post_type = %s", $args['content'] );
++		$where = \wp_aot_require_wpdb( $wpdb )->prepare( "{$wpdb->posts}.post_type = %s", $args['content'] );
+ 	} else {
+ 		$post_types = get_post_types( array( 'can_export' => true ) );
+ 		$esses      = array_fill( 0, count( $post_types ), '%s' );
+ 
+ 		// phpcs:ignore WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare
+-		$where = $wpdb->prepare( "{$wpdb->posts}.post_type IN (" . implode( ',', $esses ) . ')', $post_types );
++		$where = \wp_aot_require_wpdb( $wpdb )->prepare( "{$wpdb->posts}.post_type IN (" . implode( ',', $esses ) . ')', $post_types );
+ 	}
+ 
+ 	if ( $args['status'] && ( 'post' === $args['content'] || 'page' === $args['content'] ) ) {
+-		$where .= $wpdb->prepare( " AND {$wpdb->posts}.post_status = %s", $args['status'] );
++		$where .= \wp_aot_require_wpdb( $wpdb )->prepare( " AND {$wpdb->posts}.post_status = %s", $args['status'] );
+ 	} else {
+ 		$where .= " AND {$wpdb->posts}.post_status != 'auto-draft'";
+ 	}
+@@ -123,26 +123,26 @@
+ 		$term = term_exists( $args['category'], 'category' );
+ 		if ( $term ) {
+ 			$join   = "INNER JOIN {$wpdb->term_relationships} ON ({$wpdb->posts}.ID = {$wpdb->term_relationships}.object_id)";
+-			$where .= $wpdb->prepare( " AND {$wpdb->term_relationships}.term_taxonomy_id = %d", $term['term_taxonomy_id'] );
++			$where .= \wp_aot_require_wpdb( $wpdb )->prepare( " AND {$wpdb->term_relationships}.term_taxonomy_id = %d", $term['term_taxonomy_id'] );
+ 		}
+ 	}
+ 
+ 	if ( in_array( $args['content'], array( 'post', 'page', 'attachment' ), true ) ) {
+ 		if ( $args['author'] ) {
+-			$where .= $wpdb->prepare( " AND {$wpdb->posts}.post_author = %d", $args['author'] );
++			$where .= \wp_aot_require_wpdb( $wpdb )->prepare( " AND {$wpdb->posts}.post_author = %d", $args['author'] );
+ 		}
+ 
+ 		if ( $args['start_date'] ) {
+-			$where .= $wpdb->prepare( " AND {$wpdb->posts}.post_date >= %s", gmdate( 'Y-m-d', strtotime( $args['start_date'] ) ) );
++			$where .= \wp_aot_require_wpdb( $wpdb )->prepare( " AND {$wpdb->posts}.post_date >= %s", \wp_aot_gmdate( 'Y-m-d', strtotime( $args['start_date'] ) ) );
+ 		}
+ 
+ 		if ( $args['end_date'] ) {
+-			$where .= $wpdb->prepare( " AND {$wpdb->posts}.post_date < %s", gmdate( 'Y-m-d', strtotime( '+1 month', strtotime( $args['end_date'] ) ) ) );
++			$where .= \wp_aot_require_wpdb( $wpdb )->prepare( " AND {$wpdb->posts}.post_date < %s", \wp_aot_gmdate( 'Y-m-d', strtotime( '+1 month', strtotime( $args['end_date'] ) ) ) );
+ 		}
+ 	}
+ 
+ 	// Grab a snapshot of post IDs, just in case it changes during the export.
+-	$post_ids = $wpdb->get_col( "SELECT ID FROM {$wpdb->posts} $join WHERE $where" );
++	$post_ids = \wp_aot_require_wpdb( $wpdb )->get_col( "SELECT ID FROM {$wpdb->posts} $join WHERE $where" );
+ 
+ 	// Get IDs for the attachments of each post, unless all content is already being exported.
+ 	if ( ! in_array( $args['content'], array( 'all', 'attachment' ), true ) ) {
+@@ -153,15 +153,15 @@
+ 		$processing_ids = $post_ids;
+ 
+ 		while ( $next_posts = array_splice( $processing_ids, 0, 20 ) ) {
+-			$posts_in     = array_map( 'absint', $next_posts );
++			$posts_in     = \wp_aot_array_map( 'absint', $next_posts );
+ 			$placeholders = array_fill( 0, count( $posts_in ), '%d' );
+ 
+ 			// Create a string for the placeholders.
+ 			$in_placeholder = implode( ',', $placeholders );
+ 
+ 			// Prepare the SQL statement for attachment ids.
+-			$attachment_ids = $wpdb->get_col(
+-				$wpdb->prepare(
++			$attachment_ids = \wp_aot_require_wpdb( $wpdb )->get_col(
++				\wp_aot_require_wpdb( $wpdb )->prepare(
+ 					"
+ 				SELECT ID
+ 				FROM $wpdb->posts
+@@ -171,8 +171,8 @@
+ 				)
+ 			);
+ 
+-			$thumbnails_ids = $wpdb->get_col(
+-				$wpdb->prepare(
++			$thumbnails_ids = \wp_aot_require_wpdb( $wpdb )->get_col(
++				\wp_aot_require_wpdb( $wpdb )->prepare(
+ 					"
+ 				SELECT meta_value
+ 				FROM $wpdb->postmeta
+@@ -184,14 +184,14 @@
+ 			);
+ 
+ 			// Cast thumbnail IDs to integers to prevent second-order SQL injection via user-controlled meta values.
+-			$thumbnails_ids = array_filter( array_map( 'absint', $thumbnails_ids ) );
+-
+-			$additional_ids = array_merge( $additional_ids, $attachment_ids, $thumbnails_ids );
++			$thumbnails_ids = \wp_aot_array_filter( \wp_aot_array_map( 'absint', $thumbnails_ids ) );
++
++			$additional_ids = \wp_aot_array_merge(array( $additional_ids, $attachment_ids, $thumbnails_ids ));
+ 		}
+ 
+ 		// Merge the additional IDs back with the original post IDs after processing all posts.
+ 		// Cast to integers as defense-in-depth, since $additional_ids may include values sourced from postmeta.
+-		$post_ids = array_unique( array_map( 'absint', array_merge( $post_ids, $additional_ids ) ) );
++		$post_ids = \wp_aot_array_unique( \wp_aot_array_map( 'absint', \wp_aot_array_merge(array( $post_ids, $additional_ids )) ) );
+ 	}
+ 
+ 	/*
+@@ -218,7 +218,7 @@
+ 		);
+ 
+ 		// Put categories in order with no child going before its parent.
+-		while ( $cat = array_shift( $categories ) ) {
++		while ( $cat = \wp_aot_array_shift( $categories ) ) {
+ 			if ( ! $cat->parent || isset( $cats[ $cat->parent ] ) ) {
+ 				$cats[ $cat->term_id ] = $cat;
+ 			} else {
+@@ -227,7 +227,7 @@
+ 		}
+ 
+ 		// Put terms in order with no child going before its parent.
+-		while ( $t = array_shift( $custom_terms ) ) {
++		while ( $t = \wp_aot_array_shift( $custom_terms ) ) {
+ 			if ( ! $t->parent || isset( $terms[ $t->parent ] ) ) {
+ 				$terms[ $t->term_id ] = $t;
+ 			} else {
+@@ -246,16 +246,17 @@
+ 	 * @param string|null $str String to wrap in XML CDATA tag. May be null.
+ 	 * @return string
+ 	 */
+-	function wxr_cdata( $str ) {
++	function wxr_cdata( mixed $str ): mixed {
+ 		$str = (string) $str;
+ 
+ 		if ( ! wp_is_valid_utf8( $str ) ) {
+-			$str = utf8_encode( $str );
++			$str = \wp_aot_native_api('utf8_encode', array( $str ));
+ 		}
+ 		// $str = ent2ncr(esc_html($str));
+-		$str = '<![CDATA[' . str_replace( ']]>', ']]]]><![CDATA[>', $str ) . ']]>';
++		$str = '<![CDATA[' . \wp_aot_str_replace( ']]>', ']]]]><![CDATA[>', $str ) . ']]>';
+ 
+ 		return $str;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -265,7 +266,7 @@
+ 	 *
+ 	 * @return string Site URL.
+ 	 */
+-	function wxr_site_url() {
++	function wxr_site_url(): mixed {
+ 		if ( is_multisite() ) {
+ 			// Multisite: the base URL.
+ 			return network_home_url();
+@@ -273,6 +274,7 @@
+ 			// WordPress (single site): the site URL.
+ 			return get_bloginfo_rss( 'url' );
+ 		}
++		return null;
+ 	}
+ 
+ 	/**
+@@ -282,12 +284,13 @@
+ 	 *
+ 	 * @param WP_Term $category Category Object.
+ 	 */
+-	function wxr_cat_name( $category ) {
++	function wxr_cat_name( mixed $category ): mixed {
+ 		if ( empty( $category->name ) ) {
+-			return;
++			return null;
+ 		}
+ 
+ 		echo '<wp:cat_name>' . wxr_cdata( $category->name ) . "</wp:cat_name>\n";
++		return null;
+ 	}
+ 
+ 	/**
+@@ -297,12 +300,13 @@
+ 	 *
+ 	 * @param WP_Term $category Category Object.
+ 	 */
+-	function wxr_category_description( $category ) {
++	function wxr_category_description( mixed $category ): mixed {
+ 		if ( empty( $category->description ) ) {
+-			return;
++			return null;
+ 		}
+ 
+ 		echo '<wp:category_description>' . wxr_cdata( $category->description ) . "</wp:category_description>\n";
++		return null;
+ 	}
+ 
+ 	/**
+@@ -312,12 +316,13 @@
+ 	 *
+ 	 * @param WP_Term $tag Tag Object.
+ 	 */
+-	function wxr_tag_name( $tag ) {
++	function wxr_tag_name( mixed $tag ): mixed {
+ 		if ( empty( $tag->name ) ) {
+-			return;
++			return null;
+ 		}
+ 
+ 		echo '<wp:tag_name>' . wxr_cdata( $tag->name ) . "</wp:tag_name>\n";
++		return null;
+ 	}
+ 
+ 	/**
+@@ -327,12 +332,13 @@
+ 	 *
+ 	 * @param WP_Term $tag Tag Object.
+ 	 */
+-	function wxr_tag_description( $tag ) {
++	function wxr_tag_description( mixed $tag ): mixed {
+ 		if ( empty( $tag->description ) ) {
+-			return;
++			return null;
+ 		}
+ 
+ 		echo '<wp:tag_description>' . wxr_cdata( $tag->description ) . "</wp:tag_description>\n";
++		return null;
+ 	}
+ 
+ 	/**
+@@ -342,12 +348,13 @@
+ 	 *
+ 	 * @param WP_Term $term Term Object.
+ 	 */
+-	function wxr_term_name( $term ) {
++	function wxr_term_name( mixed $term ): mixed {
+ 		if ( empty( $term->name ) ) {
+-			return;
++			return null;
+ 		}
+ 
+ 		echo '<wp:term_name>' . wxr_cdata( $term->name ) . "</wp:term_name>\n";
++		return null;
+ 	}
+ 
+ 	/**
+@@ -357,12 +364,13 @@
+ 	 *
+ 	 * @param WP_Term $term Term Object.
+ 	 */
+-	function wxr_term_description( $term ) {
++	function wxr_term_description( mixed $term ): mixed {
+ 		if ( empty( $term->description ) ) {
+-			return;
++			return null;
+ 		}
+ 
+ 		echo "\t\t<wp:term_description>" . wxr_cdata( $term->description ) . "</wp:term_description>\n";
++		return null;
+ 	}
+ 
+ 	/**
+@@ -374,10 +382,10 @@
+ 	 *
+ 	 * @param WP_Term $term Term object.
+ 	 */
+-	function wxr_term_meta( $term ) {
++	function wxr_term_meta( mixed $term ): mixed {
+ 		global $wpdb;
+ 
+-		$termmeta = $wpdb->get_results( $wpdb->prepare( "SELECT * FROM $wpdb->termmeta WHERE term_id = %d", $term->term_id ) );
++		$termmeta = \wp_aot_require_wpdb( $wpdb )->get_results( \wp_aot_require_wpdb( $wpdb )->prepare( "SELECT * FROM $wpdb->termmeta WHERE term_id = %d", $term->term_id ) );
+ 
+ 		foreach ( $termmeta as $meta ) {
+ 			/**
+@@ -396,6 +404,7 @@
+ 				printf( "\t\t<wp:termmeta>\n\t\t\t<wp:meta_key>%s</wp:meta_key>\n\t\t\t<wp:meta_value>%s</wp:meta_value>\n\t\t</wp:termmeta>\n", wxr_cdata( $meta->meta_key ), wxr_cdata( $meta->meta_value ) );
+ 			}
+ 		}
++		return null;
+ 	}
+ 
+ 	/**
+@@ -407,11 +416,11 @@
+ 	 *
+ 	 * @param int[] $post_ids Optional. Array of post IDs to filter the query by.
+ 	 */
+-	function wxr_authors_list( ?array $post_ids = null ) {
++	function wxr_authors_list( ?array $post_ids = null ): mixed {
+ 		global $wpdb;
+ 
+ 		if ( ! empty( $post_ids ) ) {
+-			$post_ids       = array_map( 'absint', $post_ids );
++			$post_ids       = \wp_aot_array_map( 'absint', $post_ids );
+ 			$post_id_chunks = array_chunk( $post_ids, 20 );
+ 		} else {
+ 			$post_id_chunks = array( array() );
+@@ -422,15 +431,15 @@
+ 		foreach ( $post_id_chunks as $next_posts ) {
+ 			$and = ! empty( $next_posts ) ? 'AND ID IN (' . implode( ', ', $next_posts ) . ')' : '';
+ 
+-			$results = $wpdb->get_results( "SELECT DISTINCT post_author FROM $wpdb->posts WHERE post_status != 'auto-draft' $and" );
++			$results = \wp_aot_require_wpdb( $wpdb )->get_results( "SELECT DISTINCT post_author FROM $wpdb->posts WHERE post_status != 'auto-draft' $and" );
+ 
+ 			foreach ( (array) $results as $result ) {
+ 				$authors[] = get_userdata( $result->post_author );
+ 			}
+ 		}
+ 
+-		$authors = array_filter( $authors );
+-		$authors = array_unique( $authors, SORT_REGULAR ); // Remove duplicate authors.
++		$authors = \wp_aot_array_filter( $authors );
++		$authors = \wp_aot_array_unique( $authors, SORT_REGULAR ); // Remove duplicate authors.
+ 
+ 		foreach ( $authors as $author ) {
+ 			echo "\t<wp:author>";
+@@ -442,6 +451,7 @@
+ 			echo '<wp:author_last_name>' . wxr_cdata( $author->last_name ) . '</wp:author_last_name>';
+ 			echo "</wp:author>\n";
+ 		}
++		return null;
+ 	}
+ 
+ 	/**
+@@ -449,10 +459,10 @@
+ 	 *
+ 	 * @since 3.1.0
+ 	 */
+-	function wxr_nav_menu_terms() {
++	function wxr_nav_menu_terms(): mixed {
+ 		$nav_menus = wp_get_nav_menus();
+ 		if ( empty( $nav_menus ) || ! is_array( $nav_menus ) ) {
+-			return;
++			return null;
+ 		}
+ 
+ 		foreach ( $nav_menus as $menu ) {
+@@ -463,6 +473,7 @@
+ 			wxr_term_name( $menu );
+ 			echo "</wp:term>\n";
+ 		}
++		return null;
+ 	}
+ 
+ 	/**
+@@ -470,18 +481,19 @@
+ 	 *
+ 	 * @since 2.3.0
+ 	 */
+-	function wxr_post_taxonomy() {
++	function wxr_post_taxonomy(): mixed {
+ 		$post = get_post();
+ 
+ 		$taxonomies = get_object_taxonomies( $post->post_type );
+ 		if ( empty( $taxonomies ) ) {
+-			return;
++			return null;
+ 		}
+ 		$terms = wp_get_object_terms( $post->ID, $taxonomies );
+ 
+ 		foreach ( (array) $terms as $term ) {
+ 			echo "\t\t<category domain=\"{$term->taxonomy}\" nicename=\"{$term->slug}\">" . wxr_cdata( $term->name ) . "</category>\n";
+ 		}
++		return null;
+ 	}
+ 
+ 	/**
+@@ -493,19 +505,20 @@
+ 	 * @param string $meta_key  Meta key.
+ 	 * @return bool
+ 	 */
+-	function wxr_filter_postmeta( $return_me, $meta_key ) {
++	function wxr_filter_postmeta( mixed $return_me, mixed $meta_key ): mixed {
+ 		if ( '_edit_lock' === $meta_key ) {
+ 			$return_me = true;
+ 		}
+ 		return $return_me;
++		return null;
+ 	}
+ 	add_filter( 'wxr_export_skip_postmeta', 'wxr_filter_postmeta', 10, 2 );
  
  	echo '<?xml version="1.0" encoding="' . get_bloginfo( 'charset' ) . "\" ?>\n";
  
@@ -13,7 +402,7 @@
  <!-- You may use this file to transfer that content from one site to another. -->
  <!-- This file is not intended to serve as a complete backup of your site. -->
  
-@@ -521,75 +521,121 @@
+@@ -521,75 +534,121 @@
  <!-- 7. WordPress will then import each of the posts, pages, comments, categories, etc. -->
  <!--    contained in this file into your site. -->
  
@@ -63,7 +452,7 @@
 +bloginfo_rss( 'description' ); ;
 +echo '</description>
 +	<pubDate>';
-+echo gmdate( 'D, d M Y H:i:s +0000' ); ;
++echo \wp_aot_gmdate( 'D, d M Y H:i:s +0000' ); ;
 +echo '</pubDate>
 +	<language>';
 +bloginfo_rss( 'language' ); ;
@@ -184,7 +573,19 @@
  	if ( $post_ids ) {
  		/**
  		 * @global WP_Query $wp_query WordPress Query object.
-@@ -638,35 +684,82 @@
+@@ -602,9 +661,9 @@
+ 		// Fetch 20 posts at a time rather than loading the entire table into memory.
+ 		while ( $next_posts = array_splice( $post_ids, 0, 20 ) ) {
+ 			// Re-sanitize immediately before use, as defense-in-depth against the IDs being interpolated directly into SQL below.
+-			$next_posts = array_map( 'absint', $next_posts );
++			$next_posts = \wp_aot_array_map( 'absint', $next_posts );
+ 			$where      = 'WHERE ID IN (' . implode( ',', $next_posts ) . ')';
+-			$posts      = $wpdb->get_results( "SELECT * FROM {$wpdb->posts} $where" );
++			$posts      = \wp_aot_require_wpdb( $wpdb )->get_results( "SELECT * FROM {$wpdb->posts} $where" );
+ 
+ 			// Begin Loop.
+ 			foreach ( $posts as $post ) {
+@@ -638,36 +697,83 @@
  				$excerpt = wxr_cdata( apply_filters( 'the_excerpt_export', $post->post_excerpt ) );
  
  				$is_sticky = is_sticky( $post->ID ) ? 1 : 0;
@@ -234,6 +635,7 @@
 -	<?php endif; ?>
 -				<?php wxr_post_taxonomy(); ?>
 -				<?php
+-				$postmeta = $wpdb->get_results( $wpdb->prepare( "SELECT * FROM $wpdb->postmeta WHERE post_id = %d", $post->ID ) );
 +		<content:encoded>';
 +echo $content; ;
 +echo '</content:encoded>
@@ -292,10 +694,11 @@
 +echo '				';
 +wxr_post_taxonomy(); ;
 +echo '				';
- 				$postmeta = $wpdb->get_results( $wpdb->prepare( "SELECT * FROM $wpdb->postmeta WHERE post_id = %d", $post->ID ) );
++				$postmeta = \wp_aot_require_wpdb( $wpdb )->get_results( \wp_aot_require_wpdb( $wpdb )->prepare( "SELECT * FROM $wpdb->postmeta WHERE post_id = %d", $post->ID ) );
  				foreach ( $postmeta as $meta ) :
  					/**
-@@ -684,12 +777,16 @@
+ 					 * Filters whether to selectively skip post meta used for WXR exports.
+@@ -684,38 +790,66 @@
  					if ( apply_filters( 'wxr_export_skip_postmeta', false, $meta->meta_key, $meta ) ) {
  						continue;
  					}
@@ -316,8 +719,15 @@
 +					';
  	endforeach;
  
- 				$_comments = $wpdb->get_results( $wpdb->prepare( "SELECT * FROM $wpdb->comments WHERE comment_post_ID = %d AND comment_approved <> 'spam'", $post->ID ) );
-@@ -700,21 +797,45 @@
+-				$_comments = $wpdb->get_results( $wpdb->prepare( "SELECT * FROM $wpdb->comments WHERE comment_post_ID = %d AND comment_approved <> 'spam'", $post->ID ) );
+-				$comments  = array_filter(
+-					array_map( 'get_comment', $_comments ),
+-					static function ( $comment ) {
++				$_comments = \wp_aot_require_wpdb( $wpdb )->get_results( \wp_aot_require_wpdb( $wpdb )->prepare( "SELECT * FROM $wpdb->comments WHERE comment_post_ID = %d AND comment_approved <> 'spam'", $post->ID ) );
++				$comments  = \wp_aot_array_filter(
++					\wp_aot_array_map( 'get_comment', $_comments ),
++					static function ( mixed $comment ) {
+ 						return $comment instanceof WP_Comment;
  					}
  				);
  				foreach ( $comments as $c ) :
@@ -336,6 +746,7 @@
 -			<wp:comment_parent><?php echo (int) $c->comment_parent; ?></wp:comment_parent>
 -			<wp:comment_user_id><?php echo (int) $c->user_id; ?></wp:comment_user_id>
 -					<?php
+-					$c_meta = $wpdb->get_results( $wpdb->prepare( "SELECT * FROM $wpdb->commentmeta WHERE comment_id = %d", $c->comment_ID ) );
 +					;
 +echo '		<wp:comment>
 +			<wp:comment_id>';
@@ -375,10 +786,11 @@
 +echo (int) $c->user_id; ;
 +echo '</wp:comment_user_id>
 +					';
- 					$c_meta = $wpdb->get_results( $wpdb->prepare( "SELECT * FROM $wpdb->commentmeta WHERE comment_id = %d", $c->comment_ID ) );
++					$c_meta = \wp_aot_require_wpdb( $wpdb )->get_results( \wp_aot_require_wpdb( $wpdb )->prepare( "SELECT * FROM $wpdb->commentmeta WHERE comment_id = %d", $c->comment_ID ) );
  					foreach ( $c_meta as $meta ) :
  						/**
-@@ -732,21 +853,27 @@
+ 						 * Filters whether to selectively skip comment meta used for WXR exports.
+@@ -732,21 +866,28 @@
  						if ( apply_filters( 'wxr_export_skip_commentmeta', false, $meta->meta_key, $meta ) ) {
  							continue;
  						}
@@ -417,4 +829,5 @@
  </rss>
 -	<?php
 +	';
++	return null;
  }

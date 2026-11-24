@@ -1,0 +1,25 @@
+--- a/wp-includes/Requests/src/Port.php
++++ b/wp-includes/Requests/src/Port.php
+@@ -59,17 +59,19 @@
+ 	 * @throws \WpOrg\Requests\Exception\InvalidArgument When a non-string input has been passed.
+ 	 * @throws \WpOrg\Requests\Exception                 When a non-supported port is requested ('portnotsupported').
+ 	 */
+-	public static function get($type) {
++	public static function get(mixed $type): mixed {
+ 		if (!is_string($type)) {
+ 			throw InvalidArgument::create(1, '$type', 'string', gettype($type));
+ 		}
+ 
+ 		$type = strtoupper($type);
+-		if (!defined("self::{$type}")) {
++		$ports = array('ACAP' => self::ACAP, 'DICT' => self::DICT, 'HTTP' => self::HTTP, 'HTTPS' => self::HTTPS);
++		if (!array_key_exists($type, $ports)) {
+ 			$message = sprintf('Invalid port type (%s) passed', $type);
+ 			throw new Exception($message, 'portnotsupported');
+ 		}
+ 
+-		return constant("self::{$type}");
++		return $ports[$type];
++		return null;
+ 	}
+ }

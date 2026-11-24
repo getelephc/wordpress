@@ -1,0 +1,21 @@
+--- a/wp-includes/SimplePie/src/Cache/DB.php
++++ b/wp-includes/SimplePie/src/Cache/DB.php
+@@ -24,7 +24,7 @@
+      * @param \SimplePie\SimplePie $data
+      * @return array{string, array<string, Item>} First item is the serialized data for storage, second item is the unique ID for this item
+      */
+-    protected static function prepare_simplepie_object_for_cache(\SimplePie\SimplePie $data)
++    protected static function prepare_simplepie_object_for_cache(\SimplePie\SimplePie $data): mixed
+     {
+         $items = $data->get_items();
+         $items_by_id = [];
+@@ -78,7 +78,8 @@
+             }
+         }
+         return [serialize($data->data), $items_by_id];
++    	return null;
+     }
+ }
+ 
+-class_alias('SimplePie\Cache\DB', 'SimplePie_Cache_DB');
++(!defined('WP_AOT_NATIVE_RUNTIME') && (bool) \wp_aot_native_api('class_alias', array('SimplePie\Cache\DB', 'SimplePie_Cache_DB')));

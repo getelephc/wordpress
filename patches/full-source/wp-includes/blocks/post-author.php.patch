@@ -1,0 +1,34 @@
+--- a/wp-includes/blocks/post-author.php
++++ b/wp-includes/blocks/post-author.php
+@@ -15,7 +15,7 @@
+  * @param  WP_Block $block      Block instance.
+  * @return string Returns the rendered author block.
+  */
+-function render_block_core_post_author( $attributes, $content, $block ) {
++function render_block_core_post_author( mixed $attributes, mixed $content, mixed $block ): mixed {
+ 	if ( ! isset( $block->context['postId'] ) ) {
+ 		$author_id = get_query_var( 'author' );
+ 	} else {
+@@ -63,6 +63,7 @@
+ 	( ! empty( $attributes['showBio'] ) ? '<p class="wp-block-post-author__bio">' . get_the_author_meta( 'user_description', $author_id ) . '</p>' : '' ) .
+ 	'</div>' .
+ 	'</div>';
++	return null;
+ }
+ 
+ /**
+@@ -70,12 +71,13 @@
+  *
+  * @since 5.9.0
+  */
+-function register_block_core_post_author() {
++function register_block_core_post_author(): mixed {
+ 	register_block_type_from_metadata(
+ 		__DIR__ . '/post-author',
+ 		array(
+ 			'render_callback' => 'render_block_core_post_author',
+ 		)
+ 	);
++	return null;
+ }
+ add_action( 'init', 'register_block_core_post_author' );

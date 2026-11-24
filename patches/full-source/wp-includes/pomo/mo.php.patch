@@ -1,6 +1,234 @@
 --- a/wp-includes/pomo/mo.php
 +++ b/wp-includes/pomo/mo.php
-@@ -298,8 +298,8 @@
+@@ -10,7 +10,6 @@
+ require_once __DIR__ . '/translations.php';
+ require_once __DIR__ . '/streams.php';
+ 
+-if ( ! class_exists( 'MO', false ) ) :
+ 	class MO extends Gettext_Translations {
+ 
+ 		/**
+@@ -32,8 +31,9 @@
+ 		 *
+ 		 * @return string The loaded MO file.
+ 		 */
+-		public function get_filename() {
++		public function get_filename(): mixed {
+ 			return $this->filename;
++			return null;
+ 		}
+ 
+ 		/**
+@@ -42,7 +42,7 @@
+ 		 * @param string $filename MO file to load
+ 		 * @return bool True if the import from file was successful, otherwise false.
+ 		 */
+-		public function import_from_file( $filename ) {
++		public function import_from_file( mixed $filename ): mixed {
+ 			$reader = new POMO_FileReader( $filename );
+ 
+ 			if ( ! $reader->is_resource() ) {
+@@ -52,13 +52,14 @@
+ 			$this->filename = (string) $filename;
+ 
+ 			return $this->import_from_reader( $reader );
++			return null;
+ 		}
+ 
+ 		/**
+ 		 * @param string $filename
+ 		 * @return bool
+ 		 */
+-		public function export_to_file( $filename ) {
++		public function export_to_file( mixed $filename ): mixed {
+ 			$fh = fopen( $filename, 'wb' );
+ 			if ( ! $fh ) {
+ 				return false;
+@@ -66,12 +67,13 @@
+ 			$res = $this->export_to_file_handle( $fh );
+ 			fclose( $fh );
+ 			return $res;
++			return null;
+ 		}
+ 
+ 		/**
+ 		 * @return string|false
+ 		 */
+-		public function export() {
++		public function export(): mixed {
+ 			$tmp_fh = fopen( 'php://temp', 'r+' );
+ 			if ( ! $tmp_fh ) {
+ 				return false;
+@@ -79,31 +81,33 @@
+ 			$this->export_to_file_handle( $tmp_fh );
+ 			rewind( $tmp_fh );
+ 			return stream_get_contents( $tmp_fh );
++			return null;
+ 		}
+ 
+ 		/**
+ 		 * @param Translation_Entry $entry
+ 		 * @return bool
+ 		 */
+-		public function is_entry_good_for_export( $entry ) {
++		public function is_entry_good_for_export( mixed $entry ): mixed {
+ 			if ( empty( $entry->translations ) ) {
+ 				return false;
+ 			}
+ 
+-			if ( ! array_filter( $entry->translations ) ) {
++			if ( ! \wp_aot_array_filter( $entry->translations ) ) {
+ 				return false;
+ 			}
+ 
+ 			return true;
++			return null;
+ 		}
+ 
+ 		/**
+ 		 * @param resource $fh
+ 		 * @return true
+ 		 */
+-		public function export_to_file_handle( $fh ) {
+-			$entries = array_filter( $this->entries, array( $this, 'is_entry_good_for_export' ) );
+-			ksort( $entries );
++		public function export_to_file_handle( mixed $fh ): mixed {
++			$entries = \wp_aot_array_filter( $this->entries, $this->is_entry_good_for_export(...));
++			\wp_aot_ksort( $entries );
+ 			$magic                     = 0x950412de;
+ 			$revision                  = 0;
+ 			$total                     = count( $entries ) + 1; // All the headers are one entry.
+@@ -112,10 +116,10 @@
+ 			$size_of_hash              = 0;
+ 			$hash_addr                 = $translations_lengths_addr + 8 * $total;
+ 			$current_addr              = $hash_addr;
+-			fwrite(
++			\wp_aot_fwrite(
+ 				$fh,
+-				pack(
+-					'V*',
++				\wp_aot_pack(
++					'V*', array(
+ 					$magic,
+ 					$revision,
+ 					$total,
+@@ -123,12 +127,12 @@
+ 					$translations_lengths_addr,
+ 					$size_of_hash,
+ 					$hash_addr
+-				)
++				))
+ 			);
+-			fseek( $fh, $originals_lengths_addr );
++			fseek( $fh, \wp_aot_internal_int( $originals_lengths_addr ) );
+ 
+ 			// Headers' msgid is an empty string.
+-			fwrite( $fh, pack( 'VV', 0, $current_addr ) );
++			\wp_aot_fwrite( $fh, \wp_aot_pack( 'VV', array( 0, $current_addr )) );
+ 			++$current_addr;
+ 			$originals_table = "\0";
+ 
+@@ -137,32 +141,33 @@
+ 			foreach ( $entries as $entry ) {
+ 				$originals_table .= $this->export_original( $entry ) . "\0";
+ 				$length           = $reader->strlen( $this->export_original( $entry ) );
+-				fwrite( $fh, pack( 'VV', $length, $current_addr ) );
++				\wp_aot_fwrite( $fh, \wp_aot_pack( 'VV', array( $length, $current_addr )) );
+ 				$current_addr += $length + 1; // Account for the NULL byte after.
+ 			}
+ 
+ 			$exported_headers = $this->export_headers();
+-			fwrite( $fh, pack( 'VV', $reader->strlen( $exported_headers ), $current_addr ) );
++			\wp_aot_fwrite( $fh, \wp_aot_pack( 'VV', array( $reader->strlen( $exported_headers ), $current_addr )) );
+ 			$current_addr      += strlen( $exported_headers ) + 1;
+ 			$translations_table = $exported_headers . "\0";
+ 
+ 			foreach ( $entries as $entry ) {
+ 				$translations_table .= $this->export_translations( $entry ) . "\0";
+ 				$length              = $reader->strlen( $this->export_translations( $entry ) );
+-				fwrite( $fh, pack( 'VV', $length, $current_addr ) );
++				\wp_aot_fwrite( $fh, \wp_aot_pack( 'VV', array( $length, $current_addr )) );
+ 				$current_addr += $length + 1;
+ 			}
+ 
+-			fwrite( $fh, $originals_table );
+-			fwrite( $fh, $translations_table );
++			\wp_aot_fwrite( $fh, $originals_table );
++			\wp_aot_fwrite( $fh, $translations_table );
+ 			return true;
++			return null;
+ 		}
+ 
+ 		/**
+ 		 * @param Translation_Entry $entry
+ 		 * @return string
+ 		 */
+-		public function export_original( $entry ) {
++		public function export_original( mixed $entry ): mixed {
+ 			// TODO: Warnings for control characters.
+ 			$exported = $entry->singular;
+ 			if ( $entry->is_plural ) {
+@@ -172,33 +177,38 @@
+ 				$exported = $entry->context . "\4" . $exported;
+ 			}
+ 			return $exported;
++			return null;
+ 		}
+ 
+ 		/**
+ 		 * @param Translation_Entry $entry
+ 		 * @return string
+ 		 */
+-		public function export_translations( $entry ) {
++		public function export_translations( mixed $entry ): mixed {
+ 			// TODO: Warnings for control characters.
+ 			return $entry->is_plural ? implode( "\0", $entry->translations ) : $entry->translations[0];
++			return null;
+ 		}
+ 
+ 		/**
+ 		 * @return string
+ 		 */
+-		public function export_headers() {
++		public function export_headers(): mixed {
+ 			$exported = '';
+ 			foreach ( $this->headers as $header => $value ) {
+ 				$exported .= "$header: $value\n";
+ 			}
+ 			return $exported;
++			return null;
+ 		}
+ 
+ 		/**
+ 		 * @param int $magic
+ 		 * @return string|false
+ 		 */
+-		public function get_byteorder( $magic ) {
++		public function get_byteorder( mixed $magic ): mixed { return $this->wp_aot_get_byteorder($magic);  return null; }
++
++private function wp_aot_get_byteorder( mixed $magic ): mixed {
+ 			// The magic is 0x950412de.
+ 
+ 			// bug in PHP 5.0.2, see https://savannah.nongnu.org/bugs/?func=detailitem&item_id=10565
+@@ -213,14 +223,15 @@
+ 			} else {
+ 				return false;
+ 			}
++			return null;
+ 		}
+ 
+ 		/**
+ 		 * @param POMO_FileReader $reader
+ 		 * @return bool True if the import was successful, otherwise false.
+ 		 */
+-		public function import_from_reader( $reader ) {
+-			$endian_string = MO::get_byteorder( $reader->readint32() );
++		public function import_from_reader( mixed $reader ): mixed {
++			$endian_string = $this->wp_aot_get_byteorder( $reader->readint32() );
+ 			if ( false === $endian_string ) {
+ 				return false;
+ 			}
+@@ -298,11 +309,12 @@
  				if ( '' === $original ) {
  					$this->set_headers( $this->make_headers( $translation ) );
  				} else {
@@ -11,12 +239,43 @@
  				}
  			}
  			return true;
-@@ -316,7 +316,7 @@
++			return null;
+ 		}
+ 
+ 		/**
+@@ -316,7 +328,7 @@
  		 *  0x00 as a plural translations separator
  		 * @return Translation_Entry Entry instance.
  		 */
 -		public function &make_entry( $original, $translation ) {
-+		public function make_entry( $original, $translation ) {
++		public function make_entry( mixed $original, mixed $translation ): mixed {
  			$entry = new Translation_Entry();
  			// Look for context, separated by \4.
  			$parts = explode( "\4", $original );
+@@ -334,21 +346,23 @@
+ 			// Plural translations are also separated by \0.
+ 			$entry->translations = explode( "\0", $translation );
+ 			return $entry;
++			return null;
+ 		}
+ 
+ 		/**
+ 		 * @param int $count
+ 		 * @return string
+ 		 */
+-		public function select_plural_form( $count ) {
++		public function select_plural_form( mixed $count ): mixed {
+ 			return $this->gettext_select_plural_form( $count );
++			return null;
+ 		}
+ 
+ 		/**
+ 		 * @return int
+ 		 */
+-		public function get_plural_forms_count() {
++		public function get_plural_forms_count(): mixed {
+ 			return $this->_nplurals;
++			return null;
+ 		}
+ 	}
+-endif;

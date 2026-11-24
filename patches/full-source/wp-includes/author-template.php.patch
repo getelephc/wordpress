@@ -1,0 +1,268 @@
+--- a/wp-includes/author-template.php
++++ b/wp-includes/author-template.php
+@@ -21,7 +21,7 @@
+  * @param string $deprecated Deprecated.
+  * @return string The author's display name, empty string if unknown.
+  */
+-function get_the_author( $deprecated = '' ) {
++function get_the_author( mixed $deprecated = '' ): mixed {
+ 	global $authordata;
+ 
+ 	if ( ! empty( $deprecated ) ) {
+@@ -36,6 +36,7 @@
+ 	 * @param string $display_name The author's display name.
+ 	 */
+ 	return apply_filters( 'the_author', is_object( $authordata ) ? $authordata->display_name : '' );
++	return null;
+ }
+ 
+ /**
+@@ -58,7 +59,7 @@
+  * @param bool   $deprecated_echo Deprecated. Use get_the_author(). Echo the string or return it.
+  * @return string The author's display name, from get_the_author().
+  */
+-function the_author( $deprecated = '', $deprecated_echo = true ) {
++function the_author( mixed $deprecated = '', mixed $deprecated_echo = true ): mixed {
+ 	if ( ! empty( $deprecated ) ) {
+ 		_deprecated_argument( __FUNCTION__, '2.1.0' );
+ 	}
+@@ -80,6 +81,7 @@
+ 	}
+ 
+ 	return get_the_author();
++	return null;
+ }
+ 
+ /**
+@@ -91,7 +93,7 @@
+  * @param int|WP_Post|null $post Optional. Post ID or post object. Default is global `$post` object.
+  * @return string|null The author's display name. Empty string if user is unavailable. Null if there was no last editor or the post is invalid.
+  */
+-function get_the_modified_author( $post = null ) {
++function get_the_modified_author( mixed $post = null ): mixed {
+ 	$post = get_post( $post );
+ 	if ( ! $post ) {
+ 		return null;
+@@ -111,6 +113,7 @@
+ 	 * @param string $display_name The author's display name, empty string if user is unavailable.
+ 	 */
+ 	return apply_filters( 'the_modified_author', $last_user ? $last_user->display_name : '' );
++	return null;
+ }
+ 
+ /**
+@@ -121,8 +124,9 @@
+  *
+  * @see get_the_author()
+  */
+-function the_modified_author() {
++function the_modified_author(): mixed {
+ 	echo get_the_modified_author();
++	return null;
+ }
+ 
+ /**
+@@ -164,7 +168,7 @@
+  * @param int|false $user_id Optional. User ID. Defaults to the current post author.
+  * @return string The author's field from the current author's DB object, otherwise an empty string.
+  */
+-function get_the_author_meta( $field = '', $user_id = false ) {
++function get_the_author_meta( mixed $field = '', mixed $user_id = false ): mixed {
+ 	$original_user_id = $user_id;
+ 
+ 	if ( ! $user_id ) {
+@@ -193,6 +197,7 @@
+ 	 * @param int|false $original_user_id The original user ID, as passed to the function.
+ 	 */
+ 	return apply_filters( "get_the_author_{$field}", $value, $user_id, $original_user_id );
++	return null;
+ }
+ 
+ /**
+@@ -206,7 +211,7 @@
+  *
+  * @see get_the_author_meta()
+  */
+-function the_author_meta( $field = '', $user_id = false ) {
++function the_author_meta( mixed $field = '', mixed $user_id = false ): mixed {
+ 	$author_meta = get_the_author_meta( $field, $user_id );
+ 
+ 	/**
+@@ -220,6 +225,7 @@
+ 	 * @param int|false $user_id     The user ID.
+ 	 */
+ 	echo apply_filters( "the_author_{$field}", $author_meta, $user_id );
++	return null;
+ }
+ 
+ /**
+@@ -238,7 +244,7 @@
+  * @return string An HTML link if the author's URL exists in user meta,
+  *                otherwise the result of get_the_author().
+  */
+-function get_the_author_link( $use_title_attr = true ) {
++function get_the_author_link( mixed $use_title_attr = true ): mixed {
+ 	if ( get_the_author_meta( 'url' ) ) {
+ 		global $authordata;
+ 
+@@ -268,6 +274,7 @@
+ 	} else {
+ 		return get_the_author();
+ 	}
++	return null;
+ }
+ 
+ /**
+@@ -284,8 +291,9 @@
+  * @param bool $use_title_attr Optional. Whether to add a title attribute.
+  *                             Default true.
+  */
+-function the_author_link( $use_title_attr = true ) {
++function the_author_link( mixed $use_title_attr = true ): mixed {
+ 	echo get_the_author_link( $use_title_attr );
++	return null;
+ }
+ 
+ /**
+@@ -295,12 +303,13 @@
+  *
+  * @return int The number of posts by the author.
+  */
+-function get_the_author_posts() {
++function get_the_author_posts(): mixed {
+ 	$post = get_post();
+ 	if ( ! $post ) {
+ 		return 0;
+ 	}
+ 	return (int) count_user_posts( $post->post_author, $post->post_type );
++	return null;
+ }
+ 
+ /**
+@@ -309,8 +318,9 @@
+  * @link https://developer.wordpress.org/reference/functions/the_author_posts/
+  * @since 0.71
+  */
+-function the_author_posts() {
++function the_author_posts(): mixed {
+ 	echo get_the_author_posts();
++	return null;
+ }
+ 
+ /**
+@@ -325,7 +335,7 @@
+  *
+  * @return string An HTML link to the author page, or an empty string if $authordata is not set.
+  */
+-function get_the_author_posts_link() {
++function get_the_author_posts_link(): mixed {
+ 	global $authordata;
+ 
+ 	if ( ! is_object( $authordata ) ) {
+@@ -353,6 +363,7 @@
+ 	 * @param string $title  Text originally used for a title attribute.
+ 	 */
+ 	return apply_filters( 'the_author_posts_link', $link, $author, $title );
++	return null;
+ }
+ 
+ /**
+@@ -363,11 +374,12 @@
+  *
+  * @param string $deprecated Unused.
+  */
+-function the_author_posts_link( $deprecated = '' ) {
++function the_author_posts_link( mixed $deprecated = '' ): mixed {
+ 	if ( ! empty( $deprecated ) ) {
+ 		_deprecated_argument( __FUNCTION__, '2.1.0' );
+ 	}
+ 	echo get_the_author_posts_link();
++	return null;
+ }
+ 
+ /**
+@@ -381,7 +393,7 @@
+  * @param string $author_nicename Optional. The author's nicename (slug). Default empty.
+  * @return string The URL to the author's page.
+  */
+-function get_author_posts_url( $author_id, $author_nicename = '' ) {
++function get_author_posts_url( mixed $author_id, mixed $author_nicename = '' ): mixed {
+ 	global $wp_rewrite;
+ 
+ 	$author_id = (int) $author_id;
+@@ -397,7 +409,7 @@
+ 				$author_nicename = $user->user_nicename;
+ 			}
+ 		}
+-		$link = str_replace( '%author%', $author_nicename, $link );
++		$link = \wp_aot_str_replace( '%author%', $author_nicename, $link );
+ 		$link = home_url( user_trailingslashit( $link ) );
+ 	}
+ 
+@@ -413,6 +425,7 @@
+ 	$link = apply_filters( 'author_link', $link, $author_id, $author_nicename );
+ 
+ 	return $link;
++	return null;
+ }
+ 
+ /**
+@@ -451,7 +464,7 @@
+  * }
+  * @return void|string Void if 'echo' argument is true, list of authors if 'echo' is false.
+  */
+-function wp_list_authors( $args = '' ) {
++function wp_list_authors( mixed $args = '' ): mixed {
+ 	global $wpdb;
+ 
+ 	$defaults = array(
+@@ -503,7 +516,7 @@
+ 
+ 	if ( ! is_array( $post_counts ) ) {
+ 		$post_counts       = array();
+-		$post_counts_query = $wpdb->get_results(
++		$post_counts_query = \wp_aot_require_wpdb( $wpdb )->get_results(
+ 			"SELECT DISTINCT post_author, COUNT(ID) AS count
+ 			FROM $wpdb->posts
+ 			WHERE " . get_private_posts_cap_sql( 'post' ) . '
+@@ -599,6 +612,7 @@
+ 	} else {
+ 		return $return;
+ 	}
++	return null;
+ }
+ 
+ /**
+@@ -616,12 +630,12 @@
+  *
+  * @return bool Whether or not we have more than one author
+  */
+-function is_multi_author() {
++function is_multi_author(): mixed {
+ 	global $wpdb;
+ 
+ 	$is_multi_author = get_transient( 'is_multi_author' );
+ 	if ( false === $is_multi_author ) {
+-		$rows            = (array) $wpdb->get_col( "SELECT DISTINCT post_author FROM $wpdb->posts WHERE post_type = 'post' AND post_status = 'publish' LIMIT 2" );
++		$rows            = (array) \wp_aot_require_wpdb( $wpdb )->get_col( "SELECT DISTINCT post_author FROM $wpdb->posts WHERE post_type = 'post' AND post_status = 'publish' LIMIT 2" );
+ 		$is_multi_author = 1 < count( $rows ) ? 1 : 0;
+ 		set_transient( 'is_multi_author', $is_multi_author );
+ 	}
+@@ -634,6 +648,7 @@
+ 	 * @param bool $is_multi_author Whether $is_multi_author should evaluate as true.
+ 	 */
+ 	return apply_filters( 'is_multi_author', (bool) $is_multi_author );
++	return null;
+ }
+ 
+ /**
+@@ -642,6 +657,7 @@
+  * @since 3.2.0
+  * @access private
+  */
+-function __clear_multi_author_cache() { // phpcs:ignore WordPress.NamingConventions.ValidFunctionName.FunctionDoubleUnderscore,PHPCompatibility.FunctionNameRestrictions.ReservedFunctionNames.FunctionDoubleUnderscore
++function __clear_multi_author_cache(): mixed { // phpcs:ignore WordPress.NamingConventions.ValidFunctionName.FunctionDoubleUnderscore,PHPCompatibility.FunctionNameRestrictions.ReservedFunctionNames.FunctionDoubleUnderscore
+ 	delete_transient( 'is_multi_author' );
+-}
++	return null;
++}

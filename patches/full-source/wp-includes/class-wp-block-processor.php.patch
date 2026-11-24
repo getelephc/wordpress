@@ -1,0 +1,94 @@
+--- a/wp-includes/class-wp-block-processor.php
++++ b/wp-includes/class-wp-block-processor.php
+@@ -514,7 +514,7 @@
+ 	 *
+ 	 * @var int[]
+ 	 */
+-	private $open_blocks_at = array();
++	private mixed $open_blocks_at = array();
+ 
+ 	/**
+ 	 * For every open block, in hierarchical order, this stores the byte length
+@@ -526,7 +526,7 @@
+ 	 *
+ 	 * @var int[]
+ 	 */
+-	private $open_blocks_length = array();
++	private mixed $open_blocks_length = array();
+ 
+ 	/**
+ 	 * Indicates which operation should apply to the stack of open blocks after
+@@ -740,8 +740,8 @@
+ 
+ 		// Void tokens automatically pop off the stack of open blocks.
+ 		if ( $this->was_void ) {
+-			array_pop( $this->open_blocks_at );
+-			array_pop( $this->open_blocks_length );
++			\wp_aot_array_pop( $this->open_blocks_at );
++			\wp_aot_array_pop( $this->open_blocks_length );
+ 			$this->was_void = false;
+ 		}
+ 
+@@ -774,8 +774,8 @@
+ 					break;
+ 
+ 				case 'pop':
+-					array_pop( $this->open_blocks_at );
+-					array_pop( $this->open_blocks_length );
++					\wp_aot_array_pop( $this->open_blocks_at );
++					\wp_aot_array_pop( $this->open_blocks_length );
+ 					break;
+ 			}
+ 
+@@ -1118,8 +1118,8 @@
+ 				break;
+ 
+ 			case 'pop':
+-				array_pop( $this->open_blocks_at );
+-				array_pop( $this->open_blocks_length );
++				\wp_aot_array_pop( $this->open_blocks_at );
++				\wp_aot_array_pop( $this->open_blocks_length );
+ 				break;
+ 		}
+ 
+@@ -1598,7 +1598,7 @@
+ 			return true;
+ 		}
+ 
+-		return array_any( $block_type, fn( $block ) => $this->is_block_type( $block ) );
++		return array_any( $block_type, fn( mixed $block ) => $this->is_block_type( $block ) );
+ 	}
+ 
+ 	/**
+@@ -1816,8 +1816,9 @@
+ 	 *
+ 	 * @return never
+ 	 */
+-	public function get_attributes() {
++	public function get_attributes(): mixed {
+ 		throw new Exception( 'Lazy attribute parsing not yet supported' );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1871,7 +1872,7 @@
+ 		$this->last_json_error = JSON_ERROR_NONE;
+ 
+ 		if ( self::CLOSER === $this->type || $this->is_html() || 0 === $this->json_length ) {
+-			return null;
++			return \wp_aot_require_nullable_array(null);
+ 		}
+ 
+ 		$json_span = substr( $this->source_text, $this->json_at, $this->json_length );
+@@ -1880,9 +1881,9 @@
+ 		$last_error            = json_last_error();
+ 		$this->last_json_error = $last_error;
+ 
+-		return ( JSON_ERROR_NONE === $last_error && is_array( $parsed ) )
++		return \wp_aot_require_nullable_array(( JSON_ERROR_NONE === $last_error && is_array( $parsed ) )
+ 			? $parsed
+-			: null;
++			: null);
+ 	}
+ 
+ 	/**

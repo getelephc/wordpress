@@ -1,11 +1,140 @@
 --- a/wp-includes/IXR/class-IXR-message.php
 +++ b/wp-includes/IXR/class-IXR-message.php
-@@ -32,7 +32,7 @@
+@@ -9,40 +9,41 @@
+  */
+ class IXR_Message
+ {
+-    var $message     = false;
+-    var $messageType = false;  // methodCall / methodResponse / fault
+-    var $faultCode   = false;
+-    var $faultString = false;
+-    var $methodName  = '';
+-    var $params      = array();
++    public $message     = false;
++    public $messageType = false;  // methodCall / methodResponse / fault
++    public $faultCode   = false;
++    public $faultString = false;
++    public $methodName  = '';
++    public $params      = array();
+ 
+     // Current variable stacks
+-    var $_arraystructs = array();   // The stack used to keep track of the current array/struct
+-    var $_arraystructstypes = array(); // Stack keeping track of if things are structs or array
+-    var $_currentStructName = array();  // A stack as well
+-    var $_param;
+-    var $_value;
+-    var $_currentTag;
+-    var $_currentTagContents;
++    public mixed $_arraystructs = array();   // The stack used to keep track of the current array/struct
++    public mixed $_arraystructstypes = array(); // Stack keeping track of if things are structs or array
++    public mixed $_currentStructName = array();  // A stack as well
++    public $_param;
++    public $_value;
++    public $_currentTag;
++    public $_currentTagContents;
+     // The XML parser
+-    var $_parser;
++    public $_parser;
+ 
+ 	/**
+ 	 * PHP5 constructor.
  	 */
-     function __construct( $message )
-     {
+-    function __construct( $message )
+-    {
 -        $this->message =& $message;
++    function __construct( mixed $message )
++    {
 +        $this->message = $message;
      }
  
  	/**
+ 	 * PHP4 constructor.
+ 	 */
+-	public function IXR_Message( $message ) {
++	public function IXR_Message( mixed $message ): mixed {
+ 		self::__construct( $message );
++		return null;
+ 	}
+ 
+-    function parse()
++    function parse(): mixed
+     {
+         if ( ! function_exists( 'xml_parser_create' ) ) {
+             trigger_error( __( "PHP's XML extension is not available. Please contact your hosting provider to enable PHP's XML extension." ) );
+@@ -51,14 +52,14 @@
+ 
+         // first remove the XML declaration
+         // merged from WP #10698 - this method avoids the RAM usage of preg_replace on very large messages
+-        $header = preg_replace( '/<\?xml.*?\?'.'>/s', '', substr( $this->message, 0, 100 ), 1 );
++        $header = \wp_aot_preg_replace( '/<\?xml.*?\?'.'>/s', '', substr( $this->message, 0, 100 ), 1 );
+         $this->message = trim( substr_replace( $this->message, $header, 0, 100 ) );
+         if ( '' == $this->message ) {
+             return false;
+         }
+ 
+         // Then remove the DOCTYPE
+-        $header = preg_replace( '/^<!DOCTYPE[^>]*+>/i', '', substr( $this->message, 0, 200 ), 1 );
++        $header = \wp_aot_preg_replace( '/^<!DOCTYPE[^>]*+>/i', '', substr( $this->message, 0, 200 ), 1 );
+         $this->message = trim( substr_replace( $this->message, $header, 0, 200 ) );
+         if ( '' == $this->message ) {
+             return false;
+@@ -144,9 +145,10 @@
+             $this->faultString = $this->params[0]['faultString'];
+         }
+         return true;
+-    }
+-
+-    function tag_open($parser, $tag, $attr)
++    	return null;
++    }
++
++    function tag_open(mixed $parser, mixed $tag, mixed $attr): mixed
+     {
+         $this->_currentTagContents = '';
+         $this->_currentTag = $tag;
+@@ -166,14 +168,16 @@
+                 $this->_arraystructs[] = array();
+                 break;
+         }
+-    }
+-
+-    function cdata($parser, $cdata)
++    	return null;
++    }
++
++    function cdata(mixed $parser, mixed $cdata): mixed
+     {
+         $this->_currentTagContents .= $cdata;
+-    }
+-
+-    function tag_close($parser, $tag)
++    	return null;
++    }
++
++    function tag_close(mixed $parser, mixed $tag): mixed
+     {
+         $valueFlag = false;
+         switch($tag) {
+@@ -212,12 +216,12 @@
+                 /* Deal with stacks of arrays and structs */
+             case 'data':
+             case 'struct':
+-                $value = array_pop($this->_arraystructs);
+-                array_pop($this->_arraystructstypes);
++                $value = \wp_aot_array_pop($this->_arraystructs);
++                \wp_aot_array_pop($this->_arraystructstypes);
+                 $valueFlag = true;
+                 break;
+             case 'member':
+-                array_pop($this->_currentStructName);
++                \wp_aot_array_pop($this->_currentStructName);
+                 break;
+             case 'name':
+                 $this->_currentStructName[] = trim($this->_currentTagContents);
+@@ -243,5 +247,6 @@
+             }
+         }
+         $this->_currentTagContents = '';
++    	return null;
+     }
+ }

@@ -1,3 +1,83 @@
+const WP_AOT_NATIVE_RUNTIME = true;
+
+function wp_aot_object_id(object $value): int {
+    return spl_object_id($value);
+}
+
+require_once __DIR__ . '/aot-binary.php';
+require_once __DIR__ . '/aot-arrays.php';
+require_once __DIR__ . '/aot-query.php';
+
+// Record successful executed definitions without replacing the actual native constants.
+$wp_aot_bootstrap_definitions = wp_aot_empty_request_array();
+function wp_aot_bootstrap_defined(string $name): bool {
+    if (!wp_aot_bootstrap_known_constant($name)) throw new LogicException('Unknown bootstrap constant.');
+    global $wp_aot_bootstrap_definitions;
+    return array_key_exists($name, $wp_aot_bootstrap_definitions);
+}
+function wp_aot_bootstrap_mark(string $name, bool $success): bool {
+    if (!wp_aot_bootstrap_known_constant($name)) throw new LogicException('Unknown bootstrap constant.');
+    if ($success) {
+        global $wp_aot_bootstrap_definitions;
+        $wp_aot_bootstrap_definitions[$name] = true;
+    }
+    return $success;
+}
+
+$wp_aot_bootstrap_strings = wp_aot_empty_request_map();
+function wp_aot_bootstrap_capture_string(string $name, string $value): string {
+    if (!wp_aot_bootstrap_string_known($name)) throw new LogicException('Unknown bootstrap string constant.');
+    global $wp_aot_bootstrap_strings;
+    if (!array_key_exists($name, $wp_aot_bootstrap_strings)) $wp_aot_bootstrap_strings[$name] = $value;
+    return $value;
+}
+function wp_aot_bootstrap_string(string $name): string {
+    if (!wp_aot_bootstrap_string_known($name)) throw new LogicException('Unknown bootstrap string constant.');
+    global $wp_aot_bootstrap_strings;
+    if (!array_key_exists($name, $wp_aot_bootstrap_strings)) throw new Error('Undefined constant "' . $name . '"');
+    return (string) $wp_aot_bootstrap_strings[$name];
+}
+
+$wp_aot_subdomain_values = wp_aot_empty_request_array();
+$wp_aot_pclzip_values = wp_aot_empty_request_array();
+
+// Preserve the executed definition of the one conditional ZIP block-size constant.
+function wp_aot_pclzip_block_size_defined(): bool {
+    global $wp_aot_pclzip_values;
+    return array_key_exists('PCLZIP_READ_BLOCK_SIZE', $wp_aot_pclzip_values);
+}
+function wp_aot_pclzip_block_size_define(mixed $value): bool {
+    if (wp_aot_pclzip_block_size_defined()) throw new LogicException('Duplicate ZIP block-size definitions are outside this fixture.');
+    global $wp_aot_pclzip_values;
+    $wp_aot_pclzip_values['PCLZIP_READ_BLOCK_SIZE'] = $value;
+    return true;
+}
+function wp_aot_pclzip_block_size(): mixed {
+    if (!wp_aot_pclzip_block_size_defined()) throw new Error('Undefined constant "PCLZIP_READ_BLOCK_SIZE"');
+    global $wp_aot_pclzip_values;
+    return $wp_aot_pclzip_values['PCLZIP_READ_BLOCK_SIZE'];
+}
+
+// Only the two mutually defined Multisite aliases use this request-local inventory.
+function wp_aot_subdomain_defined(string $name): bool {
+    if ($name !== 'VHOST' && $name !== 'SUBDOMAIN_INSTALL') throw new LogicException('Unknown Multisite alias.');
+    global $wp_aot_subdomain_values;
+    if (array_key_exists($name, $wp_aot_subdomain_values)) return true;
+    return array_key_exists($name, get_defined_constants());
+}
+function wp_aot_subdomain_constant(string $name): mixed {
+    if ($name !== 'VHOST' && $name !== 'SUBDOMAIN_INSTALL') throw new LogicException('Unknown Multisite alias.');
+    global $wp_aot_subdomain_values;
+    if (array_key_exists($name, $wp_aot_subdomain_values)) return $wp_aot_subdomain_values[$name];
+    return wp_aot_metadata_constant($name);
+}
+function wp_aot_subdomain_define(string $name, mixed $value): bool {
+    if (wp_aot_subdomain_defined($name)) throw new LogicException('Duplicate Multisite alias definitions are outside this fixture.');
+    global $wp_aot_subdomain_values;
+    $wp_aot_subdomain_values[$name] = $value;
+    return true;
+}
+
 // Native primitives missing from the SDK, supplied through public C ABIs.
 extern "System" {
     function sodium_init(): i32;
@@ -172,4 +252,441 @@ function version_compare(string $first, string $second, ?string $operator = null
     if ($operator === '==' || $operator === '=' || $operator === 'eq') return $result === 0;
     if ($operator === '!=' || $operator === '<>' || $operator === 'ne') return $result !== 0;
     throw new ValueError('Invalid version comparison operator.');
+}
+
+function preg_quote(string $str, ?string $delimiter = null): string {
+    $specials = '\\.+*?[^]$(){}=!<>|:-#';
+    $delimiter_byte = substr($delimiter ?? '', 0, 1);
+    $result = '';
+    for ($index = 0; $index < strlen($str); ++$index) {
+        $byte = substr($str, $index, 1);
+        if (ord($byte) === 0) {
+            $result .= '\\000';
+        } else {
+            if (str_contains($specials, $byte) || $byte === $delimiter_byte) $result .= '\\';
+            $result .= $byte;
+        }
+    }
+    return $result;
+}
+
+const FILTER_VALIDATE_URL = 273;
+const FILTER_VALIDATE_BOOLEAN = 258;
+const SEEK_SET = 0;
+const SEEK_CUR = 1;
+const SEEK_END = 2;
+const PHP_QUERY_RFC1738 = 1;
+const PHP_QUERY_RFC3986 = 2;
+
+// Native diagnostics replace PHP's warning buffer in this profile.
+function error_get_last(): ?array {
+    throw new LogicException('PHP warning-buffer inspection is outside the native profile.');
+}
+function move_uploaded_file(string $from, string $to): bool {
+    throw new LogicException('HTTP upload transport is outside the native profile.');
+}
+function parse_str(string $string, mixed &$result): void {
+    $result = wp_aot_parse_query($string);
+}
+function filter_var(mixed $value, int $filter = 516, mixed $options = 0): mixed {
+    if ($filter === FILTER_VALIDATE_BOOLEAN && $options === 0) {
+        if ($value === true || $value === 1 || $value === 1.0) return true;
+        if (!is_string($value)) return false;
+        $text = strtolower(trim((string) $value, " \t\r\n\v\f"));
+        return $text === '1' || $text === 'true' || $text === 'on' || $text === 'yes';
+    }
+    throw new LogicException('This filter is outside the native profile.');
+}
+function aot_http_query_pairs(array $data, string $prefix, string $numeric_prefix, int $encoding, int $depth, string $literal_prefix = ''): array {
+    if ($depth > 64) throw new ValueError('Query nesting exceeds the native profile.');
+    $pairs = array();
+    foreach ($data as $key => $value) {
+        if ($value === null) continue;
+        $name = (string) $key;
+        $literal = $depth === 0 ? (is_int($key) ? $numeric_prefix : '') : $literal_prefix;
+        if ($depth !== 0) {
+            $name = $prefix . '[' . $name . ']';
+        }
+        if (is_array($value)) {
+            foreach (aot_http_query_pairs((array) $value, $name, '', $encoding, $depth + 1, $literal) as $pair) $pairs[] = $pair;
+            continue;
+        }
+        if (is_object($value) || is_resource($value)) throw new LogicException('Only scalar and array query values are supported.');
+        $text = is_bool($value) ? ($value ? '1' : '0') : (string) $value;
+        if ($encoding === PHP_QUERY_RFC3986) {
+            $pairs[] = $literal . rawurlencode($name) . '=' . rawurlencode($text);
+        } else {
+            $pairs[] = $literal . urlencode($name) . '=' . urlencode($text);
+        }
+    }
+    return $pairs;
+}
+function http_build_query(mixed $data, string $numeric_prefix = '', ?string $arg_separator = null, int $encoding_type = PHP_QUERY_RFC1738): string {
+    if (!is_array($data)) throw new LogicException('Only array query roots are supported.');
+    if ($encoding_type !== PHP_QUERY_RFC1738 && $encoding_type !== PHP_QUERY_RFC3986) throw new ValueError('Unsupported query encoding.');
+    $joined = '';
+    $separator = $arg_separator ?? '&';
+    $first = true;
+    foreach (aot_http_query_pairs((array) $data, '', $numeric_prefix, $encoding_type, 0) as $pair) {
+        if (!$first) $joined .= $separator;
+        $joined .= (string) $pair;
+        $first = false;
+    }
+    return $joined;
+}
+
+
+function wp_aot_natural_compare(string $left, string $right): int {
+    if ($left === $right) return 0;
+    // Two stable orders distinguish equality using the SDK's natural key comparator.
+    $forward = array($left => true, $right => false);
+    ksort($forward, SORT_NATURAL | SORT_FLAG_CASE);
+    foreach ($forward as $left_first) {
+        if (!$left_first) return 1;
+        break;
+    }
+    $backward = array($right => false, $left => true);
+    ksort($backward, SORT_NATURAL | SORT_FLAG_CASE);
+    foreach ($backward as $left_first) {
+        if ($left_first) return -1;
+        break;
+    }
+    return 0;
+}
+
+function wp_aot_find_character(string $string, string $characters): string|false {
+    if ($characters === '') throw new ValueError('strpbrk(): Argument #2 ($characters) must be a non-empty string');
+    $allowed = array_fill(0, 256, false);
+    for ($i = 0; $i < strlen($characters); ++$i) $allowed[ord($characters[$i])] = true;
+    for ($i = 0; $i < strlen($string); ++$i) {
+        if ($allowed[ord($string[$i])]) return substr($string, $i);
+    }
+    return false;
+}
+
+function strnatcasecmp(mixed $left, mixed $right): int {
+    if (is_int($left)) $left = (string)$left;
+    if (is_int($right)) $right = (string)$right;
+    if (!is_string($left) || !is_string($right)) throw new TypeError('Natural comparison requires string values.');
+    return wp_aot_natural_compare((string) $left, (string) $right);
+}
+function strpbrk(mixed $string, mixed $characters): string|false {
+    if (!is_string($string) || !is_string($characters)) throw new TypeError('Character search requires string values.');
+    return wp_aot_find_character((string) $string, (string) $characters);
+}
+
+// XPath is unavailable in this SDK. Preserve explicit failure at its native boundary.
+class DOMXPath {
+    public function __construct(DOMDocument $document) {
+        throw new LogicException('Native DOMXPath is outside the complete-source fixture.');
+    }
+
+    public function query(string $expression, ?DOMNode $contextNode = null, bool $registerNodeNS = true): DOMNodeList|false {
+        throw new LogicException('Native DOMXPath is outside the complete-source fixture.');
+    }
+}
+
+// Binary-safe string primitives used by the complete WordPress files.
+function strcspn(string $string, string $characters, int $offset = 0, ?int $length = null): int {
+    $size = strlen($string);
+    $start = $offset < 0 ? max(0, $size + $offset) : min($size, $offset);
+    $end = $length === null ? $size : ($length < 0 ? max($start, $size + $length) : min($size, $start + $length));
+    $blocked = array_fill(0, 256, false);
+    for ($i = 0; $i < strlen($characters); ++$i) $blocked[ord($characters[$i])] = true;
+    $at = $start;
+    while ($at < $end && !$blocked[ord($string[$at])]) ++$at;
+    return $at - $start;
+}
+
+function strrchr(string $haystack, string $needle, bool $before_needle = false): string|false {
+    $byte = $needle === '' ? "\0" : $needle[0];
+    for ($at = strlen($haystack) - 1; $at >= 0; --$at) {
+        if ($haystack[$at] === $byte) return $before_needle ? substr($haystack, 0, $at) : substr($haystack, $at);
+    }
+    return false;
+}
+
+function wp_aot_ascii_lower_byte(int $byte): int {
+    return $byte >= 65 && $byte <= 90 ? $byte + 32 : $byte;
+}
+
+function substr_compare(string $haystack, string $needle, int $offset, ?int $length = null, bool $case_insensitive = false): int {
+    if ($length !== null && $length < 0) throw new ValueError('substr_compare(): Argument #4 ($length) must be greater than or equal to 0');
+    if ($length === 0) return 0;
+    $size = strlen($haystack);
+    $start = $offset < 0 ? max(0, $size + $offset) : $offset;
+    if ($start > $size) throw new ValueError('substr_compare(): Argument #3 ($offset) must be contained in argument #1 ($haystack)');
+    $left_size = $size - $start;
+    $right_size = strlen($needle);
+    $common = min($left_size, $right_size);
+    if ($length !== null) $common = min($common, (int) $length);
+    for ($at = 0; $at < $common; ++$at) {
+        $left = ord($haystack[$start + $at]); $right = ord($needle[$at]);
+        if ($case_insensitive) { $left = wp_aot_ascii_lower_byte($left); $right = wp_aot_ascii_lower_byte($right); }
+        if ($left !== $right) return $left - $right;
+    }
+    if ($length !== null && $common === $length) return 0;
+    return $left_size <=> $right_size;
+}
+
+function stristr(string $haystack, string $needle, bool $before_needle = false): string|false {
+    $offset = stripos($haystack, $needle);
+    if ($offset === false) return false;
+    return $before_needle ? substr($haystack, 0, (int) $offset) : substr($haystack, (int) $offset);
+}
+
+function addcslashes(string $string, string $characters): string {
+    $mask = array_fill(0, 256, false);
+    for ($at = 0; $at < strlen($characters); ++$at) {
+        $first = ord($characters[$at]);
+        if ($at + 3 < strlen($characters) && $characters[$at + 1] === '.' && $characters[$at + 2] === '.') {
+            $last = ord($characters[$at + 3]);
+            if ($first > $last) throw new ValueError('Descending addcslashes ranges are outside the native profile.');
+            for ($code = $first; $code <= $last; ++$code) $mask[$code] = true;
+            $at += 3;
+        } else {
+            if ($at + 2 < strlen($characters) && $characters[$at + 1] === '.' && $characters[$at + 2] === '.') throw new ValueError('Incomplete addcslashes ranges are outside the native profile.');
+            $mask[$first] = true;
+        }
+    }
+    $result = '';
+    for ($at = 0; $at < strlen($string); ++$at) {
+        $byte = $string[$at]; $code = ord($byte);
+        if (!$mask[$code]) { $result .= $byte; continue; }
+        if ($code === 7) $result .= '\\a';
+        elseif ($code === 8) $result .= '\\b';
+        elseif ($code === 9) $result .= '\\t';
+        elseif ($code === 10) $result .= '\\n';
+        elseif ($code === 11) $result .= '\\v';
+        elseif ($code === 12) $result .= '\\f';
+        elseif ($code === 13) $result .= '\\r';
+        elseif ($code >= 32 && $code <= 126) $result .= '\\' . $byte;
+        else $result .= '\\' . chr(48 + intdiv($code, 64)) . chr(48 + (intdiv($code, 8) % 8)) . chr(48 + ($code % 8));
+    }
+    return $result;
+}
+
+function stripcslashes(string $string): string {
+    $result = '';
+    for ($at = 0; $at < strlen($string); ++$at) {
+        $byte = $string[$at];
+        if ($byte !== '\\' || $at + 1 === strlen($string)) { $result .= $byte; continue; }
+        $byte = $string[++$at];
+        if ($byte === 'a') $result .= chr(7);
+        elseif ($byte === 'b') $result .= chr(8);
+        elseif ($byte === 'f') $result .= chr(12);
+        elseif ($byte === 'n') $result .= "\n";
+        elseif ($byte === 'r') $result .= "\r";
+        elseif ($byte === 't') $result .= "\t";
+        elseif ($byte === 'v') $result .= chr(11);
+        elseif ($byte >= '0' && $byte <= '7') {
+            $code = ord($byte) - 48;
+            for ($digits = 1; $digits < 3 && $at + 1 < strlen($string); ++$digits) {
+                $next = $string[$at + 1];
+                if ($next < '0' || $next > '7') break;
+                $code = $code * 8 + ord($next) - 48; ++$at;
+            }
+            $result .= chr($code % 256);
+        } elseif ($byte === 'x' && $at + 1 < strlen($string) && ctype_xdigit($string[$at + 1])) {
+            $hex = '';
+            for ($digits = 0; $digits < 2 && $at + 1 < strlen($string) && ctype_xdigit($string[$at + 1]); ++$digits) $hex .= $string[++$at];
+            $result .= chr((int) hexdec($hex));
+        } else $result .= $byte;
+    }
+    return $result;
+}
+
+function strtok(string $string, ?string $delimiters = null): string|false {
+    return wp_aot_strtok($string, $delimiters);
+}
+
+// PHP constants used by the compiled core and its bundled libraries.
+const CASE_UPPER = 1;
+const EXTR_SKIP = 1;
+const HTML_ENTITIES = 1;
+const IMG_WEBP_LOSSLESS = 101;
+const INFO_MODULES = 8;
+const PASSWORD_BCRYPT = '2y';
+const PATH_SEPARATOR = ':';
+const FILTER_VALIDATE_EMAIL = 274;
+const FILTER_VALIDATE_IP = 275;
+const PKCS7_DETACHED = 64;
+const STREAM_CRYPTO_METHOD_TLSv1_1_CLIENT = 17;
+const STREAM_CRYPTO_METHOD_TLSv1_2_CLIENT = 33;
+const OPENSSL_TLSEXT_SERVER_NAME = 1;
+const XML_DOCUMENT_TYPE_NODE = 10;
+const SODIUM_CRYPTO_SIGN_BYTES = 64;
+const SODIUM_CRYPTO_SIGN_PUBLICKEYBYTES = 32;
+
+function unpack(mixed $format, mixed $data, int $offset = 0): array|false {
+    if (!is_string($format) || !is_string($data)) throw new TypeError('The binary format and data must be strings.');
+    return wp_aot_unpack((string) $format, (string) $data, $offset);
+}
+
+function register_shutdown_function(mixed $callback, mixed ...$arguments): void {
+    wp_aot_enqueue_shutdown($callback, $arguments);
+}
+
+extern "System" {
+    function pcre2_compile_8(string $pattern, u64 $length, u32 $options, ptr $error, ptr $error_offset, ptr $context): ptr;
+    function pcre2_code_free_8(ptr $code): void;
+    function pcre2_pattern_info_8(ptr $code, u32 $what, ptr $result): i32;
+    function pcre2_match_data_create_from_pattern_8(ptr $code, ptr $context): ptr;
+    function pcre2_match_data_free_8(ptr $data): void;
+    function pcre2_match_8(ptr $code, string $subject, u64 $length, u64 $offset, u32 $options, ptr $data, ptr $context): i32;
+    function pcre2_get_ovector_pointer_8(ptr $data): ptr;
+}
+function wp_aot_pcre_capture_options(string $pattern, string $subject, mixed &$matches, int $flags, int $offset, int $match_options): int|false {
+    if (($flags & ~768) !== 0) throw new ValueError('Unsupported preg_match flags.');
+    $parsed = wp_aot_pcre_pattern($pattern);
+    $body = (string) $parsed[0]; $options = (int) $parsed[1];
+    $length = strlen($subject);
+    if ($offset < 0) $offset = max(0, $length + $offset);
+    $error = 0; $error_offset = 0;
+    $code = pcre2_compile_8($body, strlen($body), $options, ptr($error), ptr($error_offset), ptr_null());
+    if (ptr_is_null($code)) throw new LogicException('The native regex fixture requires a valid pattern.');
+    try {
+        $data = pcre2_match_data_create_from_pattern_8($code, ptr_null());
+        if (ptr_is_null($data)) throw new RuntimeException('Native regex allocation failed.');
+        try {
+            $status = pcre2_match_8($code, $subject, $length, $offset, $match_options, $data, ptr_null());
+            $matches = wp_aot_empty_request_array();
+            if ($status === -1) return 0;
+            if ($status < 0) return false;
+            $capture_count = 0; $name_count = 0; $entry_size = 0; $table = ptr_null();
+            pcre2_pattern_info_8($code, 4, ptr($capture_count));
+            pcre2_pattern_info_8($code, 17, ptr($name_count));
+            pcre2_pattern_info_8($code, 18, ptr($entry_size));
+            pcre2_pattern_info_8($code, 19, ptr($table));
+            $names = wp_aot_empty_request_array();
+            for ($at = 0; $at < $name_count; ++$at) {
+                $entry = ptr_offset($table, $at * $entry_size);
+                $index = ptr_read8($entry) * 256 + ptr_read8(ptr_offset($entry, 1));
+                $name = '';
+                for ($byte = 2; $byte < $entry_size; ++$byte) {
+                    $value = ptr_read8(ptr_offset($entry, $byte));
+                    if ($value === 0) break;
+                    $name .= chr($value);
+                }
+                $names[$index] = $name;
+            }
+            $vector = pcre2_get_ovector_pointer_8($data);
+            $last = ($flags & 512) !== 0 ? $capture_count : $status - 1;
+            for ($index = 0; $index <= $last; ++$index) {
+                $start = ptr_get(ptr_offset($vector, $index * 16));
+                $end = ptr_get(ptr_offset($vector, $index * 16 + 8));
+                $value = wp_aot_mixed($start < 0 ? (($flags & 512) !== 0 ? null : '') : substr($subject, $start, $end - $start));
+                if (($flags & 256) !== 0) $value = array($value, $start);
+                if (isset($names[$index])) $matches[(string) $names[$index]] = $value;
+                $matches[$index] = $value;
+            }
+            return 1;
+        } finally { pcre2_match_data_free_8($data); }
+    } finally { pcre2_code_free_8($code); }
+}
+
+function wp_aot_pcre_capture(string $pattern, string $subject, mixed &$matches, int $flags = 0, int $offset = 0): int|false {
+    return wp_aot_pcre_capture_options($pattern, $subject, $matches, $flags, $offset, 0);
+}
+
+// The native source profile checks WordPress invariants with PHP assertions enabled.
+function assert(mixed $assertion, mixed $description = null): bool {
+    if ($assertion) return true;
+    if ($description instanceof Throwable) throw $description;
+    throw new AssertionError((string) $description);
+}
+
+// Runtime creation of arbitrary caller-scope bindings has no native equivalent.
+function extract(mixed $array, int $flags = 0, string $prefix = ''): int {
+    throw new LogicException('Native runtime scope extraction is outside this fixture.');
+}
+
+function wp_aot_static_get(string $class, string $property): mixed {
+    throw new LogicException('Dynamic static PHP properties are outside the native fixture: ' . $class . '::$' . $property);
+}
+function wp_aot_static_set(string $class, string $property, mixed $value): mixed {
+    throw new LogicException('Dynamic static PHP properties are outside the native fixture: ' . $class . '::$' . $property);
+}
+
+function wp_aot_native_get_property(mixed $object, string $name): mixed {
+    throw new LogicException('This property is unavailable in the native fixture: ' . $name);
+}
+function wp_aot_native_set_property(mixed $object, string $name, mixed $value): mixed {
+    throw new LogicException('This property is unavailable in the native fixture: ' . $name);
+}
+
+function wp_aot_hash_hmac_algos(): array {
+    $algorithms = array();
+    foreach (hash_algos() as $algorithm) {
+        try { hash_hmac($algorithm, '', ''); }
+        catch (ValueError $error) { continue; }
+        $algorithms[] = $algorithm;
+    }
+    return $algorithms;
+}
+
+function wp_aot_native_api(string $name, array $arguments): mixed {
+    if ($name === 'hash_hmac_algos') {
+        if (count($arguments) !== 0) throw new ArgumentCountError('hash_hmac_algos accepts no arguments.');
+        return wp_aot_hash_hmac_algos();
+    }
+    if ($name === 'uniqid') {
+        if (count($arguments) > 2) throw new ArgumentCountError('uniqid accepts at most two arguments.');
+        $prefix = $arguments[0] ?? '';
+        $more_entropy = $arguments[1] ?? false;
+        if (!is_string($prefix) || !is_bool($more_entropy)) throw new TypeError('Native uniqid requires a string prefix and a Boolean entropy flag.');
+        return uniqid($prefix, $more_entropy);
+    }
+    throw new LogicException('This PHP API is unavailable in the native source fixture: ' . $name);
+}
+function wp_aot_native_new(string $name, array $arguments): mixed {
+    throw new LogicException('This class is unavailable in the native source fixture: ' . $name);
+}
+function wp_aot_native_method(mixed $object, string $method, array $arguments): mixed {
+    throw new LogicException('This method is unavailable in the native source fixture: ' . $method);
+}
+
+function wp_aot_property_exists(mixed $object,mixed $name): bool {
+    if (!is_object($object) || !is_string($name)) throw new LogicException('This native property metadata requires an object and a string name.');
+    $class=strtolower(get_class($object));
+    if ($class === 'stdclass') return array_key_exists($name,get_object_vars($object));
+    $declared=array(
+    'wp_ability' => array('category'=>true, 'default_annotations'=>true, 'description'=>true, 'execute_callback'=>true, 'input_schema'=>true, 'label'=>true, 'meta'=>true, 'name'=>true, 'output_schema'=>true, 'permission_callback'=>true),
+    'wp_ability_category' => array('description'=>true, 'label'=>true, 'meta'=>true, 'slug'=>true),
+    'wp_block_type' => array('allowed_blocks'=>true, 'ancestor'=>true, 'api_version'=>true, 'attributes'=>true, 'block_hooks'=>true, 'category'=>true, 'deprecated_properties'=>true, 'description'=>true, 'editor_script_handles'=>true, 'editor_style_handles'=>true, 'example'=>true, 'icon'=>true, 'keywords'=>true, 'name'=>true, 'parent'=>true, 'provides_context'=>true, 'render_callback'=>true, 'script_handles'=>true, 'selectors'=>true, 'style_handles'=>true, 'styles'=>true, 'supports'=>true, 'textdomain'=>true, 'title'=>true, 'uses_context'=>true, 'variation_callback'=>true, 'variations'=>true, 'view_script_handles'=>true, 'view_script_module_ids'=>true, 'view_style_handles'=>true),
+    'wp_post' => array('ID'=>true, 'comment_count'=>true, 'comment_status'=>true, 'filter'=>true, 'guid'=>true, 'menu_order'=>true, 'ping_status'=>true, 'pinged'=>true, 'post_author'=>true, 'post_content'=>true, 'post_content_filtered'=>true, 'post_date'=>true, 'post_date_gmt'=>true, 'post_excerpt'=>true, 'post_mime_type'=>true, 'post_modified'=>true, 'post_modified_gmt'=>true, 'post_name'=>true, 'post_parent'=>true, 'post_password'=>true, 'post_status'=>true, 'post_title'=>true, 'post_type'=>true, 'to_ping'=>true),
+    'wp_term' => array('count'=>true, 'description'=>true, 'filter'=>true, 'name'=>true, 'parent'=>true, 'slug'=>true, 'taxonomy'=>true, 'term_group'=>true, 'term_id'=>true, 'term_taxonomy_id'=>true),
+    );
+    if (!array_key_exists($class,$declared)) throw new LogicException('This class is outside the native property metadata inventory.');
+    if (array_key_exists($name,(array)$declared[$class])) return true;
+    return array_key_exists($name,get_object_vars($object));
+}
+
+// PHP 8.4 identifier algorithm, restricted to NUL-free prefixes and valid clock values.
+function wp_aot_uniqid_format(string $prefix, int $seconds, int $microseconds, ?int $entropy): string {
+    if (strpos($prefix, "\0") !== false) throw new LogicException('Native uniqid prefixes must be NUL-free.');
+    if ($microseconds < 0 || $microseconds > 999999) throw new LogicException('Invalid native microsecond clock value.');
+    $result = sprintf('%s%08x%05x', $prefix, $seconds & 0xffffffff, $microseconds);
+    if ($entropy !== null) {
+        if ($entropy < 0 || $entropy > 4294967295) throw new LogicException('Invalid native identifier entropy.');
+        $result .= sprintf('%.8F', ((float) $entropy / 4294967295.0) * 10.0);
+    }
+    return $result;
+}
+
+function uniqid(string $prefix = '', bool $more_entropy = false): string {
+    static $previous_seconds = 0;
+    static $previous_microseconds = 0;
+    do {
+        $clock = gettimeofday();
+        $seconds = (int) $clock['sec'];
+        $microseconds = (int) $clock['usec'];
+    } while ($seconds === $previous_seconds && $microseconds === $previous_microseconds);
+    $previous_seconds = $seconds;
+    $previous_microseconds = $microseconds;
+    if ($more_entropy) {
+        $decoded = wp_aot_unpack('Vvalue', random_bytes(4));
+        return wp_aot_uniqid_format($prefix, $seconds, $microseconds, (int) $decoded['value']);
+    }
+    return wp_aot_uniqid_format($prefix, $seconds, $microseconds, null);
 }

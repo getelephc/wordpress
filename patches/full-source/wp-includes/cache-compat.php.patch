@@ -1,0 +1,220 @@
+--- a/wp-includes/cache-compat.php
++++ b/wp-includes/cache-compat.php
+@@ -26,7 +26,7 @@
+ 	 * @return bool[] Array of return values, grouped by key. Each value is either
+ 	 *                true on success, or false if cache key and group already exist.
+ 	 */
+-	function wp_cache_add_multiple( array $data, $group = '', $expire = 0 ) {
++	function wp_cache_add_multiple( array $data, mixed $group = '', mixed $expire = 0 ): mixed {
+ 		$values = array();
+ 
+ 		foreach ( $data as $key => $value ) {
+@@ -34,6 +34,7 @@
+ 		}
+ 
+ 		return $values;
++		return null;
+ 	}
+ endif;
+ 
+@@ -57,7 +58,7 @@
+ 	 * @return bool[] Array of return values, grouped by key. Each value is either
+ 	 *                true on success, or false on failure.
+ 	 */
+-	function wp_cache_set_multiple( array $data, $group = '', $expire = 0 ) {
++	function wp_cache_set_multiple( array $data, mixed $group = '', mixed $expire = 0 ): mixed {
+ 		$values = array();
+ 
+ 		foreach ( $data as $key => $value ) {
+@@ -65,6 +66,7 @@
+ 		}
+ 
+ 		return $values;
++		return null;
+ 	}
+ endif;
+ 
+@@ -86,7 +88,7 @@
+ 	 * @return array Array of return values, grouped by key. Each value is either
+ 	 *               the cache contents on success, or false on failure.
+ 	 */
+-	function wp_cache_get_multiple( $keys, $group = '', $force = false ) {
++	function wp_cache_get_multiple( mixed $keys, mixed $group = '', mixed $force = false ): mixed {
+ 		$values = array();
+ 
+ 		foreach ( $keys as $key ) {
+@@ -94,6 +96,7 @@
+ 		}
+ 
+ 		return $values;
++		return null;
+ 	}
+ endif;
+ 
+@@ -113,7 +116,7 @@
+ 	 * @return bool[] Array of return values, grouped by key. Each value is either
+ 	 *                true on success, or false if the contents were not deleted.
+ 	 */
+-	function wp_cache_delete_multiple( array $keys, $group = '' ) {
++	function wp_cache_delete_multiple( array $keys, mixed $group = '' ): mixed {
+ 		$values = array();
+ 
+ 		foreach ( $keys as $key ) {
+@@ -121,6 +124,7 @@
+ 		}
+ 
+ 		return $values;
++		return null;
+ 	}
+ endif;
+ 
+@@ -137,7 +141,7 @@
+ 	 *
+ 	 * @return bool True on success, false on failure.
+ 	 */
+-	function wp_cache_flush_runtime() {
++	function wp_cache_flush_runtime(): mixed {
+ 		if ( ! wp_cache_supports( 'flush_runtime' ) ) {
+ 			_doing_it_wrong(
+ 				__FUNCTION__,
+@@ -149,6 +153,7 @@
+ 		}
+ 
+ 		return wp_cache_flush();
++		return null;
+ 	}
+ endif;
+ 
+@@ -167,7 +172,7 @@
+ 	 * @param string $group Name of group to remove from cache.
+ 	 * @return bool True if group was flushed, false otherwise.
+ 	 */
+-	function wp_cache_flush_group( $group ) {
++	function wp_cache_flush_group( mixed $group ): mixed {
+ 		global $wp_object_cache;
+ 
+ 		if ( ! wp_cache_supports( 'flush_group' ) ) {
+@@ -181,6 +186,7 @@
+ 		}
+ 
+ 		return $wp_object_cache->flush_group( $group );
++		return null;
+ 	}
+ endif;
+ 
+@@ -195,12 +201,12 @@
+ 	 *                        'flush_runtime', 'flush_group'.
+ 	 * @return bool True if the feature is supported, false otherwise.
+ 	 */
+-	function wp_cache_supports( $feature ) {
++	function wp_cache_supports( mixed $feature ): mixed {
+ 		return false;
+-	}
+-endif;
+-
+-if ( ! function_exists( 'wp_cache_get_salted' ) ) :
++		return null;
++	}
++endif;
++
+ 	/**
+ 	 * Retrieves cached data if valid and unchanged.
+ 	 *
+@@ -211,7 +217,7 @@
+ 	 * @param string|string[] $salt      The timestamp (or multiple timestamps if an array) indicating when the cache group(s) were last updated.
+ 	 * @return mixed|false The cached data if valid, or false if the cache does not exist or is outdated.
+ 	 */
+-	function wp_cache_get_salted( $cache_key, $group, $salt ) {
++	function wp_cache_get_salted( mixed $cache_key, mixed $group, mixed $salt ): mixed {
+ 		$salt  = is_array( $salt ) ? implode( ':', $salt ) : $salt;
+ 		$cache = wp_cache_get( $cache_key, $group );
+ 
+@@ -224,10 +230,9 @@
+ 		}
+ 
+ 		return $cache['data'];
+-	}
+-endif;
+-
+-if ( ! function_exists( 'wp_cache_set_salted' ) ) :
++		return null;
++	}
++
+ 	/**
+ 	 * Stores salted data in the cache.
+ 	 *
+@@ -241,7 +246,7 @@
+ 	 *                                   Default 0 (no expiration).
+ 	 * @return bool True on success, false on failure.
+ 	 */
+-	function wp_cache_set_salted( $cache_key, $data, $group, $salt, $expire = 0 ) {
++	function wp_cache_set_salted( mixed $cache_key, mixed $data, mixed $group, mixed $salt, mixed $expire = 0 ): mixed {
+ 		$salt = is_array( $salt ) ? implode( ':', $salt ) : $salt;
+ 		return wp_cache_set(
+ 			$cache_key,
+@@ -252,10 +257,9 @@
+ 			$group,
+ 			$expire
+ 		);
+-	}
+-endif;
+-
+-if ( ! function_exists( 'wp_cache_get_multiple_salted' ) ) :
++		return null;
++	}
++
+ 	/**
+ 	 * Retrieves multiple items from the cache, only considering valid and unchanged items.
+ 	 *
+@@ -266,7 +270,7 @@
+ 	 * @param string|string[] $salt       The timestamp (or multiple timestamps if an array) indicating when the cache group(s) were last updated.
+ 	 * @return array An associative array containing cache values. Values are `false` if they are not found or outdated.
+ 	 */
+-	function wp_cache_get_multiple_salted( $cache_keys, $group, $salt ) {
++	function wp_cache_get_multiple_salted( mixed $cache_keys, mixed $group, mixed $salt ): mixed {
+ 		$salt  = is_array( $salt ) ? implode( ':', $salt ) : $salt;
+ 		$cache = wp_cache_get_multiple( $cache_keys, $group );
+ 
+@@ -283,10 +287,9 @@
+ 		}
+ 
+ 		return $cache;
+-	}
+-endif;
+-
+-if ( ! function_exists( 'wp_cache_set_multiple_salted' ) ) :
++		return null;
++	}
++
+ 	/**
+ 	 * Stores multiple pieces of salted data in the cache.
+ 	 *
+@@ -300,7 +303,7 @@
+ 	 * @return bool[] Array of return values, grouped by key. Each value is either
+ 	 *                true on success, or false on failure.
+ 	 */
+-	function wp_cache_set_multiple_salted( $data, $group, $salt, $expire = 0 ) {
++	function wp_cache_set_multiple_salted( mixed $data, mixed $group, mixed $salt, mixed $expire = 0 ): mixed {
+ 		$salt      = is_array( $salt ) ? implode( ':', $salt ) : $salt;
+ 		$new_cache = array();
+ 		foreach ( $data as $key => $value ) {
+@@ -310,8 +313,8 @@
+ 			);
+ 		}
+ 		return wp_cache_set_multiple( $new_cache, $group, $expire );
+-	}
+-endif;
++		return null;
++	}
+ 
+ if ( ! function_exists( 'wp_cache_switch_to_blog' ) ) :
+ 	/**
+@@ -327,7 +330,7 @@
+ 	 *
+ 	 * @param int $blog_id Site ID.
+ 	 */
+-	function wp_cache_switch_to_blog( $blog_id ): void {
++	function wp_cache_switch_to_blog( mixed $blog_id ): void {
+ 		global $wp_object_cache;
+ 
+ 		// Attempt to use the drop-in object cache method if it exists.

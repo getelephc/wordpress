@@ -1,0 +1,143 @@
+--- a/wp-includes/class-wp-block-templates-registry.php
++++ b/wp-includes/class-wp-block-templates-registry.php
+@@ -26,7 +26,7 @@
+ 	 * @since 6.7.0
+ 	 * @var WP_Block_Templates_Registry|null
+ 	 */
+-	private static $instance = null;
++	private static mixed $instance = null;
+ 
+ 	/**
+ 	 * Registers a template.
+@@ -37,7 +37,7 @@
+ 	 * @param array  $args          Optional. Array of template arguments.
+ 	 * @return WP_Block_Template|WP_Error The registered template on success, or WP_Error on failure.
+ 	 */
+-	public function register( $template_name, $args = array() ) {
++	public function register( mixed $template_name, mixed $args = array() ): mixed {
+ 
+ 		$template = null;
+ 
+@@ -47,10 +47,10 @@
+ 		if ( ! is_string( $template_name ) ) {
+ 			$error_message = __( 'Template names must be strings.' );
+ 			$error_code    = 'template_name_no_string';
+-		} elseif ( preg_match( '/[A-Z]+/', $template_name ) ) {
++		} elseif ( preg_match( '/[A-Z]+/', \wp_aot_regex_text( $template_name ) ) ) {
+ 			$error_message = __( 'Template names must not contain uppercase characters.' );
+ 			$error_code    = 'template_name_no_uppercase';
+-		} elseif ( ! preg_match( '/^[a-z0-9_\-]+\/\/[a-z0-9_\-]+$/', $template_name ) ) {
++		} elseif ( ! preg_match( '/^[a-z0-9_\-]+\/\/[a-z0-9_\-]+$/', \wp_aot_regex_text( $template_name ) ) ) {
+ 			$error_message = __( 'Template names must contain a namespace prefix. Example: my-plugin//my-custom-template' );
+ 			$error_code    = 'template_no_prefix';
+ 		} elseif ( $this->is_registered( $template_name ) ) {
+@@ -90,6 +90,7 @@
+ 		$this->registered_templates[ $template_name ] = $template;
+ 
+ 		return $template;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -99,8 +100,9 @@
+ 	 *
+ 	 * @return WP_Block_Template[] Associative array of `$template_name => $template` pairs.
+ 	 */
+-	public function get_all_registered() {
++	public function get_all_registered(): mixed {
+ 		return $this->registered_templates;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -111,12 +113,13 @@
+ 	 * @param string $template_name Template name including namespace.
+ 	 * @return WP_Block_Template|null The registered template, or null if it is not registered.
+ 	 */
+-	public function get_registered( $template_name ) {
++	public function get_registered( mixed $template_name ): mixed {
+ 		if ( ! $this->is_registered( $template_name ) ) {
+ 			return null;
+ 		}
+ 
+ 		return $this->registered_templates[ $template_name ];
++		return null;
+ 	}
+ 
+ 	/**
+@@ -127,7 +130,7 @@
+ 	 * @param string $template_slug Slug of the template.
+ 	 * @return WP_Block_Template|null The registered template, or null if it is not registered.
+ 	 */
+-	public function get_by_slug( $template_slug ) {
++	public function get_by_slug( mixed $template_slug ): mixed {
+ 		$all_templates = $this->get_all_registered();
+ 
+ 		if ( ! $all_templates ) {
+@@ -140,6 +143,7 @@
+ 			}
+ 		}
+ 
++		return null;
+ 		return null;
+ 	}
+ 
+@@ -157,7 +161,7 @@
+ 	 * }
+ 	 * @return WP_Block_Template[] Associative array of `$template_name => $template` pairs.
+ 	 */
+-	public function get_by_query( $query = array() ) {
++	public function get_by_query( mixed $query = array() ): mixed {
+ 		$all_templates = $this->get_all_registered();
+ 
+ 		if ( ! $all_templates ) {
+@@ -194,6 +198,7 @@
+ 		}
+ 
+ 		return $matching_templates;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -204,8 +209,9 @@
+ 	 * @param string|null $template_name Template name.
+ 	 * @return bool True if the template is registered, false otherwise.
+ 	 */
+-	public function is_registered( $template_name ) {
++	public function is_registered( mixed $template_name ): mixed {
+ 		return isset( $template_name, $this->registered_templates[ $template_name ] );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -216,7 +222,7 @@
+ 	 * @param string $template_name Template name including namespace.
+ 	 * @return WP_Block_Template|WP_Error The unregistered template on success, or WP_Error on failure.
+ 	 */
+-	public function unregister( $template_name ) {
++	public function unregister( mixed $template_name ): mixed {
+ 		if ( ! $this->is_registered( $template_name ) ) {
+ 			/* translators: %s: Template name. */
+ 			$error_message = sprintf( __( 'Template "%s" is not registered.' ), $template_name );
+@@ -230,6 +236,7 @@
+ 		unset( $this->registered_templates[ $template_name ] );
+ 
+ 		return $unregistered_template;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -241,11 +248,12 @@
+ 	 *
+ 	 * @return WP_Block_Templates_Registry The main instance.
+ 	 */
+-	public static function get_instance() {
++	public static function get_instance(): mixed {
+ 		if ( null === self::$instance ) {
+ 			self::$instance = new self();
+ 		}
+ 
+ 		return self::$instance;
++		return null;
+ 	}
+ }

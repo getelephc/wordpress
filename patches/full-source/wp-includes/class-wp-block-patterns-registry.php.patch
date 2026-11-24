@@ -1,6 +1,98 @@
 --- a/wp-includes/class-wp-block-patterns-registry.php
 +++ b/wp-includes/class-wp-block-patterns-registry.php
-@@ -185,7 +185,107 @@
+@@ -20,7 +20,7 @@
+ 	 * @since 5.5.0
+ 	 * @var array[]
+ 	 */
+-	private $registered_patterns = array();
++	private mixed $registered_patterns = array();
+ 
+ 	/**
+ 	 * Patterns registered outside the `init` action.
+@@ -28,7 +28,7 @@
+ 	 * @since 6.0.0
+ 	 * @var array[]
+ 	 */
+-	private $registered_patterns_outside_init = array();
++	private mixed $registered_patterns_outside_init = array();
+ 
+ 	/**
+ 	 * Container for the main instance of the class.
+@@ -36,7 +36,7 @@
+ 	 * @since 5.5.0
+ 	 * @var WP_Block_Patterns_Registry|null
+ 	 */
+-	private static $instance = null;
++	private static mixed $instance = null;
+ 
+ 	/**
+ 	 * Registers a block pattern.
+@@ -86,7 +86,7 @@
+ 	 * }
+ 	 * @return bool True if the pattern was registered with success and false otherwise.
+ 	 */
+-	public function register( $pattern_name, $pattern_properties ) {
++	public function register( mixed $pattern_name, mixed $pattern_properties ): mixed {
+ 		if ( ! isset( $pattern_name ) || ! is_string( $pattern_name ) ) {
+ 			_doing_it_wrong(
+ 				__METHOD__,
+@@ -116,10 +116,10 @@
+ 			}
+ 		}
+ 
+-		$pattern = array_merge(
++		$pattern = \wp_aot_array_merge(array(
+ 			$pattern_properties,
+ 			array( 'name' => $pattern_name )
+-		);
++		));
+ 
+ 		$this->registered_patterns[ $pattern_name ] = $pattern;
+ 
+@@ -131,6 +131,7 @@
+ 		}
+ 
+ 		return true;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -141,7 +142,7 @@
+ 	 * @param string $pattern_name Block pattern name including namespace.
+ 	 * @return bool True if the pattern was unregistered with success and false otherwise.
+ 	 */
+-	public function unregister( $pattern_name ) {
++	public function unregister( mixed $pattern_name ): mixed {
+ 		if ( ! $this->is_registered( $pattern_name ) ) {
+ 			_doing_it_wrong(
+ 				__METHOD__,
+@@ -156,6 +157,7 @@
+ 		unset( $this->registered_patterns_outside_init[ $pattern_name ] );
+ 
+ 		return true;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -167,7 +169,7 @@
+ 	 * @param bool   $outside_init_only Optional. Return only patterns registered outside the `init` action. Default false.
+ 	 * @return string The content of the block pattern.
+ 	 */
+-	private function get_content( $pattern_name, $outside_init_only = false ) {
++	private function get_content( mixed $pattern_name, mixed $outside_init_only = false ): mixed {
+ 		if ( $outside_init_only ) {
+ 			$patterns = &$this->registered_patterns_outside_init;
+ 		} else {
+@@ -175,7 +177,7 @@
+ 		}
+ 
+ 		$file_path    = $patterns[ $pattern_name ]['filePath'] ?? '';
+-		$is_stringy   = is_string( $file_path ) || ( is_object( $file_path ) && method_exists( $file_path, '__toString' ) );
++		$is_stringy   = is_string( $file_path ) || ( is_object( $file_path ) && ($file_path instanceof \Stringable) );
+ 		$pattern_path = $is_stringy ? realpath( (string) $file_path ) : null;
+ 		if (
+ 			! isset( $patterns[ $pattern_name ]['content'] ) &&
+@@ -185,12 +187,113 @@
  			is_readable( $pattern_path )
  		) {
  			ob_start();
@@ -107,5 +199,71 @@
 +				default: throw new RuntimeException( 'PHP pattern is outside the pinned theme source manifest.' );
 +			}
  			$patterns[ $pattern_name ]['content'] = ob_get_clean();
- 			unset( $patterns[ $pattern_name ]['filePath'] );
+-			unset( $patterns[ $pattern_name ]['filePath'] );
++			$patterns[ $pattern_name ] = \wp_aot_array_without_key( $patterns[ $pattern_name ], 'filePath' );
  		}
+ 
+ 		return $patterns[ $pattern_name ]['content'];
++		return null;
+ 	}
+ 
+ 	/**
+@@ -201,7 +304,7 @@
+ 	 * @param string $pattern_name Block pattern name including namespace.
+ 	 * @return array|null Registered pattern properties or `null` if the pattern is not registered.
+ 	 */
+-	public function get_registered( $pattern_name ) {
++	public function get_registered( mixed $pattern_name ): mixed {
+ 		if ( ! $this->is_registered( $pattern_name ) ) {
+ 			return null;
+ 		}
+@@ -215,6 +318,7 @@
+ 		);
+ 
+ 		return $pattern;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -226,7 +330,7 @@
+ 	 * @return array[] Array of arrays containing the registered block patterns properties,
+ 	 *                 and per style.
+ 	 */
+-	public function get_all_registered( $outside_init_only = false ) {
++	public function get_all_registered( mixed $outside_init_only = false ): mixed {
+ 		$patterns = $outside_init_only
+ 			? $this->registered_patterns_outside_init
+ 			: $this->registered_patterns;
+@@ -241,6 +345,7 @@
+ 		}
+ 
+ 		return array_values( $patterns );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -251,8 +356,9 @@
+ 	 * @param string|null $pattern_name Block pattern name including namespace.
+ 	 * @return bool True if the pattern is registered, false otherwise.
+ 	 */
+-	public function is_registered( $pattern_name ) {
++	public function is_registered( mixed $pattern_name ): mixed {
+ 		return isset( $pattern_name, $this->registered_patterns[ $pattern_name ] );
++		return null;
+ 	}
+ 
+ 	public function __wakeup() {
+@@ -279,11 +385,12 @@
+ 	 *
+ 	 * @return WP_Block_Patterns_Registry The main instance.
+ 	 */
+-	public static function get_instance() {
++	public static function get_instance(): mixed {
+ 		if ( null === self::$instance ) {
+ 			self::$instance = new self();
+ 		}
+ 
+ 		return self::$instance;
++		return null;
+ 	}
+ }

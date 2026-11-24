@@ -1,0 +1,388 @@
+--- a/wp-includes/html-api/class-wp-html-tag-processor.php
++++ b/wp-includes/html-api/class-wp-html-tag-processor.php
+@@ -812,7 +812,7 @@
+ 	 * @since 6.2.0
+ 	 * @var array<int|string, WP_HTML_Text_Replacement>
+ 	 */
+-	protected $lexical_updates = array();
++	protected mixed $lexical_updates = array();
+ 
+ 	/**
+ 	 * Tracks and limits `seek()` calls to prevent accidental infinite loops.
+@@ -845,7 +845,7 @@
+ 	 *
+ 	 * @param string $html HTML to process.
+ 	 */
+-	public function __construct( $html ) {
++	public function __construct( mixed $html ) {
+ 		if ( ! is_string( $html ) ) {
+ 			_doing_it_wrong(
+ 				__METHOD__,
+@@ -896,7 +896,7 @@
+ 	 *
+ 	 * @phpstan-impure
+ 	 */
+-	public function next_tag( $query = null ): bool {
++	public function next_tag( mixed $query = null ): bool {
+ 		$this->parse_query( $query );
+ 		$already_found = 0;
+ 
+@@ -1102,7 +1102,7 @@
+ 
+ 			case 'TEXTAREA':
+ 			case 'TITLE':
+-				$found_closer = $this->skip_rcdata( $tag_name );
++				$found_closer = $this->skip_rcdata( \wp_aot_weak_string($tag_name) );
+ 				break;
+ 
+ 			/*
+@@ -1121,7 +1121,7 @@
+ 			case 'NOFRAMES':
+ 			case 'STYLE':
+ 			case 'XMP':
+-				$found_closer = $this->skip_rawtext( $tag_name );
++				$found_closer = $this->skip_rawtext( \wp_aot_weak_string($tag_name) );
+ 				break;
+ 
+ 			// No other tags should be treated in their entirety here.
+@@ -1256,7 +1256,7 @@
+ 	 * @param string $wanted_class Look for this CSS class name, ASCII case-insensitive.
+ 	 * @return bool|null Whether the matched tag contains the given class name, or null if not matched.
+ 	 */
+-	public function has_class( $wanted_class ): ?bool {
++	public function has_class( mixed $wanted_class ): ?bool {
+ 		if ( self::STATE_MATCHED_TAG !== $this->parser_state ) {
+ 			return null;
+ 		}
+@@ -1357,7 +1357,7 @@
+ 	 * @param string $name Identifies this particular bookmark.
+ 	 * @return bool Whether the bookmark was successfully created.
+ 	 */
+-	public function set_bookmark( $name ): bool {
++	public function set_bookmark( mixed $name ): bool {
+ 		// It only makes sense to set a bookmark if the parser has paused on a concrete token.
+ 		if (
+ 			self::STATE_COMPLETE === $this->parser_state ||
+@@ -1375,7 +1375,7 @@
+ 			return false;
+ 		}
+ 
+-		$this->bookmarks[ $name ] = new WP_HTML_Span( $this->token_starts_at, $this->token_length );
++		$this->bookmarks[ $name ] = new WP_HTML_Span( \wp_aot_weak_int($this->token_starts_at), $this->token_length );
+ 
+ 		return true;
+ 	}
+@@ -1390,7 +1390,7 @@
+ 	 * @param string $name Name of the bookmark to remove.
+ 	 * @return bool Whether the bookmark already existed before removal.
+ 	 */
+-	public function release_bookmark( $name ): bool {
++	public function release_bookmark( mixed $name ): bool {
+ 		if ( ! array_key_exists( $name, $this->bookmarks ) ) {
+ 			return false;
+ 		}
+@@ -2328,7 +2328,7 @@
+ 		 *
+ 		 * @see https://html.spec.whatwg.org/#attribute-name-state
+ 		 */
+-		$comparable_name = strtolower( str_replace( "\x00", "\u{FFFD}", $attribute_name ) );
++		$comparable_name = strtolower( \wp_aot_str_replace( "\x00", "\u{FFFD}", $attribute_name ) );
+ 
+ 		// If an attribute is listed many times, only use the first declaration and ignore the rest.
+ 		if ( ! isset( $this->attributes[ $comparable_name ] ) ) {
+@@ -2619,7 +2619,7 @@
+ 		 * can lead to mangled output, partially-duplicated
+ 		 * attributes, and overwritten attributes.
+ 		 */
+-		usort( $this->lexical_updates, array( self::class, 'sort_start_ascending' ) );
++		\wp_aot_usort( $this->lexical_updates, self::sort_start_ascending(...));
+ 
+ 		$bytes_already_copied = 0;
+ 		$output_buffer        = '';
+@@ -2699,7 +2699,7 @@
+ 	 * @param string $bookmark_name Name to identify a bookmark that potentially exists.
+ 	 * @return bool Whether that bookmark exists.
+ 	 */
+-	public function has_bookmark( $bookmark_name ): bool {
++	public function has_bookmark( mixed $bookmark_name ): bool {
+ 		return array_key_exists( $bookmark_name, $this->bookmarks );
+ 	}
+ 
+@@ -2714,7 +2714,7 @@
+ 	 * @param string $bookmark_name Jump to the place in the document identified by this bookmark name.
+ 	 * @return bool Whether the internal cursor was successfully moved to the bookmark's location.
+ 	 */
+-	public function seek( $bookmark_name ): bool {
++	public function seek( mixed $bookmark_name ): bool {
+ 		if ( ! array_key_exists( $bookmark_name, $this->bookmarks ) ) {
+ 			_doing_it_wrong(
+ 				__METHOD__,
+@@ -2794,7 +2794,7 @@
+ 	 * @param string $comparable_name The attribute name in its comparable form.
+ 	 * @return string|boolean|null Value of enqueued update if present, otherwise false.
+ 	 */
+-	private function get_enqueued_attribute_value( string $comparable_name ) {
++	private function get_enqueued_attribute_value( string $comparable_name ): mixed {
+ 		if ( self::STATE_MATCHED_TAG !== $this->parser_state ) {
+ 			return false;
+ 		}
+@@ -2844,6 +2844,7 @@
+ 		 */
+ 		$enqueued_value = substr( $enqueued_text, $equals_at + 2, -1 );
+ 		return WP_HTML_Decoder::decode_attribute( $enqueued_value );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -2865,7 +2866,7 @@
+ 	 * @param string $name Name of attribute whose value is requested.
+ 	 * @return string|true|null Value of attribute or `null` if not available. Boolean attributes return `true`.
+ 	 */
+-	public function get_attribute( $name ) {
++	public function get_attribute( mixed $name ): mixed {
+ 		if ( self::STATE_MATCHED_TAG !== $this->parser_state ) {
+ 			return null;
+ 		}
+@@ -2915,6 +2916,7 @@
+ 		}
+ 
+ 		return $this->get_decoded_attribute_value( $attribute );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -2933,9 +2935,9 @@
+ 	 */
+ 	private function get_decoded_attribute_value( WP_HTML_Attribute_Token $attribute ): string {
+ 		$raw_value = substr( $this->html, $attribute->value_starts_at, $attribute->value_length );
+-		$raw_value = str_replace( "\r\n", "\n", $raw_value );
+-		$raw_value = str_replace( "\r", "\n", $raw_value );
+-		$raw_value = str_replace( "\x00", "\u{FFFD}", $raw_value );
++		$raw_value = \wp_aot_str_replace( "\r\n", "\n", $raw_value );
++		$raw_value = \wp_aot_str_replace( "\r", "\n", $raw_value );
++		$raw_value = \wp_aot_str_replace( "\x00", "\u{FFFD}", $raw_value );
+ 		return WP_HTML_Decoder::decode_attribute( $raw_value );
+ 	}
+ 
+@@ -2966,12 +2968,12 @@
+ 	 * @return array|null List of attribute names, or `null` when no tag opener is matched.
+ 	 * @phpstan-return list<non-empty-string>|null
+ 	 */
+-	public function get_attribute_names_with_prefix( $prefix ): ?array {
++	public function get_attribute_names_with_prefix( mixed $prefix ): ?array {
+ 		if (
+ 			self::STATE_MATCHED_TAG !== $this->parser_state ||
+ 			$this->is_closing_tag
+ 		) {
+-			return null;
++			return \wp_aot_require_nullable_array(null);
+ 		}
+ 
+ 		$comparable = strtolower( $prefix );
+@@ -3014,7 +3016,7 @@
+ 			}
+ 		}
+ 
+-		return empty( $additions ) ? $matches : array_merge( $additions, $matches );
++		return \wp_aot_require_nullable_array(empty( $additions ) ? $matches : \wp_aot_array_merge(array( $additions, $matches )));
+ 	}
+ 
+ 	/**
+@@ -3049,7 +3051,7 @@
+ 			return null;
+ 		}
+ 
+-		$tag_name = str_replace( "\x00", "\u{FFFD}", substr( $this->html, $this->tag_name_starts_at, $this->tag_name_length ) );
++		$tag_name = \wp_aot_str_replace( "\x00", "\u{FFFD}", substr( $this->html, $this->tag_name_starts_at, $this->tag_name_length ) );
+ 
+ 		if ( self::STATE_MATCHED_TAG === $this->parser_state ) {
+ 			return strtoupper( $tag_name );
+@@ -3234,7 +3236,7 @@
+ 	 *
+ 	 * @return string|null
+ 	 */
+-	public function get_qualified_attribute_name( $attribute_name ): ?string {
++	public function get_qualified_attribute_name( mixed $attribute_name ): ?string {
+ 		if ( self::STATE_MATCHED_TAG !== $this->parser_state ) {
+ 			return null;
+ 		}
+@@ -3837,8 +3839,8 @@
+ 		 * @see https://html.spec.whatwg.org/#preprocessing-the-input-stream
+ 		 * @see https://infra.spec.whatwg.org/#normalize-newlines
+ 		 */
+-		$text = str_replace( "\r\n", "\n", $text );
+-		$text = str_replace( "\r", "\n", $text );
++		$text = \wp_aot_str_replace( "\r\n", "\n", $text );
++		$text = \wp_aot_str_replace( "\r", "\n", $text );
+ 
+ 		// Comment and processing instruction data is not decoded.
+ 		if (
+@@ -3848,7 +3850,7 @@
+ 			self::STATE_FUNKY_COMMENT === $this->parser_state ||
+ 			self::STATE_PROCESSING_INSTRUCTION === $this->parser_state
+ 		) {
+-			return str_replace( "\x00", "\u{FFFD}", $text );
++			return \wp_aot_str_replace( "\x00", "\u{FFFD}", $text );
+ 		}
+ 
+ 		$tag_name = $this->get_token_name();
+@@ -3863,7 +3865,7 @@
+ 			'STYLE' === $tag_name ||
+ 			'XMP' === $tag_name
+ 		) {
+-			return str_replace( "\x00", "\u{FFFD}", $text );
++			return \wp_aot_str_replace( "\x00", "\u{FFFD}", $text );
+ 		}
+ 
+ 		$decoded = WP_HTML_Decoder::decode_text_node( $text );
+@@ -3893,8 +3895,8 @@
+ 		 *       to the foreign content rules. This should strip the NULL bytes.
+ 		 */
+ 		return ( '#text' === $tag_name && 'html' === $this->get_namespace() )
+-			? str_replace( "\x00", '', $decoded )
+-			: str_replace( "\x00", "\u{FFFD}", $decoded );
++			? \wp_aot_str_replace( "\x00", '', $decoded )
++			: \wp_aot_str_replace( "\x00", "\u{FFFD}", $decoded );
+ 	}
+ 
+ 	/**
+@@ -3967,7 +3969,7 @@
+ 			$this->lexical_updates['modifiable text'] = new WP_HTML_Text_Replacement(
+ 				$this->text_starts_at,
+ 				$this->text_length,
+-				strtr(
++				\wp_aot_strtr(
+ 					$plaintext_content,
+ 					array(
+ 						'<' => '&lt;',
+@@ -3988,7 +3990,7 @@
+ 			self::COMMENT_AS_HTML_COMMENT === $this->comment_type
+ 		) {
+ 			// Check if the text could close the comment.
+-			if ( 1 === preg_match( '/^-?>|--!?>/', $plaintext_content ) ) {
++			if ( 1 === preg_match( '/^-?>|--!?>/', \wp_aot_regex_text( $plaintext_content ) ) ) {
+ 				_doing_it_wrong(
+ 					__METHOD__,
+ 					__( 'Comment text cannot contain a comment closer.' ),
+@@ -4142,9 +4144,9 @@
+ 				return true;
+ 
+ 			case 'STYLE':
+-				$plaintext_content = preg_replace_callback(
++				$plaintext_content = \wp_aot_preg_replace_callback(
+ 					'~</(?P<TAG_NAME>style)~i',
+-					static function ( $tag_match ) {
++					static function ( mixed $tag_match ) {
+ 						return "\\3c\\2f{$tag_match['TAG_NAME']}";
+ 					},
+ 					$plaintext_content
+@@ -4160,9 +4162,9 @@
+ 
+ 			case 'TEXTAREA':
+ 			case 'TITLE':
+-				$plaintext_content = preg_replace_callback(
++				$plaintext_content = \wp_aot_preg_replace_callback(
+ 					"~</(?P<TAG_NAME>{$this->get_tag()})~i",
+-					static function ( $tag_match ) {
++					static function ( mixed $tag_match ) {
+ 						return "&lt;/{$tag_match['TAG_NAME']}";
+ 					},
+ 					$plaintext_content
+@@ -4582,7 +4584,7 @@
+ 	 * @param string|bool $value The new attribute value.
+ 	 * @return bool Whether an attribute value was set.
+ 	 */
+-	public function set_attribute( $name, $value ): bool {
++	public function set_attribute( mixed $name, mixed $value ): bool {
+ 		if (
+ 			self::STATE_MATCHED_TAG !== $this->parser_state ||
+ 			$this->is_closing_tag
+@@ -4646,7 +4648,7 @@
+ 			 */
+ 			$escaped_new_value = in_array( $comparable_name, wp_kses_uri_attributes(), true )
+ 				? esc_url( $value )
+-				: strtr(
++				: \wp_aot_strtr(
+ 					$value,
+ 					array(
+ 						'<' => '&lt;',
+@@ -4733,7 +4735,7 @@
+ 	 * @param string $name The attribute name to remove.
+ 	 * @return bool Whether an attribute was removed.
+ 	 */
+-	public function remove_attribute( $name ): bool {
++	public function remove_attribute( mixed $name ): bool {
+ 		if (
+ 			self::STATE_MATCHED_TAG !== $this->parser_state ||
+ 			$this->is_closing_tag
+@@ -4811,7 +4813,7 @@
+ 	 * @param string $class_name The class name to add.
+ 	 * @return bool Whether the class was set to be added.
+ 	 */
+-	public function add_class( $class_name ): bool {
++	public function add_class( mixed $class_name ): bool {
+ 		if (
+ 			self::STATE_MATCHED_TAG !== $this->parser_state ||
+ 			$this->is_closing_tag
+@@ -4853,7 +4855,7 @@
+ 	 * @param string $class_name The class name to remove.
+ 	 * @return bool Whether the class was set to be removed.
+ 	 */
+-	public function remove_class( $class_name ): bool {
++	public function remove_class( mixed $class_name ): bool {
+ 		if (
+ 			self::STATE_MATCHED_TAG !== $this->parser_state ||
+ 			$this->is_closing_tag
+@@ -4975,9 +4977,9 @@
+ 	 *     @type string      $tag_closers  "visit" or "skip": whether to stop on tag closers, e.g. </div>.
+ 	 * }
+ 	 */
+-	private function parse_query( $query ) {
++	private function parse_query( mixed $query ): mixed {
+ 		if ( null !== $query && $query === $this->last_query ) {
+-			return;
++			return null;
+ 		}
+ 
+ 		$this->last_query          = $query;
+@@ -4989,12 +4991,12 @@
+ 		// A single string value means "find the tag of this name".
+ 		if ( is_string( $query ) ) {
+ 			$this->sought_tag_name = $query;
+-			return;
++			return null;
+ 		}
+ 
+ 		// An empty query parameter applies no restrictions on the search.
+ 		if ( null === $query ) {
+-			return;
++			return null;
+ 		}
+ 
+ 		// If not using the string interface, an associative array is required.
+@@ -5004,7 +5006,7 @@
+ 				__( 'The query argument must be an array or a tag name.' ),
+ 				'6.2.0'
+ 			);
+-			return;
++			return null;
+ 		}
+ 
+ 		if ( isset( $query['tag_name'] ) && is_string( $query['tag_name'] ) ) {
+@@ -5022,6 +5024,7 @@
+ 		if ( isset( $query['tag_closers'] ) ) {
+ 			$this->stop_on_tag_closers = 'visit' === $query['tag_closers'];
+ 		}
++		return null;
+ 	}
+ 
+ 
+@@ -5043,7 +5046,7 @@
+ 			$tag_name = $this->get_tag();
+ 			if (
+ 				strlen( $this->sought_tag_name ) !== strlen( $tag_name ) ||
+-				0 !== substr_compare( $tag_name, $this->sought_tag_name, 0, null, true )
++				0 !== substr_compare( \wp_aot_weak_string($tag_name), \wp_aot_internal_string($this->sought_tag_name), 0, null, true )
+ 			) {
+ 				return false;
+ 			}

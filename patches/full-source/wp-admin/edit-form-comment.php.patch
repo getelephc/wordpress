@@ -1,0 +1,20 @@
+--- a/wp-admin/edit-form-comment.php
++++ b/wp-admin/edit-form-comment.php
+@@ -8,7 +8,7 @@
+ 
+ // Don't load directly.
+ if ( ! defined( 'ABSPATH' ) ) {
+-	exit;
++	\wp_aot_exit();
+ }
+ 
+ /**
+@@ -237,7 +237,7 @@
+ 	);
+ 
+ 	// Restore chronological order for display.
+-	$post_comments = array_reverse( $post_comments );
++	$post_comments = \wp_aot_array_reverse( $post_comments );
+ 
+ 	// Index the comments by ID and by parent, to compute depths and find descendants.
+ 	$post_comments_by_id = array();

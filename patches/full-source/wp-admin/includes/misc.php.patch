@@ -1,6 +1,227 @@
 --- a/wp-admin/includes/misc.php
 +++ b/wp-admin/includes/misc.php
-@@ -410,20 +410,30 @@
+@@ -13,7 +13,7 @@
+  *
+  * @return bool Whether the server is running Apache with the mod_rewrite module loaded.
+  */
+-function got_mod_rewrite() {
++function got_mod_rewrite(): mixed {
+ 	$got_rewrite = apache_mod_loaded( 'mod_rewrite', true );
+ 
+ 	/**
+@@ -29,6 +29,7 @@
+ 	 * @param bool $got_rewrite Whether Apache and mod_rewrite are present.
+ 	 */
+ 	return apply_filters( 'got_rewrite', $got_rewrite );
++	return null;
+ }
+ 
+ /**
+@@ -43,7 +44,7 @@
+  *
+  * @return bool Whether the server supports URL rewriting.
+  */
+-function got_url_rewrite() {
++function got_url_rewrite(): mixed {
+ 	$got_url_rewrite = ( got_mod_rewrite() || $GLOBALS['is_nginx'] || $GLOBALS['is_caddy'] || iis7_supports_permalinks() );
+ 
+ 	/**
+@@ -54,6 +55,7 @@
+ 	 * @param bool $got_url_rewrite Whether URL rewriting is available.
+ 	 */
+ 	return apply_filters( 'got_url_rewrite', $got_url_rewrite );
++	return null;
+ }
+ 
+ /**
+@@ -65,7 +67,7 @@
+  * @param string $marker   The marker to extract the strings from.
+  * @return string[] An array of strings from a file (.htaccess) from between BEGIN and END markers.
+  */
+-function extract_from_markers( $filename, $marker ) {
++function extract_from_markers( mixed $filename, mixed $marker ): mixed {
+ 	$result = array();
+ 
+ 	if ( ! file_exists( $filename ) ) {
+@@ -95,6 +97,7 @@
+ 	}
+ 
+ 	return $result;
++	return null;
+ }
+ 
+ /**
+@@ -111,7 +114,7 @@
+  * @param array|string $insertion The new content to insert.
+  * @return bool True on write success, false on failure.
+  */
+-function insert_with_markers( $filename, $marker, $insertion ) {
++function insert_with_markers( mixed $filename, mixed $marker, mixed $insertion ): mixed {
+ 	if ( ! file_exists( $filename ) ) {
+ 		if ( ! is_writable( dirname( $filename ) ) ) {
+ 			return false;
+@@ -125,7 +128,7 @@
+ 		$perms = fileperms( $filename );
+ 
+ 		if ( $perms ) {
+-			chmod( $filename, $perms | 0644 );
++			chmod( $filename, \wp_aot_internal_int( $perms | 0644 ) );
+ 		}
+ 	} elseif ( ! is_writable( $filename ) ) {
+ 		return false;
+@@ -167,7 +170,7 @@
+ 		restore_previous_locale();
+ 	}
+ 
+-	$insertion = array_merge( $instructions, $insertion );
++	$insertion = \wp_aot_array_merge(array( $instructions, $insertion ));
+ 
+ 	$start_marker = "# BEGIN {$marker}";
+ 	$end_marker   = "# END {$marker}";
+@@ -184,7 +187,7 @@
+ 	$lines = array();
+ 
+ 	while ( ! feof( $fp ) ) {
+-		$lines[] = rtrim( fgets( $fp ), "\r\n" );
++		$lines[] = rtrim( \wp_aot_fgets( $fp ), "\r\n" );
+ 	}
+ 
+ 	// Split out the existing file into the preceding lines, and those that appear after the marker.
+@@ -223,21 +226,21 @@
+ 	// Generate the new file data.
+ 	$new_file_data = implode(
+ 		"\n",
+-		array_merge(
++		\wp_aot_array_merge(array(
+ 			$pre_lines,
+ 			array( $start_marker ),
+ 			$insertion,
+ 			array( $end_marker ),
+ 			$post_lines
+-		)
++		))
+ 	);
+ 
+ 	// Write to the start of the file, and truncate it to that length.
+ 	fseek( $fp, 0 );
+-	$bytes = fwrite( $fp, $new_file_data );
++	$bytes = \wp_aot_fwrite( $fp, $new_file_data );
+ 
+ 	if ( $bytes ) {
+-		ftruncate( $fp, ftell( $fp ) );
++		ftruncate( $fp, \wp_aot_internal_int( ftell( $fp ) ) );
+ 	}
+ 
+ 	fflush( $fp );
+@@ -245,6 +248,7 @@
+ 	fclose( $fp );
+ 
+ 	return (bool) $bytes;
++	return null;
+ }
+ 
+ /**
+@@ -259,7 +263,7 @@
+  *
+  * @return bool|null True on write success, false on failure. Null in multisite.
+  */
+-function save_mod_rewrite_rules() {
++function save_mod_rewrite_rules(): mixed {
+ 	global $wp_rewrite;
+ 
+ 	if ( is_multisite() ) {
+@@ -287,6 +291,7 @@
+ 	}
+ 
+ 	return false;
++	return null;
+ }
+ 
+ /**
+@@ -299,7 +304,7 @@
+  *
+  * @return bool|null True on write success, false on failure. Null in multisite.
+  */
+-function iis7_save_url_rewrite_rules() {
++function iis7_save_url_rewrite_rules(): mixed {
+ 	global $wp_rewrite;
+ 
+ 	if ( is_multisite() ) {
+@@ -327,6 +332,7 @@
+ 	}
+ 
+ 	return false;
++	return null;
+ }
+ 
+ /**
+@@ -336,23 +342,24 @@
+  *
+  * @param string $file Path to the recently edited file.
+  */
+-function update_recently_edited( $file ) {
++function update_recently_edited( mixed $file ): mixed {
+ 	$oldfiles = (array) get_option( 'recently_edited' );
+ 
+ 	if ( $oldfiles ) {
+-		$oldfiles   = array_reverse( $oldfiles );
++		$oldfiles   = \wp_aot_array_reverse( $oldfiles );
+ 		$oldfiles[] = $file;
+-		$oldfiles   = array_reverse( $oldfiles );
+-		$oldfiles   = array_unique( $oldfiles );
++		$oldfiles   = \wp_aot_array_reverse( $oldfiles );
++		$oldfiles   = \wp_aot_array_unique( $oldfiles );
+ 
+ 		if ( 5 < count( $oldfiles ) ) {
+-			array_pop( $oldfiles );
++			\wp_aot_array_pop( $oldfiles );
+ 		}
+ 	} else {
+ 		$oldfiles[] = $file;
+ 	}
+ 
+ 	update_option( 'recently_edited', $oldfiles );
++	return null;
+ }
+ 
+ /**
+@@ -364,21 +371,23 @@
+  * @param array $allowed_files List of theme file paths.
+  * @return array Tree structure for listing theme files.
+  */
+-function wp_make_theme_file_tree( $allowed_files ) {
+-	$tree_list = array();
++function wp_make_theme_file_tree( mixed $allowed_files ): mixed {
++	$tree_list = \wp_aot_mixed(array());
+ 
+ 	foreach ( $allowed_files as $file_name => $absolute_filename ) {
+ 		$list     = explode( '/', $file_name );
+ 		$last_dir = &$tree_list;
+ 
+ 		foreach ( $list as $dir ) {
+-			$last_dir =& $last_dir[ $dir ];
++			$wp_aot_directory_key = (string) $dir;
++			$last_dir =& $last_dir[ $wp_aot_directory_key ];
+ 		}
+ 
+ 		$last_dir = $file_name;
+ 	}
+ 
+ 	return $tree_list;
++	return null;
+ }
+ 
+ /**
+@@ -396,7 +405,7 @@
+  * @param int          $size  The aria-setsize for the current iteration.
+  * @param int          $index The aria-posinset for the current iteration.
+  */
+-function wp_print_theme_file_tree( $tree, $level = 2, $size = 1, $index = 1 ) {
++function wp_print_theme_file_tree( mixed $tree, mixed $level = 2, mixed $size = 1, mixed $index = 1 ): mixed {
+ 	global $relative_file, $stylesheet;
+ 
+ 	if ( is_array( $tree ) ) {
+@@ -410,20 +419,30 @@
  				wp_print_theme_file_tree( $theme_file, $level, $index, $size );
  				continue;
  			}
@@ -42,7 +263,7 @@
  		endforeach;
  	} else {
  		$filename = $tree;
-@@ -434,14 +444,26 @@
+@@ -434,14 +453,26 @@
  			),
  			self_admin_url( 'theme-editor.php' )
  		);
@@ -77,7 +298,7 @@
  				$file_description = esc_html( get_file_description( $filename ) );
  
  				if ( $file_description !== $filename && wp_basename( $filename ) !== $file_description ) {
-@@ -453,10 +475,10 @@
+@@ -453,11 +484,12 @@
  				} else {
  					echo $file_description;
  				}
@@ -87,11 +308,51 @@
 +echo '			</a>
  		</li>
 -		<?php
+-	}
 +		';
- 	}
++	}
++	return null;
  }
  
-@@ -515,20 +537,30 @@
+ /**
+@@ -469,21 +501,23 @@
+  * @param array $plugin_editable_files List of plugin file paths.
+  * @return array Tree structure for listing plugin files.
+  */
+-function wp_make_plugin_file_tree( $plugin_editable_files ) {
+-	$tree_list = array();
++function wp_make_plugin_file_tree( mixed $plugin_editable_files ): mixed {
++	$tree_list = \wp_aot_mixed(array());
+ 
+ 	foreach ( $plugin_editable_files as $plugin_file ) {
+-		$list     = explode( '/', preg_replace( '#^.+?/#', '', $plugin_file ) );
++		$list     = explode( '/', \wp_aot_preg_replace( '#^.+?/#', '', $plugin_file ) );
+ 		$last_dir = &$tree_list;
+ 
+ 		foreach ( $list as $dir ) {
+-			$last_dir =& $last_dir[ $dir ];
++			$wp_aot_directory_key = (string) $dir;
++			$last_dir =& $last_dir[ $wp_aot_directory_key ];
+ 		}
+ 
+ 		$last_dir = $plugin_file;
+ 	}
+ 
+ 	return $tree_list;
++	return null;
+ }
+ 
+ /**
+@@ -501,7 +535,7 @@
+  * @param int          $size  The aria-setsize for the current iteration.
+  * @param int          $index The aria-posinset for the current iteration.
+  */
+-function wp_print_plugin_file_tree( $tree, $label = '', $level = 2, $size = 1, $index = 1 ) {
++function wp_print_plugin_file_tree( mixed $tree, mixed $label = '', mixed $level = 2, mixed $size = 1, mixed $index = 1 ): mixed {
+ 	global $file, $plugin;
+ 
+ 	if ( is_array( $tree ) ) {
+@@ -515,20 +549,30 @@
  				wp_print_plugin_file_tree( $plugin_file, $label, $level, $index, $size );
  				continue;
  			}
@@ -133,7 +394,7 @@
  		endforeach;
  	} else {
  		$url = add_query_arg(
-@@ -538,23 +570,35 @@
+@@ -538,24 +582,37 @@
  			),
  			self_admin_url( 'plugin-editor.php' )
  		);
@@ -176,11 +437,318 @@
 +echo '			</a>
  		</li>
 -		<?php
+-	}
 +		';
- 	}
++	}
++	return null;
  }
  
-@@ -1025,35 +1069,55 @@
+ /**
+@@ -566,9 +623,9 @@
+  * @param string $old_value The old value of the option. Unused.
+  * @param string $value     The new value of the option. Unused.
+  */
+-function update_home_siteurl( $old_value, $value ) {
++function update_home_siteurl( mixed $old_value, mixed $value ): mixed {
+ 	if ( wp_installing() ) {
+-		return;
++		return null;
+ 	}
+ 
+ 	if ( is_multisite() && ms_is_switched() ) {
+@@ -576,6 +633,7 @@
+ 	} else {
+ 		flush_rewrite_rules();
+ 	}
++	return null;
+ }
+ 
+ /**
+@@ -589,7 +647,7 @@
+  *
+  * @param array $vars An array of globals to reset.
+  */
+-function wp_reset_vars( $vars ) {
++function wp_reset_vars( mixed $vars ): mixed {
+ 	foreach ( $vars as $var ) {
+ 		if ( empty( $_POST[ $var ] ) ) {
+ 			if ( empty( $_GET[ $var ] ) ) {
+@@ -601,6 +659,7 @@
+ 			$GLOBALS[ $var ] = $_POST[ $var ];
+ 		}
+ 	}
++	return null;
+ }
+ 
+ /**
+@@ -610,7 +669,7 @@
+  *
+  * @param string|WP_Error $message The message to display, or a WP_Error object.
+  */
+-function show_message( $message ) {
++function show_message( mixed $message ): mixed {
+ 	if ( is_wp_error( $message ) ) {
+ 		if ( $message->get_error_data() && is_string( $message->get_error_data() ) ) {
+ 			$message = $message->get_error_message() . ': ' . $message->get_error_data();
+@@ -621,7 +680,8 @@
+ 
+ 	echo "<p>$message</p>\n";
+ 	wp_ob_end_flush_all();
+-	flush();
++	\wp_aot_native_api('flush', array());
++	return null;
+ }
+ 
+ /**
+@@ -632,7 +692,7 @@
+  * @param string $content The PHP content to parse.
+  * @return string[] Array of function names.
+  */
+-function wp_doc_link_parse( $content ) {
++function wp_doc_link_parse( mixed $content ): mixed {
+ 	if ( ! is_string( $content ) || empty( $content ) ) {
+ 		return array();
+ 	}
+@@ -664,8 +724,8 @@
+ 		}
+ 	}
+ 
+-	$functions = array_unique( $functions );
+-	sort( $functions );
++	$functions = \wp_aot_array_unique( $functions );
++	\wp_aot_sort( $functions );
+ 
+ 	/**
+ 	 * Filters the list of functions and classes to be ignored from the documentation lookup.
+@@ -676,7 +736,7 @@
+ 	 */
+ 	$ignore_functions = apply_filters( 'documentation_ignore_functions', $ignore_functions );
+ 
+-	$ignore_functions = array_unique( $ignore_functions );
++	$ignore_functions = \wp_aot_array_unique( $ignore_functions );
+ 
+ 	$output = array();
+ 
+@@ -689,6 +749,7 @@
+ 	}
+ 
+ 	return $output;
++	return null;
+ }
+ 
+ /**
+@@ -696,9 +757,9 @@
+  *
+  * @since 2.8.0
+  */
+-function set_screen_options() {
++function set_screen_options(): mixed {
+ 	if ( ! isset( $_POST['wp_screen_options'] ) || ! is_array( $_POST['wp_screen_options'] ) ) {
+-		return;
++		return null;
+ 	}
+ 
+ 	check_admin_referer( 'screen-options-nonce', 'screenoptionnonce' );
+@@ -706,26 +767,26 @@
+ 	$user = wp_get_current_user();
+ 
+ 	if ( ! $user ) {
+-		return;
++		return null;
+ 	}
+ 
+ 	$option = $_POST['wp_screen_options']['option'];
+ 	$value  = $_POST['wp_screen_options']['value'];
+ 
+ 	if ( sanitize_key( $option ) !== $option ) {
+-		return;
++		return null;
+ 	}
+ 
+ 	$map_option = $option;
+-	$type       = str_replace( 'edit_', '', $map_option );
+-	$type       = str_replace( '_per_page', '', $type );
++	$type       = \wp_aot_str_replace( 'edit_', '', $map_option );
++	$type       = \wp_aot_str_replace( '_per_page', '', $type );
+ 
+ 	if ( in_array( $type, get_taxonomies(), true ) ) {
+ 		$map_option = 'edit_tags_per_page';
+ 	} elseif ( in_array( $type, get_post_types(), true ) ) {
+ 		$map_option = 'edit_per_page';
+ 	} else {
+-		$option = str_replace( '-', '_', $option );
++		$option = \wp_aot_str_replace( '-', '_', $option );
+ 	}
+ 
+ 	switch ( $map_option ) {
+@@ -747,7 +808,7 @@
+ 			$value = (int) $value;
+ 
+ 			if ( $value < 1 || $value > 999 ) {
+-				return;
++				return null;
+ 			}
+ 
+ 			break;
+@@ -797,7 +858,7 @@
+ 			$value = apply_filters( "set_screen_option_{$option}", $screen_option, $option, $value );
+ 
+ 			if ( false === $value ) {
+-				return;
++				return null;
+ 			}
+ 
+ 			break;
+@@ -812,7 +873,8 @@
+ 	}
+ 
+ 	wp_safe_redirect( $url );
+-	exit;
++	\wp_aot_exit();
++	return null;
+ }
+ 
+ /**
+@@ -823,7 +885,7 @@
+  * @param string $filename The file path to the configuration file.
+  * @return bool Whether the rule exists.
+  */
+-function iis7_rewrite_rule_exists( $filename ) {
++function iis7_rewrite_rule_exists( mixed $filename ): mixed {
+ 	if ( ! file_exists( $filename ) ) {
+ 		return false;
+ 	}
+@@ -846,6 +908,7 @@
+ 	}
+ 
+ 	return true;
++	return null;
+ }
+ 
+ /**
+@@ -856,7 +919,7 @@
+  * @param string $filename Name of the configuration file.
+  * @return bool Whether the rule was deleted.
+  */
+-function iis7_delete_rewrite_rule( $filename ) {
++function iis7_delete_rewrite_rule( mixed $filename ): mixed {
+ 	// If configuration file does not exist then rules also do not exist, so there is nothing to delete.
+ 	if ( ! file_exists( $filename ) ) {
+ 		return true;
+@@ -867,7 +930,7 @@
+ 	}
+ 
+ 	$doc                     = new DOMDocument();
+-	$doc->preserveWhiteSpace = false;
++	\wp_aot_native_set_property($doc, 'preserveWhiteSpace', false);
+ 
+ 	if ( $doc->load( $filename ) === false ) {
+ 		return false;
+@@ -880,11 +943,12 @@
+ 		$child  = $rules->item( 0 );
+ 		$parent = $child->parentNode;
+ 		$parent->removeChild( $child );
+-		$doc->formatOutput = true;
++		\wp_aot_native_set_property($doc, 'formatOutput', true);
+ 		saveDomDocument( $doc, $filename );
+ 	}
+ 
+ 	return true;
++	return null;
+ }
+ 
+ /**
+@@ -896,7 +960,7 @@
+  * @param string $rewrite_rule The XML fragment with URL Rewrite rule.
+  * @return bool Whether the rule was added.
+  */
+-function iis7_add_rewrite_rule( $filename, $rewrite_rule ) {
++function iis7_add_rewrite_rule( mixed $filename, mixed $rewrite_rule ): mixed {
+ 	if ( ! class_exists( 'DOMDocument', false ) ) {
+ 		return false;
+ 	}
+@@ -904,12 +968,12 @@
+ 	// If configuration file does not exist then we create one.
+ 	if ( ! file_exists( $filename ) ) {
+ 		$fp = fopen( $filename, 'w' );
+-		fwrite( $fp, '<configuration/>' );
++		\wp_aot_fwrite( $fp, '<configuration/>' );
+ 		fclose( $fp );
+ 	}
+ 
+ 	$doc                     = new DOMDocument();
+-	$doc->preserveWhiteSpace = false;
++	\wp_aot_native_set_property($doc, 'preserveWhiteSpace', false);
+ 
+ 	if ( $doc->load( $filename ) === false ) {
+ 		return false;
+@@ -964,15 +1028,16 @@
+ 		}
+ 	}
+ 
+-	$rule_fragment = $doc->createDocumentFragment();
++	$rule_fragment = \wp_aot_native_method($doc, 'createDocumentFragment', array());
+ 	$rule_fragment->appendXML( $rewrite_rule );
+ 	$rules_node->appendChild( $rule_fragment );
+ 
+-	$doc->encoding     = 'UTF-8';
+-	$doc->formatOutput = true;
++	\wp_aot_native_set_property($doc, 'encoding', 'UTF-8');
++	\wp_aot_native_set_property($doc, 'formatOutput', true);
+ 	saveDomDocument( $doc, $filename );
+ 
+ 	return true;
++	return null;
+ }
+ 
+ /**
+@@ -983,13 +1048,14 @@
+  * @param DOMDocument $doc      The DOMDocument object to save.
+  * @param string      $filename The file path to save the XML document to.
+  */
+-function saveDomDocument( $doc, $filename ) { // phpcs:ignore WordPress.NamingConventions.ValidFunctionName.FunctionNameInvalid
++function saveDomDocument( mixed $doc, mixed $filename ): mixed { // phpcs:ignore WordPress.NamingConventions.ValidFunctionName.FunctionNameInvalid
+ 	$config = $doc->saveXML();
+-	$config = preg_replace( "/([^\r])\n/", "$1\r\n", $config );
++	$config = \wp_aot_preg_replace( "/([^\r])\n/", "\$1\r\n", $config );
+ 
+ 	$fp = fopen( $filename, 'w' );
+-	fwrite( $fp, $config );
++	\wp_aot_fwrite( $fp, $config );
+ 	fclose( $fp );
++	return null;
+ }
+ 
+ /**
+@@ -1001,22 +1067,22 @@
+  *
+  * @param int $user_id User ID.
+  */
+-function admin_color_scheme_picker( $user_id ) {
++function admin_color_scheme_picker( mixed $user_id ): mixed {
+ 	global $_wp_admin_css_colors;
+ 
+-	ksort( $_wp_admin_css_colors );
++	\wp_aot_ksort( $_wp_admin_css_colors );
+ 
+ 	if ( isset( $_wp_admin_css_colors['modern'] ) ) {
+ 		// Set Modern (new default), Classic ('fresh'), and Light first.
+-		$_wp_admin_css_colors = array_filter(
+-			array_merge(
++		$_wp_admin_css_colors = \wp_aot_array_filter(
++			\wp_aot_array_merge(array(
+ 				array(
+ 					'modern' => '',
+ 					'fresh'  => '',
+ 					'light'  => '',
+ 				),
+ 				$_wp_admin_css_colors
+-			)
++			))
+ 		);
+ 	}
+ 
+@@ -1025,35 +1091,56 @@
  	if ( empty( $current_color ) || ! isset( $_wp_admin_css_colors[ $current_color ] ) ) {
  		$current_color = 'modern';
  	}
@@ -253,10 +821,194 @@
 +		;
 +echo '	</fieldset>
 +	';
++	return null;
  }
  
  /**
-@@ -1408,14 +1472,16 @@
+@@ -1063,7 +1150,7 @@
+  *
+  * @global array $_wp_admin_css_colors
+  */
+-function wp_color_scheme_settings() {
++function wp_color_scheme_settings(): mixed {
+ 	global $_wp_admin_css_colors;
+ 
+ 	$color_scheme = get_user_option( 'admin_color' );
+@@ -1087,6 +1174,7 @@
+ 	}
+ 
+ 	echo '<script>var _wpColorScheme = ' . wp_json_encode( array( 'icons' => $icon_colors ), JSON_HEX_TAG | JSON_UNESCAPED_SLASHES ) . ";</script>\n";
++	return null;
+ }
+ 
+ /**
+@@ -1094,7 +1182,7 @@
+  *
+  * @since 5.5.0
+  */
+-function wp_admin_viewport_meta() {
++function wp_admin_viewport_meta(): mixed {
+ 	/**
+ 	 * Filters the viewport meta in the admin.
+ 	 *
+@@ -1105,10 +1193,11 @@
+ 	$viewport_meta = apply_filters( 'admin_viewport_meta', 'width=device-width,initial-scale=1.0' );
+ 
+ 	if ( empty( $viewport_meta ) ) {
+-		return;
++		return null;
+ 	}
+ 
+ 	echo '<meta name="viewport" content="' . esc_attr( $viewport_meta ) . '">';
++	return null;
+ }
+ 
+ /**
+@@ -1121,8 +1210,9 @@
+  * @param string $viewport_meta The viewport meta.
+  * @return string Filtered viewport meta.
+  */
+-function _customizer_mobile_viewport_meta( $viewport_meta ) {
++function _customizer_mobile_viewport_meta( mixed $viewport_meta ): mixed {
+ 	return trim( $viewport_meta, ',' ) . ',minimum-scale=0.5,maximum-scale=1.2';
++	return null;
+ }
+ 
+ /**
+@@ -1135,7 +1225,7 @@
+  * @param string $screen_id The screen ID.
+  * @return array The Heartbeat response.
+  */
+-function wp_check_locked_posts( $response, $data, $screen_id ) {
++function wp_check_locked_posts( mixed $response, mixed $data, mixed $screen_id ): mixed {
+ 	$checked = array();
+ 
+ 	if ( array_key_exists( 'wp-check-locked-posts', $data ) && is_array( $data['wp-check-locked-posts'] ) ) {
+@@ -1174,6 +1264,7 @@
+ 	}
+ 
+ 	return $response;
++	return null;
+ }
+ 
+ /**
+@@ -1186,7 +1277,7 @@
+  * @param string $screen_id The screen ID.
+  * @return array The Heartbeat response.
+  */
+-function wp_refresh_post_lock( $response, $data, $screen_id ) {
++function wp_refresh_post_lock( mixed $response, mixed $data, mixed $screen_id ): mixed {
+ 	if ( array_key_exists( 'wp-refresh-post-lock', $data ) ) {
+ 		$received = $data['wp-refresh-post-lock'];
+ 		$send     = array();
+@@ -1229,6 +1320,7 @@
+ 	}
+ 
+ 	return $response;
++	return null;
+ }
+ 
+ /**
+@@ -1241,7 +1333,7 @@
+  * @param string $screen_id The screen ID.
+  * @return array The Heartbeat response.
+  */
+-function wp_refresh_post_nonces( $response, $data, $screen_id ) {
++function wp_refresh_post_nonces( mixed $response, mixed $data, mixed $screen_id ): mixed {
+ 	if ( array_key_exists( 'wp-refresh-post-nonces', $data ) ) {
+ 		$received = $data['wp-refresh-post-nonces'];
+ 
+@@ -1269,6 +1361,7 @@
+ 	}
+ 
+ 	return $response;
++	return null;
+ }
+ 
+ /**
+@@ -1280,7 +1373,7 @@
+  * @param array  $data      The $_POST data sent.
+  * @return array The Heartbeat response.
+  */
+-function wp_refresh_metabox_loader_nonces( $response, $data ) {
++function wp_refresh_metabox_loader_nonces( mixed $response, mixed $data ): mixed {
+ 	if ( empty( $data['wp-refresh-metabox-loader-nonces'] ) ) {
+ 		return $response;
+ 	}
+@@ -1304,6 +1397,7 @@
+ 	);
+ 
+ 	return $response;
++	return null;
+ }
+ 
+ /**
+@@ -1314,7 +1408,7 @@
+  * @param array $response The Heartbeat response.
+  * @return array The Heartbeat response.
+  */
+-function wp_refresh_heartbeat_nonces( $response ) {
++function wp_refresh_heartbeat_nonces( mixed $response ): mixed {
+ 	// Refresh the Rest API nonce.
+ 	$response['rest_nonce'] = wp_create_nonce( 'wp_rest' );
+ 
+@@ -1322,6 +1416,7 @@
+ 	$response['heartbeat_nonce'] = wp_create_nonce( 'heartbeat-nonce' );
+ 
+ 	return $response;
++	return null;
+ }
+ 
+ /**
+@@ -1334,7 +1429,7 @@
+  * @param array $settings An array of Heartbeat settings.
+  * @return array Filtered Heartbeat settings.
+  */
+-function wp_heartbeat_set_suspension( $settings ) {
++function wp_heartbeat_set_suspension( mixed $settings ): mixed {
+ 	global $pagenow;
+ 
+ 	if ( 'post.php' === $pagenow || 'post-new.php' === $pagenow ) {
+@@ -1342,6 +1437,7 @@
+ 	}
+ 
+ 	return $settings;
++	return null;
+ }
+ 
+ /**
+@@ -1353,7 +1449,7 @@
+  * @param array $data     The $_POST data sent.
+  * @return array The Heartbeat response.
+  */
+-function heartbeat_autosave( $response, $data ) {
++function heartbeat_autosave( mixed $response, mixed $data ): mixed {
+ 	if ( ! empty( $data['wp_autosave'] ) ) {
+ 		$saved = wp_autosave( $data['wp_autosave'] );
+ 
+@@ -1379,6 +1475,7 @@
+ 	}
+ 
+ 	return $response;
++	return null;
+ }
+ 
+ /**
+@@ -1389,11 +1486,11 @@
+  *
+  * @since 4.2.0
+  */
+-function wp_admin_canonical_url() {
++function wp_admin_canonical_url(): mixed {
+ 	$removable_query_args = wp_removable_query_args();
+ 
+ 	if ( empty( $removable_query_args ) ) {
+-		return;
++		return null;
+ 	}
+ 
+ 	// Ensure we're using an absolute URL.
+@@ -1408,14 +1505,17 @@
  	 * @param string $filtered_url The admin canonical URL value.
  	 */
  	$filtered_url = apply_filters( 'wp_admin_canonical_url', $filtered_url );
@@ -274,16 +1026,19 @@
  	</script>
 -	<?php
 +	';
++	return null;
  }
  
  /**
-@@ -1427,13 +1493,13 @@
+@@ -1426,14 +1526,15 @@
+  *
   * @since 4.6.0
   */
- function wp_page_reload_on_back_button_js() {
+-function wp_page_reload_on_back_button_js() {
 -	?>
 -	<script>
 -		if ( typeof performance !== 'undefined' && performance.navigation && performance.navigation.type === 2 ) {
++function wp_page_reload_on_back_button_js(): mixed {
 +	;
 +echo '	<script>
 +		if ( typeof performance !== \'undefined\' && performance.navigation && performance.navigation.type === 2 ) {
@@ -292,6 +1047,76 @@
  	</script>
 -	<?php
 +	';
++	return null;
  }
  
  /**
+@@ -1447,9 +1548,9 @@
+  * @param string $old_value The old site admin email address.
+  * @param string $value     The proposed new site admin email address.
+  */
+-function update_option_new_admin_email( $old_value, $value ) {
++function update_option_new_admin_email( mixed $old_value, mixed $value ): mixed {
+ 	if ( get_option( 'admin_email' ) === $value || ! is_email( $value ) ) {
+-		return;
++		return null;
+ 	}
+ 
+ 	$hash            = md5( $value . time() . wp_rand() );
+@@ -1507,11 +1608,11 @@
+ 	$content = apply_filters( 'new_admin_email_content', $email_text, $new_admin_email );
+ 
+ 	$current_user = wp_get_current_user();
+-	$content      = str_replace( '###USERNAME###', $current_user->user_login, $content );
+-	$content      = str_replace( '###ADMIN_URL###', esc_url( self_admin_url( 'options.php?adminhash=' . $hash ) ), $content );
+-	$content      = str_replace( '###EMAIL###', $value, $content );
+-	$content      = str_replace( '###SITENAME###', wp_specialchars_decode( get_option( 'blogname' ), ENT_QUOTES ), $content );
+-	$content      = str_replace( '###SITEURL###', home_url(), $content );
++	$content      = \wp_aot_str_replace( '###USERNAME###', $current_user->user_login, $content );
++	$content      = \wp_aot_str_replace( '###ADMIN_URL###', esc_url( self_admin_url( 'options.php?adminhash=' . $hash ) ), $content );
++	$content      = \wp_aot_str_replace( '###EMAIL###', $value, $content );
++	$content      = \wp_aot_str_replace( '###SITENAME###', wp_specialchars_decode( get_option( 'blogname' ), ENT_QUOTES ), $content );
++	$content      = \wp_aot_str_replace( '###SITEURL###', home_url(), $content );
+ 
+ 	if ( '' !== get_option( 'blogname' ) ) {
+ 		$site_title = wp_specialchars_decode( get_option( 'blogname' ), ENT_QUOTES );
+@@ -1539,6 +1640,7 @@
+ 	if ( $switched_locale ) {
+ 		restore_previous_locale();
+ 	}
++	return null;
+ }
+ 
+ /**
+@@ -1552,13 +1654,14 @@
+  * @param WP_Post $page  Page data object.
+  * @return string Page title.
+  */
+-function _wp_privacy_settings_filter_draft_page_titles( $title, $page ) {
++function _wp_privacy_settings_filter_draft_page_titles( mixed $title, mixed $page ): mixed {
+ 	if ( 'draft' === $page->post_status && 'privacy' === get_current_screen()->id ) {
+ 		/* translators: %s: Page title. */
+ 		$title = sprintf( __( '%s (Draft)' ), $title );
+ 	}
+ 
+ 	return $title;
++	return null;
+ }
+ 
+ /**
+@@ -1578,7 +1681,7 @@
+  *                                       should be shown and an update recommended.
+  * }
+  */
+-function wp_check_php_version() {
++function wp_check_php_version(): mixed {
+ 	$version = PHP_VERSION;
+ 	$key     = md5( $version );
+ 
+@@ -1636,4 +1739,5 @@
+ 	}
+ 
+ 	return $response;
+-}
++	return null;
++}

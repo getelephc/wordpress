@@ -9,3 +9,182 @@
  	}
  
  	/**
+@@ -134,7 +134,7 @@
+ 	 *                          Default false.
+ 	 * @return bool True on success, false on failure.
+ 	 */
+-	public function do_item( $handle, $group = false ) {
++	public function do_item( mixed $handle, mixed $group = false ): mixed {
+ 		if ( ! parent::do_item( $handle ) ) {
+ 			return false;
+ 		}
+@@ -145,7 +145,7 @@
+ 			return false;
+ 		}
+ 		if ( null === $obj->ver ) {
+-			$ver = '';
++			$ver = \wp_aot_mixed('');
+ 		} else {
+ 			$ver = $obj->ver ? $obj->ver : $this->default_version;
+ 		}
+@@ -227,7 +227,7 @@
+ 		if ( 'rtl' === $this->text_direction && isset( $obj->extra['rtl'] ) && $obj->extra['rtl'] ) {
+ 			if ( is_bool( $obj->extra['rtl'] ) || 'replace' === $obj->extra['rtl'] ) {
+ 				$suffix   = $obj->extra['suffix'] ?? '';
+-				$rtl_href = str_replace( "{$suffix}.css", "-rtl{$suffix}.css", $this->_css_href( $src, $ver, "$handle-rtl" ) );
++				$rtl_href = \wp_aot_str_replace( "{$suffix}.css", "-rtl{$suffix}.css", $this->_css_href( $src, $ver, "$handle-rtl" ) );
+ 			} else {
+ 				$rtl_href = $this->_css_href( $obj->extra['rtl'], $ver, "$handle-rtl" );
+ 			}
+@@ -262,6 +262,7 @@
+ 		}
+ 
+ 		return true;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -273,7 +274,7 @@
+ 	 * @param string $code   String containing the CSS styles to be added.
+ 	 * @return bool True on success, false on failure.
+ 	 */
+-	public function add_inline_style( $handle, $code ) {
++	public function add_inline_style( mixed $handle, mixed $code ): mixed {
+ 		if ( ! $code ) {
+ 			return false;
+ 		}
+@@ -286,6 +287,7 @@
+ 		$after[] = $code;
+ 
+ 		return $this->add_data( $handle, 'after', $after );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -299,7 +301,7 @@
+ 	 * @return string|bool False if no data exists, inline styles if `$display` is true,
+ 	 *                     true otherwise.
+ 	 */
+-	public function print_inline_style( $handle, $display = true ) {
++	public function print_inline_style( mixed $handle, mixed $display = true ): mixed {
+ 		$output = $this->get_data( $handle, 'after' );
+ 
+ 		if ( empty( $output ) || ! is_array( $output ) ) {
+@@ -339,6 +341,7 @@
+ 		echo "{$processor->get_updated_html()}\n";
+ 
+ 		return true;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -351,7 +354,7 @@
+ 	 * @param mixed  $value  The data value.
+ 	 * @return bool True on success, false on failure.
+ 	 */
+-	public function add_data( $handle, $key, $value ) {
++	public function add_data( mixed $handle, mixed $key, mixed $value ): mixed {
+ 		if ( ! isset( $this->registered[ $handle ] ) ) {
+ 			return false;
+ 		}
+@@ -361,6 +364,7 @@
+ 		}
+ 
+ 		return parent::add_data( $handle, $key, $value );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -377,7 +381,7 @@
+ 	 *                                   Default false.
+ 	 * @return bool True on success, false on failure.
+ 	 */
+-	public function all_deps( $handles, $recursion = false, $group = false ) {
++	public function all_deps( mixed $handles, mixed $recursion = false, mixed $group = false ): mixed {
+ 		$result = parent::all_deps( $handles, $recursion, $group );
+ 		if ( ! $recursion ) {
+ 			/**
+@@ -390,6 +394,7 @@
+ 			$this->to_do = apply_filters( 'print_styles_array', $this->to_do );
+ 		}
+ 		return $result;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -402,8 +407,8 @@
+ 	 * @param string            $handle The style's registered handle.
+ 	 * @return string Style's fully-qualified URL.
+ 	 */
+-	public function _css_href( $src, $ver, $handle ) {
+-		if ( ! is_bool( $src ) && ! preg_match( '|^(https?:)?//|', $src ) && ! ( $this->content_url && str_starts_with( $src, $this->content_url ) ) ) {
++	public function _css_href( mixed $src, mixed $ver, mixed $handle ): mixed {
++		if ( ! is_bool( $src ) && ! preg_match( '|^(https?:)?//|', \wp_aot_regex_text( $src ) ) && ! ( $this->content_url && str_starts_with( $src, $this->content_url ) ) ) {
+ 			$src = $this->base_url . $src;
+ 		}
+ 
+@@ -444,6 +449,7 @@
+ 		 */
+ 		$src = apply_filters( 'style_loader_src', $src, $handle );
+ 		return esc_url( $src );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -454,12 +460,13 @@
+ 	 * @param string $src The source of the enqueued style.
+ 	 * @return bool True if found, false if not.
+ 	 */
+-	public function in_default_dir( $src ) {
++	public function in_default_dir( mixed $src ): mixed {
+ 		if ( ! $this->default_dirs ) {
+ 			return true;
+ 		}
+ 
+-		return array_any( (array) $this->default_dirs, fn( $test ) => str_starts_with( $src, $test ) );
++		return array_any( (array) $this->default_dirs, fn( mixed $test ) => str_starts_with( $src, $test ) );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -473,9 +480,10 @@
+ 	 *
+ 	 * @return string[] Handles of items that have been processed.
+ 	 */
+-	public function do_footer_items() {
++	public function do_footer_items(): mixed {
+ 		$this->do_items( false, 1 );
+ 		return $this->done;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -483,11 +491,12 @@
+ 	 *
+ 	 * @since 3.3.0
+ 	 */
+-	public function reset() {
++	public function reset(): mixed {
+ 		$this->do_concat      = false;
+ 		$this->concat         = '';
+ 		$this->concat_version = '';
+ 		$this->print_html     = '';
++		return null;
+ 	}
+ 
+ 	/**
+@@ -499,12 +508,13 @@
+ 	 * @param string[] $missing_dependency_handles Missing dependency handles.
+ 	 * @return string Formatted, localized warning message.
+ 	 */
+-	protected function get_dependency_warning_message( $handle, $missing_dependency_handles ) {
++	protected function get_dependency_warning_message( mixed $handle, mixed $missing_dependency_handles ): mixed {
+ 		return sprintf(
+ 			/* translators: 1: Style handle, 2: List of missing dependency handles. */
+ 			__( 'The style with the handle "%1$s" was enqueued with dependencies that are not registered: %2$s.' ),
+ 			$handle,
+ 			implode( wp_get_list_item_separator(), $missing_dependency_handles )
+ 		);
++		return null;
+ 	}
+ }

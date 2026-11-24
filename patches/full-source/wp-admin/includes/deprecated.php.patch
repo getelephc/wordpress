@@ -1,20 +1,1236 @@
 --- a/wp-admin/includes/deprecated.php
 +++ b/wp-admin/includes/deprecated.php
-@@ -557,7 +557,7 @@
+@@ -17,10 +17,11 @@
+  * @deprecated 2.1.0 Use wp_editor()
+  * @see wp_editor()
+  */
+-function tinymce_include() {
++function tinymce_include(): mixed {
+ 	_deprecated_function( __FUNCTION__, '2.1.0', 'wp_editor()' );
+ 
+ 	wp_tiny_mce();
++	return null;
+ }
+ 
+ /**
+@@ -30,8 +31,9 @@
+  * @deprecated 2.5.0
+  *
+  */
+-function documentation_link() {
++function documentation_link(): mixed {
+ 	_deprecated_function( __FUNCTION__, '2.5.0' );
++	return null;
+ }
+ 
+ /**
+@@ -47,9 +49,10 @@
+  * @param int $hmax Maximum wanted height
+  * @return array Shrunk dimensions (width, height).
+  */
+-function wp_shrink_dimensions( $width, $height, $wmax = 128, $hmax = 96 ) {
++function wp_shrink_dimensions( mixed $width, mixed $height, mixed $wmax = 128, mixed $hmax = 96 ): mixed {
+ 	_deprecated_function( __FUNCTION__, '3.0.0', 'wp_constrain_dimensions()' );
+ 	return wp_constrain_dimensions( $width, $height, $wmax, $hmax );
++	return null;
+ }
+ 
+ /**
+@@ -63,9 +66,10 @@
+  * @param int $height Current height of the image
+  * @return array Shrunk dimensions (width, height).
+  */
+-function get_udims( $width, $height ) {
++function get_udims( mixed $width, mixed $height ): mixed {
+ 	_deprecated_function( __FUNCTION__, '3.5.0', 'wp_constrain_dimensions()' );
+ 	return wp_constrain_dimensions( $width, $height, 128, 96 );
++	return null;
+ }
+ 
+ /**
+@@ -81,10 +85,11 @@
+  * @param int   $category_parent  Unused.
+  * @param array $popular_ids      Unused.
+  */
+-function dropdown_categories( $default_category = 0, $category_parent = 0, $popular_ids = array() ) {
++function dropdown_categories( mixed $default_category = 0, mixed $category_parent = 0, mixed $popular_ids = array() ): mixed {
+ 	_deprecated_function( __FUNCTION__, '2.6.0', 'wp_category_checklist()' );
+ 	global $post_ID;
+ 	wp_category_checklist( $post_ID );
++	return null;
+ }
+ 
+ /**
+@@ -98,10 +103,11 @@
+  *
+  * @param int $default_link_category Unused.
+  */
+-function dropdown_link_categories( $default_link_category = 0 ) {
++function dropdown_link_categories( mixed $default_link_category = 0 ): mixed {
+ 	_deprecated_function( __FUNCTION__, '2.6.0', 'wp_link_category_checklist()' );
+ 	global $link_id;
+ 	wp_link_category_checklist( $link_id );
++	return null;
+ }
+ 
+ /**
+@@ -114,10 +120,11 @@
+  * @param string $file Filesystem path relative to the wp-content directory.
+  * @return string Full filesystem path to edit.
+  */
+-function get_real_file_to_edit( $file ) {
++function get_real_file_to_edit( mixed $file ): mixed {
+ 	_deprecated_function( __FUNCTION__, '2.9.0' );
+ 
+ 	return WP_CONTENT_DIR . $file;
++	return null;
+ }
+ 
+ /**
+@@ -134,7 +141,7 @@
+  * @param array $categories    Optional. Categories to include in the control. Default 0.
+  * @return void|false Void on success, false if no categories were found.
+  */
+-function wp_dropdown_cats( $current_cat = 0, $current_parent = 0, $category_parent = 0, $level = 0, $categories = 0 ) {
++function wp_dropdown_cats( mixed $current_cat = 0, mixed $current_parent = 0, mixed $category_parent = 0, mixed $level = 0, mixed $categories = 0 ): mixed {
+ 	_deprecated_function( __FUNCTION__, '3.0.0', 'wp_dropdown_categories()' );
+ 	if (!$categories )
+ 		$categories = get_categories( array('hide_empty' => 0) );
+@@ -154,6 +161,7 @@
+ 	} else {
+ 		return false;
+ 	}
++	return null;
+ }
+ 
+ /**
+@@ -169,9 +177,10 @@
+  * @param string   $option_name       The name of an option to sanitize and save.
+  * @param callable $sanitize_callback Optional. A callback function that sanitizes the option's value.
+  */
+-function add_option_update_handler( $option_group, $option_name, $sanitize_callback = '' ) {
++function add_option_update_handler( mixed $option_group, mixed $option_name, mixed $sanitize_callback = '' ): mixed {
+ 	_deprecated_function( __FUNCTION__, '3.0.0', 'register_setting()' );
+ 	register_setting( $option_group, $option_name, $sanitize_callback );
++	return null;
+ }
+ 
+ /**
+@@ -185,9 +194,10 @@
+  * @param string   $option_name       The name of the option to unregister.
+  * @param callable $sanitize_callback Optional. Deprecated.
+  */
+-function remove_option_update_handler( $option_group, $option_name, $sanitize_callback = '' ) {
++function remove_option_update_handler( mixed $option_group, mixed $option_name, mixed $sanitize_callback = '' ): mixed {
+ 	_deprecated_function( __FUNCTION__, '3.0.0', 'unregister_setting()' );
+ 	unregister_setting( $option_group, $option_name, $sanitize_callback );
++	return null;
+ }
+ 
+ /**
+@@ -198,8 +208,9 @@
+  *
+  * @param string $filename
+  */
+-function codepress_get_lang( $filename ) {
++function codepress_get_lang( mixed $filename ): mixed {
+ 	_deprecated_function( __FUNCTION__, '3.0.0' );
++	return null;
+ }
+ 
+ /**
+@@ -208,8 +219,9 @@
+  * @since 2.8.0
+  * @deprecated 3.0.0
+  */
+-function codepress_footer_js() {
++function codepress_footer_js(): mixed {
+ 	_deprecated_function( __FUNCTION__, '3.0.0' );
++	return null;
+ }
+ 
+ /**
+@@ -218,8 +230,9 @@
+  * @since 2.8.0
+  * @deprecated 3.0.0
+  */
+-function use_codepress() {
++function use_codepress(): mixed {
+ 	_deprecated_function( __FUNCTION__, '3.0.0' );
++	return null;
+ }
+ 
+ /**
+@@ -231,16 +244,17 @@
+  *
+  * @return array List of user IDs.
+  */
+-function get_author_user_ids() {
++function get_author_user_ids(): mixed {
+ 	_deprecated_function( __FUNCTION__, '3.1.0', 'get_users()' );
+ 
+ 	global $wpdb;
+ 	if ( !is_multisite() )
+-		$level_key = $wpdb->get_blog_prefix() . 'user_level';
++		$level_key = \wp_aot_require_wpdb( $wpdb )->get_blog_prefix() . 'user_level';
+ 	else
+-		$level_key = $wpdb->get_blog_prefix() . 'capabilities'; // WPMU site admins don't have user_levels.
+-
+-	return $wpdb->get_col( $wpdb->prepare("SELECT user_id FROM $wpdb->usermeta WHERE meta_key = %s AND meta_value != '0'", $level_key) );
++		$level_key = \wp_aot_require_wpdb( $wpdb )->get_blog_prefix() . 'capabilities'; // WPMU site admins don't have user_levels.
++
++	return \wp_aot_require_wpdb( $wpdb )->get_col( \wp_aot_require_wpdb( $wpdb )->prepare("SELECT user_id FROM $wpdb->usermeta WHERE meta_key = %s AND meta_value != '0'", $level_key) );
++	return null;
+ }
+ 
+ /**
+@@ -253,7 +267,7 @@
+  * @param int $user_id User ID.
+  * @return array|false List of editable authors. False if no editable users.
+  */
+-function get_editable_authors( $user_id ) {
++function get_editable_authors( mixed $user_id ): mixed {
+ 	_deprecated_function( __FUNCTION__, '3.1.0', 'get_users()' );
+ 
+ 	global $wpdb;
+@@ -264,10 +278,11 @@
+ 		return false;
+ 	} else {
+ 		$editable = join(',', $editable);
+-		$authors = $wpdb->get_results( "SELECT * FROM $wpdb->users WHERE ID IN ($editable) ORDER BY display_name" );
++		$authors = \wp_aot_require_wpdb( $wpdb )->get_results( "SELECT * FROM $wpdb->users WHERE ID IN ($editable) ORDER BY display_name" );
+ 	}
+ 
+ 	return apply_filters('get_editable_authors', $authors);
++	return null;
+ }
+ 
+ /**
+@@ -281,7 +296,7 @@
+  * @param bool $exclude_zeros Optional. Whether to exclude zeroes. Default true.
+  * @return array Array of editable user IDs, empty array otherwise.
+  */
+-function get_editable_user_ids( $user_id, $exclude_zeros = true, $post_type = 'post' ) {
++function get_editable_user_ids( mixed $user_id, mixed $exclude_zeros = true, mixed $post_type = 'post' ): mixed {
+ 	_deprecated_function( __FUNCTION__, '3.1.0', 'get_users()' );
+ 
+ 	global $wpdb;
+@@ -298,15 +313,16 @@
+ 	}
+ 
+ 	if ( !is_multisite() )
+-		$level_key = $wpdb->get_blog_prefix() . 'user_level';
++		$level_key = \wp_aot_require_wpdb( $wpdb )->get_blog_prefix() . 'user_level';
+ 	else
+-		$level_key = $wpdb->get_blog_prefix() . 'capabilities'; // WPMU site admins don't have user_levels.
+-
+-	$query = $wpdb->prepare("SELECT user_id FROM $wpdb->usermeta WHERE meta_key = %s", $level_key);
++		$level_key = \wp_aot_require_wpdb( $wpdb )->get_blog_prefix() . 'capabilities'; // WPMU site admins don't have user_levels.
++
++	$query = \wp_aot_require_wpdb( $wpdb )->prepare("SELECT user_id FROM $wpdb->usermeta WHERE meta_key = %s", $level_key);
+ 	if ( $exclude_zeros )
+ 		$query .= " AND meta_value != '0'";
+ 
+-	return $wpdb->get_col( $query );
++	return \wp_aot_require_wpdb( $wpdb )->get_col( $query );
++	return null;
+ }
+ 
+ /**
+@@ -316,17 +332,18 @@
+  *
+  * @global wpdb $wpdb WordPress database abstraction object.
+  */
+-function get_nonauthor_user_ids() {
++function get_nonauthor_user_ids(): mixed {
+ 	_deprecated_function( __FUNCTION__, '3.1.0', 'get_users()' );
+ 
+ 	global $wpdb;
+ 
+ 	if ( !is_multisite() )
+-		$level_key = $wpdb->get_blog_prefix() . 'user_level';
++		$level_key = \wp_aot_require_wpdb( $wpdb )->get_blog_prefix() . 'user_level';
+ 	else
+-		$level_key = $wpdb->get_blog_prefix() . 'capabilities'; // WPMU site admins don't have user_levels.
+-
+-	return $wpdb->get_col( $wpdb->prepare("SELECT user_id FROM $wpdb->usermeta WHERE meta_key = %s AND meta_value = '0'", $level_key) );
++		$level_key = \wp_aot_require_wpdb( $wpdb )->get_blog_prefix() . 'capabilities'; // WPMU site admins don't have user_levels.
++
++	return \wp_aot_require_wpdb( $wpdb )->get_col( \wp_aot_require_wpdb( $wpdb )->prepare("SELECT user_id FROM $wpdb->usermeta WHERE meta_key = %s AND meta_value = '0'", $level_key) );
++	return null;
+ }
+ 
+ if ( ! class_exists( 'WP_User_Search', false ) ) :
+@@ -345,7 +362,7 @@
+ 	 * @access private
+ 	 * @var mixed
+ 	 */
+-	var $results;
++	public $results;
+ 
+ 	/**
+ 	 * {@internal Missing Description}}
+@@ -354,7 +371,7 @@
+ 	 * @access private
+ 	 * @var string
+ 	 */
+-	var $search_term;
++	public $search_term;
+ 
+ 	/**
+ 	 * Page number.
+@@ -363,7 +380,7 @@
+ 	 * @access private
+ 	 * @var int
+ 	 */
+-	var $page;
++	public $page;
+ 
+ 	/**
+ 	 * Role name that users have.
+@@ -372,7 +389,7 @@
+ 	 * @access private
+ 	 * @var string
+ 	 */
+-	var $role;
++	public $role;
+ 
+ 	/**
+ 	 * Raw page number.
+@@ -381,7 +398,7 @@
+ 	 * @access private
+ 	 * @var int|bool
+ 	 */
+-	var $raw_page;
++	public $raw_page;
+ 
+ 	/**
+ 	 * Amount of users to display per page.
+@@ -390,7 +407,7 @@
+ 	 * @access public
+ 	 * @var int
+ 	 */
+-	var $users_per_page = 50;
++	public $users_per_page = 50;
+ 
+ 	/**
+ 	 * {@internal Missing Description}}
+@@ -399,7 +416,7 @@
+ 	 * @access private
+ 	 * @var int
+ 	 */
+-	var $first_user;
++	public $first_user;
+ 
+ 	/**
+ 	 * {@internal Missing Description}}
+@@ -408,7 +425,7 @@
+ 	 * @access private
+ 	 * @var int
+ 	 */
+-	var $last_user;
++	public $last_user;
+ 
+ 	/**
+ 	 * {@internal Missing Description}}
+@@ -417,7 +434,7 @@
+ 	 * @access private
+ 	 * @var string
+ 	 */
+-	var $query_limit;
++	public $query_limit;
+ 
+ 	/**
+ 	 * {@internal Missing Description}}
+@@ -426,7 +443,7 @@
+ 	 * @access private
+ 	 * @var string
+ 	 */
+-	var $query_orderby;
++	public $query_orderby;
+ 
+ 	/**
+ 	 * {@internal Missing Description}}
+@@ -435,7 +452,7 @@
+ 	 * @access private
+ 	 * @var string
+ 	 */
+-	var $query_from;
++	public $query_from;
+ 
+ 	/**
+ 	 * {@internal Missing Description}}
+@@ -444,7 +461,7 @@
+ 	 * @access private
+ 	 * @var string
+ 	 */
+-	var $query_where;
++	public $query_where;
+ 
+ 	/**
+ 	 * {@internal Missing Description}}
+@@ -453,7 +470,7 @@
+ 	 * @access private
+ 	 * @var int
+ 	 */
+-	var $total_users_for_query = 0;
++	public $total_users_for_query = 0;
+ 
+ 	/**
+ 	 * {@internal Missing Description}}
+@@ -462,7 +479,7 @@
+ 	 * @access private
+ 	 * @var bool
+ 	 */
+-	var $too_many_total_users = false;
++	public $too_many_total_users = false;
+ 
+ 	/**
+ 	 * {@internal Missing Description}}
+@@ -471,7 +488,7 @@
+ 	 * @access private
+ 	 * @var WP_Error
+ 	 */
+-	var $search_errors;
++	public $search_errors;
+ 
+ 	/**
+ 	 * {@internal Missing Description}}
+@@ -480,7 +497,7 @@
+ 	 * @access private
+ 	 * @var string
+ 	 */
+-	var $paging_text;
++	public $paging_text;
+ 
+ 	/**
+ 	 * PHP5 Constructor - Sets up the object properties.
+@@ -492,7 +509,7 @@
+ 	 * @param string $role Role name.
+ 	 * @return WP_User_Search
+ 	 */
+-	function __construct( $search_term = '', $page = '', $role = '' ) {
++	function __construct( mixed $search_term = '', mixed $page = '', mixed $role = '' ) {
+ 		_deprecated_class( 'WP_User_Search', '3.1.0', 'WP_User_Query' );
+ 
+ 		$this->search_term = wp_unslash( $search_term );
+@@ -515,9 +532,10 @@
+ 	 * @param string $role Role name.
+ 	 * @return WP_User_Search
+ 	 */
+-	public function WP_User_Search( $search_term = '', $page = '', $role = '' ) {
++	public function WP_User_Search( mixed $search_term = '', mixed $page = '', mixed $role = '' ): mixed {
+ 		_deprecated_constructor( 'WP_User_Search', '3.1.0', get_class( $this ) );
+ 		self::__construct( $search_term, $page, $role );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -528,11 +546,11 @@
+ 	 *
+ 	 * @global wpdb $wpdb WordPress database abstraction object.
+ 	 */
+-	public function prepare_query() {
++	public function prepare_query(): mixed {
+ 		global $wpdb;
+ 		$this->first_user = ($this->page - 1) * $this->users_per_page;
+ 
+-		$this->query_limit = $wpdb->prepare(" LIMIT %d, %d", $this->first_user, $this->users_per_page);
++		$this->query_limit = \wp_aot_require_wpdb( $wpdb )->prepare(" LIMIT %d, %d", $this->first_user, $this->users_per_page);
+ 		$this->query_orderby = ' ORDER BY user_login';
+ 
+ 		$search_sql = '';
+@@ -540,7 +558,7 @@
+ 			$searches = array();
+ 			$search_sql = 'AND (';
+ 			foreach ( array('user_login', 'user_nicename', 'user_email', 'user_url', 'display_name') as $col )
+-				$searches[] = $wpdb->prepare( $col . ' LIKE %s', '%' . like_escape($this->search_term) . '%' );
++				$searches[] = \wp_aot_require_wpdb( $wpdb )->prepare( $col . ' LIKE %s', '%' . like_escape($this->search_term) . '%' );
+ 			$search_sql .= implode(' OR ', $searches);
+ 			$search_sql .= ')';
+ 		}
+@@ -550,14 +568,15 @@
+ 
+ 		if ( $this->role ) {
+ 			$this->query_from .= " INNER JOIN $wpdb->usermeta ON $wpdb->users.ID = $wpdb->usermeta.user_id";
+-			$this->query_where .= $wpdb->prepare(" AND $wpdb->usermeta.meta_key = '{$wpdb->prefix}capabilities' AND $wpdb->usermeta.meta_value LIKE %s", '%' . $this->role . '%');
++			$this->query_where .= \wp_aot_require_wpdb( $wpdb )->prepare(" AND $wpdb->usermeta.meta_key = '{$wpdb->prefix}capabilities' AND $wpdb->usermeta.meta_value LIKE %s", '%' . $this->role . '%');
+ 		} elseif ( is_multisite() ) {
+ 			$level_key = $wpdb->prefix . 'capabilities'; // WPMU site admins don't have user_levels.
+ 			$this->query_from .= ", $wpdb->usermeta";
  			$this->query_where .= " AND $wpdb->users.ID = $wpdb->usermeta.user_id AND meta_key = '{$level_key}'";
  		}
  
 -		do_action_ref_array( 'pre_user_search', array( &$this ) );
 +		do_action_ref_array( 'pre_user_search', array( $this ) );
++		return null;
  	}
  
  	/**
-@@ -1510,20 +1510,20 @@
+@@ -568,15 +587,16 @@
+ 	 *
+ 	 * @global wpdb $wpdb WordPress database abstraction object.
+ 	 */
+-	public function query() {
++	public function query(): mixed {
+ 		global $wpdb;
+ 
+-		$this->results = $wpdb->get_col("SELECT DISTINCT($wpdb->users.ID)" . $this->query_from . $this->query_where . $this->query_orderby . $this->query_limit);
++		$this->results = \wp_aot_require_wpdb( $wpdb )->get_col("SELECT DISTINCT($wpdb->users.ID)" . $this->query_from . $this->query_where . $this->query_orderby . $this->query_limit);
+ 
+ 		if ( $this->results )
+-			$this->total_users_for_query = $wpdb->get_var("SELECT COUNT(DISTINCT($wpdb->users.ID))" . $this->query_from . $this->query_where); // No limit.
++			$this->total_users_for_query = \wp_aot_require_wpdb( $wpdb )->get_var("SELECT COUNT(DISTINCT($wpdb->users.ID))" . $this->query_from . $this->query_where); // No limit.
+ 		else
+ 			$this->search_errors = new WP_Error('no_matching_users_found', __('No users found.'));
++		return null;
+ 	}
+ 
+ 	/**
+@@ -585,7 +605,7 @@
+ 	 * @since 2.1.0
+ 	 * @access public
+ 	 */
+-	function prepare_vars_for_template_usage() {}
++	function prepare_vars_for_template_usage(): mixed { return null; }
+ 
+ 	/**
+ 	 * Handles paging for the user search query.
+@@ -593,7 +613,7 @@
+ 	 * @since 2.1.0
+ 	 * @access public
+ 	 */
+-	public function do_paging() {
++	public function do_paging(): mixed {
+ 		if ( $this->total_users_for_query > $this->users_per_page ) { // Have to page the results.
+ 			$args = array();
+ 			if ( ! empty($this->search_term) )
+@@ -619,6 +639,7 @@
+ 				);
+ 			}
+ 		}
++		return null;
+ 	}
+ 
+ 	/**
+@@ -629,8 +650,9 @@
+ 	 *
+ 	 * @return array
+ 	 */
+-	public function get_results() {
++	public function get_results(): mixed {
+ 		return (array) $this->results;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -641,8 +663,9 @@
+ 	 * @since 2.1.0
+ 	 * @access public
+ 	 */
+-	function page_links() {
++	function page_links(): mixed {
+ 		echo $this->paging_text;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -655,10 +678,11 @@
+ 	 *
+ 	 * @return bool
+ 	 */
+-	function results_are_paged() {
++	function results_are_paged(): mixed {
+ 		if ( $this->paging_text )
+ 			return true;
+ 		return false;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -669,10 +693,11 @@
+ 	 *
+ 	 * @return bool
+ 	 */
+-	function is_search() {
++	function is_search(): mixed {
+ 		if ( $this->search_term )
+ 			return true;
+ 		return false;
++		return null;
+ 	}
+ }
+ endif;
+@@ -691,7 +716,7 @@
+  *                        Default 'any'.
+  * @return array List of posts from others.
+  */
+-function get_others_unpublished_posts( $user_id, $type = 'any' ) {
++function get_others_unpublished_posts( mixed $user_id, mixed $type = 'any' ): mixed {
+ 	_deprecated_function( __FUNCTION__, '3.1.0' );
+ 
+ 	global $wpdb;
+@@ -709,10 +734,11 @@
+ 		$other_unpubs = '';
+ 	} else {
+ 		$editable = join(',', $editable);
+-		$other_unpubs = $wpdb->get_results( $wpdb->prepare("SELECT ID, post_title, post_author FROM $wpdb->posts WHERE post_type = 'post' AND $type_sql AND post_author IN ($editable) AND post_author != %d ORDER BY post_modified $dir", $user_id) );
++		$other_unpubs = \wp_aot_require_wpdb( $wpdb )->get_results( \wp_aot_require_wpdb( $wpdb )->prepare("SELECT ID, post_title, post_author FROM $wpdb->posts WHERE post_type = 'post' AND $type_sql AND post_author IN ($editable) AND post_author != %d ORDER BY post_modified $dir", $user_id) );
+ 	}
+ 
+ 	return apply_filters('get_others_drafts', $other_unpubs);
++	return null;
+ }
+ 
+ /**
+@@ -724,10 +750,11 @@
+  * @param int $user_id User ID.
+  * @return array List of drafts from other users.
+  */
+-function get_others_drafts($user_id) {
++function get_others_drafts(mixed $user_id): mixed {
+ 	_deprecated_function( __FUNCTION__, '3.1.0' );
+ 
+ 	return get_others_unpublished_posts($user_id, 'draft');
++	return null;
+ }
+ 
+ /**
+@@ -739,10 +766,11 @@
+  * @param int $user_id User ID.
+  * @return array List of posts with pending review post type from other users.
+  */
+-function get_others_pending($user_id) {
++function get_others_pending(mixed $user_id): mixed {
+ 	_deprecated_function( __FUNCTION__, '3.1.0' );
+ 
+ 	return get_others_unpublished_posts($user_id, 'pending');
++	return null;
+ }
+ 
+ /**
+@@ -752,9 +780,10 @@
+  * @deprecated 3.2.0 Use wp_dashboard_quick_press()
+  * @see wp_dashboard_quick_press()
+  */
+-function wp_dashboard_quick_press_output() {
++function wp_dashboard_quick_press_output(): mixed {
+ 	_deprecated_function( __FUNCTION__, '3.2.0', 'wp_dashboard_quick_press()' );
+-	wp_dashboard_quick_press();
++	\wp_aot_native_api('wp_dashboard_quick_press', array());
++	return null;
+ }
+ 
+ /**
+@@ -764,13 +793,13 @@
+  * @deprecated 3.3.0 Use wp_editor()
+  * @see wp_editor()
+  */
+-function wp_tiny_mce( $teeny = false, $settings = false ) {
++function wp_tiny_mce( mixed $teeny = false, mixed $settings = false ): mixed {
+ 	_deprecated_function( __FUNCTION__, '3.3.0', 'wp_editor()' );
+ 
+ 	static $num = 1;
+ 
+ 	if ( ! class_exists( '_WP_Editors', false ) )
+-		require_once ABSPATH . WPINC . '/class-wp-editor.php';
++		require_once __DIR__ . '/../../wp-includes/class-wp-editor.php';
+ 
+ 	$editor_id = 'content' . $num++;
+ 
+@@ -782,6 +811,7 @@
+ 
+ 	$set = _WP_Editors::parse_settings($editor_id, $set);
+ 	_WP_Editors::editor_settings($editor_id, $set);
++	return null;
+ }
+ 
+ /**
+@@ -790,8 +820,9 @@
+  * @deprecated 3.3.0 Use wp_editor()
+  * @see wp_editor()
+  */
+-function wp_preload_dialogs() {
++function wp_preload_dialogs(): mixed {
+ 	_deprecated_function( __FUNCTION__, '3.3.0', 'wp_editor()' );
++	return null;
+ }
+ 
+ /**
+@@ -800,8 +831,9 @@
+  * @deprecated 3.3.0 Use wp_editor()
+  * @see wp_editor()
+  */
+-function wp_print_editor_js() {
++function wp_print_editor_js(): mixed {
+ 	_deprecated_function( __FUNCTION__, '3.3.0', 'wp_editor()' );
++	return null;
+ }
+ 
+ /**
+@@ -810,8 +842,9 @@
+  * @deprecated 3.3.0 Use wp_editor()
+  * @see wp_editor()
+  */
+-function wp_quicktags() {
++function wp_quicktags(): mixed {
+ 	_deprecated_function( __FUNCTION__, '3.3.0', 'wp_editor()' );
++	return null;
+ }
+ 
+ /**
+@@ -821,7 +854,7 @@
+  * @deprecated 3.3.0 WP_Screen::render_screen_layout()
+  * @see WP_Screen::render_screen_layout()
+  */
+-function screen_layout( $screen ) {
++function screen_layout( mixed $screen ): mixed {
+ 	_deprecated_function( __FUNCTION__, '3.3.0', '$current_screen->render_screen_layout()' );
+ 
+ 	$current_screen = get_current_screen();
+@@ -832,6 +865,7 @@
+ 	ob_start();
+ 	$current_screen->render_screen_layout();
+ 	return ob_get_clean();
++	return null;
+ }
+ 
+ /**
+@@ -841,7 +875,7 @@
+  * @deprecated 3.3.0 Use WP_Screen::render_per_page_options()
+  * @see WP_Screen::render_per_page_options()
+  */
+-function screen_options( $screen ) {
++function screen_options( mixed $screen ): mixed {
+ 	_deprecated_function( __FUNCTION__, '3.3.0', '$current_screen->render_per_page_options()' );
+ 
+ 	$current_screen = get_current_screen();
+@@ -852,6 +886,7 @@
+ 	ob_start();
+ 	$current_screen->render_per_page_options();
+ 	return ob_get_clean();
++	return null;
+ }
+ 
+ /**
+@@ -861,9 +896,10 @@
+  * @deprecated 3.3.0 Use WP_Screen::render_screen_meta()
+  * @see WP_Screen::render_screen_meta()
+  */
+-function screen_meta( $screen ) {
++function screen_meta( mixed $screen ): mixed {
+ 	$current_screen = get_current_screen();
+ 	$current_screen->render_screen_meta();
++	return null;
+ }
+ 
+ /**
+@@ -873,8 +909,9 @@
+  * @deprecated 3.2.0 Use WP_Admin_Bar
+  * @see WP_Admin_Bar
+  */
+-function favorite_actions() {
++function favorite_actions(): mixed {
+ 	_deprecated_function( __FUNCTION__, '3.2.0', 'WP_Admin_Bar' );
++	return null;
+ }
+ 
+ /**
+@@ -885,9 +922,10 @@
+  *
+  * @return null|string
+  */
+-function media_upload_image() {
++function media_upload_image(): mixed {
+ 	_deprecated_function( __FUNCTION__, '3.3.0', 'wp_media_upload_handler()' );
+ 	return wp_media_upload_handler();
++	return null;
+ }
+ 
+ /**
+@@ -898,9 +936,10 @@
+  *
+  * @return null|string
+  */
+-function media_upload_audio() {
++function media_upload_audio(): mixed {
+ 	_deprecated_function( __FUNCTION__, '3.3.0', 'wp_media_upload_handler()' );
+ 	return wp_media_upload_handler();
++	return null;
+ }
+ 
+ /**
+@@ -911,9 +950,10 @@
+  *
+  * @return null|string
+  */
+-function media_upload_video() {
++function media_upload_video(): mixed {
+ 	_deprecated_function( __FUNCTION__, '3.3.0', 'wp_media_upload_handler()' );
+ 	return wp_media_upload_handler();
++	return null;
+ }
+ 
+ /**
+@@ -924,9 +964,10 @@
+  *
+  * @return null|string
+  */
+-function media_upload_file() {
++function media_upload_file(): mixed {
+ 	_deprecated_function( __FUNCTION__, '3.3.0', 'wp_media_upload_handler()' );
+ 	return wp_media_upload_handler();
++	return null;
+ }
+ 
+ /**
+@@ -937,9 +978,10 @@
+  *
+  * @return string
+  */
+-function type_url_form_image() {
++function type_url_form_image(): mixed {
+ 	_deprecated_function( __FUNCTION__, '3.3.0', "wp_media_insert_url_form('image')" );
+ 	return wp_media_insert_url_form( 'image' );
++	return null;
+ }
+ 
+ /**
+@@ -950,9 +992,10 @@
+  *
+  * @return string
+  */
+-function type_url_form_audio() {
++function type_url_form_audio(): mixed {
+ 	_deprecated_function( __FUNCTION__, '3.3.0', "wp_media_insert_url_form('audio')" );
+ 	return wp_media_insert_url_form( 'audio' );
++	return null;
+ }
+ 
+ /**
+@@ -963,9 +1006,10 @@
+  *
+  * @return string
+  */
+-function type_url_form_video() {
++function type_url_form_video(): mixed {
+ 	_deprecated_function( __FUNCTION__, '3.3.0', "wp_media_insert_url_form('video')" );
+ 	return wp_media_insert_url_form( 'video' );
++	return null;
+ }
+ 
+ /**
+@@ -976,9 +1020,10 @@
+  *
+  * @return string
+  */
+-function type_url_form_file() {
++function type_url_form_file(): mixed {
+ 	_deprecated_function( __FUNCTION__, '3.3.0', "wp_media_insert_url_form('file')" );
+ 	return wp_media_insert_url_form( 'file' );
++	return null;
+ }
+ 
+ /**
+@@ -994,13 +1039,14 @@
+  *                          the hook name returned by the `add_*_page()` functions.
+  * @param string    $help   The content of an 'Overview' help tab.
+  */
+-function add_contextual_help( $screen, $help ) {
++function add_contextual_help( mixed $screen, mixed $help ): mixed {
+ 	_deprecated_function( __FUNCTION__, '3.3.0', 'get_current_screen()->add_help_tab()' );
+ 
+ 	if ( is_string( $screen ) )
+ 		$screen = convert_to_screen( $screen );
+ 
+ 	WP_Screen::add_old_compat_help( $screen, $help );
++	return null;
+ }
+ 
+ /**
+@@ -1012,7 +1058,7 @@
+  *
+  * @return WP_Theme[] Array of WP_Theme objects keyed by their name.
+  */
+-function get_allowed_themes() {
++function get_allowed_themes(): mixed {
+ 	_deprecated_function( __FUNCTION__, '3.4.0', "wp_get_themes( array( 'allowed' => true ) )" );
+ 
+ 	$themes = wp_get_themes( array( 'allowed' => true ) );
+@@ -1023,6 +1069,7 @@
+ 	}
+ 
+ 	return $wp_themes;
++	return null;
+ }
+ 
+ /**
+@@ -1034,7 +1081,7 @@
+  *
+  * @return array
+  */
+-function get_broken_themes() {
++function get_broken_themes(): mixed {
+ 	_deprecated_function( __FUNCTION__, '3.4.0', "wp_get_themes( array( 'errors' => true )" );
+ 
+ 	$themes = wp_get_themes( array( 'errors' => true ) );
+@@ -1048,6 +1095,7 @@
+ 		);
+ 	}
+ 	return $broken;
++	return null;
+ }
+ 
+ /**
+@@ -1059,10 +1107,11 @@
+  *
+  * @return WP_Theme
+  */
+-function current_theme_info() {
++function current_theme_info(): mixed {
+ 	_deprecated_function( __FUNCTION__, '3.4.0', 'wp_get_theme()' );
+ 
+ 	return wp_get_theme();
++	return null;
+ }
+ 
+ /**
+@@ -1072,8 +1121,9 @@
+  *
+  * @deprecated 3.5.0
+  */
+-function _insert_into_post_button( $type ) {
++function _insert_into_post_button( mixed $type ): mixed {
+ 	_deprecated_function( __FUNCTION__, '3.5.0' );
++	return null;
+ }
+ 
+ /**
+@@ -1083,8 +1133,9 @@
+  *
+  * @deprecated 3.5.0
+  */
+-function _media_button($title, $icon, $type, $id) {
++function _media_button(mixed $title, mixed $icon, mixed $type, mixed $id): mixed {
+ 	_deprecated_function( __FUNCTION__, '3.5.0' );
++	return null;
+ }
+ 
+ /**
+@@ -1097,10 +1148,11 @@
+  * @param int $id
+  * @return WP_Post
+  */
+-function get_post_to_edit( $id ) {
++function get_post_to_edit( mixed $id ): mixed {
+ 	_deprecated_function( __FUNCTION__, '3.5.0', 'get_post()' );
+ 
+ 	return get_post( $id, OBJECT, 'edit' );
++	return null;
+ }
+ 
+ /**
+@@ -1112,12 +1164,13 @@
+  *
+  * @return WP_Post Post object containing all the default post data as attributes
+  */
+-function get_default_page_to_edit() {
++function get_default_page_to_edit(): mixed {
+ 	_deprecated_function( __FUNCTION__, '3.5.0', "get_default_post_to_edit( 'page' )" );
+ 
+ 	$page = get_default_post_to_edit();
+ 	$page->post_type = 'page';
+ 	return $page;
++	return null;
+ }
+ 
+ /**
+@@ -1132,9 +1185,10 @@
+  * @param mixed $deprecated Never used.
+  * @return string Thumbnail path on success, Error string on failure.
+  */
+-function wp_create_thumbnail( $file, $max_side, $deprecated = '' ) {
++function wp_create_thumbnail( mixed $file, mixed $max_side, mixed $deprecated = '' ): mixed {
+ 	_deprecated_function( __FUNCTION__, '3.5.0', 'image_resize()' );
+ 	return apply_filters( 'wp_create_thumbnail', image_resize( $file, $max_side, $max_side ) );
++	return null;
+ }
+ 
+ /**
+@@ -1145,8 +1199,9 @@
+  * @since 3.0.0
+  * @deprecated 3.6.0
+  */
+-function wp_nav_menu_locations_meta_box() {
++function wp_nav_menu_locations_meta_box(): mixed {
+ 	_deprecated_function( __FUNCTION__, '3.6.0' );
++	return null;
+ }
+ 
+ /**
+@@ -1159,16 +1214,17 @@
+  * @deprecated 3.7.0 Use Core_Upgrader
+  * @see Core_Upgrader
+  */
+-function wp_update_core($current, $feedback = '') {
++function wp_update_core(mixed $current, mixed $feedback = ''): mixed {
+ 	_deprecated_function( __FUNCTION__, '3.7.0', 'new Core_Upgrader();' );
+ 
+ 	if ( !empty($feedback) )
+ 		add_filter('update_feedback', $feedback);
+ 
+-	require ABSPATH . 'wp-admin/includes/class-wp-upgrader.php';
++	require_once ABSPATH . 'wp-admin/includes/class-wp-upgrader.php';
+ 	$upgrader = new Core_Upgrader();
+ 	return $upgrader->upgrade($current);
+ 
++	return null;
+ }
+ 
+ /**
+@@ -1182,15 +1238,16 @@
+  * @deprecated 3.7.0 Use Plugin_Upgrader
+  * @see Plugin_Upgrader
+  */
+-function wp_update_plugin($plugin, $feedback = '') {
++function wp_update_plugin(mixed $plugin, mixed $feedback = ''): mixed {
+ 	_deprecated_function( __FUNCTION__, '3.7.0', 'new Plugin_Upgrader();' );
+ 
+ 	if ( !empty($feedback) )
+ 		add_filter('update_feedback', $feedback);
+ 
+-	require ABSPATH . 'wp-admin/includes/class-wp-upgrader.php';
++	require_once ABSPATH . 'wp-admin/includes/class-wp-upgrader.php';
+ 	$upgrader = new Plugin_Upgrader();
+ 	return $upgrader->upgrade($plugin);
++	return null;
+ }
+ 
+ /**
+@@ -1204,15 +1261,16 @@
+  * @deprecated 3.7.0 Use Theme_Upgrader
+  * @see Theme_Upgrader
+  */
+-function wp_update_theme($theme, $feedback = '') {
++function wp_update_theme(mixed $theme, mixed $feedback = ''): mixed {
+ 	_deprecated_function( __FUNCTION__, '3.7.0', 'new Theme_Upgrader();' );
+ 
+ 	if ( !empty($feedback) )
+ 		add_filter('update_feedback', $feedback);
+ 
+-	require ABSPATH . 'wp-admin/includes/class-wp-upgrader.php';
++	require_once ABSPATH . 'wp-admin/includes/class-wp-upgrader.php';
+ 	$upgrader = new Theme_Upgrader();
+ 	return $upgrader->upgrade($theme);
++	return null;
+ }
+ 
+ /**
+@@ -1223,8 +1281,9 @@
+  *
+  * @param int|bool $id
+  */
+-function the_attachment_links( $id = false ) {
++function the_attachment_links( mixed $id = false ): mixed {
+ 	_deprecated_function( __FUNCTION__, '3.7.0' );
++	return null;
+ }
+ 
+ /**
+@@ -1233,9 +1292,10 @@
+  * @since 2.7.0
+  * @deprecated 3.8.0
+  */
+-function screen_icon() {
++function screen_icon(): mixed {
+ 	_deprecated_function( __FUNCTION__, '3.8.0' );
+ 	echo get_screen_icon();
++	return null;
+ }
+ 
+ /**
+@@ -1246,9 +1306,10 @@
+  *
+  * @return string An HTML comment explaining that icons are no longer used.
+  */
+-function get_screen_icon() {
++function get_screen_icon(): mixed {
+ 	_deprecated_function( __FUNCTION__, '3.8.0' );
+ 	return '<!-- Screen icons are no longer used as of WordPress 3.8. -->';
++	return null;
+ }
+ 
+ /**
+@@ -1257,14 +1318,14 @@
+  * @since 2.5.0
+  * @deprecated 3.8.0
+  */
+-function wp_dashboard_incoming_links_output() {}
++function wp_dashboard_incoming_links_output(): mixed { return null; }
+ 
+ /**
+  * Deprecated dashboard secondary output.
+  *
+  * @deprecated 3.8.0
+  */
+-function wp_dashboard_secondary_output() {}
++function wp_dashboard_secondary_output(): mixed { return null; }
+ 
+ /**
+  * Deprecated dashboard widget controls.
+@@ -1272,49 +1333,49 @@
+  * @since 2.7.0
+  * @deprecated 3.8.0
+  */
+-function wp_dashboard_incoming_links() {}
++function wp_dashboard_incoming_links(): mixed { return null; }
+ 
+ /**
+  * Deprecated dashboard incoming links control.
+  *
+  * @deprecated 3.8.0
+  */
+-function wp_dashboard_incoming_links_control() {}
++function wp_dashboard_incoming_links_control(): mixed { return null; }
+ 
+ /**
+  * Deprecated dashboard plugins control.
+  *
+  * @deprecated 3.8.0
+  */
+-function wp_dashboard_plugins() {}
++function wp_dashboard_plugins(): mixed { return null; }
+ 
+ /**
+  * Deprecated dashboard primary control.
+  *
+  * @deprecated 3.8.0
+  */
+-function wp_dashboard_primary_control() {}
++function wp_dashboard_primary_control(): mixed { return null; }
+ 
+ /**
+  * Deprecated dashboard recent comments control.
+  *
+  * @deprecated 3.8.0
+  */
+-function wp_dashboard_recent_comments_control() {}
++function wp_dashboard_recent_comments_control(): mixed { return null; }
+ 
+ /**
+  * Deprecated dashboard secondary section.
+  *
+  * @deprecated 3.8.0
+  */
+-function wp_dashboard_secondary() {}
++function wp_dashboard_secondary(): mixed { return null; }
+ 
+ /**
+  * Deprecated dashboard secondary control.
+  *
+  * @deprecated 3.8.0
+  */
+-function wp_dashboard_secondary_control() {}
++function wp_dashboard_secondary_control(): mixed { return null; }
+ 
+ /**
+  * Display plugins text for the WordPress news widget.
+@@ -1325,7 +1386,7 @@
+  * @param string $rss  The RSS feed URL.
+  * @param array  $args Array of arguments for this RSS feed.
+  */
+-function wp_dashboard_plugins_output( $rss, $args = array() ) {
++function wp_dashboard_plugins_output( mixed $rss, mixed $args = array() ): mixed {
+ 	_deprecated_function( __FUNCTION__, '4.8.0' );
+ 
+ 	// Plugin feeds plus link to install them.
+@@ -1356,7 +1417,7 @@
+ 			list($link, $frag) = explode( '#', $item->get_link() );
+ 
+ 			$link = esc_url($link);
+-			if ( preg_match( '|/([^/]+?)/?$|', $link, $matches ) )
++			if ( preg_match( '|/([^/]+?)/?$|', \wp_aot_regex_text( $link ), $matches ) )
+ 				$slug = $matches[1];
+ 			else {
+ 				unset( $items[$item_key] );
+@@ -1396,6 +1457,7 @@
+ 	}
+ 
+ 	echo '</ul>';
++	return null;
+ }
+ 
+ /**
+@@ -1408,8 +1470,9 @@
+  * @param int $old_ID
+  * @param int $new_ID
+  */
+-function _relocate_children( $old_ID, $new_ID ) {
++function _relocate_children( mixed $old_ID, mixed $new_ID ): mixed {
+ 	_deprecated_function( __FUNCTION__, '3.9.0' );
++	return null;
+ }
+ 
+ /**
+@@ -1435,7 +1498,7 @@
+  * @param string   $icon_url   Optional. The URL to the icon to be used for this menu.
+  * @return string The resulting page's hook_suffix.
+  */
+-function add_object_page( $page_title, $menu_title, $capability, $menu_slug, $callback = '', $icon_url = '') {
++function add_object_page( mixed $page_title, mixed $menu_title, mixed $capability, mixed $menu_slug, mixed $callback = '', mixed $icon_url = ''): mixed {
+ 	_deprecated_function( __FUNCTION__, '4.5.0', 'add_menu_page()' );
+ 
+ 	global $_wp_last_object_menu;
+@@ -1443,6 +1506,7 @@
+ 	$_wp_last_object_menu++;
+ 
+ 	return add_menu_page($page_title, $menu_title, $capability, $menu_slug, $callback, $icon_url, $_wp_last_object_menu);
++	return null;
+ }
+ 
+ /**
+@@ -1468,7 +1532,7 @@
+  * @param string   $icon_url   Optional. The URL to the icon to be used for this menu.
+  * @return string The resulting page's hook_suffix.
+  */
+-function add_utility_page( $page_title, $menu_title, $capability, $menu_slug, $callback = '', $icon_url = '') {
++function add_utility_page( mixed $page_title, mixed $menu_title, mixed $capability, mixed $menu_slug, mixed $callback = '', mixed $icon_url = ''): mixed {
+ 	_deprecated_function( __FUNCTION__, '4.5.0', 'add_menu_page()' );
+ 
+ 	global $_wp_last_utility_menu;
+@@ -1476,6 +1540,7 @@
+ 	$_wp_last_utility_menu++;
+ 
+ 	return add_menu_page($page_title, $menu_title, $capability, $menu_slug, $callback, $icon_url, $_wp_last_utility_menu);
++	return null;
+ }
+ 
+ /**
+@@ -1493,7 +1558,7 @@
+  * @global bool $is_safari
+  * @global bool $is_chrome
+  */
+-function post_form_autocomplete_off() {
++function post_form_autocomplete_off(): mixed {
+ 	global $is_safari, $is_chrome;
+ 
+ 	_deprecated_function( __FUNCTION__, '4.6.0' );
+@@ -1501,6 +1566,7 @@
+ 	if ( $is_safari || $is_chrome ) {
+ 		echo ' autocomplete="off"';
+ 	}
++	return null;
+ }
+ 
+ /**
+@@ -1509,21 +1575,22 @@
+  * @since 3.5.0
   * @deprecated 4.9.0
   */
- function options_permalink_add_js() {
+-function options_permalink_add_js() {
 -	?>
 -	<script>
++function options_permalink_add_js(): mixed {
 +	;
 +echo '	<script>
  		jQuery( function() {
@@ -35,6 +1251,59 @@
  	</script>
 -	<?php
 +	';
++	return null;
  }
  
  /**
+@@ -1533,7 +1600,7 @@
+  * @deprecated 5.3.0
+  */
+ class WP_Privacy_Data_Export_Requests_Table extends WP_Privacy_Data_Export_Requests_List_Table {
+-	function __construct( $args ) {
++	function __construct( mixed $args ) {
+ 		_deprecated_function( __CLASS__, '5.3.0', 'WP_Privacy_Data_Export_Requests_List_Table' );
+ 
+ 		if ( ! isset( $args['screen'] ) || $args['screen'] === 'export_personal_data' ) {
+@@ -1551,7 +1618,7 @@
+  * @deprecated 5.3.0
+  */
+ class WP_Privacy_Data_Removal_Requests_Table extends WP_Privacy_Data_Removal_Requests_List_Table {
+-	function __construct( $args ) {
++	function __construct( mixed $args ) {
+ 		_deprecated_function( __CLASS__, '5.3.0', 'WP_Privacy_Data_Removal_Requests_List_Table' );
+ 
+ 		if ( ! isset( $args['screen'] ) || $args['screen'] === 'remove_personal_data' ) {
+@@ -1569,8 +1636,9 @@
+  * @access private
+  * @deprecated 5.3.0
+  */
+-function _wp_privacy_requests_screen_options() {
++function _wp_privacy_requests_screen_options(): mixed {
+ 	_deprecated_function( __FUNCTION__, '5.3.0' );
++	return null;
+ }
+ 
+ /**
+@@ -1584,10 +1652,11 @@
+  * @param array $attachment An array of attachment metadata.
+  * @return array Attachment post object converted to an array.
+  */
+-function image_attachment_fields_to_save( $post, $attachment ) {
++function image_attachment_fields_to_save( mixed $post, mixed $attachment ): mixed {
+ 	_deprecated_function( __FUNCTION__, '6.0.0' );
+ 
+ 	return $post;
++	return null;
+ }
+ 
+ /**
+@@ -1597,6 +1666,7 @@
+  * @deprecated 7.1.0
+  * @access private
+  */
+-function delete_users_add_js() {
++function delete_users_add_js(): mixed {
+ 	_deprecated_function( __FUNCTION__, '7.1.0' );
+-}
++	return null;
++}

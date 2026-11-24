@@ -1,0 +1,58 @@
+--- a/wp-includes/IXR/class-IXR-clientmulticall.php
++++ b/wp-includes/IXR/class-IXR-clientmulticall.php
+@@ -7,12 +7,12 @@
+  */
+ class IXR_ClientMulticall extends IXR_Client
+ {
+-    var $calls = array();
++    public $calls = array();
+ 
+ 	/**
+ 	 * PHP5 constructor.
+ 	 */
+-    function __construct( $server, $path = false, $port = 80 )
++    function __construct( mixed $server, mixed $path = false, mixed $port = 80 )
+     {
+         parent::IXR_Client($server, $path, $port);
+         $this->useragent = 'The Incutio XML-RPC PHP Library (multicall client)';
+@@ -21,8 +21,9 @@
+ 	/**
+ 	 * PHP4 constructor.
+ 	 */
+-	public function IXR_ClientMulticall( $server, $path = false, $port = 80 ) {
++	public function IXR_ClientMulticall( mixed $server, mixed $path = false, mixed $port = 80 ): mixed {
+ 		self::__construct( $server, $path, $port );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -30,14 +31,15 @@
+ 	 * @since 5.5.0 Formalized the existing `...$args` parameter by adding it
+ 	 *              to the function signature.
+ 	 */
+-    function addCall( ...$args )
++    function addCall( mixed ...$args ): mixed
+     {
+-        $methodName = array_shift($args);
++        $methodName = \wp_aot_array_shift($args);
+         $struct = array(
+             'methodName' => $methodName,
+             'params' => $args
+         );
+         $this->calls[] = $struct;
++    	return null;
+     }
+ 
+ 	/**
+@@ -47,9 +49,10 @@
+ 	 *
+ 	 * @return bool
+ 	 */
+-    function query( ...$args )
++    function query( mixed ...$args ): mixed
+     {
+         // Prepare multicall, then call the parent::query() method
+         return parent::query('system.multicall', $this->calls);
++    	return null;
+     }
+ }

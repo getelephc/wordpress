@@ -1,0 +1,28 @@
+--- a/wp-includes/ai-client/class-wp-ai-client-ability-function-resolver.php
++++ b/wp-includes/ai-client/class-wp-ai-client-ability-function-resolver.php
+@@ -49,7 +49,7 @@
+ 	 *
+ 	 * @param WP_Ability|string ...$abilities The abilities that this resolver is allowed to execute.
+ 	 */
+-	public function __construct( ...$abilities ) {
++	public function __construct( mixed ...$abilities ) {
+ 		$this->allowed_abilities = array();
+ 
+ 		foreach ( $abilities as $ability ) {
+@@ -211,7 +211,7 @@
+ 	 * @return string The function name.
+ 	 */
+ 	public static function ability_name_to_function_name( string $ability_name ): string {
+-		return self::ABILITY_PREFIX . str_replace( '/', '__', $ability_name );
++		return self::ABILITY_PREFIX . \wp_aot_str_replace( '/', '__', $ability_name );
+ 	}
+ 
+ 	/**
+@@ -227,6 +227,6 @@
+ 	public static function function_name_to_ability_name( string $function_name ): string {
+ 		$without_prefix = substr( $function_name, strlen( self::ABILITY_PREFIX ) );
+ 
+-		return str_replace( '__', '/', $without_prefix );
++		return \wp_aot_str_replace( '__', '/', $without_prefix );
+ 	}
+ }

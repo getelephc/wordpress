@@ -1,0 +1,34 @@
+--- a/wp-includes/blocks/post-comments-count.php
++++ b/wp-includes/blocks/post-comments-count.php
+@@ -15,7 +15,7 @@
+  * @param WP_Block $block      Block instance.
+  * @return string Returns the filtered post comments count for the current post.
+  */
+-function render_block_core_post_comments_count( $attributes, $content, $block ) {
++function render_block_core_post_comments_count( mixed $attributes, mixed $content, mixed $block ): mixed {
+ 	if ( ! isset( $block->context['postId'] ) ) {
+ 		return '';
+ 	}
+@@ -31,6 +31,7 @@
+ 		$wrapper_attributes,
+ 		get_comments_number( $block->context['postId'] )
+ 	);
++	return null;
+ }
+ 
+ /**
+@@ -38,12 +39,13 @@
+  *
+  * @since 6.9.0
+  */
+-function register_block_core_post_comments_count() {
++function register_block_core_post_comments_count(): mixed {
+ 	register_block_type_from_metadata(
+ 		__DIR__ . '/post-comments-count',
+ 		array(
+ 			'render_callback' => 'render_block_core_post_comments_count',
+ 		)
+ 	);
++	return null;
+ }
+ add_action( 'init', 'register_block_core_post_comments_count' );

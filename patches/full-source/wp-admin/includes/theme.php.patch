@@ -1,6 +1,15 @@
 --- a/wp-admin/includes/theme.php
 +++ b/wp-admin/includes/theme.php
-@@ -35,9 +35,9 @@
+@@ -18,7 +18,7 @@
+  * @return bool|null|WP_Error True on success, false if `$stylesheet` is empty, WP_Error on failure.
+  *                            Null if filesystem credentials are required to proceed.
+  */
+-function delete_theme( $stylesheet, $redirect = '' ) {
++function delete_theme( mixed $stylesheet, mixed $redirect = '' ): mixed {
+ 	global $wp_filesystem;
+ 
+ 	if ( empty( $stylesheet ) ) {
+@@ -35,10 +35,10 @@
  
  	if ( false === $credentials ) {
  		if ( ! empty( $data ) ) {
@@ -8,11 +17,13 @@
 +			throw new RuntimeException( 'Interactive administration templates are outside the finite native fixture.' );
  			echo $data;
 -			require_once ABSPATH . 'wp-admin/admin-footer.php';
+-			exit;
 +			throw new RuntimeException( 'Interactive administration templates are outside the finite native fixture.' );
- 			exit;
++			\wp_aot_exit();
  		}
  		return null;
-@@ -50,9 +50,9 @@
+ 	}
+@@ -50,10 +50,10 @@
  		$data = ob_get_clean();
  
  		if ( ! empty( $data ) ) {
@@ -20,16 +31,154 @@
 +			throw new RuntimeException( 'Interactive administration templates are outside the finite native fixture.' );
  			echo $data;
 -			require_once ABSPATH . 'wp-admin/admin-footer.php';
+-			exit;
 +			throw new RuntimeException( 'Interactive administration templates are outside the finite native fixture.' );
- 			exit;
++			\wp_aot_exit();
  		}
  		return null;
-@@ -820,29 +820,29 @@
+ 	}
+@@ -118,7 +118,7 @@
+ 
+ 			$json_translation_files = glob( WP_LANG_DIR . '/themes/' . $stylesheet . '-' . $translation . '-*.json' );
+ 			if ( $json_translation_files ) {
+-				array_map( array( $wp_filesystem, 'delete' ), $json_translation_files );
++				\wp_aot_array_map( array( $wp_filesystem, 'delete' ), $json_translation_files );
+ 			}
+ 		}
+ 	}
+@@ -135,6 +135,7 @@
+ 	delete_site_transient( 'update_themes' );
+ 
+ 	return true;
++	return null;
+ }
+ 
+ /**
+@@ -147,8 +148,9 @@
+  * @param string       $post_type Optional. Post type to get the templates for. Default 'page'.
+  * @return string[] Array of template file names keyed by the template header name.
+  */
+-function get_page_templates( $post = null, $post_type = 'page' ) {
+-	return array_flip( wp_get_theme()->get_page_templates( $post, $post_type ) );
++function get_page_templates( mixed $post = null, mixed $post_type = 'page' ): mixed {
++	return \wp_aot_array_flip( wp_get_theme()->get_page_templates( $post, $post_type ) );
++	return null;
+ }
+ 
+ /**
+@@ -161,8 +163,9 @@
+  * @param string $containingfolder Path of the theme parent folder
+  * @return string
+  */
+-function _get_template_edit_filename( $fullpath, $containingfolder ) {
+-	return str_replace( dirname( $containingfolder, 2 ), '', $fullpath );
++function _get_template_edit_filename( mixed $fullpath, mixed $containingfolder ): mixed {
++	return \wp_aot_str_replace( dirname( $containingfolder, 2 ), '', $fullpath );
++	return null;
+ }
+ 
+ /**
+@@ -176,8 +179,9 @@
+  *
+  * @param WP_Theme $theme Theme data object.
+  */
+-function theme_update_available( $theme ) {
++function theme_update_available( mixed $theme ): mixed {
+ 	echo get_theme_update_available( $theme );
++	return null;
+ }
+ 
+ /**
+@@ -190,8 +194,9 @@
+  * @param WP_Theme $theme WP_Theme object.
+  * @return string|false HTML for the update link, or false if invalid info was passed.
+  */
+-function get_theme_update_available( $theme ) {
+-	static $themes_update = null;
++function get_theme_update_available( mixed $theme ): mixed {
++	static $themes_update_aot_cell = new \WordPressStaticValueCell();
++	$themes_update =& $themes_update_aot_cell->value;
+ 
+ 	if ( ! current_user_can( 'update_themes' ) ) {
+ 		return false;
+@@ -274,6 +279,7 @@
+ 	}
+ 
+ 	return $html;
++	return null;
+ }
+ 
+ /**
+@@ -311,7 +317,7 @@
+  * @param bool $api Optional. Whether try to fetch tags from the WordPress.org API. Defaults to true.
+  * @return array Array of features keyed by category with translations keyed by slug.
+  */
+-function get_theme_feature_list( $api = true ) {
++function get_theme_feature_list( mixed $api = true ): mixed {
+ 	// Hard-coded list is used if API is not accessible.
+ 	$features = array(
+ 
+@@ -405,6 +411,7 @@
+ 	}
+ 
+ 	return $wporg_features;
++	return null;
+ }
+ 
+ /**
+@@ -488,7 +495,7 @@
+  *         {@link https://developer.wordpress.org/reference/functions/themes_api/ function reference article}
+  *         for more information on the make-up of possible return objects depending on the value of `$action`.
+  */
+-function themes_api( $action, $args = array() ) {
++function themes_api( mixed $action, mixed $args = array() ): mixed {
+ 	if ( is_array( $args ) ) {
+ 		$args = (object) $args;
+ 	}
+@@ -568,7 +575,7 @@
+ 						__( 'An unexpected error occurred. Something may be wrong with WordPress.org or this server&#8217;s configuration. If you continue to have problems, please try the <a href="%s">support forums</a>.' ),
+ 						__( 'https://wordpress.org/support/forums/' )
+ 					) . ' ' . __( '(WordPress could not establish a secure connection to WordPress.org. Please contact your server administrator.)' ),
+-					headers_sent() || WP_DEBUG ? E_USER_WARNING : E_USER_NOTICE
++					\wp_aot_native_headers_sent() || WP_DEBUG ? E_USER_WARNING : E_USER_NOTICE
+ 				);
+ 			}
+ 			$request = wp_remote_get( $http_url, $http_args );
+@@ -632,6 +639,7 @@
+ 	 * @param stdClass                $args   Arguments used to query for installer pages from the WordPress.org Themes API.
+ 	 */
+ 	return apply_filters( 'themes_api_result', $res, $action, $args );
++	return null;
+ }
+ 
+ /**
+@@ -644,7 +652,7 @@
+  *
+  * @return array An associative array of theme data, sorted by name.
+  */
+-function wp_prepare_themes_for_js( $themes = null ) {
++function wp_prepare_themes_for_js( mixed $themes = null ): mixed {
+ 	$current_theme = get_stylesheet();
+ 
+ 	/**
+@@ -811,7 +819,8 @@
+ 	 */
+ 	$prepared_themes = apply_filters( 'wp_prepare_themes_for_js', $prepared_themes );
+ 	$prepared_themes = array_values( $prepared_themes );
+-	return array_filter( $prepared_themes );
++	return \wp_aot_array_filter( $prepared_themes );
++	return null;
+ }
+ 
+ /**
+@@ -819,30 +828,30 @@
+  *
   * @since 4.2.0
   */
- function customize_themes_print_templates() {
+-function customize_themes_print_templates() {
 -	?>
 -	<script type="text/html" id="tmpl-customize-themes-details-view">
++function customize_themes_print_templates(): mixed {
 +	;
 +echo '	<script type="text/html" id="tmpl-customize-themes-details-view">
  		<div class="theme-backdrop"></div>
@@ -65,7 +214,7 @@
  			</div>
  			<div class="theme-about wp-clearfix">
  				<div class="theme-screenshots">
-@@ -855,26 +855,28 @@
+@@ -855,26 +864,28 @@
  
  				<div class="theme-info">
  					<# if ( data.active ) { #>
@@ -102,7 +251,7 @@
  								printf(
  									'%1$s <span class="screen-reader-text">%2$s</span>',
  									/* translators: %s: Number of ratings. */
-@@ -882,23 +884,27 @@
+@@ -882,23 +893,27 @@
  									/* translators: Hidden accessibility text. */
  									__( '(opens in a new tab)' )
  								);
@@ -135,7 +284,7 @@
  										printf(
  											/* translators: %s: Theme name. */
  											__( 'There is a new version of %s available, but it does not work with your versions of WordPress and PHP.' ),
-@@ -926,9 +932,9 @@
+@@ -926,9 +941,9 @@
  											);
  											wp_update_php_annotation( '</p><p><em>', '</em>' );
  										}
@@ -148,7 +297,7 @@
  										printf(
  											/* translators: %s: Theme name. */
  											__( 'There is a new version of %s available, but it does not work with your version of WordPress.' ),
-@@ -941,9 +947,9 @@
+@@ -941,9 +956,9 @@
  												self_admin_url( 'update-core.php' )
  											);
  										}
@@ -161,7 +310,7 @@
  										printf(
  											/* translators: %s: Theme name. */
  											__( 'There is a new version of %s available, but it does not work with your version of PHP.' ),
-@@ -957,8 +963,8 @@
+@@ -957,8 +972,8 @@
  											);
  											wp_update_php_annotation( '</p><p><em>', '</em>' );
  										}
@@ -172,7 +321,7 @@
  								</p>
  							</div>
  						<# } #>
-@@ -966,20 +972,20 @@
+@@ -966,20 +981,20 @@
  
  					<# if ( data.parent ) { #>
  						<p class="parent-theme">
@@ -197,7 +346,7 @@
  								_e( 'This theme does not work with your versions of WordPress and PHP.' );
  								if ( current_user_can( 'update_core' ) && current_user_can( 'update_php' ) ) {
  									printf(
-@@ -1003,9 +1009,9 @@
+@@ -1003,9 +1018,9 @@
  									);
  									wp_update_php_annotation( '</p><p><em>', '</em>' );
  								}
@@ -210,7 +359,7 @@
  								_e( 'This theme does not work with your version of WordPress.' );
  								if ( current_user_can( 'update_core' ) ) {
  									printf(
-@@ -1014,9 +1020,9 @@
+@@ -1014,9 +1029,9 @@
  										self_admin_url( 'update-core.php' )
  									);
  								}
@@ -223,7 +372,7 @@
  								_e( 'This theme does not work with your version of PHP.' );
  								if ( current_user_can( 'update_php' ) ) {
  									printf(
-@@ -1026,73 +1032,97 @@
+@@ -1026,73 +1041,98 @@
  									);
  									wp_update_php_annotation( '</p><p><em>', '</em>' );
  								}
@@ -345,10 +494,54 @@
  	</script>
 -	<?php
 +	';
++	return null;
  }
  
  /**
-@@ -1197,7 +1227,7 @@
+@@ -1110,7 +1150,7 @@
+  * @param string $theme Path to the theme directory relative to the themes directory.
+  * @return bool True, if in the list of paused themes. False, not in the list.
+  */
+-function is_theme_paused( $theme ) {
++function is_theme_paused( mixed $theme ): mixed {
+ 	if ( ! isset( $GLOBALS['_paused_themes'] ) ) {
+ 		return false;
+ 	}
+@@ -1120,6 +1160,7 @@
+ 	}
+ 
+ 	return array_key_exists( $theme, $GLOBALS['_paused_themes'] );
++	return null;
+ }
+ 
+ /**
+@@ -1134,7 +1175,7 @@
+  * @return array|false Array of error information as it was returned by
+  *                     `error_get_last()`, or false if none was recorded.
+  */
+-function wp_get_theme_error( $theme ) {
++function wp_get_theme_error( mixed $theme ): mixed {
+ 	if ( ! isset( $GLOBALS['_paused_themes'] ) ) {
+ 		return false;
+ 	}
+@@ -1144,6 +1185,7 @@
+ 	}
+ 
+ 	return $GLOBALS['_paused_themes'][ $theme ];
++	return null;
+ }
+ 
+ /**
+@@ -1166,7 +1208,7 @@
+  * @return bool|WP_Error True on success, false if `$theme` was not paused,
+  *                       `WP_Error` on failure.
+  */
+-function resume_theme( $theme, $redirect = '' ) {
++function resume_theme( mixed $theme, mixed $redirect = '' ): mixed {
+ 	global $wp_stylesheet_path, $wp_template_path;
+ 
+ 	list( $extension ) = explode( '/', $theme );
+@@ -1197,7 +1239,7 @@
  			if ( ! defined( 'WP_SANDBOX_SCRAPING' ) ) {
  				define( 'WP_SANDBOX_SCRAPING', true );
  			}
@@ -357,3 +550,39 @@
  			ob_clean();
  		}
  	}
+@@ -1212,6 +1254,7 @@
+ 	}
+ 
+ 	return true;
++	return null;
+ }
+ 
+ /**
+@@ -1222,17 +1265,17 @@
+  * @global string                       $pagenow        The filename of the current screen.
+  * @global WP_Paused_Extensions_Storage $_paused_themes
+  */
+-function paused_themes_notice() {
++function paused_themes_notice(): mixed {
+ 	if ( 'themes.php' === $GLOBALS['pagenow'] ) {
+-		return;
++		return null;
+ 	}
+ 
+ 	if ( ! current_user_can( 'resume_themes' ) ) {
+-		return;
++		return null;
+ 	}
+ 
+ 	if ( ! isset( $GLOBALS['_paused_themes'] ) || empty( $GLOBALS['_paused_themes'] ) ) {
+-		return;
++		return null;
+ 	}
+ 
+ 	$message = sprintf(
+@@ -1249,4 +1292,5 @@
+ 			'paragraph_wrap' => false,
+ 		)
+ 	);
++	return null;
+ }

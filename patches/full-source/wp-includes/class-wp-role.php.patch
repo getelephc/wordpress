@@ -1,0 +1,51 @@
+--- a/wp-includes/class-wp-role.php
++++ b/wp-includes/class-wp-role.php
+@@ -43,7 +43,7 @@
+ 	 * @param bool[] $capabilities Array of key/value pairs where keys represent a capability name and boolean values
+ 	 *                             represent whether the role has that capability.
+ 	 */
+-	public function __construct( $role, $capabilities ) {
++	public function __construct( mixed $role, mixed $capabilities ) {
+ 		$this->name         = $role;
+ 		$this->capabilities = $capabilities;
+ 	}
+@@ -56,9 +56,10 @@
+ 	 * @param string $cap   Capability name.
+ 	 * @param bool   $grant Whether role has capability privilege.
+ 	 */
+-	public function add_cap( $cap, $grant = true ) {
++	public function add_cap( mixed $cap, mixed $grant = true ): mixed {
+ 		$this->capabilities[ $cap ] = $grant;
+ 		wp_roles()->add_cap( $this->name, $cap, $grant );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -68,9 +69,10 @@
+ 	 *
+ 	 * @param string $cap Capability name.
+ 	 */
+-	public function remove_cap( $cap ) {
++	public function remove_cap( mixed $cap ): mixed {
+ 		unset( $this->capabilities[ $cap ] );
+ 		wp_roles()->remove_cap( $this->name, $cap );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -81,7 +83,7 @@
+ 	 * @param string $cap Capability name.
+ 	 * @return bool Whether the role has the given capability.
+ 	 */
+-	public function has_cap( $cap ) {
++	public function has_cap( mixed $cap ): mixed {
+ 		/**
+ 		 * Filters which capabilities a role has.
+ 		 *
+@@ -99,5 +101,6 @@
+ 		} else {
+ 			return false;
+ 		}
++		return null;
+ 	}
+ }

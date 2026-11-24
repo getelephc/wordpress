@@ -1,6 +1,32 @@
 --- a/wp-admin/includes/class-wp-privacy-data-removal-requests-list-table.php
 +++ b/wp-admin/includes/class-wp-privacy-data-removal-requests-list-table.php
-@@ -135,12 +135,22 @@
+@@ -43,7 +43,7 @@
+ 	 * @param WP_User_Request $item Item being shown.
+ 	 * @return string Email column markup.
+ 	 */
+-	public function column_email( $item ) {
++	public function column_email( mixed $item ): mixed {
+ 		$row_actions = array();
+ 
+ 		// Allow the administrator to "force remove" the personal data even if confirmation has not yet been received.
+@@ -105,6 +105,7 @@
+ 		}
+ 
+ 		return sprintf( '<a href="%1$s">%2$s</a> %3$s', esc_url( 'mailto:' . $item->email ), esc_html( $item->email ), $this->row_actions( $row_actions ) );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -114,7 +115,7 @@
+ 	 *
+ 	 * @param WP_User_Request $item Item being shown.
+ 	 */
+-	public function column_next_steps( $item ) {
++	public function column_next_steps( mixed $item ): mixed {
+ 		$status = $item->status;
+ 
+ 		switch ( $status ) {
+@@ -135,12 +136,22 @@
  					'data-nonce="' . esc_attr( $nonce ) .
  					'">';
  
@@ -29,3 +55,21 @@
  
  				echo '</div>';
  
+@@ -163,6 +174,7 @@
+ 				) . '">' . esc_html__( 'Remove request' ) . '</a>';
+ 				break;
+ 		}
++		return null;
+ 	}
+ 
+ 	/**
+@@ -176,7 +188,8 @@
+ 	 * @param WP_User_Request $item Item being shown.
+ 	 * @return string The user request item email.
+ 	 */
+-	protected function get_primary_column_aria_label( $item ) {
++	protected function get_primary_column_aria_label( mixed $item ): mixed {
+ 		return $item->email;
++		return null;
+ 	}
+ }

@@ -1,0 +1,247 @@
+--- a/wp-includes/blocks/navigation-link.php
++++ b/wp-includes/blocks/navigation-link.php
+@@ -19,7 +19,7 @@
+  * @param  bool  $is_sub_menu Whether the link is part of a sub-menu. Default false.
+  * @return array Colors CSS classes and inline styles.
+  */
+-function block_core_navigation_link_build_css_colors( $context, $attributes, $is_sub_menu = false ) {
++function block_core_navigation_link_build_css_colors( mixed $context, mixed $attributes, mixed $is_sub_menu = false ): mixed {
+ 	$colors = array(
+ 		'css_classes'   => array(),
+ 		'inline_styles' => '',
+@@ -44,7 +44,7 @@
+ 	// If has text color.
+ 	if ( ! is_null( $named_text_color ) ) {
+ 		// Add the color class.
+-		array_push( $colors['css_classes'], 'has-text-color', sprintf( 'has-%s-color', $named_text_color ) );
++		\wp_aot_array_push( $colors['css_classes'],array( 'has-text-color', sprintf( 'has-%s-color', $named_text_color ) ));
+ 	} elseif ( ! is_null( $custom_text_color ) ) {
+ 		// Add the custom color inline style.
+ 		$colors['css_classes'][]  = 'has-text-color';
+@@ -70,7 +70,7 @@
+ 	// If has background color.
+ 	if ( ! is_null( $named_background_color ) ) {
+ 		// Add the background-color class.
+-		array_push( $colors['css_classes'], 'has-background', sprintf( 'has-%s-background-color', $named_background_color ) );
++		\wp_aot_array_push( $colors['css_classes'],array( 'has-background', sprintf( 'has-%s-background-color', $named_background_color ) ));
+ 	} elseif ( ! is_null( $custom_background_color ) ) {
+ 		// Add the custom background-color inline style.
+ 		$colors['css_classes'][]  = 'has-background';
+@@ -78,6 +78,7 @@
+ 	}
+ 
+ 	return $colors;
++	return null;
+ }
+ 
+ /**
+@@ -93,7 +94,7 @@
+  * @param  array $context Navigation block context.
+  * @return array Font size CSS classes and inline styles.
+  */
+-function block_core_navigation_link_build_css_font_sizes( $context ) {
++function block_core_navigation_link_build_css_font_sizes( mixed $context ): mixed {
+ 	_deprecated_function( __FUNCTION__, '7.0.0' );
+ 
+ 	// CSS classes.
+@@ -121,6 +122,7 @@
+ 	}
+ 
+ 	return $font_sizes;
++	return null;
+ }
+ 
+ /**
+@@ -131,13 +133,14 @@
+  *
+  * @return string
+  */
+-function block_core_navigation_link_render_submenu_icon() {
++function block_core_navigation_link_render_submenu_icon(): mixed {
+ 	_deprecated_function(
+ 		__FUNCTION__,
+ 		'7.0.0',
+ 		'block_core_shared_navigation_render_submenu_icon()'
+ 	);
+ 	return block_core_shared_navigation_render_submenu_icon();
++	return null;
+ }
+ 
+ /**
+@@ -149,7 +152,7 @@
+  *
+  * @return string $url Returns the decoded url.
+  */
+-function block_core_navigation_link_maybe_urldecode( $url ) {
++function block_core_navigation_link_maybe_urldecode( mixed $url ): mixed {
+ 	$is_url_encoded = false;
+ 	$query          = parse_url( $url, PHP_URL_QUERY );
+ 	$query_params   = wp_parse_args( $query );
+@@ -170,6 +173,7 @@
+ 	}
+ 
+ 	return $url;
++	return null;
+ }
+ 
+ 
+@@ -184,10 +188,10 @@
+  *
+  * @return string Returns the post content with the legacy widget added.
+  */
+-function render_block_core_navigation_link( $attributes, $content, $block ) {
++function render_block_core_navigation_link( mixed $attributes, mixed $content, mixed $block ): mixed {
+ 	// Check if this navigation item should render based on post status.
+-	if ( defined( 'IS_GUTENBERG_PLUGIN' ) && IS_GUTENBERG_PLUGIN ) {
+-		$should_render = gutenberg_block_core_shared_navigation_item_should_render( $attributes, $block );
++	if ( defined( 'IS_GUTENBERG_PLUGIN' ) && \wp_aot_undefined_constant('IS_GUTENBERG_PLUGIN') ) {
++		$should_render = \wp_aot_native_api('gutenberg_block_core_shared_navigation_item_should_render', array( $attributes, $block ));
+ 	} else {
+ 		$should_render = block_core_shared_navigation_item_should_render( $attributes, $block );
+ 	}
+@@ -210,7 +214,7 @@
+ 	$has_submenu = ! empty( trim( $inner_blocks_html ) );
+ 
+ 	$css_classes = trim( implode( ' ', $classes ) );
+-	$kind        = empty( $attributes['kind'] ) ? 'post_type' : str_replace( '-', '_', $attributes['kind'] );
++	$kind        = empty( $attributes['kind'] ) ? 'post_type' : \wp_aot_str_replace( '-', '_', $attributes['kind'] );
+ 	$is_active   = ! empty( $attributes['id'] ) && get_queried_object_id() === (int) $attributes['id'] && ! empty( get_queried_object()->$kind );
+ 
+ 	if ( is_post_type_archive() && ! empty( $attributes['url'] ) ) {
+@@ -278,8 +282,8 @@
+ 	if ( isset( $block->context['showSubmenuIcon'] ) && $block->context['showSubmenuIcon'] && $has_submenu ) {
+ 		// The submenu icon can be hidden by a CSS rule on the Navigation Block.
+ 		$html .= '<span class="wp-block-navigation__submenu-icon">';
+-		if ( defined( 'IS_GUTENBERG_PLUGIN' ) && IS_GUTENBERG_PLUGIN ) {
+-			$html .= gutenberg_block_core_shared_navigation_render_submenu_icon();
++		if ( defined( 'IS_GUTENBERG_PLUGIN' ) && \wp_aot_undefined_constant('IS_GUTENBERG_PLUGIN') ) {
++			$html .= \wp_aot_native_api('gutenberg_block_core_shared_navigation_render_submenu_icon', array());
+ 		} else {
+ 			$html .= block_core_shared_navigation_render_submenu_icon();
+ 		}
+@@ -296,6 +300,7 @@
+ 	$html .= '</li>';
+ 
+ 	return $html;
++	return null;
+ }
+ 
+ /**
+@@ -308,7 +313,7 @@
+  *
+  * @return array
+  */
+-function build_variation_for_navigation_link( $entity, $kind ) {
++function build_variation_for_navigation_link( mixed $entity, mixed $kind ): mixed {
+ 	$title       = '';
+ 	$description = '';
+ 
+@@ -322,7 +327,7 @@
+ 
+ 	// Get title and check if it's default
+ 	$is_default_title = false;
+-	if ( property_exists( $entity->labels, 'item_link' ) ) {
++	if ( \wp_aot_property_exists( $entity->labels, 'item_link' ) ) {
+ 		$title = $entity->labels->item_link;
+ 		if ( isset( $default_labels['item_link'] ) ) {
+ 			$is_default_title = in_array( $title, $default_labels['item_link'], true );
+@@ -331,7 +336,7 @@
+ 
+ 	// Get description and check if it's default
+ 	$is_default_description = false;
+-	if ( property_exists( $entity->labels, 'item_link_description' ) ) {
++	if ( \wp_aot_property_exists( $entity->labels, 'item_link_description' ) ) {
+ 		$description = $entity->labels->item_link_description;
+ 		if ( isset( $default_labels['item_link_description'] ) ) {
+ 			$is_default_description = in_array( $description, $default_labels['item_link_description'], true );
+@@ -358,7 +363,7 @@
+ 		$description = ' ';
+ 	}
+ 
+-	$variation = array(
++	$variation = \wp_aot_mixed(array(
+ 		'name'        => $entity->name,
+ 		'title'       => $title,
+ 		'description' => $description,
+@@ -366,7 +371,7 @@
+ 			'type' => $entity->name,
+ 			'kind' => $kind,
+ 		),
+-	);
++	));
+ 
+ 	// Tweak some value for the variations.
+ 	$variation_overrides = array(
+@@ -390,13 +395,14 @@
+ 	);
+ 
+ 	if ( array_key_exists( $entity->name, $variation_overrides ) ) {
+-		$variation = array_merge(
++		$variation = \wp_aot_array_merge(array(
+ 			$variation,
+ 			$variation_overrides[ $entity->name ]
+-		);
++		));
+ 	}
+ 
+ 	return $variation;
++	return null;
+ }
+ 
+ /**
+@@ -409,7 +415,7 @@
+  * @param WP_Block_Type $block_type The full block type object.
+  * @return array Numerically indexed array of block variations.
+  */
+-function block_core_navigation_link_filter_variations( $variations, $block_type ) {
++function block_core_navigation_link_filter_variations( mixed $variations, mixed $block_type ): mixed {
+ 	if ( 'core/navigation-link' !== $block_type->name ) {
+ 		return $variations;
+ 	}
+@@ -436,7 +442,8 @@
+ 	 *
+ 	 * See: https://github.com/WordPress/gutenberg/pull/72517
+ 	 */
+-	return array_merge( $generated_variations, $variations );
++	return \wp_aot_array_merge(array( $generated_variations, $variations ));
++	return null;
+ }
+ 
+ /**
+@@ -446,7 +453,7 @@
+  *
+  * @return array
+  */
+-function block_core_navigation_link_build_variations() {
++function block_core_navigation_link_build_variations(): mixed {
+ 	$post_types = get_post_types( array( 'show_in_nav_menus' => true ), 'objects' );
+ 	$taxonomies = get_taxonomies( array( 'show_in_nav_menus' => true ), 'objects' );
+ 
+@@ -480,9 +487,10 @@
+ 		}
+ 	}
+ 
+-	$all_variations = array_merge( $built_ins, $variations );
++	$all_variations = \wp_aot_array_merge(array( $built_ins, $variations ));
+ 
+ 	return $all_variations;
++	return null;
+ }
+ 
+ /**
+@@ -493,13 +501,14 @@
+  * @uses render_block_core_navigation_link()
+  * @throws WP_Error An WP_Error exception parsing the block definition.
+  */
+-function register_block_core_navigation_link() {
++function register_block_core_navigation_link(): mixed {
+ 	register_block_type_from_metadata(
+ 		__DIR__ . '/navigation-link',
+ 		array(
+ 			'render_callback' => 'render_block_core_navigation_link',
+ 		)
+ 	);
++	return null;
+ }
+ add_action( 'init', 'register_block_core_navigation_link' );
+ /**

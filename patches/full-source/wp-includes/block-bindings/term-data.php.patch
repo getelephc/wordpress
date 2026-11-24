@@ -1,0 +1,40 @@
+--- a/wp-includes/block-bindings/term-data.php
++++ b/wp-includes/block-bindings/term-data.php
+@@ -18,7 +18,7 @@
+  * @param WP_Block $block_instance The block instance.
+  * @return mixed The value computed for the source.
+  */
+-function _block_bindings_term_data_get_value( array $source_args, $block_instance ) {
++function _block_bindings_term_data_get_value( array $source_args, mixed $block_instance ): mixed {
+ 	if ( empty( $source_args['field'] ) ) {
+ 		return null;
+ 	}
+@@ -92,6 +92,7 @@
+ 		default:
+ 			return null;
+ 	}
++	return null;
+ }
+ 
+ /**
+@@ -100,10 +101,10 @@
+  * @since 6.9.0
+  * @access private
+  */
+-function _register_block_bindings_term_data_source() {
++function _register_block_bindings_term_data_source(): mixed {
+ 	if ( get_block_bindings_source( 'core/term-data' ) ) {
+ 		// The source is already registered.
+-		return;
++		return null;
+ 	}
+ 
+ 	register_block_bindings_source(
+@@ -114,6 +115,7 @@
+ 			'uses_context'       => array( 'termId', 'taxonomy' ),
+ 		)
+ 	);
++	return null;
+ }
+ 
+ add_action( 'init', '_register_block_bindings_term_data_source' );

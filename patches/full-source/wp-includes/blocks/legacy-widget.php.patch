@@ -1,6 +1,53 @@
 --- a/wp-includes/blocks/legacy-widget.php
 +++ b/wp-includes/blocks/legacy-widget.php
-@@ -90,15 +90,20 @@
+@@ -16,7 +16,7 @@
+  *
+  * @return string Rendered block.
+  */
+-function render_block_core_legacy_widget( $attributes ) {
++function render_block_core_legacy_widget( mixed $attributes ): mixed {
+ 	global $wp_widget_factory;
+ 
+ 	if ( isset( $attributes['id'] ) ) {
+@@ -54,6 +54,7 @@
+ 	ob_start();
+ 	the_widget( $widget_key, $instance, $args );
+ 	return ob_get_clean();
++	return null;
+ }
+ 
+ /**
+@@ -61,13 +62,14 @@
+  *
+  * @since 5.8.0
+  */
+-function register_block_core_legacy_widget() {
++function register_block_core_legacy_widget(): mixed {
+ 	register_block_type_from_metadata(
+ 		__DIR__ . '/legacy-widget',
+ 		array(
+ 			'render_callback' => 'render_block_core_legacy_widget',
+ 		)
+ 	);
++	return null;
+ }
+ 
+ add_action( 'init', 'register_block_core_legacy_widget' );
+@@ -79,26 +81,31 @@
+  *
+  * @since 5.8.0
+  */
+-function handle_legacy_widget_preview_iframe() {
++function handle_legacy_widget_preview_iframe(): mixed {
+ 	if ( empty( $_GET['legacy-widget-preview'] ) ) {
+-		return;
++		return null;
+ 	}
+ 
+ 	if ( ! current_user_can( 'edit_theme_options' ) ) {
+-		return;
++		return null;
+ 	}
  
  	define( 'IFRAME_REQUEST', true );
  
@@ -27,7 +74,7 @@
  			/* Reset theme styles */
  			html, body, #page, #content {
  				padding: 0 !important;
-@@ -133,20 +138,23 @@
+@@ -133,22 +140,26 @@
  			}
  		</style>
  	</head>
@@ -56,5 +103,9 @@
 -	<?php
 +	';
  
- 	exit;
+-	exit;
++	\wp_aot_exit();
++	return null;
  }
+ 
+ // Use admin_init instead of init to ensure get_current_screen function is already available.

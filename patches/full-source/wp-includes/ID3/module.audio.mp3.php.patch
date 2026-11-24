@@ -1,0 +1,575 @@
+--- a/wp-includes/ID3/module.audio.mp3.php
++++ b/wp-includes/ID3/module.audio.mp3.php
+@@ -15,7 +15,7 @@
+ /////////////////////////////////////////////////////////////////
+ 
+ if (!defined('GETID3_INCLUDEPATH')) { // prevent path-exposing attacks that access modules directly on public webservers
+-	exit;
++	\wp_aot_exit();
+ }
+ 
+ 
+@@ -41,7 +41,7 @@
+ 	/**
+ 	 * @return bool
+ 	 */
+-	public function Analyze() {
++	public function Analyze(): mixed {
+ 		$info = &$this->getid3->info;
+ 
+ 		$initialOffset = $info['avdataoffset'];
+@@ -101,7 +101,7 @@
+ 		}
+ 
+ 		$CurrentDataLAMEversionString = (!empty($CurrentDataLAMEversionString) ? $CurrentDataLAMEversionString : (isset($info['audio']['encoder']) ? $info['audio']['encoder'] : ''));
+-		if (!empty($CurrentDataLAMEversionString) && (substr($CurrentDataLAMEversionString, 0, 6) == 'LAME3.') && !preg_match('[0-9\)]', substr($CurrentDataLAMEversionString, -1))) {
++		if (!empty($CurrentDataLAMEversionString) && (substr($CurrentDataLAMEversionString, 0, 6) == 'LAME3.') && !preg_match('[0-9\)]', \wp_aot_regex_text( substr($CurrentDataLAMEversionString, -1) ))) {
+ 			// a version number of LAME that does not end with a number like "LAME3.92"
+ 			// or with a closing parenthesis like "LAME3.88 (alpha)"
+ 			// or a version of LAME with the LAMEtag-not-filled-in-DLL-mode bug (3.90-3.92)
+@@ -126,7 +126,7 @@
+ 					$PossiblyLongerLAMEversion_NewString = substr($PossiblyLongerLAMEversion_String, 0, strspn($PossiblyLongerLAMEversion_String, 'LAME0123456789., (abcdefghijklmnopqrstuvwxyzJFSOND)')); //"LAME3.90.3"  "LAME3.87 (beta 1, Sep 27 2000)" "LAME3.88 (beta)"
+ 					if (empty($info['audio']['encoder']) || (strlen($PossiblyLongerLAMEversion_NewString) > strlen($info['audio']['encoder']))) {
+ 						if (!empty($info['audio']['encoder']) && !empty($info['mpeg']['audio']['LAME']['short_version']) && ($info['audio']['encoder'] == $info['mpeg']['audio']['LAME']['short_version'])) {
+-							if (preg_match('#^LAME[0-9\\.]+#', $PossiblyLongerLAMEversion_NewString, $matches)) {
++							if (preg_match('#^LAME[0-9\\.]+#', \wp_aot_regex_text( $PossiblyLongerLAMEversion_NewString ), $matches)) {
+ 								// "LAME3.100" -> "LAME3.100.1", but avoid including "(alpha)" and similar
+ 								$info['mpeg']['audio']['LAME']['short_version'] = $matches[0];
+ 							}
+@@ -183,12 +183,13 @@
+ 		$info['audio']['encoder_options'] = $this->GuessEncoderOptions();
+ 
+ 		return true;
++		return null;
+ 	}
+ 
+ 	/**
+ 	 * @return string
+ 	 */
+-	public function GuessEncoderOptions() {
++	public function GuessEncoderOptions(): mixed {
+ 		// shortcuts
+ 		$info = &$this->getid3->info;
+ 		$thisfile_mpeg_audio = array();
+@@ -213,7 +214,8 @@
+ 
+ 		} elseif (!empty($thisfile_mpeg_audio_lame['vbr_quality'])) {
+ 
+-			static $KnownEncoderValues = array();
++			static $KnownEncoderValues_aot_cell = new \WordPressStaticArrayCell();
++			$KnownEncoderValues =& $KnownEncoderValues_aot_cell->value;
+ 			if (empty($KnownEncoderValues)) {
+ 
+ 				//$KnownEncoderValues[abrbitrate_minbitrate][vbr_quality][raw_vbr_method][raw_noise_shaping][raw_stereo_mode][ath_type][lowpass_frequency] = 'preset name';
+@@ -439,6 +441,7 @@
+ 		}
+ 
+ 		return $encoder_options;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -450,14 +453,21 @@
+ 	 *
+ 	 * @return bool
+ 	 */
+-	public function decodeMPEGaudioHeader($offset, &$info, $recursivesearch=true, $ScanAsCBR=false, $FastMPEGheaderScan=false) {
+-		static $MPEGaudioVersionLookup;
+-		static $MPEGaudioLayerLookup;
+-		static $MPEGaudioBitrateLookup;
+-		static $MPEGaudioFrequencyLookup;
+-		static $MPEGaudioChannelModeLookup;
+-		static $MPEGaudioModeExtensionLookup;
+-		static $MPEGaudioEmphasisLookup;
++	public function decodeMPEGaudioHeader(mixed $offset, mixed &$info, mixed $recursivesearch=true, mixed $ScanAsCBR=false, mixed $FastMPEGheaderScan=false): mixed {
++		static $MPEGaudioVersionLookup_aot_cell = new \WordPressStaticValueCell();
++		$MPEGaudioVersionLookup =& $MPEGaudioVersionLookup_aot_cell->value;
++		static $MPEGaudioLayerLookup_aot_cell = new \WordPressStaticValueCell();
++		$MPEGaudioLayerLookup =& $MPEGaudioLayerLookup_aot_cell->value;
++		static $MPEGaudioBitrateLookup_aot_cell = new \WordPressStaticValueCell();
++		$MPEGaudioBitrateLookup =& $MPEGaudioBitrateLookup_aot_cell->value;
++		static $MPEGaudioFrequencyLookup_aot_cell = new \WordPressStaticValueCell();
++		$MPEGaudioFrequencyLookup =& $MPEGaudioFrequencyLookup_aot_cell->value;
++		static $MPEGaudioChannelModeLookup_aot_cell = new \WordPressStaticValueCell();
++		$MPEGaudioChannelModeLookup =& $MPEGaudioChannelModeLookup_aot_cell->value;
++		static $MPEGaudioModeExtensionLookup_aot_cell = new \WordPressStaticValueCell();
++		$MPEGaudioModeExtensionLookup =& $MPEGaudioModeExtensionLookup_aot_cell->value;
++		static $MPEGaudioEmphasisLookup_aot_cell = new \WordPressStaticValueCell();
++		$MPEGaudioEmphasisLookup =& $MPEGaudioEmphasisLookup_aot_cell->value;
+ 		if (empty($MPEGaudioVersionLookup)) {
+ 			$MPEGaudioVersionLookup       = self::MPEGaudioVersionArray();
+ 			$MPEGaudioLayerLookup         = self::MPEGaudioLayerArray();
+@@ -483,7 +493,8 @@
+ 
+ 		$head4 = substr($headerstring, 0, 4);
+ 		$head4_key = getid3_lib::PrintHexBytes($head4, true, false, false);
+-		static $MPEGaudioHeaderDecodeCache = array();
++		static $MPEGaudioHeaderDecodeCache_aot_cell = new \WordPressStaticArrayCell();
++		$MPEGaudioHeaderDecodeCache =& $MPEGaudioHeaderDecodeCache_aot_cell->value;
+ 		if (isset($MPEGaudioHeaderDecodeCache[$head4_key])) {
+ 			$MPEGheaderRawArray = $MPEGaudioHeaderDecodeCache[$head4_key];
+ 		} else {
+@@ -491,7 +502,8 @@
+ 			$MPEGaudioHeaderDecodeCache[$head4_key] = $MPEGheaderRawArray;
+ 		}
+ 
+-		static $MPEGaudioHeaderValidCache = array();
++		static $MPEGaudioHeaderValidCache_aot_cell = new \WordPressStaticArrayCell();
++		$MPEGaudioHeaderValidCache =& $MPEGaudioHeaderValidCache_aot_cell->value;
+ 		if (!isset($MPEGaudioHeaderValidCache[$head4_key])) { // Not in cache
+ 			//$MPEGaudioHeaderValidCache[$head4_key] = self::MPEGaudioHeaderValid($MPEGheaderRawArray, false, true);  // allow badly-formatted freeformat (from LAME 3.90 - 3.93.1)
+ 			$MPEGaudioHeaderValidCache[$head4_key] = self::MPEGaudioHeaderValid($MPEGheaderRawArray, false, false);
+@@ -702,7 +714,7 @@
+ 						$used_filesize -= (isset($info['id3v2']['headerlength']) ? intval($info['id3v2']['headerlength']) : 0);
+ 						$used_filesize -= (isset($info['id3v1']) ? 128 : 0);
+ 						$used_filesize -= (isset($info['tag_offset_end']) ? $info['tag_offset_end'] - $info['tag_offset_start'] : 0);
+-						$this->warning('MP3.Xing header missing VBR_bytes, assuming MPEG audio portion of file is '.number_format($used_filesize).' bytes');
++						$this->warning('MP3.Xing header missing VBR_bytes, assuming MPEG audio portion of file is '.\wp_aot_number_format($used_filesize).' bytes');
+ 					}
+ 
+ 					$framelengthfloat = $used_filesize / $thisfile_mpeg_audio['VBR_frames'];
+@@ -743,7 +755,7 @@
+ 
+ 					//$thisfile_mpeg_audio_lame['numeric_version'] = str_replace('LAME', '', $thisfile_mpeg_audio_lame['short_version']);
+ 					$thisfile_mpeg_audio_lame['numeric_version'] = '';
+-					if (preg_match('#^LAME([0-9\\.a-z]*)#', $thisfile_mpeg_audio_lame['long_version'], $matches)) {
++					if (preg_match('#^LAME([0-9\\.a-z]*)#', \wp_aot_regex_text( $thisfile_mpeg_audio_lame['long_version'] ), $matches)) {
+ 						$thisfile_mpeg_audio_lame['short_version']   = $matches[0];
+ 						$thisfile_mpeg_audio_lame['numeric_version'] = $matches[1];
+ 					}
+@@ -1154,6 +1166,7 @@
+ 		//}
+ 
+ 		return true;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1163,7 +1176,7 @@
+ 	 *
+ 	 * @return bool
+ 	 */
+-	public function RecursiveFrameScanning(&$offset, &$nextframetestoffset, $ScanAsCBR) {
++	public function RecursiveFrameScanning(mixed &$offset, mixed &$nextframetestoffset, mixed $ScanAsCBR): mixed {
+ 		$info = &$this->getid3->info;
+ 		$firstframetestarray = array('error' => array(), 'warning'=> array(), 'avdataend' => $info['avdataend'], 'avdataoffset' => $info['avdataoffset']);
+ 		$this->decodeMPEGaudioHeader($offset, $firstframetestarray, false);
+@@ -1209,6 +1222,7 @@
+ 			}
+ 		}
+ 		return true;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1217,7 +1231,7 @@
+ 	 *
+ 	 * @return int|false
+ 	 */
+-	public function FreeFormatFrameLength($offset, $deepscan=false) {
++	public function FreeFormatFrameLength(mixed $offset, mixed $deepscan=false): mixed {
+ 		$info = &$this->getid3->info;
+ 
+ 		$this->fseek($offset);
+@@ -1292,12 +1306,13 @@
+ 			}
+ 		}
+ 		return $framelength;
++		return null;
+ 	}
+ 
+ 	/**
+ 	 * @return bool
+ 	 */
+-	public function getOnlyMPEGaudioInfoBruteForce() {
++	public function getOnlyMPEGaudioInfoBruteForce(): mixed {
+ 		$MPEGaudioHeaderDecodeCache   = array();
+ 		$MPEGaudioHeaderValidCache    = array();
+ 		$MPEGaudioHeaderLengthCache   = array();
+@@ -1328,7 +1343,7 @@
+ 
+ 		$previousvalidframe = $info['avdataoffset'];
+ 		while ($this->ftell() < $info['avdataend']) {
+-			set_time_limit(30);
++			\wp_aot_native_api('set_time_limit', array(30));
+ 			$head4 = $this->fread(4);
+ 			if (strlen($head4) < 4) {
+ 				break;
+@@ -1384,7 +1399,7 @@
+ 							$Distribution['frequency'][$LongMPEGfrequencyLookup[$head4]] = isset($Distribution['frequency'][$LongMPEGfrequencyLookup[$head4]]) ? ++$Distribution['frequency'][$LongMPEGfrequencyLookup[$head4]] : 1;
+ 							if (++$frames_scanned >= $max_frames_scan) {
+ 								$pct_data_scanned = getid3_lib::SafeDiv($this->ftell() - $info['avdataoffset'], $info['avdataend'] - $info['avdataoffset']);
+-								$this->warning('too many MPEG audio frames to scan, only scanned first '.$max_frames_scan.' frames ('.number_format($pct_data_scanned * 100, 1).'% of file) and extrapolated distribution, playtime and bitrate may be incorrect.');
++								$this->warning('too many MPEG audio frames to scan, only scanned first '.$max_frames_scan.' frames ('.\wp_aot_number_format($pct_data_scanned * 100, 1).'% of file) and extrapolated distribution, playtime and bitrate may be incorrect.');
+ 								foreach ($Distribution as $key1 => $value1) {
+ 									foreach ($value1 as $key2 => $value2) {
+ 										$Distribution[$key1][$key2] = $pct_data_scanned ? round($value2 / $pct_data_scanned) : 1;
+@@ -1402,9 +1417,9 @@
+ 			}
+ 		}
+ 		foreach ($Distribution as $key => $value) {
+-			ksort($Distribution[$key], SORT_NUMERIC);
+-		}
+-		ksort($Distribution['version'], SORT_STRING);
++			\wp_aot_ksort($Distribution[$key], SORT_NUMERIC);
++		}
++		\wp_aot_ksort($Distribution['version'], SORT_STRING);
+ 		$info['mpeg']['audio']['bitrate_distribution']   = $Distribution['bitrate'];
+ 		$info['mpeg']['audio']['frequency_distribution'] = $Distribution['frequency'];
+ 		$info['mpeg']['audio']['layer_distribution']     = $Distribution['layer'];
+@@ -1443,6 +1458,7 @@
+ 		$info['fileformat']            = $info['audio']['dataformat'];
+ 
+ 		return true;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1451,14 +1467,17 @@
+ 	 *
+ 	 * @return bool
+ 	 */
+-	public function getOnlyMPEGaudioInfo($avdataoffset, $BitrateHistogram=false) {
++	public function getOnlyMPEGaudioInfo(mixed $avdataoffset, mixed $BitrateHistogram=false): mixed {
+ 		// looks for synch, decodes MPEG audio header
+ 
+ 		$info = &$this->getid3->info;
+ 
+-		static $MPEGaudioVersionLookup;
+-		static $MPEGaudioLayerLookup;
+-		static $MPEGaudioBitrateLookup;
++		static $MPEGaudioVersionLookup_aot_cell = new \WordPressStaticValueCell();
++		$MPEGaudioVersionLookup =& $MPEGaudioVersionLookup_aot_cell->value;
++		static $MPEGaudioLayerLookup_aot_cell = new \WordPressStaticValueCell();
++		$MPEGaudioLayerLookup =& $MPEGaudioLayerLookup_aot_cell->value;
++		static $MPEGaudioBitrateLookup_aot_cell = new \WordPressStaticValueCell();
++		$MPEGaudioBitrateLookup =& $MPEGaudioBitrateLookup_aot_cell->value;
+ 		if (empty($MPEGaudioVersionLookup)) {
+ 			$MPEGaudioVersionLookup = self::MPEGaudioVersionArray();
+ 			$MPEGaudioLayerLookup   = self::MPEGaudioLayerArray();
+@@ -1654,9 +1673,9 @@
+ 							}
+ 						}
+ 						if ($pct_data_scanned > 0) {
+-							$this->warning('too many MPEG audio frames to scan, only scanned '.$frames_scanned.' frames in '.$max_scan_segments.' segments ('.number_format($pct_data_scanned * 100, 1).'% of file) and extrapolated distribution, playtime and bitrate may be incorrect.');
++							$this->warning('too many MPEG audio frames to scan, only scanned '.$frames_scanned.' frames in '.$max_scan_segments.' segments ('.\wp_aot_number_format($pct_data_scanned * 100, 1).'% of file) and extrapolated distribution, playtime and bitrate may be incorrect.');
+ 							foreach ($info['mpeg']['audio'] as $key1 => $value1) {
+-								if (!preg_match('#_distribution$#i', $key1)) {
++								if (!preg_match('#_distribution$#i', \wp_aot_regex_text( $key1 ))) {
+ 									continue;
+ 								}
+ 								foreach ($value1 as $key2 => $value2) {
+@@ -1739,29 +1758,33 @@
+ 		$info['audio']['channelmode']     = $info['mpeg']['audio']['channelmode'];
+ 		$info['audio']['sample_rate']     = $info['mpeg']['audio']['sample_rate'];
+ 		return true;
++		return null;
+ 	}
+ 
+ 	/**
+ 	 * @return array
+ 	 */
+-	public static function MPEGaudioVersionArray() {
++	public static function MPEGaudioVersionArray(): mixed {
+ 		static $MPEGaudioVersion = array('2.5', false, '2', '1');
+ 		return $MPEGaudioVersion;
++		return null;
+ 	}
+ 
+ 	/**
+ 	 * @return array
+ 	 */
+-	public static function MPEGaudioLayerArray() {
++	public static function MPEGaudioLayerArray(): mixed {
+ 		static $MPEGaudioLayer = array(false, 3, 2, 1);
+ 		return $MPEGaudioLayer;
++		return null;
+ 	}
+ 
+ 	/**
+ 	 * @return array
+ 	 */
+-	public static function MPEGaudioBitrateArray() {
+-		static $MPEGaudioBitrate;
++	public static function MPEGaudioBitrateArray(): mixed {
++		static $MPEGaudioBitrate_aot_cell = new \WordPressStaticValueCell();
++		$MPEGaudioBitrate =& $MPEGaudioBitrate_aot_cell->value;
+ 		if (empty($MPEGaudioBitrate)) {
+ 			$MPEGaudioBitrate = array (
+ 				'1' => array(
+@@ -1778,13 +1801,15 @@
+ 			$MPEGaudioBitrate['2.5']  = $MPEGaudioBitrate['2'];
+ 		}
+ 		return $MPEGaudioBitrate;
++		return null;
+ 	}
+ 
+ 	/**
+ 	 * @return array
+ 	 */
+-	public static function MPEGaudioFrequencyArray() {
+-		static $MPEGaudioFrequency;
++	public static function MPEGaudioFrequencyArray(): mixed {
++		static $MPEGaudioFrequency_aot_cell = new \WordPressStaticValueCell();
++		$MPEGaudioFrequency =& $MPEGaudioFrequency_aot_cell->value;
+ 		if (empty($MPEGaudioFrequency)) {
+ 			$MPEGaudioFrequency = array (
+ 				'1'   => array(44100, 48000, 32000),
+@@ -1793,21 +1818,24 @@
+ 			);
+ 		}
+ 		return $MPEGaudioFrequency;
++		return null;
+ 	}
+ 
+ 	/**
+ 	 * @return array
+ 	 */
+-	public static function MPEGaudioChannelModeArray() {
++	public static function MPEGaudioChannelModeArray(): mixed {
+ 		static $MPEGaudioChannelMode = array('stereo', 'joint stereo', 'dual channel', 'mono');
+ 		return $MPEGaudioChannelMode;
++		return null;
+ 	}
+ 
+ 	/**
+ 	 * @return array
+ 	 */
+-	public static function MPEGaudioModeExtensionArray() {
+-		static $MPEGaudioModeExtension;
++	public static function MPEGaudioModeExtensionArray(): mixed {
++		static $MPEGaudioModeExtension_aot_cell = new \WordPressStaticValueCell();
++		$MPEGaudioModeExtension =& $MPEGaudioModeExtension_aot_cell->value;
+ 		if (empty($MPEGaudioModeExtension)) {
+ 			$MPEGaudioModeExtension = array (
+ 				1 => array('4-31', '8-31', '12-31', '16-31'),
+@@ -1816,14 +1844,16 @@
+ 			);
+ 		}
+ 		return $MPEGaudioModeExtension;
++		return null;
+ 	}
+ 
+ 	/**
+ 	 * @return array
+ 	 */
+-	public static function MPEGaudioEmphasisArray() {
++	public static function MPEGaudioEmphasisArray(): mixed {
+ 		static $MPEGaudioEmphasis = array('none', '50/15ms', false, 'CCIT J.17');
+ 		return $MPEGaudioEmphasis;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1832,8 +1862,9 @@
+ 	 *
+ 	 * @return bool
+ 	 */
+-	public static function MPEGaudioHeaderBytesValid($head4, $allowBitrate15=false) {
++	public static function MPEGaudioHeaderBytesValid(mixed $head4, mixed $allowBitrate15=false): mixed {
+ 		return self::MPEGaudioHeaderValid(self::MPEGaudioHeaderDecode($head4), false, $allowBitrate15);
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1843,18 +1874,25 @@
+ 	 *
+ 	 * @return bool
+ 	 */
+-	public static function MPEGaudioHeaderValid($rawarray, $echoerrors=false, $allowBitrate15=false) {
++	public static function MPEGaudioHeaderValid(mixed $rawarray, mixed $echoerrors=false, mixed $allowBitrate15=false): mixed {
+ 		if (!isset($rawarray['synch']) || ($rawarray['synch'] & 0x0FFE) != 0x0FFE) {
+ 			return false;
+ 		}
+ 
+-		static $MPEGaudioVersionLookup;
+-		static $MPEGaudioLayerLookup;
+-		static $MPEGaudioBitrateLookup;
+-		static $MPEGaudioFrequencyLookup;
+-		static $MPEGaudioChannelModeLookup;
+-		static $MPEGaudioModeExtensionLookup;
+-		static $MPEGaudioEmphasisLookup;
++		static $MPEGaudioVersionLookup_aot_cell = new \WordPressStaticValueCell();
++		$MPEGaudioVersionLookup =& $MPEGaudioVersionLookup_aot_cell->value;
++		static $MPEGaudioLayerLookup_aot_cell = new \WordPressStaticValueCell();
++		$MPEGaudioLayerLookup =& $MPEGaudioLayerLookup_aot_cell->value;
++		static $MPEGaudioBitrateLookup_aot_cell = new \WordPressStaticValueCell();
++		$MPEGaudioBitrateLookup =& $MPEGaudioBitrateLookup_aot_cell->value;
++		static $MPEGaudioFrequencyLookup_aot_cell = new \WordPressStaticValueCell();
++		$MPEGaudioFrequencyLookup =& $MPEGaudioFrequencyLookup_aot_cell->value;
++		static $MPEGaudioChannelModeLookup_aot_cell = new \WordPressStaticValueCell();
++		$MPEGaudioChannelModeLookup =& $MPEGaudioChannelModeLookup_aot_cell->value;
++		static $MPEGaudioModeExtensionLookup_aot_cell = new \WordPressStaticValueCell();
++		$MPEGaudioModeExtensionLookup =& $MPEGaudioModeExtensionLookup_aot_cell->value;
++		static $MPEGaudioEmphasisLookup_aot_cell = new \WordPressStaticValueCell();
++		$MPEGaudioEmphasisLookup =& $MPEGaudioEmphasisLookup_aot_cell->value;
+ 		if (empty($MPEGaudioVersionLookup)) {
+ 			$MPEGaudioVersionLookup       = self::MPEGaudioVersionArray();
+ 			$MPEGaudioLayerLookup         = self::MPEGaudioLayerArray();
+@@ -1913,6 +1951,7 @@
+ 		// $rawarray['original'];
+ 
+ 		return true;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1920,7 +1959,7 @@
+ 	 *
+ 	 * @return array|false
+ 	 */
+-	public static function MPEGaudioHeaderDecode($Header4Bytes) {
++	public static function MPEGaudioHeaderDecode(mixed $Header4Bytes): mixed {
+ 		// AAAA AAAA  AAAB BCCD  EEEE FFGH  IIJJ KLMM
+ 		// A - Frame sync (all bits set)
+ 		// B - MPEG Audio version ID
+@@ -1956,6 +1995,7 @@
+ 		$MPEGrawHeader['emphasis']      = (ord($Header4Bytes[3]) & 0x03);      //       MM
+ 
+ 		return $MPEGrawHeader;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1967,8 +2007,9 @@
+ 	 *
+ 	 * @return int|false
+ 	 */
+-	public static function MPEGaudioFrameLength(&$bitrate, &$version, &$layer, $padding, &$samplerate) {
+-		static $AudioFrameLengthCache = array();
++	public static function MPEGaudioFrameLength(mixed &$bitrate, mixed &$version, mixed &$layer, mixed $padding, mixed &$samplerate): mixed {
++		static $AudioFrameLengthCache_aot_cell = new \WordPressStaticArrayCell();
++		$AudioFrameLengthCache =& $AudioFrameLengthCache_aot_cell->value;
+ 
+ 		if (!isset($AudioFrameLengthCache[$bitrate][$version][$layer][$padding][$samplerate])) {
+ 			$AudioFrameLengthCache[$bitrate][$version][$layer][$padding][$samplerate] = false;
+@@ -2026,6 +2067,7 @@
+ 			}
+ 		}
+ 		return $AudioFrameLengthCache[$bitrate][$version][$layer][$padding][$samplerate];
++		return null;
+ 	}
+ 
+ 	/**
+@@ -2033,7 +2075,7 @@
+ 	 *
+ 	 * @return int|float|string
+ 	 */
+-	public static function ClosestStandardMP3Bitrate($bit_rate) {
++	public static function ClosestStandardMP3Bitrate(mixed $bit_rate): mixed {
+ 		static $standard_bit_rates = array (320000, 256000, 224000, 192000, 160000, 128000, 112000, 96000, 80000, 64000, 56000, 48000, 40000, 32000, 24000, 16000, 8000);
+ 		static $bit_rate_table = array (0=>'-');
+ 		$round_bit_rate = intval(round($bit_rate, -3));
+@@ -2051,6 +2093,7 @@
+ 			}
+ 		}
+ 		return $bit_rate_table[$round_bit_rate];
++		return null;
+ 	}
+ 
+ 	/**
+@@ -2059,8 +2102,9 @@
+ 	 *
+ 	 * @return int
+ 	 */
+-	public static function XingVBRidOffset($version, $channelmode) {
+-		static $XingVBRidOffsetCache = array();
++	public static function XingVBRidOffset(mixed $version, mixed $channelmode): mixed {
++		static $XingVBRidOffsetCache_aot_cell = new \WordPressStaticArrayCell();
++		$XingVBRidOffsetCache =& $XingVBRidOffsetCache_aot_cell->value;
+ 		if (empty($XingVBRidOffsetCache)) {
+ 			$XingVBRidOffsetCache = array (
+ 				'1'   => array ('mono'          => 0x15, // 4 + 17 = 21
+@@ -2083,6 +2127,7 @@
+ 			);
+ 		}
+ 		return $XingVBRidOffsetCache[$version][$channelmode];
++		return null;
+ 	}
+ 
+ 	/**
+@@ -2090,7 +2135,7 @@
+ 	 *
+ 	 * @return string
+ 	 */
+-	public static function LAMEvbrMethodLookup($VBRmethodID) {
++	public static function LAMEvbrMethodLookup(mixed $VBRmethodID): mixed {
+ 		static $LAMEvbrMethodLookup = array(
+ 			0x00 => 'unknown',
+ 			0x01 => 'cbr',
+@@ -2104,6 +2149,7 @@
+ 			0x0F => 'reserved'
+ 		);
+ 		return (isset($LAMEvbrMethodLookup[$VBRmethodID]) ? $LAMEvbrMethodLookup[$VBRmethodID] : '');
++		return null;
+ 	}
+ 
+ 	/**
+@@ -2111,7 +2157,7 @@
+ 	 *
+ 	 * @return string
+ 	 */
+-	public static function LAMEmiscStereoModeLookup($StereoModeID) {
++	public static function LAMEmiscStereoModeLookup(mixed $StereoModeID): mixed {
+ 		static $LAMEmiscStereoModeLookup = array(
+ 			0 => 'mono',
+ 			1 => 'stereo',
+@@ -2123,6 +2169,7 @@
+ 			7 => 'other'
+ 		);
+ 		return (isset($LAMEmiscStereoModeLookup[$StereoModeID]) ? $LAMEmiscStereoModeLookup[$StereoModeID] : '');
++		return null;
+ 	}
+ 
+ 	/**
+@@ -2130,7 +2177,7 @@
+ 	 *
+ 	 * @return string
+ 	 */
+-	public static function LAMEmiscSourceSampleFrequencyLookup($SourceSampleFrequencyID) {
++	public static function LAMEmiscSourceSampleFrequencyLookup(mixed $SourceSampleFrequencyID): mixed {
+ 		static $LAMEmiscSourceSampleFrequencyLookup = array(
+ 			0 => '<= 32 kHz',
+ 			1 => '44.1 kHz',
+@@ -2138,6 +2185,7 @@
+ 			3 => '> 48kHz'
+ 		);
+ 		return (isset($LAMEmiscSourceSampleFrequencyLookup[$SourceSampleFrequencyID]) ? $LAMEmiscSourceSampleFrequencyLookup[$SourceSampleFrequencyID] : '');
++		return null;
+ 	}
+ 
+ 	/**
+@@ -2145,7 +2193,7 @@
+ 	 *
+ 	 * @return string
+ 	 */
+-	public static function LAMEsurroundInfoLookup($SurroundInfoID) {
++	public static function LAMEsurroundInfoLookup(mixed $SurroundInfoID): mixed {
+ 		static $LAMEsurroundInfoLookup = array(
+ 			0 => 'no surround info',
+ 			1 => 'DPL encoding',
+@@ -2153,6 +2201,7 @@
+ 			3 => 'Ambisonic encoding'
+ 		);
+ 		return (isset($LAMEsurroundInfoLookup[$SurroundInfoID]) ? $LAMEsurroundInfoLookup[$SurroundInfoID] : 'reserved');
++		return null;
+ 	}
+ 
+ 	/**
+@@ -2160,7 +2209,7 @@
+ 	 *
+ 	 * @return string
+ 	 */
+-	public static function LAMEpresetUsedLookup($LAMEtag) {
++	public static function LAMEpresetUsedLookup(mixed $LAMEtag): mixed {
+ 
+ 		if ($LAMEtag['preset_used_id'] == 0) {
+ 			// no preset used (LAME >=3.93)
+@@ -2211,6 +2260,7 @@
+ 		$LAMEpresetUsedLookup[500]  = '--preset '.(($LAMEtag['raw']['vbr_method'] == 4) ? 'fast ' : '').'extreme';   // 3.94a15 Nov 12 2003
+ 
+ 		return (isset($LAMEpresetUsedLookup[$LAMEtag['preset_used_id']]) ? $LAMEpresetUsedLookup[$LAMEtag['preset_used_id']] : 'new/unknown preset: '.$LAMEtag['preset_used_id'].' - report to info@getid3.org');
++		return null;
+ 	}
+ 
+ }

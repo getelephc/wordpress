@@ -1,0 +1,49 @@
+--- a/wp-includes/class-wp-connector-registry.php
++++ b/wp-includes/class-wp-connector-registry.php
+@@ -147,7 +147,7 @@
+ 	 * @phpstan-return Connector|null
+ 	 */
+ 	public function register( string $id, array $args ): ?array {
+-		if ( ! preg_match( '/^[a-z0-9_-]+$/', $id ) ) {
++		if ( ! preg_match( '/^[a-z0-9_-]+$/', \wp_aot_regex_text( $id ) ) ) {
+ 			_doing_it_wrong(
+ 				__METHOD__,
+ 				__(
+@@ -246,7 +246,7 @@
+ 				}
+ 				$connector['authentication']['setting_name'] = $args['authentication']['setting_name'];
+ 			} else {
+-				$connector['authentication']['setting_name'] = str_replace( '-', '_', "connectors_{$connector['type']}_{$id}_{$args['authentication']['method']}" );
++				$connector['authentication']['setting_name'] = \wp_aot_str_replace( '-', '_', "connectors_{$connector['type']}_{$id}_{$args['authentication']['method']}" );
+ 			}
+ 
+ 			if ( isset( $args['authentication']['constant_name'] ) ) {
+@@ -332,13 +332,13 @@
+ 				sprintf( __( 'Connector "%s" not found.' ), esc_html( $id ) ),
+ 				'7.0.0'
+ 			);
+-			return null;
++			return \wp_aot_require_nullable_array(null);
+ 		}
+ 
+ 		$unregistered = $this->registered_connectors[ $id ];
+ 		unset( $this->registered_connectors[ $id ] );
+ 
+-		return $unregistered;
++		return \wp_aot_require_nullable_array($unregistered);
+ 	}
+ 
+ 	/**
+@@ -398,9 +398,9 @@
+ 				sprintf( __( 'Connector "%s" not found.' ), esc_html( $id ) ),
+ 				'7.0.0'
+ 			);
+-			return null;
+-		}
+-		return $this->registered_connectors[ $id ];
++			return \wp_aot_require_nullable_array(null);
++		}
++		return \wp_aot_require_nullable_array($this->registered_connectors[ $id ]);
+ 	}
+ 
+ 	/**

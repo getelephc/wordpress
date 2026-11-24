@@ -1,0 +1,208 @@
+--- a/wp-admin/users.php
++++ b/wp-admin/users.php
+@@ -116,7 +116,7 @@
+ 
+ 		if ( empty( $_REQUEST['users'] ) ) {
+ 			wp_redirect( $redirect );
+-			exit;
++			\wp_aot_exit();
+ 		}
+ 
+ 		$editable_roles = get_editable_roles();
+@@ -135,7 +135,7 @@
+ 			$role = '';
+ 		}
+ 
+-		$user_ids = array_map( 'intval', (array) $_REQUEST['users'] );
++		$user_ids = \wp_aot_array_map( 'intval', (array) $_REQUEST['users'] );
+ 		$update   = 'promote';
+ 
+ 		foreach ( $user_ids as $id ) {
+@@ -173,7 +173,7 @@
+ 		}
+ 
+ 		wp_redirect( add_query_arg( 'update', $update, $redirect ) );
+-		exit;
++		\wp_aot_exit();
+ 
+ 	case 'dodelete':
+ 		if ( is_multisite() ) {
+@@ -184,16 +184,16 @@
+ 
+ 		if ( empty( $_REQUEST['users'] ) ) {
+ 			wp_redirect( $redirect );
+-			exit;
+-		}
+-
+-		$user_ids = array_map( 'intval', (array) $_REQUEST['users'] );
++			\wp_aot_exit();
++		}
++
++		$user_ids = \wp_aot_array_map( 'intval', (array) $_REQUEST['users'] );
+ 
+ 		if ( empty( $_REQUEST['delete_option'] ) ) {
+ 			$url = self_admin_url( 'users.php?action=delete&users[]=' . implode( '&users[]=', $user_ids ) . '&error=true' );
+-			$url = str_replace( '&amp;', '&', wp_nonce_url( $url, 'bulk-users' ) );
++			$url = \wp_aot_str_replace( '&amp;', '&', wp_nonce_url( $url, 'bulk-users' ) );
+ 			wp_redirect( $url );
+-			exit;
++			\wp_aot_exit();
+ 		}
+ 
+ 		if ( ! current_user_can( 'delete_users' ) ) {
+@@ -238,7 +238,7 @@
+ 			$redirect
+ 		);
+ 		wp_redirect( $redirect );
+-		exit;
++		\wp_aot_exit();
+ 
+ 	case 'resetpassword':
+ 		check_admin_referer( 'bulk-users' );
+@@ -249,10 +249,10 @@
+ 
+ 		if ( empty( $_REQUEST['users'] ) ) {
+ 			wp_redirect( $redirect );
+-			exit();
+-		}
+-
+-		$user_ids = array_map( 'intval', (array) $_REQUEST['users'] );
++			\wp_aot_exit();
++		}
++
++		$user_ids = \wp_aot_array_map( 'intval', (array) $_REQUEST['users'] );
+ 
+ 		$reset_count = 0;
+ 
+@@ -281,7 +281,7 @@
+ 			$redirect
+ 		);
+ 		wp_redirect( $redirect );
+-		exit;
++		\wp_aot_exit();
+ 
+ 	case 'delete':
+ 		if ( is_multisite() ) {
+@@ -292,7 +292,7 @@
+ 
+ 		if ( empty( $_REQUEST['users'] ) && empty( $_REQUEST['user'] ) ) {
+ 			wp_redirect( $redirect );
+-			exit;
++			\wp_aot_exit();
+ 		}
+ 
+ 		if ( ! current_user_can( 'delete_users' ) ) {
+@@ -302,13 +302,13 @@
+ 		if ( empty( $_REQUEST['users'] ) ) {
+ 			$user_ids = array( (int) $_REQUEST['user'] );
+ 		} else {
+-			$user_ids = array_map( 'intval', (array) $_REQUEST['users'] );
++			$user_ids = \wp_aot_array_map( 'intval', (array) $_REQUEST['users'] );
+ 		}
+ 
+ 		$all_user_ids = $user_ids;
+ 
+ 		if ( in_array( $current_user->ID, $user_ids, true ) ) {
+-			$user_ids = array_diff( $user_ids, array( $current_user->ID ) );
++			$user_ids = \wp_aot_array_diff(array( $user_ids, array( $current_user->ID ) ));
+ 		}
+ 
+ 		require_once ABSPATH . 'wp-admin/admin-header.php';
+@@ -373,8 +373,8 @@
+ 				$user_has_content = (bool) apply_filters( 'users_have_additional_content', false, array( $id ) );
+ 
+ 				if ( ! $user_has_content ) {
+-					if ( $wpdb->get_var(
+-						$wpdb->prepare(
++					if ( \wp_aot_require_wpdb( $wpdb )->get_var(
++						\wp_aot_require_wpdb( $wpdb )->prepare(
+ 							"SELECT ID FROM {$wpdb->posts}
+ 							WHERE post_author = %d
+ 							LIMIT 1",
+@@ -382,8 +382,8 @@
+ 						)
+ 					) ) {
+ 						$user_has_content = true;
+-					} elseif ( $wpdb->get_var(
+-						$wpdb->prepare(
++					} elseif ( \wp_aot_require_wpdb( $wpdb )->get_var(
++						\wp_aot_require_wpdb( $wpdb )->prepare(
+ 							"SELECT link_id FROM {$wpdb->links}
+ 							WHERE link_owner = %d
+ 							LIMIT 1",
+@@ -495,14 +495,14 @@
+ 
+ 		if ( empty( $_REQUEST['users'] ) ) {
+ 			wp_redirect( $redirect );
+-			exit;
++			\wp_aot_exit();
+ 		}
+ 
+ 		if ( ! current_user_can( 'remove_users' ) ) {
+ 			wp_die( __( 'Sorry, you are not allowed to remove users.' ), 403 );
+ 		}
+ 
+-		$user_ids = array_map( 'intval', (array) $_REQUEST['users'] );
++		$user_ids = \wp_aot_array_map( 'intval', (array) $_REQUEST['users'] );
+ 		$update   = 'remove';
+ 
+ 		foreach ( $user_ids as $id ) {
+@@ -516,7 +516,7 @@
+ 
+ 		$redirect = add_query_arg( array( 'update' => $update ), $redirect );
+ 		wp_redirect( $redirect );
+-		exit;
++		\wp_aot_exit();
+ 
+ 	case 'remove':
+ 		check_admin_referer( 'bulk-users' );
+@@ -527,7 +527,7 @@
+ 
+ 		if ( empty( $_REQUEST['users'] ) && empty( $_REQUEST['user'] ) ) {
+ 			wp_redirect( $redirect );
+-			exit;
++			\wp_aot_exit();
+ 		}
+ 
+ 		if ( ! current_user_can( 'remove_users' ) ) {
+@@ -537,7 +537,7 @@
+ 		if ( empty( $_REQUEST['users'] ) ) {
+ 			$user_ids = array( (int) $_REQUEST['user'] );
+ 		} else {
+-			$user_ids = array_map( 'intval', (array) $_REQUEST['users'] );
++			$user_ids = \wp_aot_array_map( 'intval', (array) $_REQUEST['users'] );
+ 		}
+ 
+ 		require_once ABSPATH . 'wp-admin/admin-header.php';
+@@ -610,19 +610,19 @@
+ 	default:
+ 		if ( ! empty( $_GET['_wp_http_referer'] ) ) {
+ 			wp_redirect( remove_query_arg( array( '_wp_http_referer', '_wpnonce' ), wp_unslash( $_SERVER['REQUEST_URI'] ) ) );
+-			exit;
++			\wp_aot_exit();
+ 		}
+ 
+ 		if ( $wp_list_table->current_action() && ! empty( $_REQUEST['users'] ) ) {
+ 			$screen   = get_current_screen()->id;
+ 			$sendback = wp_get_referer();
+-			$user_ids = array_map( 'intval', (array) $_REQUEST['users'] );
++			$user_ids = \wp_aot_array_map( 'intval', (array) $_REQUEST['users'] );
+ 
+ 			/** This action is documented in wp-admin/edit.php */
+ 			$sendback = apply_filters( "handle_bulk_actions-{$screen}", $sendback, $wp_list_table->current_action(), $user_ids ); // phpcs:ignore WordPress.NamingConventions.ValidHookName.UseUnderscores
+ 
+ 			wp_safe_redirect( $sendback );
+-			exit;
++			\wp_aot_exit();
+ 		}
+ 
+ 		$wp_list_table->prepare_items();
+@@ -630,7 +630,7 @@
+ 
+ 		if ( $pagenum > $total_pages && $total_pages > 0 ) {
+ 			wp_redirect( add_query_arg( 'paged', $total_pages ) );
+-			exit;
++			\wp_aot_exit();
+ 		}
+ 
+ 		require_once ABSPATH . 'wp-admin/admin-header.php';

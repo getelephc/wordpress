@@ -1,0 +1,34 @@
+--- a/wp-includes/blocks/term-name.php
++++ b/wp-includes/blocks/term-name.php
+@@ -16,7 +16,7 @@
+  *
+  * @return string Returns the name of the current taxonomy term wrapped inside a heading tag.
+  */
+-function render_block_core_term_name( $attributes, $content, $block ) {
++function render_block_core_term_name( mixed $attributes, mixed $content, mixed $block ): mixed {
+ 	$term_name = '';
+ 
+ 	// Get term from context or from the current query.
+@@ -63,6 +63,7 @@
+ 		$wrapper_attributes,
+ 		$term_name
+ 	);
++	return null;
+ }
+ 
+ /**
+@@ -70,12 +71,13 @@
+  *
+  * @since 6.9.0
+  */
+-function register_block_core_term_name() {
++function register_block_core_term_name(): mixed {
+ 	register_block_type_from_metadata(
+ 		__DIR__ . '/term-name',
+ 		array(
+ 			'render_callback' => 'render_block_core_term_name',
+ 		)
+ 	);
++	return null;
+ }
+ add_action( 'init', 'register_block_core_term_name' );

@@ -1,0 +1,94 @@
+--- a/wp-includes/fonts/class-wp-font-library.php
++++ b/wp-includes/fonts/class-wp-font-library.php
+@@ -30,7 +30,7 @@
+ 	 * @since 6.5.0
+ 	 * @var WP_Font_Library|null
+ 	 */
+-	private static $instance = null;
++	private static mixed $instance = null;
+ 
+ 	/**
+ 	 * Register a new font collection.
+@@ -43,7 +43,7 @@
+ 	 * @return WP_Font_Collection|WP_Error A font collection if it was registered successfully,
+ 	 *                                     or WP_Error object on failure.
+ 	 */
+-	public function register_font_collection( string $slug, array $args ) {
++	public function register_font_collection( string $slug, array $args ): mixed {
+ 		$new_collection = new WP_Font_Collection( $slug, $args );
+ 
+ 		if ( $this->is_collection_registered( $new_collection->slug ) ) {
+@@ -61,6 +61,7 @@
+ 		}
+ 		$this->collections[ $new_collection->slug ] = $new_collection;
+ 		return $new_collection;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -71,7 +72,7 @@
+ 	 * @param string $slug Font collection slug.
+ 	 * @return bool True if the font collection was unregistered successfully and false otherwise.
+ 	 */
+-	public function unregister_font_collection( string $slug ) {
++	public function unregister_font_collection( string $slug ): mixed {
+ 		if ( ! $this->is_collection_registered( $slug ) ) {
+ 			_doing_it_wrong(
+ 				__METHOD__,
+@@ -83,6 +84,7 @@
+ 		}
+ 		unset( $this->collections[ $slug ] );
+ 		return true;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -93,8 +95,9 @@
+ 	 * @param string $slug Font collection slug.
+ 	 * @return bool True if the font collection is registered and false otherwise.
+ 	 */
+-	private function is_collection_registered( string $slug ) {
++	private function is_collection_registered( string $slug ): mixed {
+ 		return array_key_exists( $slug, $this->collections );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -104,8 +107,9 @@
+ 	 *
+ 	 * @return array List of font collections.
+ 	 */
+-	public function get_font_collections() {
++	public function get_font_collections(): mixed {
+ 		return $this->collections;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -116,10 +120,11 @@
+ 	 * @param string $slug Font collection slug.
+ 	 * @return WP_Font_Collection|null Font collection object, or null if the font collection doesn't exist.
+ 	 */
+-	public function get_font_collection( string $slug ) {
++	public function get_font_collection( string $slug ): mixed {
+ 		if ( $this->is_collection_registered( $slug ) ) {
+ 			return $this->collections[ $slug ];
+ 		}
++		return null;
+ 		return null;
+ 	}
+ 
+@@ -132,11 +137,12 @@
+ 	 *
+ 	 * @return WP_Font_Library The main instance.
+ 	 */
+-	public static function get_instance() {
++	public static function get_instance(): mixed {
+ 		if ( null === self::$instance ) {
+ 			self::$instance = new self();
+ 		}
+ 
+ 		return self::$instance;
++		return null;
+ 	}
+ }

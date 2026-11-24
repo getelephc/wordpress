@@ -1,0 +1,49 @@
+--- a/wp-includes/rest-api/search/class-wp-rest-search-handler.php
++++ b/wp-includes/rest-api/search/class-wp-rest-search-handler.php
+@@ -48,8 +48,9 @@
+ 	 *
+ 	 * @return string Object type identifier.
+ 	 */
+-	public function get_type() {
++	public function get_type(): mixed {
+ 		return $this->type;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -59,8 +60,9 @@
+ 	 *
+ 	 * @return string[] Array of object subtype identifiers.
+ 	 */
+-	public function get_subtypes() {
++	public function get_subtypes(): mixed {
+ 		return $this->subtypes;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -73,7 +75,7 @@
+ 	 *               an array of found IDs and `WP_REST_Search_Handler::RESULT_TOTAL` containing the
+ 	 *               total count for the matching search results.
+ 	 */
+-	abstract public function search_items( WP_REST_Request $request );
++	abstract public function search_items( WP_REST_Request $request ): mixed;
+ 
+ 	/**
+ 	 * Prepares the search result for a given ID.
+@@ -85,7 +87,7 @@
+ 	 * @param array      $fields Fields to include for the item.
+ 	 * @return array Associative array containing all fields for the item.
+ 	 */
+-	abstract public function prepare_item( $id, array $fields );
++	abstract public function prepare_item( mixed $id, array $fields ): mixed;
+ 
+ 	/**
+ 	 * Prepares links for the search result of a given ID.
+@@ -96,5 +98,5 @@
+ 	 * @param int|string $id Item ID.
+ 	 * @return array Links for the given item.
+ 	 */
+-	abstract public function prepare_item_links( $id );
++	abstract public function prepare_item_links( mixed $id ): mixed;
+ }

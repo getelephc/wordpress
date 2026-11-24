@@ -1,0 +1,62 @@
+--- a/wp-signup.php
++++ b/wp-signup.php
+@@ -8,7 +8,7 @@
+  */
+ 
+ /** Sets up the WordPress Environment. */
+-require __DIR__ . '/wp-load.php';
++require_once __DIR__ . '/wp-load.php';
+ 
+ add_filter( 'wp_robots', 'wp_robots_no_robots' );
+ 
+@@ -18,7 +18,7 @@
+ 
+ if ( is_array( get_site_option( 'illegal_names' ) ) && isset( $_GET['new'] ) && in_array( $_GET['new'], get_site_option( 'illegal_names' ), true ) ) {
+ 	wp_redirect( network_home_url() );
+-	die();
++	\wp_aot_exit();
+ }
+ 
+ /**
+@@ -38,12 +38,12 @@
+ 
+ if ( ! is_multisite() ) {
+ 	wp_redirect( wp_registration_url() );
+-	die();
++	\wp_aot_exit();
+ }
+ 
+ if ( ! is_main_site() ) {
+ 	wp_redirect( network_site_url( 'wp-signup.php' ) );
+-	die();
++	\wp_aot_exit();
+ }
+ 
+ // Fix for page title.
+@@ -143,7 +143,7 @@
+ 	if ( ! is_subdomain_install() ) {
+ 		echo '<div class="wp-signup-blogname"><span class="prefix_address" id="prefix-address">' . $current_network->domain . $current_network->path . '</span><input name="blogname" type="text" id="blogname" value="' . esc_attr( $blogname ) . '" maxlength="60" autocomplete="off" required="required" aria-describedby="' . $errmsg_blogname_aria . 'prefix-address" /></div>';
+ 	} else {
+-		$site_domain = preg_replace( '|^www\.|', '', $current_network->domain );
++		$site_domain = \wp_aot_preg_replace( '|^www\.|', '', $current_network->domain );
+ 		echo '<div class="wp-signup-blogname"><input name="blogname" type="text" id="blogname" value="' . esc_attr( $blogname ) . '" maxlength="60" autocomplete="off" required="required" aria-describedby="' . $errmsg_blogname_aria . 'suffix-address" /><span class="suffix_address" id="suffix-address">.' . esc_html( $site_domain ) . '</span></div>';
+ 	}
+ 
+@@ -445,7 +445,7 @@
+ 	global $blogname, $blog_title, $errors, $domain, $path;
+ 	$current_user = wp_get_current_user();
+ 	if ( ! is_user_logged_in() ) {
+-		die();
++		\wp_aot_exit();
+ 	}
+ 
+ 	$result = validate_blog_form();
+@@ -972,7 +972,7 @@
+ 	echo '</div>';
+ }
+ 
+-$newblogname = isset( $_GET['new'] ) ? strtolower( preg_replace( '/^-|-$|[^-a-zA-Z0-9]/', '', $_GET['new'] ) ) : null;
++$newblogname = isset( $_GET['new'] ) ? strtolower( \wp_aot_preg_replace( '/^-|-$|[^-a-zA-Z0-9]/', '', $_GET['new'] ) ) : null;
+ 
+ $current_user = wp_get_current_user();
+ if ( 'none' === $active_signup ) {

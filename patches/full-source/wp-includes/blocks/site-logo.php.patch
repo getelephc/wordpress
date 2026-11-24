@@ -1,0 +1,179 @@
+--- a/wp-includes/blocks/site-logo.php
++++ b/wp-includes/blocks/site-logo.php
+@@ -14,8 +14,8 @@
+  *
+  * @return string The render.
+  */
+-function render_block_core_site_logo( $attributes ) {
+-	$adjust_width_height_filter = static function ( $image ) use ( $attributes ) {
++function render_block_core_site_logo( mixed $attributes ): mixed {
++	$adjust_width_height_filter = static function ( mixed $image ) use ( $attributes ) {
+ 		if ( empty( $attributes['width'] ) || empty( $image ) || ! $image[1] || ! $image[2] ) {
+ 			return $image;
+ 		}
+@@ -35,7 +35,7 @@
+ 
+ 	if ( ! $attributes['isLink'] ) {
+ 		// Remove the link.
+-		$custom_logo = preg_replace( '#<a.*?>(.*?)</a>#i', '\1', $custom_logo );
++		$custom_logo = \wp_aot_preg_replace( '#<a.*?>(.*?)</a>#i', '\1', $custom_logo );
+ 	}
+ 
+ 	if ( $attributes['isLink'] && '_blank' === $attributes['linkTarget'] ) {
+@@ -58,6 +58,7 @@
+ 	$wrapper_attributes = get_block_wrapper_attributes( array( 'class' => implode( ' ', $classnames ) ) );
+ 	$html               = sprintf( '<div %s>%s</div>', $wrapper_attributes, $custom_logo );
+ 	return $html;
++	return null;
+ }
+ 
+ /**
+@@ -65,7 +66,7 @@
+  *
+  * @since 5.8.0
+  */
+-function register_block_core_site_logo_setting() {
++function register_block_core_site_logo_setting(): mixed {
+ 	register_setting(
+ 		'general',
+ 		'site_logo',
+@@ -78,6 +79,7 @@
+ 			'description'  => __( 'Site logo.' ),
+ 		)
+ 	);
++	return null;
+ }
+ 
+ add_action( 'rest_api_init', 'register_block_core_site_logo_setting', 10 );
+@@ -87,7 +89,7 @@
+  *
+  * @since 5.9.0
+  */
+-function register_block_core_site_icon_setting() {
++function register_block_core_site_icon_setting(): mixed {
+ 	register_setting(
+ 		'general',
+ 		'site_icon',
+@@ -98,6 +100,7 @@
+ 			'description'  => __( 'Site icon.' ),
+ 		)
+ 	);
++	return null;
+ }
+ 
+ add_action( 'rest_api_init', 'register_block_core_site_icon_setting', 10 );
+@@ -107,13 +110,14 @@
+  *
+  * @since 5.8.0
+  */
+-function register_block_core_site_logo() {
++function register_block_core_site_logo(): mixed {
+ 	register_block_type_from_metadata(
+ 		__DIR__ . '/site-logo',
+ 		array(
+ 			'render_callback' => 'render_block_core_site_logo',
+ 		)
+ 	);
++	return null;
+ }
+ 
+ add_action( 'init', 'register_block_core_site_logo' );
+@@ -127,9 +131,10 @@
+  *
+  * @return string The site logo if set.
+  */
+-function _override_custom_logo_theme_mod( $custom_logo ) {
++function _override_custom_logo_theme_mod( mixed $custom_logo ): mixed {
+ 	$site_logo = get_option( 'site_logo' );
+ 	return false === $site_logo ? $custom_logo : $site_logo;
++	return null;
+ }
+ 
+ add_filter( 'theme_mod_custom_logo', '_override_custom_logo_theme_mod' );
+@@ -142,7 +147,7 @@
+  * @param  mixed $value Attachment ID of the custom logo or an empty value.
+  * @return mixed
+  */
+-function _sync_custom_logo_to_site_logo( $value ) {
++function _sync_custom_logo_to_site_logo( mixed $value ): mixed {
+ 	if ( empty( $value ) ) {
+ 		delete_option( 'site_logo' );
+ 	} else {
+@@ -150,6 +155,7 @@
+ 	}
+ 
+ 	return $value;
++	return null;
+ }
+ 
+ add_filter( 'pre_set_theme_mod_custom_logo', '_sync_custom_logo_to_site_logo' );
+@@ -164,17 +170,18 @@
+  * @param array $old_value Previous theme mod settings.
+  * @param array $value     Updated theme mod settings.
+  */
+-function _delete_site_logo_on_remove_custom_logo( $old_value, $value ) {
++function _delete_site_logo_on_remove_custom_logo( mixed $old_value, mixed $value ): mixed {
+ 	global $_ignore_site_logo_changes;
+ 
+ 	if ( $_ignore_site_logo_changes ) {
+-		return;
++		return null;
+ 	}
+ 
+ 	// If the custom_logo is being unset, it's being removed from theme mods.
+ 	if ( isset( $old_value['custom_logo'] ) && ! isset( $value['custom_logo'] ) ) {
+ 		delete_option( 'site_logo' );
+ 	}
++	return null;
+ }
+ 
+ /**
+@@ -184,16 +191,17 @@
+  *
+  * @global array $_ignore_site_logo_changes
+  */
+-function _delete_site_logo_on_remove_theme_mods() {
++function _delete_site_logo_on_remove_theme_mods(): mixed {
+ 	global $_ignore_site_logo_changes;
+ 
+ 	if ( $_ignore_site_logo_changes ) {
+-		return;
++		return null;
+ 	}
+ 
+ 	if ( false !== get_theme_support( 'custom-logo' ) ) {
+ 		delete_option( 'site_logo' );
+ 	}
++	return null;
+ }
+ 
+ /**
+@@ -204,10 +212,11 @@
+  *
+  * @since 5.8.0
+  */
+-function _delete_site_logo_on_remove_custom_logo_on_setup_theme() {
++function _delete_site_logo_on_remove_custom_logo_on_setup_theme(): mixed {
+ 	$theme = get_option( 'stylesheet' );
+ 	add_action( "update_option_theme_mods_$theme", '_delete_site_logo_on_remove_custom_logo', 10, 2 );
+ 	add_action( "delete_option_theme_mods_$theme", '_delete_site_logo_on_remove_theme_mods' );
++	return null;
+ }
+ add_action( 'setup_theme', '_delete_site_logo_on_remove_custom_logo_on_setup_theme', 11 );
+ 
+@@ -218,7 +227,7 @@
+  *
+  * @global array $_ignore_site_logo_changes
+  */
+-function _delete_custom_logo_on_remove_site_logo() {
++function _delete_custom_logo_on_remove_site_logo(): mixed {
+ 	global $_ignore_site_logo_changes;
+ 
+ 	// Prevent _delete_site_logo_on_remove_custom_logo and
+@@ -230,5 +239,6 @@
+ 	remove_theme_mod( 'custom_logo' );
+ 
+ 	$_ignore_site_logo_changes = false;
++	return null;
+ }
+ add_action( 'delete_option_site_logo', '_delete_custom_logo_on_remove_site_logo' );

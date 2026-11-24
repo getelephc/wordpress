@@ -1,14 +1,54 @@
 --- a/wp-includes/Requests/src/Transport/Fsockopen.php
 +++ b/wp-includes/Requests/src/Transport/Fsockopen.php
-@@ -170,7 +170,7 @@
+@@ -74,7 +74,7 @@
+ 	 * @throws \WpOrg\Requests\Exception       On failure to connect to socket (`fsockopenerror`)
+ 	 * @throws \WpOrg\Requests\Exception       On socket timeout (`timeout`)
+ 	 */
+-	public function request($url, $headers = [], $data = [], $options = []) {
++	public function request(mixed $url, mixed $headers = [], mixed $data = [], mixed $options = []): mixed {
+ 		if (InputValidator::is_string_or_stringable($url) === false) {
+ 			throw InvalidArgument::create(1, '$url', 'string|Stringable', gettype($url));
+ 		}
+@@ -105,7 +105,7 @@
+ 		$host                     = $url_parts['host'];
+ 		$context                  = stream_context_create();
+ 		$verifyname               = false;
+-		$case_insensitive_headers = new CaseInsensitiveDictionary($headers);
++		$case_insensitive_headers = new CaseInsensitiveDictionary(\wp_aot_array_input($headers));
+ 
+ 		// HTTPS support
+ 		if (isset($url_parts['scheme']) && strtolower($url_parts['scheme']) === 'https') {
+@@ -149,7 +149,7 @@
+ 			if (function_exists('stream_context_set_options')) {
+ 				// PHP 8.3+.
+ 				// phpcs:ignore PHPCompatibility.FunctionUse.NewFunctions.stream_context_set_optionsFound
+-				stream_context_set_options($context, ['ssl' => $context_options]);
++				\wp_aot_native_api('stream_context_set_options', array($context, ['ssl' => $context_options]));
+ 			} else {
+ 				// PHP < 8.3.
+ 				// phpcs:ignore PHPCompatibility.FunctionUse.OptionalToRequiredFunctionParameters
+@@ -170,9 +170,9 @@
  		// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_set_error_handler
  		set_error_handler([$this, 'connect_error_handler'], E_WARNING | E_NOTICE);
  
 -		$options['hooks']->dispatch('fsockopen.remote_socket', [&$remote_socket]);
+-
+-		$socket = stream_socket_client($remote_socket, $errno, $errstr, ceil($options['connect_timeout']), STREAM_CLIENT_CONNECT, $context);
 +		throw new \RuntimeException( 'Reference-array call is outside the finite bootstrap fixture.' );
++
++		$socket = \wp_aot_native_socket($remote_socket, $errno, $errstr, ceil($options['connect_timeout']), STREAM_CLIENT_CONNECT, $context);
  
- 		$socket = stream_socket_client($remote_socket, $errno, $errstr, ceil($options['connect_timeout']), STREAM_CLIENT_CONNECT, $context);
+ 		restore_error_handler();
  
+@@ -186,7 +186,7 @@
+ 				throw new Exception(rtrim($this->connect_error), 'fsockopen.connect_error');
+ 			}
+ 
+-			throw new Exception($errstr, 'fsockopenerror', null, $errno);
++			throw new Exception(\wp_aot_weak_string($errstr), 'fsockopenerror', null, $errno);
+ 		}
+ 
+ 		$data_format = $options['data_format'];
 @@ -198,7 +198,7 @@
  			$path = self::format_get($url_parts, []);
  		}
@@ -27,16 +67,18 @@
  
  		if (substr($out, -2) !== "\r\n") {
  			$out .= "\r\n";
-@@ -261,7 +261,7 @@
+@@ -261,15 +261,15 @@
  
  		$out .= "\r\n" . $request_body;
  
 -		$options['hooks']->dispatch('fsockopen.before_send', [&$out]);
+-
+-		fwrite($socket, $out);
 +		throw new \RuntimeException( 'Reference-array call is outside the finite bootstrap fixture.' );
- 
- 		fwrite($socket, $out);
++
++		\wp_aot_fwrite($socket, $out);
  		$options['hooks']->dispatch('fsockopen.after_send', [$out]);
-@@ -269,7 +269,7 @@
+ 
  		if (!$options['blocking']) {
  			fclose($socket);
  			$fake_headers = '';
@@ -45,16 +87,63 @@
  			return '';
  		}
  
-@@ -349,7 +349,7 @@
+@@ -280,7 +280,7 @@
+ 			$timeout_msec = self::SECOND_IN_MICROSECONDS * $options['timeout'] % self::SECOND_IN_MICROSECONDS;
+ 		}
+ 
+-		stream_set_timeout($socket, $timeout_sec, $timeout_msec);
++		stream_set_timeout($socket, \wp_aot_internal_int( $timeout_sec ), \wp_aot_internal_int( $timeout_msec ));
+ 
+ 		$response   = '';
+ 		$body       = '';
+@@ -288,7 +288,7 @@
+ 		$this->info = stream_get_meta_data($socket);
+ 		$size       = 0;
+ 		$doingbody  = false;
+-		$download   = false;
++		$download   = \wp_aot_mixed(false);
+ 		if ($options['filename']) {
+ 			// phpcs:ignore WordPress.PHP.NoSilencedErrors -- Silenced the PHP native warning in favour of throwing an exception.
+ 			$download = @fopen($options['filename'], 'wb');
+@@ -304,7 +304,7 @@
+ 				throw new Exception('fsocket timed out', 'timeout');
+ 			}
+ 
+-			$block = fread($socket, Requests::BUFFER_SIZE);
++			$block = \wp_aot_fread($socket, \wp_aot_internal_int( Requests::BUFFER_SIZE ));
+ 			if (!$doingbody) {
+ 				$response .= $block;
+ 				if (strpos($response, "\r\n\r\n")) {
+@@ -332,7 +332,7 @@
+ 
+ 				$size += strlen($block);
+ 				if ($download) {
+-					fwrite($download, $block);
++					\wp_aot_fwrite($download, $block);
+ 				} else {
+ 					$body .= $block;
+ 				}
+@@ -349,8 +349,9 @@
  
  		fclose($socket);
  
 -		$options['hooks']->dispatch('fsockopen.after_request', [&$this->headers, &$this->info]);
 +		throw new \RuntimeException( 'Reference-array call is outside the finite bootstrap fixture.' );
  		return $this->headers;
++		return null;
  	}
  
-@@ -384,13 +384,13 @@
+ 	/**
+@@ -363,7 +364,7 @@
+ 	 * @throws \WpOrg\Requests\Exception\InvalidArgument When the passed $requests argument is not an array or iterable object with array access.
+ 	 * @throws \WpOrg\Requests\Exception\InvalidArgument When the passed $options argument is not an array.
+ 	 */
+-	public function request_multiple($requests, $options) {
++	public function request_multiple(mixed $requests, mixed $options): mixed {
+ 		// If you're not requesting, we can't get any responses ¯\_(ツ)_/¯
+ 		if (empty($requests)) {
+ 			return [];
+@@ -384,17 +385,18 @@
  				$handler        = new $class();
  				$responses[$id] = $handler->request($request['url'], $request['headers'], $request['data'], $request['options']);
  
@@ -70,3 +159,96 @@
  			}
  		}
  
+ 		return $responses;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -402,7 +404,7 @@
+ 	 *
+ 	 * @return string Accept-Encoding header value
+ 	 */
+-	private static function accept_encoding() {
++	private static function accept_encoding(): mixed {
+ 		$type = [];
+ 		if (function_exists('gzinflate')) {
+ 			$type[] = 'deflate;q=1.0';
+@@ -415,6 +417,7 @@
+ 		$type[] = 'gzip;q=0.5';
+ 
+ 		return implode(', ', $type);
++		return null;
+ 	}
+ 
+ 	/**
+@@ -424,7 +427,7 @@
+ 	 * @param array|object $data Data to build query using, see {@link https://www.php.net/http_build_query}
+ 	 * @return string URL with data
+ 	 */
+-	private static function format_get($url_parts, $data) {
++	private static function format_get(mixed $url_parts, mixed $data): mixed {
+ 		if (!empty($data)) {
+ 			if (empty($url_parts['query'])) {
+ 				$url_parts['query'] = '';
+@@ -445,6 +448,7 @@
+ 		}
+ 
+ 		return $get;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -453,7 +457,7 @@
+ 	 * @param int $errno Error number (e.g. E_WARNING)
+ 	 * @param string $errstr Error message
+ 	 */
+-	public function connect_error_handler($errno, $errstr) {
++	public function connect_error_handler(mixed $errno, mixed $errstr): mixed {
+ 		// Double-check we can handle it
+ 		if (($errno & E_WARNING) === 0 && ($errno & E_NOTICE) === 0) {
+ 			// Return false to indicate the default error handler should engage
+@@ -462,6 +466,7 @@
+ 
+ 		$this->connect_error .= $errstr . "\n";
+ 		return true;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -480,7 +485,7 @@
+ 	 * @throws \WpOrg\Requests\Exception On failure to connect via TLS (`fsockopen.ssl.connect_error`)
+ 	 * @throws \WpOrg\Requests\Exception On not obtaining a match for the host (`fsockopen.ssl.no_match`)
+ 	 */
+-	public function verify_certificate_from_context($host, $context) {
++	public function verify_certificate_from_context(mixed $host, mixed $context): mixed {
+ 		$meta = stream_context_get_options($context);
+ 
+ 		// If we don't have SSL options, then we couldn't make the connection at
+@@ -489,9 +494,10 @@
+ 			throw new Exception(rtrim($this->connect_error), 'ssl.connect_error');
+ 		}
+ 
+-		$cert = openssl_x509_parse($meta['ssl']['peer_certificate']);
++		$cert = \wp_aot_native_api('openssl_x509_parse', array($meta['ssl']['peer_certificate']));
+ 
+ 		return Ssl::verify_certificate($host, $cert);
++		return null;
+ 	}
+ 
+ 	/**
+@@ -503,7 +509,7 @@
+ 	 * @param array<string, bool> $capabilities Optional. Associative array of capabilities to test against, i.e. `['<capability>' => true]`.
+ 	 * @return bool Whether the transport can be used.
+ 	 */
+-	public static function test($capabilities = []) {
++	public static function test(mixed $capabilities = []): mixed {
+ 		if (!function_exists('fsockopen')) {
+ 			return false;
+ 		}
+@@ -516,5 +522,6 @@
+ 		}
+ 
+ 		return true;
++		return null;
+ 	}
+ }

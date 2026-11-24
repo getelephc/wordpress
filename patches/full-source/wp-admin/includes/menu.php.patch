@@ -1,0 +1,85 @@
+--- a/wp-admin/includes/menu.php
++++ b/wp-admin/includes/menu.php
+@@ -209,12 +209,13 @@
+  * @param string $classes      The string to add the CSS class to.
+  * @return string The string with the CSS class added.
+  */
+-function add_cssclass( $class_to_add, $classes ) {
++function add_cssclass( mixed $class_to_add, mixed $classes ): mixed {
+ 	if ( empty( $classes ) ) {
+ 		return $class_to_add;
+ 	}
+ 
+ 	return $classes . ' ' . $class_to_add;
++	return null;
+ }
+ 
+ /**
+@@ -227,7 +228,7 @@
+  * @param array $menu The array of administration menu items.
+  * @return array The array of administration menu items with the CSS classes added.
+  */
+-function add_menu_classes( $menu ) {
++function add_menu_classes( mixed $menu ): mixed {
+ 	$first_item  = false;
+ 	$last_order  = false;
+ 	$items_count = count( $menu );
+@@ -275,9 +276,10 @@
+ 	 * @param array $menu Associative array of administration menu items.
+ 	 */
+ 	return apply_filters( 'add_menu_classes', $menu );
+-}
+-
+-uksort( $menu, 'strnatcasecmp' ); // Make it all pretty.
++	return null;
++}
++
++\wp_aot_uksort( $menu, 'strnatcasecmp' ); // Make it all pretty.
+ 
+ /**
+  * Filters whether to enable custom ordering of the administration menu.
+@@ -311,9 +313,9 @@
+ 	 * @param array $menu_order An ordered array of menu items.
+ 	 */
+ 	$menu_order = apply_filters( 'menu_order', $menu_order );
+-	$menu_order = array_flip( $menu_order );
+-
+-	$default_menu_order = array_flip( $default_menu_order );
++	$menu_order = \wp_aot_array_flip( $menu_order );
++
++	$default_menu_order = \wp_aot_array_flip( $default_menu_order );
+ 
+ 	/**
+ 	 * @global array $menu_order
+@@ -323,7 +325,7 @@
+ 	 * @param array $b
+ 	 * @return int
+ 	 */
+-	function sort_menu( $a, $b ) {
++	function sort_menu( mixed $a, mixed $b ): mixed {
+ 		global $menu_order, $default_menu_order;
+ 
+ 		$a = $a[2];
+@@ -338,9 +340,10 @@
+ 		} else {
+ 			return $default_menu_order[ $a ] <=> $default_menu_order[ $b ];
+ 		}
+-	}
+-
+-	usort( $menu, 'sort_menu' );
++		return null;
++	}
++
++	\wp_aot_usort( $menu, 'sort_menu' );
+ 	unset( $menu_order, $default_menu_order );
+ }
+ 
+@@ -366,7 +369,7 @@
+ 
+ // Remove the last menu item if it is a separator.
+ $last_menu_key = array_keys( $menu );
+-$last_menu_key = array_pop( $last_menu_key );
++$last_menu_key = \wp_aot_array_pop( $last_menu_key );
+ if ( ! empty( $menu ) && 'wp-menu-separator' === $menu[ $last_menu_key ][4] ) {
+ 	unset( $menu[ $last_menu_key ] );
+ }

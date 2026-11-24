@@ -1,0 +1,112 @@
+--- a/wp-includes/robots-template.php
++++ b/wp-includes/robots-template.php
+@@ -17,7 +17,7 @@
+  * @since 5.7.0
+  * @since 5.7.1 No longer prevents specific directives to occur together.
+  */
+-function wp_robots() {
++function wp_robots(): mixed {
+ 	/**
+ 	 * Filters the directives to be included in the 'robots' meta tag.
+ 	 *
+@@ -43,10 +43,11 @@
+ 	}
+ 
+ 	if ( empty( $robots_strings ) ) {
+-		return;
++		return null;
+ 	}
+ 
+ 	echo "<meta name='robots' content='" . esc_attr( implode( ', ', $robots_strings ) ) . "' />\n";
++	return null;
+ }
+ 
+ /**
+@@ -67,12 +68,13 @@
+  * @param array $robots Associative array of robots directives.
+  * @return array Filtered robots directives.
+  */
+-function wp_robots_noindex( array $robots ) {
++function wp_robots_noindex( array $robots ): mixed {
+ 	if ( ! get_option( 'blog_public' ) ) {
+ 		return wp_robots_no_robots( $robots );
+ 	}
+ 
+ 	return $robots;
++	return null;
+ }
+ 
+ /**
+@@ -89,12 +91,13 @@
+  * @param array $robots Associative array of robots directives.
+  * @return array Filtered robots directives.
+  */
+-function wp_robots_noindex_embeds( array $robots ) {
++function wp_robots_noindex_embeds( array $robots ): mixed {
+ 	if ( is_embed() ) {
+ 		return wp_robots_no_robots( $robots );
+ 	}
+ 
+ 	return $robots;
++	return null;
+ }
+ 
+ /**
+@@ -115,12 +118,13 @@
+  * @param array $robots Associative array of robots directives.
+  * @return array Filtered robots directives.
+  */
+-function wp_robots_noindex_search( array $robots ) {
++function wp_robots_noindex_search( array $robots ): mixed {
+ 	if ( is_search() ) {
+ 		return wp_robots_no_robots( $robots );
+ 	}
+ 
+ 	return $robots;
++	return null;
+ }
+ 
+ /**
+@@ -137,7 +141,7 @@
+  * @param array $robots Associative array of robots directives.
+  * @return array Filtered robots directives.
+  */
+-function wp_robots_no_robots( array $robots ) {
++function wp_robots_no_robots( array $robots ): mixed {
+ 	$robots['noindex'] = true;
+ 
+ 	if ( get_option( 'blog_public' ) ) {
+@@ -147,6 +151,7 @@
+ 	}
+ 
+ 	return $robots;
++	return null;
+ }
+ 
+ /**
+@@ -164,10 +169,11 @@
+  * @param array $robots Associative array of robots directives.
+  * @return array Filtered robots directives.
+  */
+-function wp_robots_sensitive_page( array $robots ) {
++function wp_robots_sensitive_page( array $robots ): mixed {
+ 	$robots['noindex']   = true;
+ 	$robots['noarchive'] = true;
+ 	return $robots;
++	return null;
+ }
+ 
+ /**
+@@ -185,9 +191,10 @@
+  * @param array $robots Associative array of robots directives.
+  * @return array Filtered robots directives.
+  */
+-function wp_robots_max_image_preview_large( array $robots ) {
++function wp_robots_max_image_preview_large( array $robots ): mixed {
+ 	if ( get_option( 'blog_public' ) ) {
+ 		$robots['max-image-preview'] = 'large';
+ 	}
+ 	return $robots;
+-}
++	return null;
++}

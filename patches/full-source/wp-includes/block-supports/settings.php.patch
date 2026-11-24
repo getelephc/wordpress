@@ -1,0 +1,47 @@
+--- a/wp-includes/block-supports/settings.php
++++ b/wp-includes/block-supports/settings.php
+@@ -17,8 +17,9 @@
+  * @param array $block Block object.
+  * @return string      The unique class name.
+  */
+-function _wp_get_presets_class_name( $block ) {
++function _wp_get_presets_class_name( mixed $block ): mixed {
+ 	return 'wp-settings-' . md5( serialize( $block ) );
++	return null;
+ }
+ 
+ /**
+@@ -33,7 +34,7 @@
+  * @param  array  $block         Block object.
+  * @return string                Filtered block content.
+  */
+-function _wp_add_block_level_presets_class( $block_content, $block ) {
++function _wp_add_block_level_presets_class( mixed $block_content, mixed $block ): mixed {
+ 	if ( ! $block_content ) {
+ 		return $block_content;
+ 	}
+@@ -58,6 +59,7 @@
+ 	}
+ 
+ 	return $tags->get_updated_html();
++	return null;
+ }
+ 
+ /**
+@@ -74,7 +76,7 @@
+  *
+  * @return null
+  */
+-function _wp_add_block_level_preset_styles( $pre_render, $block ) {
++function _wp_add_block_level_preset_styles( mixed $pre_render, mixed $block ): mixed {
+ 	// Return early if the block has not support for descendent block styles.
+ 	$block_type = WP_Block_Type_Registry::get_instance()->get_registered( $block['blockName'] );
+ 	if ( ! block_has_support( $block_type, '__experimentalSettings', false ) ) {
+@@ -146,6 +148,7 @@
+ 	}
+ 
+ 	return null;
++	return null;
+ }
+ 
+ add_filter( 'render_block', '_wp_add_block_level_presets_class', 10, 2 );

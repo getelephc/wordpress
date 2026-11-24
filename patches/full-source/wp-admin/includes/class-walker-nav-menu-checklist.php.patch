@@ -1,0 +1,51 @@
+--- a/wp-admin/includes/class-walker-nav-menu-checklist.php
++++ b/wp-admin/includes/class-walker-nav-menu-checklist.php
+@@ -17,7 +17,7 @@
+ 	/**
+ 	 * @param array|false $fields Database fields to use.
+ 	 */
+-	public function __construct( $fields = false ) {
++	public function __construct( mixed $fields = false ) {
+ 		if ( $fields ) {
+ 			$this->db_fields = $fields;
+ 		}
+@@ -34,9 +34,10 @@
+ 	 * @param int      $depth  Depth of page. Used for padding.
+ 	 * @param stdClass $args   Not used.
+ 	 */
+-	public function start_lvl( &$output, $depth = 0, $args = null ) {
++	public function start_lvl( mixed &$output, mixed $depth = 0, mixed $args = null ): mixed {
+ 		$indent  = str_repeat( "\t", $depth );
+ 		$output .= "\n$indent<ul class='children'>\n";
++		return null;
+ 	}
+ 
+ 	/**
+@@ -50,9 +51,10 @@
+ 	 * @param int      $depth  Depth of page. Used for padding.
+ 	 * @param stdClass $args   Not used.
+ 	 */
+-	public function end_lvl( &$output, $depth = 0, $args = null ) {
++	public function end_lvl( mixed &$output, mixed $depth = 0, mixed $args = null ): mixed {
+ 		$indent  = str_repeat( "\t", $depth );
+ 		$output .= "\n$indent</ul>";
++		return null;
+ 	}
+ 
+ 	/**
+@@ -73,7 +75,7 @@
+ 	 * @param stdClass $args              Not used.
+ 	 * @param int      $current_object_id Optional. ID of the current menu item. Default 0.
+ 	 */
+-	public function start_el( &$output, $data_object, $depth = 0, $args = null, $current_object_id = 0 ) {
++	public function start_el( mixed &$output, mixed $data_object, mixed $depth = 0, mixed $args = null, mixed $current_object_id = 0 ): mixed {
+ 		global $_nav_menu_placeholder, $nav_menu_selected_id;
+ 
+ 		// Restores the more descriptive, specific name for use within this method.
+@@ -122,5 +124,6 @@
+ 		$output .= '<input type="hidden" class="menu-item-attr-title" name="menu-item[' . $possible_object_id . '][menu-item-attr-title]" value="' . htmlspecialchars( $menu_item->attr_title, ENT_QUOTES ) . '" />';
+ 		$output .= '<input type="hidden" class="menu-item-classes" name="menu-item[' . $possible_object_id . '][menu-item-classes]" value="' . htmlspecialchars( implode( ' ', $menu_item->classes ), ENT_QUOTES ) . '" />';
+ 		$output .= '<input type="hidden" class="menu-item-xfn" name="menu-item[' . $possible_object_id . '][menu-item-xfn]" value="' . htmlspecialchars( $menu_item->xfn, ENT_QUOTES ) . '" />';
++		return null;
+ 	}
+ }

@@ -1,6 +1,120 @@
 --- a/wp-admin/includes/network.php
 +++ b/wp-admin/includes/network.php
-@@ -184,10 +184,14 @@
+@@ -16,14 +16,15 @@
+  *
+  * @return string|false Base domain if network exists, otherwise false.
+  */
+-function network_domain_check() {
++function network_domain_check(): mixed {
+ 	global $wpdb;
+ 
+-	if ( $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $wpdb->esc_like( $wpdb->site ) ) ) ) {
+-		return $wpdb->get_var( "SELECT domain FROM $wpdb->site ORDER BY id ASC LIMIT 1" );
++	if ( \wp_aot_require_wpdb( $wpdb )->get_var( \wp_aot_require_wpdb( $wpdb )->prepare( 'SHOW TABLES LIKE %s', \wp_aot_require_wpdb( $wpdb )->esc_like( $wpdb->site ) ) ) ) {
++		return \wp_aot_require_wpdb( $wpdb )->get_var( "SELECT domain FROM $wpdb->site ORDER BY id ASC LIMIT 1" );
+ 	}
+ 
+ 	return false;
++	return null;
+ }
+ 
+ /**
+@@ -32,14 +33,15 @@
+  * @since 3.0.0
+  * @return bool Whether subdomain installation is allowed
+  */
+-function allow_subdomain_install() {
++function allow_subdomain_install(): mixed {
+ 	$home   = get_option( 'home' );
+ 	$domain = parse_url( $home, PHP_URL_HOST );
+-	if ( parse_url( $home, PHP_URL_PATH ) || 'localhost' === $domain || preg_match( '|^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$|', $domain ) ) {
++	if ( parse_url( $home, PHP_URL_PATH ) || 'localhost' === $domain || preg_match( '|^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$|', \wp_aot_regex_text( $domain ) ) ) {
+ 		return false;
+ 	}
+ 
+ 	return true;
++	return null;
+ }
+ 
+ /**
+@@ -51,7 +53,7 @@
+  *
+  * @return bool Whether subdirectory installation is allowed
+  */
+-function allow_subdirectory_install() {
++function allow_subdirectory_install(): mixed {
+ 	global $wpdb;
+ 
+ 	/**
+@@ -70,12 +72,13 @@
+ 		return true;
+ 	}
+ 
+-	$post = $wpdb->get_row( "SELECT ID FROM $wpdb->posts WHERE post_date < DATE_SUB(NOW(), INTERVAL 1 MONTH) AND post_status = 'publish'" );
++	$post = \wp_aot_require_wpdb( $wpdb )->get_row( "SELECT ID FROM $wpdb->posts WHERE post_date < DATE_SUB(NOW(), INTERVAL 1 MONTH) AND post_status = 'publish'" );
+ 	if ( empty( $post ) ) {
+ 		return true;
+ 	}
+ 
+ 	return false;
++	return null;
+ }
+ 
+ /**
+@@ -84,17 +87,18 @@
+  * @since 3.0.0
+  * @return string Base domain.
+  */
+-function get_clean_basedomain() {
++function get_clean_basedomain(): mixed {
+ 	$existing_domain = network_domain_check();
+ 	if ( $existing_domain ) {
+ 		return $existing_domain;
+ 	}
+-	$domain = preg_replace( '|https?://|', '', get_option( 'siteurl' ) );
++	$domain = \wp_aot_preg_replace( '|https?://|', '', get_option( 'siteurl' ) );
+ 	$slash  = strpos( $domain, '/' );
+ 	if ( $slash ) {
+ 		$domain = substr( $domain, 0, $slash );
+ 	}
+ 	return $domain;
++	return null;
+ }
+ 
+ /**
+@@ -110,7 +114,7 @@
+  *
+  * @param false|WP_Error $errors Optional. Error object. Default false.
+  */
+-function network_step1( $errors = false ) {
++function network_step1( mixed $errors = false ): mixed {
+ 	global $is_apache;
+ 
+ 	if ( defined( 'DO_NOT_UPGRADE_GLOBAL_TABLES' ) ) {
+@@ -130,7 +134,7 @@
+ 
+ 		echo '</div>';
+ 		require_once ABSPATH . 'wp-admin/admin-footer.php';
+-		die();
++		\wp_aot_exit();
+ 	}
+ 
+ 	$active_plugins = get_option( 'active_plugins' );
+@@ -146,11 +150,11 @@
+ 		echo '<p>' . __( 'Once the network is created, you may reactivate your plugins.' ) . '</p>';
+ 		echo '</div>';
+ 		require_once ABSPATH . 'wp-admin/admin-footer.php';
+-		die();
++		\wp_aot_exit();
+ 	}
+ 
+ 	// Strip standard port from hostname.
+-	$hostname = preg_replace( '/(?::80|:443)$/', '', get_clean_basedomain() );
++	$hostname = \wp_aot_preg_replace( '/(?::80|:443)$/', '', get_clean_basedomain() );
+ 
+ 	echo '<form method="post">';
+ 
+@@ -184,10 +188,14 @@
  	} else {
  		$admin_email = get_option( 'admin_email' );
  	}
@@ -19,7 +133,7 @@
  
  	if ( isset( $_POST['subdomain_install'] ) ) {
  		$subdomain_install = (bool) $_POST['subdomain_install'];
-@@ -239,40 +243,56 @@
+@@ -239,40 +247,56 @@
  	}
  
  	if ( allow_subdomain_install() && allow_subdirectory_install() ) :
@@ -92,7 +206,7 @@
  	endif;
  
  	if ( WP_CONTENT_DIR !== ABSPATH . 'wp-content' && ( allow_subdirectory_install() || ! allow_subdomain_install() ) ) {
-@@ -288,10 +308,12 @@
+@@ -288,10 +312,12 @@
  
  	$is_www = str_starts_with( $hostname, 'www.' );
  	if ( $is_www ) :
@@ -108,7 +222,7 @@
  		printf(
  			/* translators: 1: Site URL, 2: Host name, 3: www. */
  			__( 'You should consider changing your site domain to %1$s before enabling the network feature. It will still be possible to visit your site using the %3$s prefix with an address like %2$s but any links will not have the %3$s prefix.' ),
-@@ -299,31 +321,39 @@
+@@ -299,31 +325,39 @@
  			'<code>' . $hostname . '</code>',
  			'<code>www</code>'
  		);
@@ -161,7 +275,7 @@
  					printf(
  						/* translators: 1: localhost, 2: localhost.localdomain */
  						__( 'Because you are using %1$s, the sites in your WordPress network must use sub-directories. Consider using %2$s if you wish to use sub-domains.' ),
-@@ -334,69 +364,91 @@
+@@ -334,69 +368,92 @@
  				if ( ! allow_subdirectory_install() ) {
  					echo ' <strong>' . __( 'Warning:' ) . ' ' . __( 'The main site in a sub-directory installation will need to use a modified permalink structure, potentially breaking existing links.' ) . '</strong>';
  				}
@@ -284,10 +398,32 @@
 +submit_button( __( 'Install' ), 'primary', 'submit' ); ;
 +echo '	</form>
 +	';
++	return null;
  }
  
  /**
-@@ -446,9 +498,11 @@
+@@ -409,16 +466,16 @@
+  *
+  * @param false|WP_Error $errors Optional. Error object. Default false.
+  */
+-function network_step2( $errors = false ) {
++function network_step2( mixed $errors = false ): mixed {
+ 	global $wpdb, $is_nginx;
+ 
+ 	$hostname          = get_clean_basedomain();
+ 	$slashed_home      = trailingslashit( get_option( 'home' ) );
+ 	$base              = parse_url( $slashed_home, PHP_URL_PATH );
+-	$document_root_fix = str_replace( '\\', '/', realpath( $_SERVER['DOCUMENT_ROOT'] ) );
+-	$abspath_fix       = str_replace( '\\', '/', ABSPATH );
++	$document_root_fix = \wp_aot_str_replace( '\\', '/', realpath( $_SERVER['DOCUMENT_ROOT'] ) );
++	$abspath_fix       = \wp_aot_str_replace( '\\', '/', ABSPATH );
+ 	$home_path         = str_starts_with( $abspath_fix, $document_root_fix ) ? $document_root_fix . $base : get_home_path();
+-	$wp_siteurl_subdir = preg_replace( '#^' . preg_quote( $home_path, '#' ) . '#', '', $abspath_fix );
++	$wp_siteurl_subdir = \wp_aot_preg_replace( '#^' . preg_quote( \wp_aot_regex_text( $home_path ), '#' ) . '#', '', $abspath_fix );
+ 	$rewrite_base      = ! empty( $wp_siteurl_subdir ) ? ltrim( trailingslashit( $wp_siteurl_subdir ), '/' ) : '';
+ 
+ 	$location_of_wp_config = $abspath_fix;
+@@ -446,11 +503,13 @@
  	} else {
  		if ( is_multisite() ) {
  			$subdomain_install = is_subdomain_install();
@@ -300,9 +436,12 @@
 +echo '</p>
 +			';
  		} else {
- 			$subdomain_install = (bool) $wpdb->get_var( "SELECT meta_value FROM $wpdb->sitemeta WHERE site_id = 1 AND meta_key = 'subdomain_install'" );
+-			$subdomain_install = (bool) $wpdb->get_var( "SELECT meta_value FROM $wpdb->sitemeta WHERE site_id = 1 AND meta_key = 'subdomain_install'" );
++			$subdomain_install = (bool) \wp_aot_require_wpdb( $wpdb )->get_var( "SELECT meta_value FROM $wpdb->sitemeta WHERE site_id = 1 AND meta_key = 'subdomain_install'" );
  
-@@ -458,9 +512,11 @@
+ 			wp_admin_notice(
+ 				'<strong>' . __( 'Warning:' ) . '</strong> ' . __( 'An existing WordPress network was detected.' ),
+@@ -458,9 +517,11 @@
  					'additional_classes' => array( 'error' ),
  				)
  			);
@@ -317,7 +456,7 @@
  		}
  	}
  
-@@ -469,10 +525,14 @@
+@@ -469,10 +530,14 @@
  	$subdir_replacement_12 = $subdomain_install ? '$1' : '$2';
  
  	if ( $_POST || ! is_multisite() ) {
@@ -336,7 +475,7 @@
  		$notice_message = '<strong>' . __( 'Caution:' ) . '</strong> ';
  		$notice_args    = array(
  			'type'               => 'warning',
-@@ -503,10 +563,10 @@
+@@ -503,10 +568,10 @@
  
  		wp_admin_notice( $notice_message, $notice_args );
  	}
@@ -350,7 +489,7 @@
  		printf(
  			/* translators: 1: wp-config.php, 2: Location of wp-config file, 3: Translated version of "That's all, stop editing! Happy publishing." */
  			__( 'Add the following to your %1$s file in %2$s <strong>above</strong> the line reading %3$s:' ),
-@@ -519,26 +579,32 @@
+@@ -519,26 +584,32 @@
  			 */
  			'<code>/* ' . __( 'That&#8217;s all, stop editing! Happy publishing.' ) . ' */</code>'
  		);
@@ -395,7 +534,21 @@
  		$keys_salts = array(
  			'AUTH_KEY'         => '',
  			'SECURE_AUTH_KEY'  => '',
-@@ -569,9 +635,9 @@
+@@ -550,7 +621,7 @@
+ 			'NONCE_SALT'       => '',
+ 		);
+ 		foreach ( $keys_salts as $c => $v ) {
+-			if ( defined( $c ) ) {
++			if ( \wp_aot_metadata_defined( $c ) ) {
+ 				unset( $keys_salts[ $c ] );
+ 			}
+ 		}
+@@ -565,13 +636,13 @@
+ 			} else {
+ 				$from_api = explode( "\n", wp_remote_retrieve_body( $from_api ) );
+ 				foreach ( $keys_salts as $c => $v ) {
+-					$keys_salts_str .= "\ndefine( '$c', '" . substr( array_shift( $from_api ), 28, 64 ) . "' );";
++					$keys_salts_str .= "\ndefine( '$c', '" . substr( \wp_aot_array_shift( $from_api ), 28, 64 ) . "' );";
  				}
  			}
  			$num_keys_salts = count( $keys_salts );
@@ -408,7 +561,7 @@
  			if ( 1 === $num_keys_salts ) {
  				printf(
  					/* translators: %s: wp-config.php */
-@@ -585,16 +651,23 @@
+@@ -585,16 +656,23 @@
  					'<code>wp-config.php</code>'
  				);
  			}
@@ -442,7 +595,7 @@
  	if ( iis7_supports_permalinks() ) :
  		// IIS doesn't support RewriteBase, all your RewriteBase are belong to us.
  		$iis_subdir_match       = ltrim( $base, '/' ) . $subdir_match;
-@@ -659,21 +732,23 @@
+@@ -659,21 +737,23 @@
  		if ( ! $subdomain_install && WP_CONTENT_DIR !== ABSPATH . 'wp-content' ) {
  			echo '<p><strong>' . __( 'Warning:' ) . ' ' . __( 'Subdirectory networks may not be fully compatible with custom wp-content directories.' ) . '</strong></p>';
  		}
@@ -473,7 +626,7 @@
  	elseif ( $is_nginx ) : // End iis7_supports_permalinks(). Link to Nginx documentation instead:
  
  		echo '<li><p>';
-@@ -721,26 +796,36 @@
+@@ -721,26 +801,37 @@
  		if ( ! $subdomain_install && WP_CONTENT_DIR !== ABSPATH . 'wp-content' ) {
  			echo '<p><strong>' . __( 'Warning:' ) . ' ' . __( 'Subdirectory networks may not be fully compatible with custom wp-content directories.' ) . '</strong></p>';
  		}
@@ -509,6 +662,7 @@
 -		?>
 -		<p><?php _e( 'Once you complete these steps, your network is enabled and configured. You will have to log in again.' ); ?> <a href="<?php echo esc_url( wp_login_url() ); ?>"><?php _e( 'Log In' ); ?></a></p>
 -		<?php
+-	}
 +		;
 +echo '		<p>';
 +_e( 'Once you complete these steps, your network is enabled and configured. You will have to log in again.' ); ;
@@ -518,5 +672,6 @@
 +_e( 'Log In' ); ;
 +echo '</a></p>
 +		';
- 	}
++	}
++	return null;
  }

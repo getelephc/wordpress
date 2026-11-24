@@ -1,0 +1,11 @@
+--- a/wp-admin/term.php
++++ b/wp-admin/term.php
+@@ -21,7 +21,7 @@
+ 	}
+ 
+ 	wp_redirect( sanitize_url( $sendback ) );
+-	exit;
++	\wp_aot_exit();
+ }
+ 
+ $tag_ID = absint( $_REQUEST['tag_ID'] );

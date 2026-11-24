@@ -1,0 +1,155 @@
+--- a/wp-includes/class-wp-http-streams.php
++++ b/wp-includes/class-wp-http-streams.php
+@@ -29,7 +29,7 @@
+ 	 * @param string|array $args Optional. Override the defaults.
+ 	 * @return array|WP_Error Array containing 'headers', 'body', 'response', 'cookies', 'filename'. A WP_Error instance upon error
+ 	 */
+-	public function request( $url, $args = array() ) {
++	public function request( mixed $url, mixed $args = array() ): mixed {
+ 		$defaults = array(
+ 			'method'      => 'GET',
+ 			'timeout'     => 5,
+@@ -150,7 +150,7 @@
+ 
+ 			if ( $proxy->is_enabled() && $proxy->send_through_proxy( $url ) ) {
+ 				// phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged
+-				$handle = @stream_socket_client(
++				$handle = @\wp_aot_native_socket(
+ 					'tcp://' . $proxy->host() . ':' . $proxy->port(),
+ 					$connection_error,
+ 					$connection_error_str,
+@@ -160,7 +160,7 @@
+ 				);
+ 			} else {
+ 				// phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged
+-				$handle = @stream_socket_client(
++				$handle = @\wp_aot_native_socket(
+ 					$connect_host . ':' . $parsed_url['port'],
+ 					$connection_error,
+ 					$connection_error_str,
+@@ -175,7 +175,7 @@
+ 			}
+ 		} else {
+ 			if ( $proxy->is_enabled() && $proxy->send_through_proxy( $url ) ) {
+-				$handle = stream_socket_client(
++				$handle = \wp_aot_native_socket(
+ 					'tcp://' . $proxy->host() . ':' . $proxy->port(),
+ 					$connection_error,
+ 					$connection_error_str,
+@@ -184,7 +184,7 @@
+ 					$context
+ 				);
+ 			} else {
+-				$handle = stream_socket_client(
++				$handle = \wp_aot_native_socket(
+ 					$connect_host . ':' . $parsed_url['port'],
+ 					$connection_error,
+ 					$connection_error_str,
+@@ -211,7 +211,7 @@
+ 			}
+ 		}
+ 
+-		stream_set_timeout( $handle, $timeout, $utimeout );
++		stream_set_timeout( $handle, \wp_aot_internal_int( $timeout ), \wp_aot_internal_int( $utimeout ) );
+ 
+ 		if ( $proxy->is_enabled() && $proxy->send_through_proxy( $url ) ) { // Some proxies require full URL in this field.
+ 			$request_path = $url;
+@@ -255,7 +255,7 @@
+ 			$headers .= $parsed_args['body'];
+ 		}
+ 
+-		fwrite( $handle, $headers );
++		\wp_aot_fwrite( $handle, $headers );
+ 
+ 		if ( ! $parsed_args['blocking'] ) {
+ 			stream_set_blocking( $handle, 0 );
+@@ -303,7 +303,7 @@
+ 			$bytes_written = 0;
+ 
+ 			while ( ! feof( $handle ) && $keep_reading ) {
+-				$block = fread( $handle, $block_size );
++				$block = \wp_aot_fread( $handle, \wp_aot_internal_int( $block_size ) );
+ 				if ( ! $body_started ) {
+ 					$response .= $block;
+ 					if ( strpos( $response, "\r\n\r\n" ) ) {
+@@ -324,7 +324,7 @@
+ 					$block           = substr( $block, 0, $this_block_size );
+ 				}
+ 
+-				$bytes_written_to_file = fwrite( $stream_handle, $block );
++				$bytes_written_to_file = \wp_aot_fwrite( $stream_handle, $block );
+ 
+ 				if ( $bytes_written_to_file !== $this_block_size ) {
+ 					fclose( $handle );
+@@ -346,7 +346,7 @@
+ 			$header_length = 0;
+ 
+ 			while ( ! feof( $handle ) && $keep_reading ) {
+-				$block     = fread( $handle, $block_size );
++				$block     = \wp_aot_fread( $handle, \wp_aot_internal_int( $block_size ) );
+ 				$response .= $block;
+ 
+ 				if ( ! $body_started && strpos( $response, "\r\n\r\n" ) ) {
+@@ -408,6 +408,7 @@
+ 		$response['body'] = $processed_response['body'];
+ 
+ 		return $response;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -426,14 +427,14 @@
+ 	 * @param string   $host   The hostname being requested
+ 	 * @return bool If the certificate presented in $stream is valid for $host
+ 	 */
+-	public static function verify_ssl_certificate( $stream, $host ) {
++	public static function verify_ssl_certificate( mixed $stream, mixed $host ): mixed {
+ 		$context_options = stream_context_get_options( $stream );
+ 
+ 		if ( empty( $context_options['ssl']['peer_certificate'] ) ) {
+ 			return false;
+ 		}
+ 
+-		$cert = openssl_x509_parse( $context_options['ssl']['peer_certificate'] );
++		$cert = \wp_aot_native_api('openssl_x509_parse', array( $context_options['ssl']['peer_certificate'] ));
+ 		if ( ! $cert ) {
+ 			return false;
+ 		}
+@@ -446,7 +447,7 @@
+ 
+ 		$certificate_hostnames = array();
+ 		if ( ! empty( $cert['extensions']['subjectAltName'] ) ) {
+-			$match_against = preg_split( '/,\s*/', $cert['extensions']['subjectAltName'] );
++			$match_against = \wp_aot_preg_split( '/,\s*/', \wp_aot_regex_text( $cert['extensions']['subjectAltName'] ) );
+ 			foreach ( $match_against as $match ) {
+ 				list( $match_type, $match_host ) = explode( ':', $match );
+ 				if ( strtolower( trim( $match_type ) ) === $host_type ) { // IP: or DNS:
+@@ -474,9 +475,10 @@
+ 		}
+ 
+ 		// Wildcard subdomains certs (*.example.com) are valid for a.example.com but not a.b.example.com.
+-		$wildcard_host = preg_replace( '/^[^.]+\./', '*.', $host );
++		$wildcard_host = \wp_aot_preg_replace( '/^[^.]+\./', '*.', $host );
+ 
+ 		return in_array( strtolower( $wildcard_host ), $certificate_hostnames, true );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -488,7 +490,7 @@
+ 	 * @param array $args Optional. Array of request arguments. Default empty array.
+ 	 * @return bool False means this class can not be used, true means it can.
+ 	 */
+-	public static function test( $args = array() ) {
++	public static function test( mixed $args = array() ): mixed {
+ 		if ( ! function_exists( 'stream_socket_client' ) ) {
+ 			return false;
+ 		}
+@@ -513,6 +515,7 @@
+ 		 * @param array $args      Request arguments.
+ 		 */
+ 		return apply_filters( 'use_streams_transport', true, $args );
++		return null;
+ 	}
+ }
+ 

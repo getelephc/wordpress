@@ -1,0 +1,36 @@
+--- a/wp-includes/SimplePie/src/Rating.php
++++ b/wp-includes/SimplePie/src/Rating.php
+@@ -62,13 +62,14 @@
+      *
+      * @return string|null
+      */
+-    public function get_scheme()
++    public function get_scheme(): mixed
+     {
+         if ($this->scheme !== null) {
+             return $this->scheme;
+         }
+ 
+         return null;
++    	return null;
+     }
+ 
+     /**
+@@ -76,14 +77,15 @@
+      *
+      * @return string|null
+      */
+-    public function get_value()
++    public function get_value(): mixed
+     {
+         if ($this->value !== null) {
+             return $this->value;
+         }
+ 
+         return null;
++    	return null;
+     }
+ }
+ 
+-class_alias('SimplePie\Rating', 'SimplePie_Rating');
++(!defined('WP_AOT_NATIVE_RUNTIME') && (bool) \wp_aot_native_api('class_alias', array('SimplePie\Rating', 'SimplePie_Rating')));

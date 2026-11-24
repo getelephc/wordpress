@@ -1,0 +1,162 @@
+--- a/wp-includes/ID3/module.audio.dts.php
++++ b/wp-includes/ID3/module.audio.dts.php
+@@ -15,7 +15,7 @@
+ /////////////////////////////////////////////////////////////////
+ 
+ if (!defined('GETID3_INCLUDEPATH')) { // prevent path-exposing attacks that access modules directly on public webservers
+-	exit;
++	\wp_aot_exit();
+ }
+ 
+ /**
+@@ -45,7 +45,7 @@
+ 	/**
+ 	 * @return bool
+ 	 */
+-	public function Analyze() {
++	public function Analyze(): mixed {
+ 		$info = &$this->getid3->info;
+ 		$info['fileformat'] = 'dts';
+ 
+@@ -54,7 +54,7 @@
+ 
+ 		// check syncword
+ 		$sync = substr($DTSheader, 0, 4);
+-		if (($encoding = array_search($sync, self::$syncwords)) !== false) {
++		if (($encoding = \wp_aot_array_search($sync, self::$syncwords)) !== false) {
+ 
+ 			$info['dts']['raw']['magic'] = $sync;
+ 			$this->readBinDataOffset = 32;
+@@ -68,7 +68,7 @@
+ 		} else {
+ 
+ 			unset($info['fileformat']);
+-			return $this->error('Expecting "'.implode('| ', array_map('getid3_lib::PrintHexBytes', self::$syncwords)).'" at offset '.$info['avdataoffset'].', found "'.getid3_lib::PrintHexBytes($sync).'"');
++			return $this->error('Expecting "'.implode('| ', \wp_aot_array_map('getid3_lib::PrintHexBytes', self::$syncwords)).'" at offset '.$info['avdataoffset'].', found "'.getid3_lib::PrintHexBytes($sync).'"');
+ 
+ 		}
+ 
+@@ -146,6 +146,7 @@
+ 			}
+ 		}
+ 		return true;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -154,11 +155,12 @@
+ 	 *
+ 	 * @return int
+ 	 */
+-	private function readBinData($bin, $length) {
++	private function readBinData(mixed $bin, mixed $length): mixed {
+ 		$data = substr($bin, $this->readBinDataOffset, $length);
+ 		$this->readBinDataOffset += $length;
+ 
+ 		return bindec($data);
++		return null;
+ 	}
+ 
+ 	/**
+@@ -166,7 +168,7 @@
+ 	 *
+ 	 * @return int|string|false
+ 	 */
+-	public static function bitrateLookup($index) {
++	public static function bitrateLookup(mixed $index): mixed {
+ 		static $lookup = array(
+ 			0  => 32000,
+ 			1  => 56000,
+@@ -202,6 +204,7 @@
+ 			31 => 'lossless',
+ 		);
+ 		return (isset($lookup[$index]) ? $lookup[$index] : false);
++		return null;
+ 	}
+ 
+ 	/**
+@@ -209,7 +212,7 @@
+ 	 *
+ 	 * @return int|string|false
+ 	 */
+-	public static function sampleRateLookup($index) {
++	public static function sampleRateLookup(mixed $index): mixed {
+ 		static $lookup = array(
+ 			0  => 'invalid',
+ 			1  => 8000,
+@@ -229,6 +232,7 @@
+ 			15 => 'invalid',
+ 		);
+ 		return (isset($lookup[$index]) ? $lookup[$index] : false);
++		return null;
+ 	}
+ 
+ 	/**
+@@ -236,7 +240,7 @@
+ 	 *
+ 	 * @return int|false
+ 	 */
+-	public static function bitPerSampleLookup($index) {
++	public static function bitPerSampleLookup(mixed $index): mixed {
+ 		static $lookup = array(
+ 			0  => 16,
+ 			1  => 20,
+@@ -244,6 +248,7 @@
+ 			3  => 24,
+ 		);
+ 		return (isset($lookup[$index]) ? $lookup[$index] : false);
++		return null;
+ 	}
+ 
+ 	/**
+@@ -251,7 +256,7 @@
+ 	 *
+ 	 * @return int|false
+ 	 */
+-	public static function numChannelsLookup($index) {
++	public static function numChannelsLookup(mixed $index): mixed {
+ 		switch ($index) {
+ 			case 0:
+ 				return 1;
+@@ -279,6 +284,7 @@
+ 				return 8;
+ 		}
+ 		return false;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -286,7 +292,7 @@
+ 	 *
+ 	 * @return string
+ 	 */
+-	public static function channelArrangementLookup($index) {
++	public static function channelArrangementLookup(mixed $index): mixed {
+ 		static $lookup = array(
+ 			0  => 'A',
+ 			1  => 'A + B (dual mono)',
+@@ -306,6 +312,7 @@
+ 			15 => 'CL + C+ CR + L + R + SL + S + SR',
+ 		);
+ 		return (isset($lookup[$index]) ? $lookup[$index] : 'user-defined');
++		return null;
+ 	}
+ 
+ 	/**
+@@ -314,7 +321,7 @@
+ 	 *
+ 	 * @return int|false
+ 	 */
+-	public static function dialogNormalization($index, $version) {
++	public static function dialogNormalization(mixed $index, mixed $version): mixed {
+ 		switch ($version) {
+ 			case 7:
+ 				return 0 - $index;
+@@ -322,6 +329,7 @@
+ 				return 0 - 16 - $index;
+ 		}
+ 		return false;
++		return null;
+ 	}
+ 
+ }

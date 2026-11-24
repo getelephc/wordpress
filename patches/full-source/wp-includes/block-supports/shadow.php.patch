@@ -1,0 +1,41 @@
+--- a/wp-includes/block-supports/shadow.php
++++ b/wp-includes/block-supports/shadow.php
+@@ -14,11 +14,11 @@
+  *
+  * @param WP_Block_Type $block_type Block Type.
+  */
+-function wp_register_shadow_support( $block_type ) {
++function wp_register_shadow_support( mixed $block_type ): mixed {
+ 	$has_shadow_support = block_has_support( $block_type, 'shadow', false );
+ 
+ 	if ( ! $has_shadow_support ) {
+-		return;
++		return null;
+ 	}
+ 
+ 	if ( ! $block_type->attributes ) {
+@@ -36,6 +36,7 @@
+ 			'type' => 'string',
+ 		);
+ 	}
++	return null;
+ }
+ 
+ /**
+@@ -50,7 +51,7 @@
+  * @param  array         $block_attributes Block attributes.
+  * @return array Shadow CSS classes and inline styles.
+  */
+-function wp_apply_shadow_support( $block_type, $block_attributes ) {
++function wp_apply_shadow_support( mixed $block_type, mixed $block_attributes ): mixed {
+ 	$has_shadow_support = block_has_support( $block_type, 'shadow', false );
+ 
+ 	if (
+@@ -73,6 +74,7 @@
+ 	}
+ 
+ 	return $attributes;
++	return null;
+ }
+ 
+ // Register the block support.

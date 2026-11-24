@@ -29,4 +29,10 @@ $results[] = fixture_call_reference($closure, array('count' => 2), array('old' =
 $results[] = fixture_call_reference(array($object, 'visit'), array('count' => 3), null);
 $results[] = fixture_call_reference($object, array('count' => 5), null);
 $results[] = $captured;
+class WordPressControlEditorBase {public function multi_resize(): array {return array();}}
+class WordPressControlEditor extends WordPressControlEditorBase {public function make_subsize(): array {return array();}}
+class WordPressControlEditorChild extends WordPressControlEditor {}
+foreach (array(new WordPressControlEditor(),new WordPressControlEditorChild(),new WordPressControlEditorBase(),new stdClass()) as $editor_control) $results[] = editor_method_call($editor_control);
+$theme_forward_rows = require __DIR__ . '/theme-support-forward-cases.php';
+foreach ($theme_forward_rows as $row) $results[] = $row;
 echo json_encode($results), "\n";

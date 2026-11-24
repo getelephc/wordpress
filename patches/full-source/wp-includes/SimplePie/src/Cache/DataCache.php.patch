@@ -1,0 +1,11 @@
+--- a/wp-includes/SimplePie/src/Cache/DataCache.php
++++ b/wp-includes/SimplePie/src/Cache/DataCache.php
+@@ -38,7 +38,7 @@
+      * @throws InvalidArgumentException
+      *   MUST be thrown if the $key string is not a legal value.
+      */
+-    public function get_data(string $key, $default = null);
++    public function get_data(string $key, mixed $default = null): mixed;
+ 
+     /**
+      * Persists data in the cache, uniquely referenced by a key with an optional expiration TTL time.

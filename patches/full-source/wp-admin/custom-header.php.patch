@@ -1,0 +1,11 @@
+--- a/wp-admin/custom-header.php
++++ b/wp-admin/custom-header.php
+@@ -11,7 +11,7 @@
+ 
+ // Don't load directly.
+ if ( ! defined( 'ABSPATH' ) ) {
+-	exit;
++	\wp_aot_exit();
+ }
+ 
+ _deprecated_file( basename( __FILE__ ), '5.3.0', 'wp-admin/includes/class-custom-image-header.php' );

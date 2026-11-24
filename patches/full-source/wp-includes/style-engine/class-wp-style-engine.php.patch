@@ -1,0 +1,226 @@
+--- a/wp-includes/style-engine/class-wp-style-engine.php
++++ b/wp-includes/style-engine/class-wp-style-engine.php
+@@ -382,7 +382,7 @@
+ 	 *                             Used for matching.
+ 	 * @return string The slug, or empty string if not found.
+ 	 */
+-	protected static function get_slug_from_preset_value( $style_value, $property_key ) {
++	protected static function get_slug_from_preset_value( mixed $style_value, mixed $property_key ): mixed {
+ 		if ( is_string( $style_value ) && is_string( $property_key )
+ 			&& str_contains( $style_value, "var:preset|{$property_key}|" )
+ 		) {
+@@ -390,6 +390,7 @@
+ 			return _wp_to_kebab_case( substr( $style_value, $index_to_splice ) );
+ 		}
+ 		return '';
++		return null;
+ 	}
+ 
+ 	/**
+@@ -403,11 +404,11 @@
+ 	 *                               used to generate the var string.
+ 	 * @return string The CSS var, or an empty string if no match for slug found.
+ 	 */
+-	protected static function get_css_var_value( $style_value, $css_vars ) {
++	protected static function get_css_var_value( mixed $style_value, mixed $css_vars ): mixed {
+ 		foreach ( $css_vars as $property_key => $css_var_pattern ) {
+ 			$slug = static::get_slug_from_preset_value( $style_value, $property_key );
+ 			if ( static::is_valid_style_value( $slug ) ) {
+-				$var = strtr(
++				$var = \wp_aot_strtr(
+ 					$css_var_pattern,
+ 					array( '$slug' => $slug )
+ 				);
+@@ -415,6 +416,7 @@
+ 			}
+ 		}
+ 		return '';
++		return null;
+ 	}
+ 
+ 	/**
+@@ -425,8 +427,9 @@
+ 	 * @param string $style_value A single CSS preset value.
+ 	 * @return bool
+ 	 */
+-	protected static function is_valid_style_value( $style_value ) {
++	protected static function is_valid_style_value( mixed $style_value ): mixed {
+ 		return '0' === $style_value || ! empty( $style_value );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -447,11 +450,12 @@
+ 	 *                                                                    or a CSS nested @rule, such as `@media (min-width: 80rem)`
+ 	 *                                                                    or `@layer module`.
+ 	 */
+-	public static function store_css_rule( $store_name, $css_selector, $css_declarations, $rules_group = '' ) {
++	public static function store_css_rule( mixed $store_name, mixed $css_selector, mixed $css_declarations, mixed $rules_group = '' ): mixed {
+ 		if ( empty( $store_name ) || empty( $css_selector ) || empty( $css_declarations ) ) {
+-			return;
++			return null;
+ 		}
+ 		static::get_store( $store_name )->add_rule( $css_selector, $rules_group )->add_declarations( $css_declarations );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -462,8 +466,9 @@
+ 	 * @param string $store_name A store key.
+ 	 * @return WP_Style_Engine_CSS_Rules_Store|null
+ 	 */
+-	public static function get_store( $store_name ) {
++	public static function get_store( mixed $store_name ): mixed {
+ 		return WP_Style_Engine_CSS_Rules_Store::get_store( $store_name );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -492,7 +497,7 @@
+ 	 *                                  e.g. `array( "$property" => "$value", "$property" => "$value" )`.
+ 	 * }
+ 	 */
+-	public static function parse_block_styles( $block_styles, $options ) {
++	public static function parse_block_styles( mixed $block_styles, mixed $options ): mixed {
+ 		$parsed_styles = array(
+ 			'classnames'   => array(),
+ 			'declarations' => array(),
+@@ -515,7 +520,7 @@
+ 
+ 				$classnames = static::get_classnames( $style_value, $style_definition );
+ 				if ( ! empty( $classnames ) ) {
+-					$parsed_styles['classnames'] = array_merge( $parsed_styles['classnames'], $classnames );
++					$parsed_styles['classnames'] = \wp_aot_array_merge(array( $parsed_styles['classnames'], $classnames ));
+ 				}
+ 
+ 				$css_declarations = static::get_css_declarations( $style_value, $style_definition, $options );
+@@ -527,12 +532,13 @@
+ 					if ( isset( $css_declarations['background-image'] ) && isset( $parsed_styles['declarations']['background-image'] ) ) {
+ 						$css_declarations['background-image'] = $css_declarations['background-image'] . ', ' . $parsed_styles['declarations']['background-image'];
+ 					}
+-					$parsed_styles['declarations'] = array_merge( $parsed_styles['declarations'], $css_declarations );
++					$parsed_styles['declarations'] = \wp_aot_array_merge(array( $parsed_styles['declarations'], $css_declarations ));
+ 				}
+ 			}
+ 		}
+ 
+ 		return $parsed_styles;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -546,7 +552,7 @@
+ 	 * @param array  $style_definition A single style definition from BLOCK_STYLE_DEFINITIONS_METADATA.
+ 	 * @return string[] An array of CSS classnames, or empty array if there are none.
+ 	 */
+-	protected static function get_classnames( $style_value, $style_definition ) {
++	protected static function get_classnames( mixed $style_value, mixed $style_definition ): mixed {
+ 		if ( empty( $style_value ) ) {
+ 			return array();
+ 		}
+@@ -568,12 +574,13 @@
+ 					 * generate classnames based on other properties
+ 					 * such as a path or a value or a prefix passed in options.
+ 					 */
+-					$classnames[] = strtr( $classname, array( '$slug' => $slug ) );
++					$classnames[] = \wp_aot_strtr( $classname, array( '$slug' => $slug ) );
+ 				}
+ 			}
+ 		}
+ 
+ 		return $classnames;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -592,7 +599,18 @@
+ 	 * }
+ 	 * @return string[] An associative array of CSS definitions, e.g. `array( "$property" => "$value", "$property" => "$value" )`.
+ 	 */
+-	protected static function get_css_declarations( $style_value, $style_definition, $options = array() ) {
++	protected static function get_css_declarations( mixed $style_value, mixed $style_definition, mixed $options = array() ): mixed {
++		if ( isset( $style_definition['value_func'] ) ) {
++			$wp_aot_value_callback = $style_definition['value_func'];
++			if ( is_array( $wp_aot_value_callback ) && count( $wp_aot_value_callback ) === 2 && $wp_aot_value_callback[0] === self::class ) {
++				if ( $wp_aot_value_callback[1] === 'get_url_or_value_css_declaration' ) {
++					return self::get_url_or_value_css_declaration( $style_value, $style_definition );
++				}
++				if ( $wp_aot_value_callback[1] === 'get_individual_property_css_declarations' ) {
++					return self::get_individual_property_css_declarations( $style_value, $style_definition, $options );
++				}
++			}
++		}
+ 		if ( isset( $style_definition['value_func'] ) && is_callable( $style_definition['value_func'] ) ) {
+ 			return call_user_func( $style_definition['value_func'], $style_value, $style_definition, $options );
+ 		}
+@@ -643,6 +661,7 @@
+ 
+ 		$css_declarations[ $style_property_keys['default'] ] = $style_value;
+ 		return $css_declarations;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -676,7 +695,7 @@
+ 	 * }
+ 	 * @return string[] An associative array of CSS definitions, e.g. `array( "$property" => "$value", "$property" => "$value" )`.
+ 	 */
+-	protected static function get_individual_property_css_declarations( $style_value, $individual_property_definition, $options = array() ) {
++	protected static function get_individual_property_css_declarations( mixed $style_value, mixed $individual_property_definition, mixed $options = array() ): mixed {
+ 		if ( ! is_array( $style_value ) || empty( $style_value ) || empty( $individual_property_definition['path'] ) ) {
+ 			return array();
+ 		}
+@@ -717,6 +736,7 @@
+ 			}
+ 		}
+ 		return $css_declarations;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -731,7 +751,7 @@
+ 	 * @param array $style_definition A single style definition from BLOCK_STYLE_DEFINITIONS_METADATA.
+ 	 * @return string[] An associative array of CSS definitions, e.g., array( "$property" => "$value", "$property" => "$value" ).
+ 	 */
+-	protected static function get_url_or_value_css_declaration( $style_value, $style_definition ) {
++	protected static function get_url_or_value_css_declaration( mixed $style_value, mixed $style_definition ): mixed {
+ 		if ( empty( $style_value ) ) {
+ 			return array();
+ 		}
+@@ -753,6 +773,7 @@
+ 		}
+ 
+ 		return $css_declarations;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -767,7 +788,7 @@
+ 	 *                                   otherwise a concatenated string of properties and values.
+ 	 * @return string A compiled CSS string.
+ 	 */
+-	public static function compile_css( $css_declarations, $css_selector ) {
++	public static function compile_css( mixed $css_declarations, mixed $css_selector ): mixed {
+ 		if ( empty( $css_declarations ) || ! is_array( $css_declarations ) ) {
+ 			return '';
+ 		}
+@@ -780,6 +801,7 @@
+ 
+ 		$css_declarations = new WP_Style_Engine_CSS_Declarations( $css_declarations );
+ 		return $css_declarations->get_declarations_string();
++		return null;
+ 	}
+ 
+ 	/**
+@@ -802,9 +824,10 @@
+ 	 * }
+ 	 * @return string A compiled stylesheet from stored CSS rules.
+ 	 */
+-	public static function compile_stylesheet_from_css_rules( $css_rules, $options = array() ) {
++	public static function compile_stylesheet_from_css_rules( mixed $css_rules, mixed $options = array() ): mixed {
+ 		$processor = new WP_Style_Engine_Processor();
+ 		$processor->add_rules( $css_rules );
+ 		return $processor->get_css( $options );
++		return null;
+ 	}
+ }

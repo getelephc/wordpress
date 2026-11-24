@@ -1,6 +1,211 @@
 --- a/wp-admin/includes/nav-menu.php
 +++ b/wp-admin/includes/nav-menu.php
-@@ -359,38 +359,55 @@
+@@ -20,8 +20,8 @@
+  *
+  * @param array $request The unsanitized request values.
+  */
+-function _wp_ajax_menu_quick_search( $request = array() ) {
+-	$args            = array();
++function _wp_ajax_menu_quick_search( mixed $request = array() ): mixed {
++	$args            = \wp_aot_mixed(array());
+ 	$type            = $request['type'] ?? '';
+ 	$object_type     = $request['object_type'] ?? '';
+ 	$query           = $request['q'] ?? '';
+@@ -42,7 +42,7 @@
+ 
+ 				if ( 'markup' === $response_format ) {
+ 					echo walk_nav_menu_tree(
+-						array_map( 'wp_setup_nav_menu_item', array( get_post( $object_id ) ) ),
++						\wp_aot_array_map( 'wp_setup_nav_menu_item', array( get_post( $object_id ) ) ),
+ 						0,
+ 						(object) $args
+ 					);
+@@ -63,7 +63,7 @@
+ 
+ 				if ( 'markup' === $response_format ) {
+ 					echo walk_nav_menu_tree(
+-						array_map( 'wp_setup_nav_menu_item', array( get_term( $object_id, $object_type ) ) ),
++						\wp_aot_array_map( 'wp_setup_nav_menu_item', array( get_term( $object_id, $object_type ) ) ),
+ 						0,
+ 						(object) $args
+ 					);
+@@ -80,7 +80,7 @@
+ 				}
+ 			}
+ 		}
+-	} elseif ( preg_match( '/quick-search-(posttype|taxonomy)-([a-zA-Z0-9_-]*\b)/', $type, $matches ) ) {
++	} elseif ( preg_match( '/quick-search-(posttype|taxonomy)-([a-zA-Z0-9_-]*\b)/', \wp_aot_regex_text( $type ), $matches ) ) {
+ 		if ( 'posttype' === $matches[1] && get_post_type_object( $matches[2] ) ) {
+ 			$post_type_obj = _wp_nav_menu_meta_box_object( get_post_type_object( $matches[2] ) );
+ 			$query_args    = array(
+@@ -110,15 +110,15 @@
+ 			 * }
+ 			*/
+ 			$query_args = apply_filters( 'wp_ajax_menu_quick_search_args', $query_args );
+-			$args       = array_merge( $args, $query_args );
++			$args       = \wp_aot_array_merge(array( $args, $query_args ));
+ 
+ 			if ( isset( $post_type_obj->_default_query ) ) {
+-				$args = array_merge( $args, (array) $post_type_obj->_default_query );
++				$args = \wp_aot_array_merge(array( $args, (array) $post_type_obj->_default_query ));
+ 			}
+ 
+ 			$search_results_query = new WP_Query( $args );
+ 			if ( ! $search_results_query->have_posts() ) {
+-				return;
++				return null;
+ 			}
+ 
+ 			while ( $search_results_query->have_posts() ) {
+@@ -127,7 +127,7 @@
+ 				if ( 'markup' === $response_format ) {
+ 					$var_by_ref = $post->ID;
+ 					echo walk_nav_menu_tree(
+-						array_map( 'wp_setup_nav_menu_item', array( get_post( $var_by_ref ) ) ),
++						\wp_aot_array_map( 'wp_setup_nav_menu_item', array( get_post( $var_by_ref ) ) ),
+ 						0,
+ 						(object) $args
+ 					);
+@@ -153,13 +153,13 @@
+ 			);
+ 
+ 			if ( empty( $terms ) || is_wp_error( $terms ) ) {
+-				return;
++				return null;
+ 			}
+ 
+ 			foreach ( (array) $terms as $term ) {
+ 				if ( 'markup' === $response_format ) {
+ 					echo walk_nav_menu_tree(
+-						array_map( 'wp_setup_nav_menu_item', array( $term ) ),
++						\wp_aot_array_map( 'wp_setup_nav_menu_item', array( $term ) ),
+ 						0,
+ 						(object) $args
+ 					);
+@@ -176,6 +176,7 @@
+ 			}
+ 		}
+ 	}
++	return null;
+ }
+ 
+ /**
+@@ -183,7 +184,7 @@
+  *
+  * @since 3.0.0
+  */
+-function wp_nav_menu_setup() {
++function wp_nav_menu_setup(): mixed {
+ 	// Register meta boxes.
+ 	wp_nav_menu_post_type_meta_boxes();
+ 	add_meta_box(
+@@ -214,6 +215,7 @@
+ 			)
+ 		);
+ 	}
++	return null;
+ }
+ 
+ /**
+@@ -223,18 +225,18 @@
+  *
+  * @global array $wp_meta_boxes Global meta box state.
+  */
+-function wp_initial_nav_menu_meta_boxes() {
++function wp_initial_nav_menu_meta_boxes(): mixed {
+ 	global $wp_meta_boxes;
+ 
+ 	if ( get_user_option( 'metaboxhidden_nav-menus' ) !== false || ! is_array( $wp_meta_boxes ) ) {
+-		return;
++		return null;
+ 	}
+ 
+ 	$initial_meta_boxes = array( 'add-post-type-page', 'add-post-type-post', 'add-custom-links', 'add-category' );
+ 	$hidden_meta_boxes  = array();
+ 
+-	foreach ( array_keys( $wp_meta_boxes['nav-menus'] ) as $context ) {
+-		foreach ( array_keys( $wp_meta_boxes['nav-menus'][ $context ] ) as $priority ) {
++	foreach ( \wp_aot_array_keys( $wp_meta_boxes['nav-menus'] ) as $context ) {
++		foreach ( \wp_aot_array_keys( $wp_meta_boxes['nav-menus'][ $context ] ) as $priority ) {
+ 			foreach ( $wp_meta_boxes['nav-menus'][ $context ][ $priority ] as $box ) {
+ 				if ( in_array( $box['id'], $initial_meta_boxes, true ) ) {
+ 					unset( $box['id'] );
+@@ -247,6 +249,7 @@
+ 
+ 	$user = wp_get_current_user();
+ 	update_user_meta( $user->ID, 'metaboxhidden_nav-menus', $hidden_meta_boxes );
++	return null;
+ }
+ 
+ /**
+@@ -254,11 +257,11 @@
+  *
+  * @since 3.0.0
+  */
+-function wp_nav_menu_post_type_meta_boxes() {
++function wp_nav_menu_post_type_meta_boxes(): mixed {
+ 	$post_types = get_post_types( array( 'show_in_nav_menus' => true ), 'object' );
+ 
+ 	if ( ! $post_types ) {
+-		return;
++		return null;
+ 	}
+ 
+ 	foreach ( $post_types as $post_type ) {
+@@ -291,6 +294,7 @@
+ 			);
+ 		}
+ 	}
++	return null;
+ }
+ 
+ /**
+@@ -298,11 +302,11 @@
+  *
+  * @since 3.0.0
+  */
+-function wp_nav_menu_taxonomy_meta_boxes() {
++function wp_nav_menu_taxonomy_meta_boxes(): mixed {
+ 	$taxonomies = get_taxonomies( array( 'show_in_nav_menus' => true ), 'object' );
+ 
+ 	if ( ! $taxonomies ) {
+-		return;
++		return null;
+ 	}
+ 
+ 	foreach ( $taxonomies as $tax ) {
+@@ -322,6 +326,7 @@
+ 			);
+ 		}
+ 	}
++	return null;
+ }
+ 
+ /**
+@@ -336,7 +341,7 @@
+  * @param bool       $display              Whether to display or just return the string.
+  * @return string|false Disabled attribute if at least one menu exists, false if not.
+  */
+-function wp_nav_menu_disabled_check( $nav_menu_selected_id, $display = true ) {
++function wp_nav_menu_disabled_check( mixed $nav_menu_selected_id, mixed $display = true ): mixed {
+ 	global $one_theme_location_no_menus;
+ 
+ 	if ( $one_theme_location_no_menus ) {
+@@ -344,6 +349,7 @@
+ 	}
+ 
+ 	return disabled( $nav_menu_selected_id, 0, $display );
++	return null;
+ }
+ 
+ /**
+@@ -354,43 +360,61 @@
+  * @global int        $_nav_menu_placeholder
+  * @global int|string $nav_menu_selected_id
+  */
+-function wp_nav_menu_item_link_meta_box() {
++function wp_nav_menu_item_link_meta_box(): mixed {
+ 	global $_nav_menu_placeholder, $nav_menu_selected_id;
  
  	$_nav_menu_placeholder = 0 > $_nav_menu_placeholder ? $_nav_menu_placeholder - 1 : -1;
  
@@ -68,10 +273,64 @@
  	</div><!-- /.customlinkdiv -->
 -	<?php
 +	';
++	return null;
  }
  
  /**
-@@ -589,43 +606,76 @@
+@@ -411,7 +435,7 @@
+  *     @type WP_Post_Type $args     Extra meta box arguments (the post type object for this meta box).
+  * }
+  */
+-function wp_nav_menu_item_post_type_meta_box( $data_object, $box ) {
++function wp_nav_menu_item_post_type_meta_box( mixed $data_object, mixed $box ): mixed {
+ 	global $_nav_menu_placeholder, $nav_menu_selected_id;
+ 
+ 	$post_type_name = $box['args']->name;
+@@ -423,7 +447,7 @@
+ 	$pagenum  = isset( $_REQUEST[ $tab_name ] ) && isset( $_REQUEST['paged'] ) ? absint( $_REQUEST['paged'] ) : 1;
+ 	$offset   = 0 < $pagenum ? $per_page * ( $pagenum - 1 ) : 0;
+ 
+-	$args = array(
++	$args = \wp_aot_mixed(array(
+ 		'offset'                 => $offset,
+ 		'order'                  => 'ASC',
+ 		'orderby'                => 'title',
+@@ -432,10 +456,10 @@
+ 		'suppress_filters'       => true,
+ 		'update_post_term_cache' => false,
+ 		'update_post_meta_cache' => false,
+-	);
++	));
+ 
+ 	if ( isset( $box['args']->_default_query ) ) {
+-		$args = array_merge( $args, (array) $box['args']->_default_query );
++		$args = \wp_aot_array_merge(array( $args, (array) $box['args']->_default_query ));
+ 	}
+ 
+ 	/*
+@@ -523,10 +547,10 @@
+ 			$posts     = $get_posts->query( $args );
+ 		} else {
+ 			echo '<p>' . __( 'No items.' ) . '</p>';
+-			return;
++			return null;
+ 		}
+ 	} elseif ( ! empty( $important_pages ) ) {
+-		$posts = array_merge( $important_pages, $posts );
++		$posts = \wp_aot_array_merge(array( $important_pages, $posts ));
+ 	}
+ 
+ 	$num_pages = $get_posts->max_num_pages;
+@@ -551,7 +575,7 @@
+ 		)
+ 	);
+ 
+-	$db_fields = false;
++	$db_fields = \wp_aot_mixed(false);
+ 	if ( is_post_type_hierarchical( $post_type_name ) ) {
+ 		$db_fields = array(
+ 			'parent' => 'post_parent',
+@@ -589,51 +613,84 @@
  		$view_all_url    = add_query_arg( $tab_name, 'all', remove_query_arg( $removed_args ) );
  		$search_url      = add_query_arg( $tab_name, 'search', remove_query_arg( $removed_args ) );
  	}
@@ -167,11 +426,26 @@
  				class="categorychecklist form-no-clear"
  			>
 -				<?php
+-				$recent_args = array_merge(
 +				';
- 				$recent_args = array_merge(
++				$recent_args = \wp_aot_array_merge(array(
  					$args,
  					array(
-@@ -670,15 +720,21 @@
+ 						'orderby'        => 'post_date',
+ 						'order'          => 'DESC',
+ 						'posts_per_page' => 15,
+ 					)
+-				);
++				));
+ 				$most_recent = $get_posts->query( $recent_args );
+ 
+ 				$args['walker'] = $walker;
+@@ -666,19 +723,25 @@
+ 				);
+ 
+ 				echo walk_nav_menu_tree(
+-					array_map( 'wp_setup_nav_menu_item', $most_recent ),
++					\wp_aot_array_map( 'wp_setup_nav_menu_item', $most_recent ),
  					0,
  					(object) $args
  				);
@@ -199,7 +473,7 @@
  			if ( isset( $_REQUEST[ "quick-search-posttype-{$post_type_name}" ] ) ) {
  				$searched       = esc_attr( $_REQUEST[ "quick-search-posttype-{$post_type_name}" ] );
  				$search_results = get_posts(
-@@ -693,21 +749,30 @@
+@@ -693,21 +756,30 @@
  				$searched       = '';
  				$search_results = array();
  			}
@@ -241,7 +515,7 @@
  				submit_button(
  					__( 'Search' ),
  					'small quick-search-submit hide-if-js',
-@@ -715,45 +780,70 @@
+@@ -715,51 +787,76 @@
  					false,
  					array( 'id' => "submit-quick-search-posttype-{$post_type_name}" )
  				);
@@ -268,7 +542,8 @@
 +echo '				';
  				$args['walker'] = $walker;
  				echo walk_nav_menu_tree(
- 					array_map( 'wp_setup_nav_menu_item', $search_results ),
+-					array_map( 'wp_setup_nav_menu_item', $search_results ),
++					\wp_aot_array_map( 'wp_setup_nav_menu_item', $search_results ),
  					0,
  					(object) $args
  				);
@@ -338,7 +613,31 @@
  				$args['walker'] = $walker;
  
  				if ( $post_type->has_archive ) {
-@@ -810,35 +900,52 @@
+ 					$_nav_menu_placeholder = ( 0 > $_nav_menu_placeholder ) ? (int) $_nav_menu_placeholder - 1 : -1;
+-					array_unshift(
+-						$posts,
++					\wp_aot_array_unshift(
++						$posts,array(
+ 						(object) array(
+ 							'ID'           => 0,
+ 							'object_id'    => $_nav_menu_placeholder,
+@@ -771,7 +868,7 @@
+ 							'type'         => 'post_type_archive',
+ 							'url'          => get_post_type_archive_link( $post_type_name ),
+ 						)
+-					);
++					));
+ 				}
+ 
+ 				/**
+@@ -804,41 +901,59 @@
+ 				);
+ 
+ 				$checkbox_items = walk_nav_menu_tree(
+-					array_map( 'wp_setup_nav_menu_item', $posts ),
++					\wp_aot_array_map( 'wp_setup_nav_menu_item', $posts ),
+ 					0,
+ 					(object) $args
  				);
  
  				echo $checkbox_items;
@@ -406,10 +705,51 @@
  	</div><!-- /.posttypediv -->
 -	<?php
 +	';
++	return null;
  }
  
  /**
-@@ -961,43 +1068,76 @@
+@@ -858,7 +973,7 @@
+  *     @type object   $args     Extra meta box arguments (the taxonomy object for this meta box).
+  * }
+  */
+-function wp_nav_menu_item_taxonomy_meta_box( $data_object, $box ) {
++function wp_nav_menu_item_taxonomy_meta_box( mixed $data_object, mixed $box ): mixed {
+ 	global $nav_menu_selected_id;
+ 
+ 	$taxonomy_name = $box['args']->name;
+@@ -888,18 +1003,18 @@
+ 
+ 	if ( ! $terms || is_wp_error( $terms ) ) {
+ 		echo '<p>' . __( 'No items.' ) . '</p>';
+-		return;
++		return null;
+ 	}
+ 
+ 	$num_pages = (int) ceil(
+ 		(int) wp_count_terms(
+-			array_merge(
++			\wp_aot_array_merge(array(
+ 				$args,
+ 				array(
+ 					'number' => '',
+ 					'offset' => '',
+ 				)
+-			)
++			))
+ 		) / $per_page
+ 	);
+ 
+@@ -923,7 +1038,7 @@
+ 		)
+ 	);
+ 
+-	$db_fields = false;
++	$db_fields = \wp_aot_mixed(false);
+ 	if ( is_taxonomy_hierarchical( $taxonomy_name ) ) {
+ 		$db_fields = array(
+ 			'parent' => 'parent',
+@@ -961,43 +1076,76 @@
  		$view_all_url  = add_query_arg( $tab_name, 'all', remove_query_arg( $removed_args ) );
  		$search_url    = add_query_arg( $tab_name, 'search', remove_query_arg( $removed_args ) );
  	}
@@ -509,7 +849,12 @@
  				$popular_terms = get_terms(
  					array(
  						'taxonomy'     => $taxonomy_name,
-@@ -1014,45 +1154,67 @@
+@@ -1010,49 +1158,71 @@
+ 
+ 				$args['walker'] = $walker;
+ 				echo walk_nav_menu_tree(
+-					array_map( 'wp_setup_nav_menu_item', $popular_terms ),
++					\wp_aot_array_map( 'wp_setup_nav_menu_item', $popular_terms ),
  					0,
  					(object) $args
  				);
@@ -561,7 +906,8 @@
 +				';
  				$args['walker'] = $walker;
  				echo walk_nav_menu_tree(
- 					array_map( 'wp_setup_nav_menu_item', $terms ),
+-					array_map( 'wp_setup_nav_menu_item', $terms ),
++					\wp_aot_array_map( 'wp_setup_nav_menu_item', $terms ),
  					0,
  					(object) $args
  				);
@@ -605,7 +951,7 @@
  			if ( isset( $_REQUEST[ "quick-search-taxonomy-{$taxonomy_name}" ] ) ) {
  				$searched       = esc_attr( $_REQUEST[ "quick-search-taxonomy-{$taxonomy_name}" ] );
  				$search_results = get_terms(
-@@ -1069,21 +1231,29 @@
+@@ -1069,21 +1239,29 @@
  				$searched       = '';
  				$search_results = array();
  			}
@@ -645,7 +991,7 @@
  				submit_button(
  					__( 'Search' ),
  					'small quick-search-submit hide-if-js',
-@@ -1091,49 +1261,75 @@
+@@ -1091,49 +1269,76 @@
  					false,
  					array( 'id' => "submit-quick-search-taxonomy-{$taxonomy_name}" )
  				);
@@ -672,7 +1018,8 @@
 +echo '				';
  				$args['walker'] = $walker;
  				echo walk_nav_menu_tree(
- 					array_map( 'wp_setup_nav_menu_item', $search_results ),
+-					array_map( 'wp_setup_nav_menu_item', $search_results ),
++					\wp_aot_array_map( 'wp_setup_nav_menu_item', $search_results ),
  					0,
  					(object) $args
  				);
@@ -740,6 +1087,207 @@
  	</div><!-- /.taxonomydiv -->
 -	<?php
 +	';
++	return null;
  }
  
  /**
+@@ -1145,7 +1350,7 @@
+  * @param array[] $menu_data The unsanitized POSTed menu item data.
+  * @return int[] The database IDs of the items saved
+  */
+-function wp_save_nav_menu_items( $menu_id = 0, $menu_data = array() ) {
++function wp_save_nav_menu_items( mixed $menu_id = 0, mixed $menu_data = array() ): mixed {
+ 	$menu_id     = (int) $menu_id;
+ 	$items_saved = array();
+ 
+@@ -1204,6 +1409,7 @@
+ 	}
+ 
+ 	return $items_saved;
++	return null;
+ }
+ 
+ /**
+@@ -1216,7 +1422,7 @@
+  * @param object $data_object The post type or taxonomy meta-object.
+  * @return object The post type or taxonomy object.
+  */
+-function _wp_nav_menu_meta_box_object( $data_object = null ) {
++function _wp_nav_menu_meta_box_object( mixed $data_object = null ): mixed {
+ 	if ( isset( $data_object->name ) ) {
+ 
+ 		if ( 'page' === $data_object->name ) {
+@@ -1247,6 +1453,7 @@
+ 	}
+ 
+ 	return $data_object;
++	return null;
+ }
+ 
+ /**
+@@ -1258,7 +1465,7 @@
+  * @return string|WP_Error|null The menu formatted to edit or error object on failure.
+  *                              Null if the `$menu_id` parameter is not supplied or the term does not exist.
+  */
+-function wp_get_nav_menu_to_edit( $menu_id = 0 ) {
++function wp_get_nav_menu_to_edit( mixed $menu_id = 0 ): mixed {
+ 	$menu = wp_get_nav_menu_object( $menu_id );
+ 
+ 	// If the menu exists, get its items.
+@@ -1283,7 +1490,7 @@
+ 		 */
+ 		$walker_class_name = apply_filters( 'wp_edit_nav_menu_walker', 'Walker_Nav_Menu_Edit', $menu_id );
+ 
+-		if ( class_exists( $walker_class_name ) ) {
++		if ( \wp_aot_metadata_class_exists( $walker_class_name ) ) {
+ 			$walker = new $walker_class_name();
+ 		} else {
+ 			return new WP_Error(
+@@ -1328,7 +1535,7 @@
+ 
+ 		$result .= '<ul class="menu" id="menu-to-edit"> ';
+ 		$result .= walk_nav_menu_tree(
+-			array_map( 'wp_setup_nav_menu_item', $menu_items ),
++			\wp_aot_array_map( 'wp_setup_nav_menu_item', $menu_items ),
+ 			0,
+ 			(object) array( 'walker' => $walker )
+ 		);
+@@ -1340,6 +1547,7 @@
+ 	}
+ 
+ 	return null;
++	return null;
+ }
+ 
+ /**
+@@ -1349,7 +1557,7 @@
+  *
+  * @return string[] Array of column titles keyed by their column name.
+  */
+-function wp_nav_menu_manage_columns() {
++function wp_nav_menu_manage_columns(): mixed {
+ 	return array(
+ 		'_title'          => __( 'Show advanced menu properties' ),
+ 		'cb'              => '<input type="checkbox" />',
+@@ -1359,6 +1567,7 @@
+ 		'xfn'             => __( 'Link Relationship (XFN)' ),
+ 		'description'     => __( 'Description' ),
+ 	);
++	return null;
+ }
+ 
+ /**
+@@ -1369,14 +1578,14 @@
+  *
+  * @global wpdb $wpdb WordPress database abstraction object.
+  */
+-function _wp_delete_orphaned_draft_menu_items() {
++function _wp_delete_orphaned_draft_menu_items(): mixed {
+ 	global $wpdb;
+ 
+ 	$delete_timestamp = time() - ( DAY_IN_SECONDS * EMPTY_TRASH_DAYS );
+ 
+ 	// Delete orphaned draft menu items.
+-	$menu_items_to_delete = $wpdb->get_col(
+-		$wpdb->prepare(
++	$menu_items_to_delete = \wp_aot_require_wpdb( $wpdb )->get_col(
++		\wp_aot_require_wpdb( $wpdb )->prepare(
+ 			"SELECT ID FROM $wpdb->posts AS p
+ 			LEFT JOIN $wpdb->postmeta AS m ON p.ID = m.post_id
+ 			WHERE post_type = 'nav_menu_item' AND post_status = 'draft'
+@@ -1388,6 +1597,7 @@
+ 	foreach ( (array) $menu_items_to_delete as $menu_item_id ) {
+ 		wp_delete_post( $menu_item_id, true );
+ 	}
++	return null;
+ }
+ 
+ /**
+@@ -1399,7 +1609,7 @@
+  * @param string     $nav_menu_selected_title Title of the currently-selected menu.
+  * @return string[] The menu updated messages.
+  */
+-function wp_nav_menu_update_menu_items( $nav_menu_selected_id, $nav_menu_selected_title ) {
++function wp_nav_menu_update_menu_items( mixed $nav_menu_selected_id, mixed $nav_menu_selected_title ): mixed {
+ 	$unsorted_menu_items = wp_get_nav_menu_items(
+ 		$nav_menu_selected_id,
+ 		array(
+@@ -1472,7 +1682,7 @@
+ 
+ 	// Remove menu items from the menu that weren't in $_POST.
+ 	if ( ! empty( $menu_items ) ) {
+-		foreach ( array_keys( $menu_items ) as $menu_item_id ) {
++		foreach ( \wp_aot_array_keys( $menu_items ) as $menu_item_id ) {
+ 			if ( is_nav_menu_item( $menu_item_id ) ) {
+ 				wp_delete_post( $menu_item_id );
+ 			}
+@@ -1492,17 +1702,17 @@
+ 			$nav_menu_option['auto_add'][] = $nav_menu_selected_id;
+ 		}
+ 	} else {
+-		$key = array_search( $nav_menu_selected_id, $nav_menu_option['auto_add'], true );
++		$key = \wp_aot_array_search( $nav_menu_selected_id, $nav_menu_option['auto_add'], true );
+ 		if ( false !== $key ) {
+ 			unset( $nav_menu_option['auto_add'][ $key ] );
+ 		}
+ 	}
+ 
+ 	// Remove non-existent/deleted menus.
+-	$nav_menu_option['auto_add'] = array_intersect(
++	$nav_menu_option['auto_add'] = \wp_aot_array_intersect(array(
+ 		$nav_menu_option['auto_add'],
+ 		wp_get_nav_menus( array( 'fields' => 'ids' ) )
+-	);
++	));
+ 
+ 	update_option( 'nav_menu_options', $nav_menu_option, false );
+ 
+@@ -1524,6 +1734,7 @@
+ 	unset( $menu_items, $unsorted_menu_items );
+ 
+ 	return $messages;
++	return null;
+ }
+ 
+ /**
+@@ -1534,9 +1745,9 @@
+  * @since 4.5.3
+  * @access private
+  */
+-function _wp_expand_nav_menu_post_data() {
++function _wp_expand_nav_menu_post_data(): mixed {
+ 	if ( ! isset( $_POST['nav-menu-data'] ) ) {
+-		return;
++		return null;
+ 	}
+ 
+ 	$data = json_decode( stripslashes( $_POST['nav-menu-data'] ) );
+@@ -1547,12 +1758,12 @@
+ 			 * For input names that are arrays (e.g. `menu-item-db-id[3][4][5]`),
+ 			 * derive the array path keys via regex and set the value in $_POST.
+ 			 */
+-			preg_match( '#([^\[]*)(\[(.+)\])?#', $post_input_data->name, $matches );
+-
+-			$array_bits = array( $matches[1] );
++			preg_match( '#([^\[]*)(\[(.+)\])?#', \wp_aot_regex_text( $post_input_data->name ), $matches );
++
++			$array_bits = \wp_aot_mixed(array( $matches[1] ));
+ 
+ 			if ( isset( $matches[3] ) ) {
+-				$array_bits = array_merge( $array_bits, explode( '][', $matches[3] ) );
++				$array_bits = \wp_aot_array_merge(array( $array_bits, explode( '][', $matches[3] ) ));
+ 			}
+ 
+ 			$new_post_data = array();
+@@ -1566,7 +1777,8 @@
+ 				}
+ 			}
+ 
+-			$_POST = array_replace_recursive( $_POST, $new_post_data );
+-		}
+-	}
++			$_POST = \wp_aot_array_replace_recursive(array( $_POST, $new_post_data ));
++		}
++	}
++	return null;
+ }

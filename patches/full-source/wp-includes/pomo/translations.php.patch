@@ -1,15 +1,43 @@
 --- a/wp-includes/pomo/translations.php
 +++ b/wp-includes/pomo/translations.php
-@@ -53,7 +53,7 @@
+@@ -11,7 +11,6 @@
+ require_once __DIR__ . '/plural-forms.php';
+ require_once __DIR__ . '/entry.php';
+ 
+-if ( ! class_exists( 'Translations', false ) ) :
+ 	/**
+ 	 * Translations class.
+ 	 *
+@@ -45,7 +44,7 @@
+ 		 * @param array|Translation_Entry $entry
+ 		 * @return bool True on success, false if the entry doesn't have a key.
+ 		 */
+-		public function add_entry( $entry ) {
++		public function add_entry( mixed $entry ): mixed {
+ 			if ( is_array( $entry ) ) {
+ 				$entry = new Translation_Entry( $entry );
+ 			}
+@@ -53,8 +52,9 @@
  			if ( false === $key ) {
  				return false;
  			}
 -			$this->entries[ $key ] = &$entry;
 +			$this->entries[ $key ] = $entry;
  			return true;
++			return null;
  		}
  
-@@ -76,7 +76,7 @@
+ 		/**
+@@ -65,7 +65,7 @@
+ 		 * @param array|Translation_Entry $entry
+ 		 * @return bool True on success, false if the entry doesn't have a key.
+ 		 */
+-		public function add_entry_or_merge( $entry ) {
++		public function add_entry_or_merge( mixed $entry ): mixed {
+ 			if ( is_array( $entry ) ) {
+ 				$entry = new Translation_Entry( $entry );
+ 			}
+@@ -76,9 +76,10 @@
  			if ( isset( $this->entries[ $key ] ) ) {
  				$this->entries[ $key ]->merge_with( $entry );
  			} else {
@@ -17,4 +45,358 @@
 +				$this->entries[ $key ] = $entry;
  			}
  			return true;
++			return null;
  		}
+ 
+ 		/**
+@@ -93,8 +94,9 @@
+ 		 * @param string $header header name, without trailing :
+ 		 * @param string $value header value, without trailing \n
+ 		 */
+-		public function set_header( $header, $value ) {
++		public function set_header( mixed $header, mixed $value ): mixed {
+ 			$this->headers[ $header ] = $value;
++			return null;
+ 		}
+ 
+ 		/**
+@@ -104,10 +106,11 @@
+ 		 *
+ 		 * @param array $headers Associative array of headers.
+ 		 */
+-		public function set_headers( $headers ) {
++		public function set_headers( mixed $headers ): mixed {
+ 			foreach ( $headers as $header => $value ) {
+ 				$this->set_header( $header, $value );
+ 			}
++			return null;
+ 		}
+ 
+ 		/**
+@@ -118,8 +121,9 @@
+ 		 * @param string $header
+ 		 * @return string|false Header if it exists, false otherwise.
+ 		 */
+-		public function get_header( $header ) {
++		public function get_header( mixed $header ): mixed {
+ 			return $this->headers[ $header ] ?? false;
++			return null;
+ 		}
+ 
+ 		/**
+@@ -130,9 +134,10 @@
+ 		 * @param Translation_Entry $entry Translation entry.
+ 		 * @return Translation_Entry|false Translation entry if it exists, false otherwise.
+ 		 */
+-		public function translate_entry( &$entry ) {
++		public function translate_entry( mixed &$entry ): mixed {
+ 			$key = $entry->key();
+ 			return $this->entries[ $key ] ?? false;
++			return null;
+ 		}
+ 
+ 		/**
+@@ -144,7 +149,7 @@
+ 		 * @param string $context
+ 		 * @return string
+ 		 */
+-		public function translate( $singular, $context = null ) {
++		public function translate( mixed $singular, mixed $context = null ): mixed {
+ 			$entry      = new Translation_Entry(
+ 				array(
+ 					'singular' => $singular,
+@@ -153,6 +158,7 @@
+ 			);
+ 			$translated = $this->translate_entry( $entry );
+ 			return ( $translated && ! empty( $translated->translations ) ) ? $translated->translations[0] : $singular;
++			return null;
+ 		}
+ 
+ 		/**
+@@ -169,8 +175,9 @@
+ 		 * @param int $count Number of items.
+ 		 * @return int Plural form to use.
+ 		 */
+-		public function select_plural_form( $count ) {
++		public function select_plural_form( mixed $count ): mixed {
+ 			return 1 === (int) $count ? 0 : 1;
++			return null;
+ 		}
+ 
+ 		/**
+@@ -180,8 +187,9 @@
+ 		 *
+ 		 * @return int Plural forms count.
+ 		 */
+-		public function get_plural_forms_count() {
++		public function get_plural_forms_count(): mixed {
+ 			return 2;
++			return null;
+ 		}
+ 
+ 		/**
+@@ -195,7 +203,7 @@
+ 		 * @param string $context
+ 		 * @return string
+ 		 */
+-		public function translate_plural( $singular, $plural, $count, $context = null ) {
++		public function translate_plural( mixed $singular, mixed $plural, mixed $count, mixed $context = null ): mixed {
+ 			$entry              = new Translation_Entry(
+ 				array(
+ 					'singular' => $singular,
+@@ -213,6 +221,7 @@
+ 			} else {
+ 				return 1 === (int) $count ? $singular : $plural;
+ 			}
++			return null;
+ 		}
+ 
+ 		/**
+@@ -222,10 +231,11 @@
+ 		 *
+ 		 * @param Translations $other Another Translation object, whose translations will be merged in this one (passed by reference).
+ 		 */
+-		public function merge_with( &$other ) {
++		public function merge_with( mixed &$other ): mixed {
+ 			foreach ( $other->entries as $entry ) {
+ 				$this->entries[ $entry->key() ] = $entry;
+ 			}
++			return null;
+ 		}
+ 
+ 		/**
+@@ -235,7 +245,7 @@
+ 		 *
+ 		 * @param Translations $other
+ 		 */
+-		public function merge_originals_with( &$other ) {
++		public function merge_originals_with( mixed &$other ): mixed {
+ 			foreach ( $other->entries as $entry ) {
+ 				if ( ! isset( $this->entries[ $entry->key() ] ) ) {
+ 					$this->entries[ $entry->key() ] = $entry;
+@@ -243,6 +253,7 @@
+ 					$this->entries[ $entry->key() ]->merge_with( $entry );
+ 				}
+ 			}
++			return null;
+ 		}
+ 	}
+ 
+@@ -282,13 +293,14 @@
+ 		 * @param int $count Plural forms count.
+ 		 * @return int Plural form to use.
+ 		 */
+-		public function gettext_select_plural_form( $count ) {
++		public function gettext_select_plural_form( mixed $count ): mixed {
+ 			if ( ! isset( $this->_gettext_select_plural_form ) || is_null( $this->_gettext_select_plural_form ) ) {
+ 				list( $nplurals, $expression )     = $this->nplurals_and_expression_from_header( $this->get_header( 'Plural-Forms' ) );
+ 				$this->_nplurals                   = $nplurals;
+ 				$this->_gettext_select_plural_form = $this->make_plural_form_function( $nplurals, $expression );
+ 			}
+ 			return call_user_func( $this->_gettext_select_plural_form, $count );
++			return null;
+ 		}
+ 
+ 		/**
+@@ -299,14 +311,15 @@
+ 		 * @param string $header
+ 		 * @return array{0: int, 1: string}
+ 		 */
+-		public function nplurals_and_expression_from_header( $header ) {
+-			if ( preg_match( '/^\s*nplurals\s*=\s*(\d+)\s*;\s+plural\s*=\s*(.+)$/', $header, $matches ) ) {
++		public function nplurals_and_expression_from_header( mixed $header ): mixed {
++			if ( preg_match( '/^\s*nplurals\s*=\s*(\d+)\s*;\s+plural\s*=\s*(.+)$/', \wp_aot_regex_text( $header ), $matches ) ) {
+ 				$nplurals   = (int) $matches[1];
+ 				$expression = trim( $matches[2] );
+ 				return array( $nplurals, $expression );
+ 			} else {
+ 				return array( 2, 'n != 1' );
+ 			}
++			return null;
+ 		}
+ 
+ 		/**
+@@ -319,7 +332,7 @@
+ 		 * @param string $expression
+ 		 * @return callable
+ 		 */
+-		public function make_plural_form_function( $nplurals, $expression ) {
++		public function make_plural_form_function( mixed $nplurals, mixed $expression ): mixed {
+ 			try {
+ 				$handler = new Plural_Forms( rtrim( $expression, ';' ) );
+ 				return array( $handler, 'get' );
+@@ -327,6 +340,7 @@
+ 				// Fall back to default plural-form function.
+ 				return $this->make_plural_form_function( 2, 'n != 1' );
+ 			}
++			return null;
+ 		}
+ 
+ 		/**
+@@ -341,7 +355,7 @@
+ 		 * @param string $expression the expression without parentheses
+ 		 * @return string the expression with parentheses added
+ 		 */
+-		public function parenthesize_plural_exression( $expression ) {
++		public function parenthesize_plural_exression( mixed $expression ): mixed {
+ 			$expression .= ';';
+ 			$res         = '';
+ 			$depth       = 0;
+@@ -364,6 +378,7 @@
+ 				}
+ 			}
+ 			return rtrim( $res, ';' );
++			return null;
+ 		}
+ 
+ 		/**
+@@ -374,10 +389,10 @@
+ 		 * @param string $translation
+ 		 * @return array<string, string> Translation headers
+ 		 */
+-		public function make_headers( $translation ) {
++		public function make_headers( mixed $translation ): mixed {
+ 			$headers = array();
+ 			// Sometimes \n's are used instead of real new lines.
+-			$translation = str_replace( '\n', "\n", $translation );
++			$translation = \wp_aot_str_replace( '\n', "\n", $translation );
+ 			$lines       = explode( "\n", $translation );
+ 			foreach ( $lines as $line ) {
+ 				$parts = explode( ':', $line, 2 );
+@@ -387,6 +402,7 @@
+ 				$headers[ trim( $parts[0] ) ] = trim( $parts[1] );
+ 			}
+ 			return $headers;
++			return null;
+ 		}
+ 
+ 		/**
+@@ -397,18 +413,17 @@
+ 		 * @param string $header
+ 		 * @param string $value
+ 		 */
+-		public function set_header( $header, $value ) {
++		public function set_header( mixed $header, mixed $value ): mixed {
+ 			parent::set_header( $header, $value );
+ 			if ( 'Plural-Forms' === $header ) {
+ 				list( $nplurals, $expression )     = $this->nplurals_and_expression_from_header( $this->get_header( 'Plural-Forms' ) );
+ 				$this->_nplurals                   = $nplurals;
+ 				$this->_gettext_select_plural_form = $this->make_plural_form_function( $nplurals, $expression );
+ 			}
++			return null;
+ 		}
+ 	}
+-endif;
+-
+-if ( ! class_exists( 'NOOP_Translations', false ) ) :
++
+ 	/**
+ 	 * Provides the same interface as Translations, but doesn't do anything.
+ 	 *
+@@ -434,8 +449,9 @@
+ 		 */
+ 		public $headers = array();
+ 
+-		public function add_entry( $entry ) {
++		public function add_entry( mixed $entry ): mixed {
+ 			return true;
++			return null;
+ 		}
+ 
+ 		/**
+@@ -446,7 +462,8 @@
+ 		 * @param string $header
+ 		 * @param string $value
+ 		 */
+-		public function set_header( $header, $value ) {
++		public function set_header( mixed $header, mixed $value ): mixed {
++			return null;
+ 		}
+ 
+ 		/**
+@@ -456,7 +473,8 @@
+ 		 *
+ 		 * @param array $headers
+ 		 */
+-		public function set_headers( $headers ) {
++		public function set_headers( mixed $headers ): mixed {
++			return null;
+ 		}
+ 
+ 		/**
+@@ -467,8 +485,9 @@
+ 		 * @param string $header
+ 		 * @return false
+ 		 */
+-		public function get_header( $header ) {
++		public function get_header( mixed $header ): mixed {
+ 			return false;
++			return null;
+ 		}
+ 
+ 		/**
+@@ -479,8 +498,9 @@
+ 		 * @param Translation_Entry $entry
+ 		 * @return false
+ 		 */
+-		public function translate_entry( &$entry ) {
++		public function translate_entry( mixed &$entry ): mixed {
+ 			return false;
++			return null;
+ 		}
+ 
+ 		/**
+@@ -491,8 +511,9 @@
+ 		 * @param string $singular
+ 		 * @param string $context
+ 		 */
+-		public function translate( $singular, $context = null ) {
++		public function translate( mixed $singular, mixed $context = null ): mixed {
+ 			return $singular;
++			return null;
+ 		}
+ 
+ 		/**
+@@ -503,8 +524,9 @@
+ 		 * @param int $count
+ 		 * @return int
+ 		 */
+-		public function select_plural_form( $count ) {
++		public function select_plural_form( mixed $count ): mixed {
+ 			return 1 === (int) $count ? 0 : 1;
++			return null;
+ 		}
+ 
+ 		/**
+@@ -514,8 +536,9 @@
+ 		 *
+ 		 * @return int
+ 		 */
+-		public function get_plural_forms_count() {
++		public function get_plural_forms_count(): mixed {
+ 			return 2;
++			return null;
+ 		}
+ 
+ 		/**
+@@ -529,8 +552,9 @@
+ 		 * @param string $context
+ 		 * @return string
+ 		 */
+-		public function translate_plural( $singular, $plural, $count, $context = null ) {
++		public function translate_plural( mixed $singular, mixed $plural, mixed $count, mixed $context = null ): mixed {
+ 			return 1 === (int) $count ? $singular : $plural;
++			return null;
+ 		}
+ 
+ 		/**
+@@ -540,7 +564,7 @@
+ 		 *
+ 		 * @param Translations $other
+ 		 */
+-		public function merge_with( &$other ) {
++		public function merge_with( mixed &$other ): mixed {
++			return null;
+ 		}
+ 	}
+-endif;

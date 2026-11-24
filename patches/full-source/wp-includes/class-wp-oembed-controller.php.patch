@@ -1,0 +1,66 @@
+--- a/wp-includes/class-wp-oembed-controller.php
++++ b/wp-includes/class-wp-oembed-controller.php
+@@ -22,7 +22,7 @@
+ 	 *
+ 	 * @since 4.4.0
+ 	 */
+-	public function register_routes() {
++	public function register_routes(): mixed {
+ 		/**
+ 		 * Filters the maxwidth oEmbed parameter.
+ 		 *
+@@ -104,6 +104,7 @@
+ 				),
+ 			)
+ 		);
++		return null;
+ 	}
+ 
+ 	/**
+@@ -116,7 +117,7 @@
+ 	 * @param WP_REST_Request $request Full data about the request.
+ 	 * @return array|WP_Error oEmbed response data or WP_Error on failure.
+ 	 */
+-	public function get_item( $request ) {
++	public function get_item( mixed $request ): mixed {
+ 		$post_id = url_to_postid( $request['url'] );
+ 
+ 		/**
+@@ -136,6 +137,7 @@
+ 		}
+ 
+ 		return $data;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -145,11 +147,12 @@
+ 	 *
+ 	 * @return true|WP_Error True if the request has read access, WP_Error object otherwise.
+ 	 */
+-	public function get_proxy_item_permissions_check() {
++	public function get_proxy_item_permissions_check(): mixed {
+ 		if ( ! current_user_can( 'edit_posts' ) ) {
+ 			return new WP_Error( 'rest_forbidden', __( 'Sorry, you are not allowed to make proxied oEmbed requests.' ), array( 'status' => rest_authorization_required_code() ) );
+ 		}
+ 		return true;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -166,7 +169,7 @@
+ 	 * @param WP_REST_Request $request Full data about the request.
+ 	 * @return object|WP_Error oEmbed response data or WP_Error on failure.
+ 	 */
+-	public function get_proxy_item( $request ) {
++	public function get_proxy_item( mixed $request ): mixed {
+ 		global $wp_embed, $wp_scripts;
+ 
+ 		$args = $request->get_params();
+@@ -242,5 +245,6 @@
+ 		set_transient( $cache_key, $data, $ttl );
+ 
+ 		return $data;
++		return null;
+ 	}
+ }

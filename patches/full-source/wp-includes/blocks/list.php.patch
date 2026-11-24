@@ -1,0 +1,35 @@
+--- a/wp-includes/blocks/list.php
++++ b/wp-includes/blocks/list.php
+@@ -19,7 +19,7 @@
+  *
+  * @return string The content of the block being rendered.
+  */
+-function block_core_list_render( $attributes, $content ) {
++function block_core_list_render( mixed $attributes, mixed $content ): mixed {
+ 	if ( ! $content ) {
+ 		return $content;
+ 	}
+@@ -35,6 +35,7 @@
+ 	}
+ 
+ 	return $processor->get_updated_html();
++	return null;
+ }
+ 
+ /**
+@@ -42,13 +43,14 @@
+  *
+  * @since 6.6.0
+  */
+-function register_block_core_list() {
++function register_block_core_list(): mixed {
+ 	register_block_type_from_metadata(
+ 		__DIR__ . '/list',
+ 		array(
+ 			'render_callback' => 'block_core_list_render',
+ 		)
+ 	);
++	return null;
+ }
+ 
+ add_action( 'init', 'register_block_core_list' );

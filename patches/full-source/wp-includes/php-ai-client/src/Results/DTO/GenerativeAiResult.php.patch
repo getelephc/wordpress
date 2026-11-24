@@ -1,0 +1,85 @@
+--- a/wp-includes/php-ai-client/src/Results/DTO/GenerativeAiResult.php
++++ b/wp-includes/php-ai-client/src/Results/DTO/GenerativeAiResult.php
+@@ -33,7 +33,7 @@
+  *     additionalData?: array<string, mixed>
+  * }
+  *
+- * @extends AbstractDataTransferObject<GenerativeAiResultArrayShape>
++ * @phpstan-extends AbstractDataTransferObject<GenerativeAiResultArrayShape>
+  */
+ class GenerativeAiResult extends AbstractDataTransferObject implements ResultInterface
+ {
+@@ -213,7 +213,7 @@
+             $channel = $part->getChannel();
+             $file = $part->getFile();
+             if ($channel->isContent() && $file !== null) {
+-                return $file;
++                return \wp_aot_require_WordPress_AiClient_Files_DTO_File( $file );
+             }
+         }
+         throw new RuntimeException('No file content found in first candidate');
+@@ -275,7 +275,7 @@
+      */
+     public function toMessage(): Message
+     {
+-        return $this->candidates[0]->getMessage();
++        return \wp_aot_require_WordPress_AiClient_Messages_DTO_Message( $this->candidates[0]->getMessage() );
+     }
+     /**
+      * Converts all candidates to text.
+@@ -332,7 +332,7 @@
+      */
+     public function toImageFiles(): array
+     {
+-        return array_values(array_filter($this->toFiles(), fn(File $file) => $file->isImage()));
++        return array_values(\wp_aot_array_filter($this->toFiles(), fn(File $file) => $file->isImage()));
+     }
+     /**
+      * Converts all candidates to audio files.
+@@ -343,7 +343,7 @@
+      */
+     public function toAudioFiles(): array
+     {
+-        return array_values(array_filter($this->toFiles(), fn(File $file) => $file->isAudio()));
++        return array_values(\wp_aot_array_filter($this->toFiles(), fn(File $file) => $file->isAudio()));
+     }
+     /**
+      * Converts all candidates to video files.
+@@ -354,7 +354,7 @@
+      */
+     public function toVideoFiles(): array
+     {
+-        return array_values(array_filter($this->toFiles(), fn(File $file) => $file->isVideo()));
++        return array_values(\wp_aot_array_filter($this->toFiles(), fn(File $file) => $file->isVideo()));
+     }
+     /**
+      * Converts all candidates to messages.
+@@ -365,7 +365,7 @@
+      */
+     public function toMessages(): array
+     {
+-        return array_values(array_map(fn(\WordPress\AiClient\Results\DTO\Candidate $candidate) => $candidate->getMessage(), $this->candidates));
++        return array_values(\wp_aot_array_map(fn(\WordPress\AiClient\Results\DTO\Candidate $candidate) => $candidate->getMessage(), $this->candidates));
+     }
+     /**
+      * {@inheritDoc}
+@@ -385,7 +385,7 @@
+      */
+     public function toArray(): array
+     {
+-        return [self::KEY_ID => $this->id, self::KEY_CANDIDATES => array_map(fn(\WordPress\AiClient\Results\DTO\Candidate $candidate) => $candidate->toArray(), $this->candidates), self::KEY_TOKEN_USAGE => $this->tokenUsage->toArray(), self::KEY_PROVIDER_METADATA => $this->providerMetadata->toArray(), self::KEY_MODEL_METADATA => $this->modelMetadata->toArray(), self::KEY_ADDITIONAL_DATA => $this->additionalData];
++        return [self::KEY_ID => $this->id, self::KEY_CANDIDATES => \wp_aot_array_map(fn(\WordPress\AiClient\Results\DTO\Candidate $candidate) => $candidate->toArray(), $this->candidates), self::KEY_TOKEN_USAGE => $this->tokenUsage->toArray(), self::KEY_PROVIDER_METADATA => $this->providerMetadata->toArray(), self::KEY_MODEL_METADATA => $this->modelMetadata->toArray(), self::KEY_ADDITIONAL_DATA => $this->additionalData];
+     }
+     /**
+      * {@inheritDoc}
+@@ -395,8 +395,8 @@
+     public static function fromArray(array $array): self
+     {
+         static::validateFromArrayData($array, [self::KEY_ID, self::KEY_CANDIDATES, self::KEY_TOKEN_USAGE, self::KEY_PROVIDER_METADATA, self::KEY_MODEL_METADATA]);
+-        $candidates = array_map(fn(array $candidateData) => \WordPress\AiClient\Results\DTO\Candidate::fromArray($candidateData), $array[self::KEY_CANDIDATES]);
+-        return new self($array[self::KEY_ID], $candidates, \WordPress\AiClient\Results\DTO\TokenUsage::fromArray($array[self::KEY_TOKEN_USAGE]), ProviderMetadata::fromArray($array[self::KEY_PROVIDER_METADATA]), ModelMetadata::fromArray($array[self::KEY_MODEL_METADATA]), $array[self::KEY_ADDITIONAL_DATA] ?? []);
++        $candidates = \wp_aot_array_map(fn(array $candidateData) => \WordPress\AiClient\Results\DTO\Candidate::fromArray($candidateData), \wp_aot_require_array( $array[self::KEY_CANDIDATES] ));
++        return new self($array[self::KEY_ID], $candidates, \WordPress\AiClient\Results\DTO\TokenUsage::fromArray(\wp_aot_require_array( $array[self::KEY_TOKEN_USAGE] )), ProviderMetadata::fromArray(\wp_aot_require_array( $array[self::KEY_PROVIDER_METADATA] )), ModelMetadata::fromArray(\wp_aot_require_array( $array[self::KEY_MODEL_METADATA] )), \wp_aot_require_array( $array[self::KEY_ADDITIONAL_DATA] ?? [] ));
+     }
+     /**
+      * Performs a deep clone of the result.

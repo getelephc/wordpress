@@ -1,0 +1,34 @@
+--- a/wp-includes/blocks/post-comments-link.php
++++ b/wp-includes/blocks/post-comments-link.php
+@@ -15,7 +15,7 @@
+  * @param  WP_Block $block      Block instance.
+  * @return string   Returns the rendered link.
+  */
+-function render_block_core_post_comments_link( $attributes, $content, $block ) {
++function render_block_core_post_comments_link( mixed $attributes, mixed $content, mixed $block ): mixed {
+ 	if (
+ 		! isset( $block->context['postId'] ) ||
+ 		isset( $block->context['postId'] ) &&
+@@ -57,6 +57,7 @@
+ 	}
+ 
+ 	return '<div ' . $wrapper_attributes . '><a href=' . esc_url( $comments_link ) . '>' . $comment_html . '</a></div>';
++	return null;
+ }
+ 
+ /**
+@@ -64,12 +65,13 @@
+  *
+  * @since 6.9.0
+  */
+-function register_block_core_post_comments_link() {
++function register_block_core_post_comments_link(): mixed {
+ 	register_block_type_from_metadata(
+ 		__DIR__ . '/post-comments-link',
+ 		array(
+ 			'render_callback' => 'render_block_core_post_comments_link',
+ 		)
+ 	);
++	return null;
+ }
+ add_action( 'init', 'register_block_core_post_comments_link' );

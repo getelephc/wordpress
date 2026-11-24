@@ -1,0 +1,11 @@
+--- a/wp-admin/credits.php
++++ b/wp-admin/credits.php
+@@ -71,7 +71,7 @@
+ if ( ! $credits ) {
+ 	echo '</div>';
+ 	require_once ABSPATH . 'wp-admin/admin-footer.php';
+-	exit;
++	\wp_aot_exit();
+ }
+ ?>
+ 

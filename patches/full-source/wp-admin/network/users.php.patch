@@ -1,0 +1,65 @@
+--- a/wp-admin/network/users.php
++++ b/wp-admin/network/users.php
+@@ -44,7 +44,7 @@
+ 			} else {
+ 				wp_redirect( network_admin_url( 'users.php' ) );
+ 			}
+-			exit;
++			\wp_aot_exit();
+ 
+ 		case 'allusers':
+ 			if ( ! current_user_can( 'manage_network_users' ) ) {
+@@ -77,7 +77,7 @@
+ 								echo '</div>';
+ 
+ 								require_once ABSPATH . 'wp-admin/admin-footer.php';
+-								exit;
++								\wp_aot_exit();
+ 
+ 							case 'spam':
+ 								$user = get_userdata( $user_id );
+@@ -161,7 +161,7 @@
+ 					$sendback = apply_filters( 'handle_network_bulk_actions-' . get_current_screen()->id, $sendback, $doaction, $user_ids, 0 ); // phpcs:ignore WordPress.NamingConventions.ValidHookName.UseUnderscores
+ 
+ 					wp_safe_redirect( $sendback );
+-					exit;
++					\wp_aot_exit();
+ 				}
+ 
+ 				wp_safe_redirect(
+@@ -181,7 +181,7 @@
+ 				}
+ 				wp_redirect( $location );
+ 			}
+-			exit;
++			\wp_aot_exit();
+ 
+ 		case 'dodelete':
+ 			check_admin_referer( 'ms-users-delete' );
+@@ -209,7 +209,7 @@
+ 									network_admin_url( 'users.php' )
+ 								)
+ 							);
+-							exit;
++							\wp_aot_exit();
+ 						}
+ 					}
+ 				}
+@@ -258,7 +258,7 @@
+ 					network_admin_url( 'users.php' )
+ 				)
+ 			);
+-			exit;
++			\wp_aot_exit();
+ 	}
+ }
+ 
+@@ -269,7 +269,7 @@
+ 
+ if ( $pagenum > $total_pages && $total_pages > 0 ) {
+ 	wp_redirect( add_query_arg( 'paged', $total_pages ) );
+-	exit;
++	\wp_aot_exit();
+ }
+ 
+ // Used in the HTML title tag.

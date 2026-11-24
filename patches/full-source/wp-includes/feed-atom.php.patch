@@ -1,5 +1,14 @@
 --- a/wp-includes/feed-atom.php
 +++ b/wp-includes/feed-atom.php
+@@ -7,7 +7,7 @@
+ 
+ // Don't load directly.
+ if ( ! defined( 'ABSPATH' ) ) {
+-	exit;
++	\wp_aot_exit();
+ }
+ 
+ header( 'Content-Type: ' . feed_content_type( 'atom' ) . '; charset=' . get_option( 'blog_charset' ), true );
 @@ -17,30 +17,46 @@
  
  /** This action is documented in wp-includes/feed-rss2.php */

@@ -1,9 +1,145 @@
 --- a/wp-includes/class-wp-customize-panel.php
 +++ b/wp-includes/class-wp-customize-panel.php
-@@ -328,14 +328,20 @@
+@@ -9,7 +9,7 @@
+ 
+ // Don't load directly.
+ if ( ! defined( 'ABSPATH' ) ) {
+-	exit;
++	\wp_aot_exit();
+ }
+ 
+ /**
+@@ -159,7 +159,7 @@
+ 	 *     @type callable        $active_callback Active callback.
+ 	 * }
+ 	 */
+-	public function __construct( $manager, $id, $args = array() ) {
++	public function __construct( mixed $manager, mixed $id, mixed $args = array() ) {
+ 		$keys = array_keys( get_object_vars( $this ) );
+ 		foreach ( $keys as $key ) {
+ 			if ( isset( $args[ $key ] ) ) {
+@@ -185,7 +185,7 @@
+ 	 *
+ 	 * @return bool Whether the panel is active to the current preview.
+ 	 */
+-	final public function active() {
++	final public function active(): mixed {
+ 		$panel  = $this;
+ 		$active = call_user_func( $this->active_callback, $this );
+ 
+@@ -200,6 +200,7 @@
+ 		$active = apply_filters( 'customize_panel_active', $active, $panel );
+ 
+ 		return $active;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -212,8 +213,9 @@
+ 	 *
+ 	 * @return bool Always true.
+ 	 */
+-	public function active_callback() {
++	public function active_callback(): mixed {
+ 		return true;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -223,14 +225,15 @@
+ 	 *
+ 	 * @return array The array to be exported to the client as JSON.
+ 	 */
+-	public function json() {
++	public function json(): mixed {
+ 		$array                          = wp_array_slice_assoc( (array) $this, array( 'id', 'description', 'priority', 'type' ) );
+-		$array['title']                 = html_entity_decode( $this->title, ENT_QUOTES, get_bloginfo( 'charset' ) );
++		$array['title']                 = \wp_aot_html_entity_decode( $this->title, ENT_QUOTES, get_bloginfo( 'charset' ) );
+ 		$array['content']               = $this->get_content();
+ 		$array['active']                = $this->active();
+ 		$array['instanceNumber']        = $this->instance_number;
+ 		$array['autoExpandSoleSection'] = $this->auto_expand_sole_section;
+ 		return $array;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -242,16 +245,17 @@
+ 	 *
+ 	 * @return bool False if theme doesn't support the panel or the user doesn't have the capability.
+ 	 */
+-	public function check_capabilities() {
++	public function check_capabilities(): mixed {
+ 		if ( $this->capability && ! current_user_can( $this->capability ) ) {
+ 			return false;
+ 		}
+ 
+-		if ( $this->theme_supports && ! current_theme_supports( ...(array) $this->theme_supports ) ) {
++		if ( $this->theme_supports && ! call_user_func_array( 'current_theme_supports', (array) $this->theme_supports ) ) {
+ 			return false;
+ 		}
+ 
+ 		return true;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -261,10 +265,11 @@
+ 	 *
+ 	 * @return string Content for the panel.
+ 	 */
+-	final public function get_content() {
++	final public function get_content(): mixed {
+ 		ob_start();
+ 		$this->maybe_render();
+ 		return trim( ob_get_clean() );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -272,9 +277,9 @@
+ 	 *
+ 	 * @since 4.0.0
+ 	 */
+-	final public function maybe_render() {
++	final public function maybe_render(): mixed {
+ 		if ( ! $this->check_capabilities() ) {
+-			return;
++			return null;
+ 		}
+ 
+ 		/**
+@@ -297,6 +302,7 @@
+ 		do_action( "customize_render_panel_{$this->id}" );
+ 
+ 		$this->render();
++		return null;
+ 	}
+ 
+ 	/**
+@@ -306,7 +312,7 @@
+ 	 *
+ 	 * @since 4.0.0
+ 	 */
+-	protected function render() {}
++	protected function render(): mixed { return null; }
+ 
+ 	/**
+ 	 * Render the panel UI in a subclass.
+@@ -315,7 +321,7 @@
+ 	 *
+ 	 * @since 4.1.0
+ 	 */
+-	protected function render_content() {}
++	protected function render_content(): mixed { return null; }
+ 
+ 	/**
+ 	 * Render the panel's JS templates.
+@@ -327,15 +333,22 @@
+ 	 *
  	 * @see WP_Customize_Manager::register_panel_type()
  	 */
- 	public function print_template() {
+-	public function print_template() {
 -		?>
 -		<script type="text/html" id="tmpl-customize-panel-<?php echo esc_attr( $this->type ); ?>-content">
 -			<?php $this->content_template(); ?>
@@ -12,6 +148,7 @@
 -			<?php $this->render_template(); ?>
 -		</script>
 -		<?php
++	public function print_template(): mixed {
 +		;
 +echo '		<script type="text/html" id="tmpl-customize-panel-';
 +echo esc_attr( $this->type ); ;
@@ -26,35 +163,41 @@
 +$this->render_template(); ;
 +echo '		</script>
 +		';
++		return null;
  	}
  
  	/**
-@@ -349,8 +355,8 @@
+@@ -348,9 +361,9 @@
+ 	 *
  	 * @since 4.3.0
  	 */
- 	protected function render_template() {
+-	protected function render_template() {
 -		?>
 -		<li id="accordion-panel-{{ data.id }}" class="accordion-section control-section control-panel control-panel-{{ data.type }}">
++	protected function render_template(): mixed {
 +		;
 +echo '		<li id="accordion-panel-{{ data.id }}" class="accordion-section control-section control-panel control-panel-{{ data.type }}">
  			<h3 class="accordion-section-title">
  				<button type="button" class="accordion-trigger" aria-expanded="false" aria-controls="{{ data.id }}-content">
  					{{ data.title }}
-@@ -358,7 +364,7 @@
+@@ -358,7 +371,8 @@
  			</h3>
  			<ul class="accordion-sub-container control-panel-content" id="{{ data.id }}-content"></ul>
  		</li>
 -		<?php
 +		';
++		return null;
  	}
  
  	/**
-@@ -372,28 +378,28 @@
+@@ -371,29 +385,29 @@
+ 	 *
  	 * @since 4.3.0
  	 */
- 	protected function content_template() {
+-	protected function content_template() {
 -		?>
 -		<li class="panel-meta customize-info accordion-section <# if ( ! data.description ) { #> cannot-expand<# } #>">
++	protected function content_template(): mixed {
 +		;
 +echo '		<li class="panel-meta customize-info accordion-section <# if ( ! data.description ) { #> cannot-expand<# } #>">
  			<button class="customize-panel-back" tabindex="-1"><span class="screen-reader-text">
@@ -89,12 +232,16 @@
  				<# } #>
  			</div>
  			<# if ( data.description ) { #>
-@@ -404,7 +410,7 @@
+@@ -404,9 +418,10 @@
  
  			<div class="customize-control-notifications-container"></div>
  		</li>
 -		<?php
 +		';
++		return null;
  	}
  }
  
+ /** WP_Customize_Nav_Menus_Panel class */
+-require_once ABSPATH . WPINC . '/customize/class-wp-customize-nav-menus-panel.php';
++require_once __DIR__ . '/customize/class-wp-customize-nav-menus-panel.php';

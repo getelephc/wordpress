@@ -1,0 +1,68 @@
+--- a/wp-admin/user-edit.php
++++ b/wp-admin/user-edit.php
+@@ -111,13 +111,13 @@
+ 		$user             = new stdClass();
+ 		$user->ID         = $current_user->ID;
+ 		$user->user_email = esc_html( trim( $new_email['newemail'] ) );
+-		if ( is_multisite() && $wpdb->get_var( $wpdb->prepare( "SELECT user_login FROM {$wpdb->signups} WHERE user_login = %s", $current_user->user_login ) ) ) {
+-			$wpdb->query( $wpdb->prepare( "UPDATE {$wpdb->signups} SET user_email = %s WHERE user_login = %s", $user->user_email, $current_user->user_login ) );
++		if ( is_multisite() && \wp_aot_require_wpdb( $wpdb )->get_var( \wp_aot_require_wpdb( $wpdb )->prepare( "SELECT user_login FROM {$wpdb->signups} WHERE user_login = %s", $current_user->user_login ) ) ) {
++			\wp_aot_require_wpdb( $wpdb )->query( \wp_aot_require_wpdb( $wpdb )->prepare( "UPDATE {$wpdb->signups} SET user_email = %s WHERE user_login = %s", $user->user_email, $current_user->user_login ) );
+ 		}
+ 		wp_update_user( $user );
+ 		delete_user_meta( $current_user->ID, '_new_email' );
+ 		wp_redirect( add_query_arg( array( 'updated' => 'true' ), self_admin_url( 'profile.php' ) ) );
+-		die();
++		\wp_aot_exit();
+ 	} else {
+ 		wp_redirect( add_query_arg( array( 'error' => 'new-email' ), self_admin_url( 'profile.php' ) ) );
+ 	}
+@@ -125,7 +125,7 @@
+ 	check_admin_referer( 'dismiss-' . $current_user->ID . '_new_email' );
+ 	delete_user_meta( $current_user->ID, '_new_email' );
+ 	wp_redirect( add_query_arg( array( 'updated' => 'true' ), self_admin_url( 'profile.php' ) ) );
+-	die();
++	\wp_aot_exit();
+ }
+ 
+ switch ( $action ) {
+@@ -162,8 +162,8 @@
+ 		if ( is_multisite() ) {
+ 			$user = get_userdata( $user_id );
+ 
+-			if ( $user->user_login && isset( $_POST['email'] ) && is_email( $_POST['email'] ) && $wpdb->get_var( $wpdb->prepare( "SELECT user_login FROM {$wpdb->signups} WHERE user_login = %s", $user->user_login ) ) ) {
+-				$wpdb->query( $wpdb->prepare( "UPDATE {$wpdb->signups} SET user_email = %s WHERE user_login = %s", $_POST['email'], $user_login ) );
++			if ( $user->user_login && isset( $_POST['email'] ) && is_email( $_POST['email'] ) && \wp_aot_require_wpdb( $wpdb )->get_var( \wp_aot_require_wpdb( $wpdb )->prepare( "SELECT user_login FROM {$wpdb->signups} WHERE user_login = %s", $user->user_login ) ) ) {
++				\wp_aot_require_wpdb( $wpdb )->query( \wp_aot_require_wpdb( $wpdb )->prepare( "UPDATE {$wpdb->signups} SET user_email = %s WHERE user_login = %s", $_POST['email'], $user_login ) );
+ 			}
+ 		}
+ 
+@@ -184,7 +184,7 @@
+ 				$redirect = add_query_arg( 'wp_http_referer', urlencode( $wp_http_referer ), $redirect );
+ 			}
+ 			wp_redirect( $redirect );
+-			exit;
++			\wp_aot_exit();
+ 		}
+ 
+ 		// Intentional fall-through to display $errors.
+@@ -464,7 +464,7 @@
+ 								<select name="role" id="role">
+ 									<?php
+ 									// Compare user role against currently editable roles.
+-									$user_roles = array_intersect( array_values( $profile_user->roles ), array_keys( get_editable_roles() ) );
++									$user_roles = \wp_aot_array_intersect(array( array_values( $profile_user->roles ), array_keys( get_editable_roles() ) ));
+ 									$user_role  = reset( $user_roles );
+ 
+ 									// Print the full list of roles with the primary one selected.
+@@ -552,8 +552,8 @@
+ 									$public_display = array( 'display_displayname' => $profile_user->display_name ) + $public_display;
+ 								}
+ 
+-								$public_display = array_map( 'trim', $public_display );
+-								$public_display = array_unique( $public_display );
++								$public_display = \wp_aot_array_map( 'trim', $public_display );
++								$public_display = \wp_aot_array_unique( $public_display );
+ 
+ 								?>
+ 								<?php foreach ( $public_display as $id => $item ) : ?>

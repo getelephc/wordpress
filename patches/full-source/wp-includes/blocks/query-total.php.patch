@@ -1,0 +1,34 @@
+--- a/wp-includes/blocks/query-total.php
++++ b/wp-includes/blocks/query-total.php
+@@ -18,7 +18,7 @@
+  *
+  * @return string The rendered block content.
+  */
+-function render_block_core_query_total( $attributes, $content, $block ) {
++function render_block_core_query_total( mixed $attributes, mixed $content, mixed $block ): mixed {
+ 	global $wp_query;
+ 	$wrapper_attributes = get_block_wrapper_attributes();
+ 	if ( $block->context['query']['inherit'] ?? false ) {
+@@ -72,6 +72,7 @@
+ 		$wrapper_attributes,
+ 		$output
+ 	);
++	return null;
+ }
+ 
+ /**
+@@ -79,12 +80,13 @@
+  *
+  * @since 6.8.0
+  */
+-function register_block_core_query_total() {
++function register_block_core_query_total(): mixed {
+ 	register_block_type_from_metadata(
+ 		__DIR__ . '/query-total',
+ 		array(
+ 			'render_callback' => 'render_block_core_query_total',
+ 		)
+ 	);
++	return null;
+ }
+ add_action( 'init', 'register_block_core_query_total' );

@@ -1,0 +1,61 @@
+--- a/wp-includes/Requests/src/Response.php
++++ b/wp-includes/Requests/src/Response.php
+@@ -49,7 +49,7 @@
+ 	 *
+ 	 * @var integer|boolean
+ 	 */
+-	public $status_code = false;
++	public mixed $status_code = false;
+ 
+ 	/**
+ 	 * Protocol version, false if non-blocking
+@@ -106,9 +106,10 @@
+ 	 *
+ 	 * @return boolean True if redirect (3xx status), false if not.
+ 	 */
+-	public function is_redirect() {
++	public function is_redirect(): mixed {
+ 		$code = $this->status_code;
+ 		return in_array($code, [300, 301, 302, 303, 307], true) || $code > 307 && $code < 400;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -119,15 +120,17 @@
+ 	 * @throws \WpOrg\Requests\Exception If `$allow_redirects` is false, and code is 3xx (`response.no_redirects`)
+ 	 * @throws \WpOrg\Requests\Exception\Http On non-successful status code. Exception class corresponds to "Status" + code (e.g. {@see \WpOrg\Requests\Exception\Http\Status404})
+ 	 */
+-	public function throw_for_status($allow_redirects = true) {
++	public function throw_for_status(mixed $allow_redirects = true): mixed {
+ 		if ($this->is_redirect()) {
+ 			if ($allow_redirects !== true) {
+ 				throw new Exception('Redirection not allowed', 'response.no_redirects', $this);
+ 			}
+ 		} elseif (!$this->success) {
+ 			$exception = Http::get_class($this->status_code);
+-			throw new $exception(null, $this);
++			$exception = ltrim((string) $exception, '\\');
++			throw \wp_aot_require_Throwable(new $exception(\wp_aot_mixed(null), \wp_aot_mixed($this)));
+ 		}
++		return null;
+ 	}
+ 
+ 	/**
+@@ -152,8 +155,8 @@
+ 	 *
+ 	 * @throws \WpOrg\Requests\Exception If `$this->body` is not valid json.
+ 	 */
+-	public function decode_body($associative = true, $depth = 512, $options = 0) {
+-		$data = json_decode($this->body, $associative, $depth, $options);
++	public function decode_body(mixed $associative = true, mixed $depth = 512, mixed $options = 0): mixed {
++		$data = json_decode($this->body, $associative, \wp_aot_internal_int($depth), \wp_aot_internal_int($options));
+ 
+ 		if (json_last_error() !== JSON_ERROR_NONE) {
+ 			$last_error = json_last_error_msg();
+@@ -161,5 +164,6 @@
+ 		}
+ 
+ 		return $data;
++		return null;
+ 	}
+ }

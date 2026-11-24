@@ -1,0 +1,52 @@
+--- a/wp-includes/blocks/rss.php
++++ b/wp-includes/blocks/rss.php
+@@ -14,7 +14,7 @@
+  *
+  * @return string Returns the block content with received rss items.
+  */
+-function render_block_core_rss( $attributes ) {
++function render_block_core_rss( mixed $attributes ): mixed {
+ 	if ( in_array( untrailingslashit( $attributes['feedURL'] ), array( site_url(), home_url() ), true ) ) {
+ 		return '<div class="components-placeholder"><div class="notice notice-error">' . __( 'Adding an RSS feed to this site’s homepage is not supported, as it could lead to a loop that slows down your site. Try using another block, like the <strong>Latest Posts</strong> block, to list posts from the site.' ) . '</div></div>';
+ 	}
+@@ -46,7 +46,7 @@
+ 	}
+ 
+ 	foreach ( $rss_items as $item ) {
+-		$title = esc_html( trim( strip_tags( html_entity_decode( $item->get_title() ) ) ) );
++		$title = esc_html( trim( strip_tags( \wp_aot_html_entity_decode( $item->get_title() ) ) ) );
+ 
+ 		if ( empty( $title ) ) {
+ 			$title = __( '(no title)' );
+@@ -93,7 +93,7 @@
+ 		$excerpt     = '';
+ 		$description = $item->get_description();
+ 		if ( $attributes['displayExcerpt'] && ! empty( $description ) ) {
+-			$excerpt = html_entity_decode( $description, ENT_QUOTES, get_option( 'blog_charset' ) );
++			$excerpt = \wp_aot_html_entity_decode( $description, ENT_QUOTES, get_option( 'blog_charset' ) );
+ 			$excerpt = esc_attr( wp_trim_words( $excerpt, $attributes['excerptLength'], ' [&hellip;]' ) );
+ 
+ 			// Change existing [...] to [&hellip;].
+@@ -127,6 +127,7 @@
+ 	$wrapper_attributes = get_block_wrapper_attributes( array( 'class' => implode( ' ', $classnames ) ) );
+ 
+ 	return sprintf( '<ul %s>%s</ul>', $wrapper_attributes, $list_items );
++	return null;
+ }
+ 
+ /**
+@@ -134,12 +135,13 @@
+  *
+  * @since 5.2.0
+  */
+-function register_block_core_rss() {
++function register_block_core_rss(): mixed {
+ 	register_block_type_from_metadata(
+ 		__DIR__ . '/rss',
+ 		array(
+ 			'render_callback' => 'render_block_core_rss',
+ 		)
+ 	);
++	return null;
+ }
+ add_action( 'init', 'register_block_core_rss' );

@@ -1,0 +1,195 @@
+--- a/wp-includes/sitemaps/class-wp-sitemaps.php
++++ b/wp-includes/sitemaps/class-wp-sitemaps.php
+@@ -62,20 +62,21 @@
+ 	 *
+ 	 * @since 5.5.0
+ 	 */
+-	public function init() {
++	public function init(): mixed {
+ 		// These will all fire on the init hook.
+ 		$this->register_rewrites();
+ 
+ 		add_action( 'template_redirect', array( $this, 'render_sitemaps' ) );
+ 
+ 		if ( ! $this->sitemaps_enabled() ) {
+-			return;
++			return null;
+ 		}
+ 
+ 		$this->register_sitemaps();
+ 
+ 		// Add additional action callbacks.
+ 		add_filter( 'robots_txt', array( $this, 'add_robots' ), 0, 2 );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -85,7 +86,7 @@
+ 	 *
+ 	 * @return bool Whether sitemaps are enabled.
+ 	 */
+-	public function sitemaps_enabled() {
++	public function sitemaps_enabled(): mixed {
+ 		$is_enabled = (bool) get_option( 'blog_public' );
+ 
+ 		/**
+@@ -102,6 +103,7 @@
+ 		 *                         Defaults to true for public sites.
+ 		 */
+ 		return (bool) apply_filters( 'wp_sitemaps_enabled', $is_enabled );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -109,7 +111,7 @@
+ 	 *
+ 	 * @since 5.5.0
+ 	 */
+-	public function register_sitemaps() {
++	public function register_sitemaps(): mixed {
+ 		$providers = array(
+ 			'posts'      => new WP_Sitemaps_Posts(),
+ 			'taxonomies' => new WP_Sitemaps_Taxonomies(),
+@@ -120,6 +122,7 @@
+ 		foreach ( $providers as $name => $provider ) {
+ 			$this->registry->add_provider( $name, $provider );
+ 		}
++		return null;
+ 	}
+ 
+ 	/**
+@@ -127,7 +130,7 @@
+ 	 *
+ 	 * @since 5.5.0
+ 	 */
+-	public function register_rewrites() {
++	public function register_rewrites(): mixed {
+ 		// Add rewrite tags.
+ 		add_rewrite_tag( '%sitemap%', '([^?]+)' );
+ 		add_rewrite_tag( '%sitemap-subtype%', '([^?]+)' );
+@@ -151,6 +154,7 @@
+ 			'index.php?sitemap=$matches[1]&paged=$matches[2]',
+ 			'top'
+ 		);
++		return null;
+ 	}
+ 
+ 	/**
+@@ -158,7 +162,7 @@
+ 	 *
+ 	 * @since 5.5.0
+ 	 */
+-	public function render_sitemaps() {
++	public function render_sitemaps(): mixed {
+ 		/*
+ 		 * Bail early if this isn't a sitemap or stylesheet route.
+ 		 *
+@@ -169,7 +173,7 @@
+ 		 * request that handle_404() exempted fall through both, leaving it a 200.
+ 		 */
+ 		if ( ! get_query_var( 'sitemap' ) && ! get_query_var( 'sitemap-stylesheet' ) ) {
+-			return;
++			return null;
+ 		}
+ 
+ 		$sitemap         = sanitize_text_field( get_query_var( 'sitemap' ) );
+@@ -180,12 +184,12 @@
+ 		// Force a 404 and bail early if the route did not survive sanitizing.
+ 		if ( ! ( $sitemap || $stylesheet_type ) ) {
+ 			$this->send_404();
+-			return;
++			return null;
+ 		}
+ 
+ 		if ( ! $this->sitemaps_enabled() ) {
+ 			$this->send_404();
+-			return;
++			return null;
+ 		}
+ 
+ 		// Render stylesheet if this is stylesheet route.
+@@ -193,13 +197,13 @@
+ 			// Force a 404 and bail early if the stylesheet type is not recognized.
+ 			if ( ! in_array( $stylesheet_type, array( 'sitemap', 'index' ), true ) ) {
+ 				$this->send_404();
+-				return;
++				return null;
+ 			}
+ 
+ 			$stylesheet = new WP_Sitemaps_Stylesheet();
+ 
+ 			$stylesheet->render_stylesheet( $stylesheet_type );
+-			exit;
++			\wp_aot_exit();
+ 		}
+ 
+ 		// Render the index.
+@@ -207,7 +211,7 @@
+ 			$sitemap_list = $this->index->get_sitemap_list();
+ 
+ 			$this->renderer->render_index( $sitemap_list );
+-			exit;
++			\wp_aot_exit();
+ 		}
+ 
+ 		$provider = $this->registry->get_provider( $sitemap );
+@@ -215,7 +219,7 @@
+ 		// Force a 404 and bail early if the requested provider is not registered.
+ 		if ( ! $provider ) {
+ 			$this->send_404();
+-			return;
++			return null;
+ 		}
+ 
+ 		if ( empty( $paged ) ) {
+@@ -227,11 +231,12 @@
+ 		// Force a 404 and bail early if no URLs are present.
+ 		if ( empty( $url_list ) ) {
+ 			$this->send_404();
+-			return;
++			return null;
+ 		}
+ 
+ 		$this->renderer->render_sitemap( $url_list );
+-		exit;
++		\wp_aot_exit();
++		return null;
+ 	}
+ 
+ 	/**
+@@ -264,7 +269,7 @@
+ 	 * @param WP_Query $query  The WP_Query object.
+ 	 * @return bool Bypass value.
+ 	 */
+-	public function redirect_sitemapxml( $bypass, $query ) {
++	public function redirect_sitemapxml( mixed $bypass, mixed $query ): mixed {
+ 		_deprecated_function( __FUNCTION__, '6.7.0' );
+ 
+ 		// If a plugin has already utilized the pre_handle_404 function, return without action to avoid conflicts.
+@@ -277,10 +282,11 @@
+ 			|| 'sitemap-xml' === $query->get( 'name' )
+ 		) {
+ 			wp_safe_redirect( $this->index->get_index_url() );
+-			exit();
++			\wp_aot_exit();
+ 		}
+ 
+ 		return $bypass;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -292,11 +298,12 @@
+ 	 * @param bool   $is_public Whether the site is public.
+ 	 * @return string The robots.txt output.
+ 	 */
+-	public function add_robots( $output, $is_public ) {
++	public function add_robots( mixed $output, mixed $is_public ): mixed {
+ 		if ( $is_public ) {
+ 			$output .= "\nSitemap: " . esc_url( $this->index->get_index_url() ) . "\n";
+ 		}
+ 
+ 		return $output;
++		return null;
+ 	}
+ }

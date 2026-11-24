@@ -1,7 +1,2856 @@
 --- a/wp-includes/deprecated.php
 +++ b/wp-includes/deprecated.php
-@@ -4210,9 +4210,9 @@
- function wp_sensitive_page_meta() {
+@@ -22,7 +22,7 @@
+  * @param int $postid Post ID.
+  * @return array Post data.
+  */
+-function get_postdata($postid) {
++function get_postdata(mixed $postid): mixed {
+ 	_deprecated_function( __FUNCTION__, '1.5.1', 'get_post()' );
+ 
+ 	$post = get_post($postid);
+@@ -46,6 +46,7 @@
+ 	);
+ 
+ 	return $postdata;
++	return null;
+ }
+ 
+ /**
+@@ -60,7 +61,7 @@
+  *
+  * @global WP_Query $wp_query WordPress Query object.
+  */
+-function start_wp() {
++function start_wp(): mixed {
+ 	global $wp_query;
+ 
+ 	_deprecated_function( __FUNCTION__, '1.5.0', __('new WordPress Loop') );
+@@ -69,6 +70,7 @@
+ 	$wp_query->next_post();
+ 
+ 	setup_postdata( get_post() );
++	return null;
+ }
+ 
+ /**
+@@ -81,7 +83,7 @@
+  * @param bool $display Optional. Whether to display the output. Default true.
+  * @return int Category ID.
+  */
+-function the_category_ID($display = true) {
++function the_category_ID(mixed $display = true): mixed {
+ 	_deprecated_function( __FUNCTION__, '0.71', 'get_the_category()' );
+ 
+ 	// Grab the first cat in the list.
+@@ -92,6 +94,7 @@
+ 		echo $cat;
+ 
+ 	return $cat;
++	return null;
+ }
+ 
+ /**
+@@ -104,7 +107,7 @@
+  * @param string $before Optional. Text to display before the category. Default empty.
+  * @param string $after  Optional. Text to display after the category. Default empty.
+  */
+-function the_category_head( $before = '', $after = '' ) {
++function the_category_head( mixed $before = '', mixed $after = '' ): mixed {
+ 	global $currentcat, $previouscat;
+ 
+ 	_deprecated_function( __FUNCTION__, '0.71', 'get_the_category_by_ID()' );
+@@ -118,6 +121,7 @@
+ 		echo $after;
+ 		$previouscat = $currentcat;
+ 	}
++	return null;
+ }
+ 
+ /**
+@@ -134,7 +138,7 @@
+  * @param int    $limitprev
+  * @param string $excluded_categories
+  */
+-function previous_post($format='%', $previous='previous post: ', $title='yes', $in_same_cat='no', $limitprev=1, $excluded_categories='') {
++function previous_post(mixed $format='%', mixed $previous='previous post: ', mixed $title='yes', mixed $in_same_cat='no', mixed $limitprev=1, mixed $excluded_categories=''): mixed {
+ 
+ 	_deprecated_function( __FUNCTION__, '2.0.0', 'previous_post_link()' );
+ 
+@@ -146,15 +150,16 @@
+ 	$post = get_previous_post($in_same_cat, $excluded_categories);
+ 
+ 	if ( !$post )
+-		return;
++		return null;
+ 
+ 	$string = '<a href="'.get_permalink($post->ID).'">'.$previous;
+ 	if ( 'yes' == $title )
+ 		/** This filter is documented in wp-includes/post-template.php */
+ 		$string .= apply_filters('the_title', $post->post_title, $post->ID);
+ 	$string .= '</a>';
+-	$format = str_replace('%', $string, $format);
++	$format = \wp_aot_str_replace('%', $string, $format);
+ 	echo $format;
++	return null;
+ }
+ 
+ /**
+@@ -171,7 +176,7 @@
+  * @param int $limitnext
+  * @param string $excluded_categories
+  */
+-function next_post($format='%', $next='next post: ', $title='yes', $in_same_cat='no', $limitnext=1, $excluded_categories='') {
++function next_post(mixed $format='%', mixed $next='next post: ', mixed $title='yes', mixed $in_same_cat='no', mixed $limitnext=1, mixed $excluded_categories=''): mixed {
+ 	_deprecated_function( __FUNCTION__, '2.0.0', 'next_post_link()' );
+ 
+ 	if ( empty($in_same_cat) || 'no' == $in_same_cat )
+@@ -182,15 +187,16 @@
+ 	$post = get_next_post($in_same_cat, $excluded_categories);
+ 
+ 	if ( !$post	)
+-		return;
++		return null;
+ 
+ 	$string = '<a href="'.get_permalink($post->ID).'">'.$next;
+ 	if ( 'yes' == $title )
+ 		/** This filter is documented in wp-includes/post-template.php */
+ 		$string .= apply_filters('the_title', $post->post_title, $post->ID);
+ 	$string .= '</a>';
+-	$format = str_replace('%', $string, $format);
++	$format = \wp_aot_str_replace('%', $string, $format);
+ 	echo $format;
++	return null;
+ }
+ 
+ /**
+@@ -205,11 +211,12 @@
+  * @param int $category_id Not Used
+  * @return bool
+  */
+-function user_can_create_post($user_id, $blog_id = 1, $category_id = 'None') {
++function user_can_create_post(mixed $user_id, mixed $blog_id = 1, mixed $category_id = 'None'): mixed {
+ 	_deprecated_function( __FUNCTION__, '2.0.0', 'current_user_can()' );
+ 
+ 	$author_data = get_userdata($user_id);
+ 	return ($author_data->user_level > 1);
++	return null;
+ }
+ 
+ /**
+@@ -224,11 +231,12 @@
+  * @param int $category_id Not Used
+  * @return bool
+  */
+-function user_can_create_draft($user_id, $blog_id = 1, $category_id = 'None') {
++function user_can_create_draft(mixed $user_id, mixed $blog_id = 1, mixed $category_id = 'None'): mixed {
+ 	_deprecated_function( __FUNCTION__, '2.0.0', 'current_user_can()' );
+ 
+ 	$author_data = get_userdata($user_id);
+ 	return ($author_data->user_level >= 1);
++	return null;
+ }
+ 
+ /**
+@@ -243,7 +251,7 @@
+  * @param int $blog_id Not Used
+  * @return bool
+  */
+-function user_can_edit_post($user_id, $post_id, $blog_id = 1) {
++function user_can_edit_post(mixed $user_id, mixed $post_id, mixed $blog_id = 1): mixed {
+ 	_deprecated_function( __FUNCTION__, '2.0.0', 'current_user_can()' );
+ 
+ 	$author_data = get_userdata($user_id);
+@@ -257,6 +265,7 @@
+ 	} else {
+ 		return false;
+ 	}
++	return null;
+ }
+ 
+ /**
+@@ -271,11 +280,12 @@
+  * @param int $blog_id Not Used
+  * @return bool
+  */
+-function user_can_delete_post($user_id, $post_id, $blog_id = 1) {
++function user_can_delete_post(mixed $user_id, mixed $post_id, mixed $blog_id = 1): mixed {
+ 	_deprecated_function( __FUNCTION__, '2.0.0', 'current_user_can()' );
+ 
+ 	// Right now if one can edit, one can delete.
+ 	return user_can_edit_post($user_id, $post_id, $blog_id);
++	return null;
+ }
+ 
+ /**
+@@ -290,11 +300,12 @@
+  * @param int $category_id Not Used
+  * @return bool
+  */
+-function user_can_set_post_date($user_id, $blog_id = 1, $category_id = 'None') {
++function user_can_set_post_date(mixed $user_id, mixed $blog_id = 1, mixed $category_id = 'None'): mixed {
+ 	_deprecated_function( __FUNCTION__, '2.0.0', 'current_user_can()' );
+ 
+ 	$author_data = get_userdata($user_id);
+ 	return (($author_data->user_level > 4) && user_can_create_post($user_id, $blog_id, $category_id));
++	return null;
+ }
+ 
+ /**
+@@ -309,11 +320,12 @@
+  * @param int $blog_id Not Used
+  * @return bool returns true if $user_id can edit $post_id's date
+  */
+-function user_can_edit_post_date($user_id, $post_id, $blog_id = 1) {
++function user_can_edit_post_date(mixed $user_id, mixed $post_id, mixed $blog_id = 1): mixed {
+ 	_deprecated_function( __FUNCTION__, '2.0.0', 'current_user_can()' );
+ 
+ 	$author_data = get_userdata($user_id);
+ 	return (($author_data->user_level > 4) && user_can_edit_post($user_id, $post_id, $blog_id));
++	return null;
+ }
+ 
+ /**
+@@ -328,11 +340,12 @@
+  * @param int $blog_id Not Used
+  * @return bool returns true if $user_id can edit $post_id's comments
+  */
+-function user_can_edit_post_comments($user_id, $post_id, $blog_id = 1) {
++function user_can_edit_post_comments(mixed $user_id, mixed $post_id, mixed $blog_id = 1): mixed {
+ 	_deprecated_function( __FUNCTION__, '2.0.0', 'current_user_can()' );
+ 
+ 	// Right now if one can edit a post, one can edit comments made on it.
+ 	return user_can_edit_post($user_id, $post_id, $blog_id);
++	return null;
+ }
+ 
+ /**
+@@ -347,11 +360,12 @@
+  * @param int $blog_id Not Used
+  * @return bool returns true if $user_id can delete $post_id's comments
+  */
+-function user_can_delete_post_comments($user_id, $post_id, $blog_id = 1) {
++function user_can_delete_post_comments(mixed $user_id, mixed $post_id, mixed $blog_id = 1): mixed {
+ 	_deprecated_function( __FUNCTION__, '2.0.0', 'current_user_can()' );
+ 
+ 	// Right now if one can edit comments, one can delete comments.
+ 	return user_can_edit_post_comments($user_id, $post_id, $blog_id);
++	return null;
+ }
+ 
+ /**
+@@ -365,7 +379,7 @@
+  * @param int $other_user
+  * @return bool
+  */
+-function user_can_edit_user($user_id, $other_user) {
++function user_can_edit_user(mixed $user_id, mixed $other_user): mixed {
+ 	_deprecated_function( __FUNCTION__, '2.0.0', 'current_user_can()' );
+ 
+ 	$user  = get_userdata($user_id);
+@@ -374,6 +388,7 @@
+ 		return true;
+ 	else
+ 		return false;
++	return null;
+ }
+ 
+ /**
+@@ -401,9 +416,9 @@
+  *                                 Default -1.
+  * @param int    $show_updated     Optional. Whether to show last updated timestamp. Default 0.
+  */
+-function get_linksbyname($cat_name = "noname", $before = '', $after = '<br />', $between = " ", $show_images = true, $orderby = 'id',
+-						$show_description = true, $show_rating = false,
+-						$limit = -1, $show_updated = 0) {
++function get_linksbyname(mixed $cat_name = "noname", mixed $before = '', mixed $after = '<br />', mixed $between = " ", mixed $show_images = true, mixed $orderby = 'id',
++						mixed $show_description = true, mixed $show_rating = false,
++						mixed $limit = -1, mixed $show_updated = 0): mixed {
+ 	_deprecated_function( __FUNCTION__, '2.1.0', 'get_bookmarks()' );
+ 
+ 	$cat_id = -1;
+@@ -412,6 +427,7 @@
+ 		$cat_id = $cat->term_id;
+ 
+ 	get_links($cat_id, $before, $after, $between, $show_images, $orderby, $show_description, $show_rating, $limit, $show_updated);
++	return null;
+ }
+ 
+ /**
+@@ -425,7 +441,7 @@
+  * @param string $args
+  * @return string|null
+  */
+-function wp_get_linksbyname($category, $args = '') {
++function wp_get_linksbyname(mixed $category, mixed $args = ''): mixed {
+ 	_deprecated_function(__FUNCTION__, '2.1.0', 'wp_list_bookmarks()');
+ 
+ 	$defaults = array(
+@@ -442,6 +458,7 @@
+ 	$parsed_args = wp_parse_args( $args, $defaults );
+ 
+ 	return wp_list_bookmarks($parsed_args);
++	return null;
+ }
+ 
+ /**
+@@ -466,7 +483,7 @@
+  *                         Default -1.
+  * @return array
+  */
+-function get_linkobjectsbyname($cat_name = "noname" , $orderby = 'name', $limit = -1) {
++function get_linkobjectsbyname(mixed $cat_name = "noname" , mixed $orderby = 'name', mixed $limit = -1): mixed {
+ 	_deprecated_function( __FUNCTION__, '2.1.0', 'get_bookmarks()' );
+ 
+ 	$cat_id = -1;
+@@ -475,6 +492,7 @@
+ 		$cat_id = $cat->term_id;
+ 
+ 	return get_linkobjects($cat_id, $orderby, $limit);
++	return null;
+ }
+ 
+ /**
+@@ -519,7 +537,7 @@
+  *                         Default 0.
+  * @return array
+  */
+-function get_linkobjects($category = 0, $orderby = 'name', $limit = 0) {
++function get_linkobjects(mixed $category = 0, mixed $orderby = 'name', mixed $limit = 0): mixed {
+ 	_deprecated_function( __FUNCTION__, '2.1.0', 'get_bookmarks()' );
+ 
+ 	$links = get_bookmarks( array( 'category' => $category, 'orderby' => $orderby, 'limit' => $limit ) ) ;
+@@ -529,6 +547,7 @@
+ 		$links_array[] = $link;
+ 
+ 	return $links_array;
++	return null;
+ }
+ 
+ /**
+@@ -555,11 +574,12 @@
+  *                                 Default -1.
+  * @param int    $show_updated     Optional. Whether to show last updated timestamp. Default 0.
+  */
+-function get_linksbyname_withrating($cat_name = "noname", $before = '', $after = '<br />', $between = " ",
+-									$show_images = true, $orderby = 'id', $show_description = true, $limit = -1, $show_updated = 0) {
++function get_linksbyname_withrating(mixed $cat_name = "noname", mixed $before = '', mixed $after = '<br />', mixed $between = " ",
++									mixed $show_images = true, mixed $orderby = 'id', mixed $show_description = true, mixed $limit = -1, mixed $show_updated = 0): mixed {
+ 	_deprecated_function( __FUNCTION__, '2.1.0', 'get_bookmarks()' );
+ 
+ 	get_linksbyname($cat_name, $before, $after, $between, $show_images, $orderby, $show_description, true, $limit, $show_updated);
++	return null;
+ }
+ 
+ /**
+@@ -586,11 +606,12 @@
+  *                                 Default -1.
+  * @param int    $show_updated     Optional. Whether to show last updated timestamp. Default 0.
+  */
+-function get_links_withrating($category = -1, $before = '', $after = '<br />', $between = " ", $show_images = true,
+-							$orderby = 'id', $show_description = true, $limit = -1, $show_updated = 0) {
++function get_links_withrating(mixed $category = -1, mixed $before = '', mixed $after = '<br />', mixed $between = " ", mixed $show_images = true,
++							mixed $orderby = 'id', mixed $show_description = true, mixed $limit = -1, mixed $show_updated = 0): mixed {
+ 	_deprecated_function( __FUNCTION__, '2.1.0', 'get_bookmarks()' );
+ 
+ 	get_links($category, $before, $after, $between, $show_images, $orderby, $show_description, true, $limit, $show_updated);
++	return null;
+ }
+ 
+ /**
+@@ -602,9 +623,10 @@
+  * @param int $id The category to get. If no category supplied uses 0
+  * @return int Only returns 0.
+  */
+-function get_autotoggle($id = 0) {
++function get_autotoggle(mixed $id = 0): mixed {
+ 	_deprecated_function( __FUNCTION__, '2.1.0' );
+ 	return 0;
++	return null;
+ }
+ 
+ /**
+@@ -634,14 +656,15 @@
+  * @param bool $hierarchical
+  * @return null|false
+  */
+-function list_cats($optionall = 1, $all = 'All', $sort_column = 'ID', $sort_order = 'asc', $file = '', $list = true, $optiondates = 0,
+-				$optioncount = 0, $hide_empty = 1, $use_desc_for_title = 1, $children=false, $child_of=0, $categories=0,
+-				$recurse=0, $feed = '', $feed_image = '', $exclude = '', $hierarchical=false) {
++function list_cats(mixed $optionall = 1, mixed $all = 'All', mixed $sort_column = 'ID', mixed $sort_order = 'asc', mixed $file = '', mixed $list = true, mixed $optiondates = 0,
++				mixed $optioncount = 0, mixed $hide_empty = 1, mixed $use_desc_for_title = 1, mixed $children=false, mixed $child_of=0, mixed $categories=0,
++				mixed $recurse=0, mixed $feed = '', mixed $feed_image = '', mixed $exclude = '', mixed $hierarchical=false): mixed {
+ 	_deprecated_function( __FUNCTION__, '2.1.0', 'wp_list_categories()' );
+ 
+-	$query = compact('optionall', 'all', 'sort_column', 'sort_order', 'file', 'list', 'optiondates', 'optioncount', 'hide_empty', 'use_desc_for_title', 'children',
+-		'child_of', 'categories', 'recurse', 'feed', 'feed_image', 'exclude', 'hierarchical');
++	$query = \wp_aot_compact(get_defined_vars(), array('optionall', 'all', 'sort_column', 'sort_order', 'file', 'list', 'optiondates', 'optioncount', 'hide_empty', 'use_desc_for_title', 'children',
++		'child_of', 'categories', 'recurse', 'feed', 'feed_image', 'exclude', 'hierarchical'));
+ 	return wp_list_cats($query);
++	return null;
+ }
+ 
+ /**
+@@ -654,7 +677,7 @@
+  * @param string|array $args
+  * @return null|string|false
+  */
+-function wp_list_cats($args = '') {
++function wp_list_cats(mixed $args = ''): mixed {
+ 	_deprecated_function( __FUNCTION__, '2.1.0', 'wp_list_categories()' );
+ 
+ 	$parsed_args = wp_parse_args( $args );
+@@ -675,6 +698,7 @@
+ 	$parsed_args['title_li'] = '';
+ 
+ 	return wp_list_categories($parsed_args);
++	return null;
+ }
+ 
+ /**
+@@ -696,9 +720,9 @@
+  * @param int $exclude
+  * @return string
+  */
+-function dropdown_cats($optionall = 1, $all = 'All', $orderby = 'ID', $order = 'asc',
+-		$show_last_update = 0, $show_count = 0, $hide_empty = 1, $optionnone = false,
+-		$selected = 0, $exclude = 0) {
++function dropdown_cats(mixed $optionall = 1, mixed $all = 'All', mixed $orderby = 'ID', mixed $order = 'asc',
++		mixed $show_last_update = 0, mixed $show_count = 0, mixed $hide_empty = 1, mixed $optionnone = false,
++		mixed $selected = 0, mixed $exclude = 0): mixed {
+ 	_deprecated_function( __FUNCTION__, '2.1.0', 'wp_dropdown_categories()' );
+ 
+ 	$show_option_all = '';
+@@ -709,10 +733,11 @@
+ 	if ( $optionnone )
+ 		$show_option_none = _x( 'None', 'Categories dropdown (show_option_none parameter)' );
+ 
+-	$vars = compact('show_option_all', 'show_option_none', 'orderby', 'order',
+-					'show_last_update', 'show_count', 'hide_empty', 'selected', 'exclude');
++	$vars = \wp_aot_compact(get_defined_vars(), array('show_option_all', 'show_option_none', 'orderby', 'order',
++					'show_last_update', 'show_count', 'hide_empty', 'selected', 'exclude'));
+ 	$query = add_query_arg($vars, '');
+ 	return wp_dropdown_categories($query);
++	return null;
+ }
+ 
+ /**
+@@ -730,11 +755,12 @@
+  * @param string $feed_image
+  * @return null|string
+  */
+-function list_authors($optioncount = false, $exclude_admin = true, $show_fullname = false, $hide_empty = true, $feed = '', $feed_image = '') {
++function list_authors(mixed $optioncount = false, mixed $exclude_admin = true, mixed $show_fullname = false, mixed $hide_empty = true, mixed $feed = '', mixed $feed_image = ''): mixed {
+ 	_deprecated_function( __FUNCTION__, '2.1.0', 'wp_list_authors()' );
+ 
+-	$args = compact('optioncount', 'exclude_admin', 'show_fullname', 'hide_empty', 'feed', 'feed_image');
++	$args = \wp_aot_compact(get_defined_vars(), array('optioncount', 'exclude_admin', 'show_fullname', 'hide_empty', 'feed', 'feed_image'));
+ 	return wp_list_authors($args);
++	return null;
+ }
+ 
+ /**
+@@ -748,9 +774,10 @@
+  * @param int $post_id
+  * @return array
+  */
+-function wp_get_post_cats($blogid = '1', $post_id = 0) {
++function wp_get_post_cats(mixed $blogid = '1', mixed $post_id = 0): mixed {
+ 	_deprecated_function( __FUNCTION__, '2.1.0', 'wp_get_post_categories()' );
+ 	return wp_get_post_categories($post_id);
++	return null;
+ }
+ 
+ /**
+@@ -766,9 +793,10 @@
+  * @param array $post_categories
+  * @return bool|mixed
+  */
+-function wp_set_post_cats($blogid = '1', $post_id = 0, $post_categories = array()) {
++function wp_set_post_cats(mixed $blogid = '1', mixed $post_id = 0, mixed $post_categories = array()): mixed {
+ 	_deprecated_function( __FUNCTION__, '2.1.0', 'wp_set_post_categories()' );
+ 	return wp_set_post_categories($post_id, $post_categories);
++	return null;
+ }
+ 
+ /**
+@@ -786,10 +814,11 @@
+  * @param bool $show_post_count
+  * @return string|null
+  */
+-function get_archives($type='', $limit='', $format='html', $before = '', $after = '', $show_post_count = false) {
++function get_archives(mixed $type='', mixed $limit='', mixed $format='html', mixed $before = '', mixed $after = '', mixed $show_post_count = false): mixed {
+ 	_deprecated_function( __FUNCTION__, '2.1.0', 'wp_get_archives()' );
+-	$args = compact('type', 'limit', 'format', 'before', 'after', 'show_post_count');
++	$args = \wp_aot_compact(get_defined_vars(), array('type', 'limit', 'format', 'before', 'after', 'show_post_count'));
+ 	return wp_get_archives($args);
++	return null;
+ }
+ 
+ /**
+@@ -804,7 +833,7 @@
+  * @param string $author_nicename Optional.
+  * @return string|null
+  */
+-function get_author_link($display, $author_id, $author_nicename = '') {
++function get_author_link(mixed $display, mixed $author_id, mixed $author_nicename = ''): mixed {
+ 	_deprecated_function( __FUNCTION__, '2.1.0', 'get_author_posts_url()' );
+ 
+ 	$link = get_author_posts_url($author_id, $author_nicename);
+@@ -812,6 +841,7 @@
+ 	if ( $display )
+ 		echo $link;
+ 	return $link;
++	return null;
+ }
+ 
+ /**
+@@ -830,12 +860,13 @@
+  * @param string $more_file
+  * @return string
+  */
+-function link_pages($before='<br />', $after='<br />', $next_or_number='number', $nextpagelink='next page', $previouspagelink='previous page',
+-					$pagelink='%', $more_file='') {
++function link_pages(mixed $before='<br />', mixed $after='<br />', mixed $next_or_number='number', mixed $nextpagelink='next page', mixed $previouspagelink='previous page',
++					mixed $pagelink='%', mixed $more_file=''): mixed {
+ 	_deprecated_function( __FUNCTION__, '2.1.0', 'wp_link_pages()' );
+ 
+-	$args = compact('before', 'after', 'next_or_number', 'nextpagelink', 'previouspagelink', 'pagelink', 'more_file');
++	$args = \wp_aot_compact(get_defined_vars(), array('before', 'after', 'next_or_number', 'nextpagelink', 'previouspagelink', 'pagelink', 'more_file'));
+ 	return wp_link_pages($args);
++	return null;
+ }
+ 
+ /**
+@@ -848,10 +879,11 @@
+  * @param string $option
+  * @return string
+  */
+-function get_settings($option) {
++function get_settings(mixed $option): mixed {
+ 	_deprecated_function( __FUNCTION__, '2.1.0', 'get_option()' );
+ 
+ 	return get_option($option);
++	return null;
+ }
+ 
+ /**
+@@ -861,9 +893,10 @@
+  * @deprecated 1.2.0 Use the_permalink()
+  * @see the_permalink()
+  */
+-function permalink_link() {
++function permalink_link(): mixed {
+ 	_deprecated_function( __FUNCTION__, '1.2.0', 'the_permalink()' );
+ 	the_permalink();
++	return null;
+ }
+ 
+ /**
+@@ -875,9 +908,10 @@
+  *
+  * @param string $deprecated
+  */
+-function permalink_single_rss($deprecated = '') {
++function permalink_single_rss(mixed $deprecated = ''): mixed {
+ 	_deprecated_function( __FUNCTION__, '2.3.0', 'the_permalink_rss()' );
+ 	the_permalink_rss();
++	return null;
+ }
+ 
+ /**
+@@ -890,7 +924,7 @@
+  * @param string $args a query string
+  * @return null|string
+  */
+-function wp_get_links($args = '') {
++function wp_get_links(mixed $args = ''): mixed {
+ 	_deprecated_function( __FUNCTION__, '2.1.0', 'wp_list_bookmarks()' );
+ 
+ 	if ( ! str_contains( $args, '=' ) ) {
+@@ -917,6 +951,7 @@
+ 	$parsed_args = wp_parse_args( $args, $defaults );
+ 
+ 	return wp_list_bookmarks($parsed_args);
++	return null;
+ }
+ 
+ /**
+@@ -946,8 +981,8 @@
+  * @param bool   $display          Whether to display the results, or return them instead.
+  * @return null|string
+  */
+-function get_links($category = -1, $before = '', $after = '<br />', $between = ' ', $show_images = true, $orderby = 'name',
+-			$show_description = true, $show_rating = false, $limit = -1, $show_updated = 1, $display = true) {
++function get_links(mixed $category = -1, mixed $before = '', mixed $after = '<br />', mixed $between = ' ', mixed $show_images = true, mixed $orderby = 'name',
++			mixed $show_description = true, mixed $show_rating = false, mixed $limit = -1, mixed $show_updated = 1, mixed $display = true): mixed {
+ 	_deprecated_function( __FUNCTION__, '2.1.0', 'get_bookmarks()' );
+ 
+ 	$order = 'ASC';
+@@ -962,7 +997,7 @@
+ 	$results = get_bookmarks(array('category' => $category, 'orderby' => $orderby, 'order' => $order, 'show_updated' => $show_updated, 'limit' => $limit));
+ 
+ 	if ( !$results )
+-		return;
++		return null;
+ 
+ 	$output = '';
+ 
+@@ -985,7 +1020,7 @@
+ 
+ 		if ( $show_updated )
+ 			if ( !str_starts_with($row->link_updated_f, '00') )
+-				$title .= ' ('.__('Last updated') . ' ' . gmdate(get_option('links_updated_date_format'), $row->link_updated_f + (get_option('gmt_offset') * HOUR_IN_SECONDS)) . ')';
++				$title .= ' ('.__('Last updated') . ' ' . \wp_aot_gmdate(get_option('links_updated_date_format'), $row->link_updated_f + (get_option('gmt_offset') * HOUR_IN_SECONDS)) . ')';
+ 
+ 		if ( '' != $title )
+ 			$title = ' title="' . $title . '"';
+@@ -1025,6 +1060,7 @@
+ 	if ( !$display )
+ 		return $output;
+ 	echo $output;
++	return null;
+ }
+ 
+ /**
+@@ -1039,7 +1075,7 @@
+  *
+  * @param string $order Sort link categories by 'name' or 'id'
+  */
+-function get_links_list($order = 'name') {
++function get_links_list(mixed $order = 'name'): mixed {
+ 	_deprecated_function( __FUNCTION__, '2.1.0', 'wp_list_bookmarks()' );
+ 
+ 	$order = strtolower($order);
+@@ -1071,6 +1107,7 @@
+ 			echo "\n\t</ul>\n</li>\n";
+ 		}
+ 	}
++	return null;
+ }
+ 
+ /**
+@@ -1085,8 +1122,9 @@
+  * @param string $file the page to open in the popup window
+  * @param bool $count the number of links in the db
+  */
+-function links_popup_script($text = 'Links', $width=400, $height=400, $file='links.all.php', $count = true) {
++function links_popup_script(mixed $text = 'Links', mixed $width=400, mixed $height=400, mixed $file='links.all.php', mixed $count = true): mixed {
+ 	_deprecated_function( __FUNCTION__, '2.1.0' );
++	return null;
+ }
+ 
+ /**
+@@ -1099,9 +1137,10 @@
+  * @param object $link Link object.
+  * @return mixed Value of the 'link_rating' field, false otherwise.
+  */
+-function get_linkrating( $link ) {
++function get_linkrating( mixed $link ): mixed {
+ 	_deprecated_function( __FUNCTION__, '2.1.0', 'sanitize_bookmark_field()' );
+ 	return sanitize_bookmark_field('link_rating', $link->link_rating, $link->link_id, 'display');
++	return null;
+ }
+ 
+ /**
+@@ -1114,7 +1153,7 @@
+  * @param int $id The category to get. If no category supplied uses 0
+  * @return string
+  */
+-function get_linkcatname($id = 0) {
++function get_linkcatname(mixed $id = 0): mixed {
+ 	_deprecated_function( __FUNCTION__, '2.1.0', 'get_category()' );
+ 
+ 	$id = (int) $id;
+@@ -1131,6 +1170,7 @@
+ 
+ 	$cat = get_category($cat_id);
+ 	return $cat->name;
++	return null;
+ }
+ 
+ /**
+@@ -1142,9 +1182,10 @@
+  *
+  * @param string $link_text
+  */
+-function comments_rss_link($link_text = 'Comments RSS') {
++function comments_rss_link(mixed $link_text = 'Comments RSS'): mixed {
+ 	_deprecated_function( __FUNCTION__, '2.5.0', 'post_comments_feed_link()' );
+ 	post_comments_feed_link($link_text);
++	return null;
+ }
+ 
+ /**
+@@ -1158,7 +1199,7 @@
+  * @param int $cat_id
+  * @return string
+  */
+-function get_category_rss_link($display = false, $cat_id = 1) {
++function get_category_rss_link(mixed $display = false, mixed $cat_id = 1): mixed {
+ 	_deprecated_function( __FUNCTION__, '2.5.0', 'get_category_feed_link()' );
+ 
+ 	$link = get_category_feed_link($cat_id, 'rss2');
+@@ -1166,6 +1207,7 @@
+ 	if ( $display )
+ 		echo $link;
+ 	return $link;
++	return null;
+ }
+ 
+ /**
+@@ -1179,13 +1221,14 @@
+  * @param int $author_id
+  * @return string
+  */
+-function get_author_rss_link($display = false, $author_id = 1) {
++function get_author_rss_link(mixed $display = false, mixed $author_id = 1): mixed {
+ 	_deprecated_function( __FUNCTION__, '2.5.0', 'get_author_feed_link()' );
+ 
+ 	$link = get_author_feed_link($author_id);
+ 	if ( $display )
+ 		echo $link;
+ 	return $link;
++	return null;
+ }
+ 
+ /**
+@@ -1197,9 +1240,10 @@
+  *
+  * @return string
+  */
+-function comments_rss() {
++function comments_rss(): mixed {
+ 	_deprecated_function( __FUNCTION__, '2.2.0', 'get_post_comments_feed_link()' );
+ 	return esc_url( get_post_comments_feed_link() );
++	return null;
+ }
+ 
+ /**
+@@ -1214,9 +1258,10 @@
+  * @param string $email    The user's email.
+  * @return int The new user's ID.
+  */
+-function create_user($username, $password, $email) {
++function create_user(mixed $username, mixed $password, mixed $email): mixed {
+ 	_deprecated_function( __FUNCTION__, '2.0.0', 'wp_create_user()' );
+ 	return wp_create_user($username, $password, $email);
++	return null;
+ }
+ 
+ /**
+@@ -1224,9 +1269,10 @@
+  *
+  * @deprecated 2.5.0
+  */
+-function gzip_compression() {
++function gzip_compression(): mixed {
+ 	_deprecated_function( __FUNCTION__, '2.5.0' );
+ 	return false;
++	return null;
+ }
+ 
+ /**
+@@ -1241,9 +1287,10 @@
+  * @param bool $include_unapproved Whether to include unapproved comments
+  * @return array The comment data
+  */
+-function get_commentdata( $comment_id, $no_cache = 0, $include_unapproved = false ) {
++function get_commentdata( mixed $comment_id, mixed $no_cache = 0, mixed $include_unapproved = false ): mixed {
+ 	_deprecated_function( __FUNCTION__, '2.7.0', 'get_comment()' );
+ 	return get_comment($comment_id, ARRAY_A);
++	return null;
+ }
+ 
+ /**
+@@ -1256,9 +1303,10 @@
+  * @param int $cat_id Category ID
+  * @return string category name
+  */
+-function get_catname( $cat_id ) {
++function get_catname( mixed $cat_id ): mixed {
+ 	_deprecated_function( __FUNCTION__, '2.8.0', 'get_cat_name()' );
+ 	return get_cat_name( $cat_id );
++	return null;
+ }
+ 
+ /**
+@@ -1275,7 +1323,7 @@
+  *                        Default empty array.
+  * @return string
+  */
+-function get_category_children( $id, $before = '/', $after = '', $visited = array() ) {
++function get_category_children( mixed $id, mixed $before = '/', mixed $after = '', mixed $visited = array() ): mixed {
+ 	_deprecated_function( __FUNCTION__, '2.8.0', 'get_term_children()' );
+ 	if ( 0 == $id )
+ 		return '';
+@@ -1297,6 +1345,7 @@
+ 		}
+ 	}
+ 	return $chain;
++	return null;
+ }
+ 
+ /**
+@@ -1310,7 +1359,7 @@
+  *
+  * @return int[] List of all of the category IDs.
+  */
+-function get_all_category_ids() {
++function get_all_category_ids(): mixed {
+ 	_deprecated_function( __FUNCTION__, '4.0.0', 'get_terms()' );
+ 
+ 	$cat_ids = get_terms(
+@@ -1322,6 +1371,7 @@
+ 	);
+ 
+ 	return $cat_ids;
++	return null;
+ }
+ 
+ /**
+@@ -1333,9 +1383,10 @@
+  *
+  * @return string The author's description.
+  */
+-function get_the_author_description() {
++function get_the_author_description(): mixed {
+ 	_deprecated_function( __FUNCTION__, '2.8.0', 'get_the_author_meta(\'description\')' );
+ 	return get_the_author_meta('description');
++	return null;
+ }
+ 
+ /**
+@@ -1345,9 +1396,10 @@
+  * @deprecated 2.8.0 Use the_author_meta()
+  * @see the_author_meta()
+  */
+-function the_author_description() {
++function the_author_description(): mixed {
+ 	_deprecated_function( __FUNCTION__, '2.8.0', 'the_author_meta(\'description\')' );
+ 	the_author_meta('description');
++	return null;
+ }
+ 
+ /**
+@@ -1359,9 +1411,10 @@
+  *
+  * @return string The author's login name (username).
+  */
+-function get_the_author_login() {
++function get_the_author_login(): mixed {
+ 	_deprecated_function( __FUNCTION__, '2.8.0', 'get_the_author_meta(\'login\')' );
+ 	return get_the_author_meta('login');
++	return null;
+ }
+ 
+ /**
+@@ -1371,9 +1424,10 @@
+  * @deprecated 2.8.0 Use the_author_meta()
+  * @see the_author_meta()
+  */
+-function the_author_login() {
++function the_author_login(): mixed {
+ 	_deprecated_function( __FUNCTION__, '2.8.0', 'the_author_meta(\'login\')' );
+ 	the_author_meta('login');
++	return null;
+ }
+ 
+ /**
+@@ -1385,9 +1439,10 @@
+  *
+  * @return string The author's first name.
+  */
+-function get_the_author_firstname() {
++function get_the_author_firstname(): mixed {
+ 	_deprecated_function( __FUNCTION__, '2.8.0', 'get_the_author_meta(\'first_name\')' );
+ 	return get_the_author_meta('first_name');
++	return null;
+ }
+ 
+ /**
+@@ -1397,9 +1452,10 @@
+  * @deprecated 2.8.0 Use the_author_meta()
+  * @see the_author_meta()
+  */
+-function the_author_firstname() {
++function the_author_firstname(): mixed {
+ 	_deprecated_function( __FUNCTION__, '2.8.0', 'the_author_meta(\'first_name\')' );
+ 	the_author_meta('first_name');
++	return null;
+ }
+ 
+ /**
+@@ -1411,9 +1467,10 @@
+  *
+  * @return string The author's last name.
+  */
+-function get_the_author_lastname() {
++function get_the_author_lastname(): mixed {
+ 	_deprecated_function( __FUNCTION__, '2.8.0', 'get_the_author_meta(\'last_name\')' );
+ 	return get_the_author_meta('last_name');
++	return null;
+ }
+ 
+ /**
+@@ -1423,9 +1480,10 @@
+  * @deprecated 2.8.0 Use the_author_meta()
+  * @see the_author_meta()
+  */
+-function the_author_lastname() {
++function the_author_lastname(): mixed {
+ 	_deprecated_function( __FUNCTION__, '2.8.0', 'the_author_meta(\'last_name\')' );
+ 	the_author_meta('last_name');
++	return null;
+ }
+ 
+ /**
+@@ -1437,9 +1495,10 @@
+  *
+  * @return string The author's nickname.
+  */
+-function get_the_author_nickname() {
++function get_the_author_nickname(): mixed {
+ 	_deprecated_function( __FUNCTION__, '2.8.0', 'get_the_author_meta(\'nickname\')' );
+ 	return get_the_author_meta('nickname');
++	return null;
+ }
+ 
+ /**
+@@ -1449,9 +1508,10 @@
+  * @deprecated 2.8.0 Use the_author_meta()
+  * @see the_author_meta()
+  */
+-function the_author_nickname() {
++function the_author_nickname(): mixed {
+ 	_deprecated_function( __FUNCTION__, '2.8.0', 'the_author_meta(\'nickname\')' );
+ 	the_author_meta('nickname');
++	return null;
+ }
+ 
+ /**
+@@ -1463,9 +1523,10 @@
+  *
+  * @return string The author's username.
+  */
+-function get_the_author_email() {
++function get_the_author_email(): mixed {
+ 	_deprecated_function( __FUNCTION__, '2.8.0', 'get_the_author_meta(\'email\')' );
+ 	return get_the_author_meta('email');
++	return null;
+ }
+ 
+ /**
+@@ -1475,9 +1536,10 @@
+  * @deprecated 2.8.0 Use the_author_meta()
+  * @see the_author_meta()
+  */
+-function the_author_email() {
++function the_author_email(): mixed {
+ 	_deprecated_function( __FUNCTION__, '2.8.0', 'the_author_meta(\'email\')' );
+ 	the_author_meta('email');
++	return null;
+ }
+ 
+ /**
+@@ -1489,9 +1551,10 @@
+  *
+  * @return string The author's ICQ number.
+  */
+-function get_the_author_icq() {
++function get_the_author_icq(): mixed {
+ 	_deprecated_function( __FUNCTION__, '2.8.0', 'get_the_author_meta(\'icq\')' );
+ 	return get_the_author_meta('icq');
++	return null;
+ }
+ 
+ /**
+@@ -1501,9 +1564,10 @@
+  * @deprecated 2.8.0 Use the_author_meta()
+  * @see the_author_meta()
+  */
+-function the_author_icq() {
++function the_author_icq(): mixed {
+ 	_deprecated_function( __FUNCTION__, '2.8.0', 'the_author_meta(\'icq\')' );
+ 	the_author_meta('icq');
++	return null;
+ }
+ 
+ /**
+@@ -1515,9 +1579,10 @@
+  *
+  * @return string The author's Yahoo! IM name.
+  */
+-function get_the_author_yim() {
++function get_the_author_yim(): mixed {
+ 	_deprecated_function( __FUNCTION__, '2.8.0', 'get_the_author_meta(\'yim\')' );
+ 	return get_the_author_meta('yim');
++	return null;
+ }
+ 
+ /**
+@@ -1527,9 +1592,10 @@
+  * @deprecated 2.8.0 Use the_author_meta()
+  * @see the_author_meta()
+  */
+-function the_author_yim() {
++function the_author_yim(): mixed {
+ 	_deprecated_function( __FUNCTION__, '2.8.0', 'the_author_meta(\'yim\')' );
+ 	the_author_meta('yim');
++	return null;
+ }
+ 
+ /**
+@@ -1541,9 +1607,10 @@
+  *
+  * @return string The author's MSN address.
+  */
+-function get_the_author_msn() {
++function get_the_author_msn(): mixed {
+ 	_deprecated_function( __FUNCTION__, '2.8.0', 'get_the_author_meta(\'msn\')' );
+ 	return get_the_author_meta('msn');
++	return null;
+ }
+ 
+ /**
+@@ -1553,9 +1620,10 @@
+  * @deprecated 2.8.0 Use the_author_meta()
+  * @see the_author_meta()
+  */
+-function the_author_msn() {
++function the_author_msn(): mixed {
+ 	_deprecated_function( __FUNCTION__, '2.8.0', 'the_author_meta(\'msn\')' );
+ 	the_author_meta('msn');
++	return null;
+ }
+ 
+ /**
+@@ -1567,9 +1635,10 @@
+  *
+  * @return string The author's AIM address.
+  */
+-function get_the_author_aim() {
++function get_the_author_aim(): mixed {
+ 	_deprecated_function( __FUNCTION__, '2.8.0', 'get_the_author_meta(\'aim\')' );
+ 	return get_the_author_meta('aim');
++	return null;
+ }
+ 
+ /**
+@@ -1579,9 +1648,10 @@
+  * @deprecated 2.8.0 Use the_author_meta('aim')
+  * @see the_author_meta()
+  */
+-function the_author_aim() {
++function the_author_aim(): mixed {
+ 	_deprecated_function( __FUNCTION__, '2.8.0', 'the_author_meta(\'aim\')' );
+ 	the_author_meta('aim');
++	return null;
+ }
+ 
+ /**
+@@ -1594,9 +1664,10 @@
+  * @param int $auth_id The ID of the author.
+  * @return string The author's display name.
+  */
+-function get_author_name( $auth_id = false ) {
++function get_author_name( mixed $auth_id = false ): mixed {
+ 	_deprecated_function( __FUNCTION__, '2.8.0', 'get_the_author_meta(\'display_name\')' );
+ 	return get_the_author_meta('display_name', $auth_id);
++	return null;
+ }
+ 
+ /**
+@@ -1608,9 +1679,10 @@
+  *
+  * @return string The URL to the author's page.
+  */
+-function get_the_author_url() {
++function get_the_author_url(): mixed {
+ 	_deprecated_function( __FUNCTION__, '2.8.0', 'get_the_author_meta(\'url\')' );
+ 	return get_the_author_meta('url');
++	return null;
+ }
+ 
+ /**
+@@ -1620,9 +1692,10 @@
+  * @deprecated 2.8.0 Use the_author_meta()
+  * @see the_author_meta()
+  */
+-function the_author_url() {
++function the_author_url(): mixed {
+ 	_deprecated_function( __FUNCTION__, '2.8.0', 'the_author_meta(\'url\')' );
+ 	the_author_meta('url');
++	return null;
+ }
+ 
+ /**
+@@ -1634,9 +1707,10 @@
+  *
+  * @return string|int The author's ID.
+  */
+-function get_the_author_ID() {
++function get_the_author_ID(): mixed {
+ 	_deprecated_function( __FUNCTION__, '2.8.0', 'get_the_author_meta(\'ID\')' );
+ 	return get_the_author_meta('ID');
++	return null;
+ }
+ 
+ /**
+@@ -1646,9 +1720,10 @@
+  * @deprecated 2.8.0 Use the_author_meta()
+  * @see the_author_meta()
+  */
+-function the_author_ID() {
++function the_author_ID(): mixed {
+ 	_deprecated_function( __FUNCTION__, '2.8.0', 'the_author_meta(\'ID\')' );
+ 	the_author_meta('ID');
++	return null;
+ }
+ 
+ /**
+@@ -1680,7 +1755,7 @@
+  * @param int    $cut            Optional. Amount of words to keep for the content.
+  * @param int    $encode_html    Optional. How to encode the content.
+  */
+-function the_content_rss($more_link_text='(more...)', $stripteaser=0, $more_file='', $cut = 0, $encode_html = 0) {
++function the_content_rss(mixed $more_link_text='(more...)', mixed $stripteaser=0, mixed $more_file='', mixed $cut = 0, mixed $encode_html = 0): mixed {
+ 	_deprecated_function( __FUNCTION__, '2.9.0', 'the_content_feed()' );
+ 	$content = get_the_content($more_link_text, $stripteaser);
+ 
+@@ -1718,8 +1793,9 @@
+ 		$excerpt .= ($use_dotdotdot) ? '...' : '';
+ 		$content = $excerpt;
+ 	}
+-	$content = str_replace(']]>', ']]&gt;', $content);
++	$content = \wp_aot_str_replace(']]>', ']]&gt;', $content);
+ 	echo $content;
++	return null;
+ }
+ 
+ /**
+@@ -1734,22 +1810,23 @@
+  * @param string $content Content to get links.
+  * @return string HTML stripped out of content with links at the bottom.
+  */
+-function make_url_footnote( $content ) {
++function make_url_footnote( mixed $content ): mixed {
+ 	_deprecated_function( __FUNCTION__, '2.9.0', '' );
+-	preg_match_all( '/<a(.+?)href=\"(.+?)\"(.*?)>(.+?)<\/a>/', $content, $matches );
++	preg_match_all( '/<a(.+?)href=\"(.+?)\"(.*?)>(.+?)<\/a>/', \wp_aot_regex_text( $content ), $matches );
+ 	$links_summary = "\n";
+ 	for ( $i = 0, $c = count( $matches[0] ); $i < $c; $i++ ) {
+ 		$link_match = $matches[0][$i];
+ 		$link_number = '['.($i+1).']';
+ 		$link_url = $matches[2][$i];
+ 		$link_text = $matches[4][$i];
+-		$content = str_replace( $link_match, $link_text . ' ' . $link_number, $content );
++		$content = \wp_aot_str_replace( $link_match, $link_text . ' ' . $link_number, $content );
+ 		$link_url = ( ( strtolower( substr( $link_url, 0, 7 ) ) !== 'http://' ) && ( strtolower( substr( $link_url, 0, 8 ) ) !== 'https://' ) ) ? get_option( 'home' ) . $link_url : $link_url;
+ 		$links_summary .= "\n" . $link_number . ' ' . $link_url;
+ 	}
+ 	$content  = strip_tags( $content );
+ 	$content .= $links_summary;
+ 	return $content;
++	return null;
+ }
+ 
+ /**
+@@ -1773,9 +1850,10 @@
+  * @param string $domain Optional. Domain to retrieve the translated text.
+  * @return string Translated context string without pipe.
+  */
+-function _c( $text, $domain = 'default' ) {
++function _c( mixed $text, mixed $domain = 'default' ): mixed {
+ 	_deprecated_function( __FUNCTION__, '2.9.0', '_x()' );
+ 	return before_last_bar( translate( $text, $domain ) );
++	return null;
+ }
+ 
+ /**
+@@ -1790,9 +1868,10 @@
+  * @param string $domain Domain to retrieve the translated text.
+  * @return string Translated text.
+  */
+-function translate_with_context( $text, $domain = 'default' ) {
++function translate_with_context( mixed $text, mixed $domain = 'default' ): mixed {
+ 	_deprecated_function( __FUNCTION__, '2.9.0', '_x()' );
+ 	return before_last_bar( translate( $text, $domain ) );
++	return null;
+ }
+ 
+ /**
+@@ -1811,9 +1890,10 @@
+  *                       Default 'default'.
+  * @return string The translated singular or plural form.
+  */
+-function _nc( $single, $plural, $number, $domain = 'default' ) {
++function _nc( mixed $single, mixed $plural, mixed $number, mixed $domain = 'default' ): mixed {
+ 	_deprecated_function( __FUNCTION__, '2.9.0', '_nx()' );
+ 	return before_last_bar( _n( $single, $plural, $number, $domain ) );
++	return null;
+ }
+ 
+ /**
+@@ -1823,9 +1903,10 @@
+  * @deprecated 2.8.0 Use _n()
+  * @see _n()
+  */
+-function __ngettext( ...$args ) {
++function __ngettext( ...$args ): mixed {
+ 	_deprecated_function( __FUNCTION__, '2.8.0', '_n()' );
+ 	return _n( ...$args );
++	return null;
+ }
+ 
+ /**
+@@ -1835,10 +1916,11 @@
+  * @deprecated 2.8.0 Use _n_noop()
+  * @see _n_noop()
+  */
+-function __ngettext_noop( ...$args ) {
++function __ngettext_noop( ...$args ): mixed {
+ 	_deprecated_function( __FUNCTION__, '2.8.0', '_n_noop()' );
+ 	return _n_noop( ...$args );
+ 
++	return null;
+ }
+ 
+ /**
+@@ -1850,9 +1932,10 @@
+  *
+  * @return array List of all options.
+  */
+-function get_alloptions() {
++function get_alloptions(): mixed {
+ 	_deprecated_function( __FUNCTION__, '3.0.0', 'wp_load_alloptions()' );
+ 	return wp_load_alloptions();
++	return null;
+ }
+ 
+ /**
+@@ -1868,7 +1951,7 @@
+  * @param bool $permalink Optional. Whether to include permalink to image. Default false.
+  * @return string
+  */
+-function get_the_attachment_link($id = 0, $fullsize = false, $max_dims = false, $permalink = false) {
++function get_the_attachment_link(mixed $id = 0, mixed $fullsize = false, mixed $max_dims = false, mixed $permalink = false): mixed {
+ 	_deprecated_function( __FUNCTION__, '2.5.0', 'wp_get_attachment_link()' );
+ 	$id = (int) $id;
+ 	$_post = get_post($id);
+@@ -1883,6 +1966,7 @@
+ 
+ 	$innerHTML = get_attachment_innerHTML($_post->ID, $fullsize, $max_dims);
+ 	return "<a href='$url' title='$post_title'>$innerHTML</a>";
++	return null;
+ }
+ 
+ /**
+@@ -1896,7 +1980,7 @@
+  * @param bool $fullsize Optional. Whether to have full image. Default false.
+  * @return array Icon URL and full path to file, respectively.
+  */
+-function get_attachment_icon_src( $id = 0, $fullsize = false ) {
++function get_attachment_icon_src( mixed $id = 0, mixed $fullsize = false ): mixed {
+ 	_deprecated_function( __FUNCTION__, '2.5.0', 'wp_get_attachment_image_src()' );
+ 	$id = (int) $id;
+ 	if ( !$post = get_post($id) )
+@@ -1925,6 +2009,7 @@
+ 		return false;
+ 
+ 	return array($src, $src_file);
++	return null;
+ }
+ 
+ /**
+@@ -1939,7 +2024,7 @@
+  * @param array $max_dims Optional. Dimensions of image.
+  * @return string|false HTML content.
+  */
+-function get_attachment_icon( $id = 0, $fullsize = false, $max_dims = false ) {
++function get_attachment_icon( mixed $id = 0, mixed $fullsize = false, mixed $max_dims = false ): mixed {
+ 	_deprecated_function( __FUNCTION__, '2.5.0', 'wp_get_attachment_image()' );
+ 	$id = (int) $id;
+ 	if ( !$post = get_post($id) )
+@@ -1981,6 +2066,7 @@
+ 	$icon = "<img src='$src' title='$post_title' alt='$post_title' $constraint/>";
+ 
+ 	return apply_filters( 'attachment_icon', $icon, $post->ID );
++	return null;
+ }
+ 
+ /**
+@@ -1995,7 +2081,7 @@
+  * @param array $max_dims Optional. Dimensions of image.
+  * @return string|false
+  */
+-function get_attachment_innerHTML($id = 0, $fullsize = false, $max_dims = false) {
++function get_attachment_innerHTML(mixed $id = 0, mixed $fullsize = false, mixed $max_dims = false): mixed {
+ 	_deprecated_function( __FUNCTION__, '2.5.0', 'wp_get_attachment_image()' );
+ 	$id = (int) $id;
+ 	if ( !$post = get_post($id) )
+@@ -2007,6 +2093,7 @@
+ 	$innerHTML = esc_attr($post->post_title);
+ 
+ 	return apply_filters('attachment_innerHTML', $innerHTML, $post->ID);
++	return null;
+ }
+ 
+ /**
+@@ -2023,9 +2110,10 @@
+  *                            'attribute', 'js', 'db', or 'display'. Default 'raw'.
+  * @return object|array Bookmark object or array, depending on the type specified by `$output`.
+  */
+-function get_link( $bookmark_id, $output = OBJECT, $filter = 'raw' ) {
++function get_link( mixed $bookmark_id, mixed $output = OBJECT, mixed $filter = 'raw' ): mixed {
+ 	_deprecated_function( __FUNCTION__, '2.1.0', 'get_bookmark()' );
+ 	return get_bookmark($bookmark_id, $output, $filter);
++	return null;
+ }
+ 
+ /**
+@@ -2044,12 +2132,13 @@
+  * @param string $context Optional. How the URL will be used. Default is 'display'.
+  * @return string The cleaned $url after the {@see 'clean_url'} filter is applied.
+  */
+-function clean_url( $url, $protocols = null, $context = 'display' ) {
++function clean_url( mixed $url, mixed $protocols = null, mixed $context = 'display' ): mixed {
+ 	if ( $context == 'db' )
+ 		_deprecated_function( 'clean_url( $context = \'db\' )', '3.0.0', 'sanitize_url()' );
+ 	else
+ 		_deprecated_function( __FUNCTION__, '3.0.0', 'esc_url()' );
+ 	return esc_url( $url, $protocols, $context );
++	return null;
+ }
+ 
+ /**
+@@ -2064,9 +2153,10 @@
+  * @param string $text The text to be escaped.
+  * @return string Escaped text.
+  */
+-function js_escape( $text ) {
++function js_escape( mixed $text ): mixed {
+ 	_deprecated_function( __FUNCTION__, '2.8.0', 'esc_js()' );
+ 	return esc_js( $text );
++	return null;
+ }
+ 
+ /**
+@@ -2081,13 +2171,14 @@
+  * @param false        $double_encode Whether to double encode. Unused.
+  * @return string Escaped `$text`.
+  */
+-function wp_specialchars( $text, $quote_style = ENT_NOQUOTES, $charset = false, $double_encode = false ) {
++function wp_specialchars( mixed $text, mixed $quote_style = ENT_NOQUOTES, mixed $charset = false, mixed $double_encode = false ): mixed {
+ 	_deprecated_function( __FUNCTION__, '2.8.0', 'esc_html()' );
+ 	if ( func_num_args() > 1 ) { // Maintain back-compat for people passing additional arguments.
+ 		return _wp_specialchars( $text, $quote_style, $charset, $double_encode );
+ 	} else {
+ 		return esc_html( $text );
+ 	}
++	return null;
+ }
+ 
+ /**
+@@ -2100,9 +2191,10 @@
+  * @param string $text
+  * @return string
+  */
+-function attribute_escape( $text ) {
++function attribute_escape( mixed $text ): mixed {
+ 	_deprecated_function( __FUNCTION__, '2.8.0', 'esc_attr()' );
+ 	return esc_attr( $text );
++	return null;
+ }
+ 
+ /**
+@@ -2124,7 +2216,7 @@
+  * @param string     $classname       Optional. Classname widget option. Default empty.
+  * @param mixed      ...$params       Widget parameters.
+  */
+-function register_sidebar_widget($name, $output_callback, $classname = '', ...$params) {
++function register_sidebar_widget(mixed $name, mixed $output_callback, mixed $classname = '', mixed ...$params): mixed {
+ 	_deprecated_function( __FUNCTION__, '2.8.0', 'wp_register_sidebar_widget()' );
+ 	// Compat.
+ 	if ( is_array( $name ) ) {
+@@ -2142,6 +2234,7 @@
+ 	}
+ 
+ 	wp_register_sidebar_widget( $id, $name, $output_callback, $options, ...$params );
++	return null;
+ }
+ 
+ /**
+@@ -2153,9 +2246,10 @@
+  *
+  * @param int|string $id Widget ID.
+  */
+-function unregister_sidebar_widget($id) {
++function unregister_sidebar_widget(mixed $id): mixed {
+ 	_deprecated_function( __FUNCTION__, '2.8.0', 'wp_unregister_sidebar_widget()' );
+ 	return wp_unregister_sidebar_widget($id);
++	return null;
+ }
+ 
+ /**
+@@ -2178,7 +2272,7 @@
+  * @param int        $height           Widget height.
+  * @param mixed      ...$params        Widget parameters.
+  */
+-function register_widget_control($name, $control_callback, $width = '', $height = '', ...$params) {
++function register_widget_control(mixed $name, mixed $control_callback, mixed $width = '', mixed $height = '', mixed ...$params): mixed {
+ 	_deprecated_function( __FUNCTION__, '2.8.0', 'wp_register_widget_control()' );
+ 	// Compat.
+ 	if ( is_array( $name ) ) {
+@@ -2199,6 +2293,7 @@
+ 	}
+ 
+ 	wp_register_widget_control( $id, $name, $control_callback, $options, ...$params );
++	return null;
+ }
+ 
+ /**
+@@ -2210,9 +2305,10 @@
+  *
+  * @param int|string $id Widget ID.
+  */
+-function unregister_widget_control($id) {
++function unregister_widget_control(mixed $id): mixed {
+ 	_deprecated_function( __FUNCTION__, '2.8.0', 'wp_unregister_widget_control()' );
+ 	return wp_unregister_widget_control($id);
++	return null;
+ }
+ 
+ /**
+@@ -2229,26 +2325,26 @@
+  * @param mixed $meta_value Optional. Metadata value. Default empty.
+  * @return bool True deletion completed and false if user_id is not a number.
+  */
+-function delete_usermeta( $user_id, $meta_key, $meta_value = '' ) {
++function delete_usermeta( mixed $user_id, mixed $meta_key, mixed $meta_value = '' ): mixed {
+ 	_deprecated_function( __FUNCTION__, '3.0.0', 'delete_user_meta()' );
+ 	global $wpdb;
+ 	if ( !is_numeric( $user_id ) )
+ 		return false;
+-	$meta_key = preg_replace('|[^a-z0-9_]|i', '', $meta_key);
++	$meta_key = \wp_aot_preg_replace('|[^a-z0-9_]|i', '', $meta_key);
+ 
+ 	if ( is_array($meta_value) || is_object($meta_value) )
+ 		$meta_value = serialize($meta_value);
+ 	$meta_value = trim( $meta_value );
+ 
+-	$cur = $wpdb->get_row( $wpdb->prepare("SELECT * FROM $wpdb->usermeta WHERE user_id = %d AND meta_key = %s", $user_id, $meta_key) );
++	$cur = \wp_aot_require_wpdb( $wpdb )->get_row( \wp_aot_require_wpdb( $wpdb )->prepare("SELECT * FROM $wpdb->usermeta WHERE user_id = %d AND meta_key = %s", $user_id, $meta_key) );
+ 
+ 	if ( $cur && $cur->umeta_id )
+ 		do_action( 'delete_usermeta', $cur->umeta_id, $user_id, $meta_key, $meta_value );
+ 
+ 	if ( ! empty($meta_value) )
+-		$wpdb->query( $wpdb->prepare("DELETE FROM $wpdb->usermeta WHERE user_id = %d AND meta_key = %s AND meta_value = %s", $user_id, $meta_key, $meta_value) );
++		\wp_aot_require_wpdb( $wpdb )->query( \wp_aot_require_wpdb( $wpdb )->prepare("DELETE FROM $wpdb->usermeta WHERE user_id = %d AND meta_key = %s AND meta_value = %s", $user_id, $meta_key, $meta_value) );
+ 	else
+-		$wpdb->query( $wpdb->prepare("DELETE FROM $wpdb->usermeta WHERE user_id = %d AND meta_key = %s", $user_id, $meta_key) );
++		\wp_aot_require_wpdb( $wpdb )->query( \wp_aot_require_wpdb( $wpdb )->prepare("DELETE FROM $wpdb->usermeta WHERE user_id = %d AND meta_key = %s", $user_id, $meta_key) );
+ 
+ 	clean_user_cache( $user_id );
+ 	wp_cache_delete( $user_id, 'user_meta' );
+@@ -2257,6 +2353,7 @@
+ 		do_action( 'deleted_usermeta', $cur->umeta_id, $user_id, $meta_key, $meta_value );
+ 
+ 	return true;
++	return null;
+ }
+ 
+ /**
+@@ -2277,7 +2374,7 @@
+  * @param string $meta_key Optional. Metadata key. Default empty.
+  * @return mixed
+  */
+-function get_usermeta( $user_id, $meta_key = '' ) {
++function get_usermeta( mixed $user_id, mixed $meta_key = '' ): mixed {
+ 	_deprecated_function( __FUNCTION__, '3.0.0', 'get_user_meta()' );
+ 	global $wpdb;
+ 	$user_id = (int) $user_id;
+@@ -2286,15 +2383,15 @@
+ 		return false;
+ 
+ 	if ( !empty($meta_key) ) {
+-		$meta_key = preg_replace('|[^a-z0-9_]|i', '', $meta_key);
++		$meta_key = \wp_aot_preg_replace('|[^a-z0-9_]|i', '', $meta_key);
+ 		$user = wp_cache_get($user_id, 'users');
+ 		// Check the cached user object.
+ 		if ( false !== $user && isset($user->$meta_key) )
+ 			$metas = array($user->$meta_key);
+ 		else
+-			$metas = $wpdb->get_col( $wpdb->prepare("SELECT meta_value FROM $wpdb->usermeta WHERE user_id = %d AND meta_key = %s", $user_id, $meta_key) );
++			$metas = \wp_aot_require_wpdb( $wpdb )->get_col( \wp_aot_require_wpdb( $wpdb )->prepare("SELECT meta_value FROM $wpdb->usermeta WHERE user_id = %d AND meta_key = %s", $user_id, $meta_key) );
+ 	} else {
+-		$metas = $wpdb->get_col( $wpdb->prepare("SELECT meta_value FROM $wpdb->usermeta WHERE user_id = %d", $user_id) );
++		$metas = \wp_aot_require_wpdb( $wpdb )->get_col( \wp_aot_require_wpdb( $wpdb )->prepare("SELECT meta_value FROM $wpdb->usermeta WHERE user_id = %d", $user_id) );
+ 	}
+ 
+ 	if ( empty($metas) ) {
+@@ -2304,12 +2401,13 @@
+ 			return '';
+ 	}
+ 
+-	$metas = array_map('maybe_unserialize', $metas);
++	$metas = \wp_aot_array_map('maybe_unserialize', $metas);
+ 
+ 	if ( count($metas) === 1 )
+ 		return $metas[0];
+ 	else
+ 		return $metas;
++	return null;
+ }
+ 
+ /**
+@@ -2332,12 +2430,12 @@
+  * @param mixed $meta_value Metadata value.
+  * @return bool True on successful update, false on failure.
+  */
+-function update_usermeta( $user_id, $meta_key, $meta_value ) {
++function update_usermeta( mixed $user_id, mixed $meta_key, mixed $meta_value ): mixed {
+ 	_deprecated_function( __FUNCTION__, '3.0.0', 'update_user_meta()' );
+ 	global $wpdb;
+ 	if ( !is_numeric( $user_id ) )
+ 		return false;
+-	$meta_key = preg_replace('|[^a-z0-9_]|i', '', $meta_key);
++	$meta_key = \wp_aot_preg_replace('|[^a-z0-9_]|i', '', $meta_key);
+ 
+ 	/** @todo Might need fix because usermeta data is assumed to be already escaped */
+ 	if ( is_string($meta_value) )
+@@ -2348,15 +2446,15 @@
+ 		return delete_usermeta($user_id, $meta_key);
+ 	}
+ 
+-	$cur = $wpdb->get_row( $wpdb->prepare("SELECT * FROM $wpdb->usermeta WHERE user_id = %d AND meta_key = %s", $user_id, $meta_key) );
++	$cur = \wp_aot_require_wpdb( $wpdb )->get_row( \wp_aot_require_wpdb( $wpdb )->prepare("SELECT * FROM $wpdb->usermeta WHERE user_id = %d AND meta_key = %s", $user_id, $meta_key) );
+ 
+ 	if ( $cur )
+ 		do_action( 'update_usermeta', $cur->umeta_id, $user_id, $meta_key, $meta_value );
+ 
+ 	if ( !$cur )
+-		$wpdb->insert($wpdb->usermeta, compact('user_id', 'meta_key', 'meta_value') );
++		\wp_aot_require_wpdb( $wpdb )->insert($wpdb->usermeta, \wp_aot_compact(get_defined_vars(), array('user_id', 'meta_key', 'meta_value')) );
+ 	elseif ( $cur->meta_value != $meta_value )
+-		$wpdb->update($wpdb->usermeta, compact('meta_value'), compact('user_id', 'meta_key') );
++		\wp_aot_require_wpdb( $wpdb )->update($wpdb->usermeta, \wp_aot_compact(get_defined_vars(), array('meta_value')), \wp_aot_compact(get_defined_vars(), array('user_id', 'meta_key')) );
+ 	else
+ 		return false;
+ 
+@@ -2369,6 +2467,7 @@
+ 		do_action( 'updated_usermeta', $cur->umeta_id, $user_id, $meta_key, $meta_value );
+ 
+ 	return true;
++	return null;
+ }
+ 
+ /**
+@@ -2386,16 +2485,17 @@
+  * @param int $id Site ID.
+  * @return array List of users that are part of that site ID
+  */
+-function get_users_of_blog( $id = '' ) {
++function get_users_of_blog( mixed $id = '' ): mixed {
+ 	_deprecated_function( __FUNCTION__, '3.1.0', 'get_users()' );
+ 
+ 	global $wpdb;
+ 	if ( empty( $id ) ) {
+ 		$id = get_current_blog_id();
+ 	}
+-	$blog_prefix = $wpdb->get_blog_prefix($id);
+-	$users = $wpdb->get_results( "SELECT user_id, user_id AS ID, user_login, display_name, user_email, meta_value FROM $wpdb->users, $wpdb->usermeta WHERE {$wpdb->users}.ID = {$wpdb->usermeta}.user_id AND meta_key = '{$blog_prefix}capabilities' ORDER BY {$wpdb->usermeta}.user_id" );
++	$blog_prefix = \wp_aot_require_wpdb( $wpdb )->get_blog_prefix($id);
++	$users = \wp_aot_require_wpdb( $wpdb )->get_results( "SELECT user_id, user_id AS ID, user_login, display_name, user_email, meta_value FROM $wpdb->users, $wpdb->usermeta WHERE {$wpdb->users}.ID = {$wpdb->usermeta}.user_id AND meta_key = '{$blog_prefix}capabilities' ORDER BY {$wpdb->usermeta}.user_id" );
+ 	return $users;
++	return null;
+ }
+ 
+ /**
+@@ -2407,13 +2507,14 @@
+  *
+  * @param bool $add Optional. Add or remove links. Default true.
+  */
+-function automatic_feed_links( $add = true ) {
++function automatic_feed_links( mixed $add = true ): mixed {
+ 	_deprecated_function( __FUNCTION__, '3.0.0', "add_theme_support( 'automatic-feed-links' )" );
+ 
+ 	if ( $add )
+ 		add_theme_support( 'automatic-feed-links' );
+ 	else
+ 		remove_action( 'wp_head', 'feed_links_extra', 3 ); // Just do this yourself in 3.0+.
++	return null;
+ }
+ 
+ /**
+@@ -2427,13 +2528,14 @@
+  * @param false|int $user  Optional. User ID to retrieve the field for. Default false (current user).
+  * @return string The author's field from the current author's DB object.
+  */
+-function get_profile( $field, $user = false ) {
++function get_profile( mixed $field, mixed $user = false ): mixed {
+ 	_deprecated_function( __FUNCTION__, '3.0.0', 'get_the_author_meta()' );
+ 	if ( $user ) {
+ 		$user = get_user_by( 'login', $user );
+ 		$user = $user->ID;
+ 	}
+ 	return get_the_author_meta( $field, $user );
++	return null;
+ }
+ 
+ /**
+@@ -2446,9 +2548,10 @@
+  * @param int $userid User to count posts for.
+  * @return int Number of posts the given user has written.
+  */
+-function get_usernumposts( $userid ) {
++function get_usernumposts( mixed $userid ): mixed {
+ 	_deprecated_function( __FUNCTION__, '3.0.0', 'count_user_posts()' );
+ 	return count_user_posts( $userid );
++	return null;
+ }
+ 
+ /**
+@@ -2461,8 +2564,9 @@
+  * @param array $matches Single Match
+  * @return string An HTML entity
+  */
+-function funky_javascript_callback($matches) {
++function funky_javascript_callback(mixed $matches): mixed {
+ 	return "&#".base_convert($matches[1],16,10).";";
++	return null;
+ }
+ 
+ /**
+@@ -2479,17 +2583,18 @@
+  * @param string $text Text to be made safe.
+  * @return string Fixed text.
+  */
+-function funky_javascript_fix($text) {
++function funky_javascript_fix(mixed $text): mixed {
+ 	_deprecated_function( __FUNCTION__, '3.0.0' );
+ 	// Fixes for browsers' JavaScript bugs.
+ 	global $is_macIE, $is_winIE;
+ 
+ 	if ( $is_winIE || $is_macIE )
+-		$text =  preg_replace_callback("/\%u([0-9A-F]{4,4})/",
++		$text =  \wp_aot_preg_replace_callback("/\%u([0-9A-F]{4,4})/",
+ 					"funky_javascript_callback",
+ 					$text);
+ 
+ 	return $text;
++	return null;
+ }
+ 
+ /**
+@@ -2502,9 +2607,10 @@
+  * @param string $taxonomy Name of taxonomy object
+  * @return bool Whether the taxonomy exists.
+  */
+-function is_taxonomy( $taxonomy ) {
++function is_taxonomy( mixed $taxonomy ): mixed {
+ 	_deprecated_function( __FUNCTION__, '3.0.0', 'taxonomy_exists()' );
+ 	return taxonomy_exists( $taxonomy );
++	return null;
+ }
+ 
+ /**
+@@ -2519,9 +2625,10 @@
+  * @param int $parent ID of parent term under which to confine the exists search.
+  * @return mixed Get the term ID or term object, if exists.
+  */
+-function is_term( $term, $taxonomy = '', $parent = 0 ) {
++function is_term( mixed $term, mixed $taxonomy = '', mixed $parent = 0 ): mixed {
+ 	_deprecated_function( __FUNCTION__, '3.0.0', 'term_exists()' );
+ 	return term_exists( $term, $taxonomy, $parent );
++	return null;
+ }
+ 
+ /**
+@@ -2540,7 +2647,7 @@
+  *
+  * @return bool
+  */
+-function is_plugin_page() {
++function is_plugin_page(): mixed {
+ 	_deprecated_function( __FUNCTION__, '3.1.0' );
+ 
+ 	global $plugin_page;
+@@ -2549,6 +2656,7 @@
+ 		return true;
+ 
+ 	return false;
++	return null;
+ }
+ 
+ /**
+@@ -2563,10 +2671,11 @@
+  *
+  * @return bool Always return True
+  */
+-function update_category_cache() {
++function update_category_cache(): mixed {
+ 	_deprecated_function( __FUNCTION__, '3.1.0' );
+ 
+ 	return true;
++	return null;
+ }
+ 
+ /**
+@@ -2577,10 +2686,11 @@
+  *
+  * @return bool
+  */
+-function wp_timezone_supported() {
++function wp_timezone_supported(): mixed {
+ 	_deprecated_function( __FUNCTION__, '3.2.0' );
+ 
+ 	return true;
++	return null;
+ }
+ 
+ /**
+@@ -2597,10 +2707,11 @@
+  * @param int    $tab_index     Optional. Unused.
+  * @param bool   $extended      Optional. Unused.
+  */
+-function the_editor($content, $id = 'content', $prev_id = 'title', $media_buttons = true, $tab_index = 2, $extended = true) {
++function the_editor(mixed $content, mixed $id = 'content', mixed $prev_id = 'title', mixed $media_buttons = true, mixed $tab_index = 2, mixed $extended = true): mixed {
+ 	_deprecated_function( __FUNCTION__, '3.3.0', 'wp_editor()' );
+ 
+ 	wp_editor( $content, $id, array( 'media_buttons' => $media_buttons ) );
++	return null;
+ }
+ 
+ /**
+@@ -2612,12 +2723,12 @@
+  * @param array $ids User ID numbers list.
+  * @return array of arrays. The array is indexed by user_id, containing $metavalues object arrays.
+  */
+-function get_user_metavalues($ids) {
++function get_user_metavalues(mixed $ids): mixed {
+ 	_deprecated_function( __FUNCTION__, '3.3.0' );
+ 
+ 	$objects = array();
+ 
+-	$ids = array_map('intval', $ids);
++	$ids = \wp_aot_array_map('intval', $ids);
+ 	foreach ( $ids as $id )
+ 		$objects[$id] = array();
+ 
+@@ -2632,6 +2743,7 @@
+ 	}
+ 
+ 	return $objects;
++	return null;
+ }
+ 
+ /**
+@@ -2646,7 +2758,7 @@
+  * @param string       $context Optional. How to sanitize user fields. Default 'display'.
+  * @return object|array The now sanitized user object or array (will be the same type as $user).
+  */
+-function sanitize_user_object($user, $context = 'display') {
++function sanitize_user_object(mixed $user, mixed $context = 'display'): mixed {
+ 	_deprecated_function( __FUNCTION__, '3.3.0' );
+ 
+ 	if ( is_object($user) ) {
+@@ -2669,6 +2781,7 @@
+ 	}
+ 
+ 	return $user;
++	return null;
+ }
+ 
+ /**
+@@ -2687,13 +2800,13 @@
+  *                                    Default true.
+  * @return string
+  */
+-function get_boundary_post_rel_link($title = '%title', $in_same_cat = false, $excluded_categories = '', $start = true) {
++function get_boundary_post_rel_link(mixed $title = '%title', mixed $in_same_cat = false, mixed $excluded_categories = '', mixed $start = true): mixed {
+ 	_deprecated_function( __FUNCTION__, '3.3.0' );
+ 
+ 	$posts = get_boundary_post($in_same_cat, $excluded_categories, $start);
+ 	// If there is no post, stop.
+ 	if ( empty($posts) )
+-		return;
++		return null;
+ 
+ 	// Even though we limited get_posts() to return only 1 item it still returns an array of objects.
+ 	$post = $posts[0];
+@@ -2703,8 +2816,8 @@
+ 
+ 	$date = mysql2date(get_option('date_format'), $post->post_date);
+ 
+-	$title = str_replace('%title', $post->post_title, $title);
+-	$title = str_replace('%date', $date, $title);
++	$title = \wp_aot_str_replace('%title', $post->post_title, $title);
++	$title = \wp_aot_str_replace('%date', $date, $title);
+ 	/** This filter is documented in wp-includes/post-template.php */
+ 	$title = apply_filters('the_title', $title, $post->ID);
+ 
+@@ -2714,6 +2827,7 @@
+ 
+ 	$boundary = $start ? 'start' : 'end';
+ 	return apply_filters( "{$boundary}_post_rel_link", $link );
++	return null;
+ }
+ 
+ /**
+@@ -2726,10 +2840,11 @@
+  * @param bool $in_same_cat Optional. Whether link should be in a same category.
+  * @param string $excluded_categories Optional. Excluded categories IDs.
+  */
+-function start_post_rel_link($title = '%title', $in_same_cat = false, $excluded_categories = '') {
++function start_post_rel_link(mixed $title = '%title', mixed $in_same_cat = false, mixed $excluded_categories = ''): mixed {
+ 	_deprecated_function( __FUNCTION__, '3.3.0' );
+ 
+ 	echo get_boundary_post_rel_link($title, $in_same_cat, $excluded_categories, true);
++	return null;
+ }
+ 
+ /**
+@@ -2740,11 +2855,12 @@
+  *
+  * @return string
+  */
+-function get_index_rel_link() {
++function get_index_rel_link(): mixed {
+ 	_deprecated_function( __FUNCTION__, '3.3.0' );
+ 
+ 	$link = "<link rel='index' title='" . esc_attr( get_bloginfo( 'name', 'display' ) ) . "' href='" . esc_url( user_trailingslashit( get_bloginfo( 'url', 'display' ) ) ) . "' />\n";
+ 	return apply_filters( "index_rel_link", $link );
++	return null;
+ }
+ 
+ /**
+@@ -2753,10 +2869,11 @@
+  * @since 2.8.0
+  * @deprecated 3.3.0
+  */
+-function index_rel_link() {
++function index_rel_link(): mixed {
+ 	_deprecated_function( __FUNCTION__, '3.3.0' );
+ 
+ 	echo get_index_rel_link();
++	return null;
+ }
+ 
+ /**
+@@ -2770,19 +2887,19 @@
+  * @param string $title Optional. Link title format. Default '%title'.
+  * @return string
+  */
+-function get_parent_post_rel_link( $title = '%title' ) {
++function get_parent_post_rel_link( mixed $title = '%title' ): mixed {
+ 	_deprecated_function( __FUNCTION__, '3.3.0' );
+ 
+ 	if ( ! empty( $GLOBALS['post'] ) && ! empty( $GLOBALS['post']->post_parent ) )
+ 		$post = get_post($GLOBALS['post']->post_parent);
+ 
+ 	if ( empty($post) )
+-		return;
++		return null;
+ 
+ 	$date = mysql2date(get_option('date_format'), $post->post_date);
+ 
+-	$title = str_replace('%title', $post->post_title, $title);
+-	$title = str_replace('%date', $date, $title);
++	$title = \wp_aot_str_replace('%title', $post->post_title, $title);
++	$title = \wp_aot_str_replace('%date', $date, $title);
+ 	/** This filter is documented in wp-includes/post-template.php */
+ 	$title = apply_filters('the_title', $title, $post->ID);
+ 
+@@ -2791,6 +2908,7 @@
+ 	$link .= "' href='" . get_permalink($post) . "' />\n";
+ 
+ 	return apply_filters( "parent_post_rel_link", $link );
++	return null;
+ }
+ 
+ /**
+@@ -2801,10 +2919,11 @@
+  *
+  * @param string $title Optional. Link title format. Default '%title'.
+  */
+-function parent_post_rel_link( $title = '%title' ) {
++function parent_post_rel_link( mixed $title = '%title' ): mixed {
+ 	_deprecated_function( __FUNCTION__, '3.3.0' );
+ 
+ 	echo get_parent_post_rel_link($title);
++	return null;
+ }
+ 
+ /**
+@@ -2815,7 +2934,7 @@
+  *
+  * @param WP_Admin_Bar $wp_admin_bar WP_Admin_Bar instance.
+  */
+-function wp_admin_bar_dashboard_view_site_menu( $wp_admin_bar ) {
++function wp_admin_bar_dashboard_view_site_menu( mixed $wp_admin_bar ): mixed {
+ 	_deprecated_function( __FUNCTION__, '3.3.0' );
+ 
+ 	$user_id = get_current_user_id();
+@@ -2828,6 +2947,7 @@
+ 		else
+ 			$wp_admin_bar->add_menu( array( 'id' => 'dashboard', 'title' => __( 'Dashboard' ), 'href' => admin_url() ) );
+ 	}
++	return null;
+ }
+ 
+ /**
+@@ -2840,10 +2960,11 @@
+  * @param int $blog_id Site ID
+  * @return bool True if the current users belong to $blog_id, false if not.
+  */
+-function is_blog_user( $blog_id = 0 ) {
++function is_blog_user( mixed $blog_id = 0 ): mixed {
+ 	_deprecated_function( __FUNCTION__, '3.3.0', 'is_user_member_of_blog()' );
+ 
+ 	return is_user_member_of_blog( get_current_user_id(), $blog_id );
++	return null;
+ }
+ 
+ /**
+@@ -2859,9 +2980,10 @@
+  * @param string $mode     Type of access you required to the stream.
+  * @return false Always false.
+  */
+-function debug_fopen( $filename, $mode ) {
++function debug_fopen( mixed $filename, mixed $mode ): mixed {
+ 	_deprecated_function( __FUNCTION__, '3.4.0', 'error_log()' );
+ 	return false;
++	return null;
+ }
+ 
+ /**
+@@ -2876,10 +2998,11 @@
+  * @param mixed  $fp      Unused.
+  * @param string $message Message to log.
+  */
+-function debug_fwrite( $fp, $message ) {
++function debug_fwrite( mixed $fp, mixed $message ): mixed {
+ 	_deprecated_function( __FUNCTION__, '3.4.0', 'error_log()' );
+ 	if ( ! empty( $GLOBALS['debug'] ) )
+-		error_log( $message );
++		\wp_aot_native_api('error_log', array( $message ));
++	return null;
+ }
+ 
+ /**
+@@ -2893,8 +3016,9 @@
+  *
+  * @param mixed $fp Unused.
+  */
+-function debug_fclose( $fp ) {
++function debug_fclose( mixed $fp ): mixed {
+ 	_deprecated_function( __FUNCTION__, '3.4.0', 'error_log()' );
++	return null;
+ }
+ 
+ /**
+@@ -2910,7 +3034,7 @@
+  *
+  * @return array Theme list with theme data.
+  */
+-function get_themes() {
++function get_themes(): mixed {
+ 	_deprecated_function( __FUNCTION__, '3.4.0', 'wp_get_themes()' );
+ 
+ 	global $wp_themes;
+@@ -2929,6 +3053,7 @@
+ 	}
+ 
+ 	return $wp_themes;
++	return null;
+ }
+ 
+ /**
+@@ -2941,13 +3066,14 @@
+  * @param string $theme Theme name.
+  * @return array|null Null, if theme name does not exist. Theme data, if exists.
+  */
+-function get_theme( $theme ) {
++function get_theme( mixed $theme ): mixed {
+ 	_deprecated_function( __FUNCTION__, '3.4.0', 'wp_get_theme( $stylesheet )' );
+ 
+ 	$themes = get_themes();
+ 	if ( is_array( $themes ) && array_key_exists( $theme, $themes ) )
+ 		return $themes[ $theme ];
+ 	return null;
++	return null;
+ }
+ 
+ /**
+@@ -2959,13 +3085,14 @@
+  *
+  * @return string
+  */
+-function get_current_theme() {
++function get_current_theme(): mixed {
+ 	_deprecated_function( __FUNCTION__, '3.4.0', 'wp_get_theme()' );
+ 
+ 	if ( $theme = get_option( 'current_theme' ) )
+ 		return $theme;
+ 
+ 	return wp_get_theme()->get('Name');
++	return null;
+ }
+ 
+ /**
+@@ -2980,7 +3107,7 @@
+  * @param array|string $matches The array or string
+  * @return string The pre block without paragraph/line break conversion.
+  */
+-function clean_pre($matches) {
++function clean_pre(mixed $matches): mixed {
+ 	_deprecated_function( __FUNCTION__, '3.4.0' );
+ 
+ 	if ( is_array($matches) )
+@@ -2988,11 +3115,12 @@
+ 	else
+ 		$text = $matches;
+ 
+-	$text = str_replace(array('<br />', '<br/>', '<br>'), array('', '', ''), $text);
+-	$text = str_replace('<p>', "\n", $text);
+-	$text = str_replace('</p>', '', $text);
++	$text = \wp_aot_str_replace(array('<br />', '<br/>', '<br>'), array('', '', ''), $text);
++	$text = \wp_aot_str_replace('<p>', "\n", $text);
++	$text = \wp_aot_str_replace('</p>', '', $text);
+ 
+ 	return $text;
++	return null;
+ }
+ 
+ 
+@@ -3007,7 +3135,7 @@
+  * @param callable $admin_head_callback Call on custom header administration screen.
+  * @param callable $admin_preview_callback Output a custom header image div on the custom header administration screen. Optional.
+  */
+-function add_custom_image_header( $wp_head_callback, $admin_head_callback, $admin_preview_callback = '' ) {
++function add_custom_image_header( mixed $wp_head_callback, mixed $admin_head_callback, mixed $admin_preview_callback = '' ): mixed {
+ 	_deprecated_function( __FUNCTION__, '3.4.0', 'add_theme_support( \'custom-header\', $args )' );
+ 	$args = array(
+ 		'wp-head-callback'    => $wp_head_callback,
+@@ -3016,6 +3144,7 @@
+ 	if ( $admin_preview_callback )
+ 		$args['admin-preview-callback'] = $admin_preview_callback;
+ 	return add_theme_support( 'custom-header', $args );
++	return null;
+ }
+ 
+ /**
+@@ -3027,9 +3156,10 @@
+  *
+  * @return null|bool Whether support was removed.
+  */
+-function remove_custom_image_header() {
++function remove_custom_image_header(): mixed {
+ 	_deprecated_function( __FUNCTION__, '3.4.0', 'remove_theme_support( \'custom-header\' )' );
+ 	return remove_theme_support( 'custom-header' );
++	return null;
+ }
+ 
+ /**
+@@ -3043,7 +3173,7 @@
+  * @param callable $admin_head_callback Call on custom background administration screen.
+  * @param callable $admin_preview_callback Output a custom background image div on the custom background administration screen. Optional.
+  */
+-function add_custom_background( $wp_head_callback = '', $admin_head_callback = '', $admin_preview_callback = '' ) {
++function add_custom_background( mixed $wp_head_callback = '', mixed $admin_head_callback = '', mixed $admin_preview_callback = '' ): mixed {
+ 	_deprecated_function( __FUNCTION__, '3.4.0', 'add_theme_support( \'custom-background\', $args )' );
+ 	$args = array();
+ 	if ( $wp_head_callback )
+@@ -3053,6 +3183,7 @@
+ 	if ( $admin_preview_callback )
+ 		$args['admin-preview-callback'] = $admin_preview_callback;
+ 	return add_theme_support( 'custom-background', $args );
++	return null;
+ }
+ 
+ /**
+@@ -3064,9 +3195,10 @@
+  *
+  * @return null|bool Whether support was removed.
+  */
+-function remove_custom_background() {
++function remove_custom_background(): mixed {
+ 	_deprecated_function( __FUNCTION__, '3.4.0', 'remove_theme_support( \'custom-background\' )' );
+ 	return remove_theme_support( 'custom-background' );
++	return null;
+ }
+ 
+ /**
+@@ -3079,7 +3211,7 @@
+  * @param string $theme_file Theme file path.
+  * @return array Theme data.
+  */
+-function get_theme_data( $theme_file ) {
++function get_theme_data( mixed $theme_file ): mixed {
+ 	_deprecated_function( __FUNCTION__, '3.4.0', 'wp_get_theme()' );
+ 	$theme = new WP_Theme( wp_basename( dirname( $theme_file ) ), dirname( dirname( $theme_file ) ) );
+ 
+@@ -3103,6 +3235,7 @@
+ 	}
+ 
+ 	return $theme_data;
++	return null;
+ }
+ 
+ /**
+@@ -3116,10 +3249,11 @@
+  *
+  * @param array $pages list of page objects
+  */
+-function update_page_cache( &$pages ) {
++function update_page_cache( mixed &$pages ): mixed {
+ 	_deprecated_function( __FUNCTION__, '3.4.0', 'update_post_cache()' );
+ 
+ 	update_post_cache( $pages );
++	return null;
+ }
+ 
+ /**
+@@ -3134,10 +3268,11 @@
+  *
+  * @param int $id Page ID to clean
+  */
+-function clean_page_cache( $id ) {
++function clean_page_cache( mixed $id ): mixed {
+ 	_deprecated_function( __FUNCTION__, '3.4.0', 'clean_post_cache()' );
+ 
+ 	clean_post_cache( $id );
++	return null;
+ }
+ 
+ /**
+@@ -3152,9 +3287,10 @@
+  * @param string $action Nonce action.
+  * @return string Are you sure message.
+  */
+-function wp_explain_nonce( $action ) {
++function wp_explain_nonce( mixed $action ): mixed {
+ 	_deprecated_function( __FUNCTION__, '3.4.1', 'wp_nonce_ays()' );
+ 	return __( 'Are you sure you want to do this?' );
++	return null;
+ }
+ 
+ /**
+@@ -3166,10 +3302,11 @@
+  *
+  * @param int $post_id An optional post ID.
+  */
+-function sticky_class( $post_id = null ) {
++function sticky_class( mixed $post_id = null ): mixed {
+ 	_deprecated_function( __FUNCTION__, '3.5.0', 'post_class()' );
+ 	if ( is_sticky( $post_id ) )
+ 		echo ' sticky';
++	return null;
+ }
+ 
+ /**
+@@ -3184,8 +3321,9 @@
+  *
+  * @param WP_Post $post Post object, passed by reference (unused).
+  */
+-function _get_post_ancestors( &$post ) {
++function _get_post_ancestors( mixed &$post ): mixed {
+ 	_deprecated_function( __FUNCTION__, '3.5.0' );
++	return null;
+ }
+ 
+ /**
+@@ -3199,7 +3337,7 @@
+  * @return resource|GdImage|string The resulting image resource or GdImage instance on success,
+  *                                 error string on failure.
+  */
+-function wp_load_image( $file ) {
++function wp_load_image( mixed $file ): mixed {
+ 	_deprecated_function( __FUNCTION__, '3.5.0', 'wp_get_image_editor()' );
+ 
+ 	if ( is_numeric( $file ) )
+@@ -3216,7 +3354,7 @@
+ 	// Set artificially high because GD uses uncompressed images in memory.
+ 	wp_raise_memory_limit( 'image' );
+ 
+-	$image = imagecreatefromstring( file_get_contents( $file ) );
++	$image = imagecreatefromstring( \wp_aot_internal_string(file_get_contents( $file )) );
+ 
+ 	if ( ! is_gd_image( $image ) ) {
+ 		/* translators: %s: File name. */
+@@ -3224,6 +3362,7 @@
+ 	}
+ 
+ 	return $image;
++	return null;
+ }
+ 
+ /**
+@@ -3250,7 +3389,7 @@
+  * @param int    $jpeg_quality Optional. Image quality percentage. Default 90.
+  * @return mixed WP_Error on failure. String with new destination path.
+  */
+-function image_resize( $file, $max_w, $max_h, $crop = false, $suffix = null, $dest_path = null, $jpeg_quality = 90 ) {
++function image_resize( mixed $file, mixed $max_w, mixed $max_h, mixed $crop = false, mixed $suffix = null, mixed $dest_path = null, mixed $jpeg_quality = 90 ): mixed {
+ 	_deprecated_function( __FUNCTION__, '3.5.0', 'wp_get_image_editor()' );
+ 
+ 	$editor = wp_get_image_editor( $file );
+@@ -3269,6 +3408,7 @@
+ 		return $saved;
+ 
+ 	return $dest_file;
++	return null;
+ }
+ 
+ /**
+@@ -3285,9 +3425,10 @@
+  * @param string $mode How to return result, either OBJECT, ARRAY_N, or ARRAY_A.
+  * @return WP_Post|null Post object or array holding post contents and information
+  */
+-function wp_get_single_post( $postid = 0, $mode = OBJECT ) {
++function wp_get_single_post( mixed $postid = 0, mixed $mode = OBJECT ): mixed {
+ 	_deprecated_function( __FUNCTION__, '3.5.0', 'get_post()' );
+ 	return get_post( $postid, $mode );
++	return null;
+ }
+ 
+ /**
+@@ -3301,13 +3442,14 @@
+  * @param string $user_pass User password.
+  * @return bool False if does not authenticate, true if username and password authenticates.
+  */
+-function user_pass_ok($user_login, $user_pass) {
++function user_pass_ok(mixed $user_login, mixed $user_pass): mixed {
+ 	_deprecated_function( __FUNCTION__, '3.5.0', 'wp_authenticate()' );
+ 	$user = wp_authenticate( $user_login, $user_pass );
+ 	if ( is_wp_error( $user ) )
+ 		return false;
+ 
+ 	return true;
++	return null;
+ }
+ 
+ /**
+@@ -3316,7 +3458,7 @@
+  * @since 2.3.0
+  * @deprecated 3.5.0
+  */
+-function _save_post_hook() {}
++function _save_post_hook(): mixed { return null; }
+ 
+ /**
+  * Check if the installed version of GD supports particular image type
+@@ -3328,7 +3470,7 @@
+  * @param string $mime_type
+  * @return bool
+  */
+-function gd_edit_image_support($mime_type) {
++function gd_edit_image_support(mixed $mime_type): mixed {
+ 	_deprecated_function( __FUNCTION__, '3.5.0', 'wp_image_editor_supports()' );
+ 
+ 	if ( function_exists('imagetypes') ) {
+@@ -3359,6 +3501,7 @@
+ 		}
+ 	}
+ 	return false;
++	return null;
+ }
+ 
+ /**
+@@ -3371,7 +3514,7 @@
+  * @param int $bytes An integer byte value.
+  * @return string A shorthand byte value.
+  */
+-function wp_convert_bytes_to_hr( $bytes ) {
++function wp_convert_bytes_to_hr( mixed $bytes ): mixed {
+ 	_deprecated_function( __FUNCTION__, '3.6.0', 'size_format()' );
+ 
+ 	$units = array( 0 => 'B', 1 => 'KB', 2 => 'MB', 3 => 'GB', 4 => 'TB' );
+@@ -3387,6 +3530,7 @@
+ 	}
+ 
+ 	return $size . $unit;
++	return null;
+ }
+ 
+ /**
+@@ -3399,9 +3543,10 @@
+  * @param string $t Search terms to "tidy", e.g. trim.
+  * @return string Trimmed search terms.
+  */
+-function _search_terms_tidy( $t ) {
++function _search_terms_tidy( mixed $t ): mixed {
+ 	_deprecated_function( __FUNCTION__, '3.7.0' );
+ 	return trim( $t, "\"'\n\r " );
++	return null;
+ }
+ 
+ /**
+@@ -3415,7 +3560,7 @@
+  *
+  * @return bool Whether TinyMCE exists.
+  */
+-function rich_edit_exists() {
++function rich_edit_exists(): mixed {
+ 	global $wp_rich_edit_exists;
+ 	_deprecated_function( __FUNCTION__, '3.9.0' );
+ 
+@@ -3423,6 +3568,7 @@
+ 		$wp_rich_edit_exists = file_exists( ABSPATH . WPINC . '/js/tinymce/tinymce.js' );
+ 
+ 	return $wp_rich_edit_exists;
++	return null;
+ }
+ 
+ /**
+@@ -3435,8 +3581,9 @@
+  * @param int $count Number of topics.
+  * @return int Number of topics.
+  */
+-function default_topic_count_text( $count ) {
++function default_topic_count_text( mixed $count ): mixed {
+ 	return $count;
++	return null;
+ }
+ 
+ /**
+@@ -3450,9 +3597,10 @@
+  * @param string $content The text to format.
+  * @return string The very same text.
+  */
+-function format_to_post( $content ) {
++function format_to_post( mixed $content ): mixed {
+ 	_deprecated_function( __FUNCTION__, '3.9.0' );
+ 	return $content;
++	return null;
+ }
+ 
+ /**
+@@ -3465,9 +3613,10 @@
+  * @param string $text The text to be escaped.
+  * @return string text, safe for inclusion in LIKE query.
+  */
+-function like_escape($text) {
++function like_escape(mixed $text): mixed {
+ 	_deprecated_function( __FUNCTION__, '4.0.0', 'wpdb::esc_like()' );
+-	return str_replace( array( "%", "_" ), array( "\\%", "\\_" ), $text );
++	return \wp_aot_str_replace( array( "%", "_" ), array( "\\%", "\\_" ), $text );
++	return null;
+ }
+ 
+ /**
+@@ -3482,7 +3631,7 @@
+  * @param string $url The URL to test.
+  * @return bool Whether SSL access is available.
+  */
+-function url_is_accessable_via_ssl( $url ) {
++function url_is_accessable_via_ssl( mixed $url ): mixed {
+ 	_deprecated_function( __FUNCTION__, '4.0.0' );
+ 
+ 	$response = wp_remote_get( set_url_scheme( $url, 'https' ) );
+@@ -3495,6 +3644,7 @@
+ 	}
+ 
+ 	return false;
++	return null;
+ }
+ 
+ /**
+@@ -3506,8 +3656,9 @@
+  * @since 2.6.0
+  * @deprecated 4.3.0
+  */
+-function preview_theme() {
++function preview_theme(): mixed {
+ 	_deprecated_function( __FUNCTION__, '4.3.0' );
++	return null;
+ }
+ 
+ /**
+@@ -3519,9 +3670,10 @@
+  *
+  * @return string
+  */
+-function _preview_theme_template_filter() {
++function _preview_theme_template_filter(): mixed {
+ 	_deprecated_function( __FUNCTION__, '4.3.0' );
+ 	return '';
++	return null;
+ }
+ 
+ /**
+@@ -3533,9 +3685,10 @@
+  *
+  * @return string
+  */
+-function _preview_theme_stylesheet_filter() {
++function _preview_theme_stylesheet_filter(): mixed {
+ 	_deprecated_function( __FUNCTION__, '4.3.0' );
+ 	return '';
++	return null;
+ }
+ 
+ /**
+@@ -3548,9 +3701,10 @@
+  * @param string $content
+  * @return string
+  */
+-function preview_theme_ob_filter( $content ) {
++function preview_theme_ob_filter( mixed $content ): mixed {
+ 	_deprecated_function( __FUNCTION__, '4.3.0' );
+ 	return $content;
++	return null;
+ }
+ 
+ /**
+@@ -3565,9 +3719,10 @@
+  * @param array $matches
+  * @return string
+  */
+-function preview_theme_ob_filter_callback( $matches ) {
++function preview_theme_ob_filter_callback( mixed $matches ): mixed {
+ 	_deprecated_function( __FUNCTION__, '4.3.0' );
+ 	return '';
++	return null;
+ }
+ 
+ /**
+@@ -3583,7 +3738,7 @@
+  * @param string $text The text to be formatted.
+  * @return string The formatted text after filter is applied.
+  */
+-function wp_richedit_pre($text) {
++function wp_richedit_pre(mixed $text): mixed {
+ 	_deprecated_function( __FUNCTION__, '4.3.0', 'format_for_editor()' );
+ 
+ 	if ( empty( $text ) ) {
+@@ -3611,6 +3766,7 @@
+ 
+ 	/** This filter is documented in wp-includes/deprecated.php */
+ 	return apply_filters( 'richedit_pre', $output );
++	return null;
+ }
+ 
+ /**
+@@ -3626,7 +3782,7 @@
+  * @param string $output The text to be formatted.
+  * @return string Formatted text after filter applied.
+  */
+-function wp_htmledit_pre($output) {
++function wp_htmledit_pre(mixed $output): mixed {
+ 	_deprecated_function( __FUNCTION__, '4.3.0', 'format_for_editor()' );
+ 
+ 	if ( !empty($output) )
+@@ -3641,6 +3797,7 @@
+ 	 * @param string $output The HTML-formatted text.
+ 	 */
+ 	return apply_filters( 'htmledit_pre', $output );
++	return null;
+ }
+ 
+ /**
+@@ -3653,10 +3810,11 @@
+  * @param int|WP_Post $post Optional. Post ID or WP_Post object. Default is global $post.
+  * @return string|false
+  */
+-function post_permalink( $post = 0 ) {
++function post_permalink( mixed $post = 0 ): mixed {
+ 	_deprecated_function( __FUNCTION__, '4.4.0', 'get_permalink()' );
+ 
+ 	return get_permalink( $post );
++	return null;
+ }
+ 
+ /**
+@@ -3675,12 +3833,12 @@
+  *                               returns false. Default 1.
+  * @return \WpOrg\Requests\Utility\CaseInsensitiveDictionary|false Headers on success, false on failure.
+  */
+-function wp_get_http( $url, $file_path = false, $red = 1 ) {
++function wp_get_http( mixed $url, mixed $file_path = false, mixed $red = 1 ): mixed {
+ 	_deprecated_function( __FUNCTION__, '4.4.0', 'WP_Http' );
+ 
+ 	// Add 60 seconds to the script timeout to ensure the remote request has enough time.
+ 	if ( function_exists( 'set_time_limit' ) ) {
+-		@set_time_limit( 60 );
++		@\wp_aot_native_api('set_time_limit', array( 60 ));
+ 	}
+ 
+ 	if ( $red > 5 )
+@@ -3715,11 +3873,12 @@
+ 	if ( !$out_fp )
+ 		return $headers;
+ 
+-	fwrite( $out_fp,  wp_remote_retrieve_body( $response ) );
++	\wp_aot_fwrite( $out_fp,  wp_remote_retrieve_body( $response ) );
+ 	fclose($out_fp);
+ 	clearstatcache();
+ 
+ 	return $headers;
++	return null;
+ }
+ 
+ /**
+@@ -3732,9 +3891,10 @@
+  * @param string|bool $force Optional Whether to force SSL login. Default null.
+  * @return bool True if forced, false if not forced.
+  */
+-function force_ssl_login( $force = null ) {
++function force_ssl_login( mixed $force = null ): mixed {
+ 	_deprecated_function( __FUNCTION__, '4.4.0', 'force_ssl_admin()' );
+ 	return force_ssl_admin( $force );
++	return null;
+ }
+ 
+ /**
+@@ -3745,10 +3905,11 @@
+  *
+  * @return string Full path to comments popup template file.
+  */
+-function get_comments_popup_template() {
++function get_comments_popup_template(): mixed {
+ 	_deprecated_function( __FUNCTION__, '4.5.0' );
+ 
+ 	return '';
++	return null;
+ }
+ 
+ /**
+@@ -3763,10 +3924,11 @@
+  *
+  * @return false Always returns false.
+  */
+-function is_comments_popup() {
++function is_comments_popup(): mixed {
+ 	_deprecated_function( __FUNCTION__, '4.5.0' );
+ 
+ 	return false;
++	return null;
+ }
+ 
+ /**
+@@ -3775,8 +3937,9 @@
+  * @since 0.71
+  * @deprecated 4.5.0
+  */
+-function comments_popup_script() {
++function comments_popup_script(): mixed {
+ 	_deprecated_function( __FUNCTION__, '4.5.0' );
++	return null;
+ }
+ 
+ /**
+@@ -3788,10 +3951,11 @@
+  * @param string $text Content to replace links to open in a new tab.
+  * @return string Content that has filtered links.
+  */
+-function popuplinks( $text ) {
++function popuplinks( mixed $text ): mixed {
+ 	_deprecated_function( __FUNCTION__, '4.5.0' );
+-	$text = preg_replace('/<a (.+?)>/i', "<a $1 target='_blank' rel='external'>", $text);
++	$text = \wp_aot_preg_replace('/<a (.+?)>/i', "<a \$1 target='_blank' rel='external'>", $text);
+ 	return $text;
++	return null;
+ }
+ 
+ /**
+@@ -3805,10 +3969,11 @@
+  *
+  * @return string An empty string.
+  */
+-function wp_embed_handler_googlevideo( $matches, $attr, $url, $rawattr ) {
++function wp_embed_handler_googlevideo( mixed $matches, mixed $attr, mixed $url, mixed $rawattr ): mixed {
+ 	_deprecated_function( __FUNCTION__, '4.6.0' );
+ 
+ 	return '';
++	return null;
+ }
+ 
+ /**
+@@ -3819,10 +3984,11 @@
+  *
+  * @return string Full path to paged template file.
+  */
+-function get_paged_template() {
++function get_paged_template(): mixed {
+ 	_deprecated_function( __FUNCTION__, '4.7.0' );
+ 
+ 	return get_query_template( 'paged' );
++	return null;
+ }
+ 
+ /**
+@@ -3845,10 +4011,11 @@
+  * @param string $content
+  * @return string
+  */
+-function wp_kses_js_entities( $content ) {
++function wp_kses_js_entities( mixed $content ): mixed {
+ 	_deprecated_function( __FUNCTION__, '4.7.0' );
+ 
+-	return preg_replace( '%&\s*\{[^}]*(\}\s*;?|$)%', '', $content );
++	return \wp_aot_preg_replace( '%&\s*\{[^}]*(\}\s*;?|$)%', '', $content );
++	return null;
+ }
+ 
+ /**
+@@ -3865,7 +4032,7 @@
+  * @param object $b
+  * @return int
+  */
+-function _usort_terms_by_ID( $a, $b ) {
++function _usort_terms_by_ID( mixed $a, mixed $b ): mixed {
+ 	_deprecated_function( __FUNCTION__, '4.7.0', 'wp_list_sort()' );
+ 
+ 	if ( $a->term_id > $b->term_id )
+@@ -3874,6 +4041,7 @@
+ 		return -1;
+ 	else
+ 		return 0;
++	return null;
+ }
+ 
+ /**
+@@ -3890,10 +4058,11 @@
+  * @param object $b
+  * @return int
+  */
+-function _usort_terms_by_name( $a, $b ) {
++function _usort_terms_by_name( mixed $a, mixed $b ): mixed {
+ 	_deprecated_function( __FUNCTION__, '4.7.0', 'wp_list_sort()' );
+ 
+ 	return strcmp( $a->name, $b->name );
++	return null;
+ }
+ 
+ /**
+@@ -3909,7 +4078,7 @@
+  * @param object $b The second object to compare
+  * @return int -1, 0, or 1 if $a is considered to be respectively less than, equal to, or greater than $b.
+  */
+-function _sort_nav_menu_items( $a, $b ) {
++function _sort_nav_menu_items( mixed $a, mixed $b ): mixed {
+ 	global $_menu_item_sort_prop;
+ 
+ 	_deprecated_function( __FUNCTION__, '4.7.0', 'wp_list_sort()' );
+@@ -3929,6 +4098,7 @@
+ 		return $_a < $_b ? -1 : 1;
+ 	else
+ 		return strcmp( $a->$_menu_item_sort_prop, $b->$_menu_item_sort_prop );
++	return null;
+ }
+ 
+ /**
+@@ -3938,7 +4108,7 @@
+  * @deprecated 4.9.0
+  * @return string
+  */
+-function get_shortcut_link() {
++function get_shortcut_link(): mixed {
+ 	_deprecated_function( __FUNCTION__, '4.9.0' );
+ 
+ 	$link = '';
+@@ -3952,6 +4122,7 @@
+ 	 * @param string $link The Press This bookmarklet link.
+ 	 */
+ 	return apply_filters( 'shortcut_link', $link );
++	return null;
+ }
+ 
+ /**
+@@ -3960,15 +4131,16 @@
+  * @since 4.2.0
+  * @deprecated 4.9.0
+  */
+-function wp_ajax_press_this_save_post() {
++function wp_ajax_press_this_save_post(): mixed {
+ 	_deprecated_function( __FUNCTION__, '4.9.0' );
+ 	if ( is_plugin_active( 'press-this/press-this-plugin.php' ) ) {
+ 		include WP_PLUGIN_DIR . '/press-this/class-wp-press-this-plugin.php';
+-		$wp_press_this = new WP_Press_This_Plugin();
++		$wp_press_this = \wp_aot_native_new('WP_Press_This_Plugin', array());
+ 		$wp_press_this->save_post();
+ 	} else {
+ 		wp_send_json_error( array( 'errorMessage' => __( 'The Press This plugin is required.' ) ) );
+ 	}
++	return null;
+ }
+ 
+ /**
+@@ -3977,15 +4149,16 @@
+  * @since 4.2.0
+  * @deprecated 4.9.0
+  */
+-function wp_ajax_press_this_add_category() {
++function wp_ajax_press_this_add_category(): mixed {
+ 	_deprecated_function( __FUNCTION__, '4.9.0' );
+ 	if ( is_plugin_active( 'press-this/press-this-plugin.php' ) ) {
+ 		include WP_PLUGIN_DIR . '/press-this/class-wp-press-this-plugin.php';
+-		$wp_press_this = new WP_Press_This_Plugin();
++		$wp_press_this = \wp_aot_native_new('WP_Press_This_Plugin', array());
+ 		$wp_press_this->add_category();
+ 	} else {
+ 		wp_send_json_error( array( 'errorMessage' => __( 'The Press This plugin is required.' ) ) );
+ 	}
++	return null;
+ }
+ 
+ /**
+@@ -3998,9 +4171,10 @@
+  * @param int $request_id The ID of the user request.
+  * @return WP_User_Request|false
+  */
+-function wp_get_user_request_data( $request_id ) {
++function wp_get_user_request_data( mixed $request_id ): mixed {
+ 	_deprecated_function( __FUNCTION__, '5.4.0', 'wp_get_user_request()' );
+ 	return wp_get_user_request( $request_id );
++	return null;
+ }
+ 
+ /**
+@@ -4014,11 +4188,12 @@
+  * @param string $content The raw post content to be filtered.
+  * @return string Converted content with 'srcset' and 'sizes' attributes added to images.
+  */
+-function wp_make_content_images_responsive( $content ) {
++function wp_make_content_images_responsive( mixed $content ): mixed {
+ 	_deprecated_function( __FUNCTION__, '5.5.0', 'wp_filter_content_tags()' );
+ 
+ 	// This will also add the `loading` attribute to `img` tags, if enabled.
+ 	return wp_filter_content_tags( $content );
++	return null;
+ }
+ 
+ /**
+@@ -4028,9 +4203,10 @@
+  * @access private
+  * @deprecated 5.5.0
+  */
+-function wp_unregister_GLOBALS() {
++function wp_unregister_GLOBALS(): mixed {
+ 	// register_globals was deprecated in PHP 5.3 and removed entirely in PHP 5.4.
+ 	_deprecated_function( __FUNCTION__, '5.5.0' );
++	return null;
+ }
+ 
+ /**
+@@ -4048,10 +4224,11 @@
+  * @param string $user_agent The author's browser user agent
+  * @return bool True if comment contains disallowed content, false if comment does not
+  */
+-function wp_blacklist_check( $author, $email, $url, $comment, $user_ip, $user_agent ) {
++function wp_blacklist_check( mixed $author, mixed $email, mixed $url, mixed $comment, mixed $user_ip, mixed $user_agent ): mixed {
+ 	_deprecated_function( __FUNCTION__, '5.5.0', 'wp_check_comment_disallowed_list()' );
+ 
+ 	return wp_check_comment_disallowed_list( $author, $email, $url, $comment, $user_ip, $user_agent );
++	return null;
+ }
+ 
+ /**
+@@ -4069,10 +4246,11 @@
+  * @param array $default_args Default arguments for `register_meta()`.
+  * @return array Filtered arguments.
+  */
+-function _wp_register_meta_args_whitelist( $args, $default_args ) {
++function _wp_register_meta_args_whitelist( mixed $args, mixed $default_args ): mixed {
+ 	_deprecated_function( __FUNCTION__, '5.5.0', '_wp_register_meta_args_allowed_list()' );
+ 
+ 	return _wp_register_meta_args_allowed_list( $args, $default_args );
++	return null;
+ }
+ 
+ /**
+@@ -4086,10 +4264,11 @@
+  * @param string|array $options
+  * @return array
+  */
+-function add_option_whitelist( $new_options, $options = '' ) {
++function add_option_whitelist( mixed $new_options, mixed $options = '' ): mixed {
+ 	_deprecated_function( __FUNCTION__, '5.5.0', 'add_allowed_options()' );
+ 
+ 	return add_allowed_options( $new_options, $options );
++	return null;
+ }
+ 
+ /**
+@@ -4103,10 +4282,11 @@
+  * @param string|array $options
+  * @return array
+  */
+-function remove_option_whitelist( $del_options, $options = '' ) {
++function remove_option_whitelist( mixed $del_options, mixed $options = '' ): mixed {
+ 	_deprecated_function( __FUNCTION__, '5.5.0', 'remove_allowed_options()' );
+ 
+ 	return remove_allowed_options( $del_options, $options );
++	return null;
+ }
+ 
+ /**
+@@ -4123,8 +4303,9 @@
+  * @param mixed $value Scalar or array of scalars.
+  * @return mixed Slashes $value
+  */
+-function wp_slash_strings_only( $value ) {
++function wp_slash_strings_only( mixed $value ): mixed {
+ 	return map_deep( $value, 'addslashes_strings_only' );
++	return null;
+ }
+ 
+ /**
+@@ -4138,8 +4319,9 @@
+  * @param mixed $value
+  * @return mixed
+  */
+-function addslashes_strings_only( $value ) {
++function addslashes_strings_only( mixed $value ): mixed {
+ 	return is_string( $value ) ? addslashes( $value ) : $value;
++	return null;
+ }
+ 
+ /**
+@@ -4157,13 +4339,14 @@
+  * @since 2.1.0
+  * @deprecated 5.7.0 Use wp_robots_noindex() instead on 'wp_robots' filter.
+  */
+-function noindex() {
++function noindex(): mixed {
+ 	_deprecated_function( __FUNCTION__, '5.7.0', 'wp_robots_noindex()' );
+ 
+ 	// If the blog is not public, tell robots to go away.
+ 	if ( '0' == get_option( 'blog_public' ) ) {
+ 		wp_no_robots();
+ 	}
++	return null;
+ }
+ 
+ /**
+@@ -4179,15 +4362,16 @@
+  * @since 5.3.0 Echo `noindex,nofollow` if search engine visibility is discouraged.
+  * @deprecated 5.7.0 Use wp_robots_no_robots() instead on 'wp_robots' filter.
+  */
+-function wp_no_robots() {
++function wp_no_robots(): mixed {
+ 	_deprecated_function( __FUNCTION__, '5.7.0', 'wp_robots_no_robots()' );
+ 
+ 	if ( get_option( 'blog_public' ) ) {
+ 		echo "<meta name='robots' content='noindex,follow' />\n";
+-		return;
++		return null;
+ 	}
+ 
+ 	echo "<meta name='robots' content='noindex,nofollow' />\n";
++	return null;
+ }
+ 
+ /**
+@@ -4207,13 +4391,14 @@
+  *
+  * @see wp_robots_sensitive_page()
+  */
+-function wp_sensitive_page_meta() {
++function wp_sensitive_page_meta(): mixed {
  	_deprecated_function( __FUNCTION__, '5.7.0', 'wp_robots_sensitive_page()' );
  
 -	?>
@@ -11,9 +2860,794 @@
 +echo '	<meta name=\'robots\' content=\'noindex,noarchive\' />
 +	';
  	wp_strict_cross_origin_referrer();
++	return null;
  }
  
-@@ -5897,11 +5897,12 @@
+ /**
+@@ -4229,10 +4414,11 @@
+  * @param array $allowed_blocks The list of allowed inner blocks.
+  * @return string The rendered inner blocks.
+  */
+-function _excerpt_render_inner_columns_blocks( $columns, $allowed_blocks ) {
++function _excerpt_render_inner_columns_blocks( mixed $columns, mixed $allowed_blocks ): mixed {
+ 	_deprecated_function( __FUNCTION__, '5.8.0', '_excerpt_render_inner_blocks()' );
+ 
+ 	return _excerpt_render_inner_blocks( $columns, $allowed_blocks );
++	return null;
+ }
+ 
+ /**
+@@ -4247,10 +4433,11 @@
+  * @param array $preset Duotone preset value as seen in theme.json.
+  * @return string Duotone CSS filter property.
+  */
+-function wp_render_duotone_filter_preset( $preset ) {
++function wp_render_duotone_filter_preset( mixed $preset ): mixed {
+ 	_deprecated_function( __FUNCTION__, '5.9.1', 'wp_get_duotone_filter_property()' );
+ 
+ 	return wp_get_duotone_filter_property( $preset );
++	return null;
+ }
+ 
+ /**
+@@ -4266,7 +4453,7 @@
+  * @return bool Whether serialization of the current block's border properties
+  *              should occur.
+  */
+-function wp_skip_border_serialization( $block_type ) {
++function wp_skip_border_serialization( mixed $block_type ): mixed {
+ 	_deprecated_function( __FUNCTION__, '6.0.0', 'wp_should_skip_block_supports_serialization()' );
+ 
+ 	$border_support = $block_type->supports['__experimentalBorder'] ?? false;
+@@ -4274,6 +4461,7 @@
+ 	return is_array( $border_support ) &&
+ 		array_key_exists( '__experimentalSkipSerialization', $border_support ) &&
+ 		$border_support['__experimentalSkipSerialization'];
++	return null;
+ }
+ 
+ /**
+@@ -4288,7 +4476,7 @@
+  * @param WP_Block_type $block_type Block type.
+  * @return bool Whether to serialize spacing support styles & classes.
+  */
+-function wp_skip_dimensions_serialization( $block_type ) {
++function wp_skip_dimensions_serialization( mixed $block_type ): mixed {
+ 	_deprecated_function( __FUNCTION__, '6.0.0', 'wp_should_skip_block_supports_serialization()' );
+ 
+ 	$dimensions_support = $block_type->supports['__experimentalDimensions'] ?? false;
+@@ -4296,6 +4484,7 @@
+ 	return is_array( $dimensions_support ) &&
+ 		array_key_exists( '__experimentalSkipSerialization', $dimensions_support ) &&
+ 		$dimensions_support['__experimentalSkipSerialization'];
++	return null;
+ }
+ 
+ /**
+@@ -4310,7 +4499,7 @@
+  * @param WP_Block_Type $block_type Block type.
+  * @return bool Whether to serialize spacing support styles & classes.
+  */
+-function wp_skip_spacing_serialization( $block_type ) {
++function wp_skip_spacing_serialization( mixed $block_type ): mixed {
+ 	_deprecated_function( __FUNCTION__, '6.0.0', 'wp_should_skip_block_supports_serialization()' );
+ 
+ 	$spacing_support = $block_type->supports['spacing'] ?? false;
+@@ -4318,6 +4507,7 @@
+ 	return is_array( $spacing_support ) &&
+ 		array_key_exists( '__experimentalSkipSerialization', $spacing_support ) &&
+ 		$spacing_support['__experimentalSkipSerialization'];
++	return null;
+ }
+ 
+ /**
+@@ -4326,8 +4516,9 @@
+  * @since 5.8.0
+  * @deprecated 6.0.0
+  */
+-function wp_add_iframed_editor_assets_html() {
++function wp_add_iframed_editor_assets_html(): mixed {
+ 	_deprecated_function( __FUNCTION__, '6.0.0' );
++	return null;
+ }
+ 
+ /**
+@@ -4342,7 +4533,7 @@
+  * @param int $post_id Optional. Attachment ID. Default is the ID of the global `$post`.
+  * @return string|false Thumbnail file path on success, false on failure.
+  */
+-function wp_get_attachment_thumb_file( $post_id = 0 ) {
++function wp_get_attachment_thumb_file( mixed $post_id = 0 ): mixed {
+ 	_deprecated_function( __FUNCTION__, '6.1.0' );
+ 
+ 	$post_id = (int) $post_id;
+@@ -4362,7 +4553,7 @@
+ 	$file = get_attached_file( $post->ID );
+ 
+ 	if ( ! empty( $imagedata['thumb'] ) ) {
+-		$thumbfile = str_replace( wp_basename( $file ), $imagedata['thumb'], $file );
++		$thumbfile = \wp_aot_str_replace( wp_basename( $file ), $imagedata['thumb'], $file );
+ 		if ( file_exists( $thumbfile ) ) {
+ 			/**
+ 			 * Filters the attachment thumbnail file path.
+@@ -4377,6 +4568,7 @@
+ 	}
+ 
+ 	return false;
++	return null;
+ }
+ 
+ /**
+@@ -4394,10 +4586,11 @@
+  * @param bool   $reset  Whether to reset the internal cache. Used by the switch to locale functionality.
+  * @return string|false The path to the translation file or false if no translation file was found.
+  */
+-function _get_path_to_translation( $domain, $reset = false ) {
++function _get_path_to_translation( mixed $domain, mixed $reset = false ): mixed {
+ 	_deprecated_function( __FUNCTION__, '6.1.0', 'WP_Textdomain_Registry' );
+ 
+-	static $available_translations = array();
++	static $available_translations_aot_cell = new \WordPressStaticArrayCell();
++	$available_translations =& $available_translations_aot_cell->value;
+ 
+ 	if ( true === $reset ) {
+ 		$available_translations = array();
+@@ -4408,6 +4601,7 @@
+ 	}
+ 
+ 	return $available_translations[ $domain ];
++	return null;
+ }
+ 
+ /**
+@@ -4424,10 +4618,11 @@
+  * @param string $domain Text domain. Unique identifier for retrieving translated strings.
+  * @return string|false The path to the translation file or false if no translation file was found.
+  */
+-function _get_path_to_translation_from_lang_dir( $domain ) {
++function _get_path_to_translation_from_lang_dir( mixed $domain ): mixed {
+ 	_deprecated_function( __FUNCTION__, '6.1.0', 'WP_Textdomain_Registry' );
+ 
+-	static $cached_mofiles = null;
++	static $cached_mofiles_aot_cell = new \WordPressStaticValueCell();
++	$cached_mofiles =& $cached_mofiles_aot_cell->value;
+ 
+ 	if ( null === $cached_mofiles ) {
+ 		$cached_mofiles = array();
+@@ -4440,7 +4635,7 @@
+ 		foreach ( $locations as $location ) {
+ 			$mofiles = glob( $location . '/*.mo' );
+ 			if ( $mofiles ) {
+-				$cached_mofiles = array_merge( $cached_mofiles, $mofiles );
++				$cached_mofiles = \wp_aot_array_merge(array( $cached_mofiles, $mofiles ));
+ 			}
+ 		}
+ 	}
+@@ -4459,6 +4654,7 @@
+ 	}
+ 
+ 	return false;
++	return null;
+ }
+ 
+ /**
+@@ -4470,9 +4666,10 @@
+  * @param array $metadata Metadata for registering a block type.
+  * @return array Metadata for registering a block type.
+  */
+-function _wp_multiple_block_styles( $metadata ) {
++function _wp_multiple_block_styles( mixed $metadata ): mixed {
+ 	_deprecated_function( __FUNCTION__, '6.1.0' );
+ 	return $metadata;
++	return null;
+ }
+ 
+ /**
+@@ -4490,13 +4687,13 @@
+  * @param string $css_property Slug for the CSS property the inline style sets.
+  * @return string CSS inline style.
+  */
+-function wp_typography_get_css_variable_inline_style( $attributes, $feature, $css_property ) {
++function wp_typography_get_css_variable_inline_style( mixed $attributes, mixed $feature, mixed $css_property ): mixed {
+ 	_deprecated_function( __FUNCTION__, '6.1.0', 'wp_style_engine_get_styles()' );
+ 
+ 	// Retrieve current attribute value or skip if not found.
+ 	$style_value = _wp_array_get( $attributes, array( 'style', 'typography', $feature ), false );
+ 	if ( ! $style_value ) {
+-		return;
++		return null;
+ 	}
+ 
+ 	// If we don't have a preset CSS variable, we'll assume it's a regular CSS value.
+@@ -4513,6 +4710,7 @@
+ 
+ 	// Return the actual CSS inline style e.g. `text-decoration:var(--wp--preset--text-decoration--underline);`.
+ 	return sprintf( '%s:var(--wp--preset--%s--%s);', $css_property, $css_property, $slug );
++	return null;
+ }
+ 
+ /**
+@@ -4524,10 +4722,11 @@
+  *
+  * @return bool Always returns false.
+  */
+-function global_terms_enabled() {
++function global_terms_enabled(): mixed {
+ 	_deprecated_function( __FUNCTION__, '6.1.0' );
+ 
+ 	return false;
++	return null;
+ }
+ 
+ /**
+@@ -4541,10 +4740,11 @@
+  *                       DISTINCT, fields (SELECT), and LIMITS clauses.
+  * @return array The unmodified clauses.
+  */
+-function _filter_query_attachment_filenames( $clauses ) {
++function _filter_query_attachment_filenames( mixed $clauses ): mixed {
+ 	_deprecated_function( __FUNCTION__, '6.0.3', 'add_filter( "wp_allow_query_attachment_by_filename", "__return_true" )' );
+ 	remove_filter( 'posts_clauses', __FUNCTION__ );
+ 	return $clauses;
++	return null;
+ }
+ 
+ /**
+@@ -4570,14 +4770,14 @@
+  * @param string|array $post_type  Optional. Post type or array of post types. Default 'page'.
+  * @return WP_Post|array|null WP_Post (or array) on success, or null on failure.
+  */
+-function get_page_by_title( $page_title, $output = OBJECT, $post_type = 'page' ) {
++function get_page_by_title( mixed $page_title, mixed $output = OBJECT, mixed $post_type = 'page' ): mixed {
+ 	_deprecated_function( __FUNCTION__, '6.2.0', 'WP_Query' );
+ 	global $wpdb;
+ 
+ 	if ( is_array( $post_type ) ) {
+ 		$post_type           = esc_sql( $post_type );
+ 		$post_type_in_string = "'" . implode( "','", $post_type ) . "'";
+-		$sql                 = $wpdb->prepare(
++		$sql                 = \wp_aot_require_wpdb( $wpdb )->prepare(
+ 			"SELECT ID
+ 			FROM $wpdb->posts
+ 			WHERE post_title = %s
+@@ -4585,7 +4785,7 @@
+ 			$page_title
+ 		);
+ 	} else {
+-		$sql = $wpdb->prepare(
++		$sql = \wp_aot_require_wpdb( $wpdb )->prepare(
+ 			"SELECT ID
+ 			FROM $wpdb->posts
+ 			WHERE post_title = %s
+@@ -4595,12 +4795,13 @@
+ 		);
+ 	}
+ 
+-	$page = $wpdb->get_var( $sql );
++	$page = \wp_aot_require_wpdb( $wpdb )->get_var( $sql );
+ 
+ 	if ( $page ) {
+ 		return get_post( $page, $output );
+ 	}
+ 
++	return null;
+ 	return null;
+ }
+ 
+@@ -4614,7 +4815,7 @@
+  *
+  * @return array|null A template object, or null if none could be found.
+  */
+-function _resolve_home_block_template() {
++function _resolve_home_block_template(): mixed {
+ 	_deprecated_function( __FUNCTION__, '6.2.0' );
+ 
+ 	$show_on_front = get_option( 'show_on_front' );
+@@ -4638,6 +4839,7 @@
+ 			'postType' => 'wp_template',
+ 			'postId'   => $template->id,
+ 	);
++	return null;
+ }
+ 
+ /**
+@@ -4648,8 +4850,9 @@
+  * @deprecated 6.3.0 WLW manifest is no longer in use and no longer included in core,
+  *                   so the output from this function is removed.
+  */
+-function wlwmanifest_link() {
++function wlwmanifest_link(): mixed {
+ 	_deprecated_function( __FUNCTION__, '6.3.0' );
++	return null;
+ }
+ 
+ /**
+@@ -4660,7 +4863,7 @@
+  *
+  * @param WP_Comment[] $comments Array of comment objects.
+  */
+-function wp_queue_comments_for_comment_meta_lazyload( $comments ) {
++function wp_queue_comments_for_comment_meta_lazyload( mixed $comments ): mixed {
+ 	_deprecated_function( __FUNCTION__, '6.3.0', 'wp_lazyload_comment_meta()' );
+ 	// Don't use `wp_list_pluck()` to avoid by-reference manipulation.
+ 	$comment_ids = array();
+@@ -4673,6 +4876,7 @@
+ 	}
+ 
+ 	wp_lazyload_comment_meta( $comment_ids );
++	return null;
+ }
+ 
+ /**
+@@ -4700,7 +4904,7 @@
+  * @return string|bool The default `loading` attribute value. Either 'lazy', 'eager', or a boolean `false`, to indicate
+  *                     that the `loading` attribute should be skipped.
+  */
+-function wp_get_loading_attr_default( $context ) {
++function wp_get_loading_attr_default( mixed $context ): mixed {
+ 	_deprecated_function( __FUNCTION__, '6.3.0', 'wp_get_loading_optimization_attributes()' );
+ 	global $wp_query;
+ 
+@@ -4769,6 +4973,7 @@
+ 
+ 	// Lazy-load by default for any unknown context.
+ 	return 'lazy';
++	return null;
+ }
+ 
+ /**
+@@ -4782,7 +4987,7 @@
+  * @param string $context Additional context to pass to the filters.
+  * @return string Converted `img` tag with `loading` attribute added.
+  */
+-function wp_img_tag_add_loading_attr( $image, $context ) {
++function wp_img_tag_add_loading_attr( mixed $image, mixed $context ): mixed {
+ 	_deprecated_function( __FUNCTION__, '6.3.0', 'wp_img_tag_add_loading_optimization_attrs()' );
+ 	/*
+ 	 * Get loading attribute value to use. This must occur before the conditional check below so that even images that
+@@ -4803,10 +5008,11 @@
+ 			$value = 'lazy';
+ 		}
+ 
+-		return str_replace( '<img', '<img loading="' . esc_attr( $value ) . '"', $image );
++		return \wp_aot_str_replace( '<img', '<img loading="' . esc_attr( $value ) . '"', $image );
+ 	}
+ 
+ 	return $image;
++	return null;
+ }
+ 
+ /**
+@@ -4826,7 +5032,7 @@
+  * @param int   $max Upper value of the range to bound to.
+  * @return float Value in the range [0, 1].
+  */
+-function wp_tinycolor_bound01( $n, $max ) {
++function wp_tinycolor_bound01( mixed $n, mixed $max ): mixed {
+ 	_deprecated_function( __FUNCTION__, '6.3.0' );
+ 	if ( 'string' === gettype( $n ) && str_contains( $n, '.' ) && 1 === (float) $n ) {
+ 		$n = '100%';
+@@ -4846,6 +5052,7 @@
+ 
+ 	// Convert into [0, 1] range if it isn't already.
+ 	return ( $n % $max ) / (float) $max;
++	return null;
+ }
+ 
+ /**
+@@ -4862,7 +5069,7 @@
+  * @param mixed $n Number of unknown type.
+  * @return float Value in the range [0,1].
+  */
+-function _wp_tinycolor_bound_alpha( $n ) {
++function _wp_tinycolor_bound_alpha( mixed $n ): mixed {
+ 	_deprecated_function( __FUNCTION__, '6.3.0' );
+ 
+ 	if ( is_numeric( $n ) ) {
+@@ -4872,6 +5079,7 @@
+ 		}
+ 	}
+ 	return 1;
++	return null;
+ }
+ 
+ /**
+@@ -4890,7 +5098,7 @@
+  * @param array $rgb_color RGB object.
+  * @return array Rounded and converted RGB object.
+  */
+-function wp_tinycolor_rgb_to_rgb( $rgb_color ) {
++function wp_tinycolor_rgb_to_rgb( mixed $rgb_color ): mixed {
+ 	_deprecated_function( __FUNCTION__, '6.3.0' );
+ 
+ 	return array(
+@@ -4898,6 +5106,7 @@
+ 		'g' => wp_tinycolor_bound01( $rgb_color['g'], 255 ) * 255,
+ 		'b' => wp_tinycolor_bound01( $rgb_color['b'], 255 ) * 255,
+ 	);
++	return null;
+ }
+ 
+ /**
+@@ -4918,7 +5127,7 @@
+  * @param float $t third component.
+  * @return float R, G, or B component.
+  */
+-function wp_tinycolor_hue_to_rgb( $p, $q, $t ) {
++function wp_tinycolor_hue_to_rgb( mixed $p, mixed $q, mixed $t ): mixed {
+ 	_deprecated_function( __FUNCTION__, '6.3.0' );
+ 
+ 	if ( $t < 0 ) {
+@@ -4937,6 +5146,7 @@
+ 		return $p + ( $q - $p ) * ( 2 / 3 - $t ) * 6;
+ 	}
+ 	return $p;
++	return null;
+ }
+ 
+ /**
+@@ -4955,7 +5165,7 @@
+  * @param array $hsl_color HSL object.
+  * @return array Rounded and converted RGB object.
+  */
+-function wp_tinycolor_hsl_to_rgb( $hsl_color ) {
++function wp_tinycolor_hsl_to_rgb( mixed $hsl_color ): mixed {
+ 	_deprecated_function( __FUNCTION__, '6.3.0' );
+ 
+ 	$h = wp_tinycolor_bound01( $hsl_color['h'], 360 );
+@@ -4980,6 +5190,7 @@
+ 		'g' => $g * 255,
+ 		'b' => $b * 255,
+ 	);
++	return null;
+ }
+ 
+ /**
+@@ -5001,7 +5212,7 @@
+  * @param string $color_str CSS color string.
+  * @return array RGB object.
+  */
+-function wp_tinycolor_string_to_rgb( $color_str ) {
++function wp_tinycolor_string_to_rgb( mixed $color_str ): mixed {
+ 	_deprecated_function( __FUNCTION__, '6.3.0' );
+ 
+ 	$color_str = strtolower( trim( $color_str ) );
+@@ -5015,7 +5226,7 @@
+ 	$permissive_match4 = '[\\s|\\(]+(' . $css_unit . ')[,|\\s]+(' . $css_unit . ')[,|\\s]+(' . $css_unit . ')[,|\\s]+(' . $css_unit . ')\\s*\\)?';
+ 
+ 	$rgb_regexp = '/^rgb' . $permissive_match3 . '$/';
+-	if ( preg_match( $rgb_regexp, $color_str, $match ) ) {
++	if ( preg_match( \wp_aot_regex_text( $rgb_regexp ), \wp_aot_regex_text( $color_str ), $match ) ) {
+ 		$rgb = wp_tinycolor_rgb_to_rgb(
+ 			array(
+ 				'r' => $match[1],
+@@ -5030,7 +5241,7 @@
+ 	}
+ 
+ 	$rgba_regexp = '/^rgba' . $permissive_match4 . '$/';
+-	if ( preg_match( $rgba_regexp, $color_str, $match ) ) {
++	if ( preg_match( \wp_aot_regex_text( $rgba_regexp ), \wp_aot_regex_text( $color_str ), $match ) ) {
+ 		$rgb = wp_tinycolor_rgb_to_rgb(
+ 			array(
+ 				'r' => $match[1],
+@@ -5045,7 +5256,7 @@
+ 	}
+ 
+ 	$hsl_regexp = '/^hsl' . $permissive_match3 . '$/';
+-	if ( preg_match( $hsl_regexp, $color_str, $match ) ) {
++	if ( preg_match( \wp_aot_regex_text( $hsl_regexp ), \wp_aot_regex_text( $color_str ), $match ) ) {
+ 		$rgb = wp_tinycolor_hsl_to_rgb(
+ 			array(
+ 				'h' => $match[1],
+@@ -5060,7 +5271,7 @@
+ 	}
+ 
+ 	$hsla_regexp = '/^hsla' . $permissive_match4 . '$/';
+-	if ( preg_match( $hsla_regexp, $color_str, $match ) ) {
++	if ( preg_match( \wp_aot_regex_text( $hsla_regexp ), \wp_aot_regex_text( $color_str ), $match ) ) {
+ 		$rgb = wp_tinycolor_hsl_to_rgb(
+ 			array(
+ 				'h' => $match[1],
+@@ -5075,7 +5286,7 @@
+ 	}
+ 
+ 	$hex8_regexp = '/^#?([0-9a-fA-F]{2})([0-9a-fA-F]{2})([0-9a-fA-F]{2})([0-9a-fA-F]{2})$/';
+-	if ( preg_match( $hex8_regexp, $color_str, $match ) ) {
++	if ( preg_match( \wp_aot_regex_text( $hex8_regexp ), \wp_aot_regex_text( $color_str ), $match ) ) {
+ 		$rgb = wp_tinycolor_rgb_to_rgb(
+ 			array(
+ 				'r' => base_convert( $match[1], 16, 10 ),
+@@ -5092,7 +5303,7 @@
+ 	}
+ 
+ 	$hex6_regexp = '/^#?([0-9a-fA-F]{2})([0-9a-fA-F]{2})([0-9a-fA-F]{2})$/';
+-	if ( preg_match( $hex6_regexp, $color_str, $match ) ) {
++	if ( preg_match( \wp_aot_regex_text( $hex6_regexp ), \wp_aot_regex_text( $color_str ), $match ) ) {
+ 		$rgb = wp_tinycolor_rgb_to_rgb(
+ 			array(
+ 				'r' => base_convert( $match[1], 16, 10 ),
+@@ -5107,7 +5318,7 @@
+ 	}
+ 
+ 	$hex4_regexp = '/^#?([0-9a-fA-F]{1})([0-9a-fA-F]{1})([0-9a-fA-F]{1})([0-9a-fA-F]{1})$/';
+-	if ( preg_match( $hex4_regexp, $color_str, $match ) ) {
++	if ( preg_match( \wp_aot_regex_text( $hex4_regexp ), \wp_aot_regex_text( $color_str ), $match ) ) {
+ 		$rgb = wp_tinycolor_rgb_to_rgb(
+ 			array(
+ 				'r' => base_convert( $match[1] . $match[1], 16, 10 ),
+@@ -5124,7 +5335,7 @@
+ 	}
+ 
+ 	$hex3_regexp = '/^#?([0-9a-fA-F]{1})([0-9a-fA-F]{1})([0-9a-fA-F]{1})$/';
+-	if ( preg_match( $hex3_regexp, $color_str, $match ) ) {
++	if ( preg_match( \wp_aot_regex_text( $hex3_regexp ), \wp_aot_regex_text( $color_str ), $match ) ) {
+ 		$rgb = wp_tinycolor_rgb_to_rgb(
+ 			array(
+ 				'r' => base_convert( $match[1] . $match[1], 16, 10 ),
+@@ -5150,6 +5361,7 @@
+ 			'a' => 0,
+ 		);
+ 	}
++	return null;
+ }
+ 
+ /**
+@@ -5163,9 +5375,10 @@
+  * @param array $preset Duotone preset value as seen in theme.json.
+  * @return string Duotone filter CSS id.
+  */
+-function wp_get_duotone_filter_id( $preset ) {
++function wp_get_duotone_filter_id( mixed $preset ): mixed {
+ 	_deprecated_function( __FUNCTION__, '6.3.0' );
+ 	return WP_Duotone::get_filter_id_from_preset( $preset );
++	return null;
+ }
+ 
+ /**
+@@ -5180,9 +5393,10 @@
+  * @param array $preset Duotone preset value as seen in theme.json.
+  * @return string Duotone CSS filter property url value.
+  */
+-function wp_get_duotone_filter_property( $preset ) {
++function wp_get_duotone_filter_property( mixed $preset ): mixed {
+ 	_deprecated_function( __FUNCTION__, '6.3.0' );
+ 	return WP_Duotone::get_filter_css_property_value_from_preset( $preset );
++	return null;
+ }
+ 
+ /**
+@@ -5196,9 +5410,10 @@
+  * @param array $preset Duotone preset value as seen in theme.json.
+  * @return string Duotone SVG filter.
+  */
+-function wp_get_duotone_filter_svg( $preset ) {
++function wp_get_duotone_filter_svg( mixed $preset ): mixed {
+ 	_deprecated_function( __FUNCTION__, '6.3.0', 'WP_Duotone::get_filter_svg_from_preset()' );
+ 	return WP_Duotone::get_filter_svg_from_preset( $preset );
++	return null;
+ }
+ 
+ /**
+@@ -5211,9 +5426,10 @@
+  *
+  * @param WP_Block_Type $block_type Block Type.
+  */
+-function wp_register_duotone_support( $block_type ) {
++function wp_register_duotone_support( mixed $block_type ): mixed {
+ 	_deprecated_function( __FUNCTION__, '6.3.0', 'WP_Duotone::register_duotone_support()' );
+ 	return WP_Duotone::register_duotone_support( $block_type );
++	return null;
+ }
+ 
+ /**
+@@ -5229,10 +5445,11 @@
+  * @param array  $block         Block object.
+  * @return string Filtered block content.
+  */
+-function wp_render_duotone_support( $block_content, $block ) {
++function wp_render_duotone_support( mixed $block_content, mixed $block ): mixed {
+ 	_deprecated_function( __FUNCTION__, '6.3.0', 'WP_Duotone::render_duotone_support()' );
+ 	$wp_block = new WP_Block( $block );
+ 	return WP_Duotone::render_duotone_support( $block_content, $block, $wp_block );
++	return null;
+ }
+ 
+ /**
+@@ -5243,7 +5460,7 @@
+  *
+  * @return string
+  */
+-function wp_get_global_styles_svg_filters() {
++function wp_get_global_styles_svg_filters(): mixed {
+ 	_deprecated_function( __FUNCTION__, '6.3.0' );
+ 
+ 	/*
+@@ -5275,6 +5492,7 @@
+ 	}
+ 
+ 	return $svgs;
++	return null;
+ }
+ 
+ /**
+@@ -5288,7 +5506,7 @@
+  * @since 5.9.1
+  * @deprecated 6.3.0 SVG generation is handled on a per-block basis in block supports.
+  */
+-function wp_global_styles_render_svg_filters() {
++function wp_global_styles_render_svg_filters(): mixed {
+ 	_deprecated_function( __FUNCTION__, '6.3.0' );
+ 
+ 	/*
+@@ -5299,13 +5517,14 @@
+ 		is_admin() &&
+ 		! get_current_screen()->is_block_editor()
+ 	) {
+-		return;
++		return null;
+ 	}
+ 
+ 	$filters = wp_get_global_styles_svg_filters();
+ 	if ( ! empty( $filters ) ) {
+ 		echo $filters;
+ 	}
++	return null;
+ }
+ 
+ /**
+@@ -5322,7 +5541,7 @@
+  * @param  bool  $is_sub_menu Whether the block is a sub-menu.
+  * @return array Colors CSS classes and inline styles.
+  */
+-function block_core_navigation_submenu_build_css_colors( $context, $attributes, $is_sub_menu = false ) {
++function block_core_navigation_submenu_build_css_colors( mixed $context, mixed $attributes, mixed $is_sub_menu = false ): mixed {
+ 	_deprecated_function( __FUNCTION__, '6.3.0' );
+ 	$colors = array(
+ 		'css_classes'   => array(),
+@@ -5348,7 +5567,7 @@
+ 	// If has text color.
+ 	if ( ! is_null( $named_text_color ) ) {
+ 		// Add the color class.
+-		array_push( $colors['css_classes'], 'has-text-color', sprintf( 'has-%s-color', $named_text_color ) );
++		\wp_aot_array_push( $colors['css_classes'],array( 'has-text-color', sprintf( 'has-%s-color', $named_text_color ) ));
+ 	} elseif ( ! is_null( $custom_text_color ) ) {
+ 		// Add the custom color inline style.
+ 		$colors['css_classes'][]  = 'has-text-color';
+@@ -5374,7 +5593,7 @@
+ 	// If has background color.
+ 	if ( ! is_null( $named_background_color ) ) {
+ 		// Add the background-color class.
+-		array_push( $colors['css_classes'], 'has-background', sprintf( 'has-%s-background-color', $named_background_color ) );
++		\wp_aot_array_push( $colors['css_classes'],array( 'has-background', sprintf( 'has-%s-background-color', $named_background_color ) ));
+ 	} elseif ( ! is_null( $custom_background_color ) ) {
+ 		// Add the custom background-color inline style.
+ 		$colors['css_classes'][]  = 'has-background';
+@@ -5382,6 +5601,7 @@
+ 	}
+ 
+ 	return $colors;
++	return null;
+ }
+ 
+ /**
+@@ -5413,16 +5633,16 @@
+  * @deprecated 6.4.0 Use wp_print_font_faces() instead.
+  * @access private
+  */
+-function _wp_theme_json_webfonts_handler() {
++function _wp_theme_json_webfonts_handler(): mixed {
+ 	_deprecated_function( __FUNCTION__, '6.4.0', 'wp_print_font_faces' );
+ 
+ 	// Block themes are unavailable during installation.
+ 	if ( wp_installing() ) {
+-		return;
++		return null;
+ 	}
+ 
+ 	if ( ! wp_theme_has_theme_json() ) {
+-		return;
++		return null;
+ 	}
+ 
+ 	// Webfonts to be processed.
+@@ -5460,8 +5680,8 @@
+ 				}
+ 
+ 				// Combine variations with settings. Remove duplicates.
+-				$settings['typography']['fontFamilies']['theme'] = array_merge( $settings['typography']['fontFamilies']['theme'], $variation['settings']['typography']['fontFamilies']['theme'] );
+-				$settings['typography']['fontFamilies']          = array_unique( $settings['typography']['fontFamilies'] );
++				$settings['typography']['fontFamilies']['theme'] = \wp_aot_array_merge(array( $settings['typography']['fontFamilies']['theme'], $variation['settings']['typography']['fontFamilies']['theme'] ));
++				$settings['typography']['fontFamilies']          = \wp_aot_array_unique( $settings['typography']['fontFamilies'] );
+ 			}
+ 		}
+ 
+@@ -5486,7 +5706,7 @@
+ 					continue;
+ 				}
+ 
+-				$webfonts = array_merge( $webfonts, $font_family['fontFace'] );
++				$webfonts = \wp_aot_array_merge(array( $webfonts, $font_family['fontFace'] ));
+ 			}
+ 		}
+ 
+@@ -5513,7 +5733,7 @@
+ 				continue;
+ 			}
+ 
+-			$src[ $key ] = get_theme_file_uri( str_replace( 'file:./', '', $url ) );
++			$src[ $key ] = get_theme_file_uri( \wp_aot_str_replace( 'file:./', '', $url ) );
+ 		}
+ 
+ 		return $src;
+@@ -5547,7 +5767,7 @@
+ 	 * @param array $webfont The webfont arguments.
+ 	 * @return array|false The validated webfont arguments, or false if the webfont is invalid.
+ 	 */
+-	$fn_validate_webfont = static function( $webfont ) {
++	$fn_validate_webfont = static function( mixed $webfont ) {
+ 		$webfont = wp_parse_args(
+ 				$webfont,
+ 				array(
+@@ -5638,7 +5858,7 @@
+ 				continue;
+ 			}
+ 
+-			$webfont = $fn_convert_keys_to_kebab_case( $webfont );
++			$webfont = $fn_convert_keys_to_kebab_case( \wp_aot_require_array($webfont) );
+ 
+ 			$webfont = $fn_validate_webfont( $webfont );
+ 
+@@ -5732,7 +5952,7 @@
+ 	 * @param array  $value       Value to process.
+ 	 * @return string The CSS.
+ 	 */
+-	$fn_compile_src = static function( $font_family, array $value ) {
++	$fn_compile_src = static function( mixed $font_family, array $value ) {
+ 		$src = '';
+ 
+ 		foreach ( $value as $item ) {
+@@ -5798,12 +6018,12 @@
+ 
+ 			// Compile the "src" parameter.
+ 			if ( 'src' === $key ) {
+-				$value = $fn_compile_src( $webfont['font-family'], $value );
++				$value = $fn_compile_src( $webfont['font-family'], \wp_aot_require_array($value) );
+ 			}
+ 
+ 			// If font-variation-settings is an array, convert it to a string.
+ 			if ( 'font-variation-settings' === $key && is_array( $value ) ) {
+-				$value = $fn_compile_variations( $value );
++				$value = $fn_compile_variations( \wp_aot_require_array($value) );
+ 			}
+ 
+ 			if ( ! empty( $value ) ) {
+@@ -5830,10 +6050,10 @@
+ 
+ 		foreach ( $registered_webfonts as $webfont ) {
+ 			// Order the webfont's `src` items to optimize for browser support.
+-			$webfont = $fn_order_src( $webfont );
++			$webfont = $fn_order_src( \wp_aot_require_array($webfont) );
+ 
+ 			// Build the @font-face CSS for this webfont.
+-			$css .= '@font-face{' . $fn_build_font_face_css( $webfont ) . '}';
++			$css .= '@font-face{' . $fn_build_font_face_css( \wp_aot_require_array($webfont) ) . '}';
+ 		}
+ 
+ 		return $css;
+@@ -5885,6 +6105,7 @@
+ 	add_action( 'wp_loaded', $fn_register_webfonts );
+ 	add_action( 'wp_enqueue_scripts', $fn_generate_and_enqueue_styles );
+ 	add_action( 'admin_init', $fn_generate_and_enqueue_editor_styles );
++	return null;
+ }
+ 
+ /**
+@@ -5893,15 +6114,17 @@
+  * @since 4.4.0
+  * @deprecated 6.4.0 Use wp_enqueue_embed_styles() instead.
+  */
+-function print_embed_styles() {
++function print_embed_styles(): mixed {
  	_deprecated_function( __FUNCTION__, '6.4.0', 'wp_enqueue_embed_styles' );
  
  	$suffix = SCRIPT_DEBUG ? '' : '.min';
@@ -28,10 +3662,25 @@
 +echo file_get_contents( ABSPATH . WPINC . "/css/wp-embed-template$suffix.css" ); ;
 +echo '	</style>
 +	';
++	return null;
  }
  
  /**
-@@ -5920,8 +5921,8 @@
+@@ -5910,18 +6133,19 @@
+  * @since 4.2.0
+  * @deprecated 6.4.0 Use wp_enqueue_emoji_styles() instead.
+  */
+-function print_emoji_styles() {
++function print_emoji_styles(): mixed {
+ 	_deprecated_function( __FUNCTION__, '6.4.0', 'wp_enqueue_emoji_styles' );
+-	static $printed = false;
++	static $printed_aot_cell = new \WordPressStaticFalseCell();
++	$printed =& $printed_aot_cell->value;
+ 
+ 	if ( $printed ) {
+-		return;
++		return null;
+ 	}
  
  	$printed = true;
  
@@ -42,18 +3691,22 @@
  	img.wp-smiley,
  	img.emoji {
  		display: inline !important;
-@@ -5935,7 +5936,7 @@
+@@ -5935,7 +6159,8 @@
  		padding: 0 !important;
  	}
  	</style>
 -	<?php
 +	';
++	return null;
  }
  
  /**
-@@ -5946,9 +5947,9 @@
+@@ -5944,11 +6169,12 @@
+  * @since 3.1.0
+  * @deprecated 6.4.0 Use wp_enqueue_admin_bar_header_styles() instead.
   */
- function wp_admin_bar_header() {
+-function wp_admin_bar_header() {
++function wp_admin_bar_header(): mixed {
  	_deprecated_function( __FUNCTION__, '6.4.0', 'wp_enqueue_admin_bar_header_styles' );
 -	?>
 -	<style media="print">#wpadminbar { display:none; }</style>
@@ -61,12 +3714,16 @@
 +	;
 +echo '	<style media="print">#wpadminbar { display:none; }</style>
 +	';
++	return null;
  }
  
  /**
-@@ -5959,14 +5960,14 @@
+@@ -5957,16 +6183,17 @@
+  * @since 3.1.0
+  * @deprecated 6.4.0 Use wp_enqueue_admin_bar_bump_styles() instead.
   */
- function _admin_bar_bump_cb() {
+-function _admin_bar_bump_cb() {
++function _admin_bar_bump_cb(): mixed {
  	_deprecated_function( __FUNCTION__, '6.4.0', 'wp_enqueue_admin_bar_bump_styles' );
 -	?>
 -	<style media="screen">
@@ -79,10 +3736,66 @@
  	</style>
 -	<?php
 +	';
++	return null;
  }
  
  /**
-@@ -6069,13 +6070,15 @@
+@@ -5981,7 +6208,7 @@
+  *                    retrieved directly in Site Health and no longer used outside of Site Health.
+  * @access private
+  */
+-function wp_update_https_detection_errors() {
++function wp_update_https_detection_errors(): mixed {
+ 	_deprecated_function( __FUNCTION__, '6.4.0' );
+ 
+ 	/**
+@@ -5999,12 +6226,13 @@
+ 	$support_errors = apply_filters( 'pre_wp_update_https_detection_errors', null );
+ 	if ( is_wp_error( $support_errors ) ) {
+ 		update_option( 'https_detection_errors', $support_errors->errors, false );
+-		return;
++		return null;
+ 	}
+ 
+ 	$support_errors = wp_get_https_detection_errors();
+ 
+ 	update_option( 'https_detection_errors', $support_errors );
++	return null;
+ }
+ 
+ /**
+@@ -6026,7 +6254,7 @@
+  * @param string $context Additional context to pass to the filters.
+  * @return string Converted `img` tag with `decoding` attribute added.
+  */
+-function wp_img_tag_add_decoding_attr( $image, $context ) {
++function wp_img_tag_add_decoding_attr( mixed $image, mixed $context ): mixed {
+ 	_deprecated_function( __FUNCTION__, '6.4.0', 'wp_img_tag_add_loading_optimization_attrs()' );
+ 
+ 	/*
+@@ -6041,10 +6269,11 @@
+ 	$value = apply_filters( 'wp_img_tag_add_decoding_attr', 'async', $image, $context );
+ 
+ 	if ( in_array( $value, array( 'async', 'sync', 'auto' ), true ) ) {
+-		$image = str_replace( '<img ', '<img decoding="' . esc_attr( $value ) . '" ', $image );
++		$image = \wp_aot_str_replace( '<img ', '<img decoding="' . esc_attr( $value ) . '" ', $image );
+ 	}
+ 
+ 	return $image;
++	return null;
+ }
+ 
+ /**
+@@ -6058,7 +6287,7 @@
+  * @param string $template_content serialized wp_template content.
+  * @return string Updated 'wp_template' content.
+  */
+-function _inject_theme_attribute_in_block_template_content( $template_content ) {
++function _inject_theme_attribute_in_block_template_content( mixed $template_content ): mixed {
+ 	_deprecated_function(
+ 		__FUNCTION__,
+ 		'6.4.0',
+@@ -6069,13 +6298,15 @@
  	$new_content         = '';
  	$template_blocks     = parse_blocks( $template_content );
  
@@ -100,7 +3813,24 @@
  			$has_updated_content     = true;
  		}
  	}
-@@ -6112,10 +6115,12 @@
+@@ -6089,6 +6320,7 @@
+ 	}
+ 
+ 	return $template_content;
++	return null;
+ }
+ 
+ /**
+@@ -6101,7 +6333,7 @@
+  * @param string $template_content Serialized block template content.
+  * @return string Updated block template content.
+  */
+-function _remove_theme_attribute_in_block_template_content( $template_content ) {
++function _remove_theme_attribute_in_block_template_content( mixed $template_content ): mixed {
+ 	_deprecated_function(
+ 		__FUNCTION__,
+ 		'6.4.0',
+@@ -6112,10 +6344,12 @@
  	$new_content         = '';
  	$template_blocks     = parse_blocks( $template_content );
  
@@ -116,13 +3846,39 @@
  			$has_updated_content = true;
  		}
  	}
-@@ -6154,14 +6159,14 @@
- 	if ( ! $_wp_current_template_content ) {
- 		return;
+@@ -6129,6 +6363,7 @@
  	}
+ 
+ 	return $new_content;
++	return null;
+ }
+ 
+ /**
+@@ -6140,28 +6375,28 @@
+  *
+  * @global string $_wp_current_template_content
+  */
+-function the_block_template_skip_link() {
++function the_block_template_skip_link(): mixed {
+ 	_deprecated_function( __FUNCTION__, '6.4.0', 'wp_enqueue_block_template_skip_link()' );
+ 
+ 	global $_wp_current_template_content;
+ 
+ 	// Early exit if not a block theme.
+ 	if ( ! current_theme_supports( 'block-templates' ) ) {
+-		return;
++		return null;
+ 	}
+ 
+ 	// Early exit if not a block template.
+ 	if ( ! $_wp_current_template_content ) {
+-		return;
+-	}
 -	?>
 -
 -	<?php
++		return null;
++	}
 +	;
 +echo '
 +	';
@@ -136,7 +3892,7 @@
  		.skip-link.screen-reader-text {
  			border: 0;
  			clip-path: inset(50%);
-@@ -6192,19 +6197,19 @@
+@@ -6192,19 +6427,19 @@
  			z-index: 100000;
  		}
  	</style>
@@ -161,7 +3917,7 @@
  		if ( ! skipLinkTarget ) {
  			return;
  		}
-@@ -6213,31 +6218,33 @@
+@@ -6213,31 +6448,34 @@
  		 * Get the site wrapper.
  		 * The skip-link will be injected in the beginning of it.
  		 */
@@ -200,19 +3956,189 @@
  	</script>
 -	<?php
 +	';
++	return null;
  }
  
  /**
-@@ -6482,9 +6489,9 @@
- 		return;
+@@ -6246,8 +6484,9 @@
+  * @since 6.4.0
+  * @deprecated 6.5.0
+  */
+-function block_core_query_ensure_interactivity_dependency() {
++function block_core_query_ensure_interactivity_dependency(): mixed {
+ 	_deprecated_function( __FUNCTION__, '6.5.0', 'wp_register_script_module' );
++	return null;
+ }
+ 
+ /**
+@@ -6256,8 +6495,9 @@
+  * @since 6.4.0
+  * @deprecated 6.5.0
+  */
+-function block_core_file_ensure_interactivity_dependency() {
++function block_core_file_ensure_interactivity_dependency(): mixed {
+ 	_deprecated_function( __FUNCTION__, '6.5.0', 'wp_register_script_module' );
++	return null;
+ }
+ 
+ /**
+@@ -6266,8 +6506,9 @@
+  * @since 6.4.0
+  * @deprecated 6.5.0
+  */
+-function block_core_image_ensure_interactivity_dependency() {
++function block_core_image_ensure_interactivity_dependency(): mixed {
+ 	_deprecated_function( __FUNCTION__, '6.5.0', 'wp_register_script_module' );
++	return null;
+ }
+ 
+ /**
+@@ -6283,9 +6524,10 @@
+  * @param array  $block         Block object.
+  * @return string Filtered block content.
+  */
+-function wp_render_elements_support( $block_content, $block ) {
++function wp_render_elements_support( mixed $block_content, mixed $block ): mixed {
+ 	_deprecated_function( __FUNCTION__, '6.6.0', 'wp_render_elements_class_name' );
+ 	return $block_content;
++	return null;
+ }
+ 
+ /**
+@@ -6315,7 +6557,7 @@
+  *
+  * @return string The global styles custom CSS.
+  */
+-function wp_get_global_styles_custom_css() {
++function wp_get_global_styles_custom_css(): mixed {
+ 	_deprecated_function( __FUNCTION__, '6.7.0', 'wp_get_global_stylesheet' );
+ 	if ( ! wp_theme_has_theme_json() ) {
+ 		return '';
+@@ -6359,6 +6601,7 @@
  	}
  
+ 	return $stylesheet;
++	return null;
+ }
+ 
+ /**
+@@ -6367,10 +6610,10 @@
+  * @since 6.2.0
+  * @deprecated 6.7.0 Use {@see 'wp_enqueue_global_styles'} instead.
+  */
+-function wp_enqueue_global_styles_custom_css() {
++function wp_enqueue_global_styles_custom_css(): mixed {
+ 	_deprecated_function( __FUNCTION__, '6.7.0', 'wp_enqueue_global_styles' );
+ 	if ( ! wp_is_block_theme() ) {
+-		return;
++		return null;
+ 	}
+ 
+ 	// Don't enqueue Customizer's custom CSS separately.
+@@ -6382,6 +6625,7 @@
+ 	if ( ! empty( $custom_css ) ) {
+ 		wp_add_inline_style( 'global-styles', $custom_css );
+ 	}
++	return null;
+ }
+ 
+ /**
+@@ -6397,9 +6641,10 @@
+  *
+  * @return string The unique variation name.
+  */
+-function wp_create_block_style_variation_instance_name( $block, $variation ) {
++function wp_create_block_style_variation_instance_name( mixed $block, mixed $variation ): mixed {
+ 	_deprecated_function( __FUNCTION__, '6.7.0', 'wp_unique_id' );
+ 	return $variation . '--' . md5( serialize( $block ) );
++	return null;
+ }
+ 
+ /**
+@@ -6416,8 +6661,9 @@
+  * @param mixed  ...$args    Optional further parameters, typically starting with an object ID.
+  * @return bool Whether the user has the given capability.
+  */
+-function current_user_can_for_blog( $blog_id, $capability, ...$args ) {
++function current_user_can_for_blog( mixed $blog_id, mixed $capability, mixed ...$args ): mixed {
+ 	return current_user_can_for_site( $blog_id, $capability, ...$args );
++	return null;
+ }
+ 
+ /**
+@@ -6432,7 +6678,7 @@
+  * @param array $editor_settings The array of editor settings.
+  * @return array A filtered array of editor settings.
+  */
+-function wp_add_editor_classic_theme_styles( $editor_settings ) {
++function wp_add_editor_classic_theme_styles( mixed $editor_settings ): mixed {
+ 	_deprecated_function( __FUNCTION__, '6.8.0', 'wp_enqueue_classic_theme_styles' );
+ 
+ 	if ( wp_theme_has_theme_json() ) {
+@@ -6454,9 +6700,10 @@
+ 	);
+ 
+ 	// Add these settings to the start of the array so that themes can override them.
+-	array_unshift( $editor_settings['styles'], $classic_theme_styles_settings );
++	\wp_aot_array_unshift( $editor_settings['styles'],array( $classic_theme_styles_settings ));
+ 
+ 	return $editor_settings;
++	return null;
+ }
+ 
+ /**
+@@ -6473,18 +6720,19 @@
+  * @see https://core.trac.wordpress.org/ticket/62413
+  * @see https://core.trac.wordpress.org/ticket/62731
+  */
+-function wp_print_auto_sizes_contain_css_fix() {
++function wp_print_auto_sizes_contain_css_fix(): mixed {
+ 	_deprecated_function( __FUNCTION__, '6.9.0', 'wp_enqueue_img_auto_sizes_contain_css_fix' );
+ 
+ 	/** This filter is documented in wp-includes/media.php */
+ 	$add_auto_sizes = apply_filters( 'wp_img_tag_add_auto_sizes', true );
+ 	if ( ! $add_auto_sizes ) {
+-		return;
+-	}
+-
 -	?>
 -	<style>img:is([sizes="auto" i], [sizes^="auto," i]) { contain-intrinsic-size: 3000px 1500px }</style>
 -	<?php
++		return null;
++	}
++
 +	;
 +echo '	<style>img:is([sizes="auto" i], [sizes^="auto," i]) { contain-intrinsic-size: 3000px 1500px }</style>
 +	';
++	return null;
  }
  
  /**
+@@ -6500,9 +6748,10 @@
+  * @param string|array $gpc String or array of data to slash.
+  * @return string|array Slashed `$gpc`.
+  */
+-function addslashes_gpc( $gpc ) {
++function addslashes_gpc( mixed $gpc ): mixed {
+ 	_deprecated_function( __FUNCTION__, '7.0.0', 'wp_slash()' );
+ 	return wp_slash( $gpc );
++	return null;
+ }
+ 
+ /**
+@@ -6518,7 +6767,7 @@
+  * @param array<string, string|bool> $attributes Key-value pairs representing `<script>` tag attributes.
+  * @return string String made of sanitized `<script>` tag attributes.
+  */
+-function wp_sanitize_script_attributes( $attributes ) {
++function wp_sanitize_script_attributes( mixed $attributes ): mixed {
+ 	_deprecated_function( __FUNCTION__, '7.0.0', 'wp_get_script_tag() or wp_get_inline_script_tag()' );
+ 
+ 	$attributes_string = '';
+@@ -6532,4 +6781,5 @@
+ 		}
+ 	}
+ 	return $attributes_string;
+-}
++	return null;
++}

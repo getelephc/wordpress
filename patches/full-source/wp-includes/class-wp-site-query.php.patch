@@ -1,15 +1,56 @@
 --- a/wp-includes/class-wp-site-query.php
 +++ b/wp-includes/class-wp-site-query.php
-@@ -254,7 +254,7 @@
+@@ -185,7 +185,7 @@
+ 	 *                                                   See WP_Meta_Query::__construct() for accepted values.
+ 	 * }
+ 	 */
+-	public function __construct( $query = '' ) {
++	public function __construct( mixed $query = '' ) {
+ 		$this->query_var_defaults = array(
+ 			'fields'                 => '',
+ 			'ID'                     => '',
+@@ -240,7 +240,7 @@
+ 	 *
+ 	 * @param string|array $query Array or string of WP_Site_Query arguments. See WP_Site_Query::__construct().
+ 	 */
+-	public function parse_query( $query = '' ) {
++	public function parse_query( mixed $query = '' ): mixed {
+ 		if ( empty( $query ) ) {
+ 			$query = $this->query_vars;
+ 		}
+@@ -254,7 +254,8 @@
  		 *
  		 * @param WP_Site_Query $query The WP_Site_Query instance (passed by reference).
  		 */
 -		do_action_ref_array( 'parse_site_query', array( &$this ) );
 +		do_action_ref_array( 'parse_site_query', array( $this ) );
++		return null;
  	}
  
  	/**
-@@ -298,7 +298,7 @@
+@@ -266,10 +267,11 @@
+ 	 * @return WP_Site[]|int[]|int List of WP_Site objects, a list of site IDs when 'fields' is set to 'ids',
+ 	 *                             or the number of sites when 'count' is passed as a query var.
+ 	 */
+-	public function query( $query ) {
++	public function query( mixed $query ): mixed {
+ 		$this->query_vars = wp_parse_args( $query );
+ 
+ 		return $this->get_sites();
++		return null;
+ 	}
+ 
+ 	/**
+@@ -282,7 +284,7 @@
+ 	 * @return WP_Site[]|int[]|int List of WP_Site objects, a list of site IDs when 'fields' is set to 'ids',
+ 	 *                             or the number of sites when 'count' is passed as a query var.
+ 	 */
+-	public function get_sites() {
++	public function get_sites(): mixed {
+ 		global $wpdb;
+ 
+ 		$this->parse_query();
+@@ -298,7 +300,7 @@
  		 *
  		 * @param WP_Site_Query $query Current instance of WP_Site_Query (passed by reference).
  		 */
@@ -18,7 +59,7 @@
  
  		// Reparse query vars, in case they were modified in a 'pre_get_sites' callback.
  		$this->meta_query->parse_query_vars( $this->query_vars );
-@@ -338,7 +338,7 @@
+@@ -338,7 +340,7 @@
  		 *                                            or null to run the normal queries.
  		 * @param WP_Site_Query            $query     The WP_Site_Query instance, passed by reference.
  		 */
@@ -27,7 +68,20 @@
  
  		if ( null !== $site_data ) {
  			if ( is_array( $site_data ) && ! $this->query_vars['count'] ) {
-@@ -420,7 +420,7 @@
+@@ -386,10 +388,10 @@
+ 			return (int) $site_ids;
+ 		}
+ 
+-		$site_ids = array_map( 'intval', $site_ids );
++		$site_ids = \wp_aot_array_map( 'intval', $site_ids );
+ 
+ 		if ( $this->query_vars['update_site_meta_cache'] ) {
+-			wp_lazyload_site_meta( $site_ids );
++			wp_lazyload_site_meta( \wp_aot_array_input($site_ids ));
+ 		}
+ 
+ 		if ( 'ids' === $this->query_vars['fields'] ) {
+@@ -420,12 +422,13 @@
  		 * @param WP_Site[]     $_sites An array of WP_Site objects.
  		 * @param WP_Site_Query $query  Current instance of WP_Site_Query (passed by reference).
  		 */
@@ -35,13 +89,276 @@
 +		$_sites = apply_filters_ref_array( 'the_sites', array( $_sites, $this ) );
  
  		// Convert to WP_Site instances.
- 		$this->sites = array_map( 'get_site', $_sites );
-@@ -672,7 +672,7 @@
+-		$this->sites = array_map( 'get_site', $_sites );
++		$this->sites = \wp_aot_array_map( 'get_site', $_sites );
+ 
+ 		return $this->sites;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -437,7 +440,7 @@
+ 	 *
+ 	 * @return int|array A single count of site IDs if a count query. An array of site IDs if a full query.
+ 	 */
+-	protected function get_site_ids() {
++	protected function get_site_ids(): mixed {
+ 		global $wpdb;
+ 
+ 		$order = $this->parse_order( $this->query_vars['order'] );
+@@ -448,7 +451,7 @@
+ 		} elseif ( ! empty( $this->query_vars['orderby'] ) ) {
+ 			$ordersby = is_array( $this->query_vars['orderby'] ) ?
+ 				$this->query_vars['orderby'] :
+-				preg_split( '/[,\s]/', $this->query_vars['orderby'] );
++				\wp_aot_preg_split( '/[,\s]/', \wp_aot_regex_text( $this->query_vars['orderby'] ) );
+ 
+ 			$orderby_array = array();
+ 			foreach ( $ordersby as $_key => $_value ) {
+@@ -504,7 +507,7 @@
+ 		// Parse site IDs for an IN clause.
+ 		$site_id = absint( $this->query_vars['ID'] );
+ 		if ( ! empty( $site_id ) ) {
+-			$this->sql_clauses['where']['ID'] = $wpdb->prepare( "{$wpdb->blogs}.blog_id = %d", $site_id );
++			$this->sql_clauses['where']['ID'] = \wp_aot_require_wpdb( $wpdb )->prepare( "{$wpdb->blogs}.blog_id = %d", $site_id );
+ 		}
+ 
+ 		// Parse site IDs for an IN clause.
+@@ -520,7 +523,7 @@
+ 		$network_id = absint( $this->query_vars['network_id'] );
+ 
+ 		if ( ! empty( $network_id ) ) {
+-			$this->sql_clauses['where']['network_id'] = $wpdb->prepare( 'site_id = %d', $network_id );
++			$this->sql_clauses['where']['network_id'] = \wp_aot_require_wpdb( $wpdb )->prepare( 'site_id = %d', $network_id );
+ 		}
+ 
+ 		// Parse site network IDs for an IN clause.
+@@ -534,61 +537,61 @@
+ 		}
+ 
+ 		if ( ! empty( $this->query_vars['domain'] ) ) {
+-			$this->sql_clauses['where']['domain'] = $wpdb->prepare( 'domain = %s', $this->query_vars['domain'] );
++			$this->sql_clauses['where']['domain'] = \wp_aot_require_wpdb( $wpdb )->prepare( 'domain = %s', $this->query_vars['domain'] );
+ 		}
+ 
+ 		// Parse site domain for an IN clause.
+ 		if ( is_array( $this->query_vars['domain__in'] ) ) {
+-			$this->sql_clauses['where']['domain__in'] = "domain IN ( '" . implode( "', '", $wpdb->_escape( $this->query_vars['domain__in'] ) ) . "' )";
++			$this->sql_clauses['where']['domain__in'] = "domain IN ( '" . implode( "', '", \wp_aot_require_wpdb( $wpdb )->_escape( $this->query_vars['domain__in'] ) ) . "' )";
+ 		}
+ 
+ 		// Parse site domain for a NOT IN clause.
+ 		if ( is_array( $this->query_vars['domain__not_in'] ) ) {
+-			$this->sql_clauses['where']['domain__not_in'] = "domain NOT IN ( '" . implode( "', '", $wpdb->_escape( $this->query_vars['domain__not_in'] ) ) . "' )";
++			$this->sql_clauses['where']['domain__not_in'] = "domain NOT IN ( '" . implode( "', '", \wp_aot_require_wpdb( $wpdb )->_escape( $this->query_vars['domain__not_in'] ) ) . "' )";
+ 		}
+ 
+ 		if ( ! empty( $this->query_vars['path'] ) ) {
+-			$this->sql_clauses['where']['path'] = $wpdb->prepare( 'path = %s', $this->query_vars['path'] );
++			$this->sql_clauses['where']['path'] = \wp_aot_require_wpdb( $wpdb )->prepare( 'path = %s', $this->query_vars['path'] );
+ 		}
+ 
+ 		// Parse site path for an IN clause.
+ 		if ( is_array( $this->query_vars['path__in'] ) ) {
+-			$this->sql_clauses['where']['path__in'] = "path IN ( '" . implode( "', '", $wpdb->_escape( $this->query_vars['path__in'] ) ) . "' )";
++			$this->sql_clauses['where']['path__in'] = "path IN ( '" . implode( "', '", \wp_aot_require_wpdb( $wpdb )->_escape( $this->query_vars['path__in'] ) ) . "' )";
+ 		}
+ 
+ 		// Parse site path for a NOT IN clause.
+ 		if ( is_array( $this->query_vars['path__not_in'] ) ) {
+-			$this->sql_clauses['where']['path__not_in'] = "path NOT IN ( '" . implode( "', '", $wpdb->_escape( $this->query_vars['path__not_in'] ) ) . "' )";
++			$this->sql_clauses['where']['path__not_in'] = "path NOT IN ( '" . implode( "', '", \wp_aot_require_wpdb( $wpdb )->_escape( $this->query_vars['path__not_in'] ) ) . "' )";
+ 		}
+ 
+ 		if ( is_numeric( $this->query_vars['archived'] ) ) {
+ 			$archived                               = absint( $this->query_vars['archived'] );
+-			$this->sql_clauses['where']['archived'] = $wpdb->prepare( 'archived = %s ', absint( $archived ) );
++			$this->sql_clauses['where']['archived'] = \wp_aot_require_wpdb( $wpdb )->prepare( 'archived = %s ', absint( $archived ) );
+ 		}
+ 
+ 		if ( is_numeric( $this->query_vars['mature'] ) ) {
+ 			$mature                               = absint( $this->query_vars['mature'] );
+-			$this->sql_clauses['where']['mature'] = $wpdb->prepare( 'mature = %d ', $mature );
++			$this->sql_clauses['where']['mature'] = \wp_aot_require_wpdb( $wpdb )->prepare( 'mature = %d ', $mature );
+ 		}
+ 
+ 		if ( is_numeric( $this->query_vars['spam'] ) ) {
+ 			$spam                               = absint( $this->query_vars['spam'] );
+-			$this->sql_clauses['where']['spam'] = $wpdb->prepare( 'spam = %d ', $spam );
++			$this->sql_clauses['where']['spam'] = \wp_aot_require_wpdb( $wpdb )->prepare( 'spam = %d ', $spam );
+ 		}
+ 
+ 		if ( is_numeric( $this->query_vars['deleted'] ) ) {
+ 			$deleted                               = absint( $this->query_vars['deleted'] );
+-			$this->sql_clauses['where']['deleted'] = $wpdb->prepare( 'deleted = %d ', $deleted );
++			$this->sql_clauses['where']['deleted'] = \wp_aot_require_wpdb( $wpdb )->prepare( 'deleted = %d ', $deleted );
+ 		}
+ 
+ 		if ( is_numeric( $this->query_vars['public'] ) ) {
+ 			$public                               = absint( $this->query_vars['public'] );
+-			$this->sql_clauses['where']['public'] = $wpdb->prepare( 'public = %d ', $public );
++			$this->sql_clauses['where']['public'] = \wp_aot_require_wpdb( $wpdb )->prepare( 'public = %d ', $public );
+ 		}
+ 
+ 		if ( is_numeric( $this->query_vars['lang_id'] ) ) {
+ 			$lang_id                               = absint( $this->query_vars['lang_id'] );
+-			$this->sql_clauses['where']['lang_id'] = $wpdb->prepare( 'lang_id = %d ', $lang_id );
++			$this->sql_clauses['where']['lang_id'] = \wp_aot_require_wpdb( $wpdb )->prepare( 'lang_id = %d ', $lang_id );
+ 		}
+ 
+ 		// Parse site language IDs for an IN clause.
+@@ -603,10 +606,10 @@
+ 
+ 		// Falsey search strings are ignored.
+ 		if ( strlen( $this->query_vars['search'] ) ) {
+-			$search_columns = array();
++			$search_columns = \wp_aot_mixed(array());
+ 
+ 			if ( $this->query_vars['search_columns'] ) {
+-				$search_columns = array_intersect( $this->query_vars['search_columns'], array( 'domain', 'path' ) );
++				$search_columns = \wp_aot_array_intersect(array( $this->query_vars['search_columns'], array( 'domain', 'path' ) ));
+ 			}
+ 
+ 			if ( ! $search_columns ) {
+@@ -634,7 +637,7 @@
+ 			$this->date_query = new WP_Date_Query( $date_query, 'registered' );
+ 
+ 			// Strip leading 'AND'.
+-			$this->sql_clauses['where']['date_query'] = preg_replace( '/^\s*AND\s*/', '', $this->date_query->get_sql() );
++			$this->sql_clauses['where']['date_query'] = \wp_aot_preg_replace( '/^\s*AND\s*/', '', $this->date_query->get_sql() );
+ 		}
+ 
+ 		$join    = '';
+@@ -644,7 +647,7 @@
+ 			$join .= $this->meta_query_clauses['join'];
+ 
+ 			// Strip leading 'AND'.
+-			$this->sql_clauses['where']['meta_query'] = preg_replace( '/^\s*AND\s*/', '', $this->meta_query_clauses['where'] );
++			$this->sql_clauses['where']['meta_query'] = \wp_aot_preg_replace( '/^\s*AND\s*/', '', $this->meta_query_clauses['where'] );
+ 
+ 			if ( ! $this->query_vars['count'] ) {
+ 				$groupby = "{$wpdb->blogs}.blog_id";
+@@ -672,7 +675,7 @@
  		 * }
  		 * @param WP_Site_Query $query   Current instance of WP_Site_Query (passed by reference).
  		 */
 -		$clauses = apply_filters_ref_array( 'sites_clauses', array( compact( $pieces ), &$this ) );
-+		$clauses = apply_filters_ref_array( 'sites_clauses', array( compact( $pieces ), $this ) );
++		$clauses = apply_filters_ref_array( 'sites_clauses', array( \wp_aot_compact(get_defined_vars(), array( $pieces )), $this ) );
  
  		$fields  = $clauses['fields'] ?? '';
  		$join    = $clauses['join'] ?? '';
+@@ -714,12 +717,13 @@
+ 			 {$this->sql_clauses['limits']}";
+ 
+ 		if ( $this->query_vars['count'] ) {
+-			return (int) $wpdb->get_var( $this->request );
+-		}
+-
+-		$site_ids = $wpdb->get_col( $this->request );
+-
+-		return array_map( 'intval', $site_ids );
++			return (int) \wp_aot_require_wpdb( $wpdb )->get_var( $this->request );
++		}
++
++		$site_ids = \wp_aot_require_wpdb( $wpdb )->get_col( $this->request );
++
++		return \wp_aot_array_map( 'intval', $site_ids );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -730,7 +734,7 @@
+ 	 *
+ 	 * @global wpdb $wpdb WordPress database abstraction object.
+ 	 */
+-	private function set_found_sites() {
++	private function set_found_sites(): mixed {
+ 		global $wpdb;
+ 
+ 		if ( $this->query_vars['number'] && ! $this->query_vars['no_found_rows'] ) {
+@@ -744,8 +748,9 @@
+ 			 */
+ 			$found_sites_query = apply_filters( 'found_sites_query', 'SELECT FOUND_ROWS()', $this );
+ 
+-			$this->found_sites = (int) $wpdb->get_var( $found_sites_query );
+-		}
++			$this->found_sites = (int) \wp_aot_require_wpdb( $wpdb )->get_var( $found_sites_query );
++		}
++		return null;
+ 	}
+ 
+ 	/**
+@@ -759,21 +764,22 @@
+ 	 * @param string[] $columns Array of columns to search.
+ 	 * @return string Search SQL.
+ 	 */
+-	protected function get_search_sql( $search, $columns ) {
++	protected function get_search_sql( mixed $search, mixed $columns ): mixed {
+ 		global $wpdb;
+ 
+ 		if ( str_contains( $search, '*' ) ) {
+-			$like = '%' . implode( '%', array_map( array( $wpdb, 'esc_like' ), explode( '*', $search ) ) ) . '%';
++			$like = '%' . implode( '%', \wp_aot_array_map( array( $wpdb, 'esc_like' ), explode( '*', $search ) ) ) . '%';
+ 		} else {
+-			$like = '%' . $wpdb->esc_like( $search ) . '%';
++			$like = '%' . \wp_aot_require_wpdb( $wpdb )->esc_like( $search ) . '%';
+ 		}
+ 
+ 		$searches = array();
+ 		foreach ( $columns as $column ) {
+-			$searches[] = $wpdb->prepare( "$column LIKE %s", $like );
++			$searches[] = \wp_aot_require_wpdb( $wpdb )->prepare( "$column LIKE %s", $like );
+ 		}
+ 
+ 		return '(' . implode( ' OR ', $searches ) . ')';
++		return null;
+ 	}
+ 
+ 	/**
+@@ -786,18 +792,18 @@
+ 	 * @param string $orderby Alias for the field to order by.
+ 	 * @return string|false Value to used in the ORDER clause. False otherwise.
+ 	 */
+-	protected function parse_orderby( $orderby ) {
++	protected function parse_orderby( mixed $orderby ): mixed {
+ 		global $wpdb;
+ 
+-		$parsed = false;
++		$parsed = \wp_aot_mixed(false);
+ 
+ 		switch ( $orderby ) {
+ 			case 'site__in':
+-				$site__in = implode( ',', array_map( 'absint', $this->query_vars['site__in'] ) );
++				$site__in = implode( ',', \wp_aot_array_map( 'absint', $this->query_vars['site__in'] ) );
+ 				$parsed   = "FIELD( {$wpdb->blogs}.blog_id, $site__in )";
+ 				break;
+ 			case 'network__in':
+-				$network__in = implode( ',', array_map( 'absint', $this->query_vars['network__in'] ) );
++				$network__in = implode( ',', \wp_aot_array_map( 'absint', $this->query_vars['network__in'] ) );
+ 				$parsed      = "FIELD( {$wpdb->blogs}.site_id, $network__in )";
+ 				break;
+ 			case 'domain':
+@@ -858,6 +864,7 @@
+ 		}
+ 
+ 		return $parsed;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -868,7 +875,7 @@
+ 	 * @param string $order The 'order' query variable.
+ 	 * @return string The sanitized 'order' query variable.
+ 	 */
+-	protected function parse_order( $order ) {
++	protected function parse_order( mixed $order ): mixed {
+ 		if ( ! is_string( $order ) || empty( $order ) ) {
+ 			return 'ASC';
+ 		}
+@@ -878,5 +885,6 @@
+ 		} else {
+ 			return 'DESC';
+ 		}
++		return null;
+ 	}
+ }

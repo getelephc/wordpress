@@ -1,0 +1,147 @@
+--- a/wp-includes/SimplePie/src/Cache/MySQL.php
++++ b/wp-includes/SimplePie/src/Cache/MySQL.php
+@@ -48,7 +48,7 @@
+      * @param string $name Unique ID for the cache
+      * @param Base::TYPE_FEED|Base::TYPE_IMAGE $type Either TYPE_FEED for SimplePie data, or TYPE_IMAGE for image data
+      */
+-    public function __construct(string $location, string $name, $type)
++    public function __construct(string $location, string $name, mixed $type)
+     {
+         $this->options = [
+             'user' => null,
+@@ -62,13 +62,13 @@
+             ],
+         ];
+ 
+-        $this->options = array_replace_recursive($this->options, \SimplePie\Cache::parse_URL($location));
++        $this->options = \wp_aot_array_replace_recursive(array($this->options, \SimplePie\Cache::parse_URL($location)));
+ 
+         // Path is prefixed with a "/"
+         $this->options['dbname'] = substr($this->options['path'], 1);
+ 
+         try {
+-            $this->mysql = new \PDO("mysql:dbname={$this->options['dbname']};host={$this->options['host']};port={$this->options['port']}", $this->options['user'], $this->options['pass'], [\PDO::MYSQL_ATTR_INIT_COMMAND => 'SET NAMES utf8']);
++            $this->mysql = new \PDO("mysql:dbname={$this->options['dbname']};host={$this->options['host']};port={$this->options['port']}", $this->options['user'], $this->options['pass'], [\wp_aot_metadata_constant('PDO::MYSQL_ATTR_INIT_COMMAND') => 'SET NAMES utf8']);
+         } catch (\PDOException $e) {
+             $this->mysql = null;
+             return;
+@@ -76,7 +76,7 @@
+ 
+         $this->id = $name . $type;
+ 
+-        if (!$query = $this->mysql->query('SHOW TABLES')) {
++        if (!$query = \wp_aot_mixed($this->mysql->query('SHOW TABLES'))) {
+             $this->mysql = null;
+             return;
+         }
+@@ -111,7 +111,7 @@
+      * @param array<string>|\SimplePie\SimplePie $data Data to store in the cache. If passed a SimplePie object, only cache the $data property
+      * @return bool Successfulness
+      */
+-    public function save($data)
++    public function save(mixed $data): mixed
+     {
+         if ($this->mysql === null) {
+             return false;
+@@ -178,7 +178,7 @@
+                             $existing_ids[] = $row;
+                         }
+ 
+-                        $new_ids = array_diff($ids, $existing_ids);
++                        $new_ids = \wp_aot_array_diff(array($ids, $existing_ids));
+ 
+                         foreach ($new_ids as $new_id) {
+                             if (!($date = $prepared[1][$new_id]->get_date('U'))) {
+@@ -224,6 +224,7 @@
+             }
+         }
+         return false;
++    	return null;
+     }
+ 
+     /**
+@@ -231,7 +232,7 @@
+      *
+      * @return array<string>|false Data for SimplePie::$data
+      */
+-    public function load()
++    public function load(): mixed
+     {
+         if ($this->mysql === null) {
+             return false;
+@@ -240,12 +241,12 @@
+         $query = $this->mysql->prepare('SELECT `items`, `data` FROM `' . $this->options['extras']['prefix'] . 'cache_data` WHERE `id` = :id');
+         $query->bindValue(':id', $this->id);
+         if ($query->execute() && ($row = $query->fetch())) {
+-            $data = unserialize($row[1]);
++            $data = unserialize(\wp_aot_mixed($row)[1]);
+ 
+             if (isset($this->options['items'][0])) {
+                 $items = (int) $this->options['items'][0];
+             } else {
+-                $items = (int) $row[0];
++                $items = (int) \wp_aot_mixed($row)[0];
+             }
+ 
+             if ($items !== 0) {
+@@ -281,6 +282,7 @@
+             return $data;
+         }
+         return false;
++    	return null;
+     }
+ 
+     /**
+@@ -288,7 +290,7 @@
+      *
+      * @return int|false Timestamp
+      */
+-    public function mtime()
++    public function mtime(): mixed
+     {
+         if ($this->mysql === null) {
+             return false;
+@@ -301,6 +303,7 @@
+         }
+ 
+         return false;
++    	return null;
+     }
+ 
+     /**
+@@ -308,7 +311,7 @@
+      *
+      * @return bool Success status
+      */
+-    public function touch()
++    public function touch(): mixed
+     {
+         if ($this->mysql === null) {
+             return false;
+@@ -319,6 +322,7 @@
+         $query->bindValue(':id', $this->id);
+ 
+         return $query->execute() && $query->rowCount() > 0;
++    	return null;
+     }
+ 
+     /**
+@@ -326,7 +330,7 @@
+      *
+      * @return bool Success status
+      */
+-    public function unlink()
++    public function unlink(): mixed
+     {
+         if ($this->mysql === null) {
+             return false;
+@@ -338,7 +342,8 @@
+         $query2->bindValue(':id', $this->id);
+ 
+         return $query->execute() && $query2->execute();
++    	return null;
+     }
+ }
+ 
+-class_alias('SimplePie\Cache\MySQL', 'SimplePie_Cache_MySQL');
++(!defined('WP_AOT_NATIVE_RUNTIME') && (bool) \wp_aot_native_api('class_alias', array('SimplePie\Cache\MySQL', 'SimplePie_Cache_MySQL')));

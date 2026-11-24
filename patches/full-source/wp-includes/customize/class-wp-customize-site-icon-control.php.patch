@@ -1,11 +1,22 @@
 --- a/wp-includes/customize/class-wp-customize-site-icon-control.php
 +++ b/wp-includes/customize/class-wp-customize-site-icon-control.php
-@@ -50,8 +50,8 @@
+@@ -39,7 +39,7 @@
+ 	 *                                      See WP_Customize_Control::__construct() for information
+ 	 *                                      on accepted arguments. Default empty array.
+ 	 */
+-	public function __construct( $manager, $id, $args = array() ) {
++	public function __construct( mixed $manager, mixed $id, mixed $args = array() ) {
+ 		parent::__construct( $manager, $id, $args );
+ 		add_action( 'customize_controls_print_styles', 'wp_site_icon', 99 );
+ 	}
+@@ -49,9 +49,9 @@
+ 	 *
  	 * @since 4.5.0
  	 */
- 	public function content_template() {
+-	public function content_template() {
 -		?>
 -		<# if ( data.label ) { #>
++	public function content_template(): mixed {
 +		;
 +echo '		<# if ( data.label ) { #>
  			<span class="customize-control-title">{{ data.label }}</span>
@@ -111,11 +122,12 @@
  					<# } #>
  				</div>
  			</div>
-@@ -138,6 +148,6 @@
+@@ -138,6 +148,7 @@
  		<# if ( data.description ) { #>
  			<span class="description customize-control-description">{{{ data.description }}}</span>
  		<# } #>
 -		<?php
 +		';
++		return null;
  	}
  }

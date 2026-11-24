@@ -1,0 +1,310 @@
+--- a/wp-includes/rest-api/fields/class-wp-rest-meta-fields.php
++++ b/wp-includes/rest-api/fields/class-wp-rest-meta-fields.php
+@@ -23,7 +23,7 @@
+ 	 * @return string One of 'post', 'comment', 'term', 'user', or anything
+ 	 *                else supported by `_get_meta_table()`.
+ 	 */
+-	abstract protected function get_meta_type();
++	abstract protected function get_meta_type(): mixed;
+ 
+ 	/**
+ 	 * Retrieves the object meta subtype.
+@@ -32,8 +32,9 @@
+ 	 *
+ 	 * @return string Subtype for the meta type, or empty string if no specific subtype.
+ 	 */
+-	protected function get_meta_subtype() {
++	protected function get_meta_subtype(): mixed {
+ 		return '';
++		return null;
+ 	}
+ 
+ 	/**
+@@ -43,7 +44,7 @@
+ 	 *
+ 	 * @return string The REST field type, such as post type name, taxonomy name, 'comment', or `user`.
+ 	 */
+-	abstract protected function get_rest_field_type();
++	abstract protected function get_rest_field_type(): mixed;
+ 
+ 	/**
+ 	 * Registers the meta field.
+@@ -53,7 +54,7 @@
+ 	 *
+ 	 * @see register_rest_field()
+ 	 */
+-	public function register_field() {
++	public function register_field(): mixed {
+ 		_deprecated_function( __METHOD__, '5.6.0' );
+ 
+ 		register_rest_field(
+@@ -65,6 +66,7 @@
+ 				'schema'          => $this->get_field_schema(),
+ 			)
+ 		);
++		return null;
+ 	}
+ 
+ 	/**
+@@ -76,7 +78,7 @@
+ 	 * @param WP_REST_Request $request   Full details about the request.
+ 	 * @return array Array containing the meta values keyed by name.
+ 	 */
+-	public function get_value( $object_id, $request ) {
++	public function get_value( mixed $object_id, mixed $request ): mixed {
+ 		$fields   = $this->get_registered_fields();
+ 		$response = array();
+ 
+@@ -106,6 +108,7 @@
+ 		}
+ 
+ 		return $response;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -122,12 +125,13 @@
+ 	 * @param array           $args    Options for the field.
+ 	 * @return mixed Prepared value.
+ 	 */
+-	protected function prepare_value_for_response( $value, $request, $args ) {
++	protected function prepare_value_for_response( mixed $value, mixed $request, mixed $args ): mixed {
+ 		if ( ! empty( $args['prepare_callback'] ) ) {
+ 			$value = call_user_func( $args['prepare_callback'], $value, $request, $args );
+ 		}
+ 
+ 		return $value;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -139,7 +143,7 @@
+ 	 * @param int   $object_id Object ID to fetch meta for.
+ 	 * @return null|WP_Error Null on success, WP_Error object on failure.
+ 	 */
+-	public function update_value( $meta, $object_id ) {
++	public function update_value( mixed $meta, mixed $object_id ): mixed {
+ 		$fields = $this->get_registered_fields();
+ 		$error  = new WP_Error();
+ 
+@@ -181,7 +185,7 @@
+ 				continue;
+ 			}
+ 
+-			if ( ! $args['single'] && is_array( $value ) && count( array_filter( $value, 'is_null' ) ) ) {
++			if ( ! $args['single'] && is_array( $value ) && count( \wp_aot_array_filter( $value, 'is_null' ) ) ) {
+ 				$error->add(
+ 					'rest_invalid_stored_value',
+ 					/* translators: %s: Custom field key. */
+@@ -217,6 +221,7 @@
+ 		}
+ 
+ 		return null;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -229,7 +234,7 @@
+ 	 * @param string $name      Name for the field that is exposed in the REST API.
+ 	 * @return true|WP_Error True if meta field is deleted, WP_Error otherwise.
+ 	 */
+-	protected function delete_meta_value( $object_id, $meta_key, $name ) {
++	protected function delete_meta_value( mixed $object_id, mixed $meta_key, mixed $name ): mixed {
+ 		$meta_type = $this->get_meta_type();
+ 
+ 		if ( ! current_user_can( "delete_{$meta_type}_meta", $object_id, $meta_key ) ) {
+@@ -260,6 +265,7 @@
+ 		}
+ 
+ 		return true;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -276,7 +282,7 @@
+ 	 * @param array  $values    List of values to update to.
+ 	 * @return true|WP_Error True if meta fields are updated, WP_Error otherwise.
+ 	 */
+-	protected function update_multi_meta_value( $object_id, $meta_key, $name, $values ) {
++	protected function update_multi_meta_value( mixed $object_id, mixed $meta_key, mixed $name, mixed $values ): mixed {
+ 		$meta_type = $this->get_meta_type();
+ 
+ 		if ( ! current_user_can( "edit_{$meta_type}_meta", $object_id, $meta_key ) ) {
+@@ -303,9 +309,9 @@
+ 
+ 		foreach ( $to_add as $add_key => $value ) {
+ 			$remove_keys = array_keys(
+-				array_filter(
++				\wp_aot_array_filter(
+ 					$current_values,
+-					function ( $stored_value ) use ( $meta_key, $subtype, $value ) {
++					function ( mixed $stored_value ) use ( $meta_key, $subtype, $value ) {
+ 						return $this->is_meta_value_same_as_stored_value( $meta_key, $subtype, $stored_value, $value );
+ 					}
+ 				)
+@@ -331,7 +337,7 @@
+ 		 * `delete_metadata` will return false for subsequent calls of the same value.
+ 		 * Use serialization to produce a predictable string that can be used by array_unique.
+ 		 */
+-		$to_remove = array_map( 'maybe_unserialize', array_unique( array_map( 'maybe_serialize', $to_remove ) ) );
++		$to_remove = \wp_aot_array_map( 'maybe_unserialize', \wp_aot_array_unique( \wp_aot_array_map( 'maybe_serialize', $to_remove ) ) );
+ 
+ 		foreach ( $to_remove as $value ) {
+ 			if ( ! delete_metadata( $meta_type, $object_id, wp_slash( $meta_key ), wp_slash( $value ) ) ) {
+@@ -362,6 +368,7 @@
+ 		}
+ 
+ 		return true;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -376,7 +383,7 @@
+ 	 * @param mixed  $value     Updated value.
+ 	 * @return true|WP_Error True if the meta field was updated, WP_Error otherwise.
+ 	 */
+-	protected function update_meta_value( $object_id, $meta_key, $name, $value ) {
++	protected function update_meta_value( mixed $object_id, mixed $meta_key, mixed $name, mixed $value ): mixed {
+ 		$meta_type = $this->get_meta_type();
+ 
+ 		// Do the exact same check for a duplicate value as in update_metadata() to avoid update_metadata() returning false.
+@@ -414,6 +421,7 @@
+ 		}
+ 
+ 		return true;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -427,7 +435,7 @@
+ 	 * @param mixed  $user_value   The value provided by the user.
+ 	 * @return bool
+ 	 */
+-	protected function is_meta_value_same_as_stored_value( $meta_key, $subtype, $stored_value, $user_value ) {
++	protected function is_meta_value_same_as_stored_value( mixed $meta_key, mixed $subtype, mixed $stored_value, mixed $user_value ): mixed {
+ 		$args      = $this->get_registered_fields()[ $meta_key ];
+ 		$sanitized = sanitize_meta( $meta_key, $user_value, $this->get_meta_type(), $subtype );
+ 
+@@ -437,6 +445,7 @@
+ 		}
+ 
+ 		return $sanitized === $stored_value;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -446,7 +455,7 @@
+ 	 *
+ 	 * @return array Registered fields.
+ 	 */
+-	protected function get_registered_fields() {
++	protected function get_registered_fields(): mixed {
+ 		$registered = array();
+ 
+ 		$meta_type    = $this->get_meta_type();
+@@ -454,7 +463,7 @@
+ 
+ 		$meta_keys = get_registered_meta_keys( $meta_type );
+ 		if ( ! empty( $meta_subtype ) ) {
+-			$meta_keys = array_merge( $meta_keys, get_registered_meta_keys( $meta_type, $meta_subtype ) );
++			$meta_keys = \wp_aot_array_merge(array( $meta_keys, get_registered_meta_keys( $meta_type, $meta_subtype ) ));
+ 		}
+ 
+ 		foreach ( $meta_keys as $name => $args ) {
+@@ -483,8 +492,8 @@
+ 				'default'     => $args['default'] ?? null,
+ 			);
+ 
+-			$rest_args           = array_merge( $default_args, $rest_args );
+-			$rest_args['schema'] = array_merge( $default_schema, $rest_args['schema'] );
++			$rest_args           = \wp_aot_array_merge(array( $default_args, $rest_args ));
++			$rest_args['schema'] = \wp_aot_array_merge(array( $default_schema, $rest_args['schema'] ));
+ 
+ 			$type = ! empty( $rest_args['type'] ) ? $rest_args['type'] : null;
+ 			$type = ! empty( $rest_args['schema']['type'] ) ? $rest_args['schema']['type'] : $type;
+@@ -510,6 +519,7 @@
+ 		}
+ 
+ 		return $registered;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -519,7 +529,7 @@
+ 	 *
+ 	 * @return array Field schema data.
+ 	 */
+-	public function get_field_schema() {
++	public function get_field_schema(): mixed {
+ 		$fields = $this->get_registered_fields();
+ 
+ 		$schema = array(
+@@ -538,6 +548,7 @@
+ 		}
+ 
+ 		return $schema;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -553,7 +564,7 @@
+ 	 * @param array           $args    REST-specific options for the meta key.
+ 	 * @return mixed Value prepared for output. If a non-JsonSerializable object, null.
+ 	 */
+-	public static function prepare_value( $value, $request, $args ) {
++	public static function prepare_value( mixed $value, mixed $request, mixed $args ): mixed {
+ 		if ( $args['single'] ) {
+ 			$schema = $args['schema'];
+ 		} else {
+@@ -569,6 +580,7 @@
+ 		}
+ 
+ 		return rest_sanitize_value_from_schema( $value, $schema );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -581,12 +593,13 @@
+ 	 * @param string          $param   The parameter name.
+ 	 * @return array|false The meta array, if valid, false otherwise.
+ 	 */
+-	public function check_meta_is_array( $value, $request, $param ) {
++	public function check_meta_is_array( mixed $value, mixed $request, mixed $param ): mixed {
+ 		if ( ! is_array( $value ) ) {
+ 			return false;
+ 		}
+ 
+ 		return $value;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -603,10 +616,11 @@
+ 	 * @param array $schema The schema array.
+ 	 * @return array
+ 	 */
+-	protected function default_additional_properties_to_false( $schema ) {
++	protected function default_additional_properties_to_false( mixed $schema ): mixed {
+ 		_deprecated_function( __METHOD__, '5.6.0', 'rest_default_additional_properties_to_false()' );
+ 
+ 		return rest_default_additional_properties_to_false( $schema );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -617,7 +631,7 @@
+ 	 * @param string $type The schema type.
+ 	 * @return mixed
+ 	 */
+-	protected static function get_empty_value_for_type( $type ) {
++	protected static function get_empty_value_for_type( mixed $type ): mixed {
+ 		switch ( $type ) {
+ 			case 'string':
+ 				return '';
+@@ -633,5 +647,6 @@
+ 			default:
+ 				return null;
+ 		}
++		return null;
+ 	}
+ }

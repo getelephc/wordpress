@@ -1,0 +1,76 @@
+--- a/wp-includes/bookmark-template.php
++++ b/wp-includes/bookmark-template.php
+@@ -48,7 +48,7 @@
+  * }
+  * @return string Formatted output in HTML
+  */
+-function _walk_bookmarks( $bookmarks, $args = '' ) {
++function _walk_bookmarks( mixed $bookmarks, mixed $args = '' ): mixed {
+ 	$defaults = array(
+ 		'show_updated'     => 0,
+ 		'show_description' => 0,
+@@ -88,7 +88,7 @@
+ 				$title .= sprintf(
+ 					/* translators: %s: Date and time of last update. */
+ 					__( 'Last updated: %s' ),
+-					gmdate(
++					\wp_aot_gmdate(
+ 						get_option( 'links_updated_date_format' ),
+ 						$bookmark->link_updated_f + (int) ( (float) get_option( 'gmt_offset' ) * HOUR_IN_SECONDS )
+ 					)
+@@ -153,6 +153,7 @@
+ 	} // End while.
+ 
+ 	return $output;
++	return null;
+ }
+ 
+ /**
+@@ -208,7 +209,7 @@
+  * }
+  * @return void|string Void if 'echo' argument is true, HTML list of bookmarks if 'echo' is false.
+  */
+-function wp_list_bookmarks( $args = '' ) {
++function wp_list_bookmarks( mixed $args = '' ): mixed {
+ 	$defaults = array(
+ 		'orderby'          => 'name',
+ 		'order'            => 'ASC',
+@@ -237,7 +238,7 @@
+ 	if ( ! is_array( $parsed_args['class'] ) ) {
+ 		$parsed_args['class'] = explode( ' ', $parsed_args['class'] );
+ 	}
+-	$parsed_args['class'] = array_map( 'sanitize_html_class', $parsed_args['class'] );
++	$parsed_args['class'] = \wp_aot_array_map( 'sanitize_html_class', $parsed_args['class'] );
+ 	$parsed_args['class'] = trim( implode( ' ', $parsed_args['class'] ) );
+ 
+ 	if ( $parsed_args['categorize'] ) {
+@@ -260,12 +261,12 @@
+ 	if ( $parsed_args['categorize'] ) {
+ 		// Split the bookmarks into ul's for each category.
+ 		foreach ( (array) $cats as $cat ) {
+-			$params    = array_merge( $parsed_args, array( 'category' => $cat->term_id ) );
++			$params    = \wp_aot_array_merge(array( $parsed_args, array( 'category' => $cat->term_id ) ));
+ 			$bookmarks = get_bookmarks( $params );
+ 			if ( empty( $bookmarks ) ) {
+ 				continue;
+ 			}
+-			$output .= str_replace(
++			$output .= \wp_aot_str_replace(
+ 				array( '%id', '%class' ),
+ 				array( "linkcat-$cat->term_id", $parsed_args['class'] ),
+ 				$parsed_args['category_before']
+@@ -293,7 +294,7 @@
+ 
+ 		if ( ! empty( $bookmarks ) ) {
+ 			if ( ! empty( $parsed_args['title_li'] ) ) {
+-				$output .= str_replace(
++				$output .= \wp_aot_str_replace(
+ 					array( '%id', '%class' ),
+ 					array( 'linkcat-' . $parsed_args['category'], $parsed_args['class'] ),
+ 					$parsed_args['category_before']
+@@ -325,4 +326,5 @@
+ 	} else {
+ 		return $html;
+ 	}
++	return null;
+ }

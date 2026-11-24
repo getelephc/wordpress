@@ -1,0 +1,19 @@
+--- a/wp-includes/SimplePie/src/Cache/BaseDataCache.php
++++ b/wp-includes/SimplePie/src/Cache/BaseDataCache.php
+@@ -42,7 +42,7 @@
+      * @throws InvalidArgumentException
+      *   MUST be thrown if the $key string is not a legal value.
+      */
+-    public function get_data(string $key, $default = null)
++    public function get_data(string $key, mixed $default = null): mixed
+     {
+         $data = $this->cache->load();
+ 
+@@ -64,6 +64,7 @@
+         unset($data['__cache_expiration_time']);
+ 
+         return $data;
++    	return null;
+     }
+ 
+     /**

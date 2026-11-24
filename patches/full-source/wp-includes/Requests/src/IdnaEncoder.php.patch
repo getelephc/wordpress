@@ -1,0 +1,144 @@
+--- a/wp-includes/Requests/src/IdnaEncoder.php
++++ b/wp-includes/Requests/src/IdnaEncoder.php
+@@ -58,7 +58,7 @@
+ 	 * @return string Punycode-encoded hostname
+ 	 * @throws \WpOrg\Requests\Exception\InvalidArgument When the passed argument is not a string or a stringable object.
+ 	 */
+-	public static function encode($hostname) {
++	public static function encode(mixed $hostname): mixed {
+ 		if (InputValidator::is_string_or_stringable($hostname) === false) {
+ 			throw InvalidArgument::create(1, '$hostname', 'string|Stringable', gettype($hostname));
+ 		}
+@@ -69,6 +69,7 @@
+ 		}
+ 
+ 		return implode('.', $parts);
++		return null;
+ 	}
+ 
+ 	/**
+@@ -82,7 +83,7 @@
+ 	 * @throws \WpOrg\Requests\Exception Provided string already begins with xn-- (`idna.provided_is_prefixed`)
+ 	 * @throws \WpOrg\Requests\Exception Encoded string longer than 64 ASCII characters (`idna.encoded_too_long`)
+ 	 */
+-	public static function to_ascii($text) {
++	public static function to_ascii(mixed $text): mixed {
+ 		// Step 1: Check if the text is already ASCII
+ 		if (self::is_ascii($text)) {
+ 			// Skip to step 7
+@@ -130,6 +131,7 @@
+ 		}
+ 
+ 		throw new Exception('Encoded string is too long', 'idna.encoded_too_long', $text);
++		return null;
+ 	}
+ 
+ 	/**
+@@ -140,8 +142,9 @@
+ 	 * @param string $text Text to examine.
+ 	 * @return bool Is the text string ASCII-only?
+ 	 */
+-	protected static function is_ascii($text) {
+-		return (preg_match('/(?:[^\x00-\x7F])/', $text) !== 1);
++	protected static function is_ascii(mixed $text): mixed {
++		return (preg_match('/(?:[^\x00-\x7F])/', \wp_aot_regex_text( $text )) !== 1);
++		return null;
+ 	}
+ 
+ 	/**
+@@ -151,8 +154,9 @@
+ 	 * @param string $text Text to prepare.
+ 	 * @return string Prepared string
+ 	 */
+-	protected static function nameprep($text) {
++	protected static function nameprep(mixed $text): mixed {
+ 		return $text;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -165,7 +169,7 @@
+ 	 *
+ 	 * @throws \WpOrg\Requests\Exception Invalid UTF-8 codepoint (`idna.invalidcodepoint`)
+ 	 */
+-	protected static function utf8_to_codepoints($input) {
++	protected static function utf8_to_codepoints(mixed $input): mixed {
+ 		$codepoints = [];
+ 
+ 		// Get number of bytes
+@@ -238,6 +242,7 @@
+ 		}
+ 
+ 		return $codepoints;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -250,7 +255,7 @@
+ 	 *
+ 	 * @throws \WpOrg\Requests\Exception On character outside of the domain (never happens with Punycode) (`idna.character_outside_domain`)
+ 	 */
+-	public static function punycode_encode($input) {
++	public static function punycode_encode(mixed $input): mixed {
+ 		$output = '';
+ 		// let n = initial_n
+ 		$n = self::BOOTSTRAP_INITIAL_N;
+@@ -284,7 +289,7 @@
+ 		}
+ 
+ 		$extended = array_keys($extended);
+-		sort($extended);
++		\wp_aot_sort($extended);
+ 		$b = $h;
+ 		// [copy them] followed by a delimiter if b > 0
+ 		if (strlen($output) > 0) {
+@@ -296,7 +301,7 @@
+ 		$codepointcount = count($codepoints);
+ 		while ($h < $codepointcount) {
+ 			// let m = the minimum code point >= n in the input
+-			$m = array_shift($extended);
++			$m = \wp_aot_array_shift($extended);
+ 			//printf('next code point to insert is %s' . PHP_EOL, dechex($m));
+ 			// let delta = delta + (m - n) * (h + 1), fail on overflow
+ 			$delta += ($m - $n) * ($h + 1);
+@@ -350,6 +355,7 @@
+ 		} // end
+ 
+ 		return $output;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -362,7 +368,7 @@
+ 	 *
+ 	 * @throws \WpOrg\Requests\Exception On invalid digit (`idna.invalid_digit`)
+ 	 */
+-	protected static function digit_to_char($digit) {
++	protected static function digit_to_char(mixed $digit): mixed {
+ 		// @codeCoverageIgnoreStart
+ 		// As far as I know, this never happens, but still good to be sure.
+ 		if ($digit < 0 || $digit > 35) {
+@@ -372,6 +378,7 @@
+ 		// @codeCoverageIgnoreEnd
+ 		$digits = 'abcdefghijklmnopqrstuvwxyz0123456789';
+ 		return substr($digits, $digit, 1);
++		return null;
+ 	}
+ 
+ 	/**
+@@ -385,7 +392,7 @@
+ 	 *
+ 	 * function adapt(delta,numpoints,firsttime):
+ 	 */
+-	protected static function adapt($delta, $numpoints, $firsttime) {
++	protected static function adapt(mixed $delta, mixed $numpoints, mixed $firsttime): mixed {
+ 		// if firsttime then let delta = delta div damp
+ 		if ($firsttime) {
+ 			$delta = floor($delta / self::BOOTSTRAP_DAMP);
+@@ -408,5 +415,6 @@
+ 		} // end
+ 		// return k + (((base - tmin + 1) * delta) div (delta + skew))
+ 		return $k + floor(((self::BOOTSTRAP_BASE - self::BOOTSTRAP_TMIN + 1) * $delta) / ($delta + self::BOOTSTRAP_SKEW));
++		return null;
+ 	}
+ }

@@ -1,11 +1,47 @@
 --- a/wp-includes/l10n/class-wp-translation-file-php.php
 +++ b/wp-includes/l10n/class-wp-translation-file-php.php
-@@ -21,7 +21,7 @@
- 	protected function parse_file() {
+@@ -18,13 +18,13 @@
+ 	 *
+ 	 * @since 6.5.0
+ 	 */
+-	protected function parse_file() {
++	protected function parse_file(): mixed {
  		$this->parsed = true;
  
 -		$result = include $this->file;
 +		$result = aot_translation_catalog( $this->file );
  		if ( ! $result || ! is_array( $result ) ) {
  			$this->error = 'Invalid data';
- 			return;
+-			return;
++			return null;
+ 		}
+ 
+ 		if ( isset( $result['messages'] ) && is_array( $result['messages'] ) ) {
+@@ -34,7 +34,8 @@
+ 			unset( $result['messages'] );
+ 		}
+ 
+-		$this->headers = array_change_key_case( $result );
++		$this->headers = \wp_aot_array_change_key_case( $result );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -45,7 +46,7 @@
+ 	 * @return string Translation file contents.
+ 	 */
+ 	public function export(): string {
+-		$data = array_merge( $this->headers, array( 'messages' => $this->entries ) );
++		$data = \wp_aot_array_merge(array( $this->headers, array( 'messages' => $this->entries ) ));
+ 
+ 		return '<?php' . PHP_EOL . 'return ' . $this->var_export( $data ) . ';' . PHP_EOL;
+ 	}
+@@ -61,7 +62,7 @@
+ 	 * @param mixed $value The variable you want to export.
+ 	 * @return string The variable representation.
+ 	 */
+-	private function var_export( $value ): string {
++	private function var_export( mixed $value ): string {
+ 		if ( ! is_array( $value ) ) {
+ 			return var_export( $value, true );
+ 		}

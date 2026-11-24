@@ -1,0 +1,100 @@
+--- a/wp-cron.php
++++ b/wp-cron.php
+@@ -16,22 +16,22 @@
+  * @package WordPress
+  */
+ 
+-ignore_user_abort( true );
+-
+-if ( ! headers_sent() ) {
++\wp_aot_native_api('ignore_user_abort', array( true ));
++
++if ( ! \wp_aot_native_headers_sent() ) {
+ 	header( 'Expires: Wed, 11 Jan 1984 05:00:00 GMT' );
+ 	header( 'Cache-Control: no-cache, must-revalidate, max-age=0' );
+ }
+ 
+ // Don't run cron until the request finishes, if possible.
+ if ( function_exists( 'fastcgi_finish_request' ) ) {
+-	fastcgi_finish_request();
++	\wp_aot_native_api('fastcgi_finish_request', array());
+ } elseif ( function_exists( 'litespeed_finish_request' ) ) {
+-	litespeed_finish_request();
++	\wp_aot_native_api('litespeed_finish_request', array());
+ }
+ 
+ if ( ! empty( $_POST ) || defined( 'DOING_AJAX' ) || defined( 'DOING_CRON' ) ) {
+-	die();
++	\wp_aot_exit();
+ }
+ 
+ /**
+@@ -72,7 +72,7 @@
+ 		 */
+ 		$value = wp_cache_get( 'doing_cron', 'transient', true );
+ 	} else {
+-		$row = $wpdb->get_row( $wpdb->prepare( "SELECT option_value FROM $wpdb->options WHERE option_name = %s LIMIT 1", '_transient_doing_cron' ) );
++		$row = \wp_aot_require_wpdb( $wpdb )->get_row( \wp_aot_require_wpdb( $wpdb )->prepare( "SELECT option_value FROM $wpdb->options WHERE option_name = %s LIMIT 1", '_transient_doing_cron' ) );
+ 		if ( is_object( $row ) ) {
+ 			$value = $row->option_value;
+ 		}
+@@ -83,7 +83,7 @@
+ 
+ $crons = wp_get_ready_cron_jobs();
+ if ( empty( $crons ) ) {
+-	die();
++	\wp_aot_exit();
+ }
+ 
+ $gmt_time = microtime( true );
+@@ -129,7 +129,7 @@
+ 				$result = wp_reschedule_event( $timestamp, $schedule, $hook, $v['args'], true );
+ 
+ 				if ( is_wp_error( $result ) ) {
+-					error_log(
++					\wp_aot_native_api('error_log', array(
+ 						sprintf(
+ 							/* translators: 1: Hook name, 2: Error code, 3: Error message, 4: Event data. */
+ 							__( 'Cron reschedule event error for hook: %1$s, Error code: %2$s, Error message: %3$s, Data: %4$s' ),
+@@ -138,7 +138,7 @@
+ 							$result->get_error_message(),
+ 							wp_json_encode( $v )
+ 						)
+-					);
++					));
+ 
+ 					/**
+ 					 * Fires if an error happens when rescheduling a cron event.
+@@ -156,7 +156,7 @@
+ 			$result = wp_unschedule_event( $timestamp, $hook, $v['args'], true );
+ 
+ 			if ( is_wp_error( $result ) ) {
+-				error_log(
++				\wp_aot_native_api('error_log', array(
+ 					sprintf(
+ 						/* translators: 1: Hook name, 2: Error code, 3: Error message, 4: Event data. */
+ 						__( 'Cron unschedule event error for hook: %1$s, Error code: %2$s, Error message: %3$s, Data: %4$s' ),
+@@ -165,7 +165,7 @@
+ 						$result->get_error_message(),
+ 						wp_json_encode( $v )
+ 					)
+-				);
++				));
+ 
+ 				/**
+ 				 * Fires if an error happens when unscheduling a cron event.
+@@ -188,7 +188,7 @@
+ 			 * @param string $hook Name of the hook that was scheduled to be fired.
+ 			 * @param array  $args The arguments to be passed to the hook.
+ 			 */
+-			do_action_ref_array( $hook, $v['args'] );
++			do_action_ref_array( $hook, \wp_aot_array_input($v['args'] ));
+ 
+ 			// If the hook ran too long and another cron process stole the lock, quit.
+ 			if ( _get_cron_lock() !== $doing_wp_cron ) {
+@@ -202,4 +202,4 @@
+ 	delete_transient( 'doing_cron' );
+ }
+ 
+-die();
++\wp_aot_exit();

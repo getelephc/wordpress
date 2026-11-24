@@ -1,5 +1,32 @@
 --- a/wp-admin/includes/class-walker-nav-menu-edit.php
 +++ b/wp-admin/includes/class-walker-nav-menu-edit.php
+@@ -26,7 +26,7 @@
+ 	 * @param int      $depth  Depth of menu item. Used for padding.
+ 	 * @param stdClass $args   Not used.
+ 	 */
+-	public function start_lvl( &$output, $depth = 0, $args = null ) {}
++	public function start_lvl( mixed &$output, mixed $depth = 0, mixed $args = null ): mixed { return null; }
+ 
+ 	/**
+ 	 * Ends the list of after the elements are added.
+@@ -39,7 +39,7 @@
+ 	 * @param int      $depth  Depth of menu item. Used for padding.
+ 	 * @param stdClass $args   Not used.
+ 	 */
+-	public function end_lvl( &$output, $depth = 0, $args = null ) {}
++	public function end_lvl( mixed &$output, mixed $depth = 0, mixed $args = null ): mixed { return null; }
+ 
+ 	/**
+ 	 * Start the element output.
+@@ -57,7 +57,7 @@
+ 	 * @param stdClass $args              Not used.
+ 	 * @param int      $current_object_id Optional. ID of the current menu item. Default 0.
+ 	 */
+-	public function start_el( &$output, $data_object, $depth = 0, $args = null, $current_object_id = 0 ) {
++	public function start_el( mixed &$output, mixed $data_object, mixed $depth = 0, mixed $args = null, mixed $current_object_id = 0 ): mixed {
+ 		global $_wp_nav_menu_max_depth;
+ 
+ 		// Restores the more descriptive, specific name for use within this method.
 @@ -120,19 +120,37 @@
  			$submenu_text = 'style="display: none;"';
  		}
@@ -356,7 +383,7 @@
  					printf(
  						'<a class="item-cancel submitcancel hide-if-no-js" id="cancel-%s" href="%s#menu-item-settings-%s">%s</a>',
  						$item_id,
-@@ -333,18 +450,42 @@
+@@ -333,18 +450,43 @@
  						$item_id,
  						__( 'Cancel' )
  					);
@@ -407,6 +434,7 @@
 -		<?php
 +		';
  		$output .= ob_get_clean();
++		return null;
  	}
  }
 \ No newline at end of file

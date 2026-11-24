@@ -1,0 +1,43 @@
+--- a/wp-includes/customize/class-wp-customize-image-control.php
++++ b/wp-includes/customize/class-wp-customize-image-control.php
+@@ -35,7 +35,7 @@
+ 	 * @since 3.4.2
+ 	 * @deprecated 4.1.0
+ 	 */
+-	public function prepare_control() {}
++	public function prepare_control(): mixed { return null; }
+ 
+ 	/**
+ 	 * @since 3.4.0
+@@ -45,8 +45,9 @@
+ 	 * @param string $label
+ 	 * @param mixed  $callback
+ 	 */
+-	public function add_tab( $id, $label, $callback ) {
++	public function add_tab( mixed $id, mixed $label, mixed $callback ): mixed {
+ 		_deprecated_function( __METHOD__, '4.1.0' );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -55,8 +56,9 @@
+ 	 *
+ 	 * @param string $id
+ 	 */
+-	public function remove_tab( $id ) {
++	public function remove_tab( mixed $id ): mixed {
+ 		_deprecated_function( __METHOD__, '4.1.0' );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -66,7 +68,8 @@
+ 	 * @param string $url
+ 	 * @param string $thumbnail_url
+ 	 */
+-	public function print_tab_image( $url, $thumbnail_url = null ) {
++	public function print_tab_image( mixed $url, mixed $thumbnail_url = null ): mixed {
+ 		_deprecated_function( __METHOD__, '4.1.0' );
++		return null;
+ 	}
+ }

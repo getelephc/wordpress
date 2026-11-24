@@ -1,0 +1,11 @@
+--- a/wp-admin/edit-link-form.php
++++ b/wp-admin/edit-link-form.php
+@@ -8,7 +8,7 @@
+ 
+ // Don't load directly.
+ if ( ! defined( 'ABSPATH' ) ) {
+-	exit;
++	\wp_aot_exit();
+ }
+ 
+ if ( ! empty( $link_id ) ) {

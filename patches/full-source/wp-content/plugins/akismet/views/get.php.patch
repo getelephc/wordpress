@@ -1,0 +1,11 @@
+--- a/wp-content/plugins/akismet/views/get.php
++++ b/wp-content/plugins/akismet/views/get.php
+@@ -22,7 +22,7 @@
+ 	'utm_content'  => isset( $utm_content ) ? $utm_content : 'get_view_link',
+ );
+ 
+-$query_args = array_merge( $query_args, $utm_args );
++$query_args = \wp_aot_array_merge(array( $query_args, $utm_args ));
+ 
+ $url = add_query_arg( $query_args, 'https://akismet.com/get/' );
+ ?>

@@ -1,0 +1,68 @@
+--- a/wp-includes/class-wp-classic-to-block-menu-converter.php
++++ b/wp-includes/class-wp-classic-to-block-menu-converter.php
+@@ -23,7 +23,7 @@
+ 	 *                         an empty string when there are no menus to convert,
+ 	 *                         or WP_Error on invalid menu.
+ 	 */
+-	public static function convert( $menu ) {
++	public static function convert( mixed $menu ): mixed {
+ 
+ 		if ( ! is_nav_menu( $menu ) ) {
+ 			return new WP_Error(
+@@ -52,6 +52,7 @@
+ 		);
+ 
+ 		return serialize_blocks( $inner_blocks );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -62,7 +63,7 @@
+ 	 * @param array $menu_items An array of menu items.
+ 	 * @return array
+ 	 */
+-	private static function group_by_parent_id( $menu_items ) {
++	private static function group_by_parent_id( mixed $menu_items ): mixed {
+ 		$menu_items_by_parent_id = array();
+ 
+ 		foreach ( $menu_items as $menu_item ) {
+@@ -70,6 +71,7 @@
+ 		}
+ 
+ 		return $menu_items_by_parent_id;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -85,7 +87,7 @@
+ 	 *                                       that parent.
+ 	 * @return array An array of parsed block data.
+ 	 */
+-	private static function to_blocks( $menu_items, $menu_items_by_parent_id ) {
++	private static function to_blocks( mixed $menu_items, mixed $menu_items_by_parent_id ): mixed {
+ 
+ 		if ( empty( $menu_items ) ) {
+ 			return array();
+@@ -98,7 +100,7 @@
+ 			$id               = ( null !== $menu_item->object_id && 'custom' !== $menu_item->object ) ? $menu_item->object_id : null;
+ 			$opens_in_new_tab = null !== $menu_item->target && '_blank' === $menu_item->target;
+ 			$rel              = ( null !== $menu_item->xfn && '' !== $menu_item->xfn ) ? $menu_item->xfn : null;
+-			$kind             = null !== $menu_item->type ? str_replace( '_', '-', $menu_item->type ) : 'custom';
++			$kind             = null !== $menu_item->type ? \wp_aot_str_replace( '_', '-', $menu_item->type ) : 'custom';
+ 
+ 			$block = array(
+ 				'blockName' => isset( $menu_items_by_parent_id[ $menu_item->ID ] ) ? 'core/navigation-submenu' : 'core/navigation-link',
+@@ -119,11 +121,12 @@
+ 			$block['innerBlocks']  = isset( $menu_items_by_parent_id[ $menu_item->ID ] )
+ 			? static::to_blocks( $menu_items_by_parent_id[ $menu_item->ID ], $menu_items_by_parent_id )
+ 			: array();
+-			$block['innerContent'] = array_map( 'serialize_block', $block['innerBlocks'] );
++			$block['innerContent'] = \wp_aot_array_map( 'serialize_block', $block['innerBlocks'] );
+ 
+ 			$blocks[] = $block;
+ 		}
+ 
+ 		return $blocks;
++		return null;
+ 	}
+ }

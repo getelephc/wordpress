@@ -1,0 +1,119 @@
+--- a/wp-includes/rest-api/endpoints/class-wp-rest-abilities-v1-list-controller.php
++++ b/wp-includes/rest-api/endpoints/class-wp-rest-abilities-v1-list-controller.php
+@@ -85,7 +85,7 @@
+ 	 * @param WP_REST_Request $request Full details about the request.
+ 	 * @return WP_REST_Response Response object on success.
+ 	 */
+-	public function get_items( $request ) {
++	public function get_items( mixed $request ): mixed {
+ 		$query_args = array(
+ 			'meta' => array( 'show_in_rest' => true ),
+ 		);
+@@ -100,7 +100,7 @@
+ 
+ 		if ( ! empty( $request['meta'] ) ) {
+ 			// Merge caller meta first so the forced show_in_rest filter wins. This keeps a caller from using meta to reveal abilities hidden from REST.
+-			$query_args['meta'] = array_merge( $request['meta'], $query_args['meta'] );
++			$query_args['meta'] = \wp_aot_array_merge(array( $request['meta'], $query_args['meta'] ));
+ 		}
+ 
+ 		$abilities = wp_get_abilities( $query_args );
+@@ -115,7 +115,7 @@
+ 		if ( $request->get_method() === 'HEAD' ) {
+ 			$response = new WP_REST_Response( array() );
+ 		} else {
+-			$abilities = array_slice( $abilities, $offset, $per_page );
++			$abilities = \wp_aot_array_slice( $abilities, $offset, $per_page );
+ 
+ 			$data = array();
+ 			foreach ( $abilities as $ability ) {
+@@ -145,6 +145,7 @@
+ 		}
+ 
+ 		return $response;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -155,7 +156,7 @@
+ 	 * @param WP_REST_Request $request Full details about the request.
+ 	 * @return WP_REST_Response|WP_Error Response object on success, or WP_Error object on failure.
+ 	 */
+-	public function get_item( $request ) {
++	public function get_item( mixed $request ): mixed {
+ 		$ability = wp_has_ability( $request['name'] ) ? wp_get_ability( $request['name'] ) : null;
+ 		if ( ! $ability || ! $ability->get_meta_item( 'show_in_rest' ) ) {
+ 			return new WP_Error(
+@@ -167,6 +168,7 @@
+ 
+ 		$data = $this->prepare_item_for_response( $ability, $request );
+ 		return rest_ensure_response( $data );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -177,8 +179,9 @@
+ 	 * @param WP_REST_Request $request Full details about the request.
+ 	 * @return bool True if the request has read access.
+ 	 */
+-	public function get_items_permissions_check( $request ) {
++	public function get_items_permissions_check( mixed $request ): mixed {
+ 		return current_user_can( 'read' );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -189,8 +192,9 @@
+ 	 * @param WP_REST_Request $request Full details about the request.
+ 	 * @return bool True if the request has read access.
+ 	 */
+-	public function get_item_permissions_check( $request ) {
++	public function get_item_permissions_check( mixed $request ): mixed {
+ 		return current_user_can( 'read' );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -202,14 +206,14 @@
+ 	 * @param WP_REST_Request $request Request object.
+ 	 * @return WP_REST_Response Response object.
+ 	 */
+-	public function prepare_item_for_response( $ability, $request ) {
++	public function prepare_item_for_response( mixed $ability, mixed $request ): mixed {
+ 		$data = array(
+ 			'name'          => $ability->get_name(),
+ 			'label'         => $ability->get_label(),
+ 			'description'   => $ability->get_description(),
+ 			'category'      => $ability->get_category(),
+-			'input_schema'  => wp_prepare_json_schema_for_client( $ability->get_input_schema() ),
+-			'output_schema' => wp_prepare_json_schema_for_client( $ability->get_output_schema() ),
++			'input_schema'  => wp_prepare_json_schema_for_client( \wp_aot_array_input($ability->get_input_schema() )),
++			'output_schema' => wp_prepare_json_schema_for_client( \wp_aot_array_input($ability->get_output_schema() )),
+ 			'meta'          => $ability->get_meta(),
+ 		);
+ 
+@@ -238,6 +242,7 @@
+ 		}
+ 
+ 		return $response;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -323,7 +328,7 @@
+ 			),
+ 		);
+ 
+-		return $this->add_additional_fields_schema( $schema );
++		return \wp_aot_array_input($this->add_additional_fields_schema( $schema ));
+ 	}
+ 
+ 	/**
+@@ -401,6 +406,6 @@
+ 		 *
+ 		 * @param array $query_params JSON Schema-formatted collection parameters.
+ 		 */
+-		return apply_filters( 'rest_abilities_collection_params', $query_params );
++		return \wp_aot_array_input(apply_filters( 'rest_abilities_collection_params', $query_params ));
+ 	}
+ }

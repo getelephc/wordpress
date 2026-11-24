@@ -1,6 +1,35 @@
 --- a/wp-includes/customize/class-wp-customize-theme-control.php
 +++ b/wp-includes/customize/class-wp-customize-theme-control.php
-@@ -65,8 +65,8 @@
+@@ -39,9 +39,10 @@
+ 	 *
+ 	 * @see WP_Customize_Control::to_json()
+ 	 */
+-	public function to_json() {
++	public function to_json(): mixed {
+ 		parent::to_json();
+ 		$this->json['theme'] = $this->theme;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -49,14 +50,14 @@
+ 	 *
+ 	 * @since 4.2.0
+ 	 */
+-	public function render_content() {}
++	public function render_content(): mixed { return null; }
+ 
+ 	/**
+ 	 * Render a JS template for theme display.
+ 	 *
+ 	 * @since 4.2.0
+ 	 */
+-	public function content_template() {
++	public function content_template(): mixed {
+ 		/* translators: %s: Theme name. */
+ 		$details_label = sprintf( __( 'Details for theme: %s' ), '{{ data.theme.name }}' );
+ 		/* translators: %s: Theme name. */
+@@ -65,8 +66,8 @@
  		$preview_label = sprintf( __( 'Live preview theme: %s' ), '{{ data.theme.name }}' );
  		/* translators: %s: Theme name. */
  		$install_label = sprintf( __( 'Install and preview theme: %s' ), '{{ data.theme.name }}' );
@@ -11,7 +40,7 @@
  			<div class="theme active" tabindex="0" aria-describedby="{{ data.section }}-{{ data.theme.id }}-action">
  		<# } else { #>
  			<div class="theme" tabindex="0" aria-describedby="{{ data.section }}-{{ data.theme.id }}-action">
-@@ -80,20 +80,24 @@
+@@ -80,20 +81,24 @@
  				<div class="theme-screenshot blank"></div>
  			<# } #>
  
@@ -43,7 +72,7 @@
  							if ( is_multisite() ) {
  								_e( 'New version available.' );
  							} else {
-@@ -103,14 +107,14 @@
+@@ -103,14 +108,14 @@
  									'<button class="button-link update-theme" type="button">' . __( 'Update now' ) . '</button>'
  								);
  							}
@@ -61,7 +90,7 @@
  								printf(
  									/* translators: %s: Theme name. */
  									__( 'There is a new version of %s available, but it does not work with your versions of WordPress and PHP.' ),
-@@ -138,9 +142,9 @@
+@@ -138,9 +143,9 @@
  									);
  									wp_update_php_annotation( '</p><p><em>', '</em>' );
  								}
@@ -74,7 +103,7 @@
  								printf(
  									/* translators: %s: Theme name. */
  									__( 'There is a new version of %s available, but it does not work with your version of WordPress.' ),
-@@ -153,9 +157,9 @@
+@@ -153,9 +158,9 @@
  										self_admin_url( 'update-core.php' )
  									);
  								}
@@ -87,7 +116,7 @@
  								printf(
  									/* translators: %s: Theme name. */
  									__( 'There is a new version of %s available, but it does not work with your version of PHP.' ),
-@@ -169,8 +173,8 @@
+@@ -169,8 +174,8 @@
  									);
  									wp_update_php_annotation( '</p><p><em>', '</em>' );
  								}
@@ -98,7 +127,7 @@
  						</p>
  					</div>
  				<# } #>
-@@ -179,7 +183,7 @@
+@@ -179,7 +184,7 @@
  			<# if ( ! data.theme.compatibleWP || ! data.theme.compatiblePHP ) { #>
  				<div class="notice notice-error notice-alt"><p>
  					<# if ( ! data.theme.compatibleWP && ! data.theme.compatiblePHP ) { #>
@@ -107,7 +136,7 @@
  						_e( 'This theme does not work with your versions of WordPress and PHP.' );
  						if ( current_user_can( 'update_core' ) && current_user_can( 'update_php' ) ) {
  							printf(
-@@ -203,9 +207,9 @@
+@@ -203,9 +208,9 @@
  							);
  							wp_update_php_annotation( '</p><p><em>', '</em>' );
  						}
@@ -120,7 +149,7 @@
  						_e( 'This theme does not work with your version of WordPress.' );
  						if ( current_user_can( 'update_core' ) ) {
  							printf(
-@@ -214,9 +218,9 @@
+@@ -214,9 +219,9 @@
  								self_admin_url( 'update-core.php' )
  							);
  						}
@@ -133,7 +162,7 @@
  						_e( 'This theme does not work with your version of PHP.' );
  						if ( current_user_can( 'update_php' ) ) {
  							printf(
-@@ -226,21 +230,27 @@
+@@ -226,21 +231,27 @@
  							);
  							wp_update_php_annotation( '</p><p><em>', '</em>' );
  						}
@@ -166,7 +195,7 @@
  				wp_admin_notice(
  					_x( 'Installed', 'theme' ),
  					array(
-@@ -248,33 +258,38 @@
+@@ -248,33 +259,38 @@
  						'additional_classes' => array( 'notice-alt' ),
  					)
  				);
@@ -217,7 +246,7 @@
  					wp_admin_notice(
  						$customizer_not_supported_message,
  						array(
-@@ -282,19 +297,27 @@
+@@ -282,19 +298,27 @@
  							'additional_classes' => array( 'notice-alt' ),
  						)
  					);
@@ -250,7 +279,7 @@
  					wp_admin_notice(
  						_x( 'Installed', 'theme' ),
  						array(
-@@ -302,21 +325,29 @@
+@@ -302,21 +326,30 @@
  							'additional_classes' => array( 'notice-alt' ),
  						)
  					);
@@ -283,5 +312,6 @@
  		</div>
 -		<?php
 +		';
++		return null;
  	}
  }

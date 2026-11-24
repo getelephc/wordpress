@@ -1,0 +1,19 @@
+--- a/wp-includes/Text/Diff/Engine/xdiff.php
++++ b/wp-includes/Text/Diff/Engine/xdiff.php
+@@ -17,7 +17,7 @@
+ 
+     /**
+      */
+-    function diff($from_lines, $to_lines)
++    function diff(mixed $from_lines, mixed $to_lines): mixed
+     {
+         array_walk($from_lines, array('Text_Diff', 'trimNewlines'));
+         array_walk($to_lines, array('Text_Diff', 'trimNewlines'));
+@@ -59,6 +59,7 @@
+         }
+ 
+         return $edits;
++    	return null;
+     }
+ 
+ }

@@ -1,0 +1,20 @@
+--- a/wp-includes/abilities-api.php
++++ b/wp-includes/abilities-api.php
+@@ -523,7 +523,7 @@
+ 		}
+ 
+ 		// Step 1c: Filter by meta key/value pairs (AND logic, supports nested arrays).
+-		if ( ! empty( $meta ) && ! _wp_get_abilities_match_meta( $ability->get_meta(), $meta ) ) {
++		if ( ! empty( $meta ) && ! _wp_get_abilities_match_meta( \wp_aot_array_input($ability->get_meta()), \wp_aot_array_input($meta )) ) {
+ 			continue;
+ 		}
+ 
+@@ -592,7 +592,7 @@
+ 		}
+ 
+ 		if ( is_array( $value ) ) {
+-			if ( ! is_array( $meta[ $key ] ) || ! _wp_get_abilities_match_meta( $meta[ $key ], $value ) ) {
++			if ( ! is_array( $meta[ $key ] ) || ! _wp_get_abilities_match_meta( \wp_aot_array_input($meta[ $key ]), \wp_aot_array_input($value )) ) {
+ 				return false;
+ 			}
+ 		} elseif ( $meta[ $key ] !== $value ) {

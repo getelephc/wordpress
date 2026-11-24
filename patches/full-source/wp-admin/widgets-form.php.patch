@@ -1,0 +1,82 @@
+--- a/wp-admin/widgets-form.php
++++ b/wp-admin/widgets-form.php
+@@ -8,7 +8,7 @@
+ 
+ // Don't load directly.
+ if ( ! defined( 'ABSPATH' ) ) {
+-	exit;
++	\wp_aot_exit();
+ }
+ 
+ $widgets_access = get_user_setting( 'widgets_access' );
+@@ -128,8 +128,8 @@
+ 	$number = isset( $_POST['multi_number'] ) ? (int) $_POST['multi_number'] : '';
+ 	if ( $number ) {
+ 		foreach ( $_POST as $key => $val ) {
+-			if ( is_array( $val ) && preg_match( '/__i__|%i%/', key( $val ) ) ) {
+-				$_POST[ $key ] = array( $number => array_shift( $val ) );
++			if ( is_array( $val ) && preg_match( '/__i__|%i%/', \wp_aot_regex_text( key( $val ) ) ) ) {
++				$_POST[ $key ] = array( $number => \wp_aot_array_shift( $val ) );
+ 				break;
+ 			}
+ 		}
+@@ -146,10 +146,10 @@
+ 
+ 		if ( ! in_array( $widget_id, $sidebar, true ) ) {
+ 			wp_redirect( admin_url( 'widgets.php?error=0' ) );
+-			exit;
+-		}
+-
+-		$sidebar = array_diff( $sidebar, array( $widget_id ) );
++			\wp_aot_exit();
++		}
++
++		$sidebar = \wp_aot_array_diff(array( $sidebar, array( $widget_id ) ));
+ 		$_POST   = array(
+ 			'sidebar'            => $sidebar_id,
+ 			'widget-' . $id_base => array(),
+@@ -189,7 +189,7 @@
+ 	if ( ! isset( $_POST['delete_widget'] ) ) {
+ 		foreach ( $sidebars_widgets as $sidebar_widget_id => $sidebar_widget ) {
+ 			if ( is_array( $sidebar_widget ) ) {
+-				$sidebars_widgets[ $sidebar_widget_id ] = array_diff( $sidebar_widget, array( $widget_id ) );
++				$sidebars_widgets[ $sidebar_widget_id ] = \wp_aot_array_diff(array( $sidebar_widget, array( $widget_id ) ));
+ 			}
+ 		}
+ 
+@@ -198,7 +198,7 @@
+ 
+ 	wp_set_sidebars_widgets( $sidebars_widgets );
+ 	wp_redirect( admin_url( 'widgets.php?message=0' ) );
+-	exit;
++	\wp_aot_exit();
+ }
+ 
+ // Remove inactive widgets without JS.
+@@ -208,7 +208,7 @@
+ 	if ( $_POST['removeinactivewidgets'] ) {
+ 		foreach ( $sidebars_widgets['wp_inactive_widgets'] as $key => $widget_id ) {
+ 			$pieces       = explode( '-', $widget_id );
+-			$multi_number = array_pop( $pieces );
++			$multi_number = \wp_aot_array_pop( $pieces );
+ 			$id_base      = implode( '-', $pieces );
+ 			$widget       = get_option( 'widget_' . $id_base );
+ 			unset( $widget[ $multi_number ] );
+@@ -220,7 +220,7 @@
+ 	}
+ 
+ 	wp_redirect( admin_url( 'widgets.php?message=0' ) );
+-	exit;
++	\wp_aot_exit();
+ }
+ 
+ // Output the widget form without JS.
+@@ -367,7 +367,7 @@
+ 	</div>
+ 	<?php
+ 	require_once ABSPATH . 'wp-admin/admin-footer.php';
+-	exit;
++	\wp_aot_exit();
+ }
+ 
+ $messages = array(

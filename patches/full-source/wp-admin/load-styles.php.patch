@@ -1,0 +1,88 @@
+--- a/wp-admin/load-styles.php
++++ b/wp-admin/load-styles.php
+@@ -20,14 +20,14 @@
+ }
+ 
+ define( 'WPINC', 'wp-includes' );
+-define( 'WP_CONTENT_DIR', ABSPATH . 'wp-content' );
++\wp_aot_bootstrap_mark('WP_CONTENT_DIR', define( 'WP_CONTENT_DIR', ABSPATH . 'wp-content' ));
+ 
+-require ABSPATH . 'wp-admin/includes/noop.php';
+-require ABSPATH . WPINC . '/theme.php';
+-require ABSPATH . WPINC . '/class-wp-theme-json-resolver.php';
+-require ABSPATH . WPINC . '/global-styles-and-settings.php';
+-require ABSPATH . WPINC . '/script-loader.php';
+-require ABSPATH . WPINC . '/version.php';
++require_once ABSPATH . 'wp-admin/includes/noop.php';
++require_once __DIR__ . '/../wp-includes/theme.php';
++require_once __DIR__ . '/../wp-includes/class-wp-theme-json-resolver.php';
++require_once __DIR__ . '/../wp-includes/global-styles-and-settings.php';
++require_once __DIR__ . '/../wp-includes/script-loader.php';
++require __DIR__ . '/../wp-includes/version.php';
+ 
+ $protocol = $_SERVER['SERVER_PROTOCOL'];
+ if ( ! in_array( $protocol, array( 'HTTP/1.1', 'HTTP/2', 'HTTP/2.0', 'HTTP/3' ), true ) ) {
+@@ -36,16 +36,16 @@
+ 
+ $load = $_GET['load'];
+ if ( is_array( $load ) ) {
+-	ksort( $load );
++	\wp_aot_ksort( $load );
+ 	$load = implode( '', $load );
+ }
+ 
+-$load = preg_replace( '/[^a-z0-9,_-]+/i', '', $load );
+-$load = array_unique( explode( ',', $load ) );
++$load = \wp_aot_preg_replace( '/[^a-z0-9,_-]+/i', '', $load );
++$load = \wp_aot_array_unique( explode( ',', $load ) );
+ 
+ if ( empty( $load ) ) {
+ 	header( "$protocol 400 Bad Request" );
+-	exit;
++	\wp_aot_exit();
+ }
+ 
+ $rtl            = ( isset( $_GET['dir'] ) && 'rtl' === $_GET['dir'] );
+@@ -59,7 +59,7 @@
+ 
+ if ( isset( $_SERVER['HTTP_IF_NONE_MATCH'] ) && stripslashes( $_SERVER['HTTP_IF_NONE_MATCH'] ) === $etag ) {
+ 	header( "$protocol 304 Not Modified" );
+-	exit;
++	\wp_aot_exit();
+ }
+ 
+ foreach ( $load as $handle ) {
+@@ -77,26 +77,26 @@
+ 
+ 	if ( $rtl && ! empty( $style->extra['rtl'] ) ) {
+ 		// All default styles have fully independent RTL files.
+-		$path = str_replace( '.min.css', '-rtl.min.css', $path );
++		$path = \wp_aot_str_replace( '.min.css', '-rtl.min.css', $path );
+ 	}
+ 
+ 	$content = get_file( $path ) . "\n";
+ 
+ 	// Note: str_starts_with() is not used here, as wp-includes/compat.php is not loaded in this file.
+ 	if ( 0 === strpos( $style->src, '/' . WPINC . '/css/' ) ) {
+-		$content = str_replace( '../images/', '../' . WPINC . '/images/', $content );
+-		$content = str_replace( '../js/tinymce/', '../' . WPINC . '/js/tinymce/', $content );
+-		$content = str_replace( '../fonts/', '../' . WPINC . '/fonts/', $content );
++		$content = \wp_aot_str_replace( '../images/', '../' . WPINC . '/images/', $content );
++		$content = \wp_aot_str_replace( '../js/tinymce/', '../' . WPINC . '/js/tinymce/', $content );
++		$content = \wp_aot_str_replace( '../fonts/', '../' . WPINC . '/fonts/', $content );
+ 		$out    .= $content;
+ 	} else {
+-		$out .= str_replace( '../images/', 'images/', $content );
++		$out .= \wp_aot_str_replace( '../images/', 'images/', $content );
+ 	}
+ }
+ 
+ header( "Etag: $etag" );
+ header( 'Content-Type: text/css; charset=UTF-8' );
+-header( 'Expires: ' . gmdate( 'D, d M Y H:i:s', time() + $expires_offset ) . ' GMT' );
++header( 'Expires: ' . \wp_aot_gmdate( 'D, d M Y H:i:s', time() + $expires_offset ) . ' GMT' );
+ header( "Cache-Control: public, max-age=$expires_offset" );
+ 
+ echo $out;
+-exit;
++\wp_aot_exit();

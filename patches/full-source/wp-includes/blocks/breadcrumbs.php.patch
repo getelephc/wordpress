@@ -1,0 +1,271 @@
+--- a/wp-includes/blocks/breadcrumbs.php
++++ b/wp-includes/blocks/breadcrumbs.php
+@@ -16,7 +16,7 @@
+  *
+  * @return string Returns the post breadcrumb for hierarchical post types.
+  */
+-function render_block_core_breadcrumbs( $attributes, $content, $block ) {
++function render_block_core_breadcrumbs( mixed $attributes, mixed $content, mixed $block ): mixed {
+ 	$is_front_page = is_front_page();
+ 
+ 	if ( ! $attributes['showOnHomePage'] && $is_front_page ) {
+@@ -25,7 +25,7 @@
+ 
+ 	$is_home          = is_home();
+ 	$page_for_posts   = get_option( 'page_for_posts' );
+-	$breadcrumb_items = array();
++	$breadcrumb_items = \wp_aot_mixed(array());
+ 
+ 	if ( $attributes['showHomeItem'] ) {
+ 		// We make `home` a link if not on front page, or if front page
+@@ -75,7 +75,7 @@
+ 		// Handle archive pages (taxonomy, post type, date, author archives).
+ 		$archive_breadcrumbs = block_core_breadcrumbs_get_archive_breadcrumbs();
+ 		if ( ! empty( $archive_breadcrumbs ) ) {
+-			$breadcrumb_items = array_merge( $breadcrumb_items, $archive_breadcrumbs );
++			$breadcrumb_items = \wp_aot_array_merge(array( $breadcrumb_items, $archive_breadcrumbs ));
+ 		}
+ 	} else {
+ 		// Handle single post/page breadcrumbs.
+@@ -130,9 +130,9 @@
+ 		}
+ 		// Build breadcrumb trail based on hierarchical structure or taxonomy terms.
+ 		if ( ! $show_terms ) {
+-			$breadcrumb_items = array_merge( $breadcrumb_items, block_core_breadcrumbs_get_hierarchical_post_type_breadcrumbs( $post_id ) );
++			$breadcrumb_items = \wp_aot_array_merge(array( $breadcrumb_items, block_core_breadcrumbs_get_hierarchical_post_type_breadcrumbs( $post_id ) ));
+ 		} else {
+-			$breadcrumb_items = array_merge( $breadcrumb_items, block_core_breadcrumbs_get_terms_breadcrumbs( $post_id, $post_type ) );
++			$breadcrumb_items = \wp_aot_array_merge(array( $breadcrumb_items, block_core_breadcrumbs_get_terms_breadcrumbs( $post_id, $post_type ) ));
+ 		}
+ 
+ 		// Add post title: linked when viewing a paginated page, plain text otherwise.
+@@ -156,7 +156,7 @@
+ 
+ 	// Remove current item if disabled.
+ 	if ( ! $attributes['showCurrentItem'] && ! empty( $breadcrumb_items ) ) {
+-		array_pop( $breadcrumb_items );
++		\wp_aot_array_pop( $breadcrumb_items );
+ 	}
+ 
+ 	/**
+@@ -195,8 +195,8 @@
+ 		$wrapper_attributes,
+ 		implode(
+ 			'',
+-			array_map(
+-				static function ( $item ) {
++			\wp_aot_array_map(
++				static function ( mixed $item ) {
+ 					$label = ! empty( $item['allow_html'] ) ? wp_kses_post( $item['label'] ) : esc_html( $item['label'] );
+ 					if ( ! empty( $item['url'] ) ) {
+ 						return '<li><a href="' . esc_url( $item['url'] ) . '">' . $label . '</a></li>';
+@@ -209,6 +209,7 @@
+ 	);
+ 
+ 	return $breadcrumb_html;
++	return null;
+ }
+ 
+ /**
+@@ -218,9 +219,10 @@
+  *
+  * @return bool True if paged > 1, false otherwise.
+  */
+-function block_core_breadcrumbs_is_paged() {
++function block_core_breadcrumbs_is_paged(): mixed {
+ 	$paged = (int) get_query_var( 'paged' );
+ 	return $paged > 1;
++	return null;
+ }
+ 
+ /**
+@@ -230,7 +232,7 @@
+  * @param string $query_var Optional. Query variable to get current page number. Default 'paged'.
+  * @return array The "Page X" breadcrumb item data.
+  */
+-function block_core_breadcrumbs_create_page_number_item( $query_var = 'paged' ) {
++function block_core_breadcrumbs_create_page_number_item( mixed $query_var = 'paged' ): mixed {
+ 	$paged = (int) get_query_var( $query_var );
+ 
+ 	if ( 'cpage' === $query_var ) {
+@@ -250,6 +252,7 @@
+ 			number_format_i18n( $paged )
+ 		),
+ 	);
++	return null;
+ }
+ 
+ 
+@@ -266,12 +269,13 @@
+  *
+  * @return array The breadcrumb item data.
+  */
+-function block_core_breadcrumbs_create_item( $text, $is_paged = false ) {
++function block_core_breadcrumbs_create_item( mixed $text, mixed $is_paged = false ): mixed {
+ 	$item = array( 'label' => $text );
+ 	if ( $is_paged ) {
+ 		$item['url'] = get_pagenum_link( 1 );
+ 	}
+ 	return $item;
++	return null;
+ }
+ 
+ /**
+@@ -283,12 +287,13 @@
+  *
+  * @return string The post title or fallback text.
+  */
+-function block_core_breadcrumbs_get_post_title( $post_id_or_object ) {
++function block_core_breadcrumbs_get_post_title( mixed $post_id_or_object ): mixed {
+ 	$title = get_the_title( $post_id_or_object );
+ 	if ( strlen( $title ) === 0 ) {
+ 		$title = __( '(no title)' );
+ 	}
+ 	return $title;
++	return null;
+ }
+ 
+ /**
+@@ -300,10 +305,10 @@
+  *
+  * @return array Array of breadcrumb item data.
+  */
+-function block_core_breadcrumbs_get_hierarchical_post_type_breadcrumbs( $post_id ) {
+-	$breadcrumb_items = array();
++function block_core_breadcrumbs_get_hierarchical_post_type_breadcrumbs( mixed $post_id ): mixed {
++	$breadcrumb_items = \wp_aot_mixed(array());
+ 	$ancestors        = get_post_ancestors( $post_id );
+-	$ancestors        = array_reverse( $ancestors );
++	$ancestors        = \wp_aot_array_reverse( $ancestors );
+ 
+ 	foreach ( $ancestors as $ancestor_id ) {
+ 		$breadcrumb_items[] = array(
+@@ -313,6 +318,7 @@
+ 		);
+ 	}
+ 	return $breadcrumb_items;
++	return null;
+ }
+ 
+ /**
+@@ -327,13 +333,13 @@
+  *
+  * @return array Array of breadcrumb item data for ancestors.
+  */
+-function block_core_breadcrumbs_get_term_ancestors_items( $term_id, $taxonomy ) {
+-	$breadcrumb_items = array();
++function block_core_breadcrumbs_get_term_ancestors_items( mixed $term_id, mixed $taxonomy ): mixed {
++	$breadcrumb_items = \wp_aot_mixed(array());
+ 
+ 	// Check if taxonomy is hierarchical and add ancestor term links.
+ 	if ( is_taxonomy_hierarchical( $taxonomy ) ) {
+ 		$term_ancestors = get_ancestors( $term_id, $taxonomy, 'taxonomy' );
+-		$term_ancestors = array_reverse( $term_ancestors );
++		$term_ancestors = \wp_aot_array_reverse( $term_ancestors );
+ 		foreach ( $term_ancestors as $ancestor_id ) {
+ 			$ancestor_term = get_term( $ancestor_id, $taxonomy );
+ 			if ( $ancestor_term && ! is_wp_error( $ancestor_term ) ) {
+@@ -346,6 +352,7 @@
+ 	}
+ 
+ 	return $breadcrumb_items;
++	return null;
+ }
+ 
+ /**
+@@ -358,8 +365,8 @@
+  *
+  * @return array Array of breadcrumb item data.
+  */
+-function block_core_breadcrumbs_get_archive_breadcrumbs() {
+-	$breadcrumb_items = array();
++function block_core_breadcrumbs_get_archive_breadcrumbs(): mixed {
++	$breadcrumb_items = \wp_aot_mixed(array());
+ 
+ 	// Date archive (check first since it doesn't have a queried object).
+ 	if ( is_date() ) {
+@@ -391,7 +398,7 @@
+ 				if ( $day ) {
+ 					// Month is linked if we have day.
+ 					$breadcrumb_items[] = array(
+-						'label' => date_i18n( 'F', mktime( 0, 0, 0, $month, 1, $year ) ),
++						'label' => date_i18n( 'F', mktime( 0, 0, 0, \wp_aot_calendar_component( $month ), 1, \wp_aot_calendar_component( $year ) ) ),
+ 						'url'   => get_month_link( $year, $month ),
+ 					);
+ 					// Add day (current if not paginated, link if paginated).
+@@ -402,7 +409,7 @@
+ 				} else {
+ 					// Add month (current if not paginated, link if paginated).
+ 					$breadcrumb_items[] = block_core_breadcrumbs_create_item(
+-						date_i18n( 'F', mktime( 0, 0, 0, $month, 1, $year ) ),
++						date_i18n( 'F', mktime( 0, 0, 0, \wp_aot_calendar_component( $month ), 1, \wp_aot_calendar_component( $year ) ) ),
+ 						$is_paged
+ 					);
+ 				}
+@@ -438,10 +445,10 @@
+ 		$taxonomy = $term->taxonomy;
+ 
+ 		// Add hierarchical term ancestors if applicable.
+-		$breadcrumb_items = array_merge(
++		$breadcrumb_items = \wp_aot_array_merge(array(
+ 			$breadcrumb_items,
+ 			block_core_breadcrumbs_get_term_ancestors_items( $term->term_id, $taxonomy )
+-		);
++		));
+ 
+ 		// Add current term (current if not paginated, link if paginated).
+ 		$breadcrumb_items[] = block_core_breadcrumbs_create_item(
+@@ -482,6 +489,7 @@
+ 	}
+ 
+ 	return $breadcrumb_items;
++	return null;
+ }
+ 
+ /**
+@@ -497,8 +505,8 @@
+  *
+  * @return array Array of breadcrumb item data.
+  */
+-function block_core_breadcrumbs_get_terms_breadcrumbs( $post_id, $post_type ) {
+-	$breadcrumb_items = array();
++function block_core_breadcrumbs_get_terms_breadcrumbs( mixed $post_id, mixed $post_type ): mixed {
++	$breadcrumb_items = \wp_aot_mixed(array());
+ 
+ 	// Get public taxonomies for this post type.
+ 	$taxonomies = wp_filter_object_list(
+@@ -583,16 +591,17 @@
+ 		}
+ 
+ 		// Add hierarchical term ancestors if applicable.
+-		$breadcrumb_items   = array_merge(
++		$breadcrumb_items   = \wp_aot_array_merge(array(
+ 			$breadcrumb_items,
+ 			block_core_breadcrumbs_get_term_ancestors_items( $term->term_id, $taxonomy_name )
+-		);
++		));
+ 		$breadcrumb_items[] = array(
+ 			'label' => $term->name,
+ 			'url'   => get_term_link( $term ),
+ 		);
+ 	}
+ 	return $breadcrumb_items;
++	return null;
+ }
+ 
+ /**
+@@ -600,12 +609,13 @@
+  *
+  * @since 7.0.0
+  */
+-function register_block_core_breadcrumbs() {
++function register_block_core_breadcrumbs(): mixed {
+ 	register_block_type_from_metadata(
+ 		__DIR__ . '/breadcrumbs',
+ 		array(
+ 			'render_callback' => 'render_block_core_breadcrumbs',
+ 		)
+ 	);
++	return null;
+ }
+ add_action( 'init', 'register_block_core_breadcrumbs' );

@@ -1,0 +1,44 @@
+--- a/wp-includes/l10n/class-wp-translations.php
++++ b/wp-includes/l10n/class-wp-translations.php
+@@ -85,7 +85,7 @@
+ 	 * @param string $translations Translation strings from MO file.
+ 	 * @return Translation_Entry Entry instance.
+ 	 */
+-	private function make_entry( $original, $translations ): Translation_Entry {
++	private function make_entry( mixed $original, mixed $translations ): Translation_Entry {
+ 		$entry = new Translation_Entry();
+ 
+ 		// Look for context, separated by \4.
+@@ -113,7 +113,7 @@
+ 	 * @param string|null $context  Context.
+ 	 * @return string|null Translation if it exists, or the unchanged singular string.
+ 	 */
+-	public function translate_plural( $singular, $plural, $count = 1, $context = '' ) {
++	public function translate_plural( mixed $singular, mixed $plural, mixed $count = 1, mixed $context = '' ): mixed {
+ 		if ( null === $singular || null === $plural ) {
+ 			return $singular;
+ 		}
+@@ -125,6 +125,7 @@
+ 
+ 		// Fall back to the original with English grammar rules.
+ 		return ( 1 === (int) $count ? $singular : $plural );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -136,7 +137,7 @@
+ 	 * @param string|null $context  Context.
+ 	 * @return string|null Translation if it exists, or the unchanged singular string
+ 	 */
+-	public function translate( $singular, $context = '' ) {
++	public function translate( mixed $singular, mixed $context = '' ): mixed {
+ 		if ( null === $singular ) {
+ 			return null;
+ 		}
+@@ -148,5 +149,6 @@
+ 
+ 		// Fall back to the original.
+ 		return $singular;
++		return null;
+ 	}
+ }

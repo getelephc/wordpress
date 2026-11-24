@@ -1,0 +1,81 @@
+--- a/wp-admin/includes/class-automatic-upgrader-skin.php
++++ b/wp-admin/includes/class-automatic-upgrader-skin.php
+@@ -37,7 +37,7 @@
+ 	 * @param bool          $allow_relaxed_file_ownership Optional. Whether to allow Group/World writable. Default false.
+ 	 * @return bool True on success, false on failure.
+ 	 */
+-	public function request_filesystem_credentials( $error = false, $context = '', $allow_relaxed_file_ownership = false ) {
++	public function request_filesystem_credentials( mixed $error = false, mixed $context = '', mixed $allow_relaxed_file_ownership = false ): mixed {
+ 		if ( $context ) {
+ 			$this->options['context'] = $context;
+ 		}
+@@ -49,6 +49,7 @@
+ 		$result = parent::request_filesystem_credentials( $error, $context, $allow_relaxed_file_ownership );
+ 		ob_end_clean();
+ 		return $result;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -58,8 +59,9 @@
+ 	 *
+ 	 * @return string[] Messages during an upgrade.
+ 	 */
+-	public function get_upgrade_messages() {
++	public function get_upgrade_messages(): mixed {
+ 		return $this->messages;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -71,11 +73,11 @@
+ 	 * @param string|array|WP_Error $feedback Message data.
+ 	 * @param mixed                 ...$args  Optional text replacements.
+ 	 */
+-	public function feedback( $feedback, ...$args ) {
++	public function feedback( mixed $feedback, mixed ...$args ): mixed {
+ 		if ( is_wp_error( $feedback ) ) {
+ 			$string = $feedback->get_error_message();
+ 		} elseif ( is_array( $feedback ) ) {
+-			return;
++			return null;
+ 		} else {
+ 			$string = $feedback;
+ 		}
+@@ -106,10 +108,11 @@
+ 		);
+ 
+ 		if ( empty( $string ) ) {
+-			return;
++			return null;
+ 		}
+ 
+ 		$this->messages[] = $string;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -117,8 +120,9 @@
+ 	 *
+ 	 * @since 3.7.0
+ 	 */
+-	public function header() {
++	public function header(): mixed {
+ 		ob_start();
++		return null;
+ 	}
+ 
+ 	/**
+@@ -126,10 +130,11 @@
+ 	 *
+ 	 * @since 3.7.0
+ 	 */
+-	public function footer() {
++	public function footer(): mixed {
+ 		$output = ob_get_clean();
+ 		if ( ! empty( $output ) ) {
+ 			$this->feedback( $output );
+ 		}
++		return null;
+ 	}
+ }

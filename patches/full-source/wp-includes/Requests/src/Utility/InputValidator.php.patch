@@ -1,0 +1,82 @@
+--- a/wp-includes/Requests/src/Utility/InputValidator.php
++++ b/wp-includes/Requests/src/Utility/InputValidator.php
+@@ -25,8 +25,9 @@
+ 	 *
+ 	 * @return bool
+ 	 */
+-	public static function is_string_or_stringable($input) {
++	public static function is_string_or_stringable(mixed $input): mixed {
+ 		return is_string($input) || self::is_stringable_object($input);
++		return null;
+ 	}
+ 
+ 	/**
+@@ -36,7 +37,7 @@
+ 	 *
+ 	 * @return bool
+ 	 */
+-	public static function is_numeric_array_key($input) {
++	public static function is_numeric_array_key(mixed $input): mixed {
+ 		if (is_int($input)) {
+ 			return true;
+ 		}
+@@ -45,7 +46,8 @@
+ 			return false;
+ 		}
+ 
+-		return (bool) preg_match('`^-?[0-9]+$`', $input);
++		return (bool) preg_match('`^-?[0-9]+$`', \wp_aot_regex_text( $input ));
++		return null;
+ 	}
+ 
+ 	/**
+@@ -55,8 +57,9 @@
+ 	 *
+ 	 * @return bool
+ 	 */
+-	public static function is_stringable_object($input) {
+-		return is_object($input) && method_exists($input, '__toString');
++	public static function is_stringable_object(mixed $input): mixed {
++		return is_object($input) && ($input instanceof \Stringable);
++		return null;
+ 	}
+ 
+ 	/**
+@@ -66,8 +69,9 @@
+ 	 *
+ 	 * @return bool
+ 	 */
+-	public static function has_array_access($input) {
++	public static function has_array_access(mixed $input): mixed {
+ 		return is_array($input) || $input instanceof ArrayAccess;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -80,8 +84,9 @@
+ 	 *
+ 	 * @return bool
+ 	 */
+-	public static function is_iterable($input) {
++	public static function is_iterable(mixed $input): mixed {
+ 		return is_array($input) || $input instanceof Traversable;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -95,7 +100,7 @@
+ 	 *
+ 	 * @return bool
+ 	 */
+-	public static function is_curl_handle($input) {
++	public static function is_curl_handle(mixed $input): mixed {
+ 		if (is_resource($input)) {
+ 			return get_resource_type($input) === 'curl';
+ 		}
+@@ -105,5 +110,6 @@
+ 		}
+ 
+ 		return false;
++		return null;
+ 	}
+ }

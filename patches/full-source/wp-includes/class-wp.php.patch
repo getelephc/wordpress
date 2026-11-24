@@ -1,6 +1,51 @@
 --- a/wp-includes/class-wp.php
 +++ b/wp-includes/class-wp.php
-@@ -153,7 +153,7 @@
+@@ -90,10 +90,11 @@
+ 	 *
+ 	 * @param string $qv Query variable name.
+ 	 */
+-	public function add_query_var( $qv ) {
++	public function add_query_var( mixed $qv ): mixed {
+ 		if ( ! in_array( $qv, $this->public_query_vars, true ) ) {
+ 			$this->public_query_vars[] = $qv;
+ 		}
++		return null;
+ 	}
+ 
+ 	/**
+@@ -103,8 +104,9 @@
+ 	 *
+ 	 * @param string $name Query variable name.
+ 	 */
+-	public function remove_query_var( $name ) {
+-		$this->public_query_vars = array_diff( $this->public_query_vars, array( $name ) );
++	public function remove_query_var( mixed $name ): mixed {
++		$this->public_query_vars = \wp_aot_array_diff(array( $this->public_query_vars, array( $name ) ));
++		return null;
+ 	}
+ 
+ 	/**
+@@ -115,8 +117,9 @@
+ 	 * @param string $key   Query variable name.
+ 	 * @param mixed  $value Query variable value.
+ 	 */
+-	public function set_query_var( $key, $value ) {
++	public function set_query_var( mixed $key, mixed $value ): mixed {
+ 		$this->query_vars[ $key ] = $value;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -133,7 +136,7 @@
+ 	 * @param array|string $extra_query_vars Set the extra query variables.
+ 	 * @return bool Whether the request was parsed.
+ 	 */
+-	public function parse_request( $extra_query_vars = '' ) {
++	public function parse_request( mixed $extra_query_vars = '' ): mixed {
+ 		global $wp_rewrite;
+ 
+ 		/**
+@@ -153,7 +156,7 @@
  		$post_type_query_vars = array();
  
  		if ( is_array( $extra_query_vars ) ) {
@@ -9,7 +54,100 @@
  		} elseif ( ! empty( $extra_query_vars ) ) {
  			parse_str( $extra_query_vars, $this->extra_query_vars );
  		}
-@@ -415,7 +415,7 @@
+@@ -169,7 +172,7 @@
+ 
+ 			$pathinfo         = $_SERVER['PATH_INFO'] ?? '';
+ 			list( $pathinfo ) = explode( '?', $pathinfo );
+-			$pathinfo         = str_replace( '%', '%25', $pathinfo );
++			$pathinfo         = \wp_aot_str_replace( '%', '%25', $pathinfo );
+ 
+ 			list( $req_uri ) = explode( '?', $_SERVER['REQUEST_URI'] );
+ 			$self            = $_SERVER['PHP_SELF'];
+@@ -178,7 +181,7 @@
+ 			$home_path_regex = '';
+ 			if ( is_string( $home_path ) && '' !== $home_path ) {
+ 				$home_path       = trim( $home_path, '/' );
+-				$home_path_regex = sprintf( '|^%s|i', preg_quote( $home_path, '|' ) );
++				$home_path_regex = sprintf( '|^%s|i', preg_quote( \wp_aot_regex_text( $home_path ), '|' ) );
+ 			}
+ 
+ 			/*
+@@ -186,22 +189,22 @@
+ 			 * For path info requests, this leaves us with the requesting filename, if any.
+ 			 * For 404 requests, this leaves us with the requested permalink.
+ 			 */
+-			$req_uri  = str_replace( $pathinfo, '', $req_uri );
++			$req_uri  = \wp_aot_str_replace( $pathinfo, '', $req_uri );
+ 			$req_uri  = trim( $req_uri, '/' );
+ 			$pathinfo = trim( $pathinfo, '/' );
+ 			$self     = trim( $self, '/' );
+ 
+ 			if ( ! empty( $home_path_regex ) ) {
+-				$req_uri  = preg_replace( $home_path_regex, '', $req_uri );
++				$req_uri  = \wp_aot_preg_replace( $home_path_regex, '', $req_uri );
+ 				$req_uri  = trim( $req_uri, '/' );
+-				$pathinfo = preg_replace( $home_path_regex, '', $pathinfo );
++				$pathinfo = \wp_aot_preg_replace( $home_path_regex, '', $pathinfo );
+ 				$pathinfo = trim( $pathinfo, '/' );
+-				$self     = preg_replace( $home_path_regex, '', $self );
++				$self     = \wp_aot_preg_replace( $home_path_regex, '', $self );
+ 				$self     = trim( $self, '/' );
+ 			}
+ 
+ 			// The requested permalink is in $pathinfo for path info requests and $req_uri for other requests.
+-			if ( ! empty( $pathinfo ) && ! preg_match( '|^.*' . $wp_rewrite->index . '$|', $pathinfo ) ) {
++			if ( ! empty( $pathinfo ) && ! preg_match( \wp_aot_regex_text( '|^.*' . $wp_rewrite->index . '$|' ), \wp_aot_regex_text( $pathinfo ) ) ) {
+ 				$requested_path = $pathinfo;
+ 			} else {
+ 				// If the request uri is the index, blank it out so that we don't try to match it against a rule.
+@@ -235,15 +238,15 @@
+ 						$request_match = $requested_file . '/' . $requested_path;
+ 					}
+ 
+-					if ( preg_match( "#^$match#", $request_match, $matches )
+-						|| preg_match( "#^$match#", urldecode( $request_match ), $matches )
++					if ( preg_match( \wp_aot_regex_text( "#^$match#" ), \wp_aot_regex_text( $request_match ), $matches )
++						|| preg_match( \wp_aot_regex_text( "#^$match#" ), \wp_aot_regex_text( urldecode( $request_match ) ), $matches )
+ 					) {
+ 
+ 						if ( $wp_rewrite->use_verbose_page_rules
+-							&& preg_match( '/pagename=\$matches\[([0-9]+)\]/', $query, $varmatch )
++							&& preg_match( '/pagename=\$matches\[([0-9]+)\]/', \wp_aot_regex_text( $query ), $varmatch )
+ 						) {
+ 							// This is a verbose page match, let's check to be sure about it.
+-							$page = get_page_by_path( $matches[ $varmatch[1] ] );
++							$page = get_page_by_path( $matches[ \wp_aot_mixed($varmatch)[1] ] );
+ 
+ 							if ( ! $page ) {
+ 								continue;
+@@ -267,7 +270,7 @@
+ 
+ 			if ( ! empty( $this->matched_rule ) ) {
+ 				// Trim the query of everything up to the '?'.
+-				$query = preg_replace( '!^.+\?!', '', $query );
++				$query = \wp_aot_preg_replace( '!^.+\?!', '', $query );
+ 
+ 				// Substitute the substring matches into the query.
+ 				$query = addslashes( WP_MatchesMapRegex::apply( $query, $matches ) );
+@@ -356,7 +359,7 @@
+ 		// Convert urldecoded spaces back into '+'.
+ 		foreach ( get_taxonomies( array(), 'objects' ) as $taxonomy => $t ) {
+ 			if ( $t->query_var && isset( $this->query_vars[ $t->query_var ] ) ) {
+-				$this->query_vars[ $t->query_var ] = str_replace( ' ', '+', $this->query_vars[ $t->query_var ] );
++				$this->query_vars[ $t->query_var ] = \wp_aot_str_replace( ' ', '+', $this->query_vars[ $t->query_var ] );
+ 			}
+ 		}
+ 
+@@ -382,7 +385,7 @@
+ 					unset( $this->query_vars['post_type'] );
+ 				}
+ 			} else {
+-				$this->query_vars['post_type'] = array_intersect( $this->query_vars['post_type'], $queryable_post_types );
++				$this->query_vars['post_type'] = \wp_aot_array_intersect(array( $this->query_vars['post_type'], $queryable_post_types ));
+ 			}
+ 		}
+ 
+@@ -415,9 +418,10 @@
  		 *
  		 * @param WP $wp Current WordPress environment instance (passed by reference).
  		 */
@@ -17,17 +155,127 @@
 +		do_action_ref_array( 'parse_request', array( $this ) );
  
  		return true;
++		return null;
  	}
-@@ -595,7 +595,7 @@
+ 
+ 	/**
+@@ -432,21 +436,21 @@
+ 	 *
+ 	 * @global WP_Query $wp_query WordPress Query object.
+ 	 */
+-	public function send_headers() {
++	public function send_headers(): mixed {
+ 		global $wp_query;
+ 
+-		$headers       = array();
++		$headers       = \wp_aot_mixed(array());
+ 		$status        = null;
+ 		$exit_required = false;
+ 		$date_format   = 'D, d M Y H:i:s';
+ 
+ 		if ( is_user_logged_in() ) {
+-			$headers = array_merge( $headers, wp_get_nocache_headers() );
++			$headers = \wp_aot_array_merge(array( $headers, wp_get_nocache_headers() ));
+ 		} elseif ( ! empty( $_GET['unapproved'] ) && ! empty( $_GET['moderation-hash'] ) ) {
+ 			// Unmoderated comments are only visible for 10 minutes via the moderation hash.
+ 			$expires = 10 * MINUTE_IN_SECONDS;
+ 
+-			$headers['Expires']       = gmdate( $date_format, time() + $expires );
++			$headers['Expires']       = \wp_aot_gmdate( $date_format, time() + $expires );
+ 			$headers['Cache-Control'] = sprintf(
+ 				'max-age=%d, must-revalidate',
+ 				$expires
+@@ -457,7 +461,7 @@
+ 
+ 			if ( 404 === $status ) {
+ 				if ( ! is_user_logged_in() ) {
+-					$headers = array_merge( $headers, wp_get_nocache_headers() );
++					$headers = \wp_aot_array_merge(array( $headers, wp_get_nocache_headers() ));
+ 				}
+ 
+ 				$headers['Content-Type'] = get_option( 'html_type' ) . '; charset=' . get_option( 'blog_charset' );
+@@ -501,7 +505,7 @@
+ 			}
+ 
+ 			if ( ! $wp_last_modified ) {
+-				$wp_last_modified = gmdate( $date_format );
++				$wp_last_modified = \wp_aot_gmdate( $date_format );
+ 			}
+ 
+ 			$wp_last_modified .= ' GMT';
+@@ -548,7 +552,7 @@
+ 
+ 			// Send nocache headers for password protected posts to avoid unwanted caching.
+ 			if ( ! empty( $post->post_password ) ) {
+-				$headers = array_merge( $headers, wp_get_nocache_headers() );
++				$headers = \wp_aot_array_merge(array( $headers, wp_get_nocache_headers() ));
+ 			}
+ 		}
+ 
+@@ -570,19 +574,19 @@
+ 		if ( isset( $headers['Last-Modified'] ) && false === $headers['Last-Modified'] ) {
+ 			unset( $headers['Last-Modified'] );
+ 
+-			if ( ! headers_sent() ) {
+-				header_remove( 'Last-Modified' );
+-			}
+-		}
+-
+-		if ( ! headers_sent() ) {
++			if ( ! \wp_aot_native_headers_sent() ) {
++				\wp_aot_native_api('header_remove', array( 'Last-Modified' ));
++			}
++		}
++
++		if ( ! \wp_aot_native_headers_sent() ) {
+ 			foreach ( (array) $headers as $name => $field_value ) {
+ 				header( "{$name}: {$field_value}" );
+ 			}
+ 		}
+ 
+ 		if ( $exit_required ) {
+-			exit;
++			\wp_aot_exit();
+ 		}
+ 
+ 		/**
+@@ -595,7 +599,8 @@
  		 *
  		 * @param WP $wp Current WordPress environment instance (passed by reference).
  		 */
 -		do_action_ref_array( 'send_headers', array( &$this ) );
 +		do_action_ref_array( 'send_headers', array( $this ) );
++		return null;
  	}
  
  	/**
-@@ -668,7 +668,7 @@
+@@ -606,7 +611,7 @@
+ 	 *
+ 	 * @since 2.0.0
+ 	 */
+-	public function build_query_string() {
++	public function build_query_string(): mixed {
+ 		$this->query_string = '';
+ 
+ 		foreach ( (array) array_keys( $this->query_vars ) as $wpvar ) {
+@@ -639,6 +644,7 @@
+ 
+ 			parse_str( $this->query_string, $this->query_vars );
+ 		}
++		return null;
+ 	}
+ 
+ 	/**
+@@ -659,7 +665,7 @@
+ 	 * @global int          $single       If single page or post. Only set, if single page or post.
+ 	 * @global WP_User      $authordata   Only set, if author archive.
+ 	 */
+-	public function register_globals() {
++	public function register_globals(): mixed {
+ 		global $wp_query;
+ 
+ 		// Extract updated query vars back into global namespace.
+@@ -668,7 +674,7 @@
  		}
  
  		$GLOBALS['query_string'] = $this->query_string;
@@ -36,11 +284,85 @@
  		$GLOBALS['post']         = $wp_query->post ?? null;
  		$GLOBALS['request']      = $wp_query->request;
  
-@@ -836,6 +836,6 @@
+@@ -680,6 +686,7 @@
+ 		if ( $wp_query->is_author() ) {
+ 			$GLOBALS['authordata'] = get_userdata( get_queried_object_id() );
+ 		}
++		return null;
+ 	}
+ 
+ 	/**
+@@ -687,8 +694,9 @@
+ 	 *
+ 	 * @since 2.0.0
+ 	 */
+-	public function init() {
++	public function init(): mixed {
+ 		wp_get_current_user();
++		return null;
+ 	}
+ 
+ 	/**
+@@ -698,10 +706,11 @@
+ 	 *
+ 	 * @global WP_Query $wp_the_query WordPress Query object.
+ 	 */
+-	public function query_posts() {
++	public function query_posts(): mixed {
+ 		global $wp_the_query;
+ 		$this->build_query_string();
+ 		$wp_the_query->query( $this->query_vars );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -721,7 +730,7 @@
+ 	 *
+ 	 * @global WP_Query $wp_query WordPress Query object.
+ 	 */
+-	public function handle_404() {
++	public function handle_404(): mixed {
+ 		global $wp_query;
+ 
+ 		/**
+@@ -736,12 +745,12 @@
+ 		 * @param WP_Query $wp_query WordPress Query object.
+ 		 */
+ 		if ( false !== apply_filters( 'pre_handle_404', false, $wp_query ) ) {
+-			return;
++			return null;
+ 		}
+ 
+ 		// If we've already issued a 404, bail.
+ 		if ( is_404() ) {
+-			return;
++			return null;
+ 		}
+ 
+ 		$set_404 = true;
+@@ -803,6 +812,7 @@
+ 		} else {
+ 			status_header( 200 );
+ 		}
++		return null;
+ 	}
+ 
+ 	/**
+@@ -816,7 +826,7 @@
+ 	 *
+ 	 * @param string|array $query_args Passed to parse_request().
+ 	 */
+-	public function main( $query_args = '' ) {
++	public function main( mixed $query_args = '' ): mixed {
+ 		$this->init();
+ 
+ 		$parsed = $this->parse_request( $query_args );
+@@ -836,6 +846,7 @@
  		 *
  		 * @param WP $wp Current WordPress environment instance (passed by reference).
  		 */
 -		do_action_ref_array( 'wp', array( &$this ) );
 +		do_action_ref_array( 'wp', array( $this ) );
++		return null;
  	}
  }

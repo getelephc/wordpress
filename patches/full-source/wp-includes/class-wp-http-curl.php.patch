@@ -1,6 +1,15 @@
 --- a/wp-includes/class-wp-http-curl.php
 +++ b/wp-includes/class-wp-http-curl.php
-@@ -233,7 +233,7 @@
+@@ -70,7 +70,7 @@
+ 	 * @param string|array $args Optional. Override the defaults.
+ 	 * @return array|WP_Error Array containing 'headers', 'body', 'response', 'cookies', 'filename'. A WP_Error instance upon error
+ 	 */
+-	public function request( $url, $args = array() ) {
++	public function request( mixed $url, mixed $args = array() ): mixed {
+ 		$defaults = array(
+ 			'method'      => 'GET',
+ 			'timeout'     => 5,
+@@ -233,13 +233,13 @@
  		 * @param array    $parsed_args The HTTP request arguments.
  		 * @param string   $url         The request URL.
  		 */
@@ -9,3 +18,72 @@
  
  		// We don't need to return the body, so don't. Just execute request and return.
  		if ( ! $parsed_args['blocking'] ) {
+ 			curl_exec( $handle );
+ 
+-			$curl_error = curl_error( $handle );
++			$curl_error = \wp_aot_mixed(curl_error( $handle ));
+ 
+ 			if ( $curl_error ) {
+ 				if ( PHP_VERSION_ID < 80000 ) { // curl_close() has no effect as of PHP 8.0.
+@@ -356,6 +356,7 @@
+ 		$response['body'] = $body;
+ 
+ 		return $response;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -370,9 +371,10 @@
+ 	 * @param string   $headers cURL request headers.
+ 	 * @return int Length of the request headers.
+ 	 */
+-	private function stream_headers( $handle, $headers ) {
++	private function stream_headers( mixed $handle, mixed $headers ): mixed {
+ 		$this->headers .= $headers;
+ 		return strlen( $headers );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -388,7 +390,7 @@
+ 	 * @param string   $data   cURL request body.
+ 	 * @return int Total bytes of data written.
+ 	 */
+-	private function stream_body( $handle, $data ) {
++	private function stream_body( mixed $handle, mixed $data ): mixed {
+ 		$data_length = strlen( $data );
+ 
+ 		if ( $this->max_body_length && ( $this->bytes_written_total + $data_length ) > $this->max_body_length ) {
+@@ -397,7 +399,7 @@
+ 		}
+ 
+ 		if ( $this->stream_handle ) {
+-			$bytes_written = fwrite( $this->stream_handle, $data );
++			$bytes_written = \wp_aot_fwrite( $this->stream_handle, $data );
+ 		} else {
+ 			$this->body   .= $data;
+ 			$bytes_written = $data_length;
+@@ -407,6 +409,7 @@
+ 
+ 		// Upon event of this function returning less than strlen( $data ) curl will error with CURLE_WRITE_ERROR.
+ 		return $bytes_written;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -417,7 +420,7 @@
+ 	 * @param array $args Optional. Array of request arguments. Default empty array.
+ 	 * @return bool False means this class can not be used, true means it can.
+ 	 */
+-	public static function test( $args = array() ) {
++	public static function test( mixed $args = array() ): mixed {
+ 		if ( ! function_exists( 'curl_init' ) || ! function_exists( 'curl_exec' ) ) {
+ 			return false;
+ 		}
+@@ -441,5 +444,6 @@
+ 		 * @param array $args      An array of request arguments.
+ 		 */
+ 		return apply_filters( 'use_curl_transport', true, $args );
++		return null;
+ 	}
+ }

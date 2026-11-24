@@ -1,0 +1,90 @@
+--- a/wp-includes/blocks/query.php
++++ b/wp-includes/blocks/query.php
+@@ -16,7 +16,7 @@
+  *
+  * @return string Returns the modified output of the query block.
+  */
+-function render_block_core_query( $attributes, $content, $block ) {
++function render_block_core_query( mixed $attributes, mixed $content, mixed $block ): mixed {
+ 	$is_interactive = isset( $attributes['enhancedPagination'] )
+ 		&& true === $attributes['enhancedPagination']
+ 		&& isset( $attributes['queryId'] );
+@@ -44,15 +44,16 @@
+ 		$style_handles = $block->block_type->style_handles;
+ 		// If the styles are not needed, and they are still in the `style_handles`, remove them.
+ 		if ( ! $is_interactive && in_array( $style_asset, $style_handles, true ) ) {
+-			$block->block_type->style_handles = array_diff( $style_handles, array( $style_asset ) );
++			$block->block_type->style_handles = \wp_aot_array_diff(array( $style_handles, array( $style_asset ) ));
+ 		}
+ 		// If the styles are needed, but they were previously removed, add them again.
+ 		if ( $is_interactive && ! in_array( $style_asset, $style_handles, true ) ) {
+-			$block->block_type->style_handles = array_merge( $style_handles, array( $style_asset ) );
++			$block->block_type->style_handles = \wp_aot_array_merge(array( $style_handles, array( $style_asset ) ));
+ 		}
+ 	}
+ 
+ 	return $content;
++	return null;
+ }
+ 
+ /**
+@@ -60,13 +61,14 @@
+  *
+  * @since 5.8.0
+  */
+-function register_block_core_query() {
++function register_block_core_query(): mixed {
+ 	register_block_type_from_metadata(
+ 		__DIR__ . '/query',
+ 		array(
+ 			'render_callback' => 'render_block_core_query',
+ 		)
+ 	);
++	return null;
+ }
+ add_action( 'init', 'register_block_core_query' );
+ 
+@@ -81,10 +83,13 @@
+  * @param array $parsed_block The block being rendered.
+  * @return array Returns the parsed block, unmodified.
+  */
+-function block_core_query_disable_enhanced_pagination( $parsed_block ) {
+-	static $enhanced_query_stack   = array();
+-	static $dirty_enhanced_queries = array();
+-	static $render_query_callback  = null;
++function block_core_query_disable_enhanced_pagination( mixed $parsed_block ): mixed {
++	static $enhanced_query_stack_aot_cell = new \WordPressStaticArrayCell();
++	$enhanced_query_stack =& $enhanced_query_stack_aot_cell->value;
++	static $dirty_enhanced_queries_aot_cell = new \WordPressStaticArrayCell();
++	$dirty_enhanced_queries =& $dirty_enhanced_queries_aot_cell->value;
++	static $render_query_callback_aot_cell = new \WordPressStaticValueCell();
++	$render_query_callback =& $render_query_callback_aot_cell->value;
+ 
+ 	$block_name              = $parsed_block['blockName'];
+ 	$block_type              = WP_Block_Type_Registry::get_instance()->get_registered( $block_name );
+@@ -111,7 +116,7 @@
+ 			 * @param array    $block    The full block, including name and attributes.
+ 			 * @return string Returns the modified output of the query block.
+ 			 */
+-			$render_query_callback = static function ( $content, $block ) use ( &$enhanced_query_stack, &$dirty_enhanced_queries, &$render_query_callback ) {
++			$render_query_callback = static function ( mixed $content, mixed $block ) use ( &$enhanced_query_stack, &$dirty_enhanced_queries, &$render_query_callback ) {
+ 				$has_enhanced_pagination = isset( $block['attrs']['enhancedPagination'] ) && true === $block['attrs']['enhancedPagination'] && isset( $block['attrs']['queryId'] );
+ 
+ 				if ( ! $has_enhanced_pagination ) {
+@@ -124,7 +129,7 @@
+ 					$dirty_enhanced_queries[ $block['attrs']['queryId'] ] = null;
+ 				}
+ 
+-				array_pop( $enhanced_query_stack );
++				\wp_aot_array_pop( $enhanced_query_stack );
+ 
+ 				if ( empty( $enhanced_query_stack ) ) {
+ 					remove_filter( 'render_block_core/query', $render_query_callback );
+@@ -147,6 +152,7 @@
+ 	}
+ 
+ 	return $parsed_block;
++	return null;
+ }
+ 
+ add_filter( 'render_block_data', 'block_core_query_disable_enhanced_pagination', 10, 1 );

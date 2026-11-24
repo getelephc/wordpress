@@ -1,7 +1,11 @@
 --- a/wp-includes/theme-compat/comments.php
 +++ b/wp-includes/theme-compat/comments.php
-@@ -20,18 +20,21 @@
- 	die( 'Please do not load this page directly. Thanks!' );
+@@ -17,21 +17,24 @@
+ 
+ // Do not delete these lines.
+ if ( ! empty( $_SERVER['SCRIPT_FILENAME'] ) && 'comments.php' === basename( $_SERVER['SCRIPT_FILENAME'] ) ) {
+-	die( 'Please do not load this page directly. Thanks!' );
++	\wp_aot_exit( 'Please do not load this page directly. Thanks!' );
  }
  
 -if ( post_password_required() ) { ?>

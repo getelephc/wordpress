@@ -1,0 +1,52 @@
+--- a/wp-includes/sitemaps/providers/class-wp-sitemaps-users.php
++++ b/wp-includes/sitemaps/providers/class-wp-sitemaps-users.php
+@@ -36,7 +36,7 @@
+ 	 *                               provider class. Default empty.
+ 	 * @return array[] Array of URL information for a sitemap.
+ 	 */
+-	public function get_url_list( $page_num, $object_subtype = '' ) {
++	public function get_url_list( mixed $page_num, mixed $object_subtype = '' ): mixed {
+ 		/**
+ 		 * Filters the users URL list before it is generated.
+ 		 *
+@@ -83,6 +83,7 @@
+ 		}
+ 
+ 		return $url_list;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -97,7 +98,7 @@
+ 	 *                               provider class. Default empty.
+ 	 * @return int Total page count.
+ 	 */
+-	public function get_max_num_pages( $object_subtype = '' ) {
++	public function get_max_num_pages( mixed $object_subtype = '' ): mixed {
+ 		/**
+ 		 * Filters the max number of pages for a user sitemap before it is generated.
+ 		 *
+@@ -120,6 +121,7 @@
+ 		$total_users = $query->get_total();
+ 
+ 		return (int) ceil( $total_users / wp_sitemaps_get_max_urls( $this->object_type ) );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -129,7 +131,7 @@
+ 	 *
+ 	 * @return array Array of WP_User_Query arguments.
+ 	 */
+-	protected function get_users_query_args() {
++	protected function get_users_query_args(): mixed {
+ 		$public_post_types = get_post_types(
+ 			array(
+ 				'public' => true,
+@@ -160,5 +162,6 @@
+ 		);
+ 
+ 		return $args;
++		return null;
+ 	}
+ }

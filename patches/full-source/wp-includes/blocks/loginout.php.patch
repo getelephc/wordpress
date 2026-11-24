@@ -1,0 +1,34 @@
+--- a/wp-includes/blocks/loginout.php
++++ b/wp-includes/blocks/loginout.php
+@@ -14,7 +14,7 @@
+  *
+  * @return string Returns the login-out link or form.
+  */
+-function render_block_core_loginout( $attributes ) {
++function render_block_core_loginout( mixed $attributes ): mixed {
+ 
+ 	/*
+ 	 * Build the redirect URL. This current url fetching logic matches with the core.
+@@ -56,6 +56,7 @@
+ 	$wrapper_attributes = get_block_wrapper_attributes( array( 'class' => $classes ) );
+ 
+ 	return '<div ' . $wrapper_attributes . '>' . $contents . '</div>';
++	return null;
+ }
+ 
+ /**
+@@ -63,12 +64,13 @@
+  *
+  * @since 5.8.0
+  */
+-function register_block_core_loginout() {
++function register_block_core_loginout(): mixed {
+ 	register_block_type_from_metadata(
+ 		__DIR__ . '/loginout',
+ 		array(
+ 			'render_callback' => 'render_block_core_loginout',
+ 		)
+ 	);
++	return null;
+ }
+ add_action( 'init', 'register_block_core_loginout' );

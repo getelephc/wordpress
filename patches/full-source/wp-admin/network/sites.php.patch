@@ -1,0 +1,56 @@
+--- a/wp-admin/network/sites.php
++++ b/wp-admin/network/sites.php
+@@ -95,7 +95,7 @@
+ 			check_admin_referer( $site_action . '_' . $id );
+ 		}
+ 
+-		if ( ! headers_sent() ) {
++		if ( ! \wp_aot_native_headers_sent() ) {
+ 			nocache_headers();
+ 			header( 'Content-Type: text/html; charset=utf-8' );
+ 		}
+@@ -145,7 +145,7 @@
+ 			</div>
+ 		<?php
+ 		require_once ABSPATH . 'wp-admin/admin-footer.php';
+-		exit;
++		\wp_aot_exit();
+ 	} elseif ( array_key_exists( $_GET['action'], $manage_actions ) ) {
+ 		$action = $_GET['action'];
+ 		check_admin_referer( $action . '_' . $id );
+@@ -239,7 +239,7 @@
+ 								</div>
+ 								<?php
+ 								require_once ABSPATH . 'wp-admin/admin-footer.php';
+-								exit;
++								\wp_aot_exit();
+ 							// By exiting, there's no longer a switch to break out of.
+ 
+ 							case 'spam':
+@@ -261,7 +261,7 @@
+ 					$redirect_to = apply_filters( 'handle_network_bulk_actions-' . get_current_screen()->id, $redirect_to, $doaction, $blogs, $id ); // phpcs:ignore WordPress.NamingConventions.ValidHookName.UseUnderscores
+ 
+ 					wp_safe_redirect( $redirect_to );
+-					exit;
++					\wp_aot_exit();
+ 				}
+ 			} else {
+ 				// Process query defined by WP_MS_Site_List_Table::extra_table_nav().
+@@ -271,7 +271,7 @@
+ 				);
+ 
+ 				wp_redirect( $location );
+-				exit;
++				\wp_aot_exit();
+ 			}
+ 
+ 			break;
+@@ -324,7 +324,7 @@
+ 
+ 	if ( ! empty( $updated_action ) ) {
+ 		wp_safe_redirect( add_query_arg( array( 'updated' => $updated_action ), wp_get_referer() ) );
+-		exit;
++		\wp_aot_exit();
+ 	}
+ }
+ 

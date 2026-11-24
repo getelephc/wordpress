@@ -1,0 +1,99 @@
+--- a/wp-includes/blocks/navigation-submenu.php
++++ b/wp-includes/blocks/navigation-submenu.php
+@@ -16,9 +16,10 @@
+  *
+  * @return string SVG markup for the submenu icon.
+  */
+-function block_core_navigation_submenu_render_submenu_icon() {
++function block_core_navigation_submenu_render_submenu_icon(): mixed {
+ 	_deprecated_function( __FUNCTION__, '7.0.0', 'block_core_shared_navigation_render_submenu_icon()' );
+ 	return block_core_shared_navigation_render_submenu_icon();
++	return null;
+ }
+ 
+ /**
+@@ -46,7 +47,7 @@
+  * @param array $context Block context from parent Navigation block.
+  * @return string The visibility mode: 'hover', 'click', or 'always'.
+  */
+-function block_core_navigation_submenu_get_submenu_visibility( $context ) {
++function block_core_navigation_submenu_get_submenu_visibility( mixed $context ): mixed {
+ 	$deprecated_open_submenus_on_click = $context['openSubmenusOnClick'] ?? null;
+ 
+ 	// For backward compatibility, prioritize the legacy attribute if present. If it has been loaded and saved in the editor, then
+@@ -60,6 +61,7 @@
+ 
+ 	// Use submenuVisibility for migrated/new blocks.
+ 	return $submenu_visibility ?? 'hover';
++	return null;
+ }
+ 
+ /**
+@@ -73,10 +75,10 @@
+  *
+  * @return string Returns the post content with the legacy widget added.
+  */
+-function render_block_core_navigation_submenu( $attributes, $content, $block ) {
++function render_block_core_navigation_submenu( mixed $attributes, mixed $content, mixed $block ): mixed {
+ 	// Check if this navigation item should render based on post status.
+-	if ( defined( 'IS_GUTENBERG_PLUGIN' ) && IS_GUTENBERG_PLUGIN ) {
+-		$should_render = gutenberg_block_core_shared_navigation_item_should_render( $attributes, $block );
++	if ( defined( 'IS_GUTENBERG_PLUGIN' ) && \wp_aot_undefined_constant('IS_GUTENBERG_PLUGIN') ) {
++		$should_render = \wp_aot_native_api('gutenberg_block_core_shared_navigation_item_should_render', array( $attributes, $block ));
+ 	} else {
+ 		$should_render = block_core_shared_navigation_item_should_render( $attributes, $block );
+ 	}
+@@ -96,7 +98,7 @@
+ 	}
+ 	$has_submenu = ! empty( trim( $inner_blocks_html ) );
+ 
+-	$kind      = empty( $attributes['kind'] ) ? 'post_type' : str_replace( '-', '_', $attributes['kind'] );
++	$kind      = empty( $attributes['kind'] ) ? 'post_type' : \wp_aot_str_replace( '-', '_', $attributes['kind'] );
+ 	$is_active = ! empty( $attributes['id'] ) && get_queried_object_id() === (int) $attributes['id'] && ! empty( get_queried_object()->$kind );
+ 
+ 	if ( is_post_type_archive() && ! empty( $attributes['url'] ) ) {
+@@ -207,8 +209,8 @@
+ 			// The submenu icon is rendered in a button here
+ 			// so that there's a clickable element to open the submenu.
+ 			$html .= '<button aria-label="' . esc_attr( $aria_label ) . '" class="wp-block-navigation__submenu-icon wp-block-navigation-submenu__toggle" aria-expanded="false">';
+-			if ( defined( 'IS_GUTENBERG_PLUGIN' ) && IS_GUTENBERG_PLUGIN ) {
+-				$html .= gutenberg_block_core_shared_navigation_render_submenu_icon();
++			if ( defined( 'IS_GUTENBERG_PLUGIN' ) && \wp_aot_undefined_constant('IS_GUTENBERG_PLUGIN') ) {
++				$html .= \wp_aot_native_api('gutenberg_block_core_shared_navigation_render_submenu_icon', array());
+ 			} else {
+ 				$html .= block_core_shared_navigation_render_submenu_icon();
+ 			}
+@@ -235,8 +237,8 @@
+ 
+ 		if ( $has_submenu ) {
+ 			$html .= '<span class="wp-block-navigation__submenu-icon">';
+-			if ( defined( 'IS_GUTENBERG_PLUGIN' ) && IS_GUTENBERG_PLUGIN ) {
+-				$html .= gutenberg_block_core_shared_navigation_render_submenu_icon();
++			if ( defined( 'IS_GUTENBERG_PLUGIN' ) && \wp_aot_undefined_constant('IS_GUTENBERG_PLUGIN') ) {
++				$html .= \wp_aot_native_api('gutenberg_block_core_shared_navigation_render_submenu_icon', array());
+ 			} else {
+ 				$html .= block_core_shared_navigation_render_submenu_icon();
+ 			}
+@@ -299,6 +301,7 @@
+ 	$html .= '</li>';
+ 
+ 	return $html;
++	return null;
+ }
+ 
+ /**
+@@ -309,12 +312,13 @@
+  * @uses render_block_core_navigation_submenu()
+  * @throws WP_Error An WP_Error exception parsing the block definition.
+  */
+-function register_block_core_navigation_submenu() {
++function register_block_core_navigation_submenu(): mixed {
+ 	register_block_type_from_metadata(
+ 		__DIR__ . '/navigation-submenu',
+ 		array(
+ 			'render_callback' => 'render_block_core_navigation_submenu',
+ 		)
+ 	);
++	return null;
+ }
+ add_action( 'init', 'register_block_core_navigation_submenu' );

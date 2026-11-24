@@ -1,0 +1,37 @@
+--- a/wp-includes/php-ai-client/third-party/Http/Discovery/Exception/DiscoveryFailedException.php
++++ b/wp-includes/php-ai-client/third-party/Http/Discovery/Exception/DiscoveryFailedException.php
+@@ -18,28 +18,29 @@
+      * @param string       $message
+      * @param \Exception[] $exceptions
+      */
+-    public function __construct($message, array $exceptions = [])
++    public function __construct(mixed $message, array $exceptions = [])
+     {
+         $this->exceptions = $exceptions;
+-        parent::__construct($message);
++        parent::__construct(\wp_aot_require_string( $message ));
+     }
+     /**
+      * @param \Exception[] $exceptions
+      */
+-    public static function create($exceptions)
++    public static function create(mixed $exceptions): self
+     {
+         $message = 'Could not find resource using any discovery strategy. Find more information at http://docs.php-http.org/en/latest/discovery.html#common-errors';
+         foreach ($exceptions as $e) {
+             $message .= "\n - " . $e->getMessage();
+         }
+         $message .= "\n\n";
+-        return new self($message, $exceptions);
++        return new self($message, \wp_aot_require_array($exceptions));
+     }
+     /**
+      * @return \Exception[]
+      */
+-    public function getExceptions()
++    public function getExceptions(): mixed
+     {
+         return $this->exceptions;
++    	return null;
+     }
+ }

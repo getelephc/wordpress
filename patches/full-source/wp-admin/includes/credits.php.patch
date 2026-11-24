@@ -1,0 +1,81 @@
+--- a/wp-admin/includes/credits.php
++++ b/wp-admin/includes/credits.php
+@@ -17,7 +17,7 @@
+  * @param string $locale  WordPress locale. Defaults to the current user's locale.
+  * @return array|false A list of all of the contributors, or false on error.
+  */
+-function wp_credits( $version = '', $locale = '' ) {
++function wp_credits( mixed $version = '', mixed $locale = '' ): mixed {
+ 	if ( ! $version ) {
+ 		$version = wp_get_wp_version();
+ 	}
+@@ -55,6 +55,7 @@
+ 	}
+ 
+ 	return $results;
++	return null;
+ }
+ 
+ /**
+@@ -67,8 +68,9 @@
+  * @param string $username      The contributor's username.
+  * @param string $profiles      URL to the contributor's WordPress.org profile page.
+  */
+-function _wp_credits_add_profile_link( &$display_name, $username, $profiles ) {
++function _wp_credits_add_profile_link( mixed &$display_name, mixed $username, mixed $profiles ): mixed {
+ 	$display_name = '<a href="' . esc_url( sprintf( $profiles, $username ) ) . '">' . esc_html( $display_name ) . '</a>';
++	return null;
+ }
+ 
+ /**
+@@ -79,8 +81,9 @@
+  *
+  * @param string $data External library data (passed by reference).
+  */
+-function _wp_credits_build_object_link( &$data ) {
++function _wp_credits_build_object_link( mixed &$data ): mixed {
+ 	$data = '<a href="' . esc_url( $data[1] ) . '">' . esc_html( $data[0] ) . '</a>';
++	return null;
+ }
+ 
+ /**
+@@ -90,9 +93,9 @@
+  *
+  * @param array $group_data The current contributor group.
+  */
+-function wp_credits_section_title( $group_data = array() ) {
++function wp_credits_section_title( mixed $group_data = array() ): mixed {
+ 	if ( ! count( $group_data ) ) {
+-		return;
++		return null;
+ 	}
+ 
+ 	if ( $group_data['name'] ) {
+@@ -109,6 +112,7 @@
+ 
+ 		echo '<h2 class="wp-people-group-title">' . esc_html( $title ) . "</h2>\n";
+ 	}
++	return null;
+ }
+ 
+ /**
+@@ -119,11 +123,11 @@
+  * @param array  $credits The credits groups returned from the API.
+  * @param string $slug    The current group to display.
+  */
+-function wp_credits_section_list( $credits = array(), $slug = '' ) {
++function wp_credits_section_list( mixed $credits = array(), mixed $slug = '' ): mixed {
+ 	$group_data   = $credits['groups'][ $slug ] ?? array();
+ 	$credits_data = $credits['data'];
+ 	if ( ! count( $group_data ) ) {
+-		return;
++		return null;
+ 	}
+ 
+ 	if ( ! empty( $group_data['shuffle'] ) ) {
+@@ -160,4 +164,5 @@
+ 			echo "</ul>\n";
+ 			break;
+ 	}
++	return null;
+ }

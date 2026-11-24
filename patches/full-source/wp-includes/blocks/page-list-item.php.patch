@@ -1,0 +1,12 @@
+--- a/wp-includes/blocks/page-list-item.php
++++ b/wp-includes/blocks/page-list-item.php
+@@ -10,7 +10,8 @@
+  *
+  * @since 6.3.0
+  */
+-function register_block_core_page_list_item() {
++function register_block_core_page_list_item(): mixed {
+ 	register_block_type_from_metadata( __DIR__ . '/page-list-item' );
++	return null;
+ }
+ add_action( 'init', 'register_block_core_page_list_item' );

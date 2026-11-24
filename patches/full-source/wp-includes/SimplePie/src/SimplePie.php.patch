@@ -1,6 +1,69 @@
 --- a/wp-includes/SimplePie/src/SimplePie.php
 +++ b/wp-includes/SimplePie/src/SimplePie.php
-@@ -790,7 +790,7 @@
+@@ -388,7 +388,7 @@
+      * @var array<string, mixed> Raw data
+      * @access private
+      */
+-    public $data = [];
++    public mixed $data = [];
+ 
+     /**
+      * @var string|string[]|null Error string (or array when multiple feeds are initialized)
+@@ -556,7 +556,7 @@
+      *
+      * @var Registry
+      */
+-    public $registry;
++    public mixed $registry = null;
+ 
+     /**
+      * @var int Maximum number of feeds to check with autodiscovery
+@@ -671,7 +671,7 @@
+     public function __construct()
+     {
+         if (version_compare(PHP_VERSION, '7.2', '<')) {
+-            exit('Please upgrade to PHP 7.2 or newer.');
++            \wp_aot_exit('Please upgrade to PHP 7.2 or newer.');
+         }
+ 
+         $this->set_useragent();
+@@ -741,9 +741,10 @@
+      * @param bool $enable Force the given data/URL to be treated as a feed
+      * @return void
+      */
+-    public function force_feed(bool $enable = false)
++    public function force_feed(bool $enable = false): mixed
+     {
+         $this->force_feed = $enable;
++    	return null;
+     }
+ 
+     /**
+@@ -762,7 +763,7 @@
+      * @param string|string[] $url This is the URL (or (deprecated) array of URLs) that you want to parse.
+      * @return void
+      */
+-    public function set_feed_url($url)
++    public function set_feed_url(mixed $url): mixed
+     {
+         $this->multifeed_url = [];
+         if (is_array($url)) {
+@@ -774,6 +775,7 @@
+             $this->feed_url = $this->registry->call(Misc::class, 'fix_protocol', [$url, 1]);
+             $this->permanent_url = $this->feed_url;
+         }
++    	return null;
+     }
+ 
+     /**
+@@ -784,15 +786,16 @@
+      * @param File &$file
+      * @return bool True on success, false on failure
+      */
+-    public function set_file(File &$file)
++    public function set_file(File &$file): mixed
+     {
+         // trigger_error(sprintf('SimplePie\SimplePie::set_file() is deprecated since SimplePie 1.9.0, please use "SimplePie\SimplePie::set_http_client()" or "SimplePie\SimplePie::set_raw_data()" instead.'), \E_USER_DEPRECATED);
  
          $this->feed_url = $file->get_final_requested_uri();
          $this->permanent_url = $this->feed_url;
@@ -8,26 +71,815 @@
 +        $this->file = $file;
  
          return true;
++    	return null;
      }
-@@ -1764,7 +1764,7 @@
-                 if (isset($headers['content-type']) && preg_match('/;\x20?charset=([^;]*)/i', $headers['content-type'], $charset)) {
-                     $encodings[] = strtoupper($charset[1]);
-                 }
+ 
+     /**
+@@ -809,9 +812,10 @@
+      * @see set_feed_url()
+      * @return void
+      */
+-    public function set_raw_data(string $data)
++    public function set_raw_data(string $data): mixed
+     {
+         $this->raw_data = $data;
++    	return null;
+     }
+ 
+     /**
+@@ -821,11 +825,11 @@
+      * This will become required with SimplePie 2.0.0.
+      */
+     final public function set_http_client(
+-        ClientInterface $http_client,
+-        RequestFactoryInterface $request_factory,
+-        UriFactoryInterface $uri_factory
++        mixed $http_client,
++        mixed $request_factory,
++        mixed $uri_factory
+     ): void {
+-        $this->http_client = new Psr18Client($http_client, $request_factory, $uri_factory);
++        throw new \LogicException('The optional unscoped PSR HTTP packages are outside the bundled source manifest.');
+     }
+ 
+     /**
+@@ -838,7 +842,7 @@
+      * @param int $timeout The maximum number of seconds to spend waiting to retrieve a feed.
+      * @return void
+      */
+-    public function set_timeout(int $timeout = 10)
++    public function set_timeout(int $timeout = 10): mixed
+     {
+         if ($this->http_client_injected) {
+             throw new SimplePieException(sprintf(
+@@ -862,6 +866,7 @@
+                 get_class($this)
+             ), \E_USER_NOTICE);
+         }
++    	return null;
+     }
+ 
+     /**
+@@ -873,7 +878,7 @@
+      * @param array<int, mixed> $curl_options Curl options to add to default settings
+      * @return void
+      */
+-    public function set_curl_options(array $curl_options = [])
++    public function set_curl_options(array $curl_options = []): mixed
+     {
+         if ($this->http_client_injected) {
+             throw new SimplePieException(sprintf(
+@@ -897,6 +902,7 @@
+                 get_class($this)
+             ), \E_USER_NOTICE);
+         }
++    	return null;
+     }
+ 
+     /**
+@@ -906,7 +912,7 @@
+      * @param bool $enable Force fsockopen() to be used
+      * @return void
+      */
+-    public function force_fsockopen(bool $enable = false)
++    public function force_fsockopen(bool $enable = false): mixed
+     {
+         if ($this->http_client_injected) {
+             throw new SimplePieException(sprintf(
+@@ -930,6 +936,7 @@
+                 get_class($this)
+             ), \E_USER_NOTICE);
+         }
++    	return null;
+     }
+ 
+     /**
+@@ -942,9 +949,10 @@
+      * @param bool $enable Enable caching
+      * @return void
+      */
+-    public function enable_cache(bool $enable = true)
++    public function enable_cache(bool $enable = true): mixed
+     {
+         $this->enable_cache = $enable;
++    	return null;
+     }
+ 
+     /**
+@@ -954,9 +962,10 @@
+      *
+      * @return void
+      */
+-    public function set_cache(CacheInterface $cache)
+-    {
+-        $this->cache = new Psr16($cache);
++    public function set_cache(mixed $cache): mixed
++    {
++        throw new \LogicException('The optional PSR-16 cache package is outside the bundled source manifest.');
++    	return null;
+     }
+ 
+     /**
+@@ -972,10 +981,11 @@
+      * @param bool $enable Force use of cache on fail.
+      * @return void
+      */
+-    public function force_cache_fallback(bool $enable = false)
++    public function force_cache_fallback(bool $enable = false): mixed
+     {
+         // @trigger_error(sprintf('SimplePie\SimplePie::force_cache_fallback() is deprecated since SimplePie 1.8.0, expired cache will not be used anymore.'), \E_USER_DEPRECATED);
+         $this->force_cache_fallback = $enable;
++    	return null;
+     }
+ 
+     /**
+@@ -985,9 +995,10 @@
+      * @param int $seconds The feed content cache duration
+      * @return void
+      */
+-    public function set_cache_duration(int $seconds = 3600)
++    public function set_cache_duration(int $seconds = 3600): mixed
+     {
+         $this->cache_duration = $seconds;
++    	return null;
+     }
+ 
+     /**
+@@ -997,9 +1008,10 @@
+      * @param int $seconds The autodiscovered feed URL cache duration.
+      * @return void
+      */
+-    public function set_autodiscovery_cache_duration(int $seconds = 604800)
++    public function set_autodiscovery_cache_duration(int $seconds = 604800): mixed
+     {
+         $this->autodiscovery_cache_duration = $seconds;
++    	return null;
+     }
+ 
+     /**
+@@ -1010,10 +1022,11 @@
+      * @param string $location The file system location.
+      * @return void
+      */
+-    public function set_cache_location(string $location = './cache')
++    public function set_cache_location(string $location = './cache'): mixed
+     {
+         // @trigger_error(sprintf('SimplePie\SimplePie::set_cache_location() is deprecated since SimplePie 1.8.0, please use "SimplePie\SimplePie::set_cache()" instead.'), \E_USER_DEPRECATED);
+         $this->cache_location = $location;
++    	return null;
+     }
+ 
+     /**
+@@ -1022,7 +1035,7 @@
+      * @param string $url The URL of the feed to be cached.
+      * @return string A filename (i.e. hash, without path and without extension).
+      */
+-    public function get_cache_filename(string $url)
++    public function get_cache_filename(string $url): mixed
+     {
+         // Append custom parameters to the URL to avoid cache pollution in case of multiple calls with different parameters.
+         $url .= $this->force_feed ? '#force_feed' : '';
+@@ -1039,11 +1052,12 @@
+             }
+         }
+         if (!empty($options)) {
+-            ksort($options);
++            \wp_aot_ksort($options);
+             $url .= '#' . urlencode(var_export($options, true));
+         }
+ 
+         return $this->cache_namefilter->filter($url);
++    	return null;
+     }
+ 
+     /**
+@@ -1052,9 +1066,10 @@
+      * @param bool $enable Sort as reverse chronological order.
+      * @return void
+      */
+-    public function enable_order_by_date(bool $enable = true)
++    public function enable_order_by_date(bool $enable = true): mixed
+     {
+         $this->order_by_date = $enable;
++    	return null;
+     }
+ 
+     /**
+@@ -1066,13 +1081,14 @@
+      * @param string|false $encoding Character encoding
+      * @return void
+      */
+-    public function set_input_encoding($encoding = false)
++    public function set_input_encoding(mixed $encoding = false): mixed
+     {
+         if ($encoding) {
+             $this->input_encoding = (string) $encoding;
+         } else {
+             $this->input_encoding = false;
+         }
++    	return null;
+     }
+ 
+     /**
+@@ -1088,9 +1104,10 @@
+      * @param self::LOCATOR_* $level Feed Autodiscovery Level (level can be a combination of the above constants, see bitwise OR operator)
+      * @return void
+      */
+-    public function set_autodiscovery_level(int $level = self::LOCATOR_ALL)
++    public function set_autodiscovery_level(int $level = self::LOCATOR_ALL): mixed
+     {
+         $this->autodiscovery = $level;
++    	return null;
+     }
+ 
+     /**
+@@ -1100,7 +1117,7 @@
+      *
+      * @return Registry
+      */
+-    public function &get_registry()
++    public function &get_registry(): mixed
+     {
+         return $this->registry;
+     }
+@@ -1114,11 +1131,12 @@
+      *
+      * @return bool True on success, false otherwise
+      */
+-    public function set_cache_class(string $class = Cache::class)
++    public function set_cache_class(string $class = Cache::class): mixed
+     {
+         trigger_error(sprintf('"%s()" is deprecated since SimplePie 1.3, please use "SimplePie\SimplePie::set_cache()" instead.', __METHOD__), \E_USER_DEPRECATED);
+ 
+         return $this->registry->register(Cache::class, $class, true);
++    	return null;
+     }
+ 
+     /**
+@@ -1130,11 +1148,12 @@
+      *
+      * @return bool True on success, false otherwise
+      */
+-    public function set_locator_class(string $class = Locator::class)
++    public function set_locator_class(string $class = Locator::class): mixed
+     {
+         trigger_error(sprintf('"%s()" is deprecated since SimplePie 1.3, please use "SimplePie\SimplePie::get_registry()" instead.', __METHOD__), \E_USER_DEPRECATED);
+ 
+         return $this->registry->register(Locator::class, $class, true);
++    	return null;
+     }
+ 
+     /**
+@@ -1146,11 +1165,12 @@
+      *
+      * @return bool True on success, false otherwise
+      */
+-    public function set_parser_class(string $class = Parser::class)
++    public function set_parser_class(string $class = Parser::class): mixed
+     {
+         trigger_error(sprintf('"%s()" is deprecated since SimplePie 1.3, please use "SimplePie\SimplePie::get_registry()" instead.', __METHOD__), \E_USER_DEPRECATED);
+ 
+         return $this->registry->register(Parser::class, $class, true);
++    	return null;
+     }
+ 
+     /**
+@@ -1162,11 +1182,12 @@
+      *
+      * @return bool True on success, false otherwise
+      */
+-    public function set_file_class(string $class = File::class)
++    public function set_file_class(string $class = File::class): mixed
+     {
+         trigger_error(sprintf('"%s()" is deprecated since SimplePie 1.3, please use "SimplePie\SimplePie::get_registry()" instead.', __METHOD__), \E_USER_DEPRECATED);
+ 
+         return $this->registry->register(File::class, $class, true);
++    	return null;
+     }
+ 
+     /**
+@@ -1178,11 +1199,12 @@
+      *
+      * @return bool True on success, false otherwise
+      */
+-    public function set_sanitize_class(string $class = Sanitize::class)
++    public function set_sanitize_class(string $class = Sanitize::class): mixed
+     {
+         trigger_error(sprintf('"%s()" is deprecated since SimplePie 1.3, please use "SimplePie\SimplePie::get_registry()" instead.', __METHOD__), \E_USER_DEPRECATED);
+ 
+         return $this->registry->register(Sanitize::class, $class, true);
++    	return null;
+     }
+ 
+     /**
+@@ -1194,11 +1216,12 @@
+      *
+      * @return bool True on success, false otherwise
+      */
+-    public function set_item_class(string $class = Item::class)
++    public function set_item_class(string $class = Item::class): mixed
+     {
+         trigger_error(sprintf('"%s()" is deprecated since SimplePie 1.3, please use "SimplePie\SimplePie::get_registry()" instead.', __METHOD__), \E_USER_DEPRECATED);
+ 
+         return $this->registry->register(Item::class, $class, true);
++    	return null;
+     }
+ 
+     /**
+@@ -1210,11 +1233,12 @@
+      *
+      * @return bool True on success, false otherwise
+      */
+-    public function set_author_class(string $class = Author::class)
++    public function set_author_class(string $class = Author::class): mixed
+     {
+         trigger_error(sprintf('"%s()" is deprecated since SimplePie 1.3, please use "SimplePie\SimplePie::get_registry()" instead.', __METHOD__), \E_USER_DEPRECATED);
+ 
+         return $this->registry->register(Author::class, $class, true);
++    	return null;
+     }
+ 
+     /**
+@@ -1226,11 +1250,12 @@
+      *
+      * @return bool True on success, false otherwise
+      */
+-    public function set_category_class(string $class = Category::class)
++    public function set_category_class(string $class = Category::class): mixed
+     {
+         trigger_error(sprintf('"%s()" is deprecated since SimplePie 1.3, please use "SimplePie\SimplePie::get_registry()" instead.', __METHOD__), \E_USER_DEPRECATED);
+ 
+         return $this->registry->register(Category::class, $class, true);
++    	return null;
+     }
+ 
+     /**
+@@ -1242,11 +1267,12 @@
+      *
+      * @return bool True on success, false otherwise
+      */
+-    public function set_enclosure_class(string $class = Enclosure::class)
++    public function set_enclosure_class(string $class = Enclosure::class): mixed
+     {
+         trigger_error(sprintf('"%s()" is deprecated since SimplePie 1.3, please use "SimplePie\SimplePie::get_registry()" instead.', __METHOD__), \E_USER_DEPRECATED);
+ 
+         return $this->registry->register(Enclosure::class, $class, true);
++    	return null;
+     }
+ 
+     /**
+@@ -1258,11 +1284,12 @@
+      *
+      * @return bool True on success, false otherwise
+      */
+-    public function set_caption_class(string $class = Caption::class)
++    public function set_caption_class(string $class = Caption::class): mixed
+     {
+         trigger_error(sprintf('"%s()" is deprecated since SimplePie 1.3, please use "SimplePie\SimplePie::get_registry()" instead.', __METHOD__), \E_USER_DEPRECATED);
+ 
+         return $this->registry->register(Caption::class, $class, true);
++    	return null;
+     }
+ 
+     /**
+@@ -1274,11 +1301,12 @@
+      *
+      * @return bool True on success, false otherwise
+      */
+-    public function set_copyright_class(string $class = Copyright::class)
++    public function set_copyright_class(string $class = Copyright::class): mixed
+     {
+         trigger_error(sprintf('"%s()" is deprecated since SimplePie 1.3, please use "SimplePie\SimplePie::get_registry()" instead.', __METHOD__), \E_USER_DEPRECATED);
+ 
+         return $this->registry->register(Copyright::class, $class, true);
++    	return null;
+     }
+ 
+     /**
+@@ -1290,11 +1318,12 @@
+      *
+      * @return bool True on success, false otherwise
+      */
+-    public function set_credit_class(string $class = Credit::class)
++    public function set_credit_class(string $class = Credit::class): mixed
+     {
+         trigger_error(sprintf('"%s()" is deprecated since SimplePie 1.3, please use "SimplePie\SimplePie::get_registry()" instead.', __METHOD__), \E_USER_DEPRECATED);
+ 
+         return $this->registry->register(Credit::class, $class, true);
++    	return null;
+     }
+ 
+     /**
+@@ -1306,11 +1335,12 @@
+      *
+      * @return bool True on success, false otherwise
+      */
+-    public function set_rating_class(string $class = Rating::class)
++    public function set_rating_class(string $class = Rating::class): mixed
+     {
+         trigger_error(sprintf('"%s()" is deprecated since SimplePie 1.3, please use "SimplePie\SimplePie::get_registry()" instead.', __METHOD__), \E_USER_DEPRECATED);
+ 
+         return $this->registry->register(Rating::class, $class, true);
++    	return null;
+     }
+ 
+     /**
+@@ -1322,11 +1352,12 @@
+      *
+      * @return bool True on success, false otherwise
+      */
+-    public function set_restriction_class(string $class = Restriction::class)
++    public function set_restriction_class(string $class = Restriction::class): mixed
+     {
+         trigger_error(sprintf('"%s()" is deprecated since SimplePie 1.3, please use "SimplePie\SimplePie::get_registry()" instead.', __METHOD__), \E_USER_DEPRECATED);
+ 
+         return $this->registry->register(Restriction::class, $class, true);
++    	return null;
+     }
+ 
+     /**
+@@ -1338,11 +1369,12 @@
+      *
+      * @return bool True on success, false otherwise
+      */
+-    public function set_content_type_sniffer_class(string $class = Sniffer::class)
++    public function set_content_type_sniffer_class(string $class = Sniffer::class): mixed
+     {
+         trigger_error(sprintf('"%s()" is deprecated since SimplePie 1.3, please use "SimplePie\SimplePie::get_registry()" instead.', __METHOD__), \E_USER_DEPRECATED);
+ 
+         return $this->registry->register(Sniffer::class, $class, true);
++    	return null;
+     }
+ 
+     /**
+@@ -1354,11 +1386,12 @@
+      *
+      * @return bool True on success, false otherwise
+      */
+-    public function set_source_class(string $class = Source::class)
++    public function set_source_class(string $class = Source::class): mixed
+     {
+         trigger_error(sprintf('"%s()" is deprecated since SimplePie 1.3, please use "SimplePie\SimplePie::get_registry()" instead.', __METHOD__), \E_USER_DEPRECATED);
+ 
+         return $this->registry->register(Source::class, $class, true);
++    	return null;
+     }
+ 
+     /**
+@@ -1367,7 +1400,7 @@
+      * @param string $ua New user agent string.
+      * @return void
+      */
+-    public function set_useragent(?string $ua = null)
++    public function set_useragent(?string $ua = null): mixed
+     {
+         if ($this->http_client_injected) {
+             throw new SimplePieException(sprintf(
+@@ -1395,6 +1428,7 @@
+                 get_class($this)
+             ), \E_USER_NOTICE);
+         }
++    	return null;
+     }
+ 
+     /**
+@@ -1417,7 +1451,7 @@
+      * @param (string&(callable(string): string))|null $function Callback function
+      * @return void
+      */
+-    public function set_cache_name_function(?string $function = null)
++    public function set_cache_name_function(?string $function = null): mixed
+     {
+         // trigger_error(sprintf('"%s()" is deprecated since SimplePie 1.8.0, please use "SimplePie\SimplePie::set_cache_namefilter()" instead.', __METHOD__), \E_USER_DEPRECATED);
+ 
+@@ -1428,6 +1462,7 @@
+         $this->cache_name_function = $function;
+ 
+         $this->set_cache_namefilter(new CallableNameFilter($this->cache_name_function));
++    	return null;
+     }
+ 
+     /**
+@@ -1439,7 +1474,7 @@
+      * @param bool $set Whether to set them or not
+      * @return void
+      */
+-    public function set_stupidly_fast(bool $set = false)
++    public function set_stupidly_fast(bool $set = false): mixed
+     {
+         if ($set) {
+             $this->enable_order_by_date(false);
+@@ -1451,6 +1486,7 @@
+             $this->set_image_handler(false);
+             $this->set_https_domains([]);
+         }
++    	return null;
+     }
+ 
+     /**
+@@ -1459,24 +1495,26 @@
+      * @param int $max Maximum number of feeds to check
+      * @return void
+      */
+-    public function set_max_checked_feeds(int $max = 10)
++    public function set_max_checked_feeds(int $max = 10): mixed
+     {
+         $this->max_checked_feeds = $max;
++    	return null;
+     }
+ 
+     /**
+      * @return void
+      */
+-    public function remove_div(bool $enable = true)
++    public function remove_div(bool $enable = true): mixed
+     {
+         $this->sanitize->remove_div($enable);
++    	return null;
+     }
+ 
+     /**
+      * @param string[]|string|false $tags Set a list of tags to strip, or set empty string to use default tags, or false to strip nothing.
+      * @return void
+      */
+-    public function strip_htmltags($tags = '', ?bool $encode = null)
++    public function strip_htmltags(mixed $tags = '', ?bool $encode = null): mixed
+     {
+         if ($tags === '') {
+             $tags = $this->strip_htmltags;
+@@ -1485,50 +1523,55 @@
+         if ($encode !== null) {
+             $this->sanitize->encode_instead_of_strip($encode);
+         }
++    	return null;
+     }
+ 
+     /**
+      * @return void
+      */
+-    public function encode_instead_of_strip(bool $enable = true)
++    public function encode_instead_of_strip(bool $enable = true): mixed
+     {
+         $this->sanitize->encode_instead_of_strip($enable);
++    	return null;
+     }
+ 
+     /**
+      * @param string[]|string $attribs
+      * @return void
+      */
+-    public function rename_attributes($attribs = '')
++    public function rename_attributes(mixed $attribs = ''): mixed
+     {
+         if ($attribs === '') {
+             $attribs = $this->rename_attributes;
+         }
+         $this->sanitize->rename_attributes($attribs);
++    	return null;
+     }
+ 
+     /**
+      * @param string[]|string $attribs
+      * @return void
+      */
+-    public function strip_attributes($attribs = '')
++    public function strip_attributes(mixed $attribs = ''): mixed
+     {
+         if ($attribs === '') {
+             $attribs = $this->strip_attributes;
+         }
+         $this->sanitize->strip_attributes($attribs);
++    	return null;
+     }
+ 
+     /**
+      * @param array<string, array<string, string>>|'' $attribs
+      * @return void
+      */
+-    public function add_attributes($attribs = '')
++    public function add_attributes(mixed $attribs = ''): mixed
+     {
+         if ($attribs === '') {
+             $attribs = $this->add_attributes;
+         }
+         $this->sanitize->add_attributes($attribs);
++    	return null;
+     }
+ 
+     /**
+@@ -1554,17 +1597,19 @@
+      * @param string $encoding
+      * @return void
+      */
+-    public function set_output_encoding(string $encoding = 'UTF-8')
++    public function set_output_encoding(string $encoding = 'UTF-8'): mixed
+     {
+         $this->sanitize->set_output_encoding($encoding);
++    	return null;
+     }
+ 
+     /**
+      * @return void
+      */
+-    public function strip_comments(bool $strip = false)
++    public function strip_comments(bool $strip = false): mixed
+     {
+         $this->sanitize->strip_comments($strip);
++    	return null;
+     }
+ 
+     /**
+@@ -1579,9 +1624,10 @@
+      * @param array<string, string|string[]>|null $element_attribute Element/attribute key/value pairs, null for default
+      * @return void
+      */
+-    public function set_url_replacements(?array $element_attribute = null)
++    public function set_url_replacements(?array $element_attribute = null): mixed
+     {
+         $this->sanitize->set_url_replacements($element_attribute);
++    	return null;
+     }
+ 
+     /**
+@@ -1590,9 +1636,10 @@
+      * @param array<string> $domains List of HTTPS domains. Example array('biz', 'example.com', 'example.org', 'www.example.net').
+      * @return void
+      */
+-    public function set_https_domains(array $domains = [])
++    public function set_https_domains(array $domains = []): mixed
+     {
+         $this->sanitize->set_https_domains($domains);
++    	return null;
+     }
+ 
+     /**
+@@ -1602,13 +1649,14 @@
+      * @param string $qs The query string that the value should be passed to.
+      * @return void
+      */
+-    public function set_image_handler($page = false, string $qs = 'i')
++    public function set_image_handler(mixed $page = false, string $qs = 'i'): mixed
+     {
+         if ($page !== false) {
+             $this->sanitize->set_image_handler($page . '?' . $qs . '=');
+         } else {
+             $this->image_handler = '';
+         }
++    	return null;
+     }
+ 
+     /**
+@@ -1617,9 +1665,10 @@
+      * @param int $limit The maximum number of items to return.
+      * @return void
+      */
+-    public function set_item_limit(int $limit = 0)
++    public function set_item_limit(int $limit = 0): mixed
+     {
+         $this->item_limit = $limit;
++    	return null;
+     }
+ 
+     /**
+@@ -1628,9 +1677,10 @@
+      * @param bool $enable Should we throw exceptions, or use the old-style error property?
+      * @return void
+      */
+-    public function enable_exceptions(bool $enable = true)
++    public function enable_exceptions(bool $enable = true): mixed
+     {
+         $this->enable_exceptions = $enable;
++    	return null;
+     }
+ 
+     /**
+@@ -1642,7 +1692,7 @@
+      *
+      * @return bool True if successful, false otherwise
+      */
+-    public function init()
++    public function init(): mixed
+     {
+         // Check absolute bare minimum requirements.
+         if (!extension_loaded('xml') || !extension_loaded('pcre')) {
+@@ -1651,7 +1701,8 @@
+         }
+         // Then check the xml extension is sane (i.e., libxml 2.7.x issue on PHP < 5.2.9 and libxml 2.7.0 to 2.7.2 on any version) if we don't have xmlreader.
+         elseif (!extension_loaded('xmlreader')) {
+-            static $xml_is_sane = null;
++            static $xml_is_sane_aot_cell = new \WordPressStaticValueCell();
++            $xml_is_sane =& $xml_is_sane_aot_cell->value;
+             if ($xml_is_sane === null) {
+                 $parser_check = xml_parser_create();
+                 xml_parse_into_struct($parser_check, '<foo>&amp;</foo>', $values);
+@@ -1670,7 +1721,7 @@
+         if ($this->registry->get_class(Sanitize::class) !== Sanitize::class) {
+             $this->sanitize = $this->registry->create(Sanitize::class);
+         }
+-        if (method_exists($this->sanitize, 'set_registry')) {
++        if (\wp_aot_native_api('method_exists', array($this->sanitize, 'set_registry'))) {
+             $this->sanitize->set_registry($this->registry);
+         }
+ 
+@@ -1726,7 +1777,7 @@
+             $parsed_feed_url = $this->registry->call(Misc::class, 'parse_url', [$this->feed_url]);
+ 
+             // Decide whether to enable caching
+-            if ($this->enable_cache && $parsed_feed_url['scheme'] !== '') {
++            if ($this->enable_cache && \wp_aot_mixed($parsed_feed_url)['scheme'] !== '') {
+                 $cache = $this->get_cache($this->feed_url);
+             }
+ 
+@@ -1748,7 +1799,7 @@
+         }
+ 
+         // Set up array of possible encodings
+-        $encodings = [];
++        $encodings = \wp_aot_mixed([]);
+ 
+         // First check to see if input has been overridden.
+         if ($this->input_encoding !== false) {
+@@ -1761,14 +1812,14 @@
+         // RFC 3023 (only applies to sniffed content)
+         if (isset($sniffed)) {
+             if (in_array($sniffed, $application_types) || substr($sniffed, 0, 12) === 'application/' && substr($sniffed, -4) === '+xml') {
+-                if (isset($headers['content-type']) && preg_match('/;\x20?charset=([^;]*)/i', $headers['content-type'], $charset)) {
+-                    $encodings[] = strtoupper($charset[1]);
+-                }
 -                $encodings = array_merge($encodings, $this->registry->call(Misc::class, 'xml_encoding', [$this->raw_data, &$this->registry]));
-+                $encodings = array_merge($encodings, $this->registry->call(Misc::class, 'xml_encoding', [$this->raw_data, $this->registry]));
++                if (isset($headers['content-type']) && preg_match('/;\x20?charset=([^;]*)/i', \wp_aot_regex_text( $headers['content-type'] ), $charset)) {
++                    $encodings[] = strtoupper(\wp_aot_mixed($charset)[1]);
++                }
++                $encodings = \wp_aot_array_merge(array($encodings, $this->registry->call(Misc::class, 'xml_encoding', [$this->raw_data, $this->registry])));
                  $encodings[] = 'UTF-8';
              } elseif (in_array($sniffed, $text_types) || substr($sniffed, 0, 5) === 'text/' && substr($sniffed, -4) === '+xml') {
-                 if (isset($headers['content-type']) && preg_match('/;\x20?charset=([^;]*)/i', $headers['content-type'], $charset)) {
-@@ -1779,7 +1779,7 @@
+-                if (isset($headers['content-type']) && preg_match('/;\x20?charset=([^;]*)/i', $headers['content-type'], $charset)) {
+-                    $encodings[] = strtoupper($charset[1]);
++                if (isset($headers['content-type']) && preg_match('/;\x20?charset=([^;]*)/i', \wp_aot_regex_text( $headers['content-type'] ), $charset)) {
++                    $encodings[] = strtoupper(\wp_aot_mixed($charset)[1]);
+                 }
+                 $encodings[] = 'US-ASCII';
+             }
+@@ -1779,12 +1830,12 @@
          }
  
          // Fallback to XML 1.0 Appendix F.1/UTF-8/ISO-8859-1
 -        $encodings = array_merge($encodings, $this->registry->call(Misc::class, 'xml_encoding', [$this->raw_data, &$this->registry]));
-+        $encodings = array_merge($encodings, $this->registry->call(Misc::class, 'xml_encoding', [$this->raw_data, $this->registry]));
++        $encodings = \wp_aot_array_merge(array($encodings, $this->registry->call(Misc::class, 'xml_encoding', [$this->raw_data, $this->registry])));
          $encodings[] = 'UTF-8';
          $encodings[] = 'ISO-8859-1';
  
-@@ -2094,7 +2094,7 @@
+         // There's no point in trying an encoding twice
+-        $encodings = array_unique($encodings);
++        $encodings = \wp_aot_array_unique($encodings);
+ 
+         // Loop through each possible encoding, till we return something, or run out of possibilities
+         foreach ($encodings as $encoding) {
+@@ -1844,6 +1895,7 @@
+         $this->registry->call(Misc::class, 'error', [$this->error, E_USER_NOTICE, __FILE__, __LINE__]);
+ 
+         return false;
++    	return null;
+     }
+ 
+     /**
+@@ -1854,7 +1906,7 @@
+      * @param Base|DataCache|false $cache Cache handler, or false to not load from the cache
+      * @return array{array<string, string>, string}|bool Returns true if the data was loaded from the cache, or an array of HTTP headers and sniffed type
+      */
+-    protected function fetch_data(&$cache)
++    protected function fetch_data(mixed &$cache): mixed
+     {
+         if ($cache instanceof Base) {
+             // @trigger_error(sprintf('Providing $cache as "\SimplePie\Cache\Base" in %s() is deprecated since SimplePie 1.8.0, please provide "\SimplePie\Cache\DataCache" implementation instead.', __METHOD__), \E_USER_DEPRECATED);
+@@ -1921,7 +1973,7 @@
+                         }
+ 
+                         try {
+-                            $file = $this->get_http_client()->request(Client::METHOD_GET, $this->feed_url, $headers);
++                            $file = \wp_aot_mixed($this->get_http_client()->request(Client::METHOD_GET, $this->feed_url, $headers));
+                             $this->status_code = $file->get_status_code();
+                         } catch (ClientException $th) {
+                             $this->check_modified = false;
+@@ -2041,7 +2093,7 @@
+                         $hub = $locate->get_rel_link('hub');
+                         $self = $locate->get_rel_link('self');
+                         if ($hub || $self) {
+-                            $file = $this->store_links($file, $hub, $self);
++                            $file = $this->store_links($file, \wp_aot_weak_nullable_string($hub), \wp_aot_weak_nullable_string($self));
+                         }
+                         // Push the current file onto all_discovered feeds so the user can
+                         // be shown this as one of the options.
+@@ -2072,7 +2124,7 @@
+                 if ($cache) {
+                     $this->data = [
+                         'url' => $this->feed_url,
+-                        'feed_url' => $file->get_final_requested_uri(),
++                        'feed_url' => \wp_aot_require_SimplePie_HTTP_Response($file)->get_final_requested_uri(),
+                         'build' => Misc::get_build(),
+                         'cache_expiration_time' => $this->cache_duration + time(),
+                     ];
+@@ -2094,10 +2146,11 @@
              $headers[$key] = implode(', ', $values);
          }
  
@@ -36,11 +888,475 @@
          $sniffed = $sniffer->get_type();
  
          return [$headers, $sniffed];
-@@ -2842,12 +2842,12 @@
++    	return null;
+     }
+ 
+     /**
+@@ -2105,9 +2158,10 @@
+      *
+      * @return string|string[]|null Error message, or array of messages for multifeeds
+      */
+-    public function error()
++    public function error(): mixed
+     {
+         return $this->error;
++    	return null;
+     }
+ 
+     /**
+@@ -2115,9 +2169,10 @@
+      *
+      * @return int Status code
+      */
+-    public function status_code()
++    public function status_code(): mixed
+     {
+         return $this->status_code;
++    	return null;
+     }
+ 
+     /**
+@@ -2128,9 +2183,10 @@
+      *
+      * @return string|false Raw XML data, false if the cache is used
+      */
+-    public function get_raw_data()
++    public function get_raw_data(): mixed
+     {
+         return $this->raw_data;
++    	return null;
+     }
+ 
+     /**
+@@ -2139,9 +2195,10 @@
+      * @since Preview Release
+      * @return string
+      */
+-    public function get_encoding()
++    public function get_encoding(): mixed
+     {
+         return $this->sanitize->output_encoding;
++    	return null;
+     }
+ 
+     /**
+@@ -2164,9 +2221,9 @@
+      * @param string $mime MIME type to serve the page as
+      * @return void
+      */
+-    public function handle_content_type(string $mime = 'text/html')
+-    {
+-        if (!headers_sent()) {
++    public function handle_content_type(string $mime = 'text/html'): mixed
++    {
++        if (!\wp_aot_native_headers_sent()) {
+             $header = "Content-type: $mime;";
+             if ($this->get_encoding()) {
+                 $header .= ' charset=' . $this->get_encoding();
+@@ -2175,6 +2232,7 @@
+             }
+             header($header);
+         }
++    	return null;
+     }
+ 
+     /**
+@@ -2203,7 +2261,7 @@
+      * @see self::TYPE_ALL Any known/supported feed type.
+      * @return int-mask-of<self::TYPE_*> constant
+      */
+-    public function get_type()
++    public function get_type(): mixed
+     {
+         if (!isset($this->data['type'])) {
+             $this->data['type'] = self::TYPE_ALL;
+@@ -2265,6 +2323,7 @@
+             }
+         }
+         return $this->data['type'];
++    	return null;
+     }
+ 
+     /**
+@@ -2286,12 +2345,12 @@
+      * iff it is a 301 redirection
+      * @return string|null
+      */
+-    public function subscribe_url(bool $permanent = false)
++    public function subscribe_url(bool $permanent = false): mixed
+     {
+         if ($permanent) {
+             if ($this->permanent_url !== null) {
+                 // sanitize encodes ampersands which are required when used in a url.
+-                return str_replace(
++                return \wp_aot_str_replace(
+                     '&amp;',
+                     '&',
+                     $this->sanitize(
+@@ -2302,7 +2361,7 @@
+             }
+         } else {
+             if ($this->feed_url !== null) {
+-                return str_replace(
++                return \wp_aot_str_replace(
+                     '&amp;',
+                     '&',
+                     $this->sanitize(
+@@ -2313,6 +2372,7 @@
+             }
+         }
+         return null;
++    	return null;
+     }
+ 
+     /**
+@@ -2346,7 +2406,7 @@
+      * @param string $tag Tag name
+      * @return array<array<string, mixed>>|null
+      */
+-    public function get_feed_tags(string $namespace, string $tag)
++    public function get_feed_tags(string $namespace, string $tag): mixed
+     {
+         $type = $this->get_type();
+         if ($type & self::TYPE_ATOM_10) {
+@@ -2370,6 +2430,7 @@
+             }
+         }
+         return null;
++    	return null;
+     }
+ 
+     /**
+@@ -2386,7 +2447,7 @@
+      * @param string $tag Tag name
+      * @return array<array<string, mixed>>|null
+      */
+-    public function get_channel_tags(string $namespace, string $tag)
++    public function get_channel_tags(string $namespace, string $tag): mixed
+     {
+         $type = $this->get_type();
+         if ($type & self::TYPE_ATOM_ALL) {
+@@ -2416,6 +2477,7 @@
+             }
+         }
+         return null;
++    	return null;
+     }
+ 
+     /**
+@@ -2432,7 +2494,7 @@
+      * @param string $tag Tag name
+      * @return array<array<string, mixed>>|null
+      */
+-    public function get_image_tags(string $namespace, string $tag)
++    public function get_image_tags(string $namespace, string $tag): mixed
+     {
+         $type = $this->get_type();
+         if ($type & self::TYPE_RSS_10) {
+@@ -2457,6 +2519,7 @@
+             }
+         }
+         return null;
++    	return null;
+     }
+ 
+     /**
+@@ -2472,7 +2535,7 @@
+      * @param array<string, mixed> $element
+      * @return string
+      */
+-    public function get_base(array $element = [])
++    public function get_base(array $element = []): mixed
+     {
+         if (!empty($element['xml_base_explicit']) && isset($element['xml_base'])) {
+             return $element['xml_base'];
+@@ -2485,6 +2548,7 @@
+         }
+ 
+         return $this->subscribe_url() ?? '';
++    	return null;
+     }
+ 
+     /**
+@@ -2497,7 +2561,7 @@
+      * @param string $base Base URL to resolve URLs against
+      * @return string Sanitized data
+      */
+-    public function sanitize(string $data, int $type, string $base = '')
++    public function sanitize(string $data, int $type, string $base = ''): mixed
+     {
+         try {
+             // This really returns string|false but changing encoding is uncommon and we are going to deprecate it, so let’s just lie to PHPStan in the interest of cleaner annotations.
+@@ -2511,6 +2575,7 @@
+ 
+             throw $e;
+         }
++    	return null;
+     }
+ 
+     /**
+@@ -2521,18 +2586,18 @@
+      * @since 1.0 (previously called `get_feed_title` since 0.8)
+      * @return string|null
+      */
+-    public function get_title()
++    public function get_title(): mixed
+     {
+         if ($return = $this->get_channel_tags(self::NAMESPACE_ATOM_10, 'title')) {
+-            return $this->sanitize($return[0]['data'], $this->registry->call(Misc::class, 'atom_10_construct_type', [$return[0]['attribs']]), $this->get_base($return[0]));
++            return $this->sanitize($return[0]['data'], $this->registry->call(Misc::class, 'atom_10_construct_type', [$return[0]['attribs']]), $this->get_base(\wp_aot_array_input($return[0])));
+         } elseif ($return = $this->get_channel_tags(self::NAMESPACE_ATOM_03, 'title')) {
+-            return $this->sanitize($return[0]['data'], $this->registry->call(Misc::class, 'atom_03_construct_type', [$return[0]['attribs']]), $this->get_base($return[0]));
++            return $this->sanitize($return[0]['data'], $this->registry->call(Misc::class, 'atom_03_construct_type', [$return[0]['attribs']]), $this->get_base(\wp_aot_array_input($return[0])));
+         } elseif ($return = $this->get_channel_tags(self::NAMESPACE_RSS_10, 'title')) {
+-            return $this->sanitize($return[0]['data'], self::CONSTRUCT_MAYBE_HTML, $this->get_base($return[0]));
++            return $this->sanitize($return[0]['data'], self::CONSTRUCT_MAYBE_HTML, $this->get_base(\wp_aot_array_input($return[0])));
+         } elseif ($return = $this->get_channel_tags(self::NAMESPACE_RSS_090, 'title')) {
+-            return $this->sanitize($return[0]['data'], self::CONSTRUCT_MAYBE_HTML, $this->get_base($return[0]));
++            return $this->sanitize($return[0]['data'], self::CONSTRUCT_MAYBE_HTML, $this->get_base(\wp_aot_array_input($return[0])));
+         } elseif ($return = $this->get_channel_tags(self::NAMESPACE_RSS_20, 'title')) {
+-            return $this->sanitize($return[0]['data'], self::CONSTRUCT_MAYBE_HTML, $this->get_base($return[0]));
++            return $this->sanitize($return[0]['data'], self::CONSTRUCT_MAYBE_HTML, $this->get_base(\wp_aot_array_input($return[0])));
+         } elseif ($return = $this->get_channel_tags(self::NAMESPACE_DC_11, 'title')) {
+             return $this->sanitize($return[0]['data'], self::CONSTRUCT_TEXT);
+         } elseif ($return = $this->get_channel_tags(self::NAMESPACE_DC_10, 'title')) {
+@@ -2540,6 +2605,7 @@
+         }
+ 
+         return null;
++    	return null;
+     }
+ 
+     /**
+@@ -2549,7 +2615,7 @@
+      * @param int $key The category that you want to return. Remember that arrays begin with 0, not 1
+      * @return Category|null
+      */
+-    public function get_category(int $key = 0)
++    public function get_category(int $key = 0): mixed
+     {
+         $categories = $this->get_categories();
+         if (isset($categories[$key])) {
+@@ -2557,6 +2623,7 @@
+         }
+ 
+         return null;
++    	return null;
+     }
+ 
+     /**
+@@ -2567,7 +2634,7 @@
+      * @since Unknown
+      * @return array<Category>|null List of {@see Category} objects
+      */
+-    public function get_categories()
++    public function get_categories(): mixed
+     {
+         $categories = [];
+ 
+@@ -2605,10 +2672,11 @@
+         }
+ 
+         if (!empty($categories)) {
+-            return array_unique($categories);
++            return \wp_aot_array_unique($categories);
+         }
+ 
+         return null;
++    	return null;
+     }
+ 
+     /**
+@@ -2618,7 +2686,7 @@
+      * @param int $key The author that you want to return. Remember that arrays begin with 0, not 1
+      * @return Author|null
+      */
+-    public function get_author(int $key = 0)
++    public function get_author(int $key = 0): mixed
+     {
+         $authors = $this->get_authors();
+         if (isset($authors[$key])) {
+@@ -2626,6 +2694,7 @@
+         }
+ 
+         return null;
++    	return null;
+     }
+ 
+     /**
+@@ -2636,7 +2705,7 @@
+      * @since 1.1
+      * @return array<Author>|null List of {@see Author} objects
+      */
+-    public function get_authors()
++    public function get_authors(): mixed
+     {
+         $authors = [];
+         foreach ((array) $this->get_channel_tags(self::NAMESPACE_ATOM_10, 'author') as $author) {
+@@ -2648,7 +2717,7 @@
+             }
+             if (isset($author['child'][self::NAMESPACE_ATOM_10]['uri'][0]['data'])) {
+                 $uri = $author['child'][self::NAMESPACE_ATOM_10]['uri'][0];
+-                $uri = $this->sanitize($uri['data'], self::CONSTRUCT_IRI, $this->get_base($uri));
++                $uri = $this->sanitize($uri['data'], self::CONSTRUCT_IRI, $this->get_base(\wp_aot_array_input($uri)));
+             }
+             if (isset($author['child'][self::NAMESPACE_ATOM_10]['email'][0]['data'])) {
+                 $email = $this->sanitize($author['child'][self::NAMESPACE_ATOM_10]['email'][0]['data'], self::CONSTRUCT_TEXT);
+@@ -2666,7 +2735,7 @@
+             }
+             if (isset($author[0]['child'][self::NAMESPACE_ATOM_03]['url'][0]['data'])) {
+                 $url = $author[0]['child'][self::NAMESPACE_ATOM_03]['url'][0];
+-                $url = $this->sanitize($url['data'], self::CONSTRUCT_IRI, $this->get_base($url));
++                $url = $this->sanitize($url['data'], self::CONSTRUCT_IRI, $this->get_base(\wp_aot_array_input($url)));
+             }
+             if (isset($author[0]['child'][self::NAMESPACE_ATOM_03]['email'][0]['data'])) {
+                 $email = $this->sanitize($author[0]['child'][self::NAMESPACE_ATOM_03]['email'][0]['data'], self::CONSTRUCT_TEXT);
+@@ -2686,10 +2755,11 @@
+         }
+ 
+         if (!empty($authors)) {
+-            return array_unique($authors);
++            return \wp_aot_array_unique($authors);
+         }
+ 
+         return null;
++    	return null;
+     }
+ 
+     /**
+@@ -2699,7 +2769,7 @@
+      * @param int $key The contrbutor that you want to return. Remember that arrays begin with 0, not 1
+      * @return Author|null
+      */
+-    public function get_contributor(int $key = 0)
++    public function get_contributor(int $key = 0): mixed
+     {
+         $contributors = $this->get_contributors();
+         if (isset($contributors[$key])) {
+@@ -2707,6 +2777,7 @@
+         }
+ 
+         return null;
++    	return null;
+     }
+ 
+     /**
+@@ -2717,7 +2788,7 @@
+      * @since 1.1
+      * @return array<Author>|null List of {@see Author} objects
+      */
+-    public function get_contributors()
++    public function get_contributors(): mixed
+     {
+         $contributors = [];
+         foreach ((array) $this->get_channel_tags(self::NAMESPACE_ATOM_10, 'contributor') as $contributor) {
+@@ -2729,7 +2800,7 @@
+             }
+             if (isset($contributor['child'][self::NAMESPACE_ATOM_10]['uri'][0]['data'])) {
+                 $uri = $contributor['child'][self::NAMESPACE_ATOM_10]['uri'][0];
+-                $uri = $this->sanitize($uri['data'], self::CONSTRUCT_IRI, $this->get_base($uri));
++                $uri = $this->sanitize($uri['data'], self::CONSTRUCT_IRI, $this->get_base(\wp_aot_array_input($uri)));
+             }
+             if (isset($contributor['child'][self::NAMESPACE_ATOM_10]['email'][0]['data'])) {
+                 $email = $this->sanitize($contributor['child'][self::NAMESPACE_ATOM_10]['email'][0]['data'], self::CONSTRUCT_TEXT);
+@@ -2747,7 +2818,7 @@
+             }
+             if (isset($contributor['child'][self::NAMESPACE_ATOM_03]['url'][0]['data'])) {
+                 $url = $contributor['child'][self::NAMESPACE_ATOM_03]['url'][0];
+-                $url = $this->sanitize($url['data'], self::CONSTRUCT_IRI, $this->get_base($url));
++                $url = $this->sanitize($url['data'], self::CONSTRUCT_IRI, $this->get_base(\wp_aot_array_input($url)));
+             }
+             if (isset($contributor['child'][self::NAMESPACE_ATOM_03]['email'][0]['data'])) {
+                 $email = $this->sanitize($contributor['child'][self::NAMESPACE_ATOM_03]['email'][0]['data'], self::CONSTRUCT_TEXT);
+@@ -2758,10 +2829,11 @@
+         }
+ 
+         if (!empty($contributors)) {
+-            return array_unique($contributors);
++            return \wp_aot_array_unique($contributors);
+         }
+ 
+         return null;
++    	return null;
+     }
+ 
+     /**
+@@ -2772,7 +2844,7 @@
+      * @param string $rel The relationship of the link to return
+      * @return string|null Link URL
+      */
+-    public function get_link(int $key = 0, string $rel = 'alternate')
++    public function get_link(int $key = 0, string $rel = 'alternate'): mixed
+     {
+         $links = $this->get_links($rel);
+         if (isset($links[$key])) {
+@@ -2780,6 +2852,7 @@
+         }
+ 
+         return null;
++    	return null;
+     }
+ 
+     /**
+@@ -2793,9 +2866,10 @@
+      * @internal Added for parity between the parent-level and the item/entry-level.
+      * @return string|null Link URL
+      */
+-    public function get_permalink()
++    public function get_permalink(): mixed
+     {
+         return $this->get_link(0);
++    	return null;
+     }
+ 
+     /**
+@@ -2807,7 +2881,7 @@
+      * @param string $rel The relationship of links to return
+      * @return array<string>|null Links found for the feed (strings)
+      */
+-    public function get_links(string $rel = 'alternate')
++    public function get_links(string $rel = 'alternate'): mixed
+     {
+         if (!isset($this->data['links'])) {
+             $this->data['links'] = [];
+@@ -2815,7 +2889,7 @@
+                 foreach ($links as $link) {
+                     if (isset($link['attribs']['']['href'])) {
+                         $link_rel = (isset($link['attribs']['']['rel'])) ? $link['attribs']['']['rel'] : 'alternate';
+-                        $this->data['links'][$link_rel][] = $this->sanitize($link['attribs']['']['href'], self::CONSTRUCT_IRI, $this->get_base($link));
++                        $this->data['links'][$link_rel][] = $this->sanitize($link['attribs']['']['href'], self::CONSTRUCT_IRI, $this->get_base(\wp_aot_array_input($link)));
+                     }
+                 }
+             }
+@@ -2823,33 +2897,33 @@
+                 foreach ($links as $link) {
+                     if (isset($link['attribs']['']['href'])) {
+                         $link_rel = (isset($link['attribs']['']['rel'])) ? $link['attribs']['']['rel'] : 'alternate';
+-                        $this->data['links'][$link_rel][] = $this->sanitize($link['attribs']['']['href'], self::CONSTRUCT_IRI, $this->get_base($link));
++                        $this->data['links'][$link_rel][] = $this->sanitize($link['attribs']['']['href'], self::CONSTRUCT_IRI, $this->get_base(\wp_aot_array_input($link)));
+                     }
+                 }
+             }
+             if ($links = $this->get_channel_tags(self::NAMESPACE_RSS_10, 'link')) {
+-                $this->data['links']['alternate'][] = $this->sanitize($links[0]['data'], self::CONSTRUCT_IRI, $this->get_base($links[0]));
++                $this->data['links']['alternate'][] = $this->sanitize($links[0]['data'], self::CONSTRUCT_IRI, $this->get_base(\wp_aot_array_input($links[0])));
+             }
+             if ($links = $this->get_channel_tags(self::NAMESPACE_RSS_090, 'link')) {
+-                $this->data['links']['alternate'][] = $this->sanitize($links[0]['data'], self::CONSTRUCT_IRI, $this->get_base($links[0]));
++                $this->data['links']['alternate'][] = $this->sanitize($links[0]['data'], self::CONSTRUCT_IRI, $this->get_base(\wp_aot_array_input($links[0])));
+             }
+             if ($links = $this->get_channel_tags(self::NAMESPACE_RSS_20, 'link')) {
+-                $this->data['links']['alternate'][] = $this->sanitize($links[0]['data'], self::CONSTRUCT_IRI, $this->get_base($links[0]));
++                $this->data['links']['alternate'][] = $this->sanitize($links[0]['data'], self::CONSTRUCT_IRI, $this->get_base(\wp_aot_array_input($links[0])));
+             }
+ 
+             $keys = array_keys($this->data['links']);
+             foreach ($keys as $key) {
                  if ($this->registry->call(Misc::class, 'is_isegment_nz_nc', [$key])) {
                      if (isset($this->data['links'][self::IANA_LINK_RELATIONS_REGISTRY . $key])) {
-                         $this->data['links'][self::IANA_LINK_RELATIONS_REGISTRY . $key] = array_merge($this->data['links'][$key], $this->data['links'][self::IANA_LINK_RELATIONS_REGISTRY . $key]);
+-                        $this->data['links'][self::IANA_LINK_RELATIONS_REGISTRY . $key] = array_merge($this->data['links'][$key], $this->data['links'][self::IANA_LINK_RELATIONS_REGISTRY . $key]);
 -                        $this->data['links'][$key] = &$this->data['links'][self::IANA_LINK_RELATIONS_REGISTRY . $key];
++                        $this->data['links'][self::IANA_LINK_RELATIONS_REGISTRY . $key] = \wp_aot_array_merge(array($this->data['links'][$key], $this->data['links'][self::IANA_LINK_RELATIONS_REGISTRY . $key]));
 +                        throw new \RuntimeException('RSS link-reference maps are outside the finite bootstrap fixture.');
                      } else {
 -                        $this->data['links'][self::IANA_LINK_RELATIONS_REGISTRY . $key] = &$this->data['links'][$key];
@@ -48,7 +1364,531 @@
                      }
                  } elseif (substr($key, 0, 41) === self::IANA_LINK_RELATIONS_REGISTRY) {
 -                    $this->data['links'][substr($key, 41)] = &$this->data['links'][$key];
+-                }
+-                $this->data['links'][$key] = array_unique($this->data['links'][$key]);
 +                    throw new \RuntimeException('RSS link-reference maps are outside the finite bootstrap fixture.');
-                 }
-                 $this->data['links'][$key] = array_unique($this->data['links'][$key]);
++                }
++                $this->data['links'][$key] = \wp_aot_array_unique($this->data['links'][$key]);
              }
+         }
+ 
+@@ -2860,8 +2934,8 @@
+             }
+             // https://datatracker.ietf.org/doc/html/rfc8288
+             if (is_string($link_headers) &&
+-                preg_match_all('/<(?P<uri>[^>]+)>\s*;\s*rel\s*=\s*(?P<quote>"?)' . preg_quote($rel) . '(?P=quote)\s*(?=,|$)/i', $link_headers, $matches)) {
+-                return $matches['uri'];
++                preg_match_all(\wp_aot_regex_text( '/<(?P<uri>[^>]+)>\s*;\s*rel\s*=\s*(?P<quote>"?)' . preg_quote(\wp_aot_regex_text( $rel )) . '(?P=quote)\s*(?=,|$)/i' ), \wp_aot_regex_text( $link_headers ), $matches)) {
++                return \wp_aot_mixed($matches)['uri'];
+             }
+         }
+ 
+@@ -2870,14 +2944,16 @@
+         }
+ 
+         return null;
++    	return null;
+     }
+ 
+     /**
+      * @return ?array<Response>
+      */
+-    public function get_all_discovered_feeds()
++    public function get_all_discovered_feeds(): mixed
+     {
+         return $this->all_discovered_feeds;
++    	return null;
+     }
+ 
+     /**
+@@ -2889,29 +2965,30 @@
+      * @since 1.0 (previously called `get_feed_description()` since 0.8)
+      * @return string|null
+      */
+-    public function get_description()
++    public function get_description(): mixed
+     {
+         if ($return = $this->get_channel_tags(self::NAMESPACE_ATOM_10, 'subtitle')) {
+-            return $this->sanitize($return[0]['data'], $this->registry->call(Misc::class, 'atom_10_construct_type', [$return[0]['attribs']]), $this->get_base($return[0]));
++            return $this->sanitize($return[0]['data'], $this->registry->call(Misc::class, 'atom_10_construct_type', [$return[0]['attribs']]), $this->get_base(\wp_aot_array_input($return[0])));
+         } elseif ($return = $this->get_channel_tags(self::NAMESPACE_ATOM_03, 'tagline')) {
+-            return $this->sanitize($return[0]['data'], $this->registry->call(Misc::class, 'atom_03_construct_type', [$return[0]['attribs']]), $this->get_base($return[0]));
++            return $this->sanitize($return[0]['data'], $this->registry->call(Misc::class, 'atom_03_construct_type', [$return[0]['attribs']]), $this->get_base(\wp_aot_array_input($return[0])));
+         } elseif ($return = $this->get_channel_tags(self::NAMESPACE_RSS_10, 'description')) {
+-            return $this->sanitize($return[0]['data'], self::CONSTRUCT_MAYBE_HTML, $this->get_base($return[0]));
++            return $this->sanitize($return[0]['data'], self::CONSTRUCT_MAYBE_HTML, $this->get_base(\wp_aot_array_input($return[0])));
+         } elseif ($return = $this->get_channel_tags(self::NAMESPACE_RSS_090, 'description')) {
+-            return $this->sanitize($return[0]['data'], self::CONSTRUCT_MAYBE_HTML, $this->get_base($return[0]));
++            return $this->sanitize($return[0]['data'], self::CONSTRUCT_MAYBE_HTML, $this->get_base(\wp_aot_array_input($return[0])));
+         } elseif ($return = $this->get_channel_tags(self::NAMESPACE_RSS_20, 'description')) {
+-            return $this->sanitize($return[0]['data'], self::CONSTRUCT_HTML, $this->get_base($return[0]));
++            return $this->sanitize($return[0]['data'], self::CONSTRUCT_HTML, $this->get_base(\wp_aot_array_input($return[0])));
+         } elseif ($return = $this->get_channel_tags(self::NAMESPACE_DC_11, 'description')) {
+             return $this->sanitize($return[0]['data'], self::CONSTRUCT_TEXT);
+         } elseif ($return = $this->get_channel_tags(self::NAMESPACE_DC_10, 'description')) {
+             return $this->sanitize($return[0]['data'], self::CONSTRUCT_TEXT);
+         } elseif ($return = $this->get_channel_tags(self::NAMESPACE_ITUNES, 'summary')) {
+-            return $this->sanitize($return[0]['data'], self::CONSTRUCT_HTML, $this->get_base($return[0]));
++            return $this->sanitize($return[0]['data'], self::CONSTRUCT_HTML, $this->get_base(\wp_aot_array_input($return[0])));
+         } elseif ($return = $this->get_channel_tags(self::NAMESPACE_ITUNES, 'subtitle')) {
+-            return $this->sanitize($return[0]['data'], self::CONSTRUCT_HTML, $this->get_base($return[0]));
++            return $this->sanitize($return[0]['data'], self::CONSTRUCT_HTML, $this->get_base(\wp_aot_array_input($return[0])));
+         }
+ 
+         return null;
++    	return null;
+     }
+ 
+     /**
+@@ -2922,12 +2999,12 @@
+      * @since 1.0 (previously called `get_feed_copyright()` since 0.8)
+      * @return string|null
+      */
+-    public function get_copyright()
++    public function get_copyright(): mixed
+     {
+         if ($return = $this->get_channel_tags(self::NAMESPACE_ATOM_10, 'rights')) {
+-            return $this->sanitize($return[0]['data'], $this->registry->call(Misc::class, 'atom_10_construct_type', [$return[0]['attribs']]), $this->get_base($return[0]));
++            return $this->sanitize($return[0]['data'], $this->registry->call(Misc::class, 'atom_10_construct_type', [$return[0]['attribs']]), $this->get_base(\wp_aot_array_input($return[0])));
+         } elseif ($return = $this->get_channel_tags(self::NAMESPACE_ATOM_03, 'copyright')) {
+-            return $this->sanitize($return[0]['data'], $this->registry->call(Misc::class, 'atom_03_construct_type', [$return[0]['attribs']]), $this->get_base($return[0]));
++            return $this->sanitize($return[0]['data'], $this->registry->call(Misc::class, 'atom_03_construct_type', [$return[0]['attribs']]), $this->get_base(\wp_aot_array_input($return[0])));
+         } elseif ($return = $this->get_channel_tags(self::NAMESPACE_RSS_20, 'copyright')) {
+             return $this->sanitize($return[0]['data'], self::CONSTRUCT_TEXT);
+         } elseif ($return = $this->get_channel_tags(self::NAMESPACE_DC_11, 'rights')) {
+@@ -2937,6 +3014,7 @@
+         }
+ 
+         return null;
++    	return null;
+     }
+ 
+     /**
+@@ -2947,7 +3025,7 @@
+      * @since 1.0 (previously called `get_feed_language()` since 0.8)
+      * @return string|null
+      */
+-    public function get_language()
++    public function get_language(): mixed
+     {
+         if ($return = $this->get_channel_tags(self::NAMESPACE_RSS_20, 'language')) {
+             return $this->sanitize($return[0]['data'], self::CONSTRUCT_TEXT);
+@@ -2966,6 +3044,7 @@
+         }
+ 
+         return null;
++    	return null;
+     }
+ 
+     /**
+@@ -2980,15 +3059,16 @@
+      * @link http://www.georss.org/ GeoRSS
+      * @return float|null
+      */
+-    public function get_latitude()
++    public function get_latitude(): mixed
+     {
+         if ($return = $this->get_channel_tags(self::NAMESPACE_W3C_BASIC_GEO, 'lat')) {
+             return (float) $return[0]['data'];
+-        } elseif (($return = $this->get_channel_tags(self::NAMESPACE_GEORSS, 'point')) && preg_match('/^((?:-)?[0-9]+(?:\.[0-9]+)) ((?:-)?[0-9]+(?:\.[0-9]+))$/', trim($return[0]['data']), $match)) {
+-            return (float) $match[1];
++        } elseif (($return = $this->get_channel_tags(self::NAMESPACE_GEORSS, 'point')) && preg_match('/^((?:-)?[0-9]+(?:\.[0-9]+)) ((?:-)?[0-9]+(?:\.[0-9]+))$/', \wp_aot_regex_text( trim($return[0]['data']) ), $match)) {
++            return (float) \wp_aot_mixed($match)[1];
+         }
+ 
+         return null;
++    	return null;
+     }
+ 
+     /**
+@@ -3003,17 +3083,18 @@
+      * @link http://www.georss.org/ GeoRSS
+      * @return float|null
+      */
+-    public function get_longitude()
++    public function get_longitude(): mixed
+     {
+         if ($return = $this->get_channel_tags(self::NAMESPACE_W3C_BASIC_GEO, 'long')) {
+             return (float) $return[0]['data'];
+         } elseif ($return = $this->get_channel_tags(self::NAMESPACE_W3C_BASIC_GEO, 'lon')) {
+             return (float) $return[0]['data'];
+-        } elseif (($return = $this->get_channel_tags(self::NAMESPACE_GEORSS, 'point')) && preg_match('/^((?:-)?[0-9]+(?:\.[0-9]+)) ((?:-)?[0-9]+(?:\.[0-9]+))$/', trim($return[0]['data']), $match)) {
+-            return (float) $match[2];
++        } elseif (($return = $this->get_channel_tags(self::NAMESPACE_GEORSS, 'point')) && preg_match('/^((?:-)?[0-9]+(?:\.[0-9]+)) ((?:-)?[0-9]+(?:\.[0-9]+))$/', \wp_aot_regex_text( trim($return[0]['data']) ), $match)) {
++            return (float) \wp_aot_mixed($match)[2];
+         }
+ 
+         return null;
++    	return null;
+     }
+ 
+     /**
+@@ -3025,7 +3106,7 @@
+      *
+      * @return string|null
+      */
+-    public function get_image_title()
++    public function get_image_title(): mixed
+     {
+         if ($return = $this->get_image_tags(self::NAMESPACE_RSS_10, 'title')) {
+             return $this->sanitize($return[0]['data'], self::CONSTRUCT_TEXT);
+@@ -3040,6 +3121,7 @@
+         }
+ 
+         return null;
++    	return null;
+     }
+ 
+     /**
+@@ -3053,23 +3135,24 @@
+      *
+      * @return string|null
+      */
+-    public function get_image_url()
++    public function get_image_url(): mixed
+     {
+         if ($return = $this->get_channel_tags(self::NAMESPACE_ITUNES, 'image')) {
+             return $this->sanitize($return[0]['attribs']['']['href'], self::CONSTRUCT_IRI);
+         } elseif ($return = $this->get_channel_tags(self::NAMESPACE_ATOM_10, 'logo')) {
+-            return $this->sanitize($return[0]['data'], self::CONSTRUCT_IRI, $this->get_base($return[0]));
++            return $this->sanitize($return[0]['data'], self::CONSTRUCT_IRI, $this->get_base(\wp_aot_array_input($return[0])));
+         } elseif ($return = $this->get_channel_tags(self::NAMESPACE_ATOM_10, 'icon')) {
+-            return $this->sanitize($return[0]['data'], self::CONSTRUCT_IRI, $this->get_base($return[0]));
++            return $this->sanitize($return[0]['data'], self::CONSTRUCT_IRI, $this->get_base(\wp_aot_array_input($return[0])));
+         } elseif ($return = $this->get_image_tags(self::NAMESPACE_RSS_10, 'url')) {
+-            return $this->sanitize($return[0]['data'], self::CONSTRUCT_IRI, $this->get_base($return[0]));
++            return $this->sanitize($return[0]['data'], self::CONSTRUCT_IRI, $this->get_base(\wp_aot_array_input($return[0])));
+         } elseif ($return = $this->get_image_tags(self::NAMESPACE_RSS_090, 'url')) {
+-            return $this->sanitize($return[0]['data'], self::CONSTRUCT_IRI, $this->get_base($return[0]));
++            return $this->sanitize($return[0]['data'], self::CONSTRUCT_IRI, $this->get_base(\wp_aot_array_input($return[0])));
+         } elseif ($return = $this->get_image_tags(self::NAMESPACE_RSS_20, 'url')) {
+-            return $this->sanitize($return[0]['data'], self::CONSTRUCT_IRI, $this->get_base($return[0]));
++            return $this->sanitize($return[0]['data'], self::CONSTRUCT_IRI, $this->get_base(\wp_aot_array_input($return[0])));
+         }
+ 
+         return null;
++    	return null;
+     }
+ 
+ 
+@@ -3084,17 +3167,18 @@
+      *
+      * @return string|null
+      */
+-    public function get_image_link()
++    public function get_image_link(): mixed
+     {
+         if ($return = $this->get_image_tags(self::NAMESPACE_RSS_10, 'link')) {
+-            return $this->sanitize($return[0]['data'], self::CONSTRUCT_IRI, $this->get_base($return[0]));
++            return $this->sanitize($return[0]['data'], self::CONSTRUCT_IRI, $this->get_base(\wp_aot_array_input($return[0])));
+         } elseif ($return = $this->get_image_tags(self::NAMESPACE_RSS_090, 'link')) {
+-            return $this->sanitize($return[0]['data'], self::CONSTRUCT_IRI, $this->get_base($return[0]));
++            return $this->sanitize($return[0]['data'], self::CONSTRUCT_IRI, $this->get_base(\wp_aot_array_input($return[0])));
+         } elseif ($return = $this->get_image_tags(self::NAMESPACE_RSS_20, 'link')) {
+-            return $this->sanitize($return[0]['data'], self::CONSTRUCT_IRI, $this->get_base($return[0]));
++            return $this->sanitize($return[0]['data'], self::CONSTRUCT_IRI, $this->get_base(\wp_aot_array_input($return[0])));
+         }
+ 
+         return null;
++    	return null;
+     }
+ 
+     /**
+@@ -3107,7 +3191,7 @@
+      *
+      * @return int|null
+      */
+-    public function get_image_width()
++    public function get_image_width(): mixed
+     {
+         if ($return = $this->get_image_tags(self::NAMESPACE_RSS_20, 'width')) {
+             return intval($return[0]['data']);
+@@ -3116,6 +3200,7 @@
+         }
+ 
+         return null;
++    	return null;
+     }
+ 
+     /**
+@@ -3128,7 +3213,7 @@
+      *
+      * @return int|null
+      */
+-    public function get_image_height()
++    public function get_image_height(): mixed
+     {
+         if ($return = $this->get_image_tags(self::NAMESPACE_RSS_20, 'height')) {
+             return intval($return[0]['data']);
+@@ -3137,6 +3222,7 @@
+         }
+ 
+         return null;
++    	return null;
+     }
+ 
+     /**
+@@ -3148,7 +3234,7 @@
+      * @param int $max Maximum value to return. 0 for no limit
+      * @return int Number of items in the feed
+      */
+-    public function get_item_quantity(int $max = 0)
++    public function get_item_quantity(int $max = 0): mixed
+     {
+         $qty = count($this->get_items());
+         if ($max === 0) {
+@@ -3156,6 +3242,7 @@
+         }
+ 
+         return min($qty, $max);
++    	return null;
+     }
+ 
+     /**
+@@ -3170,7 +3257,7 @@
+      * @param int $key The item that you want to return. Remember that arrays begin with 0, not 1
+      * @return Item|null
+      */
+-    public function get_item(int $key = 0)
++    public function get_item(int $key = 0): mixed
+     {
+         $items = $this->get_items();
+         if (isset($items[$key])) {
+@@ -3178,6 +3265,7 @@
+         }
+ 
+         return null;
++    	return null;
+     }
+ 
+     /**
+@@ -3193,7 +3281,7 @@
+      * @param int $end Number of items to return. 0 for all items after `$start`
+      * @return Item[] List of {@see Item} objects
+      */
+-    public function get_items(int $start = 0, int $end = 0)
++    public function get_items(int $start = 0, int $end = 0): mixed
+     {
+         if (!isset($this->data['items'])) {
+             if (!empty($this->multifeed_objects)) {
+@@ -3207,31 +3295,31 @@
+             if ($items = $this->get_feed_tags(self::NAMESPACE_ATOM_10, 'entry')) {
+                 $keys = array_keys($items);
+                 foreach ($keys as $key) {
+-                    $this->data['items'][] = $this->make_item($items[$key]);
++                    $this->data['items'][] = $this->make_item(\wp_aot_array_input($items[$key]));
+                 }
+             }
+             if ($items = $this->get_feed_tags(self::NAMESPACE_ATOM_03, 'entry')) {
+                 $keys = array_keys($items);
+                 foreach ($keys as $key) {
+-                    $this->data['items'][] = $this->make_item($items[$key]);
++                    $this->data['items'][] = $this->make_item(\wp_aot_array_input($items[$key]));
+                 }
+             }
+             if ($items = $this->get_feed_tags(self::NAMESPACE_RSS_10, 'item')) {
+                 $keys = array_keys($items);
+                 foreach ($keys as $key) {
+-                    $this->data['items'][] = $this->make_item($items[$key]);
++                    $this->data['items'][] = $this->make_item(\wp_aot_array_input($items[$key]));
+                 }
+             }
+             if ($items = $this->get_feed_tags(self::NAMESPACE_RSS_090, 'item')) {
+                 $keys = array_keys($items);
+                 foreach ($keys as $key) {
+-                    $this->data['items'][] = $this->make_item($items[$key]);
++                    $this->data['items'][] = $this->make_item(\wp_aot_array_input($items[$key]));
+                 }
+             }
+             if ($items = $this->get_channel_tags(self::NAMESPACE_RSS_20, 'item')) {
+                 $keys = array_keys($items);
+                 foreach ($keys as $key) {
+-                    $this->data['items'][] = $this->make_item($items[$key]);
++                    $this->data['items'][] = $this->make_item(\wp_aot_array_input($items[$key]));
+                 }
+             }
+         }
+@@ -3243,7 +3331,9 @@
+         if ($this->order_by_date) {
+             if (!isset($this->data['ordered_items'])) {
+                 $this->data['ordered_items'] = $this->data['items'];
+-                usort($this->data['ordered_items'], [get_class($this), 'sort_items']);
++                $wp_aot_ordered_items =& $this->data['ordered_items'];
++                \wp_aot_usort($wp_aot_ordered_items, [get_class($this), 'sort_items']);
++                unset($wp_aot_ordered_items);
+             }
+             $items = $this->data['ordered_items'];
+         } else {
+@@ -3251,10 +3341,11 @@
+         }
+         // Slice the data as desired
+         if ($end === 0) {
+-            return array_slice($items, $start);
+-        }
+-
+-        return array_slice($items, $start, $end);
++            return \wp_aot_array_slice($items, $start);
++        }
++
++        return \wp_aot_array_slice($items, $start, $end);
++    	return null;
+     }
+ 
+     /**
+@@ -3264,10 +3355,11 @@
+      * @param string|false $page
+      * @return bool
+      */
+-    public function set_favicon_handler($page = false, string $qs = 'i')
++    public function set_favicon_handler(mixed $page = false, string $qs = 'i'): mixed
+     {
+         trigger_error('Favicon handling has been removed since SimplePie 1.3, please use your own handling', \E_USER_DEPRECATED);
+         return false;
++    	return null;
+     }
+ 
+     /**
+@@ -3276,7 +3368,7 @@
+      * @deprecated Use your own favicon handling instead
+      * @return string|bool
+      */
+-    public function get_favicon()
++    public function get_favicon(): mixed
+     {
+         trigger_error('Favicon handling has been removed since SimplePie 1.3, please use your own handling', \E_USER_DEPRECATED);
+ 
+@@ -3285,6 +3377,7 @@
+         }
+ 
+         return false;
++    	return null;
+     }
+ 
+     /**
+@@ -3294,7 +3387,7 @@
+      * @param array<mixed> $args Arguments to the method
+      * @return mixed
+      */
+-    public function __call(string $method, array $args)
++    public function __call(string $method, array $args): mixed
+     {
+         if (strpos($method, 'subscribe_') === 0) {
+             trigger_error('subscribe_*() has been deprecated since SimplePie 1.3, implement the callback yourself', \E_USER_DEPRECATED);
+@@ -3310,6 +3403,7 @@
+         $file = $trace[0]['file'] ?? '';
+         $line = $trace[0]['line'] ?? '';
+         throw new SimplePieException("Call to undefined method $class::$method() in $file on line $line");
++    	return null;
+     }
+ 
+     /**
+@@ -3322,7 +3416,7 @@
+         $item = $this->registry->create(Item::class, [$this, $data]);
+         $item->set_sanitize($this->sanitize);
+ 
+-        return $item;
++        return \wp_aot_require_SimplePie_Item($item);
+     }
+ 
+     /**
+@@ -3333,7 +3427,7 @@
+      * @param Item $b
+      * @return -1|0|1
+      */
+-    public static function sort_items(Item $a, Item $b)
++    public static function sort_items(Item $a, Item $b): mixed
+     {
+         $a_date = $a->get_date('U');
+         $b_date = $b->get_date('U');
+@@ -3348,6 +3442,7 @@
+             return -1;
+         }
+         return 0;
++    	return null;
+     }
+ 
+     /**
+@@ -3363,13 +3458,13 @@
+      * @param int $limit Maximum number of items per feed
+      * @return array<Item>
+      */
+-    public static function merge_items(array $urls, int $start = 0, int $end = 0, int $limit = 0)
++    public static function merge_items(array $urls, int $start = 0, int $end = 0, int $limit = 0): mixed
+     {
+         if (count($urls) > 0) {
+             $items = [];
+             foreach ($urls as $arg) {
+                 if ($arg instanceof SimplePie) {
+-                    $items = array_merge($items, $arg->get_items(0, $limit));
++                    $items = \wp_aot_array_merge(array($items, $arg->get_items(0, $limit)));
+ 
+                     // @phpstan-ignore-next-line Enforce PHPDoc type.
+                 } else {
+@@ -3377,17 +3472,18 @@
+                 }
+             }
+ 
+-            usort($items, [get_class($urls[0]), 'sort_items']);
++            \wp_aot_usort($items, [get_class($urls[0]), 'sort_items']);
+ 
+             if ($end === 0) {
+-                return array_slice($items, $start);
+-            }
+-
+-            return array_slice($items, $start, $end);
++                return \wp_aot_array_slice($items, $start);
++            }
++
++            return \wp_aot_array_slice($items, $start, $end);
+         }
+ 
+         trigger_error('Cannot merge zero SimplePie objects', E_USER_WARNING);
+         return [];
++    	return null;
+     }
+ 
+     /**
+@@ -3401,11 +3497,11 @@
+         $linkHeaderLine = $file->get_header_line('link');
+         $linkHeader = $file->get_header('link');
+ 
+-        if ($hub && !preg_match('/rel=hub/', $linkHeaderLine)) {
++        if ($hub && !preg_match('/rel=hub/', \wp_aot_regex_text( $linkHeaderLine ))) {
+             $linkHeader[] = '<'.$hub.'>; rel=hub';
+         }
+ 
+-        if ($self && !preg_match('/rel=self/', $linkHeaderLine)) {
++        if ($self && !preg_match('/rel=self/', \wp_aot_regex_text( $linkHeaderLine ))) {
+             $linkHeader[] = '<'.$self.'>; rel=self';
+         }
+ 
+@@ -3413,7 +3509,7 @@
+             $file = $file->with_header('link', $linkHeader);
+         }
+ 
+-        return $file;
++        return \wp_aot_require_SimplePie_HTTP_Response($file);
+     }
+ 
+     /**
+@@ -3433,10 +3529,10 @@
+                 Base::TYPE_FEED
+             ]);
+ 
+-            return new BaseDataCache($cache);
+-        }
+-
+-        return $this->cache;
++            return \wp_aot_require_SimplePie_Cache_DataCache(new BaseDataCache($cache));
++        }
++
++        return \wp_aot_require_SimplePie_Cache_DataCache($this->cache);
+     }
+ 
+     /**
+@@ -3462,4 +3558,4 @@
+     }
+ }
+ 
+-class_alias('SimplePie\SimplePie', 'SimplePie');
++(!defined('WP_AOT_NATIVE_RUNTIME') && (bool) \wp_aot_native_api('class_alias', array('SimplePie\SimplePie', 'SimplePie')));

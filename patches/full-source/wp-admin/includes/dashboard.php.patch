@@ -1,6 +1,83 @@
 --- a/wp-admin/includes/dashboard.php
 +++ b/wp-admin/includes/dashboard.php
-@@ -265,23 +265,29 @@
+@@ -17,7 +17,7 @@
+  * @global array $wp_registered_widget_controls
+  * @global callable[] $wp_dashboard_control_callbacks
+  */
+-function wp_dashboard_setup() {
++function wp_dashboard_setup(): mixed {
+ 	global $wp_registered_widgets, $wp_registered_widget_controls, $wp_dashboard_control_callbacks;
+ 
+ 	$screen = get_current_screen();
+@@ -155,7 +155,7 @@
+ 		wp_dashboard_trigger_widget_control( $_POST['widget_id'] );
+ 		ob_end_clean();
+ 		wp_redirect( remove_query_arg( 'edit' ) );
+-		exit;
++		\wp_aot_exit();
+ 	}
+ 
+ 	/** This action is documented in wp-admin/includes/meta-boxes.php */
+@@ -163,6 +163,7 @@
+ 
+ 	/** This action is documented in wp-admin/includes/meta-boxes.php */
+ 	do_action( 'do_meta_boxes', $screen->id, 'side', '' );
++	return null;
+ }
+ 
+ /**
+@@ -185,7 +186,7 @@
+  * @param string   $priority         Optional. The priority within the context where the box should show.
+  *                                   Accepts 'high', 'core', 'default', or 'low'. Default 'core'.
+  */
+-function wp_add_dashboard_widget( $widget_id, $widget_name, $callback, $control_callback = null, $callback_args = null, $context = 'normal', $priority = 'core' ) {
++function wp_add_dashboard_widget( mixed $widget_id, mixed $widget_name, mixed $callback, mixed $control_callback = null, mixed $callback_args = null, mixed $context = 'normal', mixed $priority = 'core' ): mixed {
+ 	global $wp_dashboard_control_callbacks;
+ 
+ 	$screen = get_current_screen();
+@@ -195,7 +196,7 @@
+ 	if ( is_null( $callback_args ) ) {
+ 		$callback_args = $private_callback_args;
+ 	} elseif ( is_array( $callback_args ) ) {
+-		$callback_args = array_merge( $callback_args, $private_callback_args );
++		$callback_args = \wp_aot_array_merge(array( $callback_args, $private_callback_args ));
+ 	}
+ 
+ 	if ( $control_callback && is_callable( $control_callback ) && current_user_can( 'edit_dashboard' ) ) {
+@@ -232,6 +233,7 @@
+ 	}
+ 
+ 	add_meta_box( $widget_id, $widget_name, $callback, $screen, $context, $priority, $callback_args );
++	return null;
+ }
+ 
+ /**
+@@ -243,13 +245,14 @@
+  * @param mixed $dashboard
+  * @param array $meta_box
+  */
+-function _wp_dashboard_control_callback( $dashboard, $meta_box ) {
++function _wp_dashboard_control_callback( mixed $dashboard, mixed $meta_box ): mixed {
+ 	echo '<form method="post" class="dashboard-widget-control-form wp-clearfix">';
+ 	wp_dashboard_trigger_widget_control( $meta_box['id'] );
+ 	wp_nonce_field( 'edit-dashboard-widget_' . $meta_box['id'], 'dashboard-widget-nonce' );
+ 	echo '<input type="hidden" name="widget_id" value="' . esc_attr( $meta_box['id'] ) . '" />';
+ 	submit_button( __( 'Save Changes' ) );
+ 	echo '</form>';
++	return null;
+ }
+ 
+ /**
+@@ -257,7 +260,7 @@
+  *
+  * @since 2.5.0
+  */
+-function wp_dashboard() {
++function wp_dashboard(): mixed {
+ 	$screen      = get_current_screen();
+ 	$columns     = absint( $screen->get_columns() );
+ 	$columns_css = '';
+@@ -265,25 +268,32 @@
  	if ( $columns ) {
  		$columns_css = " columns-$columns";
  	}
@@ -40,13 +117,18 @@
 +	';
  	wp_nonce_field( 'closedpostboxes', 'closedpostboxesnonce', false );
  	wp_nonce_field( 'meta-box-order', 'meta-box-order-nonce', false );
++	return null;
  }
-@@ -298,10 +304,10 @@
+ 
+ //
+@@ -297,11 +307,11 @@
+  *
   * @since 2.7.0
   */
- function wp_dashboard_right_now() {
+-function wp_dashboard_right_now() {
 -	?>
 -	<div class="main">
++function wp_dashboard_right_now(): mixed {
 +	;
 +echo '	<div class="main">
  	<ul>
@@ -55,7 +137,7 @@
  	// Posts and Pages.
  	foreach ( array( 'post', 'page' ) as $post_type ) {
  		$num_posts = wp_count_posts( $post_type );
-@@ -339,19 +345,25 @@
+@@ -339,19 +349,25 @@
  	if ( $num_comm && ( $num_comm->approved || $num_comm->moderated ) ) {
  		/* translators: %s: Number of comments. */
  		$text = sprintf( _n( '%s Comment', '%s Comments', $num_comm->approved ), number_format_i18n( $num_comm->approved ) );
@@ -89,7 +171,7 @@
  	}
  
  	/**
-@@ -371,9 +383,9 @@
+@@ -371,9 +387,9 @@
  		echo '<li>' . implode( "</li>\n<li>", $elements ) . "</li>\n";
  	}
  
@@ -102,7 +184,7 @@
  	update_right_now_message();
  
  	// Check if search engines are asked not to index this site.
-@@ -410,9 +422,9 @@
+@@ -410,9 +426,9 @@
  
  		echo "<p class='search-engines-info'><a href='options-reading.php'$title_attr>$content</a></p>";
  	}
@@ -115,7 +197,7 @@
  	/*
  	 * activity_box_end has a core action, but only prints content when multisite.
  	 * Using an output buffer is the only way to really check if anything's displayed here.
-@@ -440,11 +452,12 @@
+@@ -440,18 +456,20 @@
  	$actions = ob_get_clean();
  
  	if ( ! empty( $actions ) ) :
@@ -131,9 +213,18 @@
 +echo '	</div>
 +		';
  	endif;
++	return null;
  }
  
-@@ -480,13 +493,15 @@
+ /**
+  * @since 3.1.0
+  */
+-function wp_network_dashboard_right_now() {
++function wp_network_dashboard_right_now(): mixed {
+ 	$actions = array();
+ 
+ 	if ( current_user_can( 'create_sites' ) ) {
+@@ -480,13 +498,15 @@
  		echo implode( " |</li>\n", $actions ) . "</li>\n";
  		echo '</ul>';
  	}
@@ -156,7 +247,7 @@
  		/**
  		 * Fires in the Network Admin 'Right Now' dashboard widget
  		 * just before the user and site search form fields.
-@@ -494,34 +509,40 @@
+@@ -494,34 +514,40 @@
  		 * @since MU (3.0.0)
  		 */
  		do_action( 'wpmuadminresult' );
@@ -212,7 +303,29 @@
  	/**
  	 * Fires at the end of the 'Right Now' widget in the Network Admin dashboard.
  	 *
-@@ -578,11 +599,13 @@
+@@ -535,6 +561,7 @@
+ 	 * @since MU (3.0.0)
+ 	 */
+ 	do_action( 'mu_activity_box_end' );
++	return null;
+ }
+ 
+ /**
+@@ -548,11 +575,11 @@
+  * @param string|false $message     Optional. Error or success message. Default false.
+  * @param string       $notice_type Optional. Admin notice type. Default 'error'.
+  */
+-function wp_dashboard_quick_press( $message = false, $notice_type = 'error' ) {
++function wp_dashboard_quick_press( mixed $message = false, mixed $notice_type = 'error' ): mixed {
+ 	global $post_ID;
+ 
+ 	if ( ! current_user_can( 'edit_posts' ) ) {
+-		return;
++		return null;
+ 	}
+ 
+ 	// Check if a new auto-draft (= no new post_ID) is needed or if the old can be used.
+@@ -578,11 +605,13 @@
  	}
  
  	$post_ID = (int) $post->ID;
@@ -231,7 +344,7 @@
  		if ( $message ) {
  			wp_admin_notice(
  				$message,
-@@ -594,34 +617,42 @@
+@@ -594,35 +623,44 @@
  				)
  			);
  		}
@@ -284,9 +397,64 @@
 -	<?php
 +	';
  	wp_dashboard_recent_drafts();
++	return null;
  }
  
-@@ -843,24 +874,31 @@
+ /**
+@@ -632,7 +670,7 @@
+  *
+  * @param WP_Post[]|false $drafts Optional. Array of posts to display. Default false.
+  */
+-function wp_dashboard_recent_drafts( $drafts = false ) {
++function wp_dashboard_recent_drafts( mixed $drafts = false ): mixed {
+ 	if ( ! $drafts ) {
+ 		$query_args = array(
+ 			'post_type'      => 'post',
+@@ -654,7 +692,7 @@
+ 
+ 		$drafts = get_posts( $query_args );
+ 		if ( ! $drafts ) {
+-			return;
++			return null;
+ 		}
+ 	}
+ 
+@@ -674,7 +712,7 @@
+ 	/* translators: Maximum number of words used in a preview of a draft on the dashboard. */
+ 	$draft_length = (int) _x( '10', 'draft_length' );
+ 
+-	$drafts = array_slice( $drafts, 0, 3 );
++	$drafts = \wp_aot_array_slice( $drafts, 0, 3 );
+ 	foreach ( $drafts as $draft ) {
+ 		$url   = get_edit_post_link( $draft->ID );
+ 		$title = _draft_or_post_title( $draft->ID );
+@@ -700,6 +738,7 @@
+ 
+ 	echo "</ul>\n";
+ 	echo '</div>';
++	return null;
+ }
+ 
+ /**
+@@ -713,7 +752,7 @@
+  * @param WP_Comment $comment   The current comment.
+  * @param bool       $show_date Optional. Whether to display the date.
+  */
+-function _wp_dashboard_recent_comments_row( &$comment, $show_date = true ) {
++function _wp_dashboard_recent_comments_row( mixed &$comment, mixed $show_date = true ): mixed {
+ 	$GLOBALS['comment'] = clone $comment;
+ 
+ 	if ( $comment->comment_post_ID > 0 ) {
+@@ -816,7 +855,7 @@
+ 		);
+ 
+ 		/** This filter is documented in wp-admin/includes/class-wp-comments-list-table.php */
+-		$actions = apply_filters( 'comment_row_actions', array_filter( $actions ), $comment );
++		$actions = apply_filters( 'comment_row_actions', \wp_aot_array_filter( $actions ), $comment );
+ 
+ 		$i = 0;
+ 
+@@ -843,24 +882,31 @@
  			$actions_string .= "<span class='$action'>{$separator}{$link}</span>";
  		}
  	}
@@ -329,7 +497,7 @@
  				// Comments might not have a post they relate to, e.g. programmatically created ones.
  				if ( $comment_post_link ) {
  					printf(
-@@ -878,10 +916,10 @@
+@@ -878,10 +924,10 @@
  						'<span class="approve">' . __( '[Pending]' ) . '</span>'
  					);
  				}
@@ -344,7 +512,7 @@
  			else :
  				switch ( $comment->comment_type ) {
  					case 'pingback':
-@@ -894,10 +932,10 @@
+@@ -894,10 +940,10 @@
  						$type = ucwords( $comment->comment_type );
  				}
  				$type = esc_html( $type );
@@ -358,7 +526,7 @@
  				// Pingbacks, Trackbacks or custom comment types might not have a post they relate to, e.g. programmatically created ones.
  				if ( $comment_post_link ) {
  					printf(
-@@ -915,18 +953,27 @@
+@@ -915,19 +961,29 @@
  						'<span class="approve">' . __( '[Pending]' ) . '</span>'
  					);
  				}
@@ -395,10 +563,156 @@
 -	<?php
 +	';
  	$GLOBALS['comment'] = null;
++	return null;
  }
  
-@@ -1318,14 +1365,15 @@
- function wp_dashboard_events_news() {
+ /**
+@@ -937,7 +993,7 @@
+  *
+  * @since 3.8.0
+  */
+-function wp_dashboard_site_activity() {
++function wp_dashboard_site_activity(): mixed {
+ 
+ 	echo '<div id="activity-widget">';
+ 
+@@ -969,6 +1025,7 @@
+ 	}
+ 
+ 	echo '</div>';
++	return null;
+ }
+ 
+ /**
+@@ -987,7 +1044,7 @@
+  * }
+  * @return bool False if no posts were found. True otherwise.
+  */
+-function wp_dashboard_recent_posts( $args ) {
++function wp_dashboard_recent_posts( mixed $args ): mixed {
+ 	$query_args = array(
+ 		'post_type'      => 'post',
+ 		'post_status'    => $args['status'],
+@@ -1030,11 +1087,11 @@
+ 			if ( ! is_int( $time ) ) {
+ 				/* translators: Date and time format for recent posts on the dashboard, from a different calendar year, see https://www.php.net/manual/datetime.format.php */
+ 				$date = get_the_date( __( 'M jS Y' ) );
+-			} elseif ( gmdate( 'Y-m-d', $time ) === $today ) {
++			} elseif ( \wp_aot_gmdate( 'Y-m-d', $time ) === $today ) {
+ 				$date = __( 'Today' );
+-			} elseif ( gmdate( 'Y-m-d', $time ) === $tomorrow ) {
++			} elseif ( \wp_aot_gmdate( 'Y-m-d', $time ) === $tomorrow ) {
+ 				$date = __( 'Tomorrow' );
+-			} elseif ( gmdate( 'Y', $time ) !== $year ) {
++			} elseif ( \wp_aot_gmdate( 'Y', $time ) !== $year ) {
+ 				/* translators: Date and time format for recent posts on the dashboard, from a different calendar year, see https://www.php.net/manual/datetime.format.php */
+ 				$date = date_i18n( __( 'M jS Y' ), $time );
+ 			} else {
+@@ -1067,6 +1124,7 @@
+ 	wp_reset_postdata();
+ 
+ 	return true;
++	return null;
+ }
+ 
+ /**
+@@ -1077,7 +1135,7 @@
+  * @param int $total_items Optional. Number of comments to query. Default 5.
+  * @return bool False if no comments were found. True otherwise.
+  */
+-function wp_dashboard_recent_comments( $total_items = 5 ) {
++function wp_dashboard_recent_comments( mixed $total_items = 5 ): mixed {
+ 	// Select all comment types and filter out spam later for better query performance.
+ 	$comments = array();
+ 
+@@ -1145,6 +1203,7 @@
+ 		return false;
+ 	}
+ 	return true;
++	return null;
+ }
+ 
+ /**
+@@ -1154,11 +1213,12 @@
+  *
+  * @param string $widget_id
+  */
+-function wp_dashboard_rss_output( $widget_id ) {
++function wp_dashboard_rss_output( mixed $widget_id ): mixed {
+ 	$widgets = get_option( 'dashboard_widget_options' );
+ 	echo '<div class="rss-widget">';
+ 	wp_widget_rss_output( $widgets[ $widget_id ] );
+ 	echo '</div>';
++	return null;
+ }
+ 
+ /**
+@@ -1179,7 +1239,7 @@
+  * @param mixed    ...$args    Optional additional parameters to pass to the callback function.
+  * @return bool True on success, false on failure.
+  */
+-function wp_dashboard_cached_rss_widget( $widget_id, $callback, $check_urls = array(), ...$args ) {
++function wp_dashboard_cached_rss_widget( mixed $widget_id, mixed $callback, mixed $check_urls = array(), mixed ...$args ): mixed {
+ 	$doing_ajax = wp_doing_ajax();
+ 	$loading    = '<p class="widget-loading hide-if-no-js">' . __( 'Loading&hellip;' ) . '</p>';
+ 	$loading   .= wp_get_admin_notice(
+@@ -1216,7 +1276,7 @@
+ 	}
+ 
+ 	if ( $callback && is_callable( $callback ) ) {
+-		array_unshift( $args, $widget_id, $check_urls );
++		\wp_aot_array_unshift( $args,array( $widget_id, $check_urls ));
+ 		ob_start();
+ 		call_user_func_array( $callback, $args );
+ 		// Default lifetime in cache of 12 hours (same as the feeds).
+@@ -1224,6 +1284,7 @@
+ 	}
+ 
+ 	return true;
++	return null;
+ }
+ 
+ //
+@@ -1239,7 +1300,7 @@
+  *
+  * @param int|false $widget_control_id Optional. Registered widget ID. Default false.
+  */
+-function wp_dashboard_trigger_widget_control( $widget_control_id = false ) {
++function wp_dashboard_trigger_widget_control( mixed $widget_control_id = false ): mixed {
+ 	global $wp_dashboard_control_callbacks;
+ 
+ 	if ( is_scalar( $widget_control_id ) && $widget_control_id
+@@ -1255,6 +1316,7 @@
+ 			)
+ 		);
+ 	}
++	return null;
+ }
+ 
+ /**
+@@ -1267,7 +1329,7 @@
+  * @param string $widget_id
+  * @param array  $form_inputs
+  */
+-function wp_dashboard_rss_control( $widget_id, $form_inputs = array() ) {
++function wp_dashboard_rss_control( mixed $widget_id, mixed $form_inputs = array() ): mixed {
+ 	$widget_options = get_option( 'dashboard_widget_options' );
+ 
+ 	if ( ! $widget_options ) {
+@@ -1307,6 +1369,7 @@
+ 	}
+ 
+ 	wp_widget_rss_form( $widget_options[ $widget_id ], $form_inputs );
++	return null;
+ }
+ 
+ 
+@@ -1315,17 +1378,18 @@
+  *
+  * @since 4.8.0
+  */
+-function wp_dashboard_events_news() {
++function wp_dashboard_events_news(): mixed {
  	wp_print_community_events_markup();
  
 -	?>
@@ -418,7 +732,7 @@
  			printf(
  				'<a href="%1$s" target="_blank">%2$s <span class="screen-reader-text"> %3$s</span><span aria-hidden="true" class="dashicons dashicons-external"></span></a>',
  				'https://make.wordpress.org/community/meetups-landing-page',
-@@ -1333,11 +1381,11 @@
+@@ -1333,11 +1397,11 @@
  				/* translators: Hidden accessibility text. */
  				__( '(opens in a new tab)' )
  			);
@@ -433,7 +747,7 @@
  			printf(
  				'<a href="%1$s" target="_blank">%2$s <span class="screen-reader-text"> %3$s</span><span aria-hidden="true" class="dashicons dashicons-external"></span></a>',
  				'https://central.wordcamp.org/schedule/',
-@@ -1345,11 +1393,11 @@
+@@ -1345,11 +1409,11 @@
  				/* translators: Hidden accessibility text. */
  				__( '(opens in a new tab)' )
  			);
@@ -448,7 +762,7 @@
  			printf(
  				'<a href="%1$s" target="_blank">%2$s <span class="screen-reader-text"> %3$s</span><span aria-hidden="true" class="dashicons dashicons-external"></span></a>',
  				/* translators: If a Rosetta site exists (e.g. https://es.wordpress.org/news/), then use that. Otherwise, leave untranslated. */
-@@ -1358,10 +1406,10 @@
+@@ -1358,10 +1422,11 @@
  				/* translators: Hidden accessibility text. */
  				__( '(opens in a new tab)' )
  			);
@@ -460,10 +774,20 @@
 +echo '	</p>
 +
 +	';
++	return null;
  }
  
  /**
-@@ -1387,23 +1435,28 @@
+@@ -1369,7 +1434,7 @@
+  *
+  * @since 4.8.0
+  */
+-function wp_print_community_events_markup() {
++function wp_print_community_events_markup(): mixed {
+ 	$community_events_notice  = '<p class="hide-if-js">' . __( 'This widget requires JavaScript.' ) . '</p>';
+ 	$community_events_notice .= '<p class="community-events-error-occurred" aria-hidden="true">' . __( 'An error occurred. Please try again.' ) . '</p>';
+ 	$community_events_notice .= '<p class="community-events-could-not-locate" aria-hidden="true"></p>';
+@@ -1387,23 +1452,28 @@
  	 * Hide the main element when the page first loads, because the content
  	 * won't be ready until wp.communityEvents.renderEventsTemplate() has run.
  	 */
@@ -499,7 +823,7 @@
  				/* translators: Replace with a city related to your locale.
  				 * Test that it matches the expected location and has upcoming
  				 * events before including it. If no cities related to your
-@@ -1412,14 +1465,18 @@
+@@ -1412,14 +1482,18 @@
  				 * name itself, without any region or country. Use the endonym
  				 * (native locale name) instead of the English name if possible.
  				 */
@@ -525,21 +849,24 @@
  
  				<span class="spinner"></span>
  			</form>
-@@ -1428,7 +1485,7 @@
+@@ -1428,7 +1502,8 @@
  		<ul class="community-events-results activity-block last"></ul>
  	</div>
  
 -	<?php
 +	';
++	return null;
  }
  
  /**
-@@ -1437,20 +1494,20 @@
+@@ -1436,21 +1511,21 @@
+  *
   * @since 4.8.0
   */
- function wp_print_community_events_templates() {
+-function wp_print_community_events_templates() {
 -	?>
 -
++function wp_print_community_events_templates(): mixed {
 +	;
 +echo '
  	<script id="tmpl-community-events-attend-event-near" type="text/template">
@@ -561,7 +888,7 @@
  		printf(
  			/* translators: %s is the name of the city we couldn't locate.
  			 * Replace the examples with cities in your locale, but test
-@@ -1460,8 +1517,8 @@
+@@ -1460,8 +1535,8 @@
  			__( '%s could not be located. Please try another nearby city. For example: Kansas City; Springfield; Portland.' ),
  			'<em>{{data.unknownCity}}</em>'
  		);
@@ -572,7 +899,7 @@
  
  	<script id="tmpl-community-events-event-list" type="text/template">
  		<# _.each( data.events, function( event ) { #>
-@@ -1472,11 +1529,11 @@
+@@ -1472,11 +1547,11 @@
  						<a class="event-title" href="{{ event.url }}">{{ event.title }}</a>
  						<# if ( event.type ) {
  							const titleCaseEventType = event.type.replace(
@@ -586,7 +913,7 @@
  							<span class="ce-separator" aria-hidden="true"></span>
  						<# } #>
  						<span class="event-city">{{ event.location.location }}</span>
-@@ -1485,7 +1542,7 @@
+@@ -1485,7 +1560,7 @@
  
  				<div class="event-date-time">
  					<span class="event-date">{{ event.user_formatted_date }}</span>
@@ -595,7 +922,7 @@
  						<span class="event-time">
  							{{ event.user_formatted_time }} {{ event.timeZoneAbbreviation }}
  						</span>
-@@ -1496,14 +1553,14 @@
+@@ -1496,14 +1571,14 @@
  
  		<# if ( data.events.length <= 2 ) { #>
  			<li class="event-none">
@@ -613,7 +940,7 @@
  		<# } #>
  
  	</script>
-@@ -1511,27 +1568,27 @@
+@@ -1511,27 +1586,28 @@
  	<script id="tmpl-community-events-no-upcoming-events" type="text/template">
  		<li class="event-none">
  			<# if ( data.location.description ) { #>
@@ -645,15 +972,62 @@
  	</script>
 -	<?php
 +	';
++	return null;
  }
  
  /**
-@@ -1676,12 +1733,14 @@
- 	$used        = round( $used, 2 );
- 	$percentused = number_format( $percentused );
+@@ -1540,7 +1616,7 @@
+  * @since 2.7.0
+  * @since 4.8.0 Removed popular plugins feed.
+  */
+-function wp_dashboard_primary() {
++function wp_dashboard_primary(): mixed {
+ 	$feeds = array(
+ 		'news'   => array(
  
+@@ -1627,6 +1703,7 @@
+ 	);
+ 
+ 	wp_dashboard_cached_rss_widget( 'dashboard_primary', 'wp_dashboard_primary_output', $feeds );
++	return null;
+ }
+ 
+ /**
+@@ -1638,13 +1715,14 @@
+  * @param string $widget_id Widget ID.
+  * @param array  $feeds     Array of RSS feeds.
+  */
+-function wp_dashboard_primary_output( $widget_id, $feeds ) {
++function wp_dashboard_primary_output( mixed $widget_id, mixed $feeds ): mixed {
+ 	foreach ( $feeds as $type => $args ) {
+ 		$args['type'] = $type;
+ 		echo '<div class="rss-widget">';
+ 			wp_widget_rss_output( $args['url'], $args );
+ 		echo '</div>';
+ 	}
++	return null;
+ }
+ 
+ /**
+@@ -1656,7 +1734,7 @@
+  *
+  * @return true|null True if not multisite, user can't upload files, or the space check option is disabled.
+  */
+-function wp_dashboard_quota() {
++function wp_dashboard_quota(): mixed {
+ 	if ( ! is_multisite() || ! current_user_can( 'upload_files' )
+ 		|| get_site_option( 'upload_space_check_disabled' )
+ 	) {
+@@ -1674,14 +1752,16 @@
+ 
+ 	$used_class  = ( $percentused >= 70 ) ? ' warning' : '';
+ 	$used        = round( $used, 2 );
+-	$percentused = number_format( $percentused );
+-
 -	?>
 -	<h3 class="mu-storage"><?php _e( 'Storage Space' ); ?></h3>
++	$percentused = \wp_aot_number_format( $percentused );
++
 +	;
 +echo '	<h3 class="mu-storage">';
 +_e( 'Storage Space' ); ;
@@ -666,7 +1040,7 @@
  			$text = sprintf(
  				/* translators: %s: Number of megabytes. */
  				__( '%s MB Space Allowed' ),
-@@ -1694,9 +1753,11 @@
+@@ -1694,9 +1774,11 @@
  				/* translators: Hidden accessibility text. */
  				__( 'Manage Uploads' )
  			);
@@ -681,7 +1055,7 @@
  			$text = sprintf(
  				/* translators: 1: Number of megabytes, 2: Percentage. */
  				__( '%1$s MB (%2$s%%) Space Used' ),
-@@ -1710,11 +1771,11 @@
+@@ -1710,11 +1792,12 @@
  				/* translators: Hidden accessibility text. */
  				__( 'Manage Uploads' )
  			);
@@ -693,10 +1067,76 @@
  	</div>
 -	<?php
 +	';
++	return null;
  	return null;
  }
  
-@@ -1913,13 +1974,18 @@
+@@ -1726,7 +1809,7 @@
+  *
+  * @global bool $is_IE
+  */
+-function wp_dashboard_browser_nag() {
++function wp_dashboard_browser_nag(): mixed {
+ 	global $is_IE;
+ 
+ 	$notice   = '';
+@@ -1795,6 +1878,7 @@
+ 	 *                              false on failure. See wp_check_browser_version().
+ 	 */
+ 	echo apply_filters( 'browse-happy-notice', $notice, $response ); // phpcs:ignore WordPress.NamingConventions.ValidHookName.UseUnderscores
++	return null;
+ }
+ 
+ /**
+@@ -1805,7 +1889,7 @@
+  * @param string[] $classes Array of meta box classes.
+  * @return string[] Modified array of meta box classes.
+  */
+-function dashboard_browser_nag_class( $classes ) {
++function dashboard_browser_nag_class( mixed $classes ): mixed {
+ 	$response = wp_check_browser_version();
+ 
+ 	if ( $response && $response['insecure'] ) {
+@@ -1813,6 +1897,7 @@
+ 	}
+ 
+ 	return $classes;
++	return null;
+ }
+ 
+ /**
+@@ -1822,7 +1907,7 @@
+  *
+  * @return array|false Array of browser data on success, false on failure.
+  */
+-function wp_check_browser_version() {
++function wp_check_browser_version(): mixed {
+ 	if ( empty( $_SERVER['HTTP_USER_AGENT'] ) ) {
+ 		return false;
+ 	}
+@@ -1870,6 +1955,7 @@
+ 	}
+ 
+ 	return $response;
++	return null;
+ }
+ 
+ /**
+@@ -1877,11 +1963,11 @@
+  *
+  * @since 5.1.0
+  */
+-function wp_dashboard_php_nag() {
++function wp_dashboard_php_nag(): mixed {
+ 	$response = wp_check_php_version();
+ 
+ 	if ( ! $response ) {
+-		return;
++		return null;
+ 	}
+ 
+ 	if ( isset( $response['is_secure'] ) && ! $response['is_secure'] ) {
+@@ -1913,13 +1999,18 @@
  			PHP_VERSION
  		);
  	}
@@ -721,7 +1161,7 @@
  		if ( ! empty( $response['recommended_version'] ) ) {
  			printf(
  				/* translators: %s: The minimum recommended PHP version. */
-@@ -1927,11 +1993,11 @@
+@@ -1927,11 +2018,11 @@
  				$response['recommended_version']
  			);
  		}
@@ -736,7 +1176,7 @@
  		printf(
  			'<a class="button button-primary" href="%1$s" target="_blank">%2$s<span class="screen-reader-text"> %3$s</span><span aria-hidden="true" class="dashicons dashicons-external"></span></a>',
  			esc_url( wp_get_update_php_url() ),
-@@ -1939,9 +2005,9 @@
+@@ -1939,12 +2030,13 @@
  			/* translators: Hidden accessibility text. */
  			__( '(opens in a new tab)' )
  		);
@@ -749,7 +1189,37 @@
  
  	wp_update_php_annotation();
  	wp_direct_php_update_button();
-@@ -1994,8 +2060,8 @@
++	return null;
+ }
+ 
+ /**
+@@ -1955,7 +2047,7 @@
+  * @param string[] $classes Array of meta box classes.
+  * @return string[] Modified array of meta box classes.
+  */
+-function dashboard_php_nag_class( $classes ) {
++function dashboard_php_nag_class( mixed $classes ): mixed {
+ 	$response = wp_check_php_version();
+ 
+ 	if ( ! $response ) {
+@@ -1969,6 +2061,7 @@
+ 	}
+ 
+ 	return $classes;
++	return null;
+ }
+ 
+ /**
+@@ -1976,7 +2069,7 @@
+  *
+  * @since 5.4.0
+  */
+-function wp_dashboard_site_health() {
++function wp_dashboard_site_health(): mixed {
+ 	$get_issues = get_transient( 'health-check-site-status-result' );
+ 
+ 	$issue_counts = array();
+@@ -1994,8 +2087,8 @@
  	}
  
  	$issues_total = $issue_counts['recommended'] + $issue_counts['critical'];
@@ -760,7 +1230,7 @@
  		<div class="health-check-widget-title-section site-health-progress-wrapper loading hide-if-no-js">
  			<div class="site-health-progress">
  				<svg aria-hidden="true" focusable="false" width="100%" height="100%" viewBox="0 0 200 200" version="1.1" xmlns="http://www.w3.org/2000/svg">
-@@ -2004,44 +2070,64 @@
+@@ -2004,44 +2097,64 @@
  				</svg>
  			</div>
  			<div class="site-health-progress-label">
@@ -855,7 +1325,7 @@
  					printf(
  						/* translators: 1: Number of issues. 2: URL to Site Health screen. */
  						_n(
-@@ -2052,13 +2138,14 @@
+@@ -2052,13 +2165,15 @@
  						$issues_total,
  						esc_url( admin_url( 'site-health.php' ) )
  					);
@@ -872,10 +1342,25 @@
  
 -	<?php
 +	';
++	return null;
  }
  
  /**
-@@ -2080,21 +2167,26 @@
+@@ -2068,7 +2183,7 @@
+  *
+  * @since 2.5.0
+  */
+-function wp_dashboard_empty() {}
++function wp_dashboard_empty(): mixed { return null; }
+ 
+ /**
+  * Displays a welcome panel to introduce users to WordPress.
+@@ -2076,25 +2191,30 @@
+  * @since 3.3.0
+  * @since 5.9.0 Send users to the Site Editor if the active theme is block-based.
+  */
+-function wp_welcome_panel() {
++function wp_welcome_panel(): mixed {
  	list( $display_version ) = explode( '-', wp_get_wp_version() );
  	$can_customize           = current_user_can( 'customize' );
  	$is_block_theme          = wp_is_block_theme();
@@ -911,7 +1396,7 @@
  			</p>
  		</div>
  	</div>
-@@ -2105,9 +2197,17 @@
+@@ -2105,9 +2225,17 @@
  				<path fill-rule="evenodd" clip-rule="evenodd" d="M32.0668 17.0854L28.8221 13.9454L18.2008 24.671L16.8983 29.0827L21.4257 27.8309L32.0668 17.0854ZM16 32.75H24V31.25H16V32.75Z" fill="white"/>
  			</svg>
  			<div class="welcome-panel-column-content">
@@ -932,7 +1417,7 @@
  			</div>
  		</div>
  		<div class="welcome-panel-column">
-@@ -2116,18 +2216,39 @@
+@@ -2116,18 +2244,39 @@
  				<path fill-rule="evenodd" clip-rule="evenodd" d="M18 16h12a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H18a2 2 0 0 1-2-2V18a2 2 0 0 1 2-2zm12 1.5H18a.5.5 0 0 0-.5.5v3h13v-3a.5.5 0 0 0-.5-.5zm.5 5H22v8h8a.5.5 0 0 0 .5-.5v-7.5zm-10 0h-3V30a.5.5 0 0 0 .5.5h2.5v-8z" fill="#fff"/>
  			</svg>
  			<div class="welcome-panel-column-content">
@@ -984,7 +1469,7 @@
  		</div>
  		<div class="welcome-panel-column">
  			<svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
-@@ -2135,18 +2256,37 @@
+@@ -2135,18 +2284,38 @@
  				<path fill-rule="evenodd" clip-rule="evenodd" d="M31 24a7 7 0 0 1-7 7V17a7 7 0 0 1 7 7zm-7-8a8 8 0 1 1 0 16 8 8 0 0 1 0-16z" fill="#fff"/>
  			</svg>
  			<div class="welcome-panel-column-content">
@@ -1033,4 +1518,5 @@
 -	<?php
 -}
 +	';
++	return null;
 +}

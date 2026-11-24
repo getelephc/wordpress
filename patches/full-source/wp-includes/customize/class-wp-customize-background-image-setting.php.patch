@@ -1,0 +1,13 @@
+--- a/wp-includes/customize/class-wp-customize-background-image-setting.php
++++ b/wp-includes/customize/class-wp-customize-background-image-setting.php
+@@ -31,8 +31,9 @@
+ 	 * @param mixed $value The value to update. Not used.
+ 	 * @return true Always returns true.
+ 	 */
+-	public function update( $value ) {
++	public function update( mixed $value ): mixed {
+ 		remove_theme_mod( 'background_image_thumb' );
+ 		return true;
++		return null;
+ 	}
+ }

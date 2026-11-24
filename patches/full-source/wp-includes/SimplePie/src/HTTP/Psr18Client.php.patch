@@ -1,0 +1,11 @@
+--- a/wp-includes/SimplePie/src/HTTP/Psr18Client.php
++++ b/wp-includes/SimplePie/src/HTTP/Psr18Client.php
+@@ -82,7 +82,7 @@
+             ), 1);
+         }
+ 
+-        if (preg_match('/^http(s)?:\/\//i', $url)) {
++        if (preg_match('/^http(s)?:\/\//i', \wp_aot_regex_text( $url ))) {
+             return $this->requestUrl($method, $url, $headers);
+         }
+ 

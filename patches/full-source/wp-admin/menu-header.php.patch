@@ -1,0 +1,52 @@
+--- a/wp-admin/menu-header.php
++++ b/wp-admin/menu-header.php
+@@ -8,7 +8,7 @@
+ 
+ // Don't load directly.
+ if ( ! defined( 'ABSPATH' ) ) {
+-	exit;
++	\wp_aot_exit();
+ }
+ 
+ /**
+@@ -16,10 +16,10 @@
+  *
+  * @global string $self
+  */
+-$self = preg_replace( '|^.*/wp-admin/network/|i', '', $_SERVER['PHP_SELF'] );
+-$self = preg_replace( '|^.*/wp-admin/|i', '', $self );
+-$self = preg_replace( '|^.*/plugins/|i', '', $self );
+-$self = preg_replace( '|^.*/mu-plugins/|i', '', $self );
++$self = \wp_aot_preg_replace( '|^.*/wp-admin/network/|i', '', $_SERVER['PHP_SELF'] );
++$self = \wp_aot_preg_replace( '|^.*/wp-admin/|i', '', $self );
++$self = \wp_aot_preg_replace( '|^.*/plugins/|i', '', $self );
++$self = \wp_aot_preg_replace( '|^.*/mu-plugins/|i', '', $self );
+ 
+ /**
+  * For when admin-header is included from within a function.
+@@ -70,7 +70,7 @@
+  * @param array $submenu
+  * @param bool  $submenu_as_parent
+  */
+-function _wp_menu_output( $menu, $submenu, $submenu_as_parent = true ) {
++function _wp_menu_output( mixed $menu, mixed $submenu, mixed $submenu_as_parent = true ): mixed {
+ 	global $self, $parent_file, $submenu_file, $plugin_page, $typenow;
+ 
+ 	$first = true;
+@@ -112,7 +112,7 @@
+ 		}
+ 
+ 		$class     = $class ? ' class="' . implode( ' ', $class ) . '"' : '';
+-		$id        = ! empty( $item[5] ) ? ' id="' . preg_replace( '|[^a-zA-Z0-9_:.]|', '-', $item[5] ) . '"' : '';
++		$id        = ! empty( $item[5] ) ? ' id="' . \wp_aot_preg_replace( '|[^a-zA-Z0-9_:.]|', '-', $item[5] ) . '"' : '';
+ 		$img       = '';
+ 		$img_style = '';
+ 		$img_class = ' dashicons-before';
+@@ -286,6 +286,7 @@
+ 		'<span class="collapse-button-icon" aria-hidden="true"></span>' .
+ 		'<span class="collapse-button-label">' . __( 'Collapse Menu' ) . '</span>' .
+ 		'</button></li>';
++	return null;
+ }
+ 
+ ?>

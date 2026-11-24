@@ -1,0 +1,52 @@
+--- a/wp-includes/customize/class-wp-customize-header-image-setting.php
++++ b/wp-includes/customize/class-wp-customize-header-image-setting.php
+@@ -46,7 +46,7 @@
+ 	 * @param mixed $value The value to update.
+ 	 * @return true Always returns true.
+ 	 */
+-	public function update( $value ) {
++	public function update( mixed $value ): mixed {
+ 		global $custom_image_header;
+ 
+ 		// If _custom_header_background_just_in_time() fails to initialize $custom_image_header when not is_admin().
+@@ -72,6 +72,7 @@
+ 			$custom_image_header->set_header_image( $value );
+ 		}
+ 		return true;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -100,7 +101,7 @@
+ 	 *
+ 	 * @phpstan-return array<mixed, mixed>|string|WP_Error|null
+ 	 */
+-	public function sanitize( $value ) {
++	public function sanitize( mixed $value ): mixed {
+ 		/*
+ 		 * The update() method unwraps the legacy `choice` format before handing the value off to
+ 		 * Custom_Image_Header::set_header_image(), so the nested value is what must be sanitized.
+@@ -119,6 +120,7 @@
+ 		}
+ 
+ 		return parent::sanitize( $value );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -134,7 +136,7 @@
+ 	 *
+ 	 * @phpstan-return Header_Image_Data|string|WP_Error|null
+ 	 */
+-	private function sanitize_choice( $value ) {
++	private function sanitize_choice( mixed $value ): mixed {
+ 		// Custom_Image_Header::set_header_image() accepts an object in place of an array.
+ 		if ( is_object( $value ) ) {
+ 			$value = (array) $value;
+@@ -231,5 +233,6 @@
+ 		}
+ 
+ 		return $sanitized;
++		return null;
+ 	}
+ }

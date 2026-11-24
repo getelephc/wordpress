@@ -1,0 +1,183 @@
+--- a/wp-includes/php-ai-client/third-party/Nyholm/Psr7/Stream.php
++++ b/wp-includes/php-ai-client/third-party/Nyholm/Psr7/Stream.php
+@@ -31,7 +31,7 @@
+     /**
+      * @param resource $body
+      */
+-    public function __construct($body)
++    public function __construct(mixed $body)
+     {
+         if (!\is_resource($body)) {
+             throw new \InvalidArgumentException('First argument to Stream::__construct() must be resource');
+@@ -49,17 +49,17 @@
+      *
+      * @throws \InvalidArgumentException
+      */
+-    public static function create($body = ''): StreamInterface
++    public static function create(mixed $body = ''): StreamInterface
+     {
+         if ($body instanceof StreamInterface) {
+             return $body;
+         }
+         if (\is_string($body)) {
+-            if (200000 <= \strlen($body)) {
++            if (\WP_AOT_USER_STREAM_METADATA && 200000 <= \strlen($body)) {
+                 $body = self::openZvalStream($body);
+             } else {
+                 $resource = \fopen('php://memory', 'r+');
+-                \fwrite($resource, $body);
++                \wp_aot_fwrite($resource, (string) $body);
+                 \fseek($resource, 0);
+                 $body = $resource;
+             }
+@@ -85,7 +85,7 @@
+             $this->detach();
+         }
+     }
+-    public function detach()
++    public function detach(): mixed
+     {
+         if (!isset($this->stream)) {
+             return null;
+@@ -95,18 +95,20 @@
+         $this->size = $this->uri = null;
+         $this->readable = $this->writable = $this->seekable = \false;
+         return $result;
+-    }
+-    private function getUri()
++    	return null;
++    }
++    private function getUri(): mixed
+     {
+         if (\false !== $this->uri) {
+             $this->uri = $this->getMetadata('uri') ?? \false;
+         }
+         return $this->uri;
++    	return null;
+     }
+     public function getSize(): ?int
+     {
+         if (null !== $this->size) {
+-            return $this->size;
++            return \wp_aot_require_int($this->size);
+         }
+         if (!isset($this->stream)) {
+             return null;
+@@ -118,7 +120,7 @@
+         $stats = \fstat($this->stream);
+         if (isset($stats['size'])) {
+             $this->size = $stats['size'];
+-            return $this->size;
++            return \wp_aot_require_int($this->size);
+         }
+         return null;
+     }
+@@ -138,9 +140,9 @@
+     }
+     public function isSeekable(): bool
+     {
+-        return $this->seekable;
+-    }
+-    public function seek($offset, $whence = \SEEK_SET): void
++        return \wp_aot_require_bool( $this->seekable );
++    }
++    public function seek(mixed $offset, mixed $whence = \SEEK_SET): void
+     {
+         if (!isset($this->stream)) {
+             throw new \RuntimeException('Stream is detached');
+@@ -148,7 +150,7 @@
+         if (!$this->seekable) {
+             throw new \RuntimeException('Stream is not seekable');
+         }
+-        if (-1 === \fseek($this->stream, $offset, $whence)) {
++        if (-1 === \fseek($this->stream, \wp_aot_internal_int( (int) $offset ), \wp_aot_internal_int( (int) $whence ))) {
+             throw new \RuntimeException('Unable to seek to stream position "' . $offset . '" with whence ' . \var_export($whence, \true));
+         }
+     }
+@@ -160,7 +162,7 @@
+     {
+         return $this->writable;
+     }
+-    public function write($string): int
++    public function write(mixed $string): int
+     {
+         if (!isset($this->stream)) {
+             throw new \RuntimeException('Stream is detached');
+@@ -170,16 +172,16 @@
+         }
+         // We can't know the size after writing anything
+         $this->size = null;
+-        if (\false === $result = @\fwrite($this->stream, $string)) {
++        if (\false === $result = @\wp_aot_fwrite($this->stream, (string) $string)) {
+             throw new \RuntimeException('Unable to write to stream: ' . (\error_get_last()['message'] ?? ''));
+         }
+-        return $result;
++        return \wp_aot_require_int( $result );
+     }
+     public function isReadable(): bool
+     {
+         return $this->readable;
+     }
+-    public function read($length): string
++    public function read(mixed $length): string
+     {
+         if (!isset($this->stream)) {
+             throw new \RuntimeException('Stream is detached');
+@@ -187,7 +189,7 @@
+         if (!$this->readable) {
+             throw new \RuntimeException('Cannot read from non-readable stream');
+         }
+-        if (\false === $result = @\fread($this->stream, $length)) {
++        if (\false === $result = @\wp_aot_fread($this->stream, \wp_aot_internal_int( (int) $length ))) {
+             throw new \RuntimeException('Unable to read from stream: ' . (\error_get_last()['message'] ?? ''));
+         }
+         return $result;
+@@ -198,11 +200,11 @@
+             throw new \RuntimeException('Stream is detached');
+         }
+         $exception = null;
+-        \set_error_handler(static function ($type, $message) use (&$exception) {
++        \set_error_handler(static function (mixed $type, mixed $message) use (&$exception) {
+             throw $exception = new \RuntimeException('Unable to read stream contents: ' . $message);
+         });
+         try {
+-            return \stream_get_contents($this->stream);
++            return \wp_aot_require_string( \stream_get_contents($this->stream) );
+         } catch (\Throwable $e) {
+             throw $e === $exception ? $e : new \RuntimeException('Unable to read stream contents: ' . $e->getMessage(), 0, $e);
+         } finally {
+@@ -212,7 +214,7 @@
+     /**
+      * @return mixed
+      */
+-    public function getMetadata($key = null)
++    public function getMetadata(mixed $key = null): mixed
+     {
+         if (null !== $key && !\is_string($key)) {
+             throw new \InvalidArgumentException('Metadata key must be a string');
+@@ -225,11 +227,13 @@
+             return $meta;
+         }
+         return $meta[$key] ?? null;
+-    }
+-    private static function openZvalStream(string $body)
+-    {
+-        static $wrapper;
+-        $wrapper ?? \stream_wrapper_register('Nyholm-Psr7-Zval', $wrapper = \get_class(new class
++    	return null;
++    }
++    private static function openZvalStream(string $body): mixed
++    {
++        static $wrapper_aot_cell = new \WordPressStaticStringCell();
++        $wrapper =& $wrapper_aot_cell->value;
++        $wrapper !== '' || \stream_wrapper_register('Nyholm-Psr7-Zval', $wrapper = \get_class(new class
+         {
+             public $context;
+             private $data;
+@@ -307,5 +311,6 @@
+             $stream = \fopen('Nyholm-Psr7-Zval://', 'r+', \false, $context);
+         }
+         return $stream;
++    	return null;
+     }
+ }

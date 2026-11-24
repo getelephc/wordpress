@@ -1,0 +1,57 @@
+--- a/wp-admin/menu.php
++++ b/wp-admin/menu.php
+@@ -8,7 +8,7 @@
+ 
+ // Don't load directly.
+ if ( ! defined( 'ABSPATH' ) ) {
+-	exit;
++	\wp_aot_exit();
+ }
+ 
+ /**
+@@ -129,7 +129,7 @@
+ );
+ $builtin    = array( 'post', 'page' );
+ 
+-foreach ( array_merge( $builtin, $post_types ) as $post_type ) {
++foreach ( \wp_aot_array_merge(array( $builtin, $post_types )) as $post_type ) {
+ 	$post_type_obj = get_post_type_object( $post_type );
+ 
+ 	// Check if it should be a submenu.
+@@ -277,7 +277,7 @@
+  * @since 5.9.0 Renamed 'Theme Editor' to 'Theme File Editor'.
+  *              Relocates to Tools for block themes.
+  */
+-function _add_themes_utility_last() {
++function _add_themes_utility_last(): mixed {
+ 	add_submenu_page(
+ 		wp_is_block_theme() ? 'tools.php' : 'themes.php',
+ 		__( 'Theme File Editor' ),
+@@ -285,6 +285,7 @@
+ 		'edit_themes',
+ 		'theme-editor.php'
+ 	);
++	return null;
+ }
+ 
+ /**
+@@ -294,9 +295,9 @@
+  * @access private
+  * @since 5.9.0
+  */
+-function _add_plugin_file_editor_to_tools() {
++function _add_plugin_file_editor_to_tools(): mixed {
+ 	if ( ! wp_is_block_theme() ) {
+-		return;
++		return null;
+ 	}
+ 	add_submenu_page(
+ 		'tools.php',
+@@ -305,6 +306,7 @@
+ 		'edit_plugins',
+ 		'plugin-editor.php'
+ 	);
++	return null;
+ }
+ 
+ $count = '';

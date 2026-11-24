@@ -1,0 +1,39 @@
+--- a/wp-includes/php-ai-client/src/Messages/DTO/Message.php
++++ b/wp-includes/php-ai-client/src/Messages/DTO/Message.php
+@@ -21,7 +21,7 @@
+  *     parts: array<MessagePartArrayShape>
+  * }
+  *
+- * @extends AbstractDataTransferObject<MessageArrayShape>
++ * @phpstan-extends AbstractDataTransferObject<MessageArrayShape>
+  */
+ class Message extends AbstractDataTransferObject
+ {
+@@ -125,7 +125,7 @@
+      */
+     public function toArray(): array
+     {
+-        return [self::KEY_ROLE => $this->role->value, self::KEY_PARTS => array_map(function (\WordPress\AiClient\Messages\DTO\MessagePart $part) {
++        return [self::KEY_ROLE => $this->role->value, self::KEY_PARTS => \wp_aot_array_map(function (\WordPress\AiClient\Messages\DTO\MessagePart $part) {
+             return $part->toArray();
+         }, $this->parts)];
+     }
+@@ -141,14 +141,14 @@
+         static::validateFromArrayData($array, [self::KEY_ROLE, self::KEY_PARTS]);
+         $role = MessageRoleEnum::from($array[self::KEY_ROLE]);
+         $partsData = $array[self::KEY_PARTS];
+-        $parts = array_map(function (array $partData) {
++        $parts = \wp_aot_array_map(function (array $partData) {
+             return \WordPress\AiClient\Messages\DTO\MessagePart::fromArray($partData);
+-        }, $partsData);
++        }, \wp_aot_require_array( $partsData ));
+         // Determine which concrete class to instantiate based on role
+         if ($role->isUser()) {
+-            return new \WordPress\AiClient\Messages\DTO\UserMessage($parts);
++            return new \WordPress\AiClient\Messages\DTO\UserMessage(\wp_aot_require_array( $parts ));
+         } elseif ($role->isModel()) {
+-            return new \WordPress\AiClient\Messages\DTO\ModelMessage($parts);
++            return new \WordPress\AiClient\Messages\DTO\ModelMessage(\wp_aot_require_array( $parts ));
+         } else {
+             // Only USER and MODEL roles are supported
+             throw new InvalidArgumentException('Invalid message role: ' . $role->value);

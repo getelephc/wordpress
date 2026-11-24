@@ -1,0 +1,426 @@
+--- a/wp-includes/ID3/module.audio-video.matroska.php
++++ b/wp-includes/ID3/module.audio-video.matroska.php
+@@ -15,7 +15,7 @@
+ /////////////////////////////////////////////////////////////////
+ 
+ if (!defined('GETID3_INCLUDEPATH')) { // prevent path-exposing attacks that access modules directly on public webservers
+-	exit;
++	\wp_aot_exit();
+ }
+ 
+ define('EBML_ID_CHAPTERS',                  0x0043A770); // [10][43][A7][70] -- A system to define basic menus and partition data. For more detailed information, look at the Chapters Explanation.
+@@ -259,7 +259,7 @@
+ 	/**
+ 	 * @return bool
+ 	 */
+-	public function Analyze()
++	public function Analyze(): mixed
+ 	{
+ 		$info = &$this->getid3->info;
+ 		$this->scan_mode = $this->parse_whole_file ? MATROSKA_SCAN_WHOLE_FILE : MATROSKA_SCAN_HEADER;
+@@ -570,12 +570,13 @@
+ 		}
+ 
+ 		return true;
++		return null;
+ 	}
+ 
+ 	/**
+ 	 * @param array $info
+ 	 */
+-	private function parseEBML(&$info) {
++	private function parseEBML(mixed &$info): mixed {
+ 		// http://www.matroska.org/technical/specs/index.html#EBMLBasics
+ 		$this->current_offset = $info['avdataoffset'];
+ 
+@@ -1285,7 +1286,7 @@
+ 								}
+ 								if ($this->scan_mode === MATROSKA_SCAN_FIRST_CLUSTER) {
+ 									// Stop parsing after finding first cluster
+-									return;
++									return null;
+ 								}
+ 
+ 								// check to see if all the data we need exists already, if so, break out of the loop
+@@ -1293,7 +1294,7 @@
+ 									if (isset($info['matroska']['info']) && is_array($info['matroska']['info'])) {
+ 										if (isset($info['matroska']['tracks']['tracks']) && is_array($info['matroska']['tracks']['tracks'])) {
+ 											if (count($info['matroska']['track_data_offsets']) == count($info['matroska']['tracks']['tracks'])) {
+-												return;
++												return null;
+ 											}
+ 										}
+ 									}
+@@ -1312,6 +1313,7 @@
+ 					break;
+ 			}
+ 		}
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1319,7 +1321,7 @@
+ 	 *
+ 	 * @return bool
+ 	 */
+-	private function EnsureBufferHasEnoughData($min_data=1024) {
++	private function EnsureBufferHasEnoughData(mixed $min_data=1024): mixed {
+ 		if (($this->current_offset - $this->EBMLbuffer_offset) >= ($this->EBMLbuffer_length - $min_data)) {
+ 			$read_bytes = max($min_data, $this->getid3->fread_buffer_size());
+ 
+@@ -1338,12 +1340,13 @@
+ 			}
+ 		}
+ 		return true;
++		return null;
+ 	}
+ 
+ 	/**
+ 	 * @return int|float|false
+ 	 */
+-	private function readEBMLint() {
++	private function readEBMLint(): mixed {
+ 		$actual_offset = $this->current_offset - $this->EBMLbuffer_offset;
+ 
+ 		// get length of integer
+@@ -1373,6 +1376,7 @@
+ 		$this->current_offset += $length;
+ 
+ 		return $int_value;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1381,13 +1385,14 @@
+ 	 *
+ 	 * @return string|false
+ 	 */
+-	private function readEBMLelementData($length, $check_buffer=false) {
++	private function readEBMLelementData(mixed $length, mixed $check_buffer=false): mixed {
+ 		if ($check_buffer && !$this->EnsureBufferHasEnoughData($length)) {
+ 			return false;
+ 		}
+ 		$data = substr($this->EBMLbuffer, $this->current_offset - $this->EBMLbuffer_offset, $length);
+ 		$this->current_offset += $length;
+ 		return $data;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1397,7 +1402,7 @@
+ 	 *
+ 	 * @return bool
+ 	 */
+-	private function getEBMLelement(&$element, $parent_end, $get_data=false) {
++	private function getEBMLelement(mixed &$element, mixed $parent_end, mixed $get_data=false): mixed {
+ 		if ($this->current_offset >= $parent_end) {
+ 			return false;
+ 		}
+@@ -1431,6 +1436,7 @@
+ 		}
+ 
+ 		return true;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1438,7 +1444,7 @@
+ 	 * @param int    $line
+ 	 * @param array  $element
+ 	 */
+-	private function unhandledElement($type, $line, $element) {
++	private function unhandledElement(mixed $type, mixed $line, mixed $element): mixed {
+ 		// warn only about unknown and missed elements, not about unuseful
+ 		if (!in_array($element['id'], $this->unuseful_elements)) {
+ 			$this->warning('Unhandled '.$type.' element ['.basename(__FILE__).':'.$line.'] ('.$element['id'].'::'.$element['id_name'].' ['.$element['length'].' bytes]) at '.$element['offset']);
+@@ -1448,6 +1454,7 @@
+ 		if (!isset($element['data'])) {
+ 			$this->current_offset = $element['end'];
+ 		}
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1455,7 +1462,7 @@
+ 	 *
+ 	 * @return bool
+ 	 */
+-	private function ExtractCommentsSimpleTag($SimpleTagArray) {
++	private function ExtractCommentsSimpleTag(mixed $SimpleTagArray): mixed {
+ 		if (!empty($SimpleTagArray['SimpleTag'])) {
+ 			foreach ($SimpleTagArray['SimpleTag'] as $SimpleTagKey => $SimpleTagData) {
+ 				if (!empty($SimpleTagData['TagName']) && !empty($SimpleTagData['TagString'])) {
+@@ -1468,6 +1475,7 @@
+ 		}
+ 
+ 		return true;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1475,7 +1483,7 @@
+ 	 *
+ 	 * @return array
+ 	 */
+-	private function HandleEMBLSimpleTag($parent_end) {
++	private function HandleEMBLSimpleTag(mixed $parent_end): mixed {
+ 		$simpletag_entry = array();
+ 
+ 		while ($this->getEBMLelement($element, $parent_end, array(EBML_ID_SIMPLETAG))) {
+@@ -1503,6 +1511,7 @@
+ 		}
+ 
+ 		return $simpletag_entry;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1512,7 +1521,7 @@
+ 	 *
+ 	 * @return array
+ 	 */
+-	private function HandleEMBLClusterBlock($element, $block_type, &$info) {
++	private function HandleEMBLClusterBlock(mixed $element, mixed $block_type, mixed &$info): mixed {
+ 		// http://www.matroska.org/technical/specs/index.html#block_structure
+ 		// http://www.matroska.org/technical/specs/index.html#simpleblock_structure
+ 
+@@ -1573,6 +1582,7 @@
+ 		$this->current_offset = $element['end'];
+ 
+ 		return $block_data;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1580,7 +1590,7 @@
+ 	 *
+ 	 * @return int|float|false
+ 	 */
+-	private static function EBML2Int($EBMLstring) {
++	private static function EBML2Int(mixed $EBMLstring): mixed {
+ 		// http://matroska.org/specs/
+ 
+ 		// Element ID coded with an UTF-8 like system:
+@@ -1620,6 +1630,7 @@
+ 		}
+ 
+ 		return getid3_lib::BigEndian2Int($EBMLstring);
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1627,10 +1638,11 @@
+ 	 *
+ 	 * @return float
+ 	 */
+-	private static function EBMLdate2unix($EBMLdatestamp) {
++	private static function EBMLdate2unix(mixed $EBMLdatestamp): mixed {
+ 		// Date - signed 8 octets integer in nanoseconds with 0 indicating the precise beginning of the millennium (at 2001-01-01T00:00:00,000000000 UTC)
+ 		// 978307200 == mktime(0, 0, 0, 1, 1, 2001) == January 1, 2001 12:00:00am UTC
+ 		return round(($EBMLdatestamp / 1000000000) + 978307200);
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1638,9 +1650,10 @@
+ 	 *
+ 	 * @return string|int
+ 	 */
+-	public static function TargetTypeValue($target_type) {
++	public static function TargetTypeValue(mixed $target_type): mixed {
+ 		// http://www.matroska.org/technical/specs/tagging/index.html
+-		static $TargetTypeValue = array();
++		static $TargetTypeValue_aot_cell = new \WordPressStaticArrayCell();
++		$TargetTypeValue =& $TargetTypeValue_aot_cell->value;
+ 		if (empty($TargetTypeValue)) {
+ 			$TargetTypeValue[10] = 'A: ~ V:shot';                                           // the lowest hierarchy found in music or movies
+ 			$TargetTypeValue[20] = 'A:subtrack/part/movement ~ V:scene';                    // corresponds to parts of a track for audio (like a movement)
+@@ -1651,6 +1664,7 @@
+ 			$TargetTypeValue[70] = 'A:collection ~ V:collection';                           // the high hierarchy consisting of many different lower items
+ 		}
+ 		return (isset($TargetTypeValue[$target_type]) ? $TargetTypeValue[$target_type] : $target_type);
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1658,9 +1672,10 @@
+ 	 *
+ 	 * @return string|int
+ 	 */
+-	public static function BlockLacingType($lacingtype) {
++	public static function BlockLacingType(mixed $lacingtype): mixed {
+ 		// http://matroska.org/technical/specs/index.html#block_structure
+-		static $BlockLacingType = array();
++		static $BlockLacingType_aot_cell = new \WordPressStaticArrayCell();
++		$BlockLacingType =& $BlockLacingType_aot_cell->value;
+ 		if (empty($BlockLacingType)) {
+ 			$BlockLacingType[0x00] = 'no lacing';
+ 			$BlockLacingType[0x01] = 'Xiph lacing';
+@@ -1668,6 +1683,7 @@
+ 			$BlockLacingType[0x03] = 'EBML lacing';
+ 		}
+ 		return (isset($BlockLacingType[$lacingtype]) ? $BlockLacingType[$lacingtype] : $lacingtype);
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1675,9 +1691,10 @@
+ 	 *
+ 	 * @return string
+ 	 */
+-	public static function CodecIDtoCommonName($codecid) {
++	public static function CodecIDtoCommonName(mixed $codecid): mixed {
+ 		// http://www.matroska.org/technical/specs/codecid/index.html
+-		static $CodecIDlist = array();
++		static $CodecIDlist_aot_cell = new \WordPressStaticArrayCell();
++		$CodecIDlist =& $CodecIDlist_aot_cell->value;
+ 		if (empty($CodecIDlist)) {
+ 			$CodecIDlist['A_AAC']            = 'aac';
+ 			$CodecIDlist['A_AAC/MPEG2/LC']   = 'aac';
+@@ -1709,6 +1726,7 @@
+ 			$CodecIDlist['A_MS/ACM']         = 'acm'; // Microsoft (TM) Audio Codec Manager (ACM)
+ 		}
+ 		return (isset($CodecIDlist[$codecid]) ? $CodecIDlist[$codecid] : $codecid);
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1716,8 +1734,9 @@
+ 	 *
+ 	 * @return string
+ 	 */
+-	private static function EBMLidName($value) {
+-		static $EBMLidList = array();
++	private static function EBMLidName(mixed $value): mixed {
++		static $EBMLidList_aot_cell = new \WordPressStaticArrayCell();
++		$EBMLidList =& $EBMLidList_aot_cell->value;
+ 		if (empty($EBMLidList)) {
+ 			$EBMLidList[EBML_ID_ASPECTRATIOTYPE]            = 'AspectRatioType';
+ 			$EBMLidList[EBML_ID_ATTACHEDFILE]               = 'AttachedFile';
+@@ -1912,6 +1931,7 @@
+ 		}
+ 
+ 		return (isset($EBMLidList[$value]) ? $EBMLidList[$value] : dechex($value));
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1919,7 +1939,7 @@
+ 	 *
+ 	 * @return string
+ 	 */
+-	public static function displayUnit($value) {
++	public static function displayUnit(mixed $value): mixed {
+ 		// http://www.matroska.org/technical/specs/index.html#DisplayUnit
+ 		static $units = array(
+ 			0 => 'pixels',
+@@ -1928,6 +1948,7 @@
+ 			3 => 'Display Aspect Ratio');
+ 
+ 		return (isset($units[$value]) ? $units[$value] : 'unknown');
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1935,10 +1956,10 @@
+ 	 *
+ 	 * @return array
+ 	 */
+-	private static function getDefaultStreamInfo($streams)
++	private static function getDefaultStreamInfo(mixed $streams): mixed
+ 	{
+ 		$stream = array();
+-		foreach (array_reverse($streams) as $stream) {
++		foreach (\wp_aot_array_reverse($streams) as $stream) {
+ 			if ($stream['default']) {
+ 				break;
+ 			}
+@@ -1955,6 +1976,7 @@
+ 		$info['streams'] = $streams;
+ 
+ 		return $info;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1962,7 +1984,7 @@
+ 	 *
+ 	 * @return float|bool Duration when present in metadata or false
+ 	 */
+-	private function playtimeFromMetadata(&$info) {
++	private function playtimeFromMetadata(mixed &$info): mixed {
+ 		if (isset($info['matroska']['info']) && is_array($info['matroska']['info'])) {
+ 			foreach ($info['matroska']['info'] as $infoarray) {
+ 				if (isset($infoarray['Duration'])) {
+@@ -1973,6 +1995,7 @@
+ 			}
+ 		}
+ 		return false;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1980,11 +2003,12 @@
+ 	 *
+ 	 * @return void
+ 	 */
+-	private function resetParserBuffer($offset) {
++	private function resetParserBuffer(mixed $offset): mixed {
+ 		$this->current_offset = $offset;
+ 		$this->EBMLbuffer = '';
+ 		$this->EBMLbuffer_offset = 0;
+ 		$this->EBMLbuffer_length = 0;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1995,7 +2019,7 @@
+ 	 *
+ 	 * @return void
+ 	 */
+-	private function scanStartEndForClusters(&$info) {
++	private function scanStartEndForClusters(mixed &$info): mixed {
+ 		// Scan beginning of file for first cluster
+ 		$this->resetParserBuffer($info['avdataoffset']);
+ 		$this->scan_mode = MATROSKA_SCAN_FIRST_CLUSTER;
+@@ -2021,6 +2045,7 @@
+ 
+ 		// Reset to header parsing mode (this method is only called during header-only parsing)
+ 		$this->scan_mode = MATROSKA_SCAN_HEADER;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -2030,7 +2055,7 @@
+ 	 *
+ 	 * @return int TimecodeScale value
+ 	 */
+-	private function getTimecodeScale(&$info) {
++	private function getTimecodeScale(mixed &$info): mixed {
+ 		$timecodeScale = MATROSKA_DEFAULT_TIMECODESCALE;
+ 		if (isset($info['matroska']['info']) && is_array($info['matroska']['info'])) {
+ 			foreach ($info['matroska']['info'] as $infoarray) {
+@@ -2041,6 +2066,7 @@
+ 			}
+ 		}
+ 		return $timecodeScale;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -2050,7 +2076,7 @@
+ 	 *
+ 	 * @return void
+ 	 */
+-	private function calculatePlaytimeFromClusters(&$info) {
++	private function calculatePlaytimeFromClusters(mixed &$info): mixed {
+ 		$minTimecode = null;
+ 		$maxTimecode = null;
+ 		if (isset($info['matroska']['cluster']) && is_array($info['matroska']['cluster'])) {
+@@ -2068,5 +2094,6 @@
+ 		if ($maxTimecode !== null && $minTimecode !== null && $maxTimecode > $minTimecode) {
+ 			$info['playtime_seconds'] = ($maxTimecode - $minTimecode) * ($this->getTimecodeScale($info) / 1000000000);
+ 		}
++		return null;
+ 	}
+ }

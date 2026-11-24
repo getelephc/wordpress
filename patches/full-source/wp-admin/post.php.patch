@@ -1,0 +1,121 @@
+--- a/wp-admin/post.php
++++ b/wp-admin/post.php
+@@ -83,7 +83,7 @@
+ 		}
+ 
+ 		if ( ! current_user_can( get_post_type_object( 'post' )->cap->create_posts ) ) {
+-			exit;
++			\wp_aot_exit();
+ 		}
+ 
+ 		if ( $error_msg ) {
+@@ -112,27 +112,27 @@
+ 			// Note that `edit_post()` reads from the $_POST superglobal by reference.
+ 			$_POST['content'] = sprintf(
+ 				'<!-- wp:paragraph -->%s<!-- /wp:paragraph -->',
+-				str_replace( array( "\r\n", "\r", "\n" ), '<br />', $quickdraft_post_content )
++				\wp_aot_str_replace( array( "\r\n", "\r", "\n" ), '<br />', $quickdraft_post_content )
+ 			);
+ 		}
+ 
+ 		edit_post();
+ 		wp_dashboard_quick_press( __( 'Draft created successfully.' ), 'success' );
+-		exit;
++		\wp_aot_exit();
+ 
+ 	case 'postajaxpost':
+ 	case 'post':
+ 		check_admin_referer( 'add-' . $post_type );
+ 		$post_id = 'postajaxpost' === $action ? edit_post() : write_post();
+ 		redirect_post( $post_id );
+-		exit;
++		\wp_aot_exit();
+ 
+ 	case 'edit':
+ 		$editing = true;
+ 
+ 		if ( empty( $post_id ) ) {
+ 			wp_redirect( admin_url( 'post.php' ) );
+-			exit;
++			\wp_aot_exit();
+ 		}
+ 
+ 		if ( ! $post ) {
+@@ -159,7 +159,7 @@
+ 			check_admin_referer( 'lock-post_' . $post_id );
+ 			wp_set_post_lock( $post_id );
+ 			wp_redirect( get_edit_post_link( $post_id, 'url' ) );
+-			exit;
++			\wp_aot_exit();
+ 		}
+ 
+ 		$post_type = $post->post_type;
+@@ -240,12 +240,12 @@
+ 
+ 		// Session cookie flag that the post was saved.
+ 		if ( isset( $_COOKIE['wp-saving-post'] ) && $_COOKIE['wp-saving-post'] === $post_id . '-check' ) {
+-			setcookie( 'wp-saving-post', $post_id . '-saved', time() + DAY_IN_SECONDS, ADMIN_COOKIE_PATH, COOKIE_DOMAIN, is_ssl() );
++			\wp_aot_native_api('setcookie', array( 'wp-saving-post', $post_id . '-saved', time() + DAY_IN_SECONDS, \wp_aot_bootstrap_string('ADMIN_COOKIE_PATH'), COOKIE_DOMAIN, is_ssl() ));
+ 		}
+ 
+ 		redirect_post( $post_id ); // Send user on their way while we keep working.
+ 
+-		exit;
++		\wp_aot_exit();
+ 
+ 	case 'trash':
+ 		check_admin_referer( 'trash-post_' . $post_id );
+@@ -282,7 +282,7 @@
+ 				$sendback
+ 			)
+ 		);
+-		exit;
++		\wp_aot_exit();
+ 
+ 	case 'untrash':
+ 		check_admin_referer( 'untrash-post_' . $post_id );
+@@ -311,7 +311,7 @@
+ 			$sendback
+ 		);
+ 		wp_redirect( $sendback );
+-		exit;
++		\wp_aot_exit();
+ 
+ 	case 'delete':
+ 		check_admin_referer( 'delete-post_' . $post_id );
+@@ -340,7 +340,7 @@
+ 		}
+ 
+ 		wp_redirect( add_query_arg( 'deleted', 1, $sendback ) );
+-		exit;
++		\wp_aot_exit();
+ 
+ 	case 'preview':
+ 		check_admin_referer( 'update-post_' . $post_id );
+@@ -348,7 +348,7 @@
+ 		$url = post_preview();
+ 
+ 		wp_redirect( $url );
+-		exit;
++		\wp_aot_exit();
+ 
+ 	case 'toggle-custom-fields':
+ 		check_admin_referer( 'toggle-custom-fields', 'toggle-custom-fields-nonce' );
+@@ -360,7 +360,7 @@
+ 		}
+ 
+ 		wp_safe_redirect( wp_get_referer() );
+-		exit;
++		\wp_aot_exit();
+ 
+ 	default:
+ 		/**
+@@ -375,7 +375,7 @@
+ 		do_action( "post_action_{$action}", $post_id );
+ 
+ 		wp_redirect( admin_url( 'edit.php' ) );
+-		exit;
++		\wp_aot_exit();
+ } // End switch.
+ 
+ require_once ABSPATH . 'wp-admin/admin-footer.php';

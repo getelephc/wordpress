@@ -1,0 +1,63 @@
+--- a/wp-includes/Requests/src/Response/Headers.php
++++ b/wp-includes/Requests/src/Response/Headers.php
+@@ -30,7 +30,7 @@
+ 	 * @param string $offset Name of the header to retrieve.
+ 	 * @return string|null Header value
+ 	 */
+-	public function offsetGet($offset) {
++	public function offsetGet(mixed $offset): mixed {
+ 		if (is_string($offset)) {
+ 			$offset = strtolower($offset);
+ 		}
+@@ -50,7 +50,7 @@
+ 	 *
+ 	 * @throws \WpOrg\Requests\Exception On attempting to use dictionary as list (`invalidset`)
+ 	 */
+-	public function offsetSet($offset, $value) {
++	public function offsetSet(mixed $offset, mixed $value): void {
+ 		if ($offset === null) {
+ 			throw new Exception('Object is a dictionary, not a list', 'invalidset');
+ 		}
+@@ -74,7 +74,7 @@
+ 	 *
+ 	 * @throws \WpOrg\Requests\Exception\InvalidArgument When the passed argument is not valid as an array key.
+ 	 */
+-	public function getValues($offset) {
++	public function getValues(mixed $offset): mixed {
+ 		if (!is_string($offset) && !is_int($offset)) {
+ 			throw InvalidArgument::create(1, '$offset', 'string|int', gettype($offset));
+ 		}
+@@ -88,6 +88,7 @@
+ 		}
+ 
+ 		return $this->data[$offset];
++		return null;
+ 	}
+ 
+ 	/**
+@@ -101,7 +102,7 @@
+ 	 *
+ 	 * @throws \WpOrg\Requests\Exception\InvalidArgument When the passed argument is not a string or an array.
+ 	 */
+-	public function flatten($value) {
++	public function flatten(mixed $value): mixed {
+ 		if (is_string($value)) {
+ 			return $value;
+ 		}
+@@ -111,6 +112,7 @@
+ 		}
+ 
+ 		throw InvalidArgument::create(1, '$value', 'string|array', gettype($value));
++		return null;
+ 	}
+ 
+ 	/**
+@@ -121,7 +123,7 @@
+ 	 *
+ 	 * @return \ArrayIterator
+ 	 */
+-	public function getIterator() {
++	public function getIterator(): \ArrayIterator {
+ 		return new FilteredIterator($this->data, [$this, 'flatten']);
+ 	}
+ }

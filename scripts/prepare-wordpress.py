@@ -62,6 +62,47 @@ def main():
     if {str(p.relative_to(original)) for p in original.rglob("*") if p.is_file()} != set(expected):
         raise SystemExit("Original dependency file inventory differs from archive")
 
+    entity_fixture = ROOT / "elephc/full-source/fixtures/aot-entities.php"
+    if entity_fixture.exists():
+        entity_meta = json.loads((ROOT / "elephc/full-source/entities-provenance.json").read_text())
+        if entity_meta["fixture"] != "elephc/full-source/fixtures/aot-entities.php":
+            raise SystemExit("Unexpected entity fixture path")
+        if sha(entity_fixture.read_bytes()) != entity_meta["fixture_sha256"]:
+            raise SystemExit("Entity fixture checksum mismatch")
+        for path, checksum in entity_meta["sources"].items():
+            if expected.get(path) != checksum:
+                raise SystemExit(f"Entity fixture source checksum mismatch: {path}")
+
+    property_meta_path = ROOT / "elephc/full-source/property-provenance.json"
+    if property_meta_path.exists():
+        property_meta = json.loads(property_meta_path.read_text())
+        if property_meta["fixture"] != "elephc/full-source/fixtures/aot-platform.lfc" or property_meta["function"] != "wp_aot_property_exists":
+            raise SystemExit("Unexpected property metadata fixture")
+        native_platform = (ROOT / property_meta["fixture"]).read_text()
+        begin = native_platform.index("function wp_aot_property_exists(")
+        end = native_platform.index("\n}\n", begin) + 3
+        if sha(native_platform[begin:end].encode()) != property_meta["function_sha256"]:
+            raise SystemExit("Property metadata fixture checksum mismatch")
+        for info in property_meta["classes"].values():
+            if expected.get(info["path"]) != info["original_sha256"]:
+                raise SystemExit("Property metadata original source checksum mismatch: " + info["path"])
+
+    constant_meta_path = ROOT / "elephc/full-source/constant-presence-provenance.json"
+    if constant_meta_path.exists():
+        constant_meta = json.loads(constant_meta_path.read_text())
+        for path, checksum in constant_meta["sources"].items():
+            if expected.get(path) != checksum:
+                raise SystemExit("Bootstrap constant original source checksum mismatch: " + path)
+        for fixture, functions in constant_meta["functions"].items():
+            if not fixture.startswith("elephc/full-source/fixtures/") or ".." in Path(fixture).parts:
+                raise SystemExit("Unexpected bootstrap constant fixture")
+            source = (ROOT / fixture).read_text()
+            for name, checksum in functions.items():
+                start = source.index("function " + name + "(")
+                end = source.index("\n}\n", start) + 3
+                if sha(source[start:end].encode()) != checksum:
+                    raise SystemExit("Bootstrap constant helper checksum mismatch: " + name)
+
     tree = OUT / "wordpress"
     patched = dict(expected)
     for entry in manifest["files"]:
@@ -113,6 +154,10 @@ def main():
     report = {"schema": 1, "wordpress_version": upstream["version"],
               "archive_sha256": upstream["archive_sha256"], "original_files": len(expected),
               "patches": len(manifest["files"]), "original": expected, "prepared": patched}
+    if property_meta_path.exists():
+        report["property_provenance_sha256"] = sha(property_meta_path.read_bytes())
+    if constant_meta_path.exists():
+        report["constant_presence_provenance_sha256"] = sha(constant_meta_path.read_bytes())
     if not args.check:
         (OUT / "source-manifest.json").write_text(json.dumps(report, indent=2) + "\n")
     elif json.loads((OUT / "source-manifest.json").read_text()) != report:

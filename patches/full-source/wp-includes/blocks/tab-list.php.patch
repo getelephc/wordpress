@@ -1,0 +1,17 @@
+--- a/wp-includes/blocks/tab-list.php
++++ b/wp-includes/blocks/tab-list.php
+@@ -65,12 +65,13 @@
+  *
+  * @since 7.1.0
+  */
+-function register_block_core_tab_list() {
++function register_block_core_tab_list(): mixed {
+ 	register_block_type_from_metadata(
+ 		__DIR__ . '/tab-list',
+ 		array(
+ 			'render_callback' => 'block_core_tab_list_render_callback',
+ 		)
+ 	);
++	return null;
+ }
+ add_action( 'init', 'register_block_core_tab_list' );

@@ -1,0 +1,36 @@
+--- a/wp-includes/class-walker-category-dropdown.php
++++ b/wp-includes/class-walker-category-dropdown.php
+@@ -24,7 +24,7 @@
+ 	 *
+ 	 * @see Walker::$tree_type
+ 	 */
+-	public $tree_type = 'category';
++	public mixed $tree_type = 'category';
+ 
+ 	/**
+ 	 * Database fields to use.
+@@ -35,7 +35,7 @@
+ 	 *
+ 	 * @see Walker::$db_fields
+ 	 */
+-	public $db_fields = array(
++	public mixed $db_fields = array(
+ 		'parent' => 'parent',
+ 		'id'     => 'term_id',
+ 	);
+@@ -56,7 +56,7 @@
+ 	 *                                   See wp_dropdown_categories().
+ 	 * @param int     $current_object_id Optional. ID of the current category. Default 0.
+ 	 */
+-	public function start_el( &$output, $data_object, $depth = 0, $args = array(), $current_object_id = 0 ) {
++	public function start_el( mixed &$output, mixed $data_object, mixed $depth = 0, mixed $args = array(), mixed $current_object_id = 0 ): mixed {
+ 		// Restores the more descriptive, specific name for use within this method.
+ 		$category = $data_object;
+ 
+@@ -83,5 +83,6 @@
+ 			$output .= '&nbsp;&nbsp;(' . number_format_i18n( $category->count ) . ')';
+ 		}
+ 		$output .= "</option>\n";
++		return null;
+ 	}
+ }

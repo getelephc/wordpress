@@ -1,0 +1,114 @@
+--- a/wp-includes/class-wp-block-type-registry.php
++++ b/wp-includes/class-wp-block-type-registry.php
+@@ -28,7 +28,7 @@
+ 	 * @since 5.0.0
+ 	 * @var WP_Block_Type_Registry|null
+ 	 */
+-	private static $instance = null;
++	private static mixed $instance = null;
+ 
+ 	/**
+ 	 * Registers a block type.
+@@ -45,7 +45,7 @@
+ 	 *                                   on accepted arguments. Default empty array.
+ 	 * @return WP_Block_Type|false The registered block type on success, or false on failure.
+ 	 */
+-	public function register( $name, $args = array() ) {
++	public function register( mixed $name, mixed $args = array() ): mixed {
+ 		$block_type = null;
+ 		if ( $name instanceof WP_Block_Type ) {
+ 			$block_type = $name;
+@@ -62,7 +62,7 @@
+ 			return false;
+ 		}
+ 
+-		if ( preg_match( '/[A-Z]+/', $name ) ) {
++		if ( preg_match( '/[A-Z]+/', \wp_aot_regex_text( $name ) ) ) {
+ 			_doing_it_wrong(
+ 				__METHOD__,
+ 				/* translators: %s: Block name. */
+@@ -73,7 +73,7 @@
+ 		}
+ 
+ 		$name_matcher = '/^[a-z0-9-]+\/[a-z0-9-]+$/';
+-		if ( ! preg_match( $name_matcher, $name ) ) {
++		if ( ! preg_match( \wp_aot_regex_text( $name_matcher ), \wp_aot_regex_text( $name ) ) ) {
+ 			_doing_it_wrong(
+ 				__METHOD__,
+ 				/* translators: %s: Block name. */
+@@ -100,6 +100,7 @@
+ 		$this->registered_block_types[ $name ] = $block_type;
+ 
+ 		return $block_type;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -111,7 +112,7 @@
+ 	 *                                   a complete WP_Block_Type instance.
+ 	 * @return WP_Block_Type|false The unregistered block type on success, or false on failure.
+ 	 */
+-	public function unregister( $name ) {
++	public function unregister( mixed $name ): mixed {
+ 		if ( $name instanceof WP_Block_Type ) {
+ 			$name = $name->name;
+ 		}
+@@ -130,6 +131,7 @@
+ 		unset( $this->registered_block_types[ $name ] );
+ 
+ 		return $unregistered_block_type;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -140,12 +142,13 @@
+ 	 * @param string|null $name Block type name including namespace.
+ 	 * @return WP_Block_Type|null The registered block type, or null if it is not registered.
+ 	 */
+-	public function get_registered( $name ) {
++	public function get_registered( mixed $name ): mixed {
+ 		if ( ! $this->is_registered( $name ) ) {
+ 			return null;
+ 		}
+ 
+ 		return $this->registered_block_types[ $name ];
++		return null;
+ 	}
+ 
+ 	/**
+@@ -155,8 +158,9 @@
+ 	 *
+ 	 * @return WP_Block_Type[] Associative array of `$block_type_name => $block_type` pairs.
+ 	 */
+-	public function get_all_registered() {
++	public function get_all_registered(): mixed {
+ 		return $this->registered_block_types;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -167,8 +171,9 @@
+ 	 * @param string|null $name Block type name including namespace.
+ 	 * @return bool True if the block type is registered, false otherwise.
+ 	 */
+-	public function is_registered( $name ) {
++	public function is_registered( mixed $name ): mixed {
+ 		return isset( $name, $this->registered_block_types[ $name ] );
++		return null;
+ 	}
+ 
+ 	public function __wakeup() {
+@@ -194,11 +199,12 @@
+ 	 *
+ 	 * @return WP_Block_Type_Registry The main instance.
+ 	 */
+-	public static function get_instance() {
++	public static function get_instance(): mixed {
+ 		if ( null === self::$instance ) {
+ 			self::$instance = new self();
+ 		}
+ 
+ 		return self::$instance;
++		return null;
+ 	}
+ }

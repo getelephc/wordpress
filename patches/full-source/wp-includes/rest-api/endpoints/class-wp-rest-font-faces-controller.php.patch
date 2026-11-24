@@ -1,0 +1,399 @@
+--- a/wp-includes/rest-api/endpoints/class-wp-rest-font-faces-controller.php
++++ b/wp-includes/rest-api/endpoints/class-wp-rest-font-faces-controller.php
+@@ -35,7 +35,7 @@
+ 	 *
+ 	 * @see register_rest_route()
+ 	 */
+-	public function register_routes() {
++	public function register_routes(): mixed {
+ 		register_rest_route(
+ 			$this->namespace,
+ 			'/' . $this->rest_base,
+@@ -102,6 +102,7 @@
+ 				'schema' => array( $this, 'get_public_item_schema' ),
+ 			)
+ 		);
++		return null;
+ 	}
+ 
+ 	/**
+@@ -112,7 +113,7 @@
+ 	 * @param WP_REST_Request $request Full details about the request.
+ 	 * @return true|WP_Error True if the request has read access, WP_Error object otherwise.
+ 	 */
+-	public function get_items_permissions_check( $request ) {
++	public function get_items_permissions_check( mixed $request ): mixed {
+ 		$post_type = get_post_type_object( $this->post_type );
+ 
+ 		if ( ! current_user_can( $post_type->cap->read ) ) {
+@@ -124,6 +125,7 @@
+ 		}
+ 
+ 		return true;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -134,7 +136,7 @@
+ 	 * @param WP_REST_Request $request Full details about the request.
+ 	 * @return true|WP_Error True if the request has read access, WP_Error object otherwise.
+ 	 */
+-	public function get_item_permissions_check( $request ) {
++	public function get_item_permissions_check( mixed $request ): mixed {
+ 		$post = $this->get_post( $request['id'] );
+ 		if ( is_wp_error( $post ) ) {
+ 			return $post;
+@@ -149,6 +151,7 @@
+ 		}
+ 
+ 		return true;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -160,7 +163,7 @@
+ 	 * @param WP_REST_Request $request Request object.
+ 	 * @return true|WP_Error True if the settings are valid, otherwise a WP_Error object.
+ 	 */
+-	public function validate_create_font_face_settings( $value, $request ) {
++	public function validate_create_font_face_settings( mixed $value, mixed $request ): mixed {
+ 		// Enforce JSON Schema validity for field before applying custom validation logic.
+ 		$args     = $this->get_create_params();
+ 		$validity = rest_validate_value_from_schema( $value, $args['font_face_settings'], 'font_face_settings' );
+@@ -241,6 +244,7 @@
+ 		}
+ 
+ 		return true;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -251,7 +255,7 @@
+ 	 * @param string $value Encoded JSON string of font face settings.
+ 	 * @return array Decoded and sanitized array of font face settings.
+ 	 */
+-	public function sanitize_font_face_settings( $value ) {
++	public function sanitize_font_face_settings( mixed $value ): mixed {
+ 		// Settings arrive as stringified JSON, since this is a multipart/form-data request.
+ 		$settings = json_decode( $value, true );
+ 		$schema   = $this->get_item_schema()['properties']['font_face_settings']['properties'];
+@@ -263,6 +267,7 @@
+ 		}
+ 
+ 		return $settings;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -273,13 +278,14 @@
+ 	 * @param WP_REST_Request $request Full details about the request.
+ 	 * @return WP_REST_Response|WP_Error Response object on success, or WP_Error object on failure.
+ 	 */
+-	public function get_items( $request ) {
++	public function get_items( mixed $request ): mixed {
+ 		$font_family = $this->get_parent_font_family_post( $request['font_family_id'] );
+ 		if ( is_wp_error( $font_family ) ) {
+ 			return $font_family;
+ 		}
+ 
+ 		return parent::get_items( $request );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -290,7 +296,7 @@
+ 	 * @param WP_REST_Request $request Full details about the request.
+ 	 * @return WP_REST_Response|WP_Error Response object on success, or WP_Error object on failure.
+ 	 */
+-	public function get_item( $request ) {
++	public function get_item( mixed $request ): mixed {
+ 		$post = $this->get_post( $request['id'] );
+ 		if ( is_wp_error( $post ) ) {
+ 			return $post;
+@@ -312,6 +318,7 @@
+ 		}
+ 
+ 		return parent::get_item( $request );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -322,7 +329,7 @@
+ 	 * @param WP_REST_Request $request Full details about the request.
+ 	 * @return WP_REST_Response|WP_Error Response object on success, or WP_Error object on failure.
+ 	 */
+-	public function create_item( $request ) {
++	public function create_item( mixed $request ): mixed {
+ 		$font_family = $this->get_parent_font_family_post( $request['font_family_id'] );
+ 		if ( is_wp_error( $font_family ) ) {
+ 			return $font_family;
+@@ -395,6 +402,7 @@
+ 		}
+ 
+ 		return $font_face_post;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -405,7 +413,7 @@
+ 	 * @param WP_REST_Request $request Full details about the request.
+ 	 * @return WP_REST_Response|WP_Error Response object on success, or WP_Error object on failure.
+ 	 */
+-	public function delete_item( $request ) {
++	public function delete_item( mixed $request ): mixed {
+ 		$post = $this->get_post( $request['id'] );
+ 		if ( is_wp_error( $post ) ) {
+ 			return $post;
+@@ -438,6 +446,7 @@
+ 		}
+ 
+ 		return parent::delete_item( $request );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -449,7 +458,7 @@
+ 	 * @param WP_REST_Request $request Request object.
+ 	 * @return WP_REST_Response Response object.
+ 	 */
+-	public function prepare_item_for_response( $item, $request ) {
++	public function prepare_item_for_response( mixed $item, mixed $request ): mixed {
+ 		$fields = $this->get_fields_for_response( $request );
+ 		$data   = array();
+ 
+@@ -489,6 +498,7 @@
+ 		 * @param WP_REST_Request  $request  Request object.
+ 		 */
+ 		return apply_filters( 'rest_prepare_wp_font_face', $response, $item, $request );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -498,10 +508,12 @@
+ 	 *
+ 	 * @return array Item schema data.
+ 	 */
+-	public function get_item_schema() {
++	public function get_item_schema(): mixed {
+ 		if ( $this->schema ) {
+ 			return $this->add_additional_fields_schema( $this->schema );
+ 		}
++
++		$sanitize_src = $this->sanitize_src(...);
+ 
+ 		$schema = array(
+ 			'$schema'    => 'http://json-schema.org/draft-04/schema#',
+@@ -593,8 +605,8 @@
+ 							),
+ 							'default'     => array(),
+ 							'arg_options' => array(
+-								'sanitize_callback' => function ( $value ) {
+-									return is_array( $value ) ? array_map( array( $this, 'sanitize_src' ), $value ) : $this->sanitize_src( $value );
++								'sanitize_callback' => function ( mixed $value ) use ( $sanitize_src ) {
++									return is_array( $value ) ? \wp_aot_array_map( $sanitize_src, $value ) : $sanitize_src( $value );
+ 								},
+ 							),
+ 						),
+@@ -680,6 +692,7 @@
+ 		$this->schema = $schema;
+ 
+ 		return $this->add_additional_fields_schema( $this->schema );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -689,7 +702,7 @@
+ 	 *
+ 	 * @return array Public item schema data.
+ 	 */
+-	public function get_public_item_schema() {
++	public function get_public_item_schema(): mixed {
+ 
+ 		$schema = parent::get_public_item_schema();
+ 
+@@ -700,6 +713,7 @@
+ 		}
+ 
+ 		return $schema;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -709,7 +723,7 @@
+ 	 *
+ 	 * @return array Collection parameters.
+ 	 */
+-	public function get_collection_params() {
++	public function get_collection_params(): mixed {
+ 		$query_params = parent::get_collection_params();
+ 
+ 		// Remove unneeded params.
+@@ -735,6 +749,7 @@
+ 		 * @param array $query_params JSON Schema-formatted collection parameters.
+ 		 */
+ 		return apply_filters( 'rest_wp_font_face_collection_params', $query_params );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -744,7 +759,7 @@
+ 	 *
+ 	 * @return array Font face create arguments.
+ 	 */
+-	public function get_create_params() {
++	public function get_create_params(): mixed {
+ 		$properties = $this->get_item_schema()['properties'];
+ 		return array(
+ 			'theme_json_version' => $properties['theme_json_version'],
+@@ -758,6 +773,7 @@
+ 				'sanitize_callback' => array( $this, 'sanitize_font_face_settings' ),
+ 			),
+ 		);
++		return null;
+ 	}
+ 
+ 	/**
+@@ -768,7 +784,7 @@
+ 	 * @param int $font_family_id Supplied ID.
+ 	 * @return WP_Post|WP_Error Post object if ID is valid, WP_Error otherwise.
+ 	 */
+-	protected function get_parent_font_family_post( $font_family_id ) {
++	protected function get_parent_font_family_post( mixed $font_family_id ): mixed {
+ 		$error = new WP_Error(
+ 			'rest_post_invalid_parent',
+ 			__( 'Invalid post parent ID.', 'default' ),
+@@ -788,6 +804,7 @@
+ 		}
+ 
+ 		return $font_family_post;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -798,7 +815,7 @@
+ 	 * @param WP_Post $post Post object.
+ 	 * @return array Links for the given post.
+ 	 */
+-	protected function prepare_links( $post ) {
++	protected function prepare_links( mixed $post ): mixed {
+ 		// Entity meta.
+ 		return array(
+ 			'self'       => array(
+@@ -811,6 +828,7 @@
+ 				'href' => rest_url( $this->namespace . '/font-families/' . $post->post_parent ),
+ 			),
+ 		);
++		return null;
+ 	}
+ 
+ 	/**
+@@ -821,7 +839,7 @@
+ 	 * @param WP_REST_Request $request Request object.
+ 	 * @return stdClass Post object.
+ 	 */
+-	protected function prepare_item_for_database( $request ) {
++	protected function prepare_item_for_database( mixed $request ): mixed {
+ 		$prepared_post = new stdClass();
+ 
+ 		// Settings have already been decoded by ::sanitize_font_face_settings().
+@@ -839,6 +857,7 @@
+ 		$prepared_post->post_content = wp_json_encode( $settings );
+ 
+ 		return $prepared_post;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -849,9 +868,10 @@
+ 	 * @param string $value Font face src that is a URL or the key for a $_FILES array item.
+ 	 * @return string Sanitized value.
+ 	 */
+-	protected function sanitize_src( $value ) {
++	protected function sanitize_src( mixed $value ): mixed {
+ 		$value = ltrim( $value );
+ 		return false === wp_http_validate_url( $value ) ? (string) $value : sanitize_url( $value );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -862,7 +882,7 @@
+ 	 * @param array $file Single file item from $_FILES.
+ 	 * @return array|WP_Error Array containing uploaded file attributes on success, or WP_Error object on failure.
+ 	 */
+-	protected function handle_font_file_upload( $file ) {
++	protected function handle_font_file_upload( mixed $file ): mixed {
+ 		add_filter( 'upload_mimes', array( 'WP_Font_Utils', 'get_allowed_font_mime_types' ) );
+ 		// Filter the upload directory to return the fonts directory.
+ 		add_filter( 'upload_dir', '_wp_filter_font_directory' );
+@@ -876,7 +896,7 @@
+ 		);
+ 
+ 		// Bypasses is_uploaded_file() when running unit tests.
+-		if ( defined( 'DIR_TESTDATA' ) && DIR_TESTDATA ) {
++		if ( defined( 'DIR_TESTDATA' ) && \wp_aot_undefined_constant('DIR_TESTDATA') ) {
+ 			$overrides['action'] = 'wp_handle_mock_upload';
+ 		}
+ 
+@@ -886,6 +906,7 @@
+ 		remove_filter( 'upload_mimes', array( 'WP_Font_Utils', 'get_allowed_font_mime_types' ) );
+ 
+ 		return $uploaded_file;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -897,7 +918,7 @@
+ 	 * @param string $message Error message from wp_handle_upload().
+ 	 * @return WP_Error WP_Error object.
+ 	 */
+-	public function handle_font_file_upload_error( $file, $message ) {
++	public function handle_font_file_upload_error( mixed $file, mixed $message ): mixed {
+ 		$status = 500;
+ 		$code   = 'rest_font_upload_unknown_error';
+ 
+@@ -907,6 +928,7 @@
+ 		}
+ 
+ 		return new WP_Error( $code, $message, array( 'status' => $status ) );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -920,16 +942,17 @@
+ 	 * @param string $path Full path to the file.
+ 	 * @return string Relative path on success, unchanged path on failure.
+ 	 */
+-	protected function relative_fonts_path( $path ) {
++	protected function relative_fonts_path( mixed $path ): mixed {
+ 		$new_path = $path;
+ 
+ 		$fonts_dir = wp_get_font_dir();
+ 		if ( str_starts_with( $new_path, $fonts_dir['basedir'] ) ) {
+-			$new_path = str_replace( $fonts_dir['basedir'], '', $new_path );
++			$new_path = \wp_aot_str_replace( $fonts_dir['basedir'], '', $new_path );
+ 			$new_path = ltrim( $new_path, '/' );
+ 		}
+ 
+ 		return $new_path;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -940,7 +963,7 @@
+ 	 * @param WP_Post $post Font face post object.
+ 	 * @return array Font face settings array.
+ 	 */
+-	protected function get_settings_from_post( $post ) {
++	protected function get_settings_from_post( mixed $post ): mixed {
+ 		$settings   = json_decode( $post->post_content, true );
+ 		$properties = $this->get_item_schema()['properties']['font_face_settings']['properties'];
+ 
+@@ -953,6 +976,7 @@
+ 		}
+ 
+ 		// Only return the properties defined in the schema.
+-		return array_intersect_key( $settings, $properties );
++		return \wp_aot_array_intersect_key(array( $settings, $properties ));
++		return null;
+ 	}
+ }

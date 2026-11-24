@@ -1,20 +1,1497 @@
 --- a/wp-includes/pluggable.php
 +++ b/wp-includes/pluggable.php
-@@ -282,7 +282,7 @@
- 			require_once ABSPATH . WPINC . '/class-wp-phpmailer.php';
+@@ -6,7 +6,6 @@
+  * @package WordPress
+  */
+ 
+-if ( ! function_exists( 'wp_set_current_user' ) ) :
+ 	/**
+ 	 * Changes the current user by ID or name.
+ 	 *
+@@ -24,7 +23,7 @@
+ 	 * @param string   $name User's username.
+ 	 * @return WP_User Current user User object.
+ 	 */
+-	function wp_set_current_user( $id, $name = '' ) {
++	function wp_set_current_user( mixed $id, mixed $name = '' ): mixed {
+ 		global $current_user;
+ 
+ 		// If `$id` matches the current user, there is nothing to do.
+@@ -48,10 +47,9 @@
+ 		do_action( 'set_current_user' );
+ 
+ 		return $current_user;
+-	}
+-endif;
+-
+-if ( ! function_exists( 'wp_get_current_user' ) ) :
++		return null;
++	}
++
+ 	/**
+ 	 * Retrieves the current user object.
+ 	 *
+@@ -66,12 +64,11 @@
+ 	 *
+ 	 * @return WP_User Current WP_User instance.
+ 	 */
+-	function wp_get_current_user() {
++	function wp_get_current_user(): mixed {
+ 		return _wp_get_current_user();
+-	}
+-endif;
+-
+-if ( ! function_exists( 'get_userdata' ) ) :
++		return null;
++	}
++
+ 	/**
+ 	 * Retrieves user info by user ID.
+ 	 *
+@@ -80,12 +77,11 @@
+ 	 * @param int $user_id User ID
+ 	 * @return WP_User|false WP_User object on success, false on failure.
+ 	 */
+-	function get_userdata( $user_id ) {
++	function get_userdata( mixed $user_id ): mixed {
+ 		return get_user_by( 'id', $user_id );
+-	}
+-endif;
+-
+-if ( ! function_exists( 'get_user_by' ) ) :
++		return null;
++	}
++
+ 	/**
+ 	 * Retrieves user info by a given field.
+ 	 *
+@@ -98,7 +94,7 @@
+ 	 * @param int|string $value A value for $field. A user ID, slug, email address, or login name.
+ 	 * @return WP_User|false WP_User object on success, false on failure.
+ 	 */
+-	function get_user_by( $field, $value ) {
++	function get_user_by( mixed $field, mixed $value ): mixed {
+ 		$userdata = WP_User::get_data_by( $field, $value );
+ 
+ 		if ( ! $userdata ) {
+@@ -109,10 +105,9 @@
+ 		$user->init( $userdata );
+ 
+ 		return $user;
+-	}
+-endif;
+-
+-if ( ! function_exists( 'cache_users' ) ) :
++		return null;
++	}
++
+ 	/**
+ 	 * Retrieves info for user lists to prevent multiple queries by get_userdata().
+ 	 *
+@@ -122,7 +117,7 @@
+ 	 *
+ 	 * @param int[] $user_ids User ID numbers list
+ 	 */
+-	function cache_users( $user_ids ) {
++	function cache_users( mixed $user_ids ): mixed {
+ 		global $wpdb;
+ 
+ 		update_meta_cache( 'user', $user_ids );
+@@ -130,20 +125,19 @@
+ 		$clean = _get_non_cached_ids( $user_ids, 'users' );
+ 
+ 		if ( empty( $clean ) ) {
+-			return;
++			return null;
+ 		}
+ 
+ 		$list = implode( ',', $clean );
+ 
+-		$users = $wpdb->get_results( "SELECT * FROM $wpdb->users WHERE ID IN ($list)" );
++		$users = \wp_aot_require_wpdb( $wpdb )->get_results( "SELECT * FROM $wpdb->users WHERE ID IN ($list)" );
+ 
+ 		foreach ( $users as $user ) {
+ 			update_user_caches( $user );
+ 		}
+-	}
+-endif;
+-
+-if ( ! function_exists( 'wp_mail' ) ) :
++		return null;
++	}
++
+ 	/**
+ 	 * Sends an email, similar to PHP's mail function.
+ 	 *
+@@ -186,7 +180,7 @@
+ 	 * @param string|string[] $embeds      Optional. Paths to files to embed.
+ 	 * @return bool Whether the email was sent successfully.
+ 	 */
+-	function wp_mail( $to, $subject, $message, $headers = '', $attachments = array(), $embeds = array() ) {
++	function wp_mail( mixed $to, mixed $subject, mixed $message, mixed $headers = '', mixed $attachments = array(), mixed $embeds = array() ): mixed {
+ 		// Compact the input, apply the filters, and extract them back out.
+ 
+ 		/**
+@@ -206,7 +200,7 @@
+ 		 *     @type string|string[] $embeds      Paths to files to embed.
+ 		 * }
+ 		 */
+-		$atts = apply_filters( 'wp_mail', compact( 'to', 'subject', 'message', 'headers', 'attachments', 'embeds' ) );
++		$atts = apply_filters( 'wp_mail', array( 'to' => $to, 'subject' => $subject, 'message' => $message, 'headers' => $headers, 'attachments' => $attachments, 'embeds' => $embeds ) );
+ 
+ 		/**
+ 		 * Filters whether to preempt sending an email.
+@@ -261,7 +255,7 @@
+ 		}
+ 
+ 		if ( ! is_array( $attachments ) ) {
+-			$attachments = explode( "\n", str_replace( "\r\n", "\n", $attachments ) );
++			$attachments = explode( "\n", \wp_aot_str_replace( "\r\n", "\n", $attachments ) );
+ 		}
+ 
+ 		if ( isset( $atts['embeds'] ) ) {
+@@ -269,20 +263,21 @@
+ 		}
+ 
+ 		if ( ! is_array( $embeds ) ) {
+-			$embeds = explode( "\n", str_replace( "\r\n", "\n", $embeds ) );
++			$embeds = explode( "\n", \wp_aot_str_replace( "\r\n", "\n", $embeds ) );
+ 		}
+ 
+ 		global $phpmailer;
+ 
+ 		// (Re)create it, if it's gone missing.
+ 		if ( ! ( $phpmailer instanceof PHPMailer\PHPMailer\PHPMailer ) ) {
+-			require_once ABSPATH . WPINC . '/PHPMailer/PHPMailer.php';
+-			require_once ABSPATH . WPINC . '/PHPMailer/SMTP.php';
+-			require_once ABSPATH . WPINC . '/PHPMailer/Exception.php';
+-			require_once ABSPATH . WPINC . '/class-wp-phpmailer.php';
++			require_once __DIR__ . '/PHPMailer/OAuthTokenProvider.php';
++			require_once __DIR__ . '/PHPMailer/PHPMailer.php';
++			require_once __DIR__ . '/PHPMailer/SMTP.php';
++			require_once __DIR__ . '/PHPMailer/Exception.php';
++			require_once __DIR__ . '/class-wp-phpmailer.php';
  			$phpmailer = new WP_PHPMailer( true );
  
 -			$phpmailer::$validator = static function ( $email ) {
-+			WP_PHPMailer::$validator = static function ( $email ) {
++			WP_PHPMailer::$validator = static function ( mixed $email ) {
  				return (bool) is_email( $email );
  			};
  		}
-@@ -619,7 +619,7 @@
+@@ -300,7 +295,7 @@
+ 				 * Explode the headers out, so this function can take
+ 				 * both string headers and an array of headers.
+ 				 */
+-				$tempheaders = explode( "\n", str_replace( "\r\n", "\n", $headers ) );
++				$tempheaders = explode( "\n", \wp_aot_str_replace( "\r\n", "\n", $headers ) );
+ 			} else {
+ 				$tempheaders = $headers;
+ 			}
+@@ -312,8 +307,8 @@
+ 				foreach ( (array) $tempheaders as $header ) {
+ 					if ( ! str_contains( $header, ':' ) ) {
+ 						if ( false !== stripos( $header, 'boundary=' ) ) {
+-							$parts    = preg_split( '/boundary=/i', trim( $header ) );
+-							$boundary = trim( str_replace( array( "'", '"' ), '', $parts[1] ) );
++							$parts    = \wp_aot_preg_split( '/boundary=/i', \wp_aot_regex_text( trim( $header ) ) );
++							$boundary = trim( \wp_aot_str_replace( array( "'", '"' ), '', $parts[1] ) );
+ 						}
+ 						continue;
+ 					}
+@@ -332,12 +327,12 @@
+ 								// Text before the bracketed email is the "From" name.
+ 								if ( $bracket_pos > 0 ) {
+ 									$from_name = substr( $content, 0, $bracket_pos );
+-									$from_name = str_replace( '"', '', $from_name );
++									$from_name = \wp_aot_str_replace( '"', '', $from_name );
+ 									$from_name = trim( $from_name );
+ 								}
+ 
+ 								$from_email = substr( $content, $bracket_pos + 1 );
+-								$from_email = str_replace( '>', '', $from_email );
++								$from_email = \wp_aot_str_replace( '>', '', $from_email );
+ 								$from_email = trim( $from_email );
+ 
+ 								// Avoid setting an empty $from_email.
+@@ -350,11 +345,11 @@
+ 								list( $type, $charset_content ) = explode( ';', $content );
+ 								$content_type                   = trim( $type );
+ 								if ( false !== stripos( $charset_content, 'charset=' ) ) {
+-									$charset = trim( str_replace( array( 'charset=', '"' ), '', $charset_content ) );
++									$charset = trim( \wp_aot_str_replace( array( 'charset=', '"' ), '', $charset_content ) );
+ 								} elseif ( false !== stripos( $charset_content, 'boundary=' ) ) {
+-									$boundary = trim( str_replace( array( 'BOUNDARY=', 'boundary=', '"' ), '', $charset_content ) );
++									$boundary = trim( \wp_aot_str_replace( array( 'BOUNDARY=', 'boundary=', '"' ), '', $charset_content ) );
+ 									$charset  = '';
+-									if ( preg_match( '~^multipart/(\S+)~', $content_type, $matches ) ) {
++									if ( preg_match( '~^multipart/(\S+)~', \wp_aot_regex_text( $content_type ), $matches ) ) {
+ 										$content_type = 'multipart/' . strtolower( $matches[1] ) . '; boundary="' . $boundary . '"';
+ 									}
+ 								}
+@@ -365,13 +360,13 @@
+ 							}
+ 							break;
+ 						case 'cc':
+-							$cc = array_merge( (array) $cc, explode( ',', $content ) );
++							$cc = \wp_aot_array_merge(array( (array) $cc, explode( ',', $content ) ));
+ 							break;
+ 						case 'bcc':
+-							$bcc = array_merge( (array) $bcc, explode( ',', $content ) );
++							$bcc = \wp_aot_array_merge(array( (array) $bcc, explode( ',', $content ) ));
+ 							break;
+ 						case 'reply-to':
+-							$reply_to = array_merge( (array) $reply_to, explode( ',', $content ) );
++							$reply_to = \wp_aot_array_merge(array( (array) $reply_to, explode( ',', $content ) ));
+ 							break;
+ 						default:
+ 							// Add it to our grand headers array.
+@@ -448,7 +443,7 @@
+ 		try {
+ 			$phpmailer->setFrom( $from_email, $from_name, false );
+ 		} catch ( PHPMailer\PHPMailer\Exception $e ) {
+-			$mail_error_data                             = compact( 'to', 'subject', 'message', 'headers', 'attachments' );
++			$mail_error_data                             = \wp_aot_compact(get_defined_vars(), array( 'to', 'subject', 'message', 'headers', 'attachments' ));
+ 			$mail_error_data['phpmailer_exception_code'] = $e->getCode();
+ 
+ 			/** This filter is documented in wp-includes/pluggable.php */
+@@ -462,7 +457,7 @@
+ 		$phpmailer->Body    = $message;
+ 
+ 		// Set destination addresses, using appropriate methods for handling addresses.
+-		$address_headers = compact( 'to', 'cc', 'bcc', 'reply_to' );
++		$address_headers = \wp_aot_compact(get_defined_vars(), array( 'to', 'cc', 'bcc', 'reply_to' ));
+ 
+ 		foreach ( $address_headers as $address_header => $addresses ) {
+ 			if ( empty( $addresses ) ) {
+@@ -474,7 +469,7 @@
+ 					// Break $recipient into name and address parts if in the format "Foo <bar@baz.com>".
+ 					$recipient_name = '';
+ 
+-					if ( preg_match( '/(.*)<(.+)>/', $address, $matches ) ) {
++					if ( preg_match( '/(.*)<(.+)>/', \wp_aot_regex_text( $address ), $matches ) ) {
+ 						if ( count( $matches ) === 3 ) {
+ 							$recipient_name = $matches[1];
+ 							$address        = $matches[2];
+@@ -619,9 +614,9 @@
  		 *
  		 * @param PHPMailer $phpmailer The PHPMailer instance (passed by reference).
  		 */
 -		do_action_ref_array( 'phpmailer_init', array( &$phpmailer ) );
+-
+-		$mail_data = compact( 'to', 'subject', 'message', 'headers', 'attachments', 'embeds' );
 +		do_action( 'phpmailer_init', $phpmailer );
++
++		$mail_data = array( 'to' => $to, 'subject' => $subject, 'message' => $message, 'headers' => $headers, 'attachments' => $attachments, 'embeds' => $embeds );
  
- 		$mail_data = compact( 'to', 'subject', 'message', 'headers', 'attachments', 'embeds' );
+ 		// Send!
+ 		try {
+@@ -666,10 +661,9 @@
  
+ 			return false;
+ 		}
+-	}
+-endif;
+-
+-if ( ! function_exists( 'wp_authenticate' ) ) :
++		return null;
++	}
++
+ 	/**
+ 	 * Authenticates a user, confirming the login credentials are valid.
+ 	 *
+@@ -682,10 +676,10 @@
+ 	 *                          otherwise WP_Error.
+ 	 */
+ 	function wp_authenticate(
+-		$username,
++		mixed $username,
+ 		#[\SensitiveParameter]
+ 		$password
+-	) {
++	): mixed {
+ 		$username = sanitize_user( $username );
+ 		$password = trim( $password );
+ 
+@@ -732,16 +726,15 @@
+ 		}
+ 
+ 		return $user;
+-	}
+-endif;
+-
+-if ( ! function_exists( 'wp_logout' ) ) :
++		return null;
++	}
++
+ 	/**
+ 	 * Logs the current user out.
+ 	 *
+ 	 * @since 2.5.0
+ 	 */
+-	function wp_logout() {
++	function wp_logout(): mixed {
+ 		$user_id = get_current_user_id();
+ 
+ 		wp_destroy_current_session();
+@@ -757,10 +750,9 @@
+ 		 * @param int $user_id ID of the user that was logged out.
+ 		 */
+ 		do_action( 'wp_logout', $user_id );
+-	}
+-endif;
+-
+-if ( ! function_exists( 'wp_validate_auth_cookie' ) ) :
++		return null;
++	}
++
+ 	/**
+ 	 * Validates authentication cookie.
+ 	 *
+@@ -779,7 +771,7 @@
+ 	 *                       Note: This does *not* default to 'auth' like other cookie functions.
+ 	 * @return int|false User ID if valid cookie, false if invalid.
+ 	 */
+-	function wp_validate_auth_cookie( $cookie = '', $scheme = '' ) {
++	function wp_validate_auth_cookie( mixed $cookie = '', mixed $scheme = '' ): mixed {
+ 		$cookie_elements = wp_parse_auth_cookie( $cookie, $scheme );
+ 		if ( ! $cookie_elements ) {
+ 			/**
+@@ -931,10 +923,9 @@
+ 		do_action( 'auth_cookie_valid', $cookie_elements, $user );
+ 
+ 		return $user->ID;
+-	}
+-endif;
+-
+-if ( ! function_exists( 'wp_generate_auth_cookie' ) ) :
++		return null;
++	}
++
+ 	/**
+ 	 * Generates authentication cookie contents.
+ 	 *
+@@ -948,7 +939,7 @@
+ 	 * @param string $token      User's session token to use for this cookie.
+ 	 * @return string Authentication cookie contents. Empty string if user does not exist.
+ 	 */
+-	function wp_generate_auth_cookie( $user_id, $expiration, $scheme = 'auth', $token = '' ) {
++	function wp_generate_auth_cookie( mixed $user_id, mixed $expiration, mixed $scheme = 'auth', mixed $token = '' ): mixed {
+ 		$user = get_userdata( $user_id );
+ 		if ( ! $user ) {
+ 			return '';
+@@ -986,10 +977,9 @@
+ 		 * @param string $token      User's session token used.
+ 		 */
+ 		return apply_filters( 'auth_cookie', $cookie, $user_id, $expiration, $scheme, $token );
+-	}
+-endif;
+-
+-if ( ! function_exists( 'wp_parse_auth_cookie' ) ) :
++		return null;
++	}
++
+ 	/**
+ 	 * Parses a cookie into its components.
+ 	 *
+@@ -1010,24 +1000,24 @@
+ 	 *     @type string $scheme     The cookie scheme to use.
+ 	 * }
+ 	 */
+-	function wp_parse_auth_cookie( $cookie = '', $scheme = '' ) {
++	function wp_parse_auth_cookie( mixed $cookie = '', mixed $scheme = '' ): mixed {
+ 		if ( empty( $cookie ) ) {
+ 			switch ( $scheme ) {
+ 				case 'auth':
+-					$cookie_name = AUTH_COOKIE;
++					$cookie_name = \wp_aot_bootstrap_string('AUTH_COOKIE');
+ 					break;
+ 				case 'secure_auth':
+-					$cookie_name = SECURE_AUTH_COOKIE;
++					$cookie_name = \wp_aot_bootstrap_string('SECURE_AUTH_COOKIE');
+ 					break;
+ 				case 'logged_in':
+-					$cookie_name = LOGGED_IN_COOKIE;
++					$cookie_name = \wp_aot_bootstrap_string('LOGGED_IN_COOKIE');
+ 					break;
+ 				default:
+ 					if ( is_ssl() ) {
+-						$cookie_name = SECURE_AUTH_COOKIE;
++						$cookie_name = \wp_aot_bootstrap_string('SECURE_AUTH_COOKIE');
+ 						$scheme      = 'secure_auth';
+ 					} else {
+-						$cookie_name = AUTH_COOKIE;
++						$cookie_name = \wp_aot_bootstrap_string('AUTH_COOKIE');
+ 						$scheme      = 'auth';
+ 					}
+ 			}
+@@ -1045,11 +1035,10 @@
+ 
+ 		list( $username, $expiration, $token, $hmac ) = $cookie_elements;
+ 
+-		return compact( 'username', 'expiration', 'token', 'hmac', 'scheme' );
+-	}
+-endif;
+-
+-if ( ! function_exists( 'wp_set_auth_cookie' ) ) :
++		return \wp_aot_compact(get_defined_vars(), array( 'username', 'expiration', 'token', 'hmac', 'scheme' ));
++		return null;
++	}
++
+ 	/**
+ 	 * Sets the authentication cookies for a given user ID.
+ 	 *
+@@ -1068,7 +1057,7 @@
+ 	 *                              string which means the value of `is_ssl()` will be used.
+ 	 * @param string      $token    Optional. User's session token to use for this cookie.
+ 	 */
+-	function wp_set_auth_cookie( $user_id, $remember = false, $secure = '', $token = '' ) {
++	function wp_set_auth_cookie( mixed $user_id, mixed $remember = false, mixed $secure = '', mixed $token = '' ): mixed {
+ 		if ( $remember ) {
+ 			/**
+ 			 * Filters the duration of the authentication cookie expiration period.
+@@ -1121,10 +1110,10 @@
+ 		$secure_logged_in_cookie = apply_filters( 'secure_logged_in_cookie', $secure_logged_in_cookie, $user_id, $secure );
+ 
+ 		if ( $secure ) {
+-			$auth_cookie_name = SECURE_AUTH_COOKIE;
++			$auth_cookie_name = \wp_aot_bootstrap_string('SECURE_AUTH_COOKIE');
+ 			$scheme           = 'secure_auth';
+ 		} else {
+-			$auth_cookie_name = AUTH_COOKIE;
++			$auth_cookie_name = \wp_aot_bootstrap_string('AUTH_COOKIE');
+ 			$scheme           = 'auth';
+ 		}
+ 
+@@ -1187,25 +1176,24 @@
+ 		 * @param string $token      User's session token to use for this cookie. Empty string when clearing cookies.
+ 		 */
+ 		if ( ! apply_filters( 'send_auth_cookies', true, $expire, $expiration, $user_id, $scheme, $token ) ) {
+-			return;
+-		}
+-
+-		setcookie( $auth_cookie_name, $auth_cookie, $expire, PLUGINS_COOKIE_PATH, COOKIE_DOMAIN, $secure, true );
+-		setcookie( $auth_cookie_name, $auth_cookie, $expire, ADMIN_COOKIE_PATH, COOKIE_DOMAIN, $secure, true );
+-		setcookie( LOGGED_IN_COOKIE, $logged_in_cookie, $expire, COOKIEPATH, COOKIE_DOMAIN, $secure_logged_in_cookie, true );
+-		if ( COOKIEPATH !== SITECOOKIEPATH ) {
+-			setcookie( LOGGED_IN_COOKIE, $logged_in_cookie, $expire, SITECOOKIEPATH, COOKIE_DOMAIN, $secure_logged_in_cookie, true );
+-		}
+-	}
+-endif;
+-
+-if ( ! function_exists( 'wp_clear_auth_cookie' ) ) :
++			return null;
++		}
++
++		\wp_aot_native_api('setcookie', array( $auth_cookie_name, $auth_cookie, $expire, \wp_aot_bootstrap_string('PLUGINS_COOKIE_PATH'), COOKIE_DOMAIN, $secure, true ));
++		\wp_aot_native_api('setcookie', array( $auth_cookie_name, $auth_cookie, $expire, \wp_aot_bootstrap_string('ADMIN_COOKIE_PATH'), COOKIE_DOMAIN, $secure, true ));
++		\wp_aot_native_api('setcookie', array( \wp_aot_bootstrap_string('LOGGED_IN_COOKIE'), $logged_in_cookie, $expire, \wp_aot_bootstrap_string('COOKIEPATH'), COOKIE_DOMAIN, $secure_logged_in_cookie, true ));
++		if ( \wp_aot_bootstrap_string('COOKIEPATH') !== \wp_aot_bootstrap_string('SITECOOKIEPATH') ) {
++			\wp_aot_native_api('setcookie', array( \wp_aot_bootstrap_string('LOGGED_IN_COOKIE'), $logged_in_cookie, $expire, \wp_aot_bootstrap_string('SITECOOKIEPATH'), COOKIE_DOMAIN, $secure_logged_in_cookie, true ));
++		}
++		return null;
++	}
++
+ 	/**
+ 	 * Removes all of the cookies associated with authentication.
+ 	 *
+ 	 * @since 2.5.0
+ 	 */
+-	function wp_clear_auth_cookie() {
++	function wp_clear_auth_cookie(): mixed {
+ 		/**
+ 		 * Fires just before the authentication cookies are cleared.
+ 		 *
+@@ -1215,39 +1203,38 @@
+ 
+ 		/** This filter is documented in wp-includes/pluggable.php */
+ 		if ( ! apply_filters( 'send_auth_cookies', true, 0, 0, 0, '', '' ) ) {
+-			return;
++			return null;
+ 		}
+ 
+ 		// Auth cookies.
+-		setcookie( AUTH_COOKIE, ' ', time() - YEAR_IN_SECONDS, ADMIN_COOKIE_PATH, COOKIE_DOMAIN );
+-		setcookie( SECURE_AUTH_COOKIE, ' ', time() - YEAR_IN_SECONDS, ADMIN_COOKIE_PATH, COOKIE_DOMAIN );
+-		setcookie( AUTH_COOKIE, ' ', time() - YEAR_IN_SECONDS, PLUGINS_COOKIE_PATH, COOKIE_DOMAIN );
+-		setcookie( SECURE_AUTH_COOKIE, ' ', time() - YEAR_IN_SECONDS, PLUGINS_COOKIE_PATH, COOKIE_DOMAIN );
+-		setcookie( LOGGED_IN_COOKIE, ' ', time() - YEAR_IN_SECONDS, COOKIEPATH, COOKIE_DOMAIN );
+-		setcookie( LOGGED_IN_COOKIE, ' ', time() - YEAR_IN_SECONDS, SITECOOKIEPATH, COOKIE_DOMAIN );
++		\wp_aot_native_api('setcookie', array( \wp_aot_bootstrap_string('AUTH_COOKIE'), ' ', time() - YEAR_IN_SECONDS, \wp_aot_bootstrap_string('ADMIN_COOKIE_PATH'), COOKIE_DOMAIN ));
++		\wp_aot_native_api('setcookie', array( \wp_aot_bootstrap_string('SECURE_AUTH_COOKIE'), ' ', time() - YEAR_IN_SECONDS, \wp_aot_bootstrap_string('ADMIN_COOKIE_PATH'), COOKIE_DOMAIN ));
++		\wp_aot_native_api('setcookie', array( \wp_aot_bootstrap_string('AUTH_COOKIE'), ' ', time() - YEAR_IN_SECONDS, \wp_aot_bootstrap_string('PLUGINS_COOKIE_PATH'), COOKIE_DOMAIN ));
++		\wp_aot_native_api('setcookie', array( \wp_aot_bootstrap_string('SECURE_AUTH_COOKIE'), ' ', time() - YEAR_IN_SECONDS, \wp_aot_bootstrap_string('PLUGINS_COOKIE_PATH'), COOKIE_DOMAIN ));
++		\wp_aot_native_api('setcookie', array( \wp_aot_bootstrap_string('LOGGED_IN_COOKIE'), ' ', time() - YEAR_IN_SECONDS, \wp_aot_bootstrap_string('COOKIEPATH'), COOKIE_DOMAIN ));
++		\wp_aot_native_api('setcookie', array( \wp_aot_bootstrap_string('LOGGED_IN_COOKIE'), ' ', time() - YEAR_IN_SECONDS, \wp_aot_bootstrap_string('SITECOOKIEPATH'), COOKIE_DOMAIN ));
+ 
+ 		// Settings cookies.
+-		setcookie( 'wp-settings-' . get_current_user_id(), ' ', time() - YEAR_IN_SECONDS, SITECOOKIEPATH );
+-		setcookie( 'wp-settings-time-' . get_current_user_id(), ' ', time() - YEAR_IN_SECONDS, SITECOOKIEPATH );
++		\wp_aot_native_api('setcookie', array( 'wp-settings-' . get_current_user_id(), ' ', time() - YEAR_IN_SECONDS, \wp_aot_bootstrap_string('SITECOOKIEPATH') ));
++		\wp_aot_native_api('setcookie', array( 'wp-settings-time-' . get_current_user_id(), ' ', time() - YEAR_IN_SECONDS, \wp_aot_bootstrap_string('SITECOOKIEPATH') ));
+ 
+ 		// Old cookies.
+-		setcookie( AUTH_COOKIE, ' ', time() - YEAR_IN_SECONDS, COOKIEPATH, COOKIE_DOMAIN );
+-		setcookie( AUTH_COOKIE, ' ', time() - YEAR_IN_SECONDS, SITECOOKIEPATH, COOKIE_DOMAIN );
+-		setcookie( SECURE_AUTH_COOKIE, ' ', time() - YEAR_IN_SECONDS, COOKIEPATH, COOKIE_DOMAIN );
+-		setcookie( SECURE_AUTH_COOKIE, ' ', time() - YEAR_IN_SECONDS, SITECOOKIEPATH, COOKIE_DOMAIN );
++		\wp_aot_native_api('setcookie', array( \wp_aot_bootstrap_string('AUTH_COOKIE'), ' ', time() - YEAR_IN_SECONDS, \wp_aot_bootstrap_string('COOKIEPATH'), COOKIE_DOMAIN ));
++		\wp_aot_native_api('setcookie', array( \wp_aot_bootstrap_string('AUTH_COOKIE'), ' ', time() - YEAR_IN_SECONDS, \wp_aot_bootstrap_string('SITECOOKIEPATH'), COOKIE_DOMAIN ));
++		\wp_aot_native_api('setcookie', array( \wp_aot_bootstrap_string('SECURE_AUTH_COOKIE'), ' ', time() - YEAR_IN_SECONDS, \wp_aot_bootstrap_string('COOKIEPATH'), COOKIE_DOMAIN ));
++		\wp_aot_native_api('setcookie', array( \wp_aot_bootstrap_string('SECURE_AUTH_COOKIE'), ' ', time() - YEAR_IN_SECONDS, \wp_aot_bootstrap_string('SITECOOKIEPATH'), COOKIE_DOMAIN ));
+ 
+ 		// Even older cookies.
+-		setcookie( USER_COOKIE, ' ', time() - YEAR_IN_SECONDS, COOKIEPATH, COOKIE_DOMAIN );
+-		setcookie( PASS_COOKIE, ' ', time() - YEAR_IN_SECONDS, COOKIEPATH, COOKIE_DOMAIN );
+-		setcookie( USER_COOKIE, ' ', time() - YEAR_IN_SECONDS, SITECOOKIEPATH, COOKIE_DOMAIN );
+-		setcookie( PASS_COOKIE, ' ', time() - YEAR_IN_SECONDS, SITECOOKIEPATH, COOKIE_DOMAIN );
++		\wp_aot_native_api('setcookie', array( \wp_aot_bootstrap_string('USER_COOKIE'), ' ', time() - YEAR_IN_SECONDS, \wp_aot_bootstrap_string('COOKIEPATH'), COOKIE_DOMAIN ));
++		\wp_aot_native_api('setcookie', array( \wp_aot_bootstrap_string('PASS_COOKIE'), ' ', time() - YEAR_IN_SECONDS, \wp_aot_bootstrap_string('COOKIEPATH'), COOKIE_DOMAIN ));
++		\wp_aot_native_api('setcookie', array( \wp_aot_bootstrap_string('USER_COOKIE'), ' ', time() - YEAR_IN_SECONDS, \wp_aot_bootstrap_string('SITECOOKIEPATH'), COOKIE_DOMAIN ));
++		\wp_aot_native_api('setcookie', array( \wp_aot_bootstrap_string('PASS_COOKIE'), ' ', time() - YEAR_IN_SECONDS, \wp_aot_bootstrap_string('SITECOOKIEPATH'), COOKIE_DOMAIN ));
+ 
+ 		// Post password cookie.
+-		setcookie( 'wp-postpass_' . COOKIEHASH, ' ', time() - YEAR_IN_SECONDS, COOKIEPATH, COOKIE_DOMAIN );
+-	}
+-endif;
+-
+-if ( ! function_exists( 'is_user_logged_in' ) ) :
++		\wp_aot_native_api('setcookie', array( 'wp-postpass_' . \wp_aot_bootstrap_string('COOKIEHASH'), ' ', time() - YEAR_IN_SECONDS, \wp_aot_bootstrap_string('COOKIEPATH'), COOKIE_DOMAIN ));
++		return null;
++	}
++
+ 	/**
+ 	 * Determines whether the current visitor is a logged in user.
+ 	 *
+@@ -1259,14 +1246,13 @@
+ 	 *
+ 	 * @return bool True if user is logged in, false if not logged in.
+ 	 */
+-	function is_user_logged_in() {
++	function is_user_logged_in(): mixed {
+ 		$user = wp_get_current_user();
+ 
+ 		return $user->exists();
+-	}
+-endif;
+-
+-if ( ! function_exists( 'auth_redirect' ) ) :
++		return null;
++	}
++
+ 	/**
+ 	 * Checks if a user is logged in, if not it redirects them to the login page.
+ 	 *
+@@ -1277,7 +1263,7 @@
+ 	 *
+ 	 * @since 1.5.0
+ 	 */
+-	function auth_redirect() {
++	function auth_redirect(): mixed {
+ 		$secure = ( is_ssl() || force_ssl_admin() );
+ 
+ 		/**
+@@ -1293,10 +1279,10 @@
+ 		if ( $secure && ! is_ssl() && str_contains( $_SERVER['REQUEST_URI'], 'wp-admin' ) ) {
+ 			if ( str_starts_with( $_SERVER['REQUEST_URI'], 'http' ) ) {
+ 				wp_redirect( set_url_scheme( $_SERVER['REQUEST_URI'], 'https' ) );
+-				exit;
++				\wp_aot_exit();
+ 			} else {
+ 				wp_redirect( 'https://' . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'] );
+-				exit;
++				\wp_aot_exit();
+ 			}
+ 		}
+ 
+@@ -1324,14 +1310,14 @@
+ 			if ( ! $secure && get_user_option( 'use_ssl', $user_id ) && str_contains( $_SERVER['REQUEST_URI'], 'wp-admin' ) ) {
+ 				if ( str_starts_with( $_SERVER['REQUEST_URI'], 'http' ) ) {
+ 					wp_redirect( set_url_scheme( $_SERVER['REQUEST_URI'], 'https' ) );
+-					exit;
++					\wp_aot_exit();
+ 				} else {
+ 					wp_redirect( 'https://' . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'] );
+-					exit;
++					\wp_aot_exit();
+ 				}
+ 			}
+ 
+-			return; // The cookie is good, so we're done.
++			return null; // The cookie is good, so we're done.
+ 		}
+ 
+ 		// The cookie is no good, so force login.
+@@ -1346,11 +1332,10 @@
+ 		$login_url = wp_login_url( $redirect, true );
+ 
+ 		wp_redirect( $login_url );
+-		exit;
+-	}
+-endif;
+-
+-if ( ! function_exists( 'check_admin_referer' ) ) :
++		\wp_aot_exit();
++		return null;
++	}
++
+ 	/**
+ 	 * Ensures intent by verifying that a user was referred from another admin page with the correct security nonce.
+ 	 *
+@@ -1371,7 +1356,7 @@
+ 	 *                   as the function otherwise exits rather than returning false.
+ 	 * @phpstan-return ( $action is -1 ? int|false : int )
+ 	 */
+-	function check_admin_referer( $action = -1, $query_arg = '_wpnonce' ) {
++	function check_admin_referer( mixed $action = -1, mixed $query_arg = '_wpnonce' ): mixed {
+ 		if ( -1 === $action ) {
+ 			_doing_it_wrong( __FUNCTION__, __( 'You should specify an action to be verified by using the first parameter.' ), '3.2.0' );
+ 		}
+@@ -1393,14 +1378,13 @@
+ 
+ 		if ( ! $result && ! ( -1 === $action && str_starts_with( $referer, $adminurl ) ) ) {
+ 			wp_nonce_ays( $action );
+-			die();
++			\wp_aot_exit();
+ 		}
+ 
+ 		return $result;
+-	}
+-endif;
+-
+-if ( ! function_exists( 'check_ajax_referer' ) ) :
++		return null;
++	}
++
+ 	/**
+ 	 * Verifies the Ajax request to prevent processing requests external of the blog.
+ 	 *
+@@ -1418,7 +1402,7 @@
+ 	 *                   as the function otherwise exits rather than returning false.
+ 	 * @phpstan-return ( $stop is true ? int : int|false )
+ 	 */
+-	function check_ajax_referer( $action = -1, $query_arg = false, $stop = true ) {
++	function check_ajax_referer( mixed $action = -1, mixed $query_arg = false, mixed $stop = true ): mixed {
+ 		if ( -1 === $action ) {
+ 			_doing_it_wrong( __FUNCTION__, __( 'You should specify an action to be verified by using the first parameter.' ), '4.7.0' );
+ 		}
+@@ -1450,15 +1434,14 @@
+ 			if ( wp_doing_ajax() ) {
+ 				wp_die( -1, 403 );
+ 			} else {
+-				die( '-1' );
++				\wp_aot_exit( '-1' );
+ 			}
+ 		}
+ 
+ 		return $result;
+-	}
+-endif;
+-
+-if ( ! function_exists( 'wp_redirect' ) ) :
++		return null;
++	}
++
+ 	/**
+ 	 * Redirects to another page.
+ 	 *
+@@ -1486,7 +1469,7 @@
+ 	 * @param string|false $x_redirect_by Optional. The application doing the redirect or false to omit. Default 'WordPress'.
+ 	 * @return bool False if the redirect was canceled, true otherwise.
+ 	 */
+-	function wp_redirect( $location, $status = 302, $x_redirect_by = 'WordPress' ) {
++	function wp_redirect( mixed $location, mixed $status = 302, mixed $x_redirect_by = 'WordPress' ): mixed {
+ 		global $is_IIS;
+ 
+ 		/**
+@@ -1542,10 +1525,9 @@
+ 		header( "Location: $location", true, $status );
+ 
+ 		return true;
+-	}
+-endif;
+-
+-if ( ! function_exists( 'wp_sanitize_redirect' ) ) :
++		return null;
++	}
++
+ 	/**
+ 	 * Sanitizes a URL for use in a redirect.
+ 	 *
+@@ -1554,9 +1536,9 @@
+ 	 * @param string $location The path to redirect to.
+ 	 * @return string Redirect-sanitized URL.
+ 	 */
+-	function wp_sanitize_redirect( $location ) {
++	function wp_sanitize_redirect( mixed $location ): mixed {
+ 		// Encode spaces.
+-		$location = str_replace( ' ', '%20', $location );
++		$location = \wp_aot_str_replace( ' ', '%20', $location );
+ 
+ 		$regex    = '/
+ 		(
+@@ -1570,13 +1552,14 @@
+ 			|   \xF4[\x80-\x8F][\x80-\xBF]{2}
+ 		){1,40}                              # ...one or more times
+ 		)/x';
+-		$location = preg_replace_callback( $regex, '_wp_sanitize_utf8_in_redirect', $location );
+-		$location = preg_replace( '|[^a-z0-9-~+_.?#=&;,/:%!*\[\]()@]|i', '', $location );
++		$location = \wp_aot_preg_replace_callback( $regex, '_wp_sanitize_utf8_in_redirect', $location );
++		$location = \wp_aot_preg_replace( '|[^a-z0-9-~+_.?#=&;,/:%!*\[\]()@]|i', '', $location );
+ 		$location = wp_kses_no_null( $location );
+ 
+ 		// Remove %0D and %0A from location.
+ 		$strip = array( '%0d', '%0a', '%0D', '%0A' );
+ 		return _deep_replace( $strip, $location );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1591,12 +1574,11 @@
+ 	 * @param array $matches RegEx matches against the redirect location.
+ 	 * @return string URL-encoded version of the first RegEx match.
+ 	 */
+-	function _wp_sanitize_utf8_in_redirect( $matches ) {
++	function _wp_sanitize_utf8_in_redirect( mixed $matches ): mixed {
+ 		return urlencode( $matches[0] );
+-	}
+-endif;
+-
+-if ( ! function_exists( 'wp_safe_redirect' ) ) :
++		return null;
++	}
++
+ 	/**
+ 	 * Performs a safe (local) redirect, using wp_redirect().
+ 	 *
+@@ -1629,7 +1611,7 @@
+ 	 * @param string|false $x_redirect_by Optional. The application doing the redirect or false to omit. Default 'WordPress'.
+ 	 * @return bool False if the redirect was canceled, true otherwise.
+ 	 */
+-	function wp_safe_redirect( $location, $status = 302, $x_redirect_by = 'WordPress' ) {
++	function wp_safe_redirect( mixed $location, mixed $status = 302, mixed $x_redirect_by = 'WordPress' ): mixed {
+ 
+ 		// Need to look at the URL the way it will end up in wp_redirect().
+ 		$location = wp_sanitize_redirect( $location );
+@@ -1647,10 +1629,9 @@
+ 		$location = wp_validate_redirect( $location, $fallback_url );
+ 
+ 		return wp_redirect( $location, $status, $x_redirect_by );
+-	}
+-endif;
+-
+-if ( ! function_exists( 'wp_validate_redirect' ) ) :
++		return null;
++	}
++
+ 	/**
+ 	 * Validates a URL for use in a redirect.
+ 	 *
+@@ -1666,7 +1647,7 @@
+ 	 * @param string $fallback_url The value to return if $location is not allowed.
+ 	 * @return string Redirect-sanitized URL.
+ 	 */
+-	function wp_validate_redirect( $location, $fallback_url = '' ) {
++	function wp_validate_redirect( mixed $location, mixed $fallback_url = '' ): mixed {
+ 		$location = wp_sanitize_redirect( trim( $location, " \t\n\r\0\x08\x0B" ) );
+ 		// Browsers will assume 'http' is your protocol, and will obey a redirect to a URL starting with '//'.
+ 		if ( str_starts_with( $location, '//' ) ) {
+@@ -1733,10 +1714,9 @@
+ 		}
+ 
+ 		return $location;
+-	}
+-endif;
+-
+-if ( ! function_exists( 'wp_notify_postauthor' ) ) :
++		return null;
++	}
++
+ 	/**
+ 	 * Notifies an author (and/or others) of a comment/trackback/pingback on a post.
+ 	 *
+@@ -1746,7 +1726,7 @@
+ 	 * @param string         $deprecated Not used.
+ 	 * @return bool True on completion. False if no email addresses were specified.
+ 	 */
+-	function wp_notify_postauthor( $comment_id, $deprecated = null ) {
++	function wp_notify_postauthor( mixed $comment_id, mixed $deprecated = null ): mixed {
+ 		if ( null !== $deprecated ) {
+ 			_deprecated_argument( __FUNCTION__, '3.8.0' );
+ 		}
+@@ -1777,7 +1757,7 @@
+ 		 * @param string   $comment_id The comment ID as a numeric string.
+ 		 */
+ 		$emails = apply_filters( 'comment_notification_recipients', $emails, $comment->comment_ID );
+-		$emails = array_filter( $emails );
++		$emails = \wp_aot_array_filter( $emails );
+ 
+ 		// If there are no addresses to send the comment to, bail.
+ 		if ( ! count( $emails ) ) {
+@@ -1785,7 +1765,7 @@
+ 		}
+ 
+ 		// Facilitate unsetting below without knowing the keys.
+-		$emails = array_flip( $emails );
++		$emails = \wp_aot_array_flip( $emails );
+ 
+ 		/**
+ 		 * Filters whether to notify comment authors of their comments on their own posts.
+@@ -1820,10 +1800,10 @@
+ 		if ( ! count( $emails ) ) {
+ 			return false;
+ 		} else {
+-			$emails = array_flip( $emails );
+-		}
+-
+-		$comment_author_domain = '';
++			$emails = \wp_aot_array_flip( $emails );
++		}
++
++		$comment_author_domain = \wp_aot_mixed('');
+ 		if ( WP_Http::is_ip_address( $comment->comment_author_IP ) ) {
+ 			$comment_author_domain = gethostbyaddr( $comment->comment_author_IP );
+ 		}
+@@ -1835,7 +1815,7 @@
+ 		$blogname        = wp_specialchars_decode( get_option( 'blogname' ), ENT_QUOTES );
+ 		$comment_content = wp_specialchars_decode( $comment->comment_content );
+ 
+-		$wp_email = 'wordpress@' . preg_replace( '#^www\.#', '', wp_parse_url( network_home_url(), PHP_URL_HOST ) );
++		$wp_email = 'wordpress@' . \wp_aot_preg_replace( '#^www\.#', '', wp_parse_url( network_home_url(), PHP_URL_HOST ) );
+ 
+ 		if ( '' === $comment->comment_author ) {
+ 			$from = "From: \"$blogname\" <$wp_email>";
+@@ -1989,10 +1969,9 @@
+ 		}
+ 
+ 		return true;
+-	}
+-endif;
+-
+-if ( ! function_exists( 'wp_notify_moderator' ) ) :
++		return null;
++	}
++
+ 	/**
+ 	 * Notifies the moderator of the site about a new comment that is awaiting approval.
+ 	 *
+@@ -2006,7 +1985,7 @@
+ 	 * @param int $comment_id Comment ID.
+ 	 * @return true Always returns true.
+ 	 */
+-	function wp_notify_moderator( $comment_id ) {
++	function wp_notify_moderator( mixed $comment_id ): mixed {
+ 		global $wpdb;
+ 
+ 		$maybe_notify = get_option( 'moderation_notify' );
+@@ -2036,12 +2015,12 @@
+ 			}
+ 		}
+ 
+-		$comment_author_domain = '';
++		$comment_author_domain = \wp_aot_mixed('');
+ 		if ( WP_Http::is_ip_address( $comment->comment_author_IP ) ) {
+ 			$comment_author_domain = gethostbyaddr( $comment->comment_author_IP );
+ 		}
+ 
+-		$comments_waiting = $wpdb->get_var( "SELECT COUNT(*) FROM $wpdb->comments WHERE comment_approved = '0'" );
++		$comments_waiting = \wp_aot_require_wpdb( $wpdb )->get_var( "SELECT COUNT(*) FROM $wpdb->comments WHERE comment_approved = '0'" );
+ 
+ 		/*
+ 		 * The blogname option is escaped with esc_html() on the way into the database in sanitize_option().
+@@ -2183,10 +2162,9 @@
+ 		}
+ 
+ 		return true;
+-	}
+-endif;
+-
+-if ( ! function_exists( 'wp_password_change_notification' ) ) :
++		return null;
++	}
++
+ 	/**
+ 	 * Notifies the blog admin of a user changing password, normally via email.
+ 	 *
+@@ -2194,7 +2172,7 @@
+ 	 *
+ 	 * @param WP_User $user User object.
+ 	 */
+-	function wp_password_change_notification( $user ) {
++	function wp_password_change_notification( mixed $user ): mixed {
+ 		/*
+ 		 * Send a copy of password change notification to the admin,
+ 		 * but check to see if it's the admin whose password we're changing, and skip this.
+@@ -2254,10 +2232,9 @@
+ 				restore_previous_locale();
+ 			}
+ 		}
+-	}
+-endif;
+-
+-if ( ! function_exists( 'wp_new_user_notification' ) ) :
++		return null;
++	}
++
+ 	/**
+ 	 * Emails login credentials to a newly-registered user.
+ 	 *
+@@ -2273,14 +2250,14 @@
+ 	 * @param string $notify     Optional. Type of notification that should happen. Accepts 'admin' or an empty
+ 	 *                           string (admin only), 'user', or 'both' (admin and user). Default empty.
+ 	 */
+-	function wp_new_user_notification( $user_id, $deprecated = null, $notify = '' ) {
++	function wp_new_user_notification( mixed $user_id, mixed $deprecated = null, mixed $notify = '' ): mixed {
+ 		if ( null !== $deprecated ) {
+ 			_deprecated_argument( __FUNCTION__, '4.3.1' );
+ 		}
+ 
+ 		// Accepts only 'user', 'admin' , 'both' or default '' as $notify.
+ 		if ( ! in_array( $notify, array( 'user', 'admin', 'both', '' ), true ) ) {
+-			return;
++			return null;
+ 		}
+ 
+ 		$user = get_userdata( $user_id );
+@@ -2368,12 +2345,12 @@
+ 
+ 		// `$deprecated` was pre-4.3 `$plaintext_pass`. An empty `$plaintext_pass` didn't sent a user notification.
+ 		if ( 'admin' === $notify || true !== $send_notification_to_user || ( empty( $deprecated ) && empty( $notify ) ) ) {
+-			return;
++			return null;
+ 		}
+ 
+ 		$key = get_password_reset_key( $user );
+ 		if ( is_wp_error( $key ) ) {
+-			return;
++			return null;
+ 		}
+ 
+ 		$switched_locale = switch_to_user_locale( $user_id );
+@@ -2425,10 +2402,9 @@
+ 		if ( $switched_locale ) {
+ 			restore_previous_locale();
+ 		}
+-	}
+-endif;
+-
+-if ( ! function_exists( 'wp_nonce_tick' ) ) :
++		return null;
++	}
++
+ 	/**
+ 	 * Returns the time-dependent variable for nonce creation.
+ 	 *
+@@ -2441,7 +2417,7 @@
+ 	 * @param string|int $action Optional. The nonce action. Default -1.
+ 	 * @return float Float value rounded up to the next highest integer.
+ 	 */
+-	function wp_nonce_tick( $action = -1 ) {
++	function wp_nonce_tick( mixed $action = -1 ): mixed {
+ 		/**
+ 		 * Filters the lifespan of nonces in seconds.
+ 		 *
+@@ -2454,10 +2430,9 @@
+ 		$nonce_life = apply_filters( 'nonce_life', DAY_IN_SECONDS, $action );
+ 
+ 		return ceil( time() / ( $nonce_life / 2 ) );
+-	}
+-endif;
+-
+-if ( ! function_exists( 'wp_verify_nonce' ) ) :
++		return null;
++	}
++
+ 	/**
+ 	 * Verifies that a correct security nonce was used with time limit.
+ 	 *
+@@ -2471,7 +2446,7 @@
+ 	 *                   2 if the nonce is valid and generated between 12-24 hours ago.
+ 	 *                   False if the nonce is invalid.
+ 	 */
+-	function wp_verify_nonce( $nonce, $action = -1 ) {
++	function wp_verify_nonce( mixed $nonce, mixed $action = -1 ): mixed {
+ 		$nonce = (string) $nonce;
+ 		$user  = wp_get_current_user();
+ 		$uid   = (int) $user->ID;
+@@ -2520,10 +2495,9 @@
+ 
+ 		// Invalid nonce.
+ 		return false;
+-	}
+-endif;
+-
+-if ( ! function_exists( 'wp_create_nonce' ) ) :
++		return null;
++	}
++
+ 	/**
+ 	 * Creates a cryptographic token tied to a specific action, user, user session,
+ 	 * and window of time.
+@@ -2534,7 +2508,7 @@
+ 	 * @param string|int $action Scalar value to add context to the nonce.
+ 	 * @return string The token.
+ 	 */
+-	function wp_create_nonce( $action = -1 ) {
++	function wp_create_nonce( mixed $action = -1 ): mixed {
+ 		$user = wp_get_current_user();
+ 		$uid  = (int) $user->ID;
+ 		if ( ! $uid ) {
+@@ -2546,10 +2520,9 @@
+ 		$i     = wp_nonce_tick( $action );
+ 
+ 		return substr( wp_hash( $i . '|' . $action . '|' . $uid . '|' . $token, 'nonce' ), -12, 10 );
+-	}
+-endif;
+-
+-if ( ! function_exists( 'wp_salt' ) ) :
++		return null;
++	}
++
+ 	/**
+ 	 * Returns a salt to add to hashes.
+ 	 *
+@@ -2582,8 +2555,9 @@
+ 	 * @param string $scheme Authentication scheme (auth, secure_auth, logged_in, nonce).
+ 	 * @return string Salt value
+ 	 */
+-	function wp_salt( $scheme = 'auth' ) {
+-		static $cached_salts = array();
++	function wp_salt( mixed $scheme = 'auth' ): mixed {
++		static $cached_salts_aot_cell = new \WordPressStaticArrayCell();
++		$cached_salts =& $cached_salts_aot_cell->value;
+ 		if ( isset( $cached_salts[ $scheme ] ) ) {
+ 			/**
+ 			 * Filters the WordPress salt.
+@@ -2597,16 +2571,17 @@
+ 			return apply_filters( 'salt', $cached_salts[ $scheme ], $scheme );
+ 		}
+ 
+-		static $duplicated_keys;
++		static $duplicated_keys_aot_cell = new \WordPressStaticValueCell();
++		$duplicated_keys =& $duplicated_keys_aot_cell->value;
+ 		if ( null === $duplicated_keys ) {
+ 			$duplicated_keys = array();
+ 
+ 			foreach ( array( 'AUTH', 'SECURE_AUTH', 'LOGGED_IN', 'NONCE', 'SECRET' ) as $first ) {
+ 				foreach ( array( 'KEY', 'SALT' ) as $second ) {
+-					if ( ! defined( "{$first}_{$second}" ) ) {
++					if ( ! \wp_aot_metadata_defined( "{$first}_{$second}" ) ) {
+ 						continue;
+ 					}
+-					$value                     = constant( "{$first}_{$second}" );
++					$value                     = \wp_aot_metadata_constant( "{$first}_{$second}" );
+ 					$duplicated_keys[ $value ] = isset( $duplicated_keys[ $value ] );
+ 				}
+ 			}
+@@ -2634,7 +2609,7 @@
+ 		foreach ( array( 'auth', 'secure_auth', 'logged_in', 'nonce' ) as $key ) {
+ 			foreach ( array( 'key', 'salt' ) as $second ) {
+ 				$const = strtoupper( "{$key}_{$second}" );
+-				if ( ! defined( $const ) || true === $duplicated_keys[ constant( $const ) ] ) {
++				if ( ! \wp_aot_metadata_defined( $const ) || true === \wp_aot_mixed($duplicated_keys)[ \wp_aot_metadata_constant( $const ) ] ) {
+ 					$options_to_prime[] = "{$key}_{$second}";
+ 				}
+ 			}
+@@ -2660,18 +2635,18 @@
+ 			'key'  => '',
+ 			'salt' => '',
+ 		);
+-		if ( defined( 'SECRET_KEY' ) && SECRET_KEY && empty( $duplicated_keys[ SECRET_KEY ] ) ) {
+-			$values['key'] = SECRET_KEY;
+-		}
+-		if ( 'auth' === $scheme && defined( 'SECRET_SALT' ) && SECRET_SALT && empty( $duplicated_keys[ SECRET_SALT ] ) ) {
+-			$values['salt'] = SECRET_SALT;
++		if ( defined( 'SECRET_KEY' ) && \wp_aot_undefined_constant('SECRET_KEY') && empty( $duplicated_keys[ \wp_aot_undefined_constant('SECRET_KEY') ] ) ) {
++			$values['key'] = \wp_aot_undefined_constant('SECRET_KEY');
++		}
++		if ( 'auth' === $scheme && defined( 'SECRET_SALT' ) && \wp_aot_undefined_constant('SECRET_SALT') && empty( $duplicated_keys[ \wp_aot_undefined_constant('SECRET_SALT') ] ) ) {
++			$values['salt'] = \wp_aot_undefined_constant('SECRET_SALT');
+ 		}
+ 
+ 		if ( in_array( $scheme, array( 'auth', 'secure_auth', 'logged_in', 'nonce' ), true ) ) {
+ 			foreach ( array( 'key', 'salt' ) as $type ) {
+ 				$const = strtoupper( "{$scheme}_{$type}" );
+-				if ( defined( $const ) && constant( $const ) && empty( $duplicated_keys[ constant( $const ) ] ) ) {
+-					$values[ $type ] = constant( $const );
++				if ( \wp_aot_metadata_defined( $const ) && \wp_aot_metadata_constant( $const ) && empty( $duplicated_keys[ \wp_aot_metadata_constant( $const ) ] ) ) {
++					$values[ $type ] = \wp_aot_metadata_constant( $const );
+ 				} elseif ( ! $values[ $type ] ) {
+ 					$values[ $type ] = get_site_option( "{$scheme}_{$type}" );
+ 					if ( ! $values[ $type ] ) {
+@@ -2695,10 +2670,9 @@
+ 
+ 		/** This filter is documented in wp-includes/pluggable.php */
+ 		return apply_filters( 'salt', $cached_salts[ $scheme ], $scheme );
+-	}
+-endif;
+-
+-if ( ! function_exists( 'wp_hash' ) ) :
++		return null;
++	}
++
+ 	/**
+ 	 * Gets the hash of the given string.
+ 	 *
+@@ -2716,26 +2690,25 @@
+ 	 * @param string $algo   Hashing algorithm to use. Default: 'md5'.
+ 	 * @return string Hash of $data.
+ 	 */
+-	function wp_hash( $data, $scheme = 'auth', $algo = 'md5' ) {
++	function wp_hash( mixed $data, mixed $scheme = 'auth', mixed $algo = 'md5' ): mixed {
+ 		$salt = wp_salt( $scheme );
+ 
+ 		// Ensure the algorithm is supported by the hash_hmac function.
+-		if ( ! in_array( $algo, hash_hmac_algos(), true ) ) {
++		if ( ! in_array( $algo, \wp_aot_native_api('hash_hmac_algos', array()), true ) ) {
+ 			throw new InvalidArgumentException(
+ 				sprintf(
+ 					/* translators: 1: Name of a cryptographic hash algorithm. 2: List of supported algorithms. */
+ 					__( 'Unsupported hashing algorithm: %1$s. Supported algorithms are: %2$s' ),
+ 					$algo,
+-					implode( ', ', hash_hmac_algos() )
++					implode( ', ', \wp_aot_native_api('hash_hmac_algos', array()) )
+ 				)
+ 			);
+ 		}
+ 
+ 		return hash_hmac( $algo, $data, $salt );
+-	}
+-endif;
+-
+-if ( ! function_exists( 'wp_hash_password' ) ) :
++		return null;
++	}
++
+ 	/**
+ 	 * Creates a hash of a plain text password.
+ 	 *
+@@ -2753,14 +2726,14 @@
+ 	function wp_hash_password(
+ 		#[\SensitiveParameter]
+ 		$password
+-	) {
++	): mixed {
+ 		global $wp_hasher;
+ 
+ 		if ( ! empty( $wp_hasher ) ) {
+ 			return $wp_hasher->HashPassword( trim( $password ) );
+ 		}
+ 
+-		if ( strlen( $password ) > 4096 ) {
++		if ( \wp_aot_strlen( $password ) > 4096 ) {
+ 			return '*';
+ 		}
+ 
+@@ -2806,18 +2779,17 @@
+ 
+ 		// Algorithms other than bcrypt don't need to use pre-hashing.
+ 		if ( PASSWORD_BCRYPT !== $algorithm ) {
+-			return password_hash( $password, $algorithm, $options );
++			return \wp_aot_native_api('password_hash', array( $password, $algorithm, $options ));
+ 		}
+ 
+ 		// Use SHA-384 to retain entropy from a password that's longer than 72 bytes, and a `wp-sha384` key for domain separation.
+ 		$password_to_hash = base64_encode( hash_hmac( 'sha384', trim( $password ), 'wp-sha384', true ) );
+ 
+ 		// Add a prefix to facilitate distinguishing vanilla bcrypt hashes.
+-		return '$wp' . password_hash( $password_to_hash, $algorithm, $options );
+-	}
+-endif;
+-
+-if ( ! function_exists( 'wp_check_password' ) ) :
++		return '$wp' . \wp_aot_native_api('password_hash', array( $password_to_hash, $algorithm, $options ));
++		return null;
++	}
++
+ 	/**
+ 	 * Checks a plaintext password against a hashed password.
+ 	 *
+@@ -2843,9 +2815,9 @@
+ 	function wp_check_password(
+ 		#[\SensitiveParameter]
+ 		$password,
+-		$hash,
+-		$user_id = ''
+-	) {
++		mixed $hash,
++		mixed $user_id = ''
++	): mixed {
+ 		global $wp_hasher;
+ 
+ 		if ( strlen( $hash ) <= 32 ) {
+@@ -2854,20 +2826,20 @@
+ 		} elseif ( ! empty( $wp_hasher ) ) {
+ 			// Check the password using the overridden hasher.
+ 			$check = $wp_hasher->CheckPassword( $password, $hash );
+-		} elseif ( strlen( $password ) > 4096 ) {
++		} elseif ( \wp_aot_strlen( $password ) > 4096 ) {
+ 			// Passwords longer than 4096 characters are not supported.
+ 			$check = false;
+ 		} elseif ( str_starts_with( $hash, '$wp' ) ) {
+ 			// Check the password using the current prefixed hash.
+ 			$password_to_verify = base64_encode( hash_hmac( 'sha384', $password, 'wp-sha384', true ) );
+-			$check              = password_verify( $password_to_verify, substr( $hash, 3 ) );
++			$check              = \wp_aot_native_api('password_verify', array( $password_to_verify, substr( $hash, 3 ) ));
+ 		} elseif ( str_starts_with( $hash, '$P$' ) ) {
+ 			// Check the password using phpass.
+-			require_once ABSPATH . WPINC . '/class-phpass.php';
++			require_once __DIR__ . '/class-phpass.php';
+ 			$check = ( new PasswordHash( 8, true ) )->CheckPassword( $password, $hash );
+ 		} else {
+ 			// Check the password using compat support for any non-prefixed hash.
+-			$check = password_verify( $password, $hash );
++			$check = \wp_aot_native_api('password_verify', array( $password, $hash ));
+ 		}
+ 
+ 		/**
+@@ -2884,10 +2856,9 @@
+ 		 *                             Can be empty.
+ 		 */
+ 		return apply_filters( 'check_password', $check, $password, $hash, $user_id );
+-	}
+-endif;
+-
+-if ( ! function_exists( 'wp_password_needs_rehash' ) ) :
++		return null;
++	}
++
+ 	/**
+ 	 * Checks whether a password hash needs to be rehashed.
+ 	 *
+@@ -2908,7 +2879,7 @@
+ 	 * @param string|int $user_id Optional. ID of a user associated with the password.
+ 	 * @return bool Whether the hash needs to be rehashed.
+ 	 */
+-	function wp_password_needs_rehash( $hash, $user_id = '' ) {
++	function wp_password_needs_rehash( mixed $hash, mixed $user_id = '' ): mixed {
+ 		global $wp_hasher;
+ 
+ 		if ( ! empty( $wp_hasher ) ) {
+@@ -2929,7 +2900,7 @@
+ 		} else {
+ 			// Otherwise check the hash minus its prefix if necessary.
+ 			$hash_to_check = $prefixed ? substr( $hash, 3 ) : $hash;
+-			$needs_rehash  = password_needs_rehash( $hash_to_check, $algorithm, $options );
++			$needs_rehash  = \wp_aot_native_api('password_needs_rehash', array( $hash_to_check, $algorithm, $options ));
+ 		}
+ 
+ 		/**
+@@ -2942,10 +2913,9 @@
+ 		 * @param string|int $user_id      Optional. ID of a user associated with the password.
+ 		 */
+ 		return apply_filters( 'password_needs_rehash', $needs_rehash, $hash, $user_id );
+-	}
+-endif;
+-
+-if ( ! function_exists( 'wp_generate_password' ) ) :
++		return null;
++	}
++
+ 	/**
+ 	 * Generates a random password drawn from the defined set of characters.
+ 	 *
+@@ -2961,7 +2931,7 @@
+ 	 *                                  Used when generating secret keys and salts. Default false.
+ 	 * @return string The random password.
+ 	 */
+-	function wp_generate_password( $length = 12, $special_chars = true, $extra_special_chars = false ) {
++	function wp_generate_password( mixed $length = 12, mixed $special_chars = true, mixed $extra_special_chars = false ): mixed {
+ 		$chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+ 		if ( $special_chars ) {
+ 			$chars .= '!@#$%^&*()';
+@@ -2987,10 +2957,9 @@
+ 		 * @param bool   $extra_special_chars Whether to include other special characters.
+ 		 */
+ 		return apply_filters( 'random_password', $password, $length, $special_chars, $extra_special_chars );
+-	}
+-endif;
+-
+-if ( ! function_exists( 'wp_rand' ) ) :
++		return null;
++	}
++
+ 	/**
+ 	 * Generates a random non-negative number.
+ 	 *
+@@ -3006,7 +2975,7 @@
+ 	 *                 Accepts positive integers. Defaults to 4294967295.
+ 	 * @return int A random non-negative number between min and max.
+ 	 */
+-	function wp_rand( $min = null, $max = null ) {
++	function wp_rand( mixed $min = null, mixed $max = null ): mixed {
+ 		global $rnd_value;
+ 
+ 		/*
+@@ -3053,11 +3022,12 @@
+ 		 */
+ 		if ( strlen( $rnd_value ) < 8 ) {
+ 			if ( defined( 'WP_SETUP_CONFIG' ) ) {
+-				static $seed = '';
++				static $seed_aot_cell = new \WordPressStaticStringCell();
++				$seed =& $seed_aot_cell->value;
+ 			} else {
+ 				$seed = get_transient( 'random_seed' );
+ 			}
+-			$rnd_value  = md5( uniqid( microtime() . mt_rand(), true ) . $seed );
++			$rnd_value  = md5( \wp_aot_native_api('uniqid', array( microtime() . mt_rand(), true )) . $seed );
+ 			$rnd_value .= sha1( $rnd_value );
+ 			$rnd_value .= sha1( $rnd_value . $seed );
+ 			$seed       = md5( $seed . $rnd_value );
+@@ -3078,10 +3048,9 @@
+ 		$value = $min + ( $max - $min + 1 ) * $value / ( $max_random_number + 1 );
+ 
+ 		return abs( (int) $value );
+-	}
+-endif;
+-
+-if ( ! function_exists( 'wp_set_password' ) ) :
++		return null;
++	}
++
+ 	/**
+ 	 * Updates the user's password with a new hashed one.
+ 	 *
+@@ -3103,14 +3072,14 @@
+ 	function wp_set_password(
+ 		#[\SensitiveParameter]
+ 		$password,
+-		$user_id
+-	) {
++		mixed $user_id
++	): mixed {
+ 		global $wpdb;
+ 
+ 		$old_user_data = get_userdata( $user_id );
+ 
+ 		$hash = wp_hash_password( $password );
+-		$wpdb->update(
++		\wp_aot_require_wpdb( $wpdb )->update(
+ 			$wpdb->users,
+ 			array(
+ 				'user_pass'           => $hash,
+@@ -3132,10 +3101,9 @@
+ 		 * @param WP_User $old_user_data Object containing user's data prior to update.
+ 		 */
+ 		do_action( 'wp_set_password', $password, $user_id, $old_user_data );
+-	}
+-endif;
+-
+-if ( ! function_exists( 'get_avatar' ) ) :
++		return null;
++	}
++
+ 	/**
+ 	 * Retrieves the avatar `<img>` tag for a user, email address, MD5 hash, comment, or post.
+ 	 *
+@@ -3194,7 +3162,7 @@
+ 	 * }
+ 	 * @return string|false `<img>` tag for the user's avatar. False on failure.
+ 	 */
+-	function get_avatar( $id_or_email, $size = 96, $default_value = '', $alt = '', $args = null ) {
++	function get_avatar( mixed $id_or_email, mixed $size = 96, mixed $default_value = '', mixed $alt = '', mixed $args = null ): mixed {
+ 		$defaults = array(
+ 			// get_avatar_data() args.
+ 			'size'          => 96,
+@@ -3233,7 +3201,7 @@
+ 		// Update args with loading optimized attributes.
+ 		$loading_optimization_attr = wp_get_loading_optimization_attributes( 'img', $args, 'get_avatar' );
+ 
+-		$args = array_merge( $args, $loading_optimization_attr );
++		$args = \wp_aot_array_merge(array( $args, $loading_optimization_attr ));
+ 
+ 		if ( is_object( $id_or_email ) && isset( $id_or_email->comment_ID ) ) {
+ 			$id_or_email = get_comment( $id_or_email );
+@@ -3263,7 +3231,7 @@
+ 			return false;
+ 		}
+ 
+-		$url2x = get_avatar_url( $id_or_email, array_merge( $args, array( 'size' => $args['size'] * 2 ) ) );
++		$url2x = get_avatar_url( $id_or_email, \wp_aot_array_merge(array( $args, array( 'size' => $args['size'] * 2 ) )) );
+ 
+ 		$args = get_avatar_data( $id_or_email, $args );
+ 
+@@ -3273,7 +3241,7 @@
+ 			return false;
+ 		}
+ 
+-		$class = array( 'avatar', 'avatar-' . (int) $args['size'], 'photo' );
++		$class = \wp_aot_mixed(array( 'avatar', 'avatar-' . (int) $args['size'], 'photo' ));
+ 
+ 		if ( ! $args['found_avatar'] || $args['force_default'] ) {
+ 			$class[] = 'avatar-default';
+@@ -3281,7 +3249,7 @@
+ 
+ 		if ( $args['class'] ) {
+ 			if ( is_array( $args['class'] ) ) {
+-				$class = array_merge( $class, $args['class'] );
++				$class = \wp_aot_array_merge(array( $class, $args['class'] ));
+ 			} else {
+ 				$class[] = $args['class'];
+ 			}
+@@ -3291,7 +3259,7 @@
+ 		$extra_attr = $args['extra_attr'];
+ 
+ 		if ( in_array( $args['loading'], array( 'lazy', 'eager' ), true )
+-			&& ! preg_match( '/\bloading\s*=/', $extra_attr )
++			&& ! preg_match( '/\bloading\s*=/', \wp_aot_regex_text( $extra_attr ) )
+ 		) {
+ 			if ( ! empty( $extra_attr ) ) {
+ 				$extra_attr .= ' ';
+@@ -3301,7 +3269,7 @@
+ 		}
+ 
+ 		if ( in_array( $args['fetchpriority'], array( 'high', 'low', 'auto' ), true )
+-			&& ! preg_match( '/\bfetchpriority\s*=/', $extra_attr )
++			&& ! preg_match( '/\bfetchpriority\s*=/', \wp_aot_regex_text( $extra_attr ) )
+ 		) {
+ 			if ( ! empty( $extra_attr ) ) {
+ 				$extra_attr .= ' ';
+@@ -3311,7 +3279,7 @@
+ 		}
+ 
+ 		if ( in_array( $args['decoding'], array( 'async', 'sync', 'auto' ), true )
+-			&& ! preg_match( '/\bdecoding\s*=/', $extra_attr )
++			&& ! preg_match( '/\bdecoding\s*=/', \wp_aot_regex_text( $extra_attr ) )
+ 		) {
+ 			if ( ! empty( $extra_attr ) ) {
+ 				$extra_attr .= ' ';
+@@ -3355,10 +3323,9 @@
+ 		 * @param array  $args          Arguments passed to get_avatar_data(), after processing.
+ 		 */
+ 		return apply_filters( 'get_avatar', $avatar, $id_or_email, $args['size'], $args['default'], $args['alt'], $args );
+-	}
+-endif;
+-
+-if ( ! function_exists( 'wp_text_diff' ) ) :
++		return null;
++	}
++
+ 	/**
+ 	 * Displays a human readable HTML representation of the difference between two strings.
+ 	 *
+@@ -3388,7 +3355,7 @@
+ 	 * }
+ 	 * @return string Empty string if strings are equivalent or HTML with differences.
+ 	 */
+-	function wp_text_diff( $left_string, $right_string, $args = null ) {
++	function wp_text_diff( mixed $left_string, mixed $right_string, mixed $args = null ): mixed {
+ 		$defaults = array(
+ 			'title'           => '',
+ 			'title_left'      => '',
+@@ -3398,7 +3365,7 @@
+ 		$args     = wp_parse_args( $args, $defaults );
+ 
+ 		if ( ! class_exists( 'WP_Text_Diff_Renderer_Table', false ) ) {
+-			require ABSPATH . WPINC . '/wp-diff.php';
++			require __DIR__ . '/wp-diff.php';
+ 		}
+ 
+ 		$left_string  = normalize_whitespace( $left_string );
+@@ -3447,5 +3414,5 @@
+ 		$r .= '</table>';
+ 
+ 		return $r;
+-	}
+-endif;
++		return null;
++	}

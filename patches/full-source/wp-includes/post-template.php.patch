@@ -1,0 +1,775 @@
+--- a/wp-includes/post-template.php
++++ b/wp-includes/post-template.php
+@@ -13,8 +13,9 @@
+  *
+  * @since 0.71
+  */
+-function the_ID() { // phpcs:ignore WordPress.NamingConventions.ValidFunctionName.FunctionNameInvalid
++function the_ID(): mixed { // phpcs:ignore WordPress.NamingConventions.ValidFunctionName.FunctionNameInvalid
+ 	echo get_the_ID();
++	return null;
+ }
+ 
+ /**
+@@ -24,9 +25,10 @@
+  *
+  * @return int|false The ID of the current item in the WordPress Loop. False if $post is not set.
+  */
+-function get_the_ID() { // phpcs:ignore WordPress.NamingConventions.ValidFunctionName.FunctionNameInvalid
++function get_the_ID(): mixed { // phpcs:ignore WordPress.NamingConventions.ValidFunctionName.FunctionNameInvalid
+ 	$post = get_post();
+ 	return ! empty( $post ) ? $post->ID : false;
++	return null;
+ }
+ 
+ /**
+@@ -40,11 +42,11 @@
+  * @return void|string Void if `$display` argument is true or the title is empty,
+  *                     current post title if `$display` is false.
+  */
+-function the_title( $before = '', $after = '', $display = true ) {
++function the_title( mixed $before = '', mixed $after = '', mixed $display = true ): mixed {
+ 	$title = get_the_title();
+ 
+ 	if ( strlen( $title ) === 0 ) {
+-		return;
++		return null;
+ 	}
+ 
+ 	$title = $before . $title . $after;
+@@ -54,6 +56,7 @@
+ 	} else {
+ 		return $title;
+ 	}
++	return null;
+ }
+ 
+ /**
+@@ -78,7 +81,7 @@
+  * }
+  * @return void|string Void if 'echo' argument is true, the title attribute if 'echo' is false.
+  */
+-function the_title_attribute( $args = '' ) {
++function the_title_attribute( mixed $args = '' ): mixed {
+ 	$defaults    = array(
+ 		'before' => '',
+ 		'after'  => '',
+@@ -90,7 +93,7 @@
+ 	$title = get_the_title( $parsed_args['post'] );
+ 
+ 	if ( strlen( $title ) === 0 ) {
+-		return;
++		return null;
+ 	}
+ 
+ 	$title = $parsed_args['before'] . $title . $parsed_args['after'];
+@@ -101,6 +104,7 @@
+ 	} else {
+ 		return $title;
+ 	}
++	return null;
+ }
+ 
+ /**
+@@ -115,7 +119,7 @@
+  * @param int|WP_Post $post Optional. Post ID or WP_Post object. Default is global $post.
+  * @return string
+  */
+-function get_the_title( $post = 0 ) {
++function get_the_title( mixed $post = 0 ): mixed {
+ 	$post = get_post( $post );
+ 
+ 	$post_title = $post->post_title ?? '';
+@@ -172,6 +176,7 @@
+ 	 * @param int    $post_id    The post ID.
+ 	 */
+ 	return apply_filters( 'the_title', $post_title, $post_id );
++	return null;
+ }
+ 
+ /**
+@@ -187,7 +192,7 @@
+  *
+  * @param int|WP_Post $post Optional. Post ID or post object. Default is global $post.
+  */
+-function the_guid( $post = 0 ) {
++function the_guid( mixed $post = 0 ): mixed {
+ 	$post = get_post( $post );
+ 
+ 	$post_guid = isset( $post->guid ) ? get_the_guid( $post ) : '';
+@@ -204,6 +209,7 @@
+ 	 * @param int    $post_id   The post ID.
+ 	 */
+ 	echo apply_filters( 'the_guid', $post_guid, $post_id );
++	return null;
+ }
+ 
+ /**
+@@ -218,7 +224,7 @@
+  * @param int|WP_Post $post Optional. Post ID or post object. Default is global $post.
+  * @return string
+  */
+-function get_the_guid( $post = 0 ) {
++function get_the_guid( mixed $post = 0 ): mixed {
+ 	$post = get_post( $post );
+ 
+ 	$post_guid = $post->guid ?? '';
+@@ -233,6 +239,7 @@
+ 	 * @param int    $post_id   The post ID.
+ 	 */
+ 	return apply_filters( 'get_the_guid', $post_guid, $post_id );
++	return null;
+ }
+ 
+ /**
+@@ -243,7 +250,7 @@
+  * @param string $more_link_text Optional. Content for when there is more text.
+  * @param bool   $strip_teaser   Optional. Strip teaser content before the more text. Default false.
+  */
+-function the_content( $more_link_text = null, $strip_teaser = false ) {
++function the_content( mixed $more_link_text = null, mixed $strip_teaser = false ): mixed {
+ 	$content = get_the_content( $more_link_text, $strip_teaser );
+ 
+ 	/**
+@@ -254,8 +261,9 @@
+ 	 * @param string $content Content of the current post.
+ 	 */
+ 	$content = apply_filters( 'the_content', $content );
+-	$content = str_replace( ']]>', ']]&gt;', $content );
++	$content = \wp_aot_str_replace( ']]>', ']]&gt;', $content );
+ 	echo $content;
++	return null;
+ }
+ 
+ /**
+@@ -276,7 +284,7 @@
+  * @param WP_Post|object|int $post           Optional. WP_Post instance or Post ID/object. Default null.
+  * @return string
+  */
+-function get_the_content( $more_link_text = null, $strip_teaser = false, $post = null ) {
++function get_the_content( mixed $more_link_text = null, mixed $strip_teaser = false, mixed $post = null ): mixed {
+ 	global $page, $more, $preview, $pages, $multipage;
+ 
+ 	$_post = get_post( $post );
+@@ -290,7 +298,7 @@
+ 	 * but only after they have been set up in setup_postdata().
+ 	 */
+ 	if ( null === $post && did_action( 'the_post' ) ) {
+-		$elements = compact( 'page', 'more', 'preview', 'pages', 'multipage' );
++		$elements = \wp_aot_compact(get_defined_vars(), array( 'page', 'more', 'preview', 'pages', 'multipage' ));
+ 	} else {
+ 		$elements = generate_postdata( $_post );
+ 	}
+@@ -328,10 +336,10 @@
+ 
+ 	$page_no = $elements['page'];
+ 	$content = $elements['pages'][ $page_no - 1 ];
+-	if ( preg_match( '/<!--more(.*?)?-->/', $content, $matches ) ) {
++	if ( preg_match( '/<!--more(.*?)?-->/', \wp_aot_regex_text( $content ), $matches ) ) {
+ 		if ( has_block( 'more', $content ) ) {
+ 			// Remove the core/more block delimiters. They will be left over after $content is split up.
+-			$content = preg_replace( '/<!-- \/?wp:more(.*?) -->/', '', $content );
++			$content = \wp_aot_preg_replace( '/<!-- \/?wp:more(.*?) -->/', '', $content );
+ 		}
+ 
+ 		$content = explode( $matches[0], $content, 2 );
+@@ -380,6 +388,7 @@
+ 	}
+ 
+ 	return $output;
++	return null;
+ }
+ 
+ /**
+@@ -387,7 +396,7 @@
+  *
+  * @since 0.71
+  */
+-function the_excerpt() {
++function the_excerpt(): mixed {
+ 
+ 	/**
+ 	 * Filters the displayed post excerpt.
+@@ -399,6 +408,7 @@
+ 	 * @param string $post_excerpt The post excerpt.
+ 	 */
+ 	echo apply_filters( 'the_excerpt', get_the_excerpt() );
++	return null;
+ }
+ 
+ /**
+@@ -410,7 +420,7 @@
+  * @param int|WP_Post|null $post Optional. Post ID or WP_Post object. Default is global $post.
+  * @return string Post excerpt.
+  */
+-function get_the_excerpt( $post = null ) {
++function get_the_excerpt( mixed $post = null ): mixed {
+ 	if ( is_bool( $post ) ) {
+ 		_deprecated_argument( __FUNCTION__, '2.3.0' );
+ 	}
+@@ -434,6 +444,7 @@
+ 	 * @param WP_Post $post         Post object.
+ 	 */
+ 	return apply_filters( 'get_the_excerpt', $post->post_excerpt, $post );
++	return null;
+ }
+ 
+ /**
+@@ -448,9 +459,10 @@
+  * @param int|WP_Post $post Optional. Post ID or WP_Post object. Default is global $post.
+  * @return bool True if the post has a custom excerpt, false otherwise.
+  */
+-function has_excerpt( $post = 0 ) {
++function has_excerpt( mixed $post = 0 ): mixed {
+ 	$post = get_post( $post );
+ 	return ( ! empty( $post->post_excerpt ) );
++	return null;
+ }
+ 
+ /**
+@@ -462,9 +474,10 @@
+  *                                    Default empty.
+  * @param int|WP_Post|null $post      Optional. Post ID or post object. Defaults to the global `$post`.
+  */
+-function post_class( $css_class = '', $post = null ) {
++function post_class( mixed $css_class = '', mixed $post = null ): mixed {
+ 	// Separates classes with a single space, collates classes for post DIV.
+ 	echo 'class="' . esc_attr( implode( ' ', get_post_class( $css_class, $post ) ) ) . '"';
++	return null;
+ }
+ 
+ /**
+@@ -491,16 +504,16 @@
+  * @param int|WP_Post|null $post      Optional. Post ID or post object.
+  * @return string[] Array of class names.
+  */
+-function get_post_class( $css_class = '', $post = null ) {
++function get_post_class( mixed $css_class = '', mixed $post = null ): mixed {
+ 	$post = get_post( $post );
+ 
+-	$classes = array();
++	$classes = \wp_aot_mixed(array());
+ 
+ 	if ( $css_class ) {
+ 		if ( ! is_array( $css_class ) ) {
+-			$css_class = preg_split( '#\s+#', $css_class );
+-		}
+-		$classes = array_map( 'esc_attr', $css_class );
++			$css_class = \wp_aot_preg_split( '#\s+#', \wp_aot_regex_text( $css_class ) );
++		}
++		$classes = \wp_aot_array_map( 'esc_attr', $css_class );
+ 	} else {
+ 		// Ensure that we always coerce class to being an array.
+ 		$css_class = array();
+@@ -593,7 +606,7 @@
+ 		}
+ 	}
+ 
+-	$classes = array_map( 'esc_attr', $classes );
++	$classes = \wp_aot_array_map( 'esc_attr', $classes );
+ 
+ 	/**
+ 	 * Filters the list of CSS class names for the current post.
+@@ -606,10 +619,11 @@
+ 	 */
+ 	$classes = apply_filters( 'post_class', $classes, $css_class, $post->ID );
+ 
+-	$classes = array_unique( $classes );
++	$classes = \wp_aot_array_unique( $classes );
+ 	$classes = array_values( $classes );
+ 
+ 	return $classes;
++	return null;
+ }
+ 
+ /**
+@@ -620,9 +634,10 @@
+  * @param string|string[] $css_class Optional. Space-separated string or array of class names
+  *                                   to add to the class list. Default empty.
+  */
+-function body_class( $css_class = '' ) {
++function body_class( mixed $css_class = '' ): mixed {
+ 	// Separates class names with a single space, collates class names for body element.
+ 	echo 'class="' . esc_attr( implode( ' ', get_body_class( $css_class ) ) ) . '"';
++	return null;
+ }
+ 
+ /**
+@@ -636,10 +651,10 @@
+  *                                   to add to the class list. Default empty.
+  * @return string[] Array of class names.
+  */
+-function get_body_class( $css_class = '' ) {
++function get_body_class( mixed $css_class = '' ): mixed {
+ 	global $wp_query;
+ 
+-	$classes = array();
++	$classes = \wp_aot_mixed(array());
+ 
+ 	if ( is_rtl() ) {
+ 		$classes[] = 'rtl';
+@@ -688,9 +703,9 @@
+ 			$template_parts = explode( '/', $template_slug );
+ 
+ 			foreach ( $template_parts as $part ) {
+-				$classes[] = "{$post_type}-template-" . sanitize_html_class( str_replace( array( '.', '/' ), '-', basename( $part, '.php' ) ) );
++				$classes[] = "{$post_type}-template-" . sanitize_html_class( \wp_aot_str_replace( array( '.', '/' ), '-', basename( $part, '.php' ) ) );
+ 			}
+-			$classes[] = "{$post_type}-template-" . sanitize_html_class( str_replace( '.', '-', $template_slug ) );
++			$classes[] = "{$post_type}-template-" . sanitize_html_class( \wp_aot_str_replace( '.', '-', $template_slug ) );
+ 		} else {
+ 			$classes[] = "{$post_type}-template-default";
+ 		}
+@@ -718,7 +733,7 @@
+ 			$mime_type   = get_post_mime_type( $post_id );
+ 			$mime_prefix = array( 'application/', 'image/', 'text/', 'audio/', 'video/', 'music/' );
+ 			$classes[]   = 'attachmentid-' . $post_id;
+-			$classes[]   = 'attachment-' . str_replace( $mime_prefix, '', $mime_type );
++			$classes[]   = 'attachment-' . \wp_aot_str_replace( $mime_prefix, '', $mime_type );
+ 		} elseif ( is_page() ) {
+ 			$classes[] = 'page';
+ 			$classes[] = 'page-id-' . $post_id;
+@@ -848,15 +863,15 @@
+ 
+ 	if ( ! empty( $css_class ) ) {
+ 		if ( ! is_array( $css_class ) ) {
+-			$css_class = preg_split( '#\s+#', $css_class );
+-		}
+-		$classes = array_merge( $classes, $css_class );
++			$css_class = \wp_aot_preg_split( '#\s+#', \wp_aot_regex_text( $css_class ) );
++		}
++		$classes = \wp_aot_array_merge(array( $classes, $css_class ));
+ 	} else {
+ 		// Ensure that we always coerce class to being an array.
+ 		$css_class = array();
+ 	}
+ 
+-	$classes = array_map( 'esc_attr', $classes );
++	$classes = \wp_aot_array_map( 'esc_attr', $classes );
+ 
+ 	/**
+ 	 * Filters the list of CSS body class names for the current post or page.
+@@ -868,7 +883,8 @@
+ 	 */
+ 	$classes = apply_filters( 'body_class', $classes, $css_class );
+ 
+-	return array_unique( $classes );
++	return \wp_aot_array_unique( $classes );
++	return null;
+ }
+ 
+ /**
+@@ -879,7 +895,7 @@
+  * @param int|WP_Post|null $post An optional post. Global $post used if not provided.
+  * @return bool false if a password is not required or the correct password cookie is present, true otherwise.
+  */
+-function post_password_required( $post = null ) {
++function post_password_required( mixed $post = null ): mixed {
+ 	$post = get_post( $post );
+ 
+ 	if ( empty( $post->post_password ) ) {
+@@ -887,15 +903,15 @@
+ 		return apply_filters( 'post_password_required', false, $post );
+ 	}
+ 
+-	if ( ! isset( $_COOKIE[ 'wp-postpass_' . COOKIEHASH ] ) ) {
++	if ( ! isset( $_COOKIE[ 'wp-postpass_' . \wp_aot_bootstrap_string('COOKIEHASH') ] ) ) {
+ 		/** This filter is documented in wp-includes/post-template.php */
+ 		return apply_filters( 'post_password_required', true, $post );
+ 	}
+ 
+-	require_once ABSPATH . WPINC . '/class-phpass.php';
++	require_once __DIR__ . '/class-phpass.php';
+ 	$hasher = new PasswordHash( 8, true );
+ 
+-	$hash = wp_unslash( $_COOKIE[ 'wp-postpass_' . COOKIEHASH ] );
++	$hash = wp_unslash( $_COOKIE[ 'wp-postpass_' . \wp_aot_bootstrap_string('COOKIEHASH') ] );
+ 	if ( ! str_starts_with( $hash, '$P$B' ) ) {
+ 		$required = true;
+ 	} else {
+@@ -912,6 +928,7 @@
+ 	 * @param WP_Post $post     Post object.
+ 	 */
+ 	return apply_filters( 'post_password_required', $required, $post );
++	return null;
+ }
+ 
+ //
+@@ -955,7 +972,7 @@
+  * }
+  * @return string Formatted output in HTML.
+  */
+-function wp_link_pages( $args = '' ) {
++function wp_link_pages( mixed $args = '' ): mixed {
+ 	global $page, $numpages, $multipage, $more;
+ 
+ 	$defaults = array(
+@@ -989,7 +1006,7 @@
+ 		if ( 'number' === $parsed_args['next_or_number'] ) {
+ 			$output .= $parsed_args['before'];
+ 			for ( $i = 1; $i <= $numpages; $i++ ) {
+-				$link = $parsed_args['link_before'] . str_replace( '%', $i, $parsed_args['pagelink'] ) . $parsed_args['link_after'];
++				$link = $parsed_args['link_before'] . \wp_aot_str_replace( '%', $i, $parsed_args['pagelink'] ) . $parsed_args['link_after'];
+ 
+ 				if ( $i !== $page || ! $more && 1 === $page ) {
+ 					$link = _wp_link_page( $i ) . $link . '</a>';
+@@ -1050,6 +1067,7 @@
+ 		echo $html;
+ 	}
+ 	return $html;
++	return null;
+ }
+ 
+ /**
+@@ -1063,7 +1081,7 @@
+  * @param int $i Page number.
+  * @return string Link.
+  */
+-function _wp_link_page( $i ) {
++function _wp_link_page( mixed $i ): mixed {
+ 	global $wp_rewrite;
+ 	$post       = get_post();
+ 	$query_args = array();
+@@ -1091,6 +1109,7 @@
+ 	}
+ 
+ 	return '<a href="' . esc_url( $url ) . '" class="post-page-numbers">';
++	return null;
+ }
+ 
+ //
+@@ -1106,7 +1125,7 @@
+  * @return array|string|false Array of values, or single value if only one element exists.
+  *                            False if the key does not exist.
+  */
+-function post_custom( $key = '' ) {
++function post_custom( mixed $key = '' ): mixed {
+ 	$custom = get_post_custom();
+ 
+ 	if ( ! isset( $custom[ $key ] ) ) {
+@@ -1116,6 +1135,7 @@
+ 	} else {
+ 		return $custom[ $key ];
+ 	}
++	return null;
+ }
+ 
+ /**
+@@ -1125,7 +1145,7 @@
+  *
+  * @deprecated 6.0.2 Use get_post_meta() to retrieve post meta and render manually.
+  */
+-function the_meta() {
++function the_meta(): mixed {
+ 	_deprecated_function( __FUNCTION__, '6.0.2', 'get_post_meta()' );
+ 	$keys = get_post_custom_keys();
+ 	if ( $keys ) {
+@@ -1136,7 +1156,7 @@
+ 				continue;
+ 			}
+ 
+-			$values = array_map( 'trim', get_post_custom_values( $key ) );
++			$values = \wp_aot_array_map( 'trim', get_post_custom_values( $key ) );
+ 			$value  = implode( ', ', $values );
+ 
+ 			$html = sprintf(
+@@ -1162,6 +1182,7 @@
+ 			echo "<ul class='post-meta'>\n{$li_html}</ul>\n";
+ 		}
+ 	}
++	return null;
+ }
+ 
+ //
+@@ -1198,7 +1219,7 @@
+  * }
+  * @return string HTML dropdown list of pages.
+  */
+-function wp_dropdown_pages( $args = '' ) {
++function wp_dropdown_pages( mixed $args = '' ): mixed {
+ 	$defaults = array(
+ 		'depth'                 => 0,
+ 		'child_of'              => 0,
+@@ -1257,6 +1278,7 @@
+ 	}
+ 
+ 	return $html;
++	return null;
+ }
+ 
+ /**
+@@ -1300,7 +1322,7 @@
+  * }
+  * @return void|string Void if 'echo' argument is true, HTML list of pages if 'echo' is false.
+  */
+-function wp_list_pages( $args = '' ) {
++function wp_list_pages( mixed $args = '' ): mixed {
+ 	$defaults = array(
+ 		'depth'        => 0,
+ 		'show_date'    => '',
+@@ -1328,7 +1350,7 @@
+ 	$current_page = 0;
+ 
+ 	// Sanitize, mostly to keep spaces out.
+-	$parsed_args['exclude'] = preg_replace( '/[^0-9,]/', '', $parsed_args['exclude'] );
++	$parsed_args['exclude'] = \wp_aot_preg_replace( '/[^0-9,]/', '', $parsed_args['exclude'] );
+ 
+ 	// Allow plugins to filter an array of excluded pages (but don't put a nullstring into the array).
+ 	$exclude_array = ( $parsed_args['exclude'] ) ? explode( ',', $parsed_args['exclude'] ) : array();
+@@ -1388,6 +1410,7 @@
+ 	} else {
+ 		return $html;
+ 	}
++	return null;
+ }
+ 
+ /**
+@@ -1423,7 +1446,7 @@
+  * }
+  * @return void|string Void if 'echo' argument is true, HTML menu if 'echo' is false.
+  */
+-function wp_page_menu( $args = array() ) {
++function wp_page_menu( mixed $args = array() ): mixed {
+ 	$defaults = array(
+ 		'sort_column'  => 'menu_order, post_title',
+ 		'menu_id'      => '',
+@@ -1544,6 +1567,7 @@
+ 	} else {
+ 		return $menu;
+ 	}
++	return null;
+ }
+ 
+ //
+@@ -1562,7 +1586,7 @@
+  * @param array $args
+  * @return string
+  */
+-function walk_page_tree( $pages, $depth, $current_page, $args ) {
++function walk_page_tree( mixed $pages, mixed $depth, mixed $current_page, mixed $args ): mixed {
+ 	if ( empty( $args['walker'] ) ) {
+ 		$walker = new Walker_Page();
+ 	} else {
+@@ -1579,6 +1603,7 @@
+ 	}
+ 
+ 	return $walker->walk( $pages, $depth, $args, $current_page );
++	return null;
+ }
+ 
+ /**
+@@ -1594,7 +1619,7 @@
+  * @param mixed ...$args Elements array, maximum hierarchical depth and optional additional arguments.
+  * @return string
+  */
+-function walk_page_dropdown_tree( ...$args ) {
++function walk_page_dropdown_tree( mixed ...$args ): mixed {
+ 	if ( empty( $args[2]['walker'] ) ) { // The user's options are the third parameter.
+ 		$walker = new Walker_PageDropdown();
+ 	} else {
+@@ -1605,6 +1630,7 @@
+ 	}
+ 
+ 	return $walker->walk( ...$args );
++	return null;
+ }
+ 
+ //
+@@ -1621,7 +1647,7 @@
+  * @param bool        $deprecated Deprecated. Not used.
+  * @param bool        $permalink Optional. Whether to include permalink. Default false.
+  */
+-function the_attachment_link( $post = 0, $fullsize = false, $deprecated = false, $permalink = false ) {
++function the_attachment_link( mixed $post = 0, mixed $fullsize = false, mixed $deprecated = false, mixed $permalink = false ): mixed {
+ 	if ( ! empty( $deprecated ) ) {
+ 		_deprecated_argument( __FUNCTION__, '2.5.0' );
+ 	}
+@@ -1631,6 +1657,7 @@
+ 	} else {
+ 		echo wp_get_attachment_link( $post, 'thumbnail', $permalink );
+ 	}
++	return null;
+ }
+ 
+ /**
+@@ -1649,7 +1676,7 @@
+  * @param array|string $attr      Optional. Array or string of attributes. Default empty.
+  * @return string HTML content.
+  */
+-function wp_get_attachment_link( $post = 0, $size = 'thumbnail', $permalink = false, $icon = false, $text = false, $attr = '' ) {
++function wp_get_attachment_link( mixed $post = 0, mixed $size = 'thumbnail', mixed $permalink = false, mixed $icon = false, mixed $text = false, mixed $attr = '' ): mixed {
+ 	$_post = get_post( $post );
+ 
+ 	if ( empty( $_post ) || ( 'attachment' !== $_post->post_type ) || ! wp_get_attachment_url( $_post->ID ) ) {
+@@ -1713,6 +1740,7 @@
+ 	 * @param array|string $attr      Array or string of attributes.
+ 	 */
+ 	return apply_filters( 'wp_get_attachment_link', $link_html, $post, $size, $permalink, $icon, $text, $attr );
++	return null;
+ }
+ 
+ /**
+@@ -1723,7 +1751,7 @@
+  * @param string $content
+  * @return string
+  */
+-function prepend_attachment( $content ) {
++function prepend_attachment( mixed $content ): mixed {
+ 	$post = get_post();
+ 
+ 	if ( empty( $post->post_type ) || 'attachment' !== $post->post_type ) {
+@@ -1762,6 +1790,7 @@
+ 	$p = apply_filters( 'prepend_attachment', $p );
+ 
+ 	return "$p\n$content";
++	return null;
+ }
+ 
+ //
+@@ -1776,7 +1805,7 @@
+  * @param int|WP_Post $post Optional. Post ID or WP_Post object. Default is global $post.
+  * @return string HTML content for password form for password-protected post.
+  */
+-function get_the_password_form( $post = 0 ) {
++function get_the_password_form( mixed $post = 0 ): mixed {
+ 	$post                  = get_post( $post );
+ 	$field_id              = 'pwbox-' . ( empty( $post->ID ) ? wp_rand() : $post->ID );
+ 	$invalid_password      = '';
+@@ -1786,7 +1815,7 @@
+ 	$redirect_field        = '';
+ 
+ 	// If the referrer is the same as the current request, the user has entered an invalid password.
+-	if ( ! empty( $post->ID ) && wp_get_raw_referer() === get_permalink( $post->ID ) && isset( $_COOKIE[ 'wp-postpass_' . COOKIEHASH ] ) ) {
++	if ( ! empty( $post->ID ) && wp_get_raw_referer() === get_permalink( $post->ID ) && isset( $_COOKIE[ 'wp-postpass_' . \wp_aot_bootstrap_string('COOKIEHASH') ] ) ) {
+ 		/**
+ 		 * Filters the invalid password message shown on password-protected posts.
+ 		 * The filter is only applied if the post is password-protected.
+@@ -1845,6 +1874,7 @@
+ 	 * @param string  $invalid_password The invalid password message.
+ 	 */
+ 	return apply_filters( 'the_password_form', $output, $post, $invalid_password );
++	return null;
+ }
+ 
+ /**
+@@ -1865,7 +1895,7 @@
+  * @param string|string[] $template The specific template filename or array of templates to match.
+  * @return bool True on success, false on failure.
+  */
+-function is_page_template( $template = '' ) {
++function is_page_template( mixed $template = '' ): mixed {
+ 	if ( ! is_singular() ) {
+ 		return false;
+ 	}
+@@ -1889,6 +1919,7 @@
+ 	}
+ 
+ 	return ( 'default' === $template && ! $page_template );
++	return null;
+ }
+ 
+ /**
+@@ -1901,7 +1932,7 @@
+  * @return string|false Page template filename. Returns an empty string when the default page template
+  *                      is in use. Returns false if the post does not exist.
+  */
+-function get_page_template_slug( $post = null ) {
++function get_page_template_slug( mixed $post = null ): mixed {
+ 	$post = get_post( $post );
+ 
+ 	if ( ! $post ) {
+@@ -1915,6 +1946,7 @@
+ 	}
+ 
+ 	return $template;
++	return null;
+ }
+ 
+ /**
+@@ -1926,7 +1958,7 @@
+  * @param bool        $link     Optional. Whether to link to revision's page. Default true.
+  * @return string|false i18n formatted datetimestamp or localized 'Current Revision'.
+  */
+-function wp_post_revision_title( $revision, $link = true ) {
++function wp_post_revision_title( mixed $revision, mixed $link = true ): mixed {
+ 	$revision = get_post( $revision );
+ 
+ 	if ( ! $revision ) {
+@@ -1957,6 +1989,7 @@
+ 	}
+ 
+ 	return $date;
++	return null;
+ }
+ 
+ /**
+@@ -1968,7 +2001,7 @@
+  * @param bool        $link     Optional. Whether to link to revision's page. Default true.
+  * @return string|false gravatar, user, i18n formatted datetimestamp or localized 'Current Revision'.
+  */
+-function wp_post_revision_title_expanded( $revision, $link = true ) {
++function wp_post_revision_title_expanded( mixed $revision, mixed $link = true ): mixed {
+ 	$revision = get_post( $revision );
+ 
+ 	if ( ! $revision ) {
+@@ -2022,6 +2055,7 @@
+ 	 *                                      wp_post_revision_title_expanded().
+ 	 */
+ 	return apply_filters( 'wp_post_revision_title_expanded', $revision_date_author, $revision, $link );
++	return null;
+ }
+ 
+ /**
+@@ -2035,11 +2069,11 @@
+  * @param int|WP_Post $post Optional. Post ID or WP_Post object. Default is global $post.
+  * @param string      $type 'all' (default), 'revision' or 'autosave'
+  */
+-function wp_list_post_revisions( $post = 0, $type = 'all' ) {
++function wp_list_post_revisions( mixed $post = 0, mixed $type = 'all' ): mixed {
+ 	$post = get_post( $post );
+ 
+ 	if ( ! $post ) {
+-		return;
++		return null;
+ 	}
+ 
+ 	// $args array with (parent, format, right, left, type) deprecated since 3.6.
+@@ -2051,7 +2085,7 @@
+ 	$revisions = wp_get_post_revisions( $post->ID );
+ 
+ 	if ( ! $revisions ) {
+-		return;
++		return null;
+ 	}
+ 
+ 	$rows = '';
+@@ -2073,6 +2107,7 @@
+ 	echo "<ul class='post-revisions hide-if-no-js'>\n";
+ 	echo $rows;
+ 	echo '</ul>';
++	return null;
+ }
+ 
+ /**
+@@ -2083,9 +2118,10 @@
+  * @param int|WP_Post|null $post Optional. Post ID or WP_Post object. Default is global $post.
+  * @return WP_Post|null Parent post object, or null if there isn't one.
+  */
+-function get_post_parent( $post = null ) {
++function get_post_parent( mixed $post = null ): mixed {
+ 	$wp_post = get_post( $post );
+ 	return ! empty( $wp_post->post_parent ) ? get_post( $wp_post->post_parent ) : null;
++	return null;
+ }
+ 
+ /**
+@@ -2096,6 +2132,7 @@
+  * @param int|WP_Post|null $post Optional. Post ID or WP_Post object. Default is global $post.
+  * @return bool Whether the post has a parent post.
+  */
+-function has_post_parent( $post = null ) {
++function has_post_parent( mixed $post = null ): mixed {
+ 	return (bool) get_post_parent( $post );
+-}
++	return null;
++}

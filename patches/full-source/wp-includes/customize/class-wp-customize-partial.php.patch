@@ -1,0 +1,104 @@
+--- a/wp-includes/customize/class-wp-customize-partial.php
++++ b/wp-includes/customize/class-wp-customize-partial.php
+@@ -158,7 +158,7 @@
+ 	 *                                           false.
+ 	 * }
+ 	 */
+-	public function __construct( WP_Customize_Selective_Refresh $component, $id, $args = array() ) {
++	public function __construct( WP_Customize_Selective_Refresh $component, mixed $id, mixed $args = array() ) {
+ 		$keys = array_keys( get_object_vars( $this ) );
+ 		foreach ( $keys as $key ) {
+ 			if ( isset( $args[ $key ] ) ) {
+@@ -168,8 +168,8 @@
+ 
+ 		$this->component       = $component;
+ 		$this->id              = $id;
+-		$this->id_data['keys'] = preg_split( '/\[/', str_replace( ']', '', $this->id ) );
+-		$this->id_data['base'] = array_shift( $this->id_data['keys'] );
++		$this->id_data['keys'] = \wp_aot_preg_split( '/\[/', \wp_aot_regex_text( \wp_aot_str_replace( ']', '', $this->id ) ) );
++		$this->id_data['base'] = \wp_aot_array_shift( $this->id_data['keys'] );
+ 
+ 		if ( empty( $this->render_callback ) ) {
+ 			$this->render_callback = array( $this, 'render_callback' );
+@@ -183,7 +183,7 @@
+ 		}
+ 
+ 		if ( empty( $this->primary_setting ) ) {
+-			$this->primary_setting = current( $this->settings );
++			$this->primary_setting = wp_aot_array_first( $this->settings );
+ 		}
+ 	}
+ 
+@@ -199,8 +199,9 @@
+ 	 *     @type array  $keys Keys for multidimensional array.
+ 	 * }
+ 	 */
+-	final public function id_data() {
++	final public function id_data(): mixed {
+ 		return $this->id_data;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -213,7 +214,7 @@
+ 	 * @return string|array|false The rendered partial as a string, raw data array (for client-side JS template),
+ 	 *                            or false if no render applied.
+ 	 */
+-	final public function render( $container_context = array() ) {
++	final public function render( mixed $container_context = array() ): mixed {
+ 		$partial  = $this;
+ 		$rendered = false;
+ 
+@@ -260,6 +261,7 @@
+ 		$rendered = apply_filters( "customize_partial_render_{$partial->id}", $rendered, $partial, $container_context );
+ 
+ 		return $rendered;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -280,9 +282,10 @@
+ 	 * @param array                $context Context.
+ 	 * @return string|array|false
+ 	 */
+-	public function render_callback( WP_Customize_Partial $partial, $context = array() ) {
++	public function render_callback( WP_Customize_Partial $partial, mixed $context = array() ): mixed {
+ 		unset( $partial, $context );
+ 		return false;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -292,7 +295,7 @@
+ 	 *
+ 	 * @return array Array of parameters passed to the JavaScript.
+ 	 */
+-	public function json() {
++	public function json(): mixed {
+ 		$exports = array(
+ 			'settings'           => $this->settings,
+ 			'primarySetting'     => $this->primary_setting,
+@@ -302,6 +305,7 @@
+ 			'containerInclusive' => $this->container_inclusive,
+ 		);
+ 		return $exports;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -315,7 +319,7 @@
+ 	 * @return bool False if user can't edit one of the related settings,
+ 	 *                    or if one of the associated settings does not exist.
+ 	 */
+-	final public function check_capabilities() {
++	final public function check_capabilities(): mixed {
+ 		if ( ! empty( $this->capability ) && ! current_user_can( $this->capability ) ) {
+ 			return false;
+ 		}
+@@ -326,5 +330,6 @@
+ 			}
+ 		}
+ 		return true;
++		return null;
+ 	}
+ }

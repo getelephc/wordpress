@@ -1,0 +1,397 @@
+--- a/wp-includes/pomo/po.php
++++ b/wp-includes/pomo/po.php
+@@ -26,7 +26,7 @@
+ 		 *
+ 		 * @return string msgid/msgstr PO entry for this PO file headers, doesn't contain newline at the end
+ 		 */
+-		public function export_headers() {
++		public function export_headers(): mixed {
+ 			$header_string = '';
+ 			foreach ( $this->headers as $header => $value ) {
+ 				$header_string .= "$header: $value\n";
+@@ -38,6 +38,7 @@
+ 				$before_headers = '';
+ 			}
+ 			return rtrim( "{$before_headers}msgid \"\"\nmsgstr $poified" );
++			return null;
+ 		}
+ 
+ 		/**
+@@ -45,9 +46,10 @@
+ 		 *
+ 		 * @return string sequence of msgid/msgstr PO strings, doesn't contain a newline at the end
+ 		 */
+-		public function export_entries() {
++		public function export_entries(): mixed {
+ 			// TODO: Sorting.
+-			return implode( "\n\n", array_map( array( 'PO', 'export_entry' ), $this->entries ) );
++			return implode( "\n\n", \wp_aot_array_map( array( 'PO', 'export_entry' ), $this->entries ) );
++			return null;
+ 		}
+ 
+ 		/**
+@@ -56,7 +58,7 @@
+ 		 * @param bool $include_headers whether to include the headers in the export
+ 		 * @return string ready for inclusion in PO file string for headers and all the entries
+ 		 */
+-		public function export( $include_headers = true ) {
++		public function export( mixed $include_headers = true ): mixed {
+ 			$res = '';
+ 			if ( $include_headers ) {
+ 				$res .= $this->export_headers();
+@@ -64,6 +66,7 @@
+ 			}
+ 			$res .= $this->export_entries();
+ 			return $res;
++			return null;
+ 		}
+ 
+ 		/**
+@@ -73,17 +76,18 @@
+ 		 * @param bool   $include_headers Whether to include the headers in the export.
+ 		 * @return bool true on success, false on error
+ 		 */
+-		public function export_to_file( $filename, $include_headers = true ) {
++		public function export_to_file( mixed $filename, mixed $include_headers = true ): mixed {
+ 			$fh = fopen( $filename, 'w' );
+ 			if ( false === $fh ) {
+ 				return false;
+ 			}
+ 			$export = $this->export( $include_headers );
+-			$res    = fwrite( $fh, $export );
++			$res    = \wp_aot_fwrite( $fh, $export );
+ 			if ( false === $res ) {
+ 				return false;
+ 			}
+ 			return fclose( $fh );
++			return null;
+ 		}
+ 
+ 		/**
+@@ -93,8 +97,9 @@
+ 		 *
+ 		 * @param string $text Text to include as a comment.
+ 		 */
+-		public function set_comment_before_headers( $text ) {
++		public function set_comment_before_headers( mixed $text ): mixed {
+ 			$this->comments_before_headers = $text;
++			return null;
+ 		}
+ 
+ 		/**
+@@ -103,7 +108,7 @@
+ 		 * @param string $input_string the string to format
+ 		 * @return string the poified string
+ 		 */
+-		public static function poify( $input_string ) {
++		public static function poify( mixed $input_string ): mixed {
+ 			$quote   = '"';
+ 			$slash   = '\\';
+ 			$newline = "\n";
+@@ -114,7 +119,7 @@
+ 				"\t"     => '\t',
+ 			);
+ 
+-			$input_string = str_replace( array_keys( $replaces ), array_values( $replaces ), $input_string );
++			$input_string = \wp_aot_str_replace( array_keys( $replaces ), array_values( $replaces ), $input_string );
+ 
+ 			$po = $quote . implode( "{$slash}n{$quote}{$newline}{$quote}", explode( $newline, $input_string ) ) . $quote;
+ 			// Add empty string on first line for readability.
+@@ -123,8 +128,9 @@
+ 				$po = "$quote$quote$newline$po";
+ 			}
+ 			// Remove empty strings.
+-			$po = str_replace( "$newline$quote$quote", '', $po );
++			$po = \wp_aot_str_replace( "$newline$quote$quote", '', $po );
+ 			return $po;
++			return null;
+ 		}
+ 
+ 		/**
+@@ -133,19 +139,19 @@
+ 		 * @param string $input_string PO-formatted string
+ 		 * @return string unescaped string
+ 		 */
+-		public static function unpoify( $input_string ) {
++		public static function unpoify( mixed $input_string ): mixed {
+ 			$escapes               = array(
+ 				't'  => "\t",
+ 				'n'  => "\n",
+ 				'r'  => "\r",
+ 				'\\' => '\\',
+ 			);
+-			$lines                 = array_map( 'trim', explode( "\n", $input_string ) );
+-			$lines                 = array_map( array( 'PO', 'trim_quotes' ), $lines );
++			$lines                 = \wp_aot_array_map( 'trim', explode( "\n", $input_string ) );
++			$lines                 = \wp_aot_array_map( array( 'PO', 'trim_quotes' ), $lines );
+ 			$unpoified             = '';
+ 			$previous_is_backslash = false;
+ 			foreach ( $lines as $line ) {
+-				preg_match_all( '/./u', $line, $chars );
++				preg_match_all( '/./u', \wp_aot_regex_text( $line ), $chars );
+ 				$chars = $chars[0];
+ 				foreach ( $chars as $char ) {
+ 					if ( ! $previous_is_backslash ) {
+@@ -162,9 +168,10 @@
+ 			}
+ 
+ 			// Standardize the line endings on imported content, technically PO files shouldn't contain \r.
+-			$unpoified = str_replace( array( "\r\n", "\r" ), "\n", $unpoified );
++			$unpoified = \wp_aot_str_replace( array( "\r\n", "\r" ), "\n", $unpoified );
+ 
+ 			return $unpoified;
++			return null;
+ 		}
+ 
+ 		/**
+@@ -174,7 +181,7 @@
+ 		 * @param string $input_string prepend lines in this string
+ 		 * @param string $with         prepend lines with this string
+ 		 */
+-		public static function prepend_each_line( $input_string, $with ) {
++		public static function prepend_each_line( mixed $input_string, mixed $with ): mixed {
+ 			$lines  = explode( "\n", $input_string );
+ 			$append = '';
+ 			if ( "\n" === substr( $input_string, -1 ) && '' === end( $lines ) ) {
+@@ -183,7 +190,7 @@
+ 				 * with a newline, remove it from the $lines array,
+ 				 * we'll restore state by re-terminating the string at the end.
+ 				 */
+-				array_pop( $lines );
++				\wp_aot_array_pop( $lines );
+ 				$append = "\n";
+ 			}
+ 			foreach ( $lines as &$line ) {
+@@ -191,6 +198,7 @@
+ 			}
+ 			unset( $line );
+ 			return implode( "\n", $lines ) . $append;
++			return null;
+ 		}
+ 
+ 		/**
+@@ -202,9 +210,10 @@
+ 		 * @param string $char character to denote a special PO comment,
+ 		 *  like :, default is a space
+ 		 */
+-		public static function comment_block( $text, $char = ' ' ) {
++		public static function comment_block( mixed $text, mixed $char = ' ' ): mixed {
+ 			$text = wordwrap( $text, PO_MAX_LINE_LEN - 3 );
+ 			return PO::prepend_each_line( $text, "#$char " );
++			return null;
+ 		}
+ 
+ 		/**
+@@ -214,7 +223,7 @@
+ 		 * @return string|false PO-style formatted string for the entry or
+ 		 *  false if the entry is empty
+ 		 */
+-		public static function export_entry( $entry ) {
++		public static function export_entry( mixed $entry ): mixed {
+ 			if ( null === $entry->singular || '' === $entry->singular ) {
+ 				return false;
+ 			}
+@@ -248,9 +257,10 @@
+ 				}
+ 			}
+ 			return implode( "\n", $po );
+-		}
+-
+-		public static function match_begin_and_end_newlines( $translation, $original ) {
++			return null;
++		}
++
++		public static function match_begin_and_end_newlines( mixed $translation, mixed $original ): mixed {
+ 			if ( '' === $translation ) {
+ 				return $translation;
+ 			}
+@@ -277,13 +287,14 @@
+ 			}
+ 
+ 			return $translation;
++			return null;
+ 		}
+ 
+ 		/**
+ 		 * @param string $filename
+ 		 * @return bool
+ 		 */
+-		public function import_from_file( $filename ) {
++		public function import_from_file( mixed $filename ): mixed {
+ 			$f = fopen( $filename, 'r' );
+ 			if ( ! $f ) {
+ 				return false;
+@@ -308,6 +319,7 @@
+ 				return false;
+ 			}
+ 			return true;
++			return null;
+ 		}
+ 
+ 		/**
+@@ -316,8 +328,9 @@
+ 		 * @param string $context
+ 		 * @return bool
+ 		 */
+-		protected static function is_final( $context ) {
++		protected static function is_final( mixed $context ): mixed {
+ 			return ( 'msgstr' === $context ) || ( 'msgstr_plural' === $context );
++			return null;
+ 		}
+ 
+ 		/**
+@@ -325,7 +338,7 @@
+ 		 * @param int      $lineno
+ 		 * @return null|false|array
+ 		 */
+-		public function read_entry( $f, $lineno = 0 ) {
++		public function read_entry( mixed $f, mixed $lineno = 0 ): mixed {
+ 			$entry = new Translation_Entry();
+ 			// Where were we in the last step.
+ 			// Can be: comment, msgctxt, msgid, msgid_plural, msgstr, msgstr_plural.
+@@ -351,7 +364,7 @@
+ 					continue;
+ 				}
+ 				$line = trim( $line );
+-				if ( preg_match( '/^#/', $line, $m ) ) {
++				if ( preg_match( '/^#/', \wp_aot_regex_text( $line ), $m ) ) {
+ 					// The comment is the start of a new entry.
+ 					if ( self::is_final( $context ) ) {
+ 						PO::read_line( $f, 'put-back' );
+@@ -364,7 +377,7 @@
+ 					}
+ 					// Add comment.
+ 					$this->add_comment_to_entry( $entry, $line );
+-				} elseif ( preg_match( '/^msgctxt\s+(".*")/', $line, $m ) ) {
++				} elseif ( preg_match( '/^msgctxt\s+(".*")/', \wp_aot_regex_text( $line ), $m ) ) {
+ 					if ( self::is_final( $context ) ) {
+ 						PO::read_line( $f, 'put-back' );
+ 						--$lineno;
+@@ -375,7 +388,7 @@
+ 					}
+ 					$context         = 'msgctxt';
+ 					$entry->context .= PO::unpoify( $m[1] );
+-				} elseif ( preg_match( '/^msgid\s+(".*")/', $line, $m ) ) {
++				} elseif ( preg_match( '/^msgid\s+(".*")/', \wp_aot_regex_text( $line ), $m ) ) {
+ 					if ( self::is_final( $context ) ) {
+ 						PO::read_line( $f, 'put-back' );
+ 						--$lineno;
+@@ -386,27 +399,27 @@
+ 					}
+ 					$context          = 'msgid';
+ 					$entry->singular .= PO::unpoify( $m[1] );
+-				} elseif ( preg_match( '/^msgid_plural\s+(".*")/', $line, $m ) ) {
++				} elseif ( preg_match( '/^msgid_plural\s+(".*")/', \wp_aot_regex_text( $line ), $m ) ) {
+ 					if ( 'msgid' !== $context ) {
+ 						return false;
+ 					}
+ 					$context          = 'msgid_plural';
+ 					$entry->is_plural = true;
+ 					$entry->plural   .= PO::unpoify( $m[1] );
+-				} elseif ( preg_match( '/^msgstr\s+(".*")/', $line, $m ) ) {
++				} elseif ( preg_match( '/^msgstr\s+(".*")/', \wp_aot_regex_text( $line ), $m ) ) {
+ 					if ( 'msgid' !== $context ) {
+ 						return false;
+ 					}
+ 					$context             = 'msgstr';
+ 					$entry->translations = array( PO::unpoify( $m[1] ) );
+-				} elseif ( preg_match( '/^msgstr\[(\d+)\]\s+(".*")/', $line, $m ) ) {
++				} elseif ( preg_match( '/^msgstr\[(\d+)\]\s+(".*")/', \wp_aot_regex_text( $line ), $m ) ) {
+ 					if ( 'msgid_plural' !== $context && 'msgstr_plural' !== $context ) {
+ 						return false;
+ 					}
+ 					$context                      = 'msgstr_plural';
+ 					$msgstr_index                 = $m[1];
+ 					$entry->translations[ $m[1] ] = PO::unpoify( $m[2] );
+-				} elseif ( preg_match( '/^".*"$/', $line ) ) {
++				} elseif ( preg_match( '/^".*"$/', \wp_aot_regex_text( $line ) ) ) {
+ 					$unpoified = PO::unpoify( $line );
+ 					switch ( $context ) {
+ 						case 'msgid':
+@@ -447,6 +460,7 @@
+ 				'entry'  => $entry,
+ 				'lineno' => $lineno,
+ 			);
++			return null;
+ 		}
+ 
+ 		/**
+@@ -454,9 +468,11 @@
+ 		 * @param string   $action
+ 		 * @return bool
+ 		 */
+-		public function read_line( $f, $action = 'read' ) {
+-			static $last_line     = '';
+-			static $use_last_line = false;
++		public function read_line( mixed $f, mixed $action = 'read' ): mixed {
++			static $last_line_aot_cell = new \WordPressStaticStringCell();
++			$last_line =& $last_line_aot_cell->value;
++			static $use_last_line_aot_cell = new \WordPressStaticFalseCell();
++			$use_last_line =& $use_last_line_aot_cell->value;
+ 			if ( 'clear' === $action ) {
+ 				$last_line = '';
+ 				return true;
+@@ -469,7 +485,7 @@
+ 			if ( $use_last_line ) {
+ 				$line = $last_line;
+ 			} else {
+-				$line = fgets( $f );
++				$line = \wp_aot_fgets( $f );
+ 				if ( false === $line ) {
+ 					return $line;
+ 				}
+@@ -485,7 +501,7 @@
+ 						// The lines are terminated by just \r, so we end the line there and rewind.
+ 						$rewind = strlen( $line ) - $r - 1;
+ 						$line   = substr( $line, 0, $r ) . "\n";
+-						fseek( $f, - $rewind, SEEK_CUR );
++						fseek( $f, \wp_aot_internal_int( - $rewind ), SEEK_CUR );
+ 					}
+ 				}
+ 			}
+@@ -493,31 +509,33 @@
+ 			$last_line     = $line;
+ 			$use_last_line = false;
+ 			return $line;
++			return null;
+ 		}
+ 
+ 		/**
+ 		 * @param Translation_Entry $entry
+ 		 * @param string            $po_comment_line
+ 		 */
+-		public function add_comment_to_entry( &$entry, $po_comment_line ) {
++		public function add_comment_to_entry( mixed &$entry, mixed $po_comment_line ): mixed {
+ 			$first_two = substr( $po_comment_line, 0, 2 );
+ 			$comment   = trim( substr( $po_comment_line, 2 ) );
+ 			if ( '#:' === $first_two ) {
+-				$entry->references = array_merge( $entry->references, preg_split( '/\s+/', $comment ) );
++				$entry->references = \wp_aot_array_merge(array( $entry->references, \wp_aot_preg_split( '/\s+/', \wp_aot_regex_text( $comment ) ) ));
+ 			} elseif ( '#.' === $first_two ) {
+ 				$entry->extracted_comments = trim( $entry->extracted_comments . "\n" . $comment );
+ 			} elseif ( '#,' === $first_two ) {
+-				$entry->flags = array_merge( $entry->flags, preg_split( '/,\s*/', $comment ) );
++				$entry->flags = \wp_aot_array_merge(array( $entry->flags, \wp_aot_preg_split( '/,\s*/', \wp_aot_regex_text( $comment ) ) ));
+ 			} else {
+ 				$entry->translator_comments = trim( $entry->translator_comments . "\n" . $comment );
+ 			}
++			return null;
+ 		}
+ 
+ 		/**
+ 		 * @param string $s
+ 		 * @return string
+ 		 */
+-		public static function trim_quotes( $s ) {
++		public static function trim_quotes( mixed $s ): mixed {
+ 			if ( str_starts_with( $s, '"' ) ) {
+ 				$s = substr( $s, 1 );
+ 			}
+@@ -525,6 +543,7 @@
+ 				$s = substr( $s, 0, -1 );
+ 			}
+ 			return $s;
++			return null;
+ 		}
+ 	}
+ endif;

@@ -1,0 +1,36 @@
+--- a/wp-admin/network/settings.php
++++ b/wp-admin/network/settings.php
+@@ -32,13 +32,13 @@
+ 		$redirect = 'settings.php?updated=true';
+ 	}
+ 	wp_redirect( network_admin_url( $redirect ) );
+-	exit;
++	\wp_aot_exit();
+ } elseif ( ! empty( $_GET['dismiss'] ) && 'new_network_admin_email' === $_GET['dismiss'] ) {
+ 	check_admin_referer( 'dismiss_new_network_admin_email' );
+ 	delete_site_option( 'network_admin_hash' );
+ 	delete_site_option( 'new_admin_email' );
+ 	wp_redirect( network_admin_url( 'settings.php?updated=true' ) );
+-	exit;
++	\wp_aot_exit();
+ }
+ 
+ add_action( 'admin_head', 'network_settings_add_js' );
+@@ -132,7 +132,7 @@
+ 	do_action( 'update_wpmu_options' );
+ 
+ 	wp_redirect( add_query_arg( 'updated', 'true', network_admin_url( 'settings.php' ) ) );
+-	exit;
++	\wp_aot_exit();
+ }
+ 
+ require_once ABSPATH . 'wp-admin/admin-header.php';
+@@ -279,7 +279,7 @@
+ 						$limited_email_domains = '';
+ 					} else {
+ 						// Convert from an input field. Back-compat for WPMU < 1.0.
+-						$limited_email_domains = str_replace( ' ', "\n", $limited_email_domains );
++						$limited_email_domains = \wp_aot_str_replace( ' ', "\n", $limited_email_domains );
+ 
+ 						if ( is_array( $limited_email_domains ) ) {
+ 							$limited_email_domains = implode( "\n", $limited_email_domains );

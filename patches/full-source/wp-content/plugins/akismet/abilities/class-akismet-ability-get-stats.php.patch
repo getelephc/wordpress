@@ -1,0 +1,17 @@
+--- a/wp-content/plugins/akismet/abilities/class-akismet-ability-get-stats.php
++++ b/wp-content/plugins/akismet/abilities/class-akismet-ability-get-stats.php
+@@ -191,12 +191,12 @@
+ 		}
+ 
+ 		// Build response with data from API (already properly typed by get_stats).
+-		return array_merge(
++		return \wp_aot_array_merge(array(
+ 			array(
+ 				'success'  => true,
+ 				'interval' => $interval,
+ 			),
+ 			(array) $data
+-		);
++		));
+ 	}
+ }

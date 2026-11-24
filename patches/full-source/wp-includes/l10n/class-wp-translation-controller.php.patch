@@ -1,0 +1,175 @@
+--- a/wp-includes/l10n/class-wp-translation-controller.php
++++ b/wp-includes/l10n/class-wp-translation-controller.php
+@@ -29,7 +29,7 @@
+ 	 * @since 6.5.0
+ 	 * @var array<string, array<string, WP_Translation_File[]>>
+ 	 */
+-	protected $loaded_translations = array();
++	protected mixed $loaded_translations = array();
+ 
+ 	/**
+ 	 * List of loaded translation files.
+@@ -39,7 +39,7 @@
+ 	 * @since 6.5.0
+ 	 * @var array<string, array<string, array<string, WP_Translation_File|false>>>
+ 	 */
+-	protected $loaded_files = array();
++	protected mixed $loaded_files = array();
+ 
+ 	/**
+ 	 * Container for the main instance of the class.
+@@ -47,7 +47,7 @@
+ 	 * @since 6.5.0
+ 	 * @var WP_Translation_Controller|null
+ 	 */
+-	private static $instance = null;
++	private static mixed $instance = null;
+ 
+ 	/**
+ 	 * Utility method to retrieve the main instance of the class.
+@@ -63,7 +63,7 @@
+ 			self::$instance = new self();
+ 		}
+ 
+-		return self::$instance;
++		return \wp_aot_require_WP_Translation_Controller(self::$instance);
+ 	}
+ 
+ 	/**
+@@ -84,8 +84,9 @@
+ 	 *
+ 	 * @param string $locale Locale.
+ 	 */
+-	public function set_locale( string $locale ) {
++	public function set_locale( string $locale ): mixed {
+ 		$this->current_locale = $locale;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -120,7 +121,7 @@
+ 			isset( $this->loaded_files[ $translation_file ][ $locale ] ) &&
+ 			array() !== $this->loaded_files[ $translation_file ][ $locale ]
+ 		) {
+-			$moe = reset( $this->loaded_files[ $translation_file ][ $locale ] );
++			$moe = wp_aot_array_first( $this->loaded_files[ $translation_file ][ $locale ] );
+ 		} else {
+ 			$moe = WP_Translation_File::create( $translation_file );
+ 			if ( false === $moe || null !== $moe->error() ) {
+@@ -153,7 +154,7 @@
+ 	 * @param string                     $locale     Optional. Locale. Defaults to all locales.
+ 	 * @return bool True on success, false otherwise.
+ 	 */
+-	public function unload_file( $file, string $textdomain = 'default', ?string $locale = null ): bool {
++	public function unload_file( mixed $file, string $textdomain = 'default', ?string $locale = null ): bool {
+ 		if ( is_string( $file ) ) {
+ 			$file = realpath( $file );
+ 		}
+@@ -173,11 +174,11 @@
+ 		}
+ 
+ 		foreach ( $this->loaded_translations as $l => $domains ) {
+-			if ( ! isset( $domains[ $textdomain ] ) ) {
++			if ( ! isset( \wp_aot_mixed($domains)[ $textdomain ] ) ) {
+ 				continue;
+ 			}
+ 
+-			foreach ( $domains[ $textdomain ] as $i => $moe ) {
++			foreach ( \wp_aot_mixed($domains)[ $textdomain ] as $i => $moe ) {
+ 				if ( $file === $moe || $file === $moe->get_file() ) {
+ 					unset( $this->loaded_translations[ $l ][ $textdomain ][ $i ] );
+ 					unset( $this->loaded_files[ $moe->get_file() ][ $l ][ $textdomain ] );
+@@ -215,13 +216,13 @@
+ 		}
+ 
+ 		foreach ( $this->loaded_translations as $l => $domains ) {
+-			if ( ! isset( $domains[ $textdomain ] ) ) {
++			if ( ! isset( \wp_aot_mixed($domains)[ $textdomain ] ) ) {
+ 				continue;
+ 			}
+ 
+ 			$unloaded = true;
+ 
+-			foreach ( $domains[ $textdomain ] as $moe ) {
++			foreach ( \wp_aot_mixed($domains)[ $textdomain ] as $moe ) {
+ 				unset( $this->loaded_files[ $moe->get_file() ][ $l ][ $textdomain ] );
+ 			}
+ 
+@@ -260,7 +261,7 @@
+ 	 * @param string $locale     Optional. Locale. Default current locale.
+ 	 * @return string|false Translation on success, false otherwise.
+ 	 */
+-	public function translate( string $text, string $context = '', string $textdomain = 'default', ?string $locale = null ) {
++	public function translate( string $text, string $context = '', string $textdomain = 'default', ?string $locale = null ): mixed {
+ 		if ( '' !== $context ) {
+ 			$context .= "\4";
+ 		}
+@@ -272,6 +273,7 @@
+ 		}
+ 
+ 		return $translation['entries'][0];
++		return null;
+ 	}
+ 
+ 	/**
+@@ -294,7 +296,7 @@
+ 	 * @param string|null $locale     Optional. Locale. Default current locale.
+ 	 * @return string|false Translation on success, false otherwise.
+ 	 */
+-	public function translate_plural( array $plurals, int $number, string $context = '', string $textdomain = 'default', ?string $locale = null ) {
++	public function translate_plural( array $plurals, int $number, string $context = '', string $textdomain = 'default', ?string $locale = null ): mixed {
+ 		if ( '' !== $context ) {
+ 			$context .= "\4";
+ 		}
+@@ -317,6 +319,7 @@
+ 
+ 		// See \Translations::translate_plural().
+ 		return $translation['entries'][ $num ] ?? $translation['entries'][0];
++		return null;
+ 	}
+ 
+ 	/**
+@@ -353,7 +356,7 @@
+ 	 */
+ 	protected function normalize_header( string $header ): string {
+ 		$parts = explode( '-', $header );
+-		$parts = array_map( 'ucfirst', $parts );
++		$parts = \wp_aot_array_map( 'ucfirst', $parts );
+ 		return implode( '-', $parts );
+ 	}
+ 
+@@ -373,7 +376,7 @@
+ 		$entries = array();
+ 
+ 		foreach ( $this->get_files( $textdomain ) as $moe ) {
+-			$entries = array_merge( $entries, $moe->entries() );
++			$entries = \wp_aot_array_merge(array( $entries, $moe->entries() ));
+ 		}
+ 
+ 		return $entries;
+@@ -394,7 +397,7 @@
+ 	 *     @type string[]            $entries Array of translation entries.
+ 	 * }
+ 	 */
+-	protected function locate_translation( string $singular, string $textdomain = 'default', ?string $locale = null ) {
++	protected function locate_translation( string $singular, string $textdomain = 'default', ?string $locale = null ): mixed {
+ 		if ( array() === $this->loaded_translations ) {
+ 			return false;
+ 		}
+@@ -416,6 +419,7 @@
+ 
+ 		// Nothing could be found.
+ 		return false;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -432,7 +436,7 @@
+ 			$locale = $this->current_locale;
+ 		}
+ 
+-		return $this->loaded_translations[ $locale ][ $textdomain ] ?? array();
++		return \wp_aot_array_input($this->loaded_translations[ $locale ][ $textdomain ] ?? array());
+ 	}
+ 
+ 	/**

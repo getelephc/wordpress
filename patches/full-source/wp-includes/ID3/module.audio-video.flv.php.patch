@@ -1,0 +1,529 @@
+--- a/wp-includes/ID3/module.audio-video.flv.php
++++ b/wp-includes/ID3/module.audio-video.flv.php
+@@ -54,7 +54,7 @@
+ /////////////////////////////////////////////////////////////////
+ 
+ if (!defined('GETID3_INCLUDEPATH')) { // prevent path-exposing attacks that access modules directly on public webservers
+-	exit;
++	\wp_aot_exit();
+ }
+ 
+ define('GETID3_FLV_TAG_AUDIO',          8);
+@@ -93,7 +93,7 @@
+ 	/**
+ 	 * @return bool
+ 	 */
+-	public function Analyze() {
++	public function Analyze(): mixed {
+ 		$info = &$this->getid3->info;
+ 
+ 		$this->fseek($info['avdataoffset']);
+@@ -345,6 +345,7 @@
+ 			$info['video']['codec'] = self::videoCodecLookup($info['flv']['meta']['onMetaData']['videocodecid']);
+ 		}
+ 		return true;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -352,7 +353,7 @@
+ 	 *
+ 	 * @return string|false
+ 	 */
+-	public static function audioFormatLookup($id) {
++	public static function audioFormatLookup(mixed $id): mixed {
+ 		static $lookup = array(
+ 			0  => 'Linear PCM, platform endian',
+ 			1  => 'ADPCM',
+@@ -372,6 +373,7 @@
+ 			15 => 'Device-specific sound',
+ 		);
+ 		return (isset($lookup[$id]) ? $lookup[$id] : false);
++		return null;
+ 	}
+ 
+ 	/**
+@@ -379,7 +381,7 @@
+ 	 *
+ 	 * @return int|false
+ 	 */
+-	public static function audioRateLookup($id) {
++	public static function audioRateLookup(mixed $id): mixed {
+ 		static $lookup = array(
+ 			0 =>  5500,
+ 			1 => 11025,
+@@ -387,6 +389,7 @@
+ 			3 => 44100,
+ 		);
+ 		return (isset($lookup[$id]) ? $lookup[$id] : false);
++		return null;
+ 	}
+ 
+ 	/**
+@@ -394,12 +397,13 @@
+ 	 *
+ 	 * @return int|false
+ 	 */
+-	public static function audioBitDepthLookup($id) {
++	public static function audioBitDepthLookup(mixed $id): mixed {
+ 		static $lookup = array(
+ 			0 =>  8,
+ 			1 => 16,
+ 		);
+ 		return (isset($lookup[$id]) ? $lookup[$id] : false);
++		return null;
+ 	}
+ 
+ 	/**
+@@ -407,7 +411,7 @@
+ 	 *
+ 	 * @return string|false
+ 	 */
+-	public static function videoCodecLookup($id) {
++	public static function videoCodecLookup(mixed $id): mixed {
+ 		static $lookup = array(
+ 			GETID3_FLV_VIDEO_H263         => 'Sorenson H.263',
+ 			GETID3_FLV_VIDEO_SCREEN       => 'Screen video',
+@@ -417,6 +421,7 @@
+ 			GETID3_FLV_VIDEO_H264         => 'Sorenson H.264',
+ 		);
+ 		return (isset($lookup[$id]) ? $lookup[$id] : false);
++		return null;
+ 	}
+ }
+ 
+@@ -435,7 +440,7 @@
+ 	/**
+ 	 * @param string $bytes
+ 	 */
+-	public function __construct(&$bytes) {
++	public function __construct(mixed &$bytes) {
+ 		$this->bytes =& $bytes;
+ 		$this->pos = 0;
+ 	}
+@@ -443,45 +448,51 @@
+ 	/**
+ 	 * @return int
+ 	 */
+-	public function readByte() { //  8-bit
++	public function readByte(): mixed { //  8-bit
+ 		return ord(substr($this->bytes, $this->pos++, 1));
+-	}
+-
+-	/**
+-	 * @return int
+-	 */
+-	public function readInt() { // 16-bit
++		return null;
++	}
++
++	/**
++	 * @return int
++	 */
++	public function readInt(): mixed { // 16-bit
+ 		return ($this->readByte() << 8) + $this->readByte();
+-	}
+-
+-	/**
+-	 * @return int
+-	 */
+-	public function readLong() { // 32-bit
++		return null;
++	}
++
++	/**
++	 * @return int
++	 */
++	public function readLong(): mixed { // 32-bit
+ 		return ($this->readByte() << 24) + ($this->readByte() << 16) + ($this->readByte() << 8) + $this->readByte();
++		return null;
+ 	}
+ 
+ 	/**
+ 	 * @return float|false
+ 	 */
+-	public function readDouble() {
++	public function readDouble(): mixed {
+ 		return getid3_lib::BigEndian2Float($this->read(8));
++		return null;
+ 	}
+ 
+ 	/**
+ 	 * @return string
+ 	 */
+-	public function readUTF() {
++	public function readUTF(): mixed {
+ 		$length = $this->readInt();
+ 		return $this->read($length);
++		return null;
+ 	}
+ 
+ 	/**
+ 	 * @return string
+ 	 */
+-	public function readLongUTF() {
++	public function readLongUTF(): mixed {
+ 		$length = $this->readLong();
+ 		return $this->read($length);
++		return null;
+ 	}
+ 
+ 	/**
+@@ -489,70 +500,77 @@
+ 	 *
+ 	 * @return string
+ 	 */
+-	public function read($length) {
++	public function read(mixed $length): mixed {
+ 		$val = substr($this->bytes, $this->pos, $length);
+ 		$this->pos += $length;
+ 		return $val;
+-	}
+-
+-	/**
+-	 * @return int
+-	 */
+-	public function peekByte() {
++		return null;
++	}
++
++	/**
++	 * @return int
++	 */
++	public function peekByte(): mixed {
+ 		$pos = $this->pos;
+ 		$val = $this->readByte();
+ 		$this->pos = $pos;
+ 		return $val;
+-	}
+-
+-	/**
+-	 * @return int
+-	 */
+-	public function peekInt() {
++		return null;
++	}
++
++	/**
++	 * @return int
++	 */
++	public function peekInt(): mixed {
+ 		$pos = $this->pos;
+ 		$val = $this->readInt();
+ 		$this->pos = $pos;
+ 		return $val;
+-	}
+-
+-	/**
+-	 * @return int
+-	 */
+-	public function peekLong() {
++		return null;
++	}
++
++	/**
++	 * @return int
++	 */
++	public function peekLong(): mixed {
+ 		$pos = $this->pos;
+ 		$val = $this->readLong();
+ 		$this->pos = $pos;
+ 		return $val;
++		return null;
+ 	}
+ 
+ 	/**
+ 	 * @return float|false
+ 	 */
+-	public function peekDouble() {
++	public function peekDouble(): mixed {
+ 		$pos = $this->pos;
+ 		$val = $this->readDouble();
+ 		$this->pos = $pos;
+ 		return $val;
++		return null;
+ 	}
+ 
+ 	/**
+ 	 * @return string
+ 	 */
+-	public function peekUTF() {
++	public function peekUTF(): mixed {
+ 		$pos = $this->pos;
+ 		$val = $this->readUTF();
+ 		$this->pos = $pos;
+ 		return $val;
++		return null;
+ 	}
+ 
+ 	/**
+ 	 * @return string
+ 	 */
+-	public function peekLongUTF() {
++	public function peekLongUTF(): mixed {
+ 		$pos = $this->pos;
+ 		$val = $this->readLongUTF();
+ 		$this->pos = $pos;
+ 		return $val;
++		return null;
+ 	}
+ }
+ 
+@@ -573,7 +591,7 @@
+ 	/**
+ 	 * @return mixed
+ 	 */
+-	public function readData() {
++	public function readData(): mixed {
+ 		$value = null;
+ 
+ 		$type = $this->stream->readByte();
+@@ -640,33 +658,37 @@
+ 		}
+ 
+ 		return $value;
++		return null;
+ 	}
+ 
+ 	/**
+ 	 * @return float|false
+ 	 */
+-	public function readDouble() {
++	public function readDouble(): mixed {
+ 		return $this->stream->readDouble();
++		return null;
+ 	}
+ 
+ 	/**
+ 	 * @return bool
+ 	 */
+-	public function readBoolean() {
++	public function readBoolean(): mixed {
+ 		return $this->stream->readByte() == 1;
++		return null;
+ 	}
+ 
+ 	/**
+ 	 * @return string
+ 	 */
+-	public function readString() {
++	public function readString(): mixed {
+ 		return $this->stream->readUTF();
++		return null;
+ 	}
+ 
+ 	/**
+ 	 * @return array
+ 	 */
+-	public function readObject() {
++	public function readObject(): mixed {
+ 		// Get highest numerical index - ignored
+ //		$highestIndex = $this->stream->readLong();
+ 
+@@ -682,12 +704,13 @@
+ 			$this->stream->readByte();
+ 		}
+ 		return $data;
++		return null;
+ 	}
+ 
+ 	/**
+ 	 * @return array
+ 	 */
+-	public function readMixedArray() {
++	public function readMixedArray(): mixed {
+ 		// Get highest numerical index - ignored
+ 		$highestIndex = $this->stream->readLong();
+ 
+@@ -707,12 +730,13 @@
+ 		}
+ 
+ 		return $data;
++		return null;
+ 	}
+ 
+ 	/**
+ 	 * @return array
+ 	 */
+-	public function readArray() {
++	public function readArray(): mixed {
+ 		$length = $this->stream->readLong();
+ 		$data = array();
+ 
+@@ -720,37 +744,42 @@
+ 			$data[] = $this->readData();
+ 		}
+ 		return $data;
++		return null;
+ 	}
+ 
+ 	/**
+ 	 * @return float|false
+ 	 */
+-	public function readDate() {
++	public function readDate(): mixed {
+ 		$timestamp = $this->stream->readDouble();
+ 		$timezone = $this->stream->readInt();
+ 		return $timestamp;
++		return null;
+ 	}
+ 
+ 	/**
+ 	 * @return string
+ 	 */
+-	public function readLongString() {
++	public function readLongString(): mixed {
+ 		return $this->stream->readLongUTF();
++		return null;
+ 	}
+ 
+ 	/**
+ 	 * @return string
+ 	 */
+-	public function readXML() {
++	public function readXML(): mixed {
+ 		return $this->stream->readLongUTF();
++		return null;
+ 	}
+ 
+ 	/**
+ 	 * @return array
+ 	 */
+-	public function readTypedObject() {
++	public function readTypedObject(): mixed {
+ 		$className = $this->stream->readUTF();
+ 		return $this->readObject();
++		return null;
+ 	}
+ }
+ 
+@@ -777,11 +806,11 @@
+ 	/**
+ 	 * @param string $sps
+ 	 */
+-	public function __construct($sps) {
++	public function __construct(mixed $sps) {
+ 		$this->sps = $sps;
+ 	}
+ 
+-	public function readData() {
++	public function readData(): mixed {
+ 		$this->skipBits(8);
+ 		$this->skipBits(8);
+ 		$profile = $this->getBits(8);                               // read profile
+@@ -831,24 +860,27 @@
+ 			$this->width  = (($pic_width_in_mbs_minus1 + 1) * 16) - ($frame_crop_left_offset * 2) - ($frame_crop_right_offset * 2);
+ 			$this->height = ((2 - $frame_mbs_only_flag) * ($pic_height_in_map_units_minus1 + 1) * 16) - ($frame_crop_top_offset * 2) - ($frame_crop_bottom_offset * 2);
+ 		}
++		return null;
+ 	}
+ 
+ 	/**
+ 	 * @param int $bits
+ 	 */
+-	public function skipBits($bits) {
++	public function skipBits(mixed $bits): mixed {
+ 		$newBits = $this->currentBits + $bits;
+ 		$this->currentBytes += (int)floor($newBits / 8);
+ 		$this->currentBits = $newBits % 8;
+-	}
+-
+-	/**
+-	 * @return int
+-	 */
+-	public function getBit() {
++		return null;
++	}
++
++	/**
++	 * @return int
++	 */
++	public function getBit(): mixed {
+ 		$result = (getid3_lib::BigEndian2Int(substr($this->sps, $this->currentBytes, 1)) >> (7 - $this->currentBits)) & 0x01;
+ 		$this->skipBits(1);
+ 		return $result;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -856,18 +888,19 @@
+ 	 *
+ 	 * @return int
+ 	 */
+-	public function getBits($bits) {
++	public function getBits(mixed $bits): mixed {
+ 		$result = 0;
+ 		for ($i = 0; $i < $bits; $i++) {
+ 			$result = ($result << 1) + $this->getBit();
+ 		}
+ 		return $result;
+-	}
+-
+-	/**
+-	 * @return int
+-	 */
+-	public function expGolombUe() {
++		return null;
++	}
++
++	/**
++	 * @return int
++	 */
++	public function expGolombUe(): mixed {
+ 		$significantBits = 0;
+ 		$bit = $this->getBit();
+ 		while ($bit == 0) {
+@@ -880,31 +913,35 @@
+ 			}
+ 		}
+ 		return (1 << $significantBits) + $this->getBits($significantBits) - 1;
+-	}
+-
+-	/**
+-	 * @return int
+-	 */
+-	public function expGolombSe() {
++		return null;
++	}
++
++	/**
++	 * @return int
++	 */
++	public function expGolombSe(): mixed {
+ 		$result = $this->expGolombUe();
+ 		if (($result & 0x01) == 0) {
+ 			return -($result >> 1);
+ 		} else {
+ 			return ($result + 1) >> 1;
+ 		}
+-	}
+-
+-	/**
+-	 * @return int
+-	 */
+-	public function getWidth() {
++		return null;
++	}
++
++	/**
++	 * @return int
++	 */
++	public function getWidth(): mixed {
+ 		return $this->width;
+-	}
+-
+-	/**
+-	 * @return int
+-	 */
+-	public function getHeight() {
++		return null;
++	}
++
++	/**
++	 * @return int
++	 */
++	public function getHeight(): mixed {
+ 		return $this->height;
++		return null;
+ 	}
+ }

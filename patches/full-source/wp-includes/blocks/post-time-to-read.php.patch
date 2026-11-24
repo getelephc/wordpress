@@ -1,0 +1,94 @@
+--- a/wp-includes/blocks/post-time-to-read.php
++++ b/wp-includes/blocks/post-time-to-read.php
+@@ -25,7 +25,7 @@
+  *
+  * @return string The rendered word count.
+  */
+-function block_core_post_time_to_read_word_count( $text, $type ) {
++function block_core_post_time_to_read_word_count( mixed $text, mixed $type ): mixed {
+ 	$settings = array(
+ 		'html_regexp'                        => '/<\/?[a-z][^>]*?>/i',
+ 		'html_comment_regexp'                => '/<!--[\s\S]*?-->/',
+@@ -53,38 +53,39 @@
+ 	$text .= "\n";
+ 
+ 	// Replace all HTML with a new-line.
+-	$text = preg_replace( $settings['html_regexp'], "\n", $text );
++	$text = \wp_aot_preg_replace( $settings['html_regexp'], "\n", $text );
+ 
+ 	// Remove all HTML comments.
+-	$text = preg_replace( $settings['html_comment_regexp'], '', $text );
++	$text = \wp_aot_preg_replace( $settings['html_comment_regexp'], '', $text );
+ 
+ 	// If a shortcode regular expression has been provided use it to remove shortcodes.
+ 	if ( ! empty( $settings['shortcodes_regexp'] ) ) {
+-		$text = preg_replace( $settings['shortcodes_regexp'], "\n", $text );
++		$text = \wp_aot_preg_replace( $settings['shortcodes_regexp'], "\n", $text );
+ 	}
+ 
+ 	// Normalize non-breaking space to a normal space.
+-	$text = preg_replace( $settings['space_regexp'], ' ', $text );
++	$text = \wp_aot_preg_replace( $settings['space_regexp'], ' ', $text );
+ 
+ 	if ( 'words' === $type ) {
+ 		// Remove HTML Entities.
+-		$text = preg_replace( $settings['html_entity_regexp'], '', $text );
++		$text = \wp_aot_preg_replace( $settings['html_entity_regexp'], '', $text );
+ 
+ 		// Convert connectors to spaces to count attached text as words.
+-		$text = preg_replace( $settings['connector_regexp'], ' ', $text );
++		$text = \wp_aot_preg_replace( $settings['connector_regexp'], ' ', $text );
+ 
+ 		// Remove unwanted characters.
+-		$text = preg_replace( $settings['remove_regexp'], '', $text );
++		$text = \wp_aot_preg_replace( $settings['remove_regexp'], '', $text );
+ 	} else {
+ 		// Convert HTML Entities to "a".
+-		$text = preg_replace( $settings['html_entity_regexp'], 'a', $text );
++		$text = \wp_aot_preg_replace( $settings['html_entity_regexp'], 'a', $text );
+ 
+ 		// Remove surrogate points.
+-		$text = preg_replace( $settings['astral_regexp'], 'a', $text );
++		$text = \wp_aot_preg_replace( $settings['astral_regexp'], 'a', $text );
+ 	}
+ 
+ 	// Match with the selected type regular expression to count the items.
+-	return (int) preg_match_all( $settings[ $type . '_regexp' ], $text );
++	return (int) preg_match_all( \wp_aot_regex_text( $settings[ $type . '_regexp' ] ), \wp_aot_regex_text( $text ) );
++	return null;
+ }
+ 
+ /**
+@@ -97,7 +98,7 @@
+  * @param  WP_Block $block      Block instance.
+  * @return string Returns the rendered post author name block.
+  */
+-function render_block_core_post_time_to_read( $attributes, $content, $block ) {
++function render_block_core_post_time_to_read( mixed $attributes, mixed $content, mixed $block ): mixed {
+ 	if ( ! isset( $block->context['postId'] ) ) {
+ 		return '';
+ 	}
+@@ -165,6 +166,7 @@
+ 		$wrapper_attributes,
+ 		$display_string
+ 	);
++	return null;
+ }
+ 
+ 
+@@ -173,13 +175,14 @@
+  *
+  * @since 6.9.0
+  */
+-function register_block_core_post_time_to_read() {
++function register_block_core_post_time_to_read(): mixed {
+ 	register_block_type_from_metadata(
+ 		__DIR__ . '/post-time-to-read',
+ 		array(
+ 			'render_callback' => 'render_block_core_post_time_to_read',
+ 		)
+ 	);
++	return null;
+ }
+ 
+ add_action( 'init', 'register_block_core_post_time_to_read' );

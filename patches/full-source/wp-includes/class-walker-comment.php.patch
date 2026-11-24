@@ -1,8 +1,134 @@
 --- a/wp-includes/class-walker-comment.php
 +++ b/wp-includes/class-walker-comment.php
-@@ -254,12 +254,23 @@
+@@ -24,7 +24,7 @@
+ 	 *
+ 	 * @see Walker::$tree_type
  	 */
- 	protected function ping( $comment, $depth, $args ) {
+-	public $tree_type = 'comment';
++	public mixed $tree_type = 'comment';
+ 
+ 	/**
+ 	 * Database fields to use.
+@@ -35,7 +35,7 @@
+ 	 * @see Walker::$db_fields
+ 	 * @todo Decouple this
+ 	 */
+-	public $db_fields = array(
++	public mixed $db_fields = array(
+ 		'parent' => 'comment_parent',
+ 		'id'     => 'comment_ID',
+ 	);
+@@ -52,7 +52,7 @@
+ 	 * @param int    $depth  Optional. Depth of the current comment. Default 0.
+ 	 * @param array  $args   Optional. Uses 'style' argument for type of HTML list. Default empty array.
+ 	 */
+-	public function start_lvl( &$output, $depth = 0, $args = array() ) {
++	public function start_lvl( mixed &$output, mixed $depth = 0, mixed $args = array() ): mixed {
+ 		$GLOBALS['comment_depth'] = $depth + 1;
+ 
+ 		switch ( $args['style'] ) {
+@@ -66,6 +66,7 @@
+ 				$output .= '<ul class="children">' . "\n";
+ 				break;
+ 		}
++		return null;
+ 	}
+ 
+ 	/**
+@@ -81,7 +82,7 @@
+ 	 * @param array  $args   Optional. Will only append content if style argument value is 'ol' or 'ul'.
+ 	 *                       Default empty array.
+ 	 */
+-	public function end_lvl( &$output, $depth = 0, $args = array() ) {
++	public function end_lvl( mixed &$output, mixed $depth = 0, mixed $args = array() ): mixed {
+ 		$GLOBALS['comment_depth'] = $depth + 1;
+ 
+ 		switch ( $args['style'] ) {
+@@ -95,6 +96,7 @@
+ 				$output .= "</ul><!-- .children -->\n";
+ 				break;
+ 		}
++		return null;
+ 	}
+ 
+ 	/**
+@@ -128,9 +130,9 @@
+ 	 * @param array      $args              An array of arguments.
+ 	 * @param string     $output            Used to append additional content. Passed by reference.
+ 	 */
+-	public function display_element( $element, &$children_elements, $max_depth, $depth, $args, &$output ) {
++	public function display_element( mixed $element, mixed &$children_elements, mixed $max_depth, mixed $depth, mixed $args, mixed &$output ): mixed {
+ 		if ( ! $element ) {
+-			return;
++			return null;
+ 		}
+ 
+ 		$id_field = $this->db_fields['id'];
+@@ -150,6 +152,7 @@
+ 
+ 			unset( $children_elements[ $id ] );
+ 		}
++		return null;
+ 	}
+ 
+ 	/**
+@@ -170,7 +173,7 @@
+ 	 * @param array      $args              Optional. An array of arguments. Default empty array.
+ 	 * @param int        $current_object_id Optional. ID of the current comment. Default 0.
+ 	 */
+-	public function start_el( &$output, $data_object, $depth = 0, $args = array(), $current_object_id = 0 ) {
++	public function start_el( mixed &$output, mixed $data_object, mixed $depth = 0, mixed $args = array(), mixed $current_object_id = 0 ): mixed {
+ 		// Restores the more descriptive, specific name for use within this method.
+ 		$comment = $data_object;
+ 
+@@ -182,7 +185,7 @@
+ 			ob_start();
+ 			call_user_func( $args['callback'], $comment, $args, $depth );
+ 			$output .= ob_get_clean();
+-			return;
++			return null;
+ 		}
+ 
+ 		if ( 'comment' === $comment->comment_type ) {
+@@ -206,6 +209,7 @@
+ 		if ( 'comment' === $comment->comment_type ) {
+ 			remove_filter( 'comment_text', array( $this, 'filter_comment_text' ), 40 );
+ 		}
++		return null;
+ 	}
+ 
+ 	/**
+@@ -222,7 +226,7 @@
+ 	 * @param int        $depth       Optional. Depth of the current comment. Default 0.
+ 	 * @param array      $args        Optional. An array of arguments. Default empty array.
+ 	 */
+-	public function end_el( &$output, $data_object, $depth = 0, $args = array() ) {
++	public function end_el( mixed &$output, mixed $data_object, mixed $depth = 0, mixed $args = array() ): mixed {
+ 		if ( ! empty( $args['end-callback'] ) ) {
+ 			ob_start();
+ 			call_user_func(
+@@ -232,13 +236,14 @@
+ 				$depth
+ 			);
+ 			$output .= ob_get_clean();
+-			return;
++			return null;
+ 		}
+ 		if ( 'div' === $args['style'] ) {
+ 			$output .= "</div><!-- #comment-## -->\n";
+ 		} else {
+ 			$output .= "</li><!-- #comment-## -->\n";
+ 		}
++		return null;
+ 	}
+ 
+ 	/**
+@@ -252,14 +257,26 @@
+ 	 * @param int        $depth   Depth of the current comment.
+ 	 * @param array      $args    An array of arguments.
+ 	 */
+-	protected function ping( $comment, $depth, $args ) {
++	protected function ping( mixed $comment, mixed $depth, mixed $args ): mixed {
  		$tag = ( 'div' === $args['style'] ) ? 'div' : 'li';
 -		?>
 -		<<?php echo $tag; ?> id="comment-<?php comment_ID(); ?>" <?php comment_class( '', $comment ); ?>>
@@ -26,10 +152,37 @@
 +edit_comment_link( __( 'Edit' ), '<span class="edit-link">', '</span>' ); ;
 +echo '			</div>
 +		';
++		return null;
  	}
  
  	/**
-@@ -313,18 +324,28 @@
+@@ -274,7 +291,7 @@
+ 	 * @param WP_Comment|null $comment      The comment object. Null if not found.
+ 	 * @return string Filtered text of the current comment.
+ 	 */
+-	public function filter_comment_text( $comment_text, $comment ) {
++	public function filter_comment_text( mixed $comment_text, mixed $comment ): mixed {
+ 		$commenter          = wp_get_current_commenter();
+ 		$show_pending_links = ! empty( $commenter['comment_author'] );
+ 
+@@ -283,6 +300,7 @@
+ 		}
+ 
+ 		return $comment_text;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -296,7 +314,7 @@
+ 	 * @param int        $depth   Depth of the current comment.
+ 	 * @param array      $args    An array of arguments.
+ 	 */
+-	protected function comment( $comment, $depth, $args ) {
++	protected function comment( mixed $comment, mixed $depth, mixed $args ): mixed {
+ 		if ( 'div' === $args['style'] ) {
+ 			$tag       = 'div';
+ 			$add_below = 'comment';
+@@ -313,18 +331,28 @@
  		} else {
  			$moderation_note = __( 'Your comment is awaiting moderation. This is a preview; your comment will be visible after it has been approved.' );
  		}
@@ -67,7 +220,7 @@
  			$comment_author = get_comment_author_link( $comment );
  
  			if ( '0' === $comment->comment_approved && ! $show_pending_links ) {
-@@ -336,15 +357,19 @@
+@@ -336,15 +364,19 @@
  				__( '%s <span class="says">says:</span>' ),
  				sprintf( '<cite class="fn">%s</cite>', $comment_author )
  			);
@@ -94,7 +247,7 @@
  			printf(
  				'<a href="%s">%s</a>',
  				esc_url( get_comment_link( $comment, $args ) ),
-@@ -357,10 +382,10 @@
+@@ -357,26 +389,26 @@
  			);
  
  			edit_comment_link( __( '(Edit)' ), ' &nbsp;&nbsp;', '' );
@@ -108,10 +261,16 @@
 +		';
  		comment_text(
  			$comment,
- 			array_merge(
-@@ -372,9 +397,9 @@
+-			array_merge(
++			\wp_aot_array_merge(array(
+ 				$args,
+ 				array(
+ 					'add_below' => $add_below,
+ 					'depth'     => $depth,
+ 					'max_depth' => $args['max_depth'],
  				)
- 			)
+-			)
++			))
  		);
 -		?>
 -
@@ -120,11 +279,17 @@
 +echo '
 +		';
  		comment_reply_link(
- 			array_merge(
+-			array_merge(
++			\wp_aot_array_merge(array(
  				$args,
-@@ -387,12 +412,14 @@
+ 				array(
+ 					'add_below' => $add_below,
+@@ -385,14 +417,17 @@
+ 					'before'    => '<div class="reply">',
+ 					'after'     => '</div>',
  				)
- 			)
+-			)
++			))
  		);
 -		?>
 -
@@ -140,10 +305,20 @@
 +		';
 +endif; ;
 +echo '		';
++		return null;
  	}
  
  	/**
-@@ -417,17 +444,25 @@
+@@ -406,7 +441,7 @@
+ 	 * @param int        $depth   Depth of the current comment.
+ 	 * @param array      $args    An array of arguments.
+ 	 */
+-	protected function html5_comment( $comment, $depth, $args ) {
++	protected function html5_comment( mixed $comment, mixed $depth, mixed $args ): mixed {
+ 		$tag = ( 'div' === $args['style'] ) ? 'div' : 'li';
+ 
+ 		$commenter          = wp_get_current_commenter();
+@@ -417,17 +452,25 @@
  		} else {
  			$moderation_note = __( 'Your comment is awaiting moderation. This is a preview; your comment will be visible after it has been approved.' );
  		}
@@ -175,7 +350,7 @@
  						$comment_author = get_comment_author_link( $comment );
  
  						if ( '0' === $comment->comment_approved && ! $show_pending_links ) {
-@@ -439,11 +474,11 @@
+@@ -439,11 +482,11 @@
  							__( '%s <span class="says">says:</span>' ),
  							sprintf( '<b class="fn">%s</b>', $comment_author )
  						);
@@ -190,7 +365,7 @@
  						printf(
  							'<a href="%s"><time datetime="%s">%s</time></a>',
  							esc_url( get_comment_link( $comment, $args ) ),
-@@ -457,19 +492,24 @@
+@@ -457,22 +500,27 @@
  						);
  
  						edit_comment_link( __( 'Edit' ), ' <span class="edit-link">', '</span>' );
@@ -225,9 +400,17 @@
 +				';
  				if ( '1' === $comment->comment_approved || $show_pending_links ) {
  					comment_reply_link(
- 						array_merge(
-@@ -484,8 +524,8 @@
- 						)
+-						array_merge(
++						\wp_aot_array_merge(array(
+ 							$args,
+ 							array(
+ 								'add_below' => 'div-comment',
+@@ -481,11 +529,12 @@
+ 								'before'    => '<div class="reply">',
+ 								'after'     => '</div>',
+ 							)
+-						)
++						))
  					);
  				}
 -				?>
@@ -236,5 +419,6 @@
 +				;
 +echo '			</article><!-- .comment-body -->
 +		';
++		return null;
  	}
  }

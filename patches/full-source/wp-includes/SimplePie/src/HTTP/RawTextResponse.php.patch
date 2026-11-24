@@ -1,0 +1,23 @@
+--- a/wp-includes/SimplePie/src/HTTP/RawTextResponse.php
++++ b/wp-includes/SimplePie/src/HTTP/RawTextResponse.php
+@@ -71,10 +71,10 @@
+ 
+     public function get_header(string $name): array
+     {
+-        return isset($this->headers[strtolower($name)]) ? $this->headers[$name] : [];
++        return \wp_aot_array_input(isset($this->headers[strtolower($name)]) ? $this->headers[$name] : []);
+     }
+ 
+-    public function with_header(string $name, $value)
++    public function with_header(string $name, mixed $value): mixed
+     {
+         $new = clone $this;
+ 
+@@ -84,6 +84,7 @@
+         $new->headers = $newHeader + $this->headers;
+ 
+         return $new;
++    	return null;
+     }
+ 
+     public function get_header_line(string $name): string

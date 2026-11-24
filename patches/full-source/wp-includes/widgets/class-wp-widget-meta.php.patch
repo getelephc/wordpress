@@ -1,5 +1,14 @@
 --- a/wp-includes/widgets/class-wp-widget-meta.php
 +++ b/wp-includes/widgets/class-wp-widget-meta.php
+@@ -42,7 +42,7 @@
+ 	 *                        'before_widget', and 'after_widget'.
+ 	 * @param array $instance Settings for the current Meta widget instance.
+ 	 */
+-	public function widget( $args, $instance ) {
++	public function widget( mixed $args, mixed $instance ): mixed {
+ 		$default_title = __( 'Meta' );
+ 		$title         = ! empty( $instance['title'] ) ? $instance['title'] : $default_title;
+ 
 @@ -66,15 +66,26 @@
  			$aria_label = $title ? $title : $default_title;
  			echo '<nav aria-label="' . esc_attr( $aria_label ) . '">';
@@ -35,7 +44,7 @@
  			/**
  			 * Filters the "WordPress.org" list item HTML in the Meta widget.
  			 *
-@@ -95,11 +106,11 @@
+@@ -95,16 +106,17 @@
  			);
  
  			wp_meta();
@@ -50,9 +59,32 @@
  		if ( 'html5' === $format ) {
  			echo '</nav>';
  		}
-@@ -133,11 +144,21 @@
+ 
+ 		echo $args['after_widget'];
++		return null;
+ 	}
+ 
+ 	/**
+@@ -117,11 +129,12 @@
+ 	 * @param array $old_instance Old settings for this instance.
+ 	 * @return array Updated settings to save.
  	 */
- 	public function form( $instance ) {
+-	public function update( $new_instance, $old_instance ) {
++	public function update( mixed $new_instance, mixed $old_instance ): mixed {
+ 		$instance          = $old_instance;
+ 		$instance['title'] = sanitize_text_field( $new_instance['title'] );
+ 
+ 		return $instance;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -131,13 +144,24 @@
+ 	 *
+ 	 * @param array $instance Current settings.
+ 	 */
+-	public function form( $instance ) {
++	public function form( mixed $instance ): mixed {
  		$instance = wp_parse_args( (array) $instance, array( 'title' => '' ) );
 -		?>
 -		<p>
@@ -75,5 +107,6 @@
  		</p>
 -		<?php
 +		';
++		return null;
  	}
  }

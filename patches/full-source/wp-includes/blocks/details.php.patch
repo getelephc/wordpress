@@ -1,0 +1,21 @@
+--- a/wp-includes/blocks/details.php
++++ b/wp-includes/blocks/details.php
+@@ -17,7 +17,7 @@
+  * @param array  $block         The full block, including name and attributes.
+  * @return string Modified HTML with fetchpriority="low" on all IMG tags when the showContent attribute is false.
+  */
+-function block_core_details_set_img_fetchpriority_low( $block_content, array $block ): string {
++function block_core_details_set_img_fetchpriority_low( mixed $block_content, array $block ): string {
+ 	if ( ! is_string( $block_content ) ) {
+ 		return '';
+ 	}
+@@ -41,7 +41,8 @@
+  *
+  * @since 7.0.0
+  */
+-function register_block_core_details() {
++function register_block_core_details(): mixed {
+ 	register_block_type_from_metadata( __DIR__ . '/details' );
++	return null;
+ }
+ add_action( 'init', 'register_block_core_details' );

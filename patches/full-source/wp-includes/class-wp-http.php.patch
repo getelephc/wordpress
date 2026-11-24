@@ -1,0 +1,406 @@
+--- a/wp-includes/class-wp-http.php
++++ b/wp-includes/class-wp-http.php
+@@ -9,13 +9,13 @@
+ 
+ // Don't load directly.
+ if ( ! defined( 'ABSPATH' ) ) {
+-	exit;
++	\wp_aot_exit();
+ }
+ 
+ if ( ! class_exists( 'WpOrg\Requests\Autoload' ) ) {
+-	require ABSPATH . WPINC . '/Requests/src/Autoload.php';
+-
+-	WpOrg\Requests\Autoload::register();
++	require_once __DIR__ . '/Requests/src/Autoload.php';
++
++	\WpOrg\Requests\Autoload::register();
+ 	WpOrg\Requests\Requests::set_certificate_path( ABSPATH . WPINC . '/certificates/ca-bundle.crt' );
+ }
+ 
+@@ -166,7 +166,7 @@
+ 	 *     @type WP_HTTP_Requests_Response|null                    $http_response Response object.
+ 	 * }
+ 	 */
+-	public function request( $url, $args = array() ) {
++	public function request( mixed $url, mixed $args = array() ): mixed {
+ 		$defaults = array(
+ 			'method'              => 'GET',
+ 			/**
+@@ -466,6 +466,7 @@
+ 		 * @param string $url         The request URL.
+ 		 */
+ 		return apply_filters( 'http_response', $response, $parsed_args, $url );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -476,14 +477,14 @@
+ 	 * @param array $cookies Array of cookies to send with the request.
+ 	 * @return WpOrg\Requests\Cookie\Jar Cookie holder object.
+ 	 */
+-	public static function normalize_cookies( $cookies ) {
++	public static function normalize_cookies( mixed $cookies ): mixed {
+ 		$cookie_jar = new WpOrg\Requests\Cookie\Jar();
+ 
+ 		foreach ( $cookies as $name => $value ) {
+ 			if ( $value instanceof WP_Http_Cookie ) {
+-				$attributes                 = array_filter(
++				$attributes                 = \wp_aot_array_filter(
+ 					$value->get_attributes(),
+-					static function ( $attr ) {
++					static function ( mixed $attr ) {
+ 						return null !== $attr;
+ 					}
+ 				);
+@@ -494,6 +495,7 @@
+ 		}
+ 
+ 		return $cookie_jar;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -511,11 +513,12 @@
+ 	 * @param array                   $options  Redirect request options.
+ 	 * @param WpOrg\Requests\Response $original Response object.
+ 	 */
+-	public static function browser_redirect_compatibility( $location, $headers, $data, &$options, $original ) {
++	public static function browser_redirect_compatibility( mixed $location, mixed $headers, mixed $data, mixed &$options, mixed $original ): mixed {
+ 		// Browser compatibility.
+ 		if ( 302 === $original->status_code ) {
+ 			$options['type'] = WpOrg\Requests\Requests::GET;
+ 		}
++		return null;
+ 	}
+ 
+ 	/**
+@@ -526,10 +529,11 @@
+ 	 * @throws WpOrg\Requests\Exception On unsuccessful URL validation.
+ 	 * @param string $location URL to redirect to.
+ 	 */
+-	public static function validate_redirects( $location ) {
++	public static function validate_redirects( mixed $location ): mixed {
+ 		if ( ! wp_http_validate_url( $location ) ) {
+ 			throw new WpOrg\Requests\Exception( __( 'A valid URL was not provided.' ), 'wp_http.redirect_failed_validation' );
+ 		}
++		return null;
+ 	}
+ 
+ 	/**
+@@ -544,7 +548,7 @@
+ 	 * @return string|false Class name for the first transport that claims to support the request.
+ 	 *                      False if no transport claims to support the request.
+ 	 */
+-	public function _get_first_available_transport( $args, $url = null ) {
++	public function _get_first_available_transport( mixed $args, mixed $url = null ): mixed {
+ 		$transports = array( 'curl', 'streams' );
+ 
+ 		/**
+@@ -576,6 +580,7 @@
+ 		}
+ 
+ 		return false;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -595,8 +600,9 @@
+ 	 * @return array|WP_Error Array containing 'headers', 'body', 'response', 'cookies', 'filename'.
+ 	 *                        A WP_Error instance upon error.
+ 	 */
+-	private function _dispatch_request( $url, $args ) {
+-		static $transports = array();
++	private function _dispatch_request( mixed $url, mixed $args ): mixed {
++		static $transports_aot_cell = new \WordPressStaticArrayCell();
++		$transports =& $transports_aot_cell->value;
+ 
+ 		$class = $this->_get_first_available_transport( $args, $url );
+ 		if ( ! $class ) {
+@@ -608,7 +614,7 @@
+ 			$transports[ $class ] = new $class();
+ 		}
+ 
+-		$response = $transports[ $class ]->request( $url, $args );
++		$response = \wp_aot_native_method( $transports[ $class ], 'request', array( $url, $args ) );
+ 
+ 		/** This action is documented in wp-includes/class-wp-http.php */
+ 		do_action( 'http_api_debug', $response, 'response', $class, $args, $url );
+@@ -619,6 +625,7 @@
+ 
+ 		/** This filter is documented in wp-includes/class-wp-http.php */
+ 		return apply_filters( 'http_response', $response, $args, $url );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -633,10 +640,11 @@
+ 	 * @return array|WP_Error Array containing 'headers', 'body', 'response', 'cookies', 'filename'.
+ 	 *                        A WP_Error instance upon error. See WP_Http::response() for details.
+ 	 */
+-	public function post( $url, $args = array() ) {
++	public function post( mixed $url, mixed $args = array() ): mixed {
+ 		$defaults    = array( 'method' => 'POST' );
+ 		$parsed_args = wp_parse_args( $args, $defaults );
+ 		return $this->request( $url, $parsed_args );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -651,10 +659,11 @@
+ 	 * @return array|WP_Error Array containing 'headers', 'body', 'response', 'cookies', 'filename'.
+ 	 *                        A WP_Error instance upon error. See WP_Http::response() for details.
+ 	 */
+-	public function get( $url, $args = array() ) {
++	public function get( mixed $url, mixed $args = array() ): mixed {
+ 		$defaults    = array( 'method' => 'GET' );
+ 		$parsed_args = wp_parse_args( $args, $defaults );
+ 		return $this->request( $url, $parsed_args );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -669,10 +678,11 @@
+ 	 * @return array|WP_Error Array containing 'headers', 'body', 'response', 'cookies', 'filename'.
+ 	 *                        A WP_Error instance upon error. See WP_Http::response() for details.
+ 	 */
+-	public function head( $url, $args = array() ) {
++	public function head( mixed $url, mixed $args = array() ): mixed {
+ 		$defaults    = array( 'method' => 'HEAD' );
+ 		$parsed_args = wp_parse_args( $args, $defaults );
+ 		return $this->request( $url, $parsed_args );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -688,13 +698,14 @@
+ 	 *     @type string $body    HTTP response body.
+ 	 * }
+ 	 */
+-	public static function processResponse( $response ) { // phpcs:ignore WordPress.NamingConventions.ValidFunctionName.MethodNameInvalid
++	public static function processResponse( mixed $response ): mixed { // phpcs:ignore WordPress.NamingConventions.ValidFunctionName.MethodNameInvalid
+ 		$response = explode( "\r\n\r\n", $response, 2 );
+ 
+ 		return array(
+ 			'headers' => $response[0],
+ 			'body'    => $response[1] ?? '',
+ 		);
++		return null;
+ 	}
+ 
+ 	/**
+@@ -720,16 +731,16 @@
+ 	 *                                        an array containing `WP_Http_Cookie` objects is returned.
+ 	 * }
+ 	 */
+-	public static function processHeaders( $headers, $url = '' ) { // phpcs:ignore WordPress.NamingConventions.ValidFunctionName.MethodNameInvalid
++	public static function processHeaders( mixed $headers, mixed $url = '' ): mixed { // phpcs:ignore WordPress.NamingConventions.ValidFunctionName.MethodNameInvalid
+ 		// Split headers, one per array element.
+ 		if ( is_string( $headers ) ) {
+ 			// Tolerate line terminator: CRLF = LF (RFC 2616 19.3).
+-			$headers = str_replace( "\r\n", "\n", $headers );
++			$headers = \wp_aot_str_replace( "\r\n", "\n", $headers );
+ 			/*
+ 			 * Unfold folded header fields. LWS = [CRLF] 1*( SP | HT ) <US-ASCII SP, space (32)>,
+ 			 * <US-ASCII HT, horizontal-tab (9)> (RFC 2616 2.2).
+ 			 */
+-			$headers = preg_replace( '/\n[ \t]/', ' ', $headers );
++			$headers = \wp_aot_preg_replace( '/\n[ \t]/', ' ', $headers );
+ 			// Create the headers array.
+ 			$headers = explode( "\n", $headers );
+ 		}
+@@ -790,6 +801,7 @@
+ 			'headers'  => $newheaders,
+ 			'cookies'  => $cookies,
+ 		);
++		return null;
+ 	}
+ 
+ 	/**
+@@ -803,7 +815,7 @@
+ 	 *
+ 	 * @param array $r Full array of args passed into ::request()
+ 	 */
+-	public static function buildCookieHeader( &$r ) { // phpcs:ignore WordPress.NamingConventions.ValidFunctionName.MethodNameInvalid
++	public static function buildCookieHeader( mixed &$r ): mixed { // phpcs:ignore WordPress.NamingConventions.ValidFunctionName.MethodNameInvalid
+ 		if ( ! empty( $r['cookies'] ) ) {
+ 			// Upgrade any name => value cookie pairs to WP_Http_Cookie instances.
+ 			foreach ( $r['cookies'] as $name => $value ) {
+@@ -825,6 +837,7 @@
+ 			$cookies_header         = substr( $cookies_header, 0, -2 );
+ 			$r['headers']['cookie'] = $cookies_header;
+ 		}
++		return null;
+ 	}
+ 
+ 	/**
+@@ -839,9 +852,9 @@
+ 	 * @param string $body Body content.
+ 	 * @return string Chunked decoded body on success or raw body on failure.
+ 	 */
+-	public static function chunkTransferDecode( $body ) { // phpcs:ignore WordPress.NamingConventions.ValidFunctionName.MethodNameInvalid
++	public static function chunkTransferDecode( mixed $body ): mixed { // phpcs:ignore WordPress.NamingConventions.ValidFunctionName.MethodNameInvalid
+ 		// The body is not chunked encoded or is malformed.
+-		if ( ! preg_match( '/^([0-9a-f]+)[^\r\n]*\r\n/i', trim( $body ) ) ) {
++		if ( ! preg_match( '/^([0-9a-f]+)[^\r\n]*\r\n/i', \wp_aot_regex_text( trim( $body ) ) ) ) {
+ 			return $body;
+ 		}
+ 
+@@ -851,7 +864,7 @@
+ 		$body_original = $body;
+ 
+ 		while ( true ) {
+-			$has_chunk = (bool) preg_match( '/^([0-9a-f]+)[^\r\n]*\r\n/i', $body, $match );
++			$has_chunk = (bool) preg_match( '/^([0-9a-f]+)[^\r\n]*\r\n/i', \wp_aot_regex_text( $body ), $match );
+ 			if ( ! $has_chunk || empty( $match[1] ) ) {
+ 				return $body_original;
+ 			}
+@@ -870,6 +883,7 @@
+ 				return $parsed_body;
+ 			}
+ 		}
++		return null;
+ 	}
+ 
+ 	/**
+@@ -892,9 +906,9 @@
+ 	 * @param string $uri URI of url.
+ 	 * @return bool True to block, false to allow.
+ 	 */
+-	public function block_request( $uri ) {
++	public function block_request( mixed $uri ): mixed {
+ 		// We don't need to block requests, because nothing is blocked.
+-		if ( ! defined( 'WP_HTTP_BLOCK_EXTERNAL' ) || ! WP_HTTP_BLOCK_EXTERNAL ) {
++		if ( ! \wp_aot_bootstrap_defined( 'WP_HTTP_BLOCK_EXTERNAL' ) || ! WP_HTTP_BLOCK_EXTERNAL ) {
+ 			return false;
+ 		}
+ 
+@@ -923,25 +937,28 @@
+ 			return true;
+ 		}
+ 
+-		static $accessible_hosts = null;
+-		static $wildcard_regex   = array();
++		static $accessible_hosts_aot_cell = new \WordPressStaticValueCell();
++		$accessible_hosts =& $accessible_hosts_aot_cell->value;
++		static $wildcard_regex_aot_cell = new \WordPressStaticArrayCell();
++		$wildcard_regex =& $wildcard_regex_aot_cell->value;
+ 		if ( null === $accessible_hosts ) {
+-			$accessible_hosts = preg_split( '|,\s*|', WP_ACCESSIBLE_HOSTS );
+-
+-			if ( str_contains( WP_ACCESSIBLE_HOSTS, '*' ) ) {
+-				$wildcard_regex = array();
++			$accessible_hosts = \wp_aot_preg_split( '|,\s*|', \wp_aot_regex_text( \wp_aot_undefined_constant('WP_ACCESSIBLE_HOSTS') ) );
++
++			if ( str_contains( \wp_aot_undefined_constant('WP_ACCESSIBLE_HOSTS'), '*' ) ) {
++				$wildcard_regex = \wp_aot_mixed(array());
+ 				foreach ( $accessible_hosts as $host ) {
+-					$wildcard_regex[] = str_replace( '\*', '.+', preg_quote( $host, '/' ) );
++					\wp_aot_array_push( $wildcard_regex, array( \wp_aot_str_replace( '\*', '.+', preg_quote( \wp_aot_regex_text( $host ), '/' ) ) ) );
+ 				}
+ 				$wildcard_regex = '/^(' . implode( '|', $wildcard_regex ) . ')$/i';
+ 			}
+ 		}
+ 
+ 		if ( ! empty( $wildcard_regex ) ) {
+-			return ! preg_match( $wildcard_regex, $check['host'] );
++			return ! preg_match( \wp_aot_regex_text( $wildcard_regex ), \wp_aot_regex_text( $check['host'] ) );
+ 		} else {
+ 			return ! in_array( $check['host'], $accessible_hosts, true ); // Inverse logic, if it's in the array, then don't block it.
+ 		}
++		return null;
+ 	}
+ 
+ 	/**
+@@ -954,9 +971,10 @@
+ 	 * @return bool|array False on failure; Array of URL components on success;
+ 	 *                    See parse_url()'s return values.
+ 	 */
+-	protected static function parse_url( $url ) {
++	protected static function parse_url( mixed $url ): mixed {
+ 		_deprecated_function( __METHOD__, '4.4.0', 'wp_parse_url()' );
+ 		return wp_parse_url( $url );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -970,7 +988,7 @@
+ 	 * @param string $url                 The URL which $maybe_relative_path is relative to.
+ 	 * @return string An Absolute URL, in a failure condition where the URL cannot be parsed, the relative URL will be returned.
+ 	 */
+-	public static function make_absolute_url( $maybe_relative_path, $url ) {
++	public static function make_absolute_url( mixed $maybe_relative_path, mixed $url ): mixed {
+ 		if ( empty( $url ) ) {
+ 			return $maybe_relative_path;
+ 		}
+@@ -1023,14 +1041,14 @@
+ 
+ 			// Strip all /path/../ out of the path.
+ 			while ( strpos( $path, '../' ) > 1 ) {
+-				$path = preg_replace( '![^/]+/\.\./!', '', $path, -1, $segment_replacement_count );
++				$path = \wp_aot_preg_replace( '![^/]+/\.\./!', '', $path, -1, $segment_replacement_count );
+ 				if ( 0 === $segment_replacement_count ) {
+ 					break;
+ 				}
+ 			}
+ 
+ 			// Strip any final leading ../ from the path.
+-			$path = preg_replace( '!^/(\.\./)+!', '', $path );
++			$path = \wp_aot_preg_replace( '!^/(\.\./)+!', '', $path );
+ 		}
+ 
+ 		// Add the query string.
+@@ -1044,6 +1062,7 @@
+ 		}
+ 
+ 		return $absolute_path . '/' . ltrim( $path, '/' );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1057,7 +1076,7 @@
+ 	 * @return array|false|WP_Error An HTTP API response array if the redirect is successfully followed,
+ 	 *                              false if no redirect is present, or a WP_Error object if there's an error.
+ 	 */
+-	public static function handle_redirects( $url, $args, $response ) {
++	public static function handle_redirects( mixed $url, mixed $args, mixed $response ): mixed {
+ 		// If no redirects are present, or, redirects were not requested, perform no action.
+ 		if ( ! isset( $response['headers']['location'] ) || 0 === $args['_redirection'] ) {
+ 			return false;
+@@ -1077,7 +1096,7 @@
+ 
+ 		// If there were multiple Location headers, use the last header specified.
+ 		if ( is_array( $redirect_location ) ) {
+-			$redirect_location = array_pop( $redirect_location );
++			$redirect_location = \wp_aot_array_pop( $redirect_location );
+ 		}
+ 
+ 		$redirect_location = self::make_absolute_url( $redirect_location, $url );
+@@ -1099,6 +1118,7 @@
+ 		}
+ 
+ 		return wp_remote_request( $redirect_location, $args );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1116,15 +1136,16 @@
+ 	 * @param string $maybe_ip A suspected IP address.
+ 	 * @return int|false Upon success, '4' or '6' to represent an IPv4 or IPv6 address, false upon failure.
+ 	 */
+-	public static function is_ip_address( $maybe_ip ) {
+-		if ( preg_match( '/^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$/', $maybe_ip ) ) {
++	public static function is_ip_address( mixed $maybe_ip ): mixed {
++		if ( preg_match( '/^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$/', \wp_aot_regex_text( $maybe_ip ) ) ) {
+ 			return 4;
+ 		}
+ 
+-		if ( str_contains( $maybe_ip, ':' ) && preg_match( '/^(((?=.*(::))(?!.*\3.+\3))\3?|([\dA-F]{1,4}(\3|:\b|$)|\2))(?4){5}((?4){2}|(((2[0-4]|1\d|[1-9])?\d|25[0-5])\.?\b){4})$/i', trim( $maybe_ip, ' []' ) ) ) {
++		if ( str_contains( $maybe_ip, ':' ) && preg_match( '/^(((?=.*(::))(?!.*\3.+\3))\3?|([\dA-F]{1,4}(\3|:\b|$)|\2))(?4){5}((?4){2}|(((2[0-4]|1\d|[1-9])?\d|25[0-5])\.?\b){4})$/i', \wp_aot_regex_text( trim( $maybe_ip, ' []' ) ) ) ) {
+ 			return 6;
+ 		}
+ 
+ 		return false;
++		return null;
+ 	}
+ }

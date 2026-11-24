@@ -1,0 +1,193 @@
+--- a/wp-admin/includes/class-language-pack-upgrader.php
++++ b/wp-admin/includes/class-language-pack-upgrader.php
+@@ -46,16 +46,16 @@
+ 	 *                                    a Language_Pack_Upgrader instance, the method will bail to
+ 	 *                                    avoid recursion. Otherwise unused. Default false.
+ 	 */
+-	public static function async_upgrade( $upgrader = false ) {
++	public static function async_upgrade( mixed $upgrader = false ): mixed {
+ 		// Avoid recursion.
+ 		if ( $upgrader && $upgrader instanceof Language_Pack_Upgrader ) {
+-			return;
++			return null;
+ 		}
+ 
+ 		// Nothing to do?
+ 		$language_updates = wp_get_translation_updates();
+ 		if ( ! $language_updates ) {
+-			return;
++			return null;
+ 		}
+ 
+ 		/*
+@@ -64,7 +64,7 @@
+ 		 */
+ 		$check_vcs = new WP_Automatic_Updater();
+ 		if ( $check_vcs->is_vcs_checkout( WP_CONTENT_DIR ) ) {
+-			return;
++			return null;
+ 		}
+ 
+ 		foreach ( $language_updates as $key => $language_update ) {
+@@ -86,12 +86,12 @@
+ 		}
+ 
+ 		if ( empty( $language_updates ) ) {
+-			return;
++			return null;
+ 		}
+ 
+ 		// Re-use the automatic upgrader skin if the parent upgrader is using it.
+ 		if ( $upgrader && $upgrader->skin instanceof Automatic_Upgrader_Skin ) {
+-			$skin = $upgrader->skin;
++			$skin = \wp_aot_mixed($upgrader->skin);
+ 		} else {
+ 			$skin = new Language_Pack_Upgrader_Skin(
+ 				array(
+@@ -102,6 +102,7 @@
+ 
+ 		$lp_upgrader = new Language_Pack_Upgrader( $skin );
+ 		$lp_upgrader->bulk_upgrade( $language_updates );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -109,7 +110,7 @@
+ 	 *
+ 	 * @since 3.7.0
+ 	 */
+-	public function upgrade_strings() {
++	public function upgrade_strings(): mixed {
+ 		$this->strings['starting_upgrade'] = __( 'Some of your translations need updating. Sit tight for a few more seconds while they are updated as well.' );
+ 		$this->strings['up_to_date']       = __( 'Your translations are all up to date.' );
+ 		$this->strings['no_package']       = __( 'Update package not available.' );
+@@ -120,6 +121,7 @@
+ 		$this->strings['process_success']     = __( 'Translation updated successfully.' );
+ 		$this->strings['remove_old']          = __( 'Removing the old version of the translation&#8230;' );
+ 		$this->strings['remove_old_failed']   = __( 'Could not remove the old translation.' );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -132,7 +134,7 @@
+ 	 *                             Language_Pack_Upgrader::bulk_upgrade(). Default empty array.
+ 	 * @return array|bool|WP_Error The result of the upgrade, or a WP_Error object instead.
+ 	 */
+-	public function upgrade( $update = false, $args = array() ) {
++	public function upgrade( mixed $update = false, mixed $args = array() ): mixed {
+ 		if ( $update ) {
+ 			$update = array( $update );
+ 		}
+@@ -144,6 +146,7 @@
+ 		}
+ 
+ 		return $results[0];
++		return null;
+ 	}
+ 
+ 	/**
+@@ -164,7 +167,7 @@
+ 	 * @return array|bool|WP_Error Will return an array of results, or true if there are no updates,
+ 	 *                             false or WP_Error for initial errors.
+ 	 */
+-	public function bulk_upgrade( $language_updates = array(), $args = array() ) {
++	public function bulk_upgrade( mixed $language_updates = array(), mixed $args = array() ): mixed {
+ 		global $wp_filesystem;
+ 
+ 		$defaults    = array(
+@@ -306,6 +309,7 @@
+ 		}
+ 
+ 		return $results;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -322,7 +326,7 @@
+ 	 * @param string          $remote_source Remote file source location.
+ 	 * @return string|WP_Error The source as passed, or a WP_Error object on failure.
+ 	 */
+-	public function check_package( $source, $remote_source ) {
++	public function check_package( mixed $source, mixed $remote_source ): mixed {
+ 		global $wp_filesystem;
+ 
+ 		if ( is_wp_error( $source ) ) {
+@@ -365,6 +369,7 @@
+ 		}
+ 
+ 		return $source;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -375,7 +380,7 @@
+ 	 * @param object $update The data for an update.
+ 	 * @return string The name of the item being updated.
+ 	 */
+-	public function get_name_for_update( $update ) {
++	public function get_name_for_update( mixed $update ): mixed {
+ 		switch ( $update->type ) {
+ 			case 'core':
+ 				return 'WordPress'; // Not translated.
+@@ -395,6 +400,7 @@
+ 				break;
+ 		}
+ 		return '';
++		return null;
+ 	}
+ 
+ 	/**
+@@ -407,14 +413,14 @@
+ 	 * @param string $remote_destination The location on the remote filesystem to be cleared.
+ 	 * @return bool|WP_Error True upon success, WP_Error on failure.
+ 	 */
+-	public function clear_destination( $remote_destination ) {
++	public function clear_destination( mixed $remote_destination ): mixed {
+ 		global $wp_filesystem;
+ 
+ 		$language_update    = $this->skin->language_update;
+ 		$language_directory = WP_LANG_DIR . '/'; // Local path for use with glob().
+ 
+ 		if ( 'core' === $language_update->type ) {
+-			$files = array(
++			$files = \wp_aot_mixed(array(
+ 				$remote_destination . $language_update->language . '.po',
+ 				$remote_destination . $language_update->language . '.mo',
+ 				$remote_destination . $language_update->language . '.l10n.php',
+@@ -427,12 +433,12 @@
+ 				$remote_destination . 'continents-cities-' . $language_update->language . '.po',
+ 				$remote_destination . 'continents-cities-' . $language_update->language . '.mo',
+ 				$remote_destination . 'continents-cities-' . $language_update->language . '.l10n.php',
+-			);
++			));
+ 
+ 			$json_translation_files = glob( $language_directory . $language_update->language . '-*.json' );
+ 			if ( $json_translation_files ) {
+ 				foreach ( $json_translation_files as $json_translation_file ) {
+-					$files[] = str_replace( $language_directory, $remote_destination, $json_translation_file );
++					$files[] = \wp_aot_str_replace( $language_directory, $remote_destination, $json_translation_file );
+ 				}
+ 			}
+ 		} else {
+@@ -446,12 +452,12 @@
+ 			$json_translation_files = glob( $language_directory . $language_update->slug . '-' . $language_update->language . '-*.json' );
+ 			if ( $json_translation_files ) {
+ 				foreach ( $json_translation_files as $json_translation_file ) {
+-					$files[] = str_replace( $language_directory, $remote_destination, $json_translation_file );
++					$files[] = \wp_aot_str_replace( $language_directory, $remote_destination, $json_translation_file );
+ 				}
+ 			}
+ 		}
+ 
+-		$files = array_filter( $files, array( $wp_filesystem, 'exists' ) );
++		$files = \wp_aot_array_filter( $files, array( $wp_filesystem, 'exists' ) );
+ 
+ 		// No files to delete.
+ 		if ( ! $files ) {
+@@ -483,5 +489,6 @@
+ 		}
+ 
+ 		return true;
++		return null;
+ 	}
+ }

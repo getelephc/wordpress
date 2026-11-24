@@ -1,0 +1,1947 @@
+--- a/wp-includes/class-wp-theme-json.php
++++ b/wp-includes/class-wp-theme-json.php
+@@ -717,7 +717,7 @@
+ 	 * }
+ 	 * @return array Responsive media queries.
+ 	 */
+-	public static function get_viewport_media_queries( $viewport_settings = null, $options = array() ) {
++	public static function get_viewport_media_queries( mixed $viewport_settings = null, mixed $options = array() ): mixed {
+ 		$breakpoints = static::sanitize_viewport_settings( $viewport_settings );
+ 
+ 		$responsive_media_queries = array();
+@@ -748,6 +748,7 @@
+ 		}
+ 
+ 		return $responsive_media_queries;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -762,7 +763,7 @@
+ 	 * @param mixed $value Value to check.
+ 	 * @return bool Whether the value is valid.
+ 	 */
+-	private static function is_valid_viewport_breakpoint_size( $value ) {
++	private static function is_valid_viewport_breakpoint_size( mixed $value ): mixed {
+ 		if ( ! is_string( $value ) ) {
+ 			return false;
+ 		}
+@@ -772,7 +773,8 @@
+ 			return false;
+ 		}
+ 
+-		return 1 === preg_match( '/^(?:\d+|\d*\.\d+)(?:px|em|rem)$/', $value );
++		return 1 === preg_match( '/^(?:\d+|\d*\.\d+)(?:px|em|rem)$/', \wp_aot_regex_text( $value ) );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -787,7 +789,7 @@
+ 	 * @param mixed $value Viewport breakpoint size.
+ 	 * @return float|null Viewport breakpoint size in pixels, or null when invalid.
+ 	 */
+-	private static function get_viewport_breakpoint_value_in_pixels( $value ) {
++	private static function get_viewport_breakpoint_value_in_pixels( mixed $value ): mixed {
+ 		if ( ! static::is_valid_viewport_breakpoint_size( $value ) ) {
+ 			return null;
+ 		}
+@@ -807,6 +809,7 @@
+ 		 * breakpoint order; generated media queries keep the original units.
+ 		 */
+ 		return 'px' === $unit ? $number : $number * 16;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -823,7 +826,7 @@
+ 	 * @param mixed $viewport_settings Viewport settings from theme.json.
+ 	 * @return array Sanitized viewport breakpoint settings.
+ 	 */
+-	private static function sanitize_viewport_settings( $viewport_settings ) {
++	private static function sanitize_viewport_settings( mixed $viewport_settings ): mixed {
+ 		if ( ! is_array( $viewport_settings ) ) {
+ 			return static::DEFAULT_VIEWPORT_BREAKPOINTS;
+ 		}
+@@ -856,6 +859,7 @@
+ 		}
+ 
+ 		return $sanitized;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -942,12 +946,13 @@
+ 	 *  ),
+ 	 * )
+ 	 */
+-	protected static function schema_in_root_and_per_origin( $schema ) {
++	protected static function schema_in_root_and_per_origin( mixed $schema ): mixed {
+ 		$schema_in_root_and_per_origin = $schema;
+ 		foreach ( static::VALID_ORIGINS as $origin ) {
+ 			$schema_in_root_and_per_origin[ $origin ] = $schema;
+ 		}
+ 		return $schema_in_root_and_per_origin;
++		return null;
+ 	}
+ 
+ 
+@@ -962,24 +967,24 @@
+ 	 * @param array|null $style_variation Style variation metadata.
+ 	 * @return array Array of pseudo-selector declarations.
+ 	 */
+-	private function process_pseudo_selectors( $node, $base_selector, $settings, $block_name, $block_metadata = null, $style_variation = null ) {
++	private function process_pseudo_selectors( mixed $node, mixed $base_selector, mixed $settings, mixed $block_name, mixed $block_metadata = null, mixed $style_variation = null ): mixed {
+ 		$pseudo_declarations = array();
+-		$add_declarations    = static function ( $selector, $declarations ) use ( &$pseudo_declarations ) {
++		$add_declarations    = static function ( mixed $selector, mixed $declarations ) use ( &$pseudo_declarations ) {
+ 			if ( empty( $declarations ) ) {
+ 				return;
+ 			}
+ 
+ 			if ( isset( $pseudo_declarations[ $selector ] ) ) {
+-				$pseudo_declarations[ $selector ] = array_merge(
++				$pseudo_declarations[ $selector ] = \wp_aot_array_merge(array(
+ 					$pseudo_declarations[ $selector ],
+ 					$declarations
+-				);
++				));
+ 			} else {
+ 				$pseudo_declarations[ $selector ] = $declarations;
+ 			}
+ 		};
+ 
+-		if ( ! isset( static::VALID_BLOCK_PSEUDO_SELECTORS[ $block_name ] ) ) {
++		if ( ! array_key_exists( $block_name, static::VALID_BLOCK_PSEUDO_SELECTORS ) ) {
+ 			return $pseudo_declarations;
+ 		}
+ 
+@@ -1009,6 +1014,7 @@
+ 		}
+ 
+ 		return $pseudo_declarations;
++		return null;
+ 	}
+ 
+ 
+@@ -1020,7 +1026,7 @@
+ 	 * @param string $element The name of the element.
+ 	 * @return string The name of the class.
+ 	 */
+-	public static function get_element_class_name( $element ) {
++	public static function get_element_class_name( mixed $element ): mixed {
+ 		$class_name = '';
+ 
+ 		if ( isset( static::__EXPERIMENTAL_ELEMENT_CLASS_NAMES[ $element ] ) ) {
+@@ -1028,6 +1034,7 @@
+ 		}
+ 
+ 		return $class_name;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1088,7 +1095,7 @@
+ 	 * @param string $origin     Optional. What source of data this object represents.
+ 	 *                           One of 'blocks', 'default', 'theme', or 'custom'. Default 'theme'.
+ 	 */
+-	public function __construct( $theme_json = array( 'version' => self::LATEST_SCHEMA ), $origin = 'theme' ) {
++	public function __construct( mixed $theme_json = array( 'version' => self::LATEST_SCHEMA ), mixed $origin = 'theme' ) {
+ 		if ( ! in_array( $origin, static::VALID_ORIGINS, true ) ) {
+ 			$origin = 'theme';
+ 		}
+@@ -1125,7 +1132,7 @@
+ 		$spacing_scale = _wp_array_get( $this->theme_json, $scale_path, null );
+ 		if ( null !== $spacing_scale ) {
+ 			// If the spacingScale is not already keyed by origin.
+-			if ( empty( array_intersect( array_keys( $spacing_scale ), static::VALID_ORIGINS ) ) ) {
++			if ( empty( \wp_aot_array_intersect(array( array_keys( $spacing_scale ), static::VALID_ORIGINS )) ) ) {
+ 				_wp_array_set( $this->theme_json, $scale_path, array( $origin => $spacing_scale ) );
+ 			}
+ 		}
+@@ -1185,7 +1192,7 @@
+ 	 * @param array $valid_variations Valid block style variations.
+ 	 * @return array Theme json data with shared variation definitions unwrapped under appropriate block types.
+ 	 */
+-	private static function unwrap_shared_block_style_variations( $theme_json, $valid_variations ) {
++	private static function unwrap_shared_block_style_variations( mixed $theme_json, mixed $valid_variations ): mixed {
+ 		if ( empty( $theme_json['styles']['variations'] ) || empty( $valid_variations ) ) {
+ 			return $theme_json;
+ 		}
+@@ -1197,7 +1204,7 @@
+ 			foreach ( $registered_variations as $variation_name ) {
+ 				$block_level_data = $new_theme_json['styles']['blocks'][ $block_type ]['variations'][ $variation_name ] ?? array();
+ 				$top_level_data   = $variations[ $variation_name ] ?? array();
+-				$merged_data      = array_replace_recursive( $top_level_data, $block_level_data );
++				$merged_data      = \wp_aot_array_replace_recursive(array( $top_level_data, $block_level_data ));
+ 				if ( ! empty( $merged_data ) ) {
+ 					_wp_array_set( $new_theme_json, array( 'styles', 'blocks', $block_type, 'variations', $variation_name ), $merged_data );
+ 				}
+@@ -1207,6 +1214,7 @@
+ 		unset( $new_theme_json['styles']['variations'] );
+ 
+ 		return $new_theme_json;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1217,7 +1225,7 @@
+ 	 * @param array $theme_json A theme.json structure to modify.
+ 	 * @return array The modified theme.json structure.
+ 	 */
+-	protected static function maybe_opt_in_into_settings( $theme_json ) {
++	protected static function maybe_opt_in_into_settings( mixed $theme_json ): mixed {
+ 		$new_theme_json = $theme_json;
+ 
+ 		if (
+@@ -1236,6 +1244,7 @@
+ 		}
+ 
+ 		return $new_theme_json;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1245,7 +1254,7 @@
+ 	 *
+ 	 * @param array $context The context to which the settings belong.
+ 	 */
+-	protected static function do_opt_in_into_settings( &$context ) {
++	protected static function do_opt_in_into_settings( mixed &$context ): mixed {
+ 		foreach ( static::APPEARANCE_TOOLS_OPT_INS as $path ) {
+ 			/*
+ 			 * Use "unset prop" as a marker instead of "null" because
+@@ -1257,6 +1266,7 @@
+ 		}
+ 
+ 		unset( $context['appearanceTools'] );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1273,7 +1283,7 @@
+ 	 * @param array $valid_variations    List of valid variations per block.
+ 	 * @return array The sanitized output.
+ 	 */
+-	protected static function sanitize( $input, $valid_block_names, $valid_element_names, $valid_variations ) {
++	protected static function sanitize( mixed $input, mixed $valid_block_names, mixed $valid_element_names, mixed $valid_variations ): mixed {
+ 		$output = array();
+ 
+ 		if ( ! is_array( $input ) ) {
+@@ -1281,7 +1291,7 @@
+ 		}
+ 
+ 		// Preserve only the top most level keys.
+-		$output = array_intersect_key( $input, array_flip( static::VALID_TOP_LEVEL_KEYS ) );
++		$output = \wp_aot_array_intersect_key(array( $input, \wp_aot_array_flip( static::VALID_TOP_LEVEL_KEYS ) ));
+ 
+ 		/*
+ 		 * Remove any rules that are annotated as "top" in VALID_STYLES constant.
+@@ -1316,7 +1326,7 @@
+ 		foreach ( $valid_element_names as $element ) {
+ 			$schema_styles_elements[ $element ] = $styles_non_top_level;
+ 
+-			if ( isset( static::VALID_ELEMENT_PSEUDO_SELECTORS[ $element ] ) ) {
++			if ( array_key_exists( $element, static::VALID_ELEMENT_PSEUDO_SELECTORS ) ) {
+ 				foreach ( static::VALID_ELEMENT_PSEUDO_SELECTORS[ $element ] as $pseudo_selector ) {
+ 					$schema_styles_elements[ $element ][ $pseudo_selector ] = $styles_non_top_level;
+ 				}
+@@ -1342,10 +1352,11 @@
+ 		 * for further nested inner `blocks`, the overall schema is generated in multiple passes.
+ 		 */
+ 		foreach ( $valid_block_names as $block ) {
+-			$schema_settings_blocks[ $block ] = static::VALID_SETTINGS;
+ 			// `viewport` and `blockVisibility` are global-only settings and cannot be set per block for now.
+-			unset( $schema_settings_blocks[ $block ]['viewport'] );
+-			unset( $schema_settings_blocks[ $block ]['blockVisibility'] );
++			$schema_settings_for_block = static::VALID_SETTINGS;
++			unset( $schema_settings_for_block['viewport'] );
++			unset( $schema_settings_for_block['blockVisibility'] );
++			$schema_settings_blocks[ $block ] = $schema_settings_for_block;
+ 			$schema_styles_blocks[ $block ]             = $styles_non_top_level;
+ 			$schema_styles_blocks[ $block ]['elements'] = $schema_styles_elements;
+ 
+@@ -1354,7 +1365,7 @@
+ 				$schema_styles_blocks[ $block ][ $breakpoint_state ]             = $styles_non_top_level;
+ 				$schema_styles_blocks[ $block ][ $breakpoint_state ]['elements'] = $schema_styles_elements;
+ 
+-				if ( isset( static::VALID_BLOCK_PSEUDO_SELECTORS[ $block ] ) ) {
++				if ( array_key_exists( $block, static::VALID_BLOCK_PSEUDO_SELECTORS ) ) {
+ 					foreach ( static::VALID_BLOCK_PSEUDO_SELECTORS[ $block ] as $pseudo_selector ) {
+ 						$schema_styles_blocks[ $block ][ $breakpoint_state ][ $pseudo_selector ] = $styles_non_top_level;
+ 					}
+@@ -1362,21 +1373,21 @@
+ 			}
+ 
+ 			// Add pseudo-selectors for blocks that support them
+-			if ( isset( static::VALID_BLOCK_PSEUDO_SELECTORS[ $block ] ) ) {
++			if ( array_key_exists( $block, static::VALID_BLOCK_PSEUDO_SELECTORS ) ) {
+ 				foreach ( static::VALID_BLOCK_PSEUDO_SELECTORS[ $block ] as $pseudo_selector ) {
+ 					$schema_styles_blocks[ $block ][ $pseudo_selector ] = $styles_non_top_level;
+ 				}
+ 			}
+ 
+ 			// Add custom states for blocks that support them (e.g. '-current' for navigation).
+-			if ( isset( static::VALID_BLOCK_CUSTOM_STATES[ $block ] ) ) {
++			if ( array_key_exists( $block, static::VALID_BLOCK_CUSTOM_STATES ) ) {
+ 				foreach ( static::VALID_BLOCK_CUSTOM_STATES[ $block ] as $custom_state ) {
+ 					$custom_state_schema = $styles_non_top_level;
+ 					/*
+ 					 * The same pseudo-selectors valid for the block at the top level
+ 					 * are also valid within each custom state.
+ 					 */
+-					if ( isset( static::VALID_BLOCK_PSEUDO_SELECTORS[ $block ] ) ) {
++					if ( array_key_exists( $block, static::VALID_BLOCK_PSEUDO_SELECTORS ) ) {
+ 						foreach ( static::VALID_BLOCK_PSEUDO_SELECTORS[ $block ] as $pseudo ) {
+ 							$custom_state_schema[ $pseudo ] = $styles_non_top_level;
+ 						}
+@@ -1392,16 +1403,16 @@
+ 
+ 		foreach ( $valid_block_names as $block ) {
+ 			// Build the schema for each block style variation.
+-			$style_variation_names = array();
++			$style_variation_names = \wp_aot_mixed(array());
+ 			if (
+ 				! empty( $input['styles']['blocks'][ $block ]['variations'] ) &&
+ 				is_array( $input['styles']['blocks'][ $block ]['variations'] ) &&
+ 				isset( $valid_variations[ $block ] )
+ 			) {
+-				$style_variation_names = array_intersect(
++				$style_variation_names = \wp_aot_array_intersect(array(
+ 					array_keys( $input['styles']['blocks'][ $block ]['variations'] ),
+ 					$valid_variations[ $block ]
+-				);
++				));
+ 			}
+ 
+ 			$schema_styles_variations = array();
+@@ -1415,7 +1426,7 @@
+ 						$variation_schema[ $breakpoint_state ]['elements'] = $schema_styles_elements;
+ 						$variation_schema[ $breakpoint_state ]['blocks']   = $schema_styles_blocks;
+ 
+-						if ( isset( static::VALID_BLOCK_PSEUDO_SELECTORS[ $block ] ) ) {
++						if ( array_key_exists( $block, static::VALID_BLOCK_PSEUDO_SELECTORS ) ) {
+ 							foreach ( static::VALID_BLOCK_PSEUDO_SELECTORS[ $block ] as $pseudo_selector ) {
+ 								$variation_schema[ $breakpoint_state ][ $pseudo_selector ] = $styles_non_top_level;
+ 							}
+@@ -1423,7 +1434,7 @@
+ 					}
+ 
+ 					// Add pseudo-selectors to variations for blocks that support them
+-					if ( isset( static::VALID_BLOCK_PSEUDO_SELECTORS[ $block ] ) ) {
++					if ( array_key_exists( $block, static::VALID_BLOCK_PSEUDO_SELECTORS ) ) {
+ 						foreach ( static::VALID_BLOCK_PSEUDO_SELECTORS[ $block ] as $pseudo_selector ) {
+ 							$variation_schema[ $pseudo_selector ] = $styles_non_top_level;
+ 						}
+@@ -1468,6 +1479,7 @@
+ 		}
+ 
+ 		return $output;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1485,7 +1497,7 @@
+ 	 * @param string $to_append Selector to append.
+ 	 * @return string The new selector.
+ 	 */
+-	protected static function append_to_selector( $selector, $to_append ) {
++	protected static function append_to_selector( mixed $selector, mixed $to_append ): mixed {
+ 		if ( ! str_contains( $selector, ',' ) ) {
+ 			return trim( $selector, " \t\n" ) . $to_append;
+ 		}
+@@ -1510,7 +1522,7 @@
+ 		 * @see https://www.w3.org/TR/css-syntax-3/#parse-comma-separated-list-of-component-values
+ 		 */
+ 		if ( strlen( $selector ) === strcspn( $selector, '/\'"(<\\' ) ) {
+-			return preg_replace( '~[ \t\n]*,[ \t\n]*~', "{$to_append}, ", trim( $selector, " \t\n" ) ) . $to_append;
++			return \wp_aot_preg_replace( '~[ \t\n]*,[ \t\n]*~', "{$to_append}, ", trim( $selector, " \t\n" ) ) . $to_append;
+ 		}
+ 
+ 		$new_selectors = array();
+@@ -1519,6 +1531,7 @@
+ 			$new_selectors[] = $sel . $to_append;
+ 		}
+ 		return implode( ', ', $new_selectors );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1534,7 +1547,7 @@
+ 	 * @param string $to_prepend Selector to prepend.
+ 	 * @return string The new selector.
+ 	 */
+-	protected static function prepend_to_selector( $selector, $to_prepend ) {
++	protected static function prepend_to_selector( mixed $selector, mixed $to_prepend ): mixed {
+ 		if ( ! str_contains( $selector, ',' ) ) {
+ 			return $to_prepend . trim( $selector, " \t\n" );
+ 		}
+@@ -1559,7 +1572,7 @@
+ 		 * @see https://www.w3.org/TR/css-syntax-3/#parse-comma-separated-list-of-component-values
+ 		 */
+ 		if ( strlen( $selector ) === strcspn( $selector, '/\'"(<\\' ) ) {
+-			return $to_prepend . preg_replace( '~[ \t\n]*,[ \t\n]*~', ", {$to_prepend}", trim( $selector, " \t\n" ) );
++			return $to_prepend . \wp_aot_preg_replace( '~[ \t\n]*,[ \t\n]*~', ", {$to_prepend}", trim( $selector, " \t\n" ) );
+ 		}
+ 
+ 		$new_selectors = array();
+@@ -1568,6 +1581,7 @@
+ 			$new_selectors[] = $to_prepend . $sel;
+ 		}
+ 		return implode( ', ', $new_selectors );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1609,7 +1623,7 @@
+ 	 * @param string $selector CSS selector list as a string, e.g. '.wp-block .wp-block-paragraph'.
+ 	 * @return string[] List of trimmed selectors parsed from input list.
+ 	 */
+-	protected static function split_selector_list( $selector ): array {
++	protected static function split_selector_list( mixed $selector ): array {
+ 		if ( ! str_contains( $selector, ',' ) ) {
+ 			// See note on trimming CSS whitespace in main loop.
+ 			return array( trim( $selector, " \t\n" ) );
+@@ -1761,13 +1775,13 @@
+ 	 *
+ 	 * @return array Block metadata.
+ 	 */
+-	protected static function get_blocks_metadata() {
++	protected static function get_blocks_metadata(): mixed {
+ 		$registry       = WP_Block_Type_Registry::get_instance();
+ 		$blocks         = $registry->get_all_registered();
+ 		$style_registry = WP_Block_Styles_Registry::get_instance();
+ 
+ 		// Is there metadata for all currently registered blocks?
+-		$blocks = array_diff_key( $blocks, static::$blocks_metadata );
++		$blocks = \wp_aot_array_diff_key(array( $blocks, static::$blocks_metadata ));
+ 		if ( empty( $blocks ) ) {
+ 			/*
+ 			 * New block styles may have been registered within WP_Block_Styles_Registry.
+@@ -1843,6 +1857,7 @@
+ 		}
+ 
+ 		return static::$blocks_metadata;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1857,7 +1872,7 @@
+ 	 * @param array $schema Schema to adhere to.
+ 	 * @return array The modified $tree.
+ 	 */
+-	protected static function remove_keys_not_in_schema( $tree, $schema ) {
++	protected static function remove_keys_not_in_schema( mixed $tree, mixed $schema ): mixed {
+ 		if ( ! is_array( $tree ) ) {
+ 			return $tree;
+ 		}
+@@ -1904,6 +1919,7 @@
+ 			}
+ 		}
+ 		return $tree;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1928,12 +1944,13 @@
+ 	 *
+ 	 * @return array Settings per block.
+ 	 */
+-	public function get_settings() {
++	public function get_settings(): mixed {
+ 		if ( ! isset( $this->theme_json['settings'] ) ) {
+ 			return array();
+ 		} else {
+ 			return $this->theme_json['settings'];
+ 		}
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1965,7 +1982,7 @@
+ 	 * }
+ 	 * @return string The resulting stylesheet.
+ 	 */
+-	public function get_stylesheet( $types = array( 'variables', 'styles', 'presets' ), $origins = null, $options = array() ) {
++	public function get_stylesheet( mixed $types = array( 'variables', 'styles', 'presets' ), mixed $origins = null, mixed $options = array() ): mixed {
+ 		if ( null === $origins ) {
+ 			$origins = static::VALID_ORIGINS;
+ 		}
+@@ -1986,8 +2003,8 @@
+ 		$style_nodes     = static::get_style_nodes( $this->theme_json, $blocks_metadata, $options );
+ 		$setting_nodes   = static::get_setting_nodes( $this->theme_json, $blocks_metadata );
+ 
+-		$root_style_key    = array_search( static::ROOT_BLOCK_SELECTOR, array_column( $style_nodes, 'selector' ), true );
+-		$root_settings_key = array_search( static::ROOT_BLOCK_SELECTOR, array_column( $setting_nodes, 'selector' ), true );
++		$root_style_key    = \wp_aot_array_search( static::ROOT_BLOCK_SELECTOR, \wp_aot_array_column( $style_nodes, 'selector' ), true );
++		$root_settings_key = \wp_aot_array_search( static::ROOT_BLOCK_SELECTOR, \wp_aot_array_column( $setting_nodes, 'selector' ), true );
+ 
+ 		if ( ! empty( $options['scope'] ) ) {
+ 			foreach ( $setting_nodes as &$node ) {
+@@ -2032,6 +2049,7 @@
+ 		}
+ 
+ 		return $stylesheet;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -2045,7 +2063,7 @@
+ 	 * @param string $selector The selector to nest.
+ 	 * @return string The processed CSS.
+ 	 */
+-	public static function process_blocks_custom_css( $css, $selector ) {
++	public static function process_blocks_custom_css( mixed $css, mixed $selector ): mixed {
+ 		$processed_css = '';
+ 
+ 		if ( empty( $css ) ) {
+@@ -2064,7 +2082,7 @@
+ 				$processed_css .= ':root :where(' . trim( $selector ) . '){' . trim( $part ) . '}';
+ 			} else {
+ 				// If the part contains braces, it's a nested CSS rule.
+-				$part = explode( '{', str_replace( '}', '', $part ) );
++				$part = \wp_aot_mixed(explode( '{', \wp_aot_str_replace( '}', '', $part ) ));
+ 				if ( count( $part ) !== 2 ) {
+ 					continue;
+ 				}
+@@ -2077,9 +2095,9 @@
+ 				 * This allows pseudo elements as descendants e.g. `.parent ::before`.
+ 				 */
+ 				$matches            = array();
+-				$has_pseudo_element = preg_match( '/([>+~\s]*::[a-zA-Z-]+)/', $nested_selector, $matches );
++				$has_pseudo_element = preg_match( '/([>+~\s]*::[a-zA-Z-]+)/', \wp_aot_regex_text( $nested_selector ), $matches );
+ 				$pseudo_part        = $has_pseudo_element ? $matches[1] : '';
+-				$nested_selector    = $has_pseudo_element ? str_replace( $pseudo_part, '', $nested_selector ) : $nested_selector;
++				$nested_selector    = $has_pseudo_element ? \wp_aot_str_replace( $pseudo_part, '', $nested_selector ) : $nested_selector;
+ 
+ 				// Finalize selector and re-append pseudo element if required.
+ 				$part_selector  = str_starts_with( $nested_selector, ' ' )
+@@ -2091,6 +2109,7 @@
+ 			}
+ 		}
+ 		return $processed_css;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -2101,7 +2120,7 @@
+ 	 *
+ 	 * @return string The global styles custom CSS.
+ 	 */
+-	public function get_custom_css() {
++	public function get_custom_css(): mixed {
+ 		_deprecated_function( __METHOD__, '6.7.0', 'get_stylesheet' );
+ 		// Add the global styles root CSS.
+ 		$stylesheet = $this->theme_json['styles']['css'] ?? '';
+@@ -2118,6 +2137,7 @@
+ 		}
+ 
+ 		return $stylesheet;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -2127,7 +2147,7 @@
+ 	 *
+ 	 * @return array
+ 	 */
+-	public function get_custom_templates() {
++	public function get_custom_templates(): mixed {
+ 		$custom_templates = array();
+ 		if ( ! isset( $this->theme_json['customTemplates'] ) || ! is_array( $this->theme_json['customTemplates'] ) ) {
+ 			return $custom_templates;
+@@ -2142,6 +2162,7 @@
+ 			}
+ 		}
+ 		return $custom_templates;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -2151,7 +2172,7 @@
+ 	 *
+ 	 * @return array
+ 	 */
+-	public function get_template_parts() {
++	public function get_template_parts(): mixed {
+ 		$template_parts = array();
+ 		if ( ! isset( $this->theme_json['templateParts'] ) || ! is_array( $this->theme_json['templateParts'] ) ) {
+ 			return $template_parts;
+@@ -2166,6 +2187,7 @@
+ 			}
+ 		}
+ 		return $template_parts;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -2189,17 +2211,18 @@
+ 	 * @param array $style_nodes Nodes with styles.
+ 	 * @return string The new stylesheet.
+ 	 */
+-	protected function get_block_classes( $style_nodes ) {
++	protected function get_block_classes( mixed $style_nodes ): mixed {
+ 		$block_rules = '';
+ 
+ 		foreach ( $style_nodes as $metadata ) {
+ 			if ( null === $metadata['selector'] ) {
+ 				continue;
+ 			}
+-			$block_rules .= static::get_styles_for_block( $metadata );
++			$block_rules .= $this->get_styles_for_block( $metadata );
+ 		}
+ 
+ 		return $block_rules;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -2216,7 +2239,7 @@
+ 	 * @param array $options        Optional. An array of options for now used for internal purposes only.
+ 	 * @return string Layout styles for the block.
+ 	 */
+-	protected function get_layout_styles( $block_metadata, $options = array() ) {
++	protected function get_layout_styles( mixed $block_metadata, mixed $options = array() ): mixed {
+ 		$block_rules = '';
+ 		$block_type  = null;
+ 
+@@ -2286,7 +2309,7 @@
+ 							$declarations = array();
+ 							if (
+ 								isset( $spacing_rule['selector'] ) &&
+-								preg_match( $layout_selector_pattern, $spacing_rule['selector'] ) &&
++								preg_match( \wp_aot_regex_text( $layout_selector_pattern ), \wp_aot_regex_text( $spacing_rule['selector'] ) ) &&
+ 								! empty( $spacing_rule['rules'] )
+ 							) {
+ 								// Iterate over each of the styling rules and substitute non-string values such as `null` with the real `blockGap` value.
+@@ -2372,7 +2395,7 @@
+ 
+ 						if (
+ 							isset( $base_style_rule['selector'] ) &&
+-							preg_match( $layout_selector_pattern, $base_style_rule['selector'] ) &&
++							preg_match( \wp_aot_regex_text( $layout_selector_pattern ), \wp_aot_regex_text( $base_style_rule['selector'] ) ) &&
+ 							! empty( $base_style_rule['rules'] )
+ 						) {
+ 							foreach ( $base_style_rule['rules'] as $css_property => $css_value ) {
+@@ -2411,6 +2434,7 @@
+ 		}
+ 
+ 		return $block_rules;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -2442,7 +2466,7 @@
+ 	 * @param string[] $origins       List of origins to process presets from.
+ 	 * @return string The new stylesheet.
+ 	 */
+-	protected function get_preset_classes( $setting_nodes, $origins ) {
++	protected function get_preset_classes( mixed $setting_nodes, mixed $origins ): mixed {
+ 		$preset_rules = '';
+ 
+ 		foreach ( $setting_nodes as $metadata ) {
+@@ -2456,6 +2480,7 @@
+ 		}
+ 
+ 		return $preset_rules;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -2479,7 +2504,7 @@
+ 	 * @param string[] $origins List of origins to process.
+ 	 * @return string The new stylesheet.
+ 	 */
+-	protected function get_css_variables( $nodes, $origins ) {
++	protected function get_css_variables( mixed $nodes, mixed $origins ): mixed {
+ 		$stylesheet = '';
+ 		foreach ( $nodes as $metadata ) {
+ 			if ( null === $metadata['selector'] ) {
+@@ -2509,7 +2534,7 @@
+ 					continue;
+ 				}
+ 
+-				$target = static::get_feature_selector( $feature_selectors, $preset_metadata['path'][0], $selector );
++				$target = static::get_feature_selector( \wp_aot_array_input($feature_selectors), $preset_metadata['path'][0], $selector );
+ 
+ 				if ( ! isset( $vars_by_selector[ $target ] ) ) {
+ 					$vars_by_selector[ $target ] = array();
+@@ -2534,6 +2559,7 @@
+ 		}
+ 
+ 		return $stylesheet;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -2580,14 +2606,14 @@
+ 	 * @param array  $declarations List of declarations.
+ 	 * @return string The resulting CSS ruleset.
+ 	 */
+-	protected static function to_ruleset( $selector, $declarations ) {
++	protected static function to_ruleset( mixed $selector, mixed $declarations ): mixed {
+ 		if ( empty( $declarations ) ) {
+ 			return '';
+ 		}
+ 
+ 		$declaration_block = array_reduce(
+ 			$declarations,
+-			static function ( $carry, $element ) {
++			static function ( mixed $carry, mixed $element ) {
+ 				$value = $element['value'];
+ 
+ 				if ( is_numeric( $value ) ) {
+@@ -2604,6 +2630,7 @@
+ 		);
+ 
+ 		return $selector . '{' . $declaration_block . '}';
++		return null;
+ 	}
+ 
+ 	/**
+@@ -2620,7 +2647,7 @@
+ 	 * @param string[] $origins  List of origins to process.
+ 	 * @return string The result of processing the presets.
+ 	 */
+-	protected static function compute_preset_classes( $settings, $selector, $origins ) {
++	protected static function compute_preset_classes( mixed $settings, mixed $selector, mixed $origins ): mixed {
+ 		if ( static::ROOT_BLOCK_SELECTOR === $selector || static::ROOT_CSS_PROPERTIES_SELECTOR === $selector ) {
+ 			/*
+ 			 * Classes at the global level do not need any CSS prefixed,
+@@ -2664,6 +2691,7 @@
+ 		}
+ 
+ 		return $stylesheet;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -2684,7 +2712,7 @@
+ 	 * @param string $selector Original selector.
+ 	 * @return string Scoped selector.
+ 	 */
+-	public static function scope_selector( $scope, $selector ) {
++	public static function scope_selector( mixed $scope, mixed $selector ): mixed {
+ 		if ( ! $scope || ! $selector ) {
+ 			return $selector;
+ 		}
+@@ -2707,6 +2735,7 @@
+ 
+ 		$result = implode( ', ', $selectors_scoped );
+ 		return $result;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -2721,7 +2750,7 @@
+ 	 * @param array  $node  Style node with selectors to scope.
+ 	 * @return array Node with updated selectors.
+ 	 */
+-	protected static function scope_style_node_selectors( $scope, $node ) {
++	protected static function scope_style_node_selectors( mixed $scope, mixed $node ): mixed {
+ 		$node['selector'] = static::scope_selector( $scope, $node['selector'] );
+ 
+ 		if ( empty( $node['selectors'] ) ) {
+@@ -2740,6 +2769,7 @@
+ 		}
+ 
+ 		return $node;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -2779,7 +2809,7 @@
+ 	 * @param string[] $origins         List of origins to process.
+ 	 * @return array Array of presets where each key is a slug and each value is the preset value.
+ 	 */
+-	protected static function get_settings_values_by_slug( $settings, $preset_metadata, $origins ) {
++	protected static function get_settings_values_by_slug( mixed $settings, mixed $preset_metadata, mixed $origins ): mixed {
+ 		$preset_per_origin = _wp_array_get( $settings, $preset_metadata['path'], array() );
+ 
+ 		$result = array();
+@@ -2809,6 +2839,7 @@
+ 			}
+ 		}
+ 		return $result;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -2821,7 +2852,7 @@
+ 	 * @param string[] $origins         List of origins to process.
+ 	 * @return array Array of presets where the key and value are both the slug.
+ 	 */
+-	protected static function get_settings_slugs( $settings, $preset_metadata, $origins = null ) {
++	protected static function get_settings_slugs( mixed $settings, mixed $preset_metadata, mixed $origins = null ): mixed {
+ 		if ( null === $origins ) {
+ 			$origins = static::VALID_ORIGINS;
+ 		}
+@@ -2841,6 +2872,7 @@
+ 			}
+ 		}
+ 		return $result;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -2852,8 +2884,9 @@
+ 	 * @param string $slug  The slug value to use to generate the custom property.
+ 	 * @return string The CSS Custom Property. Something along the lines of `--wp--preset--color--black`.
+ 	 */
+-	protected static function replace_slug_in_string( $input, $slug ) {
+-		return strtr( $input, array( '$slug' => $slug ) );
++	protected static function replace_slug_in_string( mixed $input, mixed $slug ): mixed {
++		return \wp_aot_strtr( $input, array( '$slug' => $slug ) );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -2873,7 +2906,7 @@
+ 	 * @param string[] $origins  List of origins to process.
+ 	 * @return array The modified $declarations.
+ 	 */
+-	protected static function compute_preset_vars( $settings, $origins ) {
++	protected static function compute_preset_vars( mixed $settings, mixed $origins ): mixed {
+ 		$declarations = array();
+ 		foreach ( static::PRESETS_METADATA as $preset_metadata ) {
+ 			if ( empty( $preset_metadata['css_vars'] ) ) {
+@@ -2889,6 +2922,7 @@
+ 		}
+ 
+ 		return $declarations;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -2906,7 +2940,7 @@
+ 	 * @param array $settings Settings to process.
+ 	 * @return array The modified $declarations.
+ 	 */
+-	protected static function compute_theme_vars( $settings ) {
++	protected static function compute_theme_vars( mixed $settings ): mixed {
+ 		$declarations  = array();
+ 		$custom_values = $settings['custom'] ?? array();
+ 		$css_vars      = static::flatten_tree( $custom_values );
+@@ -2918,6 +2952,7 @@
+ 		}
+ 
+ 		return $declarations;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -2957,10 +2992,10 @@
+ 	 * @param string $token  Optional. Token to use between levels. Default '--'.
+ 	 * @return array The flattened tree.
+ 	 */
+-	protected static function flatten_tree( $tree, $prefix = '', $token = '--' ) {
++	protected static function flatten_tree( mixed $tree, mixed $prefix = '', mixed $token = '--' ): mixed {
+ 		$result = array();
+ 		foreach ( $tree as $property => $value ) {
+-			$new_key = $prefix . str_replace(
++			$new_key = $prefix . \wp_aot_str_replace(
+ 				'/',
+ 				'-',
+ 				strtolower( _wp_to_kebab_case( $property ) )
+@@ -2977,6 +3012,7 @@
+ 			}
+ 		}
+ 		return $result;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -3003,7 +3039,7 @@
+ 	 * @param boolean $use_root_padding Whether to add custom properties at root level.
+ 	 * @return array Returns the modified $declarations.
+ 	 */
+-	protected static function compute_style_properties( $styles, $settings = array(), $properties = null, $theme_json = null, $selector = null, $use_root_padding = null ) {
++	protected static function compute_style_properties( mixed $styles, mixed $settings = array(), mixed $properties = null, mixed $theme_json = null, mixed $selector = null, mixed $use_root_padding = null ): mixed {
+ 		if ( empty( $styles ) ) {
+ 			return array();
+ 		}
+@@ -3108,13 +3144,14 @@
+ 
+ 		// If a variable value is added to the root, the corresponding property should be removed.
+ 		foreach ( $root_variable_duplicates as $duplicate ) {
+-			$discard = array_search( $duplicate, array_column( $declarations, 'name' ), true );
++			$discard = \wp_aot_array_search( $duplicate, \wp_aot_array_column( $declarations, 'name' ), true );
+ 			if ( is_numeric( $discard ) ) {
+ 				array_splice( $declarations, $discard, 1 );
+ 			}
+ 		}
+ 
+ 		return $declarations;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -3138,7 +3175,7 @@
+ 	 * @param array $theme_json Theme JSON array.
+ 	 * @return string|array Style property value.
+ 	 */
+-	protected static function get_property_value( $styles, $path, $theme_json = null ) {
++	protected static function get_property_value( mixed $styles, mixed $path, mixed $theme_json = null ): mixed {
+ 		$value = _wp_array_get( $styles, $path, '' );
+ 
+ 		if ( '' === $value || null === $value ) {
+@@ -3182,6 +3219,7 @@
+ 		}
+ 
+ 		return $value;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -3204,7 +3242,7 @@
+ 	 * @param array $selectors  List of selectors per block.
+ 	 * @return array An array of setting nodes metadata.
+ 	 */
+-	protected static function get_setting_nodes( $theme_json, $selectors = array() ) {
++	protected static function get_setting_nodes( mixed $theme_json, mixed $selectors = array() ): mixed {
+ 		$nodes = array();
+ 		if ( ! isset( $theme_json['settings'] ) ) {
+ 			return $nodes;
+@@ -3235,6 +3273,7 @@
+ 		}
+ 
+ 		return $nodes;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -3265,7 +3304,7 @@
+ 	 * }
+ 	 * @return array An array of style nodes metadata.
+ 	 */
+-	protected static function get_style_nodes( $theme_json, $selectors = array(), $options = array() ) {
++	protected static function get_style_nodes( mixed $theme_json, mixed $selectors = array(), mixed $options = array() ): mixed {
+ 		$nodes = array();
+ 		if ( ! isset( $theme_json['styles'] ) ) {
+ 			return $nodes;
+@@ -3288,7 +3327,7 @@
+ 				);
+ 
+ 				// Handle any pseudo selectors for the element.
+-				if ( isset( static::VALID_ELEMENT_PSEUDO_SELECTORS[ $element ] ) ) {
++				if ( array_key_exists( $element, static::VALID_ELEMENT_PSEUDO_SELECTORS ) ) {
+ 					foreach ( static::VALID_ELEMENT_PSEUDO_SELECTORS[ $element ] as $pseudo_selector ) {
+ 
+ 						if ( isset( $theme_json['styles']['elements'][ $element ][ $pseudo_selector ] ) ) {
+@@ -3322,6 +3361,7 @@
+ 		 * @param array $nodes Style nodes with metadata.
+ 		 */
+ 		return apply_filters( 'wp_theme_json_get_style_nodes', $nodes );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -3331,8 +3371,9 @@
+ 	 *
+ 	 * @return array The block nodes in theme.json.
+ 	 */
+-	public function get_styles_block_nodes() {
++	public function get_styles_block_nodes(): mixed {
+ 		return static::get_block_nodes( $this->theme_json );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -3344,7 +3385,7 @@
+ 	 * @param array $declarations List of declarations.
+ 	 * @return array $declarations List of declarations filtered.
+ 	 */
+-	private static function update_separator_declarations( $declarations ) {
++	private static function update_separator_declarations( mixed $declarations ): mixed {
+ 		$background_color     = '';
+ 		$border_color_matches = false;
+ 		$text_color_matches   = false;
+@@ -3371,6 +3412,7 @@
+ 		}
+ 
+ 		return $declarations;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -3387,7 +3429,7 @@
+ 	 * @param string $block_name           The block name being processed.
+ 	 * @return array The updated feature declarations.
+ 	 */
+-	private static function update_paragraph_text_indent_selector( $feature_declarations, $settings, $block_name ) {
++	private static function update_paragraph_text_indent_selector( mixed $feature_declarations, mixed $settings, mixed $block_name ): mixed {
+ 		if ( 'core/paragraph' !== $block_name ) {
+ 			return $feature_declarations;
+ 		}
+@@ -3413,6 +3455,7 @@
+ 		}
+ 
+ 		return $feature_declarations;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -3431,7 +3474,7 @@
+ 	 * @param array $settings             The theme.json settings.
+ 	 * @return array The updated feature declarations.
+ 	 */
+-	private static function update_button_width_declarations( $feature_declarations, $settings ) {
++	private static function update_button_width_declarations( mixed $feature_declarations, mixed $settings ): mixed {
+ 		if ( ! isset( $feature_declarations['.wp-block-button'] ) ) {
+ 			return $feature_declarations;
+ 		}
+@@ -3495,6 +3538,7 @@
+ 		unset( $declaration );
+ 
+ 		return $feature_declarations;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -3516,7 +3560,7 @@
+ 	 * }
+ 	 * @return array The block nodes in theme.json.
+ 	 */
+-	private static function get_block_nodes( $theme_json, $selectors = array(), $options = array() ) {
++	private static function get_block_nodes( mixed $theme_json, mixed $selectors = array(), mixed $options = array() ): mixed {
+ 		$nodes = array();
+ 
+ 		if ( ! isset( $theme_json['styles']['blocks'] ) ) {
+@@ -3608,7 +3652,7 @@
+ 				}
+ 
+ 				// Handle any pseudo selectors for the block.
+-				if ( isset( static::VALID_BLOCK_PSEUDO_SELECTORS[ $name ] ) ) {
++				if ( array_key_exists( $name, static::VALID_BLOCK_PSEUDO_SELECTORS ) ) {
+ 					foreach ( static::VALID_BLOCK_PSEUDO_SELECTORS[ $name ] as $pseudo_selector ) {
+ 						$has_pseudo            = isset( $theme_json['styles']['blocks'][ $name ][ $pseudo_selector ] );
+ 						$has_responsive_pseudo = false;
+@@ -3675,7 +3719,7 @@
+ 				}
+ 
+ 				// Handle custom states (e.g. '-current' for navigation).
+-				if ( isset( static::VALID_BLOCK_CUSTOM_STATES[ $name ] ) ) {
++				if ( array_key_exists( $name, static::VALID_BLOCK_CUSTOM_STATES ) ) {
+ 					foreach ( static::VALID_BLOCK_CUSTOM_STATES[ $name ] as $custom_state ) {
+ 						if (
+ 							isset( $theme_json['styles']['blocks'][ $name ][ $custom_state ] ) &&
+@@ -3694,7 +3738,7 @@
+ 							);
+ 
+ 							// Sub-pseudo-selectors within the custom state.
+-							if ( isset( static::VALID_BLOCK_PSEUDO_SELECTORS[ $name ] ) ) {
++							if ( array_key_exists( $name, static::VALID_BLOCK_PSEUDO_SELECTORS ) ) {
+ 								foreach ( static::VALID_BLOCK_PSEUDO_SELECTORS[ $name ] as $pseudo ) {
+ 									if ( isset( $theme_json['styles']['blocks'][ $name ][ $custom_state ][ $pseudo ] ) ) {
+ 										$compound_css_selector = static::append_to_selector( $custom_css_selector, $pseudo );
+@@ -3723,12 +3767,12 @@
+ 			$block_node    = $theme_json['styles']['blocks'][ $name ] ?? array();
+ 			$element_names = array_keys( $block_node['elements'] ?? array() );
+ 			foreach ( array_keys( $responsive_media_queries ) as $breakpoint ) {
+-				$element_names = array_merge(
++				$element_names = \wp_aot_array_merge(array(
+ 					$element_names,
+ 					array_keys( $block_node[ $breakpoint ]['elements'] ?? array() )
+-				);
+-			}
+-			$element_names = array_unique( $element_names );
++				));
++			}
++			$element_names = \wp_aot_array_unique( $element_names );
+ 
+ 			if ( ! empty( $element_names ) ) {
+ 				foreach ( $element_names as $element ) {
+@@ -3768,7 +3812,7 @@
+ 					}
+ 
+ 					// Handle any pseudo selectors for the element.
+-					if ( isset( static::VALID_ELEMENT_PSEUDO_SELECTORS[ $element ] ) ) {
++					if ( array_key_exists( $element, static::VALID_ELEMENT_PSEUDO_SELECTORS ) ) {
+ 						foreach ( static::VALID_ELEMENT_PSEUDO_SELECTORS[ $element ] as $pseudo_selector ) {
+ 							// Emit the default pseudo node only when the default state styles
+ 							// the pseudo. Otherwise get_styles_for_block() falls back to the
+@@ -3799,6 +3843,7 @@
+ 		}
+ 
+ 		return $nodes;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -3812,12 +3857,12 @@
+ 	 * @param array $block_metadata Metadata about the block to get styles for.
+ 	 * @return string Styles for the block.
+ 	 */
+-	public function get_styles_for_block( $block_metadata ) {
++	public function get_styles_for_block( mixed $block_metadata ): mixed {
+ 		$node                     = _wp_array_get( $this->theme_json, $block_metadata['path'], array() );
+ 		$use_root_padding         = isset( $this->theme_json['settings']['useRootPaddingAwareAlignments'] ) && true === $this->theme_json['settings']['useRootPaddingAwareAlignments'];
+ 		$selector                 = $block_metadata['selector'];
+ 		$settings                 = $this->theme_json['settings'] ?? array();
+-		$feature_declarations     = static::get_feature_declarations_for_node( $block_metadata, $node );
++		$feature_declarations     = $this->get_feature_declarations_for_node( $block_metadata, $node );
+ 		$is_root_selector         = static::ROOT_BLOCK_SELECTOR === $selector;
+ 		$media_query              = $block_metadata['media_query'] ?? null;
+ 		$responsive_media_queries = static::get_viewport_media_queries( $settings['viewport'] ?? null );
+@@ -3841,7 +3886,7 @@
+ 				$style_variation_node = _wp_array_get( $this->theme_json, $style_variation['path'], array() );
+ 
+ 				// Generate any feature/subfeature style declarations for the current style variation.
+-				$variation_declarations = static::get_feature_declarations_for_node( $block_metadata, $style_variation_node );
++				$variation_declarations = $this->get_feature_declarations_for_node( $block_metadata, $style_variation_node );
+ 
+ 				// Update text indent selector for paragraph blocks based on the textIndent setting.
+ 				$variation_declarations = static::update_paragraph_text_indent_selector( $variation_declarations, $settings, $block_name );
+@@ -3869,7 +3914,7 @@
+ 					$block_name = null;
+ 				}
+ 				$variation_pseudo_declarations = $this->process_pseudo_selectors( $style_variation_node, $style_variation['selector'], $settings, $block_name, $block_metadata, $style_variation );
+-				$style_variation_declarations  = array_merge( $style_variation_declarations, $variation_pseudo_declarations );
++				$style_variation_declarations  = \wp_aot_array_merge(array( $style_variation_declarations, $variation_pseudo_declarations ));
+ 
+ 				// Store custom CSS for the style variation.
+ 				if ( isset( $style_variation_node['css'] ) ) {
+@@ -3911,7 +3956,7 @@
+ 					$breakpoint_node  = $style_variation_node[ $breakpoint ];
+ 					$breakpoint_media = $responsive_media_queries[ $breakpoint ];
+ 					// Process feature-level declarations for this breakpoint.
+-					$breakpoint_feature_declarations = static::get_feature_declarations_for_node( $block_metadata, $breakpoint_node );
++					$breakpoint_feature_declarations = $this->get_feature_declarations_for_node( $block_metadata, $breakpoint_node );
+ 					$breakpoint_feature_declarations = static::update_paragraph_text_indent_selector( $breakpoint_feature_declarations, $settings, $block_name );
+ 					$breakpoint_feature_declarations = static::update_button_width_declarations( $breakpoint_feature_declarations, $settings );
+ 					foreach ( $breakpoint_feature_declarations as $feature_selector => $feature_decl ) {
+@@ -3980,7 +4025,7 @@
+ 								$variation_responsive_css .= $breakpoint_media . '{' . $element_custom_css . '}';
+ 							}
+ 
+-							if ( isset( static::VALID_ELEMENT_PSEUDO_SELECTORS[ $element_name ] ) ) {
++							if ( array_key_exists( $element_name, static::VALID_ELEMENT_PSEUDO_SELECTORS ) ) {
+ 								foreach ( static::VALID_ELEMENT_PSEUDO_SELECTORS[ $element_name ] as $pseudo_selector ) {
+ 									if ( ! isset( $element_node[ $pseudo_selector ] ) ) {
+ 										continue;
+@@ -4019,7 +4064,7 @@
+ 
+ 		$element_pseudo_allowed = array();
+ 
+-		if ( isset( $current_element, static::VALID_ELEMENT_PSEUDO_SELECTORS[ $current_element ] ) ) {
++		if ( ( isset( $current_element ) && array_key_exists( $current_element, static::VALID_ELEMENT_PSEUDO_SELECTORS ) ) ) {
+ 			$element_pseudo_allowed = static::VALID_ELEMENT_PSEUDO_SELECTORS[ $current_element ];
+ 		}
+ 
+@@ -4028,14 +4073,14 @@
+ 		 * This also resets the array keys.
+ 		 */
+ 		$pseudo_matches = array_values(
+-			array_filter(
++			\wp_aot_array_filter(
+ 				$element_pseudo_allowed,
+-				static function ( $pseudo_selector ) use ( $selector ) {
++				static function ( mixed $pseudo_selector ) use ( $selector ) {
+ 					/*
+ 					 * Check if the pseudo selector is in the current selector,
+ 					 * ensuring it is not followed by a dash (e.g., :focus should not match :focus-visible).
+ 					 */
+-					return preg_match( '/' . preg_quote( $pseudo_selector, '/' ) . '(?!-)/', $selector ) === 1;
++					return preg_match( \wp_aot_regex_text( '/' . preg_quote( \wp_aot_regex_text( $pseudo_selector ), '/' ) . '(?!-)/' ), \wp_aot_regex_text( $selector ) ) === 1;
+ 				}
+ 			)
+ 		);
+@@ -4048,7 +4093,7 @@
+ 		 * Otherwise just compute the styles for the default selector as normal.
+ 		 */
+ 		if ( $pseudo_selector && isset( $node[ $pseudo_selector ] ) &&
+-			isset( static::VALID_ELEMENT_PSEUDO_SELECTORS[ $current_element ] )
++			array_key_exists( $current_element, static::VALID_ELEMENT_PSEUDO_SELECTORS )
+ 			&& in_array( $pseudo_selector, static::VALID_ELEMENT_PSEUDO_SELECTORS[ $current_element ], true )
+ 		) {
+ 			$declarations = static::compute_style_properties( $node[ $pseudo_selector ], $settings, null, $this->theme_json, $selector, $use_root_padding );
+@@ -4199,6 +4244,7 @@
+ 		}
+ 
+ 		return $block_rules;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -4214,7 +4260,7 @@
+ 	 * @param array  $options        Optional. An array of options for now used for internal purposes only.
+ 	 * @return string The additional root rules CSS.
+ 	 */
+-	public function get_root_layout_rules( $selector, $block_metadata, $options = array() ) {
++	public function get_root_layout_rules( mixed $selector, mixed $block_metadata, mixed $options = array() ): mixed {
+ 		$css              = '';
+ 		$settings         = $this->theme_json['settings'] ?? array();
+ 		$use_root_padding = isset( $this->theme_json['settings']['useRootPaddingAwareAlignments'] ) && true === $this->theme_json['settings']['useRootPaddingAwareAlignments'];
+@@ -4276,6 +4322,7 @@
+ 		$css .= $this->get_layout_styles( $block_metadata, $options );
+ 
+ 		return $css;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -4301,7 +4348,7 @@
+ 	 *                                  Default false.
+ 	 * @return bool Value of boolean metadata.
+ 	 */
+-	protected static function get_metadata_boolean( $data, $path, $default_value = false ) {
++	protected static function get_metadata_boolean( mixed $data, mixed $path, mixed $default_value = false ): mixed {
+ 		if ( is_bool( $path ) ) {
+ 			return $path;
+ 		}
+@@ -4314,6 +4361,7 @@
+ 		}
+ 
+ 		return $default_value;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -4325,9 +4373,9 @@
+ 	 *
+ 	 * @param WP_Theme_JSON $incoming Data to merge.
+ 	 */
+-	public function merge( $incoming ) {
++	public function merge( mixed $incoming ): mixed {
+ 		$incoming_data    = $incoming->get_raw_data();
+-		$this->theme_json = array_replace_recursive( $this->theme_json, $incoming_data );
++		$this->theme_json = \wp_aot_array_replace_recursive(array( $this->theme_json, $incoming_data ));
+ 
+ 		/*
+ 		 * Recompute all the spacing sizes based on the new hierarchy of data. In the constructor
+@@ -4344,7 +4392,7 @@
+ 
+ 			// Apply the base spacing scale to the current layer.
+ 			$base_spacing_scale      = _wp_array_get( $this->theme_json, $scale_path, array() );
+-			$flattened_spacing_scale = array_replace( $flattened_spacing_scale, $base_spacing_scale );
++			$flattened_spacing_scale = \wp_aot_array_replace(array( $flattened_spacing_scale, $base_spacing_scale ));
+ 
+ 			$spacing_scale = _wp_array_get( $incoming_data, $scale_path, null );
+ 			if ( ! isset( $spacing_scale ) ) {
+@@ -4352,7 +4400,7 @@
+ 			}
+ 
+ 			// Allow partial scale settings by merging with lower layers.
+-			$flattened_spacing_scale = array_replace( $flattened_spacing_scale, $spacing_scale );
++			$flattened_spacing_scale = \wp_aot_array_replace(array( $flattened_spacing_scale, $spacing_scale ));
+ 
+ 			// Generate and merge the scales for this layer.
+ 			$sizes_path           = array( 'settings', 'spacing', 'spacingSizes', $origin );
+@@ -4402,10 +4450,10 @@
+ 			foreach ( static::PRESETS_METADATA as $preset_metadata ) {
+ 				$prevent_override = $preset_metadata['prevent_override'];
+ 				if ( is_array( $prevent_override ) ) {
+-					$global_path  = array_merge( array( 'settings' ), $prevent_override );
++					$global_path  = \wp_aot_array_merge(array( array( 'settings' ), $prevent_override ));
+ 					$global_value = _wp_array_get( $this->theme_json, $global_path, null );
+ 
+-					$node_level_path  = array_merge( $node['path'], $prevent_override );
++					$node_level_path  = \wp_aot_array_merge(array( $node['path'], $prevent_override ));
+ 					$prevent_override = _wp_array_get( $this->theme_json, $node_level_path, $global_value );
+ 				}
+ 
+@@ -4427,7 +4475,7 @@
+ 					if ( 'theme' === $origin && $preset_metadata['use_default_names'] ) {
+ 						foreach ( $content as $key => $item ) {
+ 							if ( ! isset( $item['name'] ) ) {
+-								$name = static::get_name_from_defaults( $item['slug'], $base_path );
++								$name = $this->get_name_from_defaults( $item['slug'], $base_path );
+ 								if ( null !== $name ) {
+ 									$content[ $key ]['name'] = $name;
+ 								}
+@@ -4440,7 +4488,7 @@
+ 						$slugs_node    = static::get_default_slugs( $this->theme_json, $node['path'] );
+ 						$preset_global = _wp_array_get( $slugs_global, $preset_metadata['path'], array() );
+ 						$preset_node   = _wp_array_get( $slugs_node, $preset_metadata['path'], array() );
+-						$preset_slugs  = array_merge_recursive( $preset_global, $preset_node );
++						$preset_slugs  = \wp_aot_array_merge_recursive(array( $preset_global, $preset_node ));
+ 
+ 						$content = static::filter_slugs( $content, $preset_slugs );
+ 					}
+@@ -4470,12 +4518,13 @@
+ 			 * Background image styles should be replaced, not merged,
+ 			 * as they themselves are specific object definitions for the style.
+ 			 */
+-			$background_image_path = array_merge( $path, static::PROPERTIES_METADATA['background-image'] );
++			$background_image_path = \wp_aot_array_merge(array( $path, static::PROPERTIES_METADATA['background-image'] ));
+ 			$content               = _wp_array_get( $incoming_data, $background_image_path, null );
+ 			if ( isset( $content ) ) {
+ 				_wp_array_set( $this->theme_json, $background_image_path, $content );
+ 			}
+ 		}
++		return null;
+ 	}
+ 
+ 	/**
+@@ -4486,7 +4535,7 @@
+ 	 * @param array $origins List of origins to process.
+ 	 * @return string SVG filters.
+ 	 */
+-	public function get_svg_filters( $origins ) {
++	public function get_svg_filters( mixed $origins ): mixed {
+ 		$blocks_metadata = static::get_blocks_metadata();
+ 		$setting_nodes   = static::get_setting_nodes( $this->theme_json, $blocks_metadata );
+ 
+@@ -4510,6 +4559,7 @@
+ 		}
+ 
+ 		return $filters;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -4523,7 +4573,7 @@
+ 	 * @param bool|array $override   Data to compute whether to override the preset.
+ 	 * @return bool|null True if the preset should override the defaults, false if not. Null if the override parameter is invalid.
+ 	 */
+-	protected static function should_override_preset( $theme_json, $path, $override ) {
++	protected static function should_override_preset( mixed $theme_json, mixed $path, mixed $override ): mixed {
+ 		_deprecated_function( __METHOD__, '6.0.0', 'get_metadata_boolean' );
+ 
+ 		if ( is_bool( $override ) ) {
+@@ -4543,13 +4593,13 @@
+ 		 * so they should override the defaults.
+ 		 */
+ 		if ( is_array( $override ) ) {
+-			$value = _wp_array_get( $theme_json, array_merge( $path, $override ) );
++			$value = _wp_array_get( $theme_json, \wp_aot_array_merge(array( $path, $override )) );
+ 			if ( isset( $value ) ) {
+ 				return ! $value;
+ 			}
+ 
+ 			// Search the top-level key if none was found for this node.
+-			$value = _wp_array_get( $theme_json, array_merge( array( 'settings' ), $override ) );
++			$value = _wp_array_get( $theme_json, \wp_aot_array_merge(array( array( 'settings' ), $override )) );
+ 			if ( isset( $value ) ) {
+ 				return ! $value;
+ 			}
+@@ -4557,6 +4607,7 @@
+ 			return true;
+ 		}
+ 
++		return null;
+ 		return null;
+ 	}
+ 
+@@ -4579,7 +4630,7 @@
+ 	 * @param array $node_path The path to inspect. It's 'settings' by default.
+ 	 * @return array
+ 	 */
+-	protected static function get_default_slugs( $data, $node_path ) {
++	protected static function get_default_slugs( mixed $data, mixed $node_path ): mixed {
+ 		$slugs = array();
+ 
+ 		foreach ( static::PRESETS_METADATA as $metadata ) {
+@@ -4605,6 +4656,7 @@
+ 		}
+ 
+ 		return $slugs;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -4616,7 +4668,7 @@
+ 	 * @param array  $base_path The path to inspect. It's 'settings' by default.
+ 	 * @return string|null
+ 	 */
+-	protected function get_name_from_defaults( $slug, $base_path ) {
++	protected function get_name_from_defaults( mixed $slug, mixed $base_path ): mixed {
+ 		$path            = $base_path;
+ 		$path[]          = 'default';
+ 		$default_content = _wp_array_get( $this->theme_json, $path, null );
+@@ -4629,6 +4681,7 @@
+ 			}
+ 		}
+ 		return null;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -4640,7 +4693,7 @@
+ 	 * @param array $slugs The slugs that should not be overridden.
+ 	 * @return array The new node.
+ 	 */
+-	protected static function filter_slugs( $node, $slugs ) {
++	protected static function filter_slugs( mixed $node, mixed $slugs ): mixed {
+ 		if ( empty( $slugs ) ) {
+ 			return $node;
+ 		}
+@@ -4653,6 +4706,7 @@
+ 		}
+ 
+ 		return $new_node;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -4667,7 +4721,7 @@
+ 	 *                           One of 'blocks', 'default', 'theme', or 'custom'. Default 'theme'.
+ 	 * @return array Sanitized structure.
+ 	 */
+-	public static function remove_insecure_properties( $theme_json, $origin = 'theme' ) {
++	public static function remove_insecure_properties( mixed $theme_json, mixed $origin = 'theme' ): mixed {
+ 		if ( ! in_array( $origin, static::VALID_ORIGINS, true ) ) {
+ 			$origin = 'theme';
+ 		}
+@@ -4715,7 +4769,7 @@
+ 			 * $output is stripped of pseudo selectors. Re-add and process them
+ 			 * or insecure styles here.
+ 			 */
+-			if ( isset( static::VALID_ELEMENT_PSEUDO_SELECTORS[ $current_element ] ) ) {
++			if ( array_key_exists( $current_element, static::VALID_ELEMENT_PSEUDO_SELECTORS ) ) {
+ 				foreach ( static::VALID_ELEMENT_PSEUDO_SELECTORS[ $current_element ] as $pseudo_selector ) {
+ 					if ( isset( $input[ $pseudo_selector ] ) ) {
+ 						$output[ $pseudo_selector ] = static::remove_insecure_styles( $input[ $pseudo_selector ] );
+@@ -4736,7 +4790,7 @@
+ 						$output[ $breakpoint ]['blocks'] = static::remove_insecure_inner_block_styles( $input[ $breakpoint ]['blocks'], $responsive_media_queries );
+ 					}
+ 
+-					if ( $block_name && isset( static::VALID_BLOCK_PSEUDO_SELECTORS[ $block_name ] ) ) {
++					if ( $block_name && array_key_exists( $block_name, static::VALID_BLOCK_PSEUDO_SELECTORS ) ) {
+ 						foreach ( static::VALID_BLOCK_PSEUDO_SELECTORS[ $block_name ] as $pseudo_selector ) {
+ 							if ( isset( $input[ $breakpoint ][ $pseudo_selector ] ) ) {
+ 								$output[ $breakpoint ][ $pseudo_selector ] = static::remove_insecure_styles( $input[ $breakpoint ][ $pseudo_selector ] );
+@@ -4785,7 +4839,7 @@
+ 								$variation_output[ $breakpoint ]['blocks'] = static::remove_insecure_inner_block_styles( $variation_input[ $breakpoint ]['blocks'], $responsive_media_queries );
+ 							}
+ 
+-							if ( $block_name && isset( static::VALID_BLOCK_PSEUDO_SELECTORS[ $block_name ] ) ) {
++							if ( $block_name && array_key_exists( $block_name, static::VALID_BLOCK_PSEUDO_SELECTORS ) ) {
+ 								foreach ( static::VALID_BLOCK_PSEUDO_SELECTORS[ $block_name ] as $pseudo_selector ) {
+ 									if ( isset( $variation_input[ $breakpoint ][ $pseudo_selector ] ) ) {
+ 										$variation_output[ $breakpoint ][ $pseudo_selector ] = static::remove_insecure_styles( $variation_input[ $breakpoint ][ $pseudo_selector ] );
+@@ -4833,6 +4887,7 @@
+ 		}
+ 
+ 		return $theme_json;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -4849,7 +4904,7 @@
+ 	 *                                             viewport states. Default null.
+ 	 * @return array The sanitized elements styles.
+ 	 */
+-	protected static function remove_insecure_element_styles( $elements, $responsive_media_queries = null ) {
++	protected static function remove_insecure_element_styles( mixed $elements, mixed $responsive_media_queries = null ): mixed {
+ 		$sanitized           = array();
+ 		$valid_element_names = array_keys( static::ELEMENTS );
+ 
+@@ -4858,7 +4913,7 @@
+ 			if ( $element_input ) {
+ 				$element_output = static::remove_insecure_styles( $element_input );
+ 
+-				if ( isset( static::VALID_ELEMENT_PSEUDO_SELECTORS[ $element_name ] ) ) {
++				if ( array_key_exists( $element_name, static::VALID_ELEMENT_PSEUDO_SELECTORS ) ) {
+ 					foreach ( static::VALID_ELEMENT_PSEUDO_SELECTORS[ $element_name ] as $pseudo_selector ) {
+ 						if ( isset( $element_input[ $pseudo_selector ] ) ) {
+ 							$element_output[ $pseudo_selector ] = static::remove_insecure_styles( $element_input[ $pseudo_selector ] );
+@@ -4872,7 +4927,7 @@
+ 						if ( isset( $element_input[ $breakpoint ] ) ) {
+ 							$element_output[ $breakpoint ] = static::remove_insecure_styles( $element_input[ $breakpoint ] );
+ 
+-							if ( isset( static::VALID_ELEMENT_PSEUDO_SELECTORS[ $element_name ] ) ) {
++							if ( array_key_exists( $element_name, static::VALID_ELEMENT_PSEUDO_SELECTORS ) ) {
+ 								foreach ( static::VALID_ELEMENT_PSEUDO_SELECTORS[ $element_name ] as $pseudo_selector ) {
+ 									if ( isset( $element_input[ $breakpoint ][ $pseudo_selector ] ) ) {
+ 										$element_output[ $breakpoint ][ $pseudo_selector ] = static::remove_insecure_styles( $element_input[ $breakpoint ][ $pseudo_selector ] );
+@@ -4887,6 +4942,7 @@
+ 			}
+ 		}
+ 		return $sanitized;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -4903,7 +4959,7 @@
+ 	 *                                             viewport states. Default null.
+ 	 * @return array Sanitized block type styles.
+ 	 */
+-	protected static function remove_insecure_inner_block_styles( $blocks, $responsive_media_queries = null ) {
++	protected static function remove_insecure_inner_block_styles( mixed $blocks, mixed $responsive_media_queries = null ): mixed {
+ 		$sanitized = array();
+ 		foreach ( $blocks as $block_type => $block_input ) {
+ 			$block_output = static::remove_insecure_styles( $block_input );
+@@ -4918,7 +4974,7 @@
+ 					if ( isset( $block_input[ $breakpoint ] ) ) {
+ 						$block_output[ $breakpoint ] = static::remove_insecure_styles( $block_input[ $breakpoint ] );
+ 
+-						if ( isset( static::VALID_BLOCK_PSEUDO_SELECTORS[ $block_type ] ) ) {
++						if ( array_key_exists( $block_type, static::VALID_BLOCK_PSEUDO_SELECTORS ) ) {
+ 							foreach ( static::VALID_BLOCK_PSEUDO_SELECTORS[ $block_type ] as $pseudo_selector ) {
+ 								if ( isset( $block_input[ $breakpoint ][ $pseudo_selector ] ) ) {
+ 									$block_output[ $breakpoint ][ $pseudo_selector ] = static::remove_insecure_styles( $block_input[ $breakpoint ][ $pseudo_selector ] );
+@@ -4932,6 +4988,7 @@
+ 			$sanitized[ $block_type ] = $block_output;
+ 		}
+ 		return $sanitized;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -4947,9 +5004,9 @@
+ 	 * @param array             $schema Schema to validate against (typically VALID_SETTINGS).
+ 	 * @param array<string|int> $path   Current path in the schema (for recursive calls).
+ 	 */
+-	private static function preserve_valid_typed_settings( $input, &$output, $schema, $path = array() ) {
++	private static function preserve_valid_typed_settings( mixed $input, mixed &$output, mixed $schema, mixed $path = array() ): mixed {
+ 		foreach ( $schema as $key => $schema_value ) {
+-			$current_path = array_merge( $path, array( $key ) );
++			$current_path = \wp_aot_array_merge(array( $path, array( $key ) ));
+ 
+ 			// Validate boolean type markers.
+ 			if ( is_bool( $schema_value ) ) {
+@@ -4961,6 +5018,7 @@
+ 				self::preserve_valid_typed_settings( $input, $output, $schema_value, $current_path ); // Recurse into nested structure.
+ 			}
+ 		}
++		return null;
+ 	}
+ 
+ 	/**
+@@ -4974,7 +5032,7 @@
+ 	 * @param bool  $is_root Optional. Whether the node is the root settings node. Default false.
+ 	 * @return array
+ 	 */
+-	protected static function remove_insecure_settings( $input, $is_root = false ) {
++	protected static function remove_insecure_settings( mixed $input, mixed $is_root = false ): mixed {
+ 		$output = array();
+ 		foreach ( static::PRESETS_METADATA as $preset_metadata ) {
+ 			foreach ( static::VALID_ORIGINS as $origin ) {
+@@ -5032,6 +5090,7 @@
+ 		}
+ 
+ 		return $output;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -5043,7 +5102,7 @@
+ 	 * @param array $input Node to process.
+ 	 * @return array
+ 	 */
+-	protected static function remove_insecure_styles( $input ) {
++	protected static function remove_insecure_styles( mixed $input ): mixed {
+ 		$output       = array();
+ 		$declarations = static::compute_style_properties( $input );
+ 
+@@ -5066,6 +5125,7 @@
+ 		static::remove_indirect_properties( $input, $output );
+ 
+ 		return $output;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -5077,10 +5137,11 @@
+ 	 * @param string $property_value Value in a CSS declaration, i.e. the `red` in `color: red`.
+ 	 * @return bool
+ 	 */
+-	protected static function is_safe_css_declaration( $property_name, $property_value ) {
++	protected static function is_safe_css_declaration( mixed $property_name, mixed $property_value ): mixed {
+ 		$style_to_validate = $property_name . ': ' . $property_value;
+ 		$filtered          = esc_html( safecss_filter_attr( $style_to_validate ) );
+ 		return ! empty( trim( $filtered ) );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -5092,7 +5153,7 @@
+ 	 * @param array $input  Node to process.
+ 	 * @param array $output The processed node. Passed by reference.
+ 	 */
+-	private static function remove_indirect_properties( $input, &$output ) {
++	private static function remove_indirect_properties( mixed $input, mixed &$output ): mixed {
+ 		foreach ( static::INDIRECT_PROPERTIES_METADATA as $property => $paths ) {
+ 			foreach ( $paths as $path ) {
+ 				$value = _wp_array_get( $input, $path );
+@@ -5104,6 +5165,7 @@
+ 				}
+ 			}
+ 		}
++		return null;
+ 	}
+ 
+ 	/**
+@@ -5113,8 +5175,9 @@
+ 	 *
+ 	 * @return array Raw data.
+ 	 */
+-	public function get_raw_data() {
++	public function get_raw_data(): mixed {
+ 		return $this->theme_json;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -5126,7 +5189,7 @@
+ 	 * @param array $settings Existing editor settings.
+ 	 * @return array Config that adheres to the theme.json schema.
+ 	 */
+-	public static function get_from_editor_settings( $settings ) {
++	public static function get_from_editor_settings( mixed $settings ): mixed {
+ 		$theme_settings = array(
+ 			'version'  => static::LATEST_SCHEMA,
+ 			'settings' => array(),
+@@ -5183,6 +5246,7 @@
+ 		}
+ 
+ 		return $theme_settings;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -5193,11 +5257,12 @@
+ 	 *
+ 	 * @return string[]
+ 	 */
+-	public function get_patterns() {
++	public function get_patterns(): mixed {
+ 		if ( isset( $this->theme_json['patterns'] ) && is_array( $this->theme_json['patterns'] ) ) {
+ 			return $this->theme_json['patterns'];
+ 		}
+ 		return array();
++		return null;
+ 	}
+ 
+ 	/**
+@@ -5210,7 +5275,7 @@
+ 	 *
+ 	 * @return array
+ 	 */
+-	public function get_data() {
++	public function get_data(): mixed {
+ 		$output = $this->theme_json;
+ 		$nodes  = static::get_setting_nodes( $output );
+ 
+@@ -5268,7 +5333,7 @@
+ 				}
+ 				$flattened_preset = array();
+ 				foreach ( $items as $slug => $value ) {
+-					$flattened_preset[] = array_merge( array( 'slug' => (string) $slug ), $value );
++					$flattened_preset[] = \wp_aot_array_merge(array( array( 'slug' => (string) $slug ), $value ));
+ 				}
+ 				_wp_array_set( $output, $path, $flattened_preset );
+ 			}
+@@ -5349,6 +5414,7 @@
+ 		wp_recursive_ksort( $output );
+ 
+ 		return $output;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -5361,7 +5427,7 @@
+ 	 *
+ 	 * @return void
+ 	 */
+-	public function set_spacing_sizes() {
++	public function set_spacing_sizes(): mixed {
+ 		_deprecated_function( __METHOD__, '6.6.0' );
+ 
+ 		$spacing_scale = $this->theme_json['settings']['spacing']['spacingScale'] ?? array();
+@@ -5388,12 +5454,12 @@
+ 					E_USER_NOTICE
+ 				);
+ 			}
+-			return;
++			return null;
+ 		}
+ 
+ 		// If theme authors want to prevent the generation of the core spacing scale they can set their theme.json spacingScale.steps to 0.
+ 		if ( 0 === $spacing_scale['steps'] ) {
+-			return;
++			return null;
+ 		}
+ 
+ 		$spacing_sizes = static::compute_spacing_sizes( $spacing_scale );
+@@ -5406,6 +5472,7 @@
+ 		}
+ 
+ 		_wp_array_set( $this->theme_json, array( 'settings', 'spacing', 'spacingSizes', 'default' ), $spacing_sizes );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -5417,7 +5484,7 @@
+ 	 * @param array $incoming The set of spacing sizes to merge with the base. Duplicate slugs will override the base values.
+ 	 * @return array The merged set of spacing sizes.
+ 	 */
+-	private static function merge_spacing_sizes( $base, $incoming ) {
++	private static function merge_spacing_sizes( mixed $base, mixed $incoming ): mixed {
+ 		// Preserve the order if there are no base (spacingScale) values.
+ 		if ( empty( $base ) ) {
+ 			return $incoming;
+@@ -5429,8 +5496,9 @@
+ 		foreach ( $incoming as $item ) {
+ 			$merged[ $item['slug'] ] = $item;
+ 		}
+-		ksort( $merged, SORT_NUMERIC );
++		\wp_aot_ksort( $merged, SORT_NUMERIC );
+ 		return array_values( $merged );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -5469,7 +5537,7 @@
+ 	 * }
+ 	 * @return array The spacing sizes presets or an empty array if some spacing scale values are missing or invalid.
+ 	 */
+-	private static function compute_spacing_sizes( $spacing_scale ) {
++	private static function compute_spacing_sizes( mixed $spacing_scale ): mixed {
+ 		/*
+ 		 * This condition is intentionally missing some checks on ranges for the values in order to
+ 		 * keep backwards compatibility with the previous implementation.
+@@ -5529,7 +5597,7 @@
+ 			$slug -= 10;
+ 		}
+ 
+-		$below_sizes = array_reverse( $below_sizes );
++		$below_sizes = \wp_aot_array_reverse( $below_sizes );
+ 
+ 		$below_sizes[] = array(
+ 			'name' => __( 'Medium' ),
+@@ -5572,6 +5640,7 @@
+ 		}
+ 
+ 		return $spacing_sizes;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -5583,13 +5652,13 @@
+ 	 * @param string $value The variable such as var:preset|color|vivid-green-cyan to convert.
+ 	 * @return string The converted variable.
+ 	 */
+-	private static function convert_custom_properties( $value ) {
++	private static function convert_custom_properties( mixed $value ): mixed {
+ 		$prefix     = 'var:';
+ 		$prefix_len = strlen( $prefix );
+ 		$token_in   = '|';
+ 		$token_out  = '--';
+ 		if ( str_starts_with( $value, $prefix ) ) {
+-			$unwrapped_name = str_replace(
++			$unwrapped_name = \wp_aot_str_replace(
+ 				$token_in,
+ 				$token_out,
+ 				substr( $value, $prefix_len )
+@@ -5598,6 +5667,7 @@
+ 		}
+ 
+ 		return $value;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -5609,7 +5679,7 @@
+ 	 * @param array $tree Input to process.
+ 	 * @return array The modified $tree.
+ 	 */
+-	private static function resolve_custom_css_format( $tree ) {
++	private static function resolve_custom_css_format( mixed $tree ): mixed {
+ 		$prefix = 'var:';
+ 
+ 		foreach ( $tree as $key => $data ) {
+@@ -5621,6 +5691,7 @@
+ 		}
+ 
+ 		return $tree;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -5632,7 +5703,7 @@
+ 	 * @param string $root_selector The block's root selector.
+ 	 * @return array The custom selectors set by the block.
+ 	 */
+-	protected static function get_block_selectors( $block_type, $root_selector ) {
++	protected static function get_block_selectors( mixed $block_type, mixed $root_selector ): mixed {
+ 		if ( ! empty( $block_type->selectors ) ) {
+ 			return $block_type->selectors;
+ 		}
+@@ -5646,6 +5717,7 @@
+ 		}
+ 
+ 		return $selectors;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -5656,7 +5728,7 @@
+ 	 * @param string $root_selector The block's root CSS selector.
+ 	 * @return array The block's element selectors.
+ 	 */
+-	protected static function get_block_element_selectors( $root_selector ) {
++	protected static function get_block_element_selectors( mixed $root_selector ): mixed {
+ 		/*
+ 		 * Assign defaults, then override those that the block sets by itself.
+ 		 * If the block selector is compounded, will append the element to each
+@@ -5677,6 +5749,7 @@
+ 		}
+ 
+ 		return $element_selectors;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -5691,7 +5764,7 @@
+ 	 * @return array The style declarations for the node's features with custom
+ 	 *               selectors.
+ 	 */
+-	protected function get_feature_declarations_for_node( $metadata, &$node ) {
++	protected function get_feature_declarations_for_node( mixed $metadata, mixed &$node ): mixed {
+ 		$declarations = array();
+ 
+ 		if ( ! isset( $metadata['selectors'] ) ) {
+@@ -5787,6 +5860,7 @@
+ 		}
+ 
+ 		return $declarations;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -5799,7 +5873,7 @@
+ 	 * @param array $values key => value pairs to use for replacement.
+ 	 * @return array
+ 	 */
+-	private static function convert_variables_to_value( $styles, $values ) {
++	private static function convert_variables_to_value( mixed $styles, mixed $values ): mixed {
+ 		foreach ( $styles as $key => $style ) {
+ 			if ( empty( $style ) ) {
+ 				continue;
+@@ -5813,7 +5887,7 @@
+ 			if ( 0 <= strpos( $style, 'var(' ) ) {
+ 				// find all the variables in the string in the form of var(--variable-name, fallback), with fallback in the second capture group.
+ 
+-				$has_matches = preg_match_all( '/var\(([^),]+)?,?\s?(\S+)?\)/', $style, $var_parts );
++				$has_matches = preg_match_all( '/var\(([^),]+)?,?\s?(\S+)?\)/', \wp_aot_regex_text( $style ), $var_parts );
+ 
+ 				if ( $has_matches ) {
+ 					$resolved_style = $styles[ $key ];
+@@ -5821,7 +5895,7 @@
+ 						$key_in_values   = 'var(' . $var_part . ')';
+ 						$rule_to_replace = $var_parts[0][ $index ]; // the css rule to replace e.g. var(--wp--preset--color--vivid-green-cyan).
+ 						$fallback        = $var_parts[2][ $index ]; // the fallback value.
+-						$resolved_style  = str_replace(
++						$resolved_style  = \wp_aot_str_replace(
+ 							array(
+ 								$rule_to_replace,
+ 								$fallback,
+@@ -5839,6 +5913,7 @@
+ 		}
+ 
+ 		return $styles;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -5849,14 +5924,14 @@
+ 	 * @param WP_Theme_JSON $theme_json The theme json resolver.
+ 	 * @return WP_Theme_JSON The $theme_json with resolved variables.
+ 	 */
+-	public static function resolve_variables( $theme_json ) {
++	public static function resolve_variables( mixed $theme_json ): mixed {
+ 		$settings    = $theme_json->get_settings();
+ 		$styles      = $theme_json->get_raw_data()['styles'];
+ 		$preset_vars = static::compute_preset_vars( $settings, static::VALID_ORIGINS );
+ 		$theme_vars  = static::compute_theme_vars( $settings );
+ 		$vars        = array_reduce(
+-			array_merge( $preset_vars, $theme_vars ),
+-			function ( $carry, $item ) {
++			\wp_aot_array_merge(array( $preset_vars, $theme_vars )),
++			function ( mixed $carry, mixed $item ) {
+ 				$name                    = $item['name'];
+ 				$carry[ "var({$name})" ] = $item['value'];
+ 				return $carry;
+@@ -5866,6 +5941,7 @@
+ 
+ 		$theme_json->theme_json['styles'] = self::convert_variables_to_value( $styles, $vars );
+ 		return $theme_json;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -5877,7 +5953,7 @@
+ 	 * @param string $block_selector CSS selector for the block.
+ 	 * @return string Block selector with block style variation selector added to it.
+ 	 */
+-	protected static function get_block_style_variation_selector( $variation_name, $block_selector ) {
++	protected static function get_block_style_variation_selector( mixed $variation_name, mixed $block_selector ): mixed {
+ 		$variation_class = ".is-style-$variation_name";
+ 
+ 		if ( ! $block_selector ) {
+@@ -5900,9 +5976,9 @@
+ 		 * - `:where(.outer .inner)`  => `:where(.outer.is-style-custom .inner)`
+ 		 */
+ 		foreach ( $selector_parts as $part ) {
+-			$result[] = preg_replace_callback(
++			$result[] = \wp_aot_preg_replace_callback(
+ 				'/[^\s:]+/',
+-				function ( $matches ) use ( $variation_class ) {
++				function ( mixed $matches ) use ( $variation_class ) {
+ 					return $matches[0] . $variation_class;
+ 				},
+ 				$part,
+@@ -5911,6 +5987,7 @@
+ 		}
+ 
+ 		return implode( ', ', $result );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -5929,7 +6006,7 @@
+ 	 * @param string $feature_selector CSS selector for the feature.
+ 	 * @return string Feature selector with block style variation selector added.
+ 	 */
+-	protected static function get_block_style_variation_feature_selector( $style_variation, $feature_selector ) {
++	protected static function get_block_style_variation_feature_selector( mixed $style_variation, mixed $feature_selector ): mixed {
+ 		$variation_path = $style_variation['path'] ?? array();
+ 		$variation_name = $style_variation['name'] ?? ( is_array( $variation_path ) ? end( $variation_path ) : null );
+ 
+@@ -5939,8 +6016,8 @@
+ 
+ 		$variation_class = ".is-style-$variation_name";
+ 		$selector_parts  = static::split_selector_list( $feature_selector );
+-		$selector_parts  = array_map(
+-			static function ( $selector ) use ( $variation_class ) {
++		$selector_parts  = \wp_aot_array_map(
++			static function ( mixed $selector ) use ( $variation_class ) {
+ 				$prefix = $variation_class . ' ';
+ 
+ 				if ( str_starts_with( $selector, $prefix ) ) {
+@@ -5956,6 +6033,7 @@
+ 			$variation_name,
+ 			implode( ', ', $selector_parts )
+ 		);
++		return null;
+ 	}
+ 
+ 	/**
+@@ -5967,7 +6045,7 @@
+ 	 * @param array $blocks_metadata Optional. List of metadata per block. Default is the metadata for all blocks.
+ 	 * @return array Valid block style variations by block type.
+ 	 */
+-	protected static function get_valid_block_style_variations( $blocks_metadata = array() ) {
++	protected static function get_valid_block_style_variations( mixed $blocks_metadata = array() ): mixed {
+ 		$valid_variations = array();
+ 		$blocks_metadata  = empty( $blocks_metadata ) ? static::get_blocks_metadata() : $blocks_metadata;
+ 		foreach ( $blocks_metadata as $block_name => $block_meta ) {
+@@ -5978,6 +6056,7 @@
+ 		}
+ 
+ 		return $valid_variations;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -5988,7 +6067,8 @@
+ 	 * @param array $block_metadata Block metadata.
+ 	 * @return string|null The block name or null if not found.
+ 	 */
+-	private static function get_block_name_from_metadata_path( $block_metadata ) {
++	private static function get_block_name_from_metadata_path( mixed $block_metadata ): mixed {
+ 		return $block_metadata['path'][2] ?? null;
++		return null;
+ 	}
+ }

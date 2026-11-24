@@ -1,0 +1,132 @@
+--- a/wp-includes/php-ai-client/src/Providers/Models/DTO/ModelRequirements.php
++++ b/wp-includes/php-ai-client/src/Providers/Models/DTO/ModelRequirements.php
+@@ -24,7 +24,7 @@
+  *     requiredOptions: list<RequiredOptionArrayShape>
+  * }
+  *
+- * @extends AbstractDataTransferObject<ModelRequirementsArrayShape>
++ * @phpstan-extends AbstractDataTransferObject<ModelRequirementsArrayShape>
+  */
+ class ModelRequirements extends AbstractDataTransferObject
+ {
+@@ -172,13 +172,13 @@
+         $requiredOptions = self::toRequiredOptions($modelConfig);
+         // Add additional options based on message analysis
+         if ($hasFunctionMessageParts) {
+-            $requiredOptions = self::includeInRequiredOptions($requiredOptions, new \WordPress\AiClient\Providers\Models\DTO\RequiredOption(OptionEnum::functionDeclarations(), \true));
++            $requiredOptions = self::includeInRequiredOptions($requiredOptions, new \WordPress\AiClient\Providers\Models\DTO\RequiredOption(\wp_aot_require_WordPress_AiClient_Providers_Models_Enums_OptionEnum( OptionEnum::functionDeclarations() ), \true));
+         }
+         // Add input modalities if we have any inputs
+         if (!empty($inputModalities)) {
+             // Remove duplicates
+-            $inputModalities = array_unique($inputModalities, \SORT_REGULAR);
+-            $requiredOptions = self::includeInRequiredOptions($requiredOptions, new \WordPress\AiClient\Providers\Models\DTO\RequiredOption(OptionEnum::inputModalities(), array_values($inputModalities)));
++            $uniqueModalities = \wp_aot_unique_regular($inputModalities);
++            $requiredOptions = self::includeInRequiredOptions($requiredOptions, new \WordPress\AiClient\Providers\Models\DTO\RequiredOption(\wp_aot_require_WordPress_AiClient_Providers_Models_Enums_OptionEnum( OptionEnum::inputModalities() ), array_values($uniqueModalities)));
+         }
+         // Step 6: Return new ModelRequirements
+         return new self($capabilities, $requiredOptions);
+@@ -196,66 +196,66 @@
+         $requiredOptions = [];
+         // Map properties that have corresponding OptionEnum values
+         if ($modelConfig->getOutputModalities() !== null) {
+-            $requiredOptions[] = new \WordPress\AiClient\Providers\Models\DTO\RequiredOption(OptionEnum::outputModalities(), $modelConfig->getOutputModalities());
++            $requiredOptions[] = new \WordPress\AiClient\Providers\Models\DTO\RequiredOption(\wp_aot_require_WordPress_AiClient_Providers_Models_Enums_OptionEnum( OptionEnum::outputModalities() ), $modelConfig->getOutputModalities());
+         }
+         if ($modelConfig->getSystemInstruction() !== null) {
+-            $requiredOptions[] = new \WordPress\AiClient\Providers\Models\DTO\RequiredOption(OptionEnum::systemInstruction(), $modelConfig->getSystemInstruction());
++            $requiredOptions[] = new \WordPress\AiClient\Providers\Models\DTO\RequiredOption(\wp_aot_require_WordPress_AiClient_Providers_Models_Enums_OptionEnum( OptionEnum::systemInstruction() ), $modelConfig->getSystemInstruction());
+         }
+         if ($modelConfig->getCandidateCount() !== null) {
+-            $requiredOptions[] = new \WordPress\AiClient\Providers\Models\DTO\RequiredOption(OptionEnum::candidateCount(), $modelConfig->getCandidateCount());
++            $requiredOptions[] = new \WordPress\AiClient\Providers\Models\DTO\RequiredOption(\wp_aot_require_WordPress_AiClient_Providers_Models_Enums_OptionEnum( OptionEnum::candidateCount() ), $modelConfig->getCandidateCount());
+         }
+         if ($modelConfig->getMaxTokens() !== null) {
+-            $requiredOptions[] = new \WordPress\AiClient\Providers\Models\DTO\RequiredOption(OptionEnum::maxTokens(), $modelConfig->getMaxTokens());
++            $requiredOptions[] = new \WordPress\AiClient\Providers\Models\DTO\RequiredOption(\wp_aot_require_WordPress_AiClient_Providers_Models_Enums_OptionEnum( OptionEnum::maxTokens() ), $modelConfig->getMaxTokens());
+         }
+         if ($modelConfig->getTemperature() !== null) {
+-            $requiredOptions[] = new \WordPress\AiClient\Providers\Models\DTO\RequiredOption(OptionEnum::temperature(), $modelConfig->getTemperature());
++            $requiredOptions[] = new \WordPress\AiClient\Providers\Models\DTO\RequiredOption(\wp_aot_require_WordPress_AiClient_Providers_Models_Enums_OptionEnum( OptionEnum::temperature() ), $modelConfig->getTemperature());
+         }
+         if ($modelConfig->getTopP() !== null) {
+-            $requiredOptions[] = new \WordPress\AiClient\Providers\Models\DTO\RequiredOption(OptionEnum::topP(), $modelConfig->getTopP());
++            $requiredOptions[] = new \WordPress\AiClient\Providers\Models\DTO\RequiredOption(\wp_aot_require_WordPress_AiClient_Providers_Models_Enums_OptionEnum( OptionEnum::topP() ), $modelConfig->getTopP());
+         }
+         if ($modelConfig->getTopK() !== null) {
+-            $requiredOptions[] = new \WordPress\AiClient\Providers\Models\DTO\RequiredOption(OptionEnum::topK(), $modelConfig->getTopK());
++            $requiredOptions[] = new \WordPress\AiClient\Providers\Models\DTO\RequiredOption(\wp_aot_require_WordPress_AiClient_Providers_Models_Enums_OptionEnum( OptionEnum::topK() ), $modelConfig->getTopK());
+         }
+         if ($modelConfig->getOutputMimeType() !== null) {
+-            $requiredOptions[] = new \WordPress\AiClient\Providers\Models\DTO\RequiredOption(OptionEnum::outputMimeType(), $modelConfig->getOutputMimeType());
++            $requiredOptions[] = new \WordPress\AiClient\Providers\Models\DTO\RequiredOption(\wp_aot_require_WordPress_AiClient_Providers_Models_Enums_OptionEnum( OptionEnum::outputMimeType() ), $modelConfig->getOutputMimeType());
+         }
+         if ($modelConfig->getOutputSchema() !== null) {
+-            $requiredOptions[] = new \WordPress\AiClient\Providers\Models\DTO\RequiredOption(OptionEnum::outputSchema(), $modelConfig->getOutputSchema());
++            $requiredOptions[] = new \WordPress\AiClient\Providers\Models\DTO\RequiredOption(\wp_aot_require_WordPress_AiClient_Providers_Models_Enums_OptionEnum( OptionEnum::outputSchema() ), $modelConfig->getOutputSchema());
+         }
+         // Handle properties without OptionEnum values as custom options
+         if ($modelConfig->getStopSequences() !== null) {
+-            $requiredOptions[] = new \WordPress\AiClient\Providers\Models\DTO\RequiredOption(OptionEnum::stopSequences(), $modelConfig->getStopSequences());
++            $requiredOptions[] = new \WordPress\AiClient\Providers\Models\DTO\RequiredOption(\wp_aot_require_WordPress_AiClient_Providers_Models_Enums_OptionEnum( OptionEnum::stopSequences() ), $modelConfig->getStopSequences());
+         }
+         if ($modelConfig->getPresencePenalty() !== null) {
+-            $requiredOptions[] = new \WordPress\AiClient\Providers\Models\DTO\RequiredOption(OptionEnum::presencePenalty(), $modelConfig->getPresencePenalty());
++            $requiredOptions[] = new \WordPress\AiClient\Providers\Models\DTO\RequiredOption(\wp_aot_require_WordPress_AiClient_Providers_Models_Enums_OptionEnum( OptionEnum::presencePenalty() ), $modelConfig->getPresencePenalty());
+         }
+         if ($modelConfig->getFrequencyPenalty() !== null) {
+-            $requiredOptions[] = new \WordPress\AiClient\Providers\Models\DTO\RequiredOption(OptionEnum::frequencyPenalty(), $modelConfig->getFrequencyPenalty());
++            $requiredOptions[] = new \WordPress\AiClient\Providers\Models\DTO\RequiredOption(\wp_aot_require_WordPress_AiClient_Providers_Models_Enums_OptionEnum( OptionEnum::frequencyPenalty() ), $modelConfig->getFrequencyPenalty());
+         }
+         if ($modelConfig->getLogprobs() !== null) {
+-            $requiredOptions[] = new \WordPress\AiClient\Providers\Models\DTO\RequiredOption(OptionEnum::logprobs(), $modelConfig->getLogprobs());
++            $requiredOptions[] = new \WordPress\AiClient\Providers\Models\DTO\RequiredOption(\wp_aot_require_WordPress_AiClient_Providers_Models_Enums_OptionEnum( OptionEnum::logprobs() ), $modelConfig->getLogprobs());
+         }
+         if ($modelConfig->getTopLogprobs() !== null) {
+-            $requiredOptions[] = new \WordPress\AiClient\Providers\Models\DTO\RequiredOption(OptionEnum::topLogprobs(), $modelConfig->getTopLogprobs());
++            $requiredOptions[] = new \WordPress\AiClient\Providers\Models\DTO\RequiredOption(\wp_aot_require_WordPress_AiClient_Providers_Models_Enums_OptionEnum( OptionEnum::topLogprobs() ), $modelConfig->getTopLogprobs());
+         }
+         if ($modelConfig->getFunctionDeclarations() !== null) {
+-            $requiredOptions[] = new \WordPress\AiClient\Providers\Models\DTO\RequiredOption(OptionEnum::functionDeclarations(), \true);
++            $requiredOptions[] = new \WordPress\AiClient\Providers\Models\DTO\RequiredOption(\wp_aot_require_WordPress_AiClient_Providers_Models_Enums_OptionEnum( OptionEnum::functionDeclarations() ), \true);
+         }
+         if ($modelConfig->getWebSearch() !== null) {
+-            $requiredOptions[] = new \WordPress\AiClient\Providers\Models\DTO\RequiredOption(OptionEnum::webSearch(), \true);
++            $requiredOptions[] = new \WordPress\AiClient\Providers\Models\DTO\RequiredOption(\wp_aot_require_WordPress_AiClient_Providers_Models_Enums_OptionEnum( OptionEnum::webSearch() ), \true);
+         }
+         if ($modelConfig->getOutputFileType() !== null) {
+-            $requiredOptions[] = new \WordPress\AiClient\Providers\Models\DTO\RequiredOption(OptionEnum::outputFileType(), $modelConfig->getOutputFileType());
++            $requiredOptions[] = new \WordPress\AiClient\Providers\Models\DTO\RequiredOption(\wp_aot_require_WordPress_AiClient_Providers_Models_Enums_OptionEnum( OptionEnum::outputFileType() ), $modelConfig->getOutputFileType());
+         }
+         if ($modelConfig->getOutputMediaOrientation() !== null) {
+-            $requiredOptions[] = new \WordPress\AiClient\Providers\Models\DTO\RequiredOption(OptionEnum::outputMediaOrientation(), $modelConfig->getOutputMediaOrientation());
++            $requiredOptions[] = new \WordPress\AiClient\Providers\Models\DTO\RequiredOption(\wp_aot_require_WordPress_AiClient_Providers_Models_Enums_OptionEnum( OptionEnum::outputMediaOrientation() ), $modelConfig->getOutputMediaOrientation());
+         }
+         if ($modelConfig->getOutputMediaAspectRatio() !== null) {
+-            $requiredOptions[] = new \WordPress\AiClient\Providers\Models\DTO\RequiredOption(OptionEnum::outputMediaAspectRatio(), $modelConfig->getOutputMediaAspectRatio());
++            $requiredOptions[] = new \WordPress\AiClient\Providers\Models\DTO\RequiredOption(\wp_aot_require_WordPress_AiClient_Providers_Models_Enums_OptionEnum( OptionEnum::outputMediaAspectRatio() ), $modelConfig->getOutputMediaAspectRatio());
+         }
+         // Add custom options as individual RequiredOptions
+         foreach ($modelConfig->getCustomOptions() as $key => $value) {
+-            $requiredOptions[] = new \WordPress\AiClient\Providers\Models\DTO\RequiredOption(OptionEnum::customOptions(), [$key => $value]);
++            $requiredOptions[] = new \WordPress\AiClient\Providers\Models\DTO\RequiredOption(\wp_aot_require_WordPress_AiClient_Providers_Models_Enums_OptionEnum( OptionEnum::customOptions() ), [$key => $value]);
+         }
+         return $requiredOptions;
+     }
+@@ -300,7 +300,7 @@
+      */
+     public function toArray(): array
+     {
+-        return [self::KEY_REQUIRED_CAPABILITIES => array_map(static fn(CapabilityEnum $capability): string => $capability->value, $this->requiredCapabilities), self::KEY_REQUIRED_OPTIONS => array_map(static fn(\WordPress\AiClient\Providers\Models\DTO\RequiredOption $option): array => $option->toArray(), $this->requiredOptions)];
++        return [self::KEY_REQUIRED_CAPABILITIES => \wp_aot_array_map(static fn(CapabilityEnum $capability): string => $capability->value, $this->requiredCapabilities), self::KEY_REQUIRED_OPTIONS => \wp_aot_array_map(static fn(\WordPress\AiClient\Providers\Models\DTO\RequiredOption $option): array => $option->toArray(), $this->requiredOptions)];
+     }
+     /**
+      * {@inheritDoc}
+@@ -310,6 +310,6 @@
+     public static function fromArray(array $array): self
+     {
+         static::validateFromArrayData($array, [self::KEY_REQUIRED_CAPABILITIES, self::KEY_REQUIRED_OPTIONS]);
+-        return new self(array_map(static fn(string $capability): CapabilityEnum => CapabilityEnum::from($capability), $array[self::KEY_REQUIRED_CAPABILITIES]), array_map(static fn(array $optionData): \WordPress\AiClient\Providers\Models\DTO\RequiredOption => \WordPress\AiClient\Providers\Models\DTO\RequiredOption::fromArray($optionData), $array[self::KEY_REQUIRED_OPTIONS]));
++        return new self(\wp_aot_array_map(static fn(string $capability): CapabilityEnum => \wp_aot_require_WordPress_AiClient_Providers_Models_Enums_CapabilityEnum(CapabilityEnum::from($capability)), \wp_aot_require_array( $array[self::KEY_REQUIRED_CAPABILITIES] )), \wp_aot_array_map(static fn(array $optionData): \WordPress\AiClient\Providers\Models\DTO\RequiredOption => \WordPress\AiClient\Providers\Models\DTO\RequiredOption::fromArray($optionData), \wp_aot_require_array( $array[self::KEY_REQUIRED_OPTIONS] )));
+     }
+ }

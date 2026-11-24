@@ -1,0 +1,222 @@
+--- a/wp-includes/class-wp-view-config-data.php
++++ b/wp-includes/class-wp-view-config-data.php
+@@ -113,8 +113,9 @@
+ 	 *
+ 	 * @return array The configuration.
+ 	 */
+-	private function get_data() {
++	private function get_data(): mixed {
+ 		return $this->config;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -132,7 +133,7 @@
+ 	 * @param string $name The entity name (e.g. `page`).
+ 	 * @return array The filtered configuration, limited to the documented keys.
+ 	 */
+-	public function apply_filters( $kind, $name ) {
++	public function apply_filters( mixed $kind, mixed $name ): mixed {
+ 		/**
+ 		 * Filters the view configuration for a given entity.
+ 		 *
+@@ -195,7 +196,8 @@
+ 
+ 		// Discard any keys the filter introduced that are not part of the
+ 		// documented configuration shape.
+-		return array_intersect_key( $this->get_data(), array_flip( self::CONFIG_KEYS ) );
++		return \wp_aot_array_intersect_key(array( $this->get_data(), \wp_aot_array_flip( self::CONFIG_KEYS ) ));
++		return null;
+ 	}
+ 
+ 	/**
+@@ -222,8 +224,9 @@
+ 	 * @param int   $version The schema version the patch was authored against.
+ 	 * @return WP_View_Config_Data The instance, for chaining.
+ 	 */
+-	public function set( array $patch, int $version ) {
++	public function set( array $patch, int $version ): mixed {
+ 		return $this->apply( $patch, $version, __METHOD__, 'set' );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -258,7 +261,7 @@
+ 	 * @param int   $version The schema version the spec was authored against.
+ 	 * @return WP_View_Config_Data The instance, for chaining.
+ 	 */
+-	public function remove( array $spec, int $version ) {
++	public function remove( array $spec, int $version ): mixed {
+ 		if ( $version <= 0 || $version > self::LATEST_VERSION ) {
+ 			_doing_it_wrong(
+ 				__METHOD__,
+@@ -298,6 +301,7 @@
+ 		}
+ 
+ 		return $this;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -328,8 +332,9 @@
+ 	 * @param int   $version The schema version the patch was authored against.
+ 	 * @return WP_View_Config_Data The instance, for chaining.
+ 	 */
+-	public function replace( array $patch, int $version ) {
++	public function replace( array $patch, int $version ): mixed {
+ 		return $this->apply( $patch, $version, __METHOD__, 'replace' );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -381,8 +386,9 @@
+ 	 * @param int   $version The schema version the patch was authored against.
+ 	 * @return WP_View_Config_Data The instance, for chaining.
+ 	 */
+-	public function merge( array $patch, int $version ) {
++	public function merge( array $patch, int $version ): mixed {
+ 		return $this->apply( $patch, $version, __METHOD__, 'merge' );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -407,7 +413,7 @@
+ 	 * @param string $mode    How to apply each named key's value: `merge`, `replace`, or `set`.
+ 	 * @return WP_View_Config_Data The instance, for chaining.
+ 	 */
+-	private function apply( array $patch, int $version, $method, $mode ) {
++	private function apply( array $patch, int $version, mixed $method, mixed $mode ): mixed {
+ 		if ( $version <= 0 || $version > self::LATEST_VERSION ) {
+ 			_doing_it_wrong(
+ 				esc_html( $method ),
+@@ -447,6 +453,7 @@
+ 		}
+ 
+ 		return $this;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -465,7 +472,7 @@
+ 	 * @param mixed $value The value to strip nulls from.
+ 	 * @return mixed The value with every `null` property removed, recursively.
+ 	 */
+-	private function strip_nulls( $value ) {
++	private function strip_nulls( mixed $value ): mixed {
+ 		if ( ! is_array( $value ) ) {
+ 			return $value;
+ 		}
+@@ -482,6 +489,7 @@
+ 
+ 		// Renumber a list so a removed member does not leave a gap.
+ 		return array_is_list( $value ) ? array_values( $result ) : $result;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -512,7 +520,7 @@
+ 	 *                             wholesale instead of merging into it by member identity.
+ 	 * @return mixed The merged value.
+ 	 */
+-	private function merge_properties( $current, $incoming, $replace_lists ) {
++	private function merge_properties( mixed $current, mixed $incoming, mixed $replace_lists ): mixed {
+ 		// Scalar properties are merged as-is.
+ 		if ( ! is_array( $incoming ) ) {
+ 			return $incoming;
+@@ -547,9 +555,9 @@
+ 			}
+ 
+ 			return $this->merge_list_by_identity(
+-				is_array( $current ) && array_is_list( $current ) ? $current : array(),
+-				$incoming
+-			);
++				\wp_aot_array_input(is_array( $current ) && array_is_list( $current ) ? $current : array()),
++				\wp_aot_array_input($incoming
++			));
+ 		}
+ 
+ 		// Consider any other array as associative (keys are strings).
+@@ -578,6 +586,7 @@
+ 		}
+ 
+ 		return $result;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -596,7 +605,7 @@
+ 	 * @param mixed $spec    The names to remove from it.
+ 	 * @return mixed The pruned value.
+ 	 */
+-	private function remove_properties( $current, $spec ) {
++	private function remove_properties( mixed $current, mixed $spec ): mixed {
+ 		if ( ! is_array( $current ) || ! is_array( $spec ) ) {
+ 			return $current;
+ 		}
+@@ -607,7 +616,7 @@
+ 			// Each entry names something to delete from the current value.
+ 			foreach ( $spec as $name ) {
+ 				if ( $current_is_list ) {
+-					$current = $this->remove_list_member( $current, $name );
++					$current = $this->remove_list_member( \wp_aot_array_input($current), $name );
+ 				} else {
+ 					unset( $current[ $name ] );
+ 				}
+@@ -630,6 +639,7 @@
+ 
+ 		// Renumber so a list from which a member was removed keeps sequential keys.
+ 		return $current_is_list ? array_values( $current ) : $current;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -641,7 +651,7 @@
+ 	 * @param mixed $identity The identity of the member to remove.
+ 	 * @return array The list with the matching member removed, if any.
+ 	 */
+-	private function remove_list_member( array $members, $identity ) {
++	private function remove_list_member( array $members, mixed $identity ): mixed {
+ 		foreach ( $members as $index => $member ) {
+ 			if ( $this->list_item_identity( $member ) === (string) $identity ) {
+ 				unset( $members[ $index ] );
+@@ -650,6 +660,7 @@
+ 		}
+ 
+ 		return $members;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -673,7 +684,7 @@
+ 	 * @param array $incoming The incoming list.
+ 	 * @return array The merged list.
+ 	 */
+-	private function merge_list_by_identity( array $current, array $incoming ) {
++	private function merge_list_by_identity( array $current, array $incoming ): mixed {
+ 		$result = $current;
+ 		foreach ( $incoming as $item ) {
+ 			// A null member carries no identity and holds nothing to merge,
+@@ -707,6 +718,7 @@
+ 		}
+ 
+ 		return $result;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -729,7 +741,7 @@
+ 	 * @param mixed $item The list member.
+ 	 * @return string|null The identity, or null when the member has none.
+ 	 */
+-	private function list_item_identity( $item ) {
++	private function list_item_identity( mixed $item ): mixed {
+ 		if ( is_scalar( $item ) ) {
+ 			return (string) $item;
+ 		}
+@@ -743,5 +755,6 @@
+ 		}
+ 
+ 		return null;
++		return null;
+ 	}
+ }

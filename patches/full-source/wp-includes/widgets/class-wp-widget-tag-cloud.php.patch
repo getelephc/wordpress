@@ -1,7 +1,52 @@
 --- a/wp-includes/widgets/class-wp-widget-tag-cloud.php
 +++ b/wp-includes/widgets/class-wp-widget-tag-cloud.php
-@@ -146,12 +146,22 @@
- 	public function form( $instance ) {
+@@ -39,7 +39,7 @@
+ 	 *                        'before_widget', and 'after_widget'.
+ 	 * @param array $instance Settings for the current Tag Cloud widget instance.
+ 	 */
+-	public function widget( $args, $instance ) {
++	public function widget( mixed $args, mixed $instance ): mixed {
+ 		$current_taxonomy = $this->_get_current_taxonomy( $instance );
+ 
+ 		if ( ! empty( $instance['title'] ) ) {
+@@ -82,7 +82,7 @@
+ 		);
+ 
+ 		if ( empty( $tag_cloud ) ) {
+-			return;
++			return null;
+ 		}
+ 
+ 		/** This filter is documented in wp-includes/widgets/class-wp-widget-pages.php */
+@@ -116,6 +116,7 @@
+ 		}
+ 
+ 		echo $args['after_widget'];
++		return null;
+ 	}
+ 
+ 	/**
+@@ -128,12 +129,13 @@
+ 	 * @param array $old_instance Old settings for this instance.
+ 	 * @return array Settings to save or bool false to cancel saving.
+ 	 */
+-	public function update( $new_instance, $old_instance ) {
++	public function update( mixed $new_instance, mixed $old_instance ): mixed {
+ 		$instance             = array();
+ 		$instance['title']    = sanitize_text_field( $new_instance['title'] );
+ 		$instance['count']    = ! empty( $new_instance['count'] ) ? 1 : 0;
+ 		$instance['taxonomy'] = stripslashes( $new_instance['taxonomy'] );
+ 		return $instance;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -143,15 +145,25 @@
+ 	 *
+ 	 * @param array $instance Current settings.
+ 	 */
+-	public function form( $instance ) {
++	public function form( mixed $instance ): mixed {
  		$title = ! empty( $instance['title'] ) ? $instance['title'] : '';
  		$count = isset( $instance['count'] ) ? (bool) $instance['count'] : false;
 -		?>
@@ -28,7 +73,7 @@
  		$taxonomies       = get_taxonomies( array( 'show_tagcloud' => true ), 'object' );
  		$current_taxonomy = $this->_get_current_taxonomy( $instance );
  
-@@ -159,46 +169,82 @@
+@@ -159,47 +171,84 @@
  
  			// No tag cloud supporting taxonomies found, display error message.
  			case 0:
@@ -131,7 +176,24 @@
 +echo '</label>
  			</p>
 -			<?php
+-		}
 +			';
- 		}
++		}
++		return null;
  	}
  
+ 	/**
+@@ -210,11 +259,12 @@
+ 	 * @param array $instance Current settings.
+ 	 * @return string Name of the current taxonomy if set, otherwise 'post_tag'.
+ 	 */
+-	public function _get_current_taxonomy( $instance ) {
++	public function _get_current_taxonomy( mixed $instance ): mixed {
+ 		if ( ! empty( $instance['taxonomy'] ) && taxonomy_exists( $instance['taxonomy'] ) ) {
+ 			return $instance['taxonomy'];
+ 		}
+ 
+ 		return 'post_tag';
++		return null;
+ 	}
+ }

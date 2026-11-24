@@ -1,0 +1,39 @@
+--- a/wp-admin/link-parse-opml.php
++++ b/wp-admin/link-parse-opml.php
+@@ -8,7 +8,7 @@
+ 
+ // Don't load directly.
+ if ( ! defined( 'ABSPATH' ) ) {
+-	exit;
++	\wp_aot_exit();
+ }
+ 
+ /**
+@@ -34,7 +34,7 @@
+  * @param string   $tag_name XML element name.
+  * @param array    $attrs    XML element attributes.
+  */
+-function startElement( $parser, $tag_name, $attrs ) { // phpcs:ignore WordPress.NamingConventions.ValidFunctionName.FunctionNameInvalid
++function startElement( mixed $parser, mixed $tag_name, mixed $attrs ): mixed { // phpcs:ignore WordPress.NamingConventions.ValidFunctionName.FunctionNameInvalid
+ 	global $names, $urls, $targets, $descriptions, $feeds;
+ 
+ 	if ( 'OUTLINE' === $tag_name ) {
+@@ -60,6 +60,7 @@
+ 		$feeds[]        = $attrs['XMLURL'] ?? '';
+ 		$descriptions[] = $attrs['DESCRIPTION'] ?? '';
+ 	} // End if outline.
++	return null;
+ }
+ 
+ /**
+@@ -73,8 +74,9 @@
+  * @param resource $parser   XML Parser resource.
+  * @param string   $tag_name XML tag name.
+  */
+-function endElement( $parser, $tag_name ) { // phpcs:ignore WordPress.NamingConventions.ValidFunctionName.FunctionNameInvalid
++function endElement( mixed $parser, mixed $tag_name ): mixed { // phpcs:ignore WordPress.NamingConventions.ValidFunctionName.FunctionNameInvalid
+ 	// Nothing to do.
++	return null;
+ }
+ 
+ // Create an XML parser.

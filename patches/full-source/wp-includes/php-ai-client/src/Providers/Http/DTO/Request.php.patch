@@ -1,0 +1,55 @@
+--- a/wp-includes/php-ai-client/src/Providers/Http/DTO/Request.php
++++ b/wp-includes/php-ai-client/src/Providers/Http/DTO/Request.php
+@@ -26,7 +26,7 @@
+  *     options?: RequestOptionsArrayShape
+  * }
+  *
+- * @extends AbstractDataTransferObject<RequestArrayShape>
++ * @phpstan-extends AbstractDataTransferObject<RequestArrayShape>
+  */
+ class Request extends AbstractDataTransferObject
+ {
+@@ -72,7 +72,7 @@
+      *
+      * @throws InvalidArgumentException If the URI is empty.
+      */
+-    public function __construct(HttpMethodEnum $method, string $uri, array $headers = [], $data = null, ?\WordPress\AiClient\Providers\Http\DTO\RequestOptions $options = null)
++    public function __construct(HttpMethodEnum $method, string $uri, array $headers = [], mixed $data = null, ?\WordPress\AiClient\Providers\Http\DTO\RequestOptions $options = null)
+     {
+         if (empty($uri)) {
+             throw new InvalidArgumentException('URI cannot be empty.');
+@@ -240,7 +240,7 @@
+      * @param string|list<string> $value The header value(s).
+      * @return self A new instance with the header.
+      */
+-    public function withHeader(string $name, $value): self
++    public function withHeader(string $name, mixed $value): self
+     {
+         $newHeaders = $this->headers->withHeader($name, $value);
+         $new = clone $this;
+@@ -255,7 +255,7 @@
+      * @param string|array<string, mixed> $data The request data.
+      * @return self A new instance with the data.
+      */
+-    public function withData($data): self
++    public function withData(mixed $data): self
+     {
+         $new = clone $this;
+         if (is_string($data)) {
+@@ -351,7 +351,7 @@
+     public static function fromArray(array $array): self
+     {
+         static::validateFromArrayData($array, [self::KEY_METHOD, self::KEY_URI, self::KEY_HEADERS]);
+-        return new self(HttpMethodEnum::from($array[self::KEY_METHOD]), $array[self::KEY_URI], $array[self::KEY_HEADERS] ?? [], $array[self::KEY_BODY] ?? null, isset($array[self::KEY_OPTIONS]) ? \WordPress\AiClient\Providers\Http\DTO\RequestOptions::fromArray($array[self::KEY_OPTIONS]) : null);
++        return new self(\wp_aot_require_WordPress_AiClient_Providers_Http_Enums_HttpMethodEnum( HttpMethodEnum::from($array[self::KEY_METHOD]) ), $array[self::KEY_URI], \wp_aot_require_array( $array[self::KEY_HEADERS] ?? [] ), $array[self::KEY_BODY] ?? null, isset($array[self::KEY_OPTIONS]) ? \WordPress\AiClient\Providers\Http\DTO\RequestOptions::fromArray(\wp_aot_require_array( $array[self::KEY_OPTIONS] )) : null);
+     }
+     /**
+      * Creates a Request instance from a PSR-7 RequestInterface.
+@@ -372,6 +372,6 @@
+         // Get body content
+         $body = $psrRequest->getBody()->getContents();
+         $bodyOrData = !empty($body) ? $body : null;
+-        return new self($method, $uri, $headers, $bodyOrData);
++        return new self(\wp_aot_require_WordPress_AiClient_Providers_Http_Enums_HttpMethodEnum( $method ), $uri, $headers, $bodyOrData);
+     }
+ }

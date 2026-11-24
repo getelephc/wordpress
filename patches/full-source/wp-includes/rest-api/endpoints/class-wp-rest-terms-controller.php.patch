@@ -1,0 +1,340 @@
+--- a/wp-includes/rest-api/endpoints/class-wp-rest-terms-controller.php
++++ b/wp-includes/rest-api/endpoints/class-wp-rest-terms-controller.php
+@@ -63,7 +63,7 @@
+ 	 *
+ 	 * @param string $taxonomy Taxonomy key.
+ 	 */
+-	public function __construct( $taxonomy ) {
++	public function __construct( mixed $taxonomy ) {
+ 		$this->taxonomy  = $taxonomy;
+ 		$tax_obj         = get_taxonomy( $taxonomy );
+ 		$this->rest_base = ! empty( $tax_obj->rest_base ) ? $tax_obj->rest_base : $tax_obj->name;
+@@ -79,7 +79,7 @@
+ 	 *
+ 	 * @see register_rest_route()
+ 	 */
+-	public function register_routes() {
++	public function register_routes(): mixed {
+ 
+ 		register_rest_route(
+ 			$this->namespace,
+@@ -142,6 +142,7 @@
+ 				'schema'      => array( $this, 'get_public_item_schema' ),
+ 			)
+ 		);
++		return null;
+ 	}
+ 
+ 	/**
+@@ -153,7 +154,7 @@
+ 	 * @param WP_REST_Request $request Full details about the request.
+ 	 * @return bool Whether the terms for the post can be read.
+ 	 */
+-	public function check_read_terms_permission_for_post( $post, $request ) {
++	public function check_read_terms_permission_for_post( mixed $post, mixed $request ): mixed {
+ 		// If the requested post isn't associated with this taxonomy, deny access.
+ 		if ( ! is_object_in_taxonomy( $post->post_type, $this->taxonomy ) ) {
+ 			return false;
+@@ -171,6 +172,7 @@
+ 
+ 		// Otherwise, deny access.
+ 		return false;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -181,7 +183,7 @@
+ 	 * @param WP_REST_Request $request Full details about the request.
+ 	 * @return bool|WP_Error True if the request has read access, otherwise false or WP_Error object.
+ 	 */
+-	public function get_items_permissions_check( $request ) {
++	public function get_items_permissions_check( mixed $request ): mixed {
+ 		$tax_obj = get_taxonomy( $this->taxonomy );
+ 
+ 		if ( ! $tax_obj || ! $this->check_is_taxonomy_allowed( $this->taxonomy ) ) {
+@@ -221,6 +223,7 @@
+ 		}
+ 
+ 		return true;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -232,7 +235,7 @@
+ 	 * @param WP_REST_Request $request Full details about the request.
+ 	 * @return WP_REST_Response|WP_Error Response object on success, or WP_Error object on failure.
+ 	 */
+-	public function get_items( $request ) {
++	public function get_items( mixed $request ): mixed {
+ 
+ 		// Retrieve the list of registered collection query parameters.
+ 		$registered = $this->get_collection_params();
+@@ -309,7 +312,7 @@
+ 			isset( $taxonomy_obj->args ) &&
+ 			is_array( $taxonomy_obj->args )
+ 		) {
+-			$prepared_args = array_merge( $prepared_args, $taxonomy_obj->args );
++			$prepared_args = \wp_aot_array_merge(array( $prepared_args, $taxonomy_obj->args ));
+ 		}
+ 
+ 		$is_head_request = $request->is_method( 'HEAD' );
+@@ -408,6 +411,7 @@
+ 		}
+ 
+ 		return $response;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -418,7 +422,7 @@
+ 	 * @param int $id Supplied ID.
+ 	 * @return WP_Term|WP_Error Term object if ID is valid, WP_Error otherwise.
+ 	 */
+-	protected function get_term( $id ) {
++	protected function get_term( mixed $id ): mixed {
+ 		$error = new WP_Error(
+ 			'rest_term_invalid',
+ 			__( 'Term does not exist.' ),
+@@ -439,6 +443,7 @@
+ 		}
+ 
+ 		return $term;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -449,7 +454,7 @@
+ 	 * @param WP_REST_Request $request Full details about the request.
+ 	 * @return true|WP_Error True if the request has read access for the item, otherwise WP_Error object.
+ 	 */
+-	public function get_item_permissions_check( $request ) {
++	public function get_item_permissions_check( mixed $request ): mixed {
+ 		$term = $this->get_term( $request['id'] );
+ 
+ 		if ( is_wp_error( $term ) ) {
+@@ -465,6 +470,7 @@
+ 		}
+ 
+ 		return true;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -475,7 +481,7 @@
+ 	 * @param WP_REST_Request $request Full details about the request.
+ 	 * @return WP_REST_Response|WP_Error Response object on success, or WP_Error object on failure.
+ 	 */
+-	public function get_item( $request ) {
++	public function get_item( mixed $request ): mixed {
+ 		$term = $this->get_term( $request['id'] );
+ 		if ( is_wp_error( $term ) ) {
+ 			return $term;
+@@ -484,6 +490,7 @@
+ 		$response = $this->prepare_item_for_response( $term, $request );
+ 
+ 		return rest_ensure_response( $response );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -494,7 +501,7 @@
+ 	 * @param WP_REST_Request $request Full details about the request.
+ 	 * @return bool|WP_Error True if the request has access to create items, otherwise false or WP_Error object.
+ 	 */
+-	public function create_item_permissions_check( $request ) {
++	public function create_item_permissions_check( mixed $request ): mixed {
+ 
+ 		if ( ! $this->check_is_taxonomy_allowed( $this->taxonomy ) ) {
+ 			return false;
+@@ -514,6 +521,7 @@
+ 		}
+ 
+ 		return true;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -524,7 +532,7 @@
+ 	 * @param WP_REST_Request $request Full details about the request.
+ 	 * @return WP_REST_Response|WP_Error Response object on success, or WP_Error object on failure.
+ 	 */
+-	public function create_item( $request ) {
++	public function create_item( mixed $request ): mixed {
+ 		if ( isset( $request['parent'] ) ) {
+ 			if ( ! is_taxonomy_hierarchical( $this->taxonomy ) ) {
+ 				return new WP_Error(
+@@ -630,6 +638,7 @@
+ 		$response->header( 'Location', rest_url( $this->namespace . '/' . $this->rest_base . '/' . $term->term_id ) );
+ 
+ 		return $response;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -640,7 +649,7 @@
+ 	 * @param WP_REST_Request $request Full details about the request.
+ 	 * @return true|WP_Error True if the request has access to update the item, false or WP_Error object otherwise.
+ 	 */
+-	public function update_item_permissions_check( $request ) {
++	public function update_item_permissions_check( mixed $request ): mixed {
+ 		$term = $this->get_term( $request['id'] );
+ 
+ 		if ( is_wp_error( $term ) ) {
+@@ -656,6 +665,7 @@
+ 		}
+ 
+ 		return true;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -666,7 +676,7 @@
+ 	 * @param WP_REST_Request $request Full details about the request.
+ 	 * @return WP_REST_Response|WP_Error Response object on success, or WP_Error object on failure.
+ 	 */
+-	public function update_item( $request ) {
++	public function update_item( mixed $request ): mixed {
+ 		$term = $this->get_term( $request['id'] );
+ 		if ( is_wp_error( $term ) ) {
+ 			return $term;
+@@ -731,6 +741,7 @@
+ 		$response = $this->prepare_item_for_response( $term, $request );
+ 
+ 		return rest_ensure_response( $response );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -741,7 +752,7 @@
+ 	 * @param WP_REST_Request $request Full details about the request.
+ 	 * @return true|WP_Error True if the request has access to delete the item, otherwise false or WP_Error object.
+ 	 */
+-	public function delete_item_permissions_check( $request ) {
++	public function delete_item_permissions_check( mixed $request ): mixed {
+ 		$term = $this->get_term( $request['id'] );
+ 
+ 		if ( is_wp_error( $term ) ) {
+@@ -757,6 +768,7 @@
+ 		}
+ 
+ 		return true;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -767,7 +779,7 @@
+ 	 * @param WP_REST_Request $request Full details about the request.
+ 	 * @return WP_REST_Response|WP_Error Response object on success, or WP_Error object on failure.
+ 	 */
+-	public function delete_item( $request ) {
++	public function delete_item( mixed $request ): mixed {
+ 		$term = $this->get_term( $request['id'] );
+ 		if ( is_wp_error( $term ) ) {
+ 			return $term;
+@@ -826,6 +838,7 @@
+ 		do_action( "rest_delete_{$this->taxonomy}", $term, $response, $request );
+ 
+ 		return $response;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -836,7 +849,7 @@
+ 	 * @param WP_REST_Request $request Request object.
+ 	 * @return object Term object.
+ 	 */
+-	public function prepare_item_for_database( $request ) {
++	public function prepare_item_for_database( mixed $request ): mixed {
+ 		$prepared_term = new stdClass();
+ 
+ 		$schema = $this->get_item_schema();
+@@ -887,6 +900,7 @@
+ 		 * @param WP_REST_Request $request       Request object.
+ 		 */
+ 		return apply_filters( "rest_pre_insert_{$this->taxonomy}", $prepared_term, $request );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -898,7 +912,7 @@
+ 	 * @param WP_REST_Request $request Request object.
+ 	 * @return WP_REST_Response Response object.
+ 	 */
+-	public function prepare_item_for_response( $item, $request ) {
++	public function prepare_item_for_response( mixed $item, mixed $request ): mixed {
+ 
+ 		// Don't prepare the response body for HEAD requests.
+ 		if ( $request->is_method( 'HEAD' ) ) {
+@@ -974,6 +988,7 @@
+ 		 * @param WP_REST_Request   $request   Request used to generate the response.
+ 		 */
+ 		return apply_filters( "rest_prepare_{$this->taxonomy}", $response, $item, $request );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -984,7 +999,7 @@
+ 	 * @param WP_Term $term Term object.
+ 	 * @return array Links for the given term.
+ 	 */
+-	protected function prepare_links( $term ) {
++	protected function prepare_links( mixed $term ): mixed {
+ 		$links = array(
+ 			'self'       => array(
+ 				'href' => rest_url( rest_get_route_for_term( $term ) ),
+@@ -1033,6 +1048,7 @@
+ 		}
+ 
+ 		return $links;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1042,7 +1058,7 @@
+ 	 *
+ 	 * @return array Item schema data.
+ 	 */
+-	public function get_item_schema() {
++	public function get_item_schema(): mixed {
+ 		if ( $this->schema ) {
+ 			return $this->add_additional_fields_schema( $this->schema );
+ 		}
+@@ -1118,6 +1134,7 @@
+ 		$this->schema = $schema;
+ 
+ 		return $this->add_additional_fields_schema( $this->schema );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1127,7 +1144,7 @@
+ 	 *
+ 	 * @return array Collection parameters.
+ 	 */
+-	public function get_collection_params() {
++	public function get_collection_params(): mixed {
+ 		$query_params = parent::get_collection_params();
+ 		$taxonomy     = get_taxonomy( $this->taxonomy );
+ 
+@@ -1227,6 +1244,7 @@
+ 		 * @param WP_Taxonomy $taxonomy     Taxonomy object.
+ 		 */
+ 		return apply_filters( "rest_{$this->taxonomy}_collection_params", $query_params, $taxonomy );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1237,11 +1255,12 @@
+ 	 * @param string $taxonomy Taxonomy to check.
+ 	 * @return bool Whether the taxonomy is allowed for REST management.
+ 	 */
+-	protected function check_is_taxonomy_allowed( $taxonomy ) {
++	protected function check_is_taxonomy_allowed( mixed $taxonomy ): mixed {
+ 		$taxonomy_obj = get_taxonomy( $taxonomy );
+ 		if ( $taxonomy_obj && ! empty( $taxonomy_obj->show_in_rest ) ) {
+ 			return true;
+ 		}
+ 		return false;
++		return null;
+ 	}
+ }

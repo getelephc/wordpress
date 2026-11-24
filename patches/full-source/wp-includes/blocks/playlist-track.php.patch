@@ -1,0 +1,34 @@
+--- a/wp-includes/blocks/playlist-track.php
++++ b/wp-includes/blocks/playlist-track.php
+@@ -16,7 +16,7 @@
+  *
+  * @return string Returns the Playlist Track.
+  */
+-function render_block_core_playlist_track( $attributes, $content = '', $block = null ) {
++function render_block_core_playlist_track( mixed $attributes, mixed $content = '', mixed $block = null ): mixed {
+ 	if ( empty( $attributes['id'] ) ) {
+ 		return '';
+ 	}
+@@ -63,6 +63,7 @@
+ 	$html .= '</li>';
+ 
+ 	return $html;
++	return null;
+ }
+ 
+ /**
+@@ -70,12 +71,13 @@
+  *
+  * @since 7.1.0
+  */
+-function register_block_core_playlist_track() {
++function register_block_core_playlist_track(): mixed {
+ 	register_block_type_from_metadata(
+ 		__DIR__ . '/playlist-track',
+ 		array(
+ 			'render_callback' => 'render_block_core_playlist_track',
+ 		)
+ 	);
++	return null;
+ }
+ add_action( 'init', 'register_block_core_playlist_track' );

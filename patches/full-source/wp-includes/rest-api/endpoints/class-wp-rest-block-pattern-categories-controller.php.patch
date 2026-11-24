@@ -1,0 +1,86 @@
+--- a/wp-includes/rest-api/endpoints/class-wp-rest-block-pattern-categories-controller.php
++++ b/wp-includes/rest-api/endpoints/class-wp-rest-block-pattern-categories-controller.php
+@@ -31,7 +31,7 @@
+ 	 *
+ 	 * @since 6.0.0
+ 	 */
+-	public function register_routes() {
++	public function register_routes(): mixed {
+ 		register_rest_route(
+ 			$this->namespace,
+ 			'/' . $this->rest_base,
+@@ -44,6 +44,7 @@
+ 				'schema' => array( $this, 'get_public_item_schema' ),
+ 			)
+ 		);
++		return null;
+ 	}
+ 
+ 	/**
+@@ -54,7 +55,7 @@
+ 	 * @param WP_REST_Request $request Full details about the request.
+ 	 * @return true|WP_Error True if the request has read access, WP_Error object otherwise.
+ 	 */
+-	public function get_items_permissions_check( $request ) {
++	public function get_items_permissions_check( mixed $request ): mixed {
+ 		if ( current_user_can( 'edit_posts' ) ) {
+ 			return true;
+ 		}
+@@ -70,6 +71,7 @@
+ 			__( 'Sorry, you are not allowed to view the registered block pattern categories.' ),
+ 			array( 'status' => rest_authorization_required_code() )
+ 		);
++		return null;
+ 	}
+ 
+ 	/**
+@@ -80,7 +82,7 @@
+ 	 * @param WP_REST_Request $request Full details about the request.
+ 	 * @return WP_REST_Response|WP_Error Response object on success, or WP_Error object on failure.
+ 	 */
+-	public function get_items( $request ) {
++	public function get_items( mixed $request ): mixed {
+ 		if ( $request->is_method( 'HEAD' ) ) {
+ 			// Return early as this handler doesn't add any response headers.
+ 			return new WP_REST_Response( array() );
+@@ -94,6 +96,7 @@
+ 		}
+ 
+ 		return rest_ensure_response( $response );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -105,7 +108,7 @@
+ 	 * @param WP_REST_Request $request Request object.
+ 	 * @return WP_REST_Response|WP_Error Response object on success, or WP_Error object on failure.
+ 	 */
+-	public function prepare_item_for_response( $item, $request ) {
++	public function prepare_item_for_response( mixed $item, mixed $request ): mixed {
+ 		$fields = $this->get_fields_for_response( $request );
+ 		$keys   = array( 'name', 'label', 'description' );
+ 		$data   = array();
+@@ -120,6 +123,7 @@
+ 		$data    = $this->filter_response_by_context( $data, $context );
+ 
+ 		return rest_ensure_response( $data );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -129,7 +133,7 @@
+ 	 *
+ 	 * @return array Item schema data.
+ 	 */
+-	public function get_item_schema() {
++	public function get_item_schema(): mixed {
+ 		if ( $this->schema ) {
+ 			return $this->add_additional_fields_schema( $this->schema );
+ 		}
+@@ -163,5 +167,6 @@
+ 		$this->schema = $schema;
+ 
+ 		return $this->add_additional_fields_schema( $this->schema );
++		return null;
+ 	}
+ }

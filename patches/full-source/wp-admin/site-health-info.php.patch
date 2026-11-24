@@ -1,5 +1,14 @@
 --- a/wp-admin/site-health-info.php
 +++ b/wp-admin/site-health-info.php
+@@ -8,7 +8,7 @@
+ 
+ // Don't load directly.
+ if ( ! defined( 'ABSPATH' ) ) {
+-	exit;
++	\wp_aot_exit();
+ }
+ 
+ if ( ! class_exists( 'WP_Debug_Data' ) ) {
 @@ -27,43 +27,50 @@
  		'additional_classes' => array( 'hide-if-js' ),
  	)

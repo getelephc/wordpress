@@ -1,0 +1,208 @@
+--- a/wp-admin/includes/class-plugin-upgrader.php
++++ b/wp-admin/includes/class-plugin-upgrader.php
+@@ -53,7 +53,7 @@
+ 	 *
+ 	 * @since 2.8.0
+ 	 */
+-	public function upgrade_strings() {
++	public function upgrade_strings(): mixed {
+ 		$this->strings['up_to_date'] = __( 'The plugin is at the latest version.' );
+ 		$this->strings['no_package'] = __( 'Update package not available.' );
+ 		/* translators: %s: Package URL. */
+@@ -64,6 +64,7 @@
+ 		$this->strings['process_failed']       = __( 'Plugin update failed.' );
+ 		$this->strings['process_success']      = __( 'Plugin updated successfully.' );
+ 		$this->strings['process_bulk_success'] = __( 'Plugins updated successfully.' );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -71,7 +72,7 @@
+ 	 *
+ 	 * @since 2.8.0
+ 	 */
+-	public function install_strings() {
++	public function install_strings(): mixed {
+ 		$this->strings['no_package'] = __( 'Installation package not available.' );
+ 		/* translators: %s: Package URL. */
+ 		$this->strings['downloading_package'] = sprintf( __( 'Downloading installation package from %s&#8230;' ), '<span class="code pre">%s</span>' );
+@@ -98,6 +99,7 @@
+ 				$this->strings['process_success']    = __( 'Plugin downgraded successfully.' );
+ 			}
+ 		}
++		return null;
+ 	}
+ 
+ 	/**
+@@ -115,7 +117,7 @@
+ 	 * }
+ 	 * @return bool|WP_Error True if the installation was successful, false or a WP_Error otherwise.
+ 	 */
+-	public function install( $package, $args = array() ) {
++	public function install( mixed $package, mixed $args = array() ): mixed {
+ 		$defaults    = array(
+ 			'clear_update_cache' => true,
+ 			'overwrite_package'  => false, // Do not overwrite files.
+@@ -170,6 +172,7 @@
+ 		}
+ 
+ 		return true;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -187,7 +190,7 @@
+ 	 * }
+ 	 * @return bool|WP_Error True if the upgrade was successful, false or a WP_Error object otherwise.
+ 	 */
+-	public function upgrade( $plugin, $args = array() ) {
++	public function upgrade( mixed $plugin, mixed $args = array() ): mixed {
+ 		$defaults    = array(
+ 			'clear_update_cache' => true,
+ 		);
+@@ -266,6 +269,7 @@
+ 		}
+ 
+ 		return true;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -282,7 +286,7 @@
+ 	 * }
+ 	 * @return array|false An array of results indexed by plugin file, or false if unable to connect to the filesystem.
+ 	 */
+-	public function bulk_upgrade( $plugins, $args = array() ) {
++	public function bulk_upgrade( mixed $plugins, mixed $args = array() ): mixed {
+ 		$wp_version = wp_get_wp_version();
+ 
+ 		$defaults    = array(
+@@ -445,6 +449,7 @@
+ 		update_option( 'auto_plugin_theme_update_emails', $past_failure_emails );
+ 
+ 		return $results;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -459,7 +464,7 @@
+ 	 * @param string $source The path to the downloaded package source.
+ 	 * @return string|WP_Error The source as passed, or a WP_Error object on failure.
+ 	 */
+-	public function check_package( $source ) {
++	public function check_package( mixed $source ): mixed {
+ 		global $wp_filesystem;
+ 
+ 		$wp_version            = wp_get_wp_version();
+@@ -469,7 +474,7 @@
+ 			return $source;
+ 		}
+ 
+-		$working_directory = str_replace( $wp_filesystem->wp_content_dir(), trailingslashit( WP_CONTENT_DIR ), $source );
++		$working_directory = \wp_aot_str_replace( $wp_filesystem->wp_content_dir(), trailingslashit( WP_CONTENT_DIR ), $source );
+ 		if ( ! is_dir( $working_directory ) ) { // Confidence check, if the above fails, let's not prevent installation.
+ 			return $source;
+ 		}
+@@ -516,6 +521,7 @@
+ 		}
+ 
+ 		return $source;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -527,7 +533,7 @@
+ 	 *
+ 	 * @return string|false The full path to the main plugin file, or false.
+ 	 */
+-	public function plugin_info() {
++	public function plugin_info(): mixed {
+ 		if ( ! is_array( $this->result ) ) {
+ 			return false;
+ 		}
+@@ -536,7 +542,7 @@
+ 		}
+ 
+ 		// Ensure to pass with leading slash.
+-		$plugin = get_plugins( '/' . $this->result['destination_name'] );
++		$plugin = get_plugins( '/' . \wp_aot_mixed($this->result)['destination_name'] );
+ 		if ( empty( $plugin ) ) {
+ 			return false;
+ 		}
+@@ -544,7 +550,8 @@
+ 		// Assume the requested plugin is the first in the list.
+ 		$plugin_files = array_keys( $plugin );
+ 
+-		return $this->result['destination_name'] . '/' . $plugin_files[0];
++		return \wp_aot_mixed($this->result)['destination_name'] . '/' . $plugin_files[0];
++		return null;
+ 	}
+ 
+ 	/**
+@@ -559,7 +566,7 @@
+ 	 * @param array         $plugin   Plugin package arguments.
+ 	 * @return bool|WP_Error The original `$response` parameter or WP_Error.
+ 	 */
+-	public function deactivate_plugin_before_upgrade( $response, $plugin ) {
++	public function deactivate_plugin_before_upgrade( mixed $response, mixed $plugin ): mixed {
+ 
+ 		if ( is_wp_error( $response ) ) { // Bypass.
+ 			return $response;
+@@ -581,6 +588,7 @@
+ 		}
+ 
+ 		return $response;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -594,7 +602,7 @@
+ 	 * @param array         $plugin   Plugin package arguments.
+ 	 * @return bool|WP_Error The original `$response` parameter or WP_Error.
+ 	 */
+-	public function active_before( $response, $plugin ) {
++	public function active_before( mixed $response, mixed $plugin ): mixed {
+ 		if ( is_wp_error( $response ) ) {
+ 			return $response;
+ 		}
+@@ -617,6 +625,7 @@
+ 		}
+ 
+ 		return $response;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -630,7 +639,7 @@
+ 	 * @param array         $plugin   Plugin package arguments.
+ 	 * @return bool|WP_Error The original `$response` parameter or WP_Error.
+ 	 */
+-	public function active_after( $response, $plugin ) {
++	public function active_after( mixed $response, mixed $plugin ): mixed {
+ 		if ( is_wp_error( $response ) ) {
+ 			return $response;
+ 		}
+@@ -653,6 +662,7 @@
+ 		}
+ 
+ 		return $response;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -672,7 +682,7 @@
+ 	 * @param array         $plugin             Extra arguments passed to hooked filters.
+ 	 * @return bool|WP_Error
+ 	 */
+-	public function delete_old_plugin( $removed, $local_destination, $remote_destination, $plugin ) {
++	public function delete_old_plugin( mixed $removed, mixed $local_destination, mixed $remote_destination, mixed $plugin ): mixed {
+ 		global $wp_filesystem;
+ 
+ 		if ( is_wp_error( $removed ) ) {
+@@ -706,5 +716,6 @@
+ 		}
+ 
+ 		return true;
++		return null;
+ 	}
+ }

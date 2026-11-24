@@ -1,0 +1,8 @@
+--- a/wp-admin/ms-sites.php
++++ b/wp-admin/ms-sites.php
+@@ -10,4 +10,4 @@
+ require_once __DIR__ . '/admin.php';
+ 
+ wp_redirect( network_admin_url( 'sites.php' ) );
+-exit;
++\wp_aot_exit();

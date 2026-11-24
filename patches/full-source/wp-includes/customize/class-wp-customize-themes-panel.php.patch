@@ -1,11 +1,13 @@
 --- a/wp-includes/customize/class-wp-customize-themes-panel.php
 +++ b/wp-includes/customize/class-wp-customize-themes-panel.php
-@@ -34,23 +34,29 @@
+@@ -33,24 +33,31 @@
+ 	 *
  	 * @since 4.9.0
  	 */
- 	protected function render_template() {
+-	protected function render_template() {
 -		?>
 -		<li id="accordion-section-{{ data.id }}" class="accordion-section control-panel-themes">
++	protected function render_template(): mixed {
 +		;
 +echo '		<li id="accordion-section-{{ data.id }}" class="accordion-section control-panel-themes">
  			<h3 class="accordion-section-title">
@@ -36,15 +38,18 @@
  		</li>
 -		<?php
 +		';
++		return null;
  	}
  
  	/**
-@@ -64,43 +70,47 @@
+@@ -63,44 +70,48 @@
+ 	 *
  	 * @see WP_Customize_Panel::print_template()
  	 */
- 	protected function content_template() {
+-	protected function content_template() {
 -		?>
 -		<li class="panel-meta customize-info accordion-section <# if ( ! data.description ) { #> cannot-expand<# } #>">
++	protected function content_template(): mixed {
 +		;
 +echo '		<li class="panel-meta customize-info accordion-section <# if ( ! data.description ) { #> cannot-expand<# } #>">
  			<button class="customize-panel-back" tabindex="-1" type="button"><span class="screen-reader-text">
@@ -106,11 +111,12 @@
  			<div class="customize-control-notifications-container"></div>
  		</li>
  		<li class="customize-themes-full-container-container">
-@@ -108,6 +118,6 @@
+@@ -108,6 +119,7 @@
  				<div class="customize-themes-notifications"></div>
  			</div>
  		</li>
 -		<?php
 +		';
++		return null;
  	}
  }

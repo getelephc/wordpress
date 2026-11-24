@@ -1,0 +1,171 @@
+--- a/wp-includes/php-ai-client/third-party/Http/Discovery/ClassDiscovery.php
++++ b/wp-includes/php-ai-client/third-party/Http/Discovery/ClassDiscovery.php
+@@ -38,13 +38,14 @@
+      *
+      * @throws DiscoveryFailedException
+      */
+-    protected static function findOneByType($type)
++    protected static function findOneByType(mixed $type): mixed
+     {
+         // Look in the cache
+         if (null !== $class = self::getFromCache($type)) {
+             return $class;
+         }
+-        static $skipStrategy;
++        static $skipStrategy_aot_cell = new \WordPressStaticValueCell();
++        $skipStrategy =& $skipStrategy_aot_cell->value;
+         $skipStrategy ?? $skipStrategy = self::safeClassExists(Strategy\GeneratedDiscoveryStrategy::class) ? \false : Strategy\GeneratedDiscoveryStrategy::class;
+         $exceptions = [];
+         foreach (self::$strategies as $strategy) {
+@@ -69,9 +70,10 @@
+                 self::storeInCache($type, $candidate);
+                 return $candidate['class'];
+             }
+-            $exceptions[] = new NoCandidateFoundException($strategy, $candidates);
++            $exceptions[] = new NoCandidateFoundException($strategy, \wp_aot_require_array( $candidates ));
+         }
+         throw DiscoveryFailedException::create($exceptions);
++    	return null;
+     }
+     /**
+      * Get a value from cache.
+@@ -80,18 +82,19 @@
+      *
+      * @return string|null
+      */
+-    private static function getFromCache($type)
++    private static function getFromCache(mixed $type): mixed
+     {
+         if (!isset(self::$cache[$type])) {
+-            return;
++            return null;
+         }
+         $candidate = self::$cache[$type];
+         if (isset($candidate['condition'])) {
+             if (!self::evaluateCondition($candidate['condition'])) {
+-                return;
++                return null;
+             }
+         }
+         return $candidate['class'];
++    	return null;
+     }
+     /**
+      * Store a value in cache.
+@@ -99,19 +102,21 @@
+      * @param string $type
+      * @param string $class
+      */
+-    private static function storeInCache($type, $class)
++    private static function storeInCache(mixed $type, mixed $class): mixed
+     {
+         self::$cache[$type] = $class;
++    	return null;
+     }
+     /**
+      * Set new strategies and clear the cache.
+      *
+      * @param string[] $strategies list of fully qualified class names that implement DiscoveryStrategy
+      */
+-    public static function setStrategies(array $strategies)
++    public static function setStrategies(array $strategies): mixed
+     {
+         self::$strategies = $strategies;
+         self::clearCache();
++    	return null;
+     }
+     /**
+      * Returns the currently configured discovery strategies as fully qualified class names.
+@@ -120,38 +125,43 @@
+      */
+     public static function getStrategies(): iterable
+     {
+-        return self::$strategies;
++        return \wp_aot_require_iterable( self::$strategies );
+     }
+     /**
+      * Append a strategy at the end of the strategy queue.
+      *
+      * @param string $strategy Fully qualified class name of a DiscoveryStrategy
+      */
+-    public static function appendStrategy($strategy)
++    public static function appendStrategy(mixed $strategy): mixed
+     {
+         self::$strategies[] = $strategy;
+         self::clearCache();
++    	return null;
+     }
+     /**
+      * Prepend a strategy at the beginning of the strategy queue.
+      *
+      * @param string $strategy Fully qualified class name to a DiscoveryStrategy
+      */
+-    public static function prependStrategy($strategy)
+-    {
+-        array_unshift(self::$strategies, $strategy);
++    public static function prependStrategy(mixed $strategy): mixed
++    {
++        $strategies = (array) self::$strategies;
++        \wp_aot_array_unshift($strategies,array( $strategy));
++        self::$strategies = $strategies;
+         self::clearCache();
+-    }
+-    public static function clearCache()
++    	return null;
++    }
++    public static function clearCache(): mixed
+     {
+         self::$cache = [];
++    	return null;
+     }
+     /**
+      * Evaluates conditions to boolean.
+      *
+      * @return bool
+      */
+-    protected static function evaluateCondition($condition)
++    protected static function evaluateCondition(mixed $condition): mixed
+     {
+         if (is_string($condition)) {
+             // Should be extended for functions, extensions???
+@@ -173,6 +183,7 @@
+             return \true;
+         }
+         return \false;
++    	return null;
+     }
+     /**
+      * Get an instance of the $class.
+@@ -183,7 +194,7 @@
+      *
+      * @throws ClassInstantiationFailedException
+      */
+-    protected static function instantiateClass($class)
++    protected static function instantiateClass(mixed $class): mixed
+     {
+         try {
+             if (is_string($class)) {
+@@ -196,6 +207,7 @@
+             throw new ClassInstantiationFailedException('Unexpected exception when instantiating class.', 0, $e);
+         }
+         throw new ClassInstantiationFailedException('Could not instantiate class because parameter is neither a callable nor a string');
++    	return null;
+     }
+     /**
+      * We need a "safe" version of PHP's "class_exists" because Magento has a bug
+@@ -208,12 +220,13 @@
+      *
+      * @return bool
+      */
+-    public static function safeClassExists($class)
++    public static function safeClassExists(mixed $class): mixed
+     {
+         try {
+-            return class_exists($class) || interface_exists($class);
++            return \wp_aot_class_exists($class) || \wp_aot_interface_exists($class);
+         } catch (\Exception $e) {
+             return \false;
+         }
++    	return null;
+     }
+ }

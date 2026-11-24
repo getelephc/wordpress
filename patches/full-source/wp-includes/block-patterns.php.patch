@@ -1,6 +1,59 @@
 --- a/wp-includes/block-patterns.php
 +++ b/wp-includes/block-patterns.php
-@@ -87,7 +87,7 @@
+@@ -18,8 +18,9 @@
+  *                                   See WP_Block_Patterns_Registry::register() for accepted arguments.
+  * @return bool True if the pattern was registered with success and false otherwise.
+  */
+-function register_block_pattern( $pattern_name, $pattern_properties ) {
++function register_block_pattern( mixed $pattern_name, mixed $pattern_properties ): mixed {
+ 	return WP_Block_Patterns_Registry::get_instance()->register( $pattern_name, $pattern_properties );
++	return null;
+ }
+ 
+ /**
+@@ -30,8 +31,9 @@
+  * @param string $pattern_name Block pattern name including namespace.
+  * @return bool True if the pattern was unregistered with success and false otherwise.
+  */
+-function unregister_block_pattern( $pattern_name ) {
++function unregister_block_pattern( mixed $pattern_name ): mixed {
+ 	return WP_Block_Patterns_Registry::get_instance()->unregister( $pattern_name );
++	return null;
+ }
+ 
+ /**
+@@ -45,8 +47,9 @@
+  *                                    accepted arguments.
+  * @return bool True if the pattern category was registered with success and false otherwise.
+  */
+-function register_block_pattern_category( $category_name, $category_properties ) {
++function register_block_pattern_category( mixed $category_name, mixed $category_properties ): mixed {
+ 	return WP_Block_Pattern_Categories_Registry::get_instance()->register( $category_name, $category_properties );
++	return null;
+ }
+ 
+ /**
+@@ -57,8 +60,9 @@
+  * @param string $category_name Pattern category name including namespace.
+  * @return bool True if the pattern category was unregistered with success and false otherwise.
+  */
+-function unregister_block_pattern_category( $category_name ) {
++function unregister_block_pattern_category( mixed $category_name ): mixed {
+ 	return WP_Block_Pattern_Categories_Registry::get_instance()->unregister( $category_name );
++	return null;
+ }
+ 
+ /**
+@@ -68,7 +72,7 @@
+  * @since 6.3.0 Added source to core block patterns.
+  * @access private
+  */
+-function _register_core_block_patterns_and_categories() {
++function _register_core_block_patterns_and_categories(): mixed {
+ 	$should_register_core_patterns = get_theme_support( 'core-block-patterns' );
+ 
+ 	if ( $should_register_core_patterns ) {
+@@ -87,7 +91,7 @@
  		);
  
  		foreach ( $core_block_patterns as $core_block_pattern ) {
@@ -9,3 +62,159 @@
  			$pattern['source'] = 'core';
  			register_block_pattern( 'core/' . $core_block_pattern, $pattern );
  		}
+@@ -240,6 +244,7 @@
+ 			'description' => __( 'A variety of designs displaying site navigation.' ),
+ 		)
+ 	);
++	return null;
+ }
+ 
+ /**
+@@ -253,7 +258,7 @@
+  * @param array $pattern Pattern as returned from the Pattern Directory API.
+  * @return array Normalized pattern.
+  */
+-function wp_normalize_remote_block_pattern( $pattern ) {
++function wp_normalize_remote_block_pattern( mixed $pattern ): mixed {
+ 	if ( isset( $pattern['block_types'] ) ) {
+ 		$pattern['blockTypes'] = $pattern['block_types'];
+ 		unset( $pattern['block_types'] );
+@@ -265,6 +270,7 @@
+ 	}
+ 
+ 	return (array) $pattern;
++	return null;
+ }
+ 
+ /**
+@@ -278,12 +284,12 @@
+  *
+  * @param WP_Screen $deprecated Unused. Formerly the screen that the current request was triggered from.
+  */
+-function _load_remote_block_patterns( $deprecated = null ) {
++function _load_remote_block_patterns( mixed $deprecated = null ): mixed {
+ 	if ( ! empty( $deprecated ) ) {
+ 		_deprecated_argument( __FUNCTION__, '5.9.0' );
+ 		$current_screen = $deprecated;
+ 		if ( ! $current_screen->is_block_editor ) {
+-			return;
++			return null;
+ 		}
+ 	}
+ 
+@@ -304,7 +310,7 @@
+ 		$request->set_param( 'keyword', $core_keyword_id );
+ 		$response = rest_do_request( $request );
+ 		if ( $response->is_error() ) {
+-			return;
++			return null;
+ 		}
+ 		$patterns = $response->get_data();
+ 
+@@ -315,6 +321,7 @@
+ 			register_block_pattern( $pattern_name, $normalized_pattern );
+ 		}
+ 	}
++	return null;
+ }
+ 
+ /**
+@@ -325,14 +332,14 @@
+  *              format expected by `register_block_pattern()` (camelCase).
+  * @since 6.3.0 Add 'pattern-directory/featured' to the pattern's 'source'.
+  */
+-function _load_remote_featured_patterns() {
++function _load_remote_featured_patterns(): mixed {
+ 	$supports_core_patterns = get_theme_support( 'core-block-patterns' );
+ 
+ 	/** This filter is documented in wp-includes/block-patterns.php */
+ 	$should_load_remote = apply_filters( 'should_load_remote_block_patterns', true );
+ 
+ 	if ( ! $should_load_remote || ! $supports_core_patterns ) {
+-		return;
++		return null;
+ 	}
+ 
+ 	$request         = new WP_REST_Request( 'GET', '/wp/v2/pattern-directory/patterns' );
+@@ -340,7 +347,7 @@
+ 	$request->set_param( 'category', $featured_cat_id );
+ 	$response = rest_do_request( $request );
+ 	if ( $response->is_error() ) {
+-		return;
++		return null;
+ 	}
+ 	$patterns = $response->get_data();
+ 	$registry = WP_Block_Patterns_Registry::get_instance();
+@@ -354,6 +361,7 @@
+ 			register_block_pattern( $pattern_name, $normalized_pattern );
+ 		}
+ 	}
++	return null;
+ }
+ 
+ /**
+@@ -366,26 +374,26 @@
+  * @since 6.3.0 Add 'pattern-directory/theme' to the pattern's 'source'.
+  * @access private
+  */
+-function _register_remote_theme_patterns() {
++function _register_remote_theme_patterns(): mixed {
+ 	/** This filter is documented in wp-includes/block-patterns.php */
+ 	if ( ! apply_filters( 'should_load_remote_block_patterns', true ) ) {
+-		return;
++		return null;
+ 	}
+ 
+ 	if ( ! wp_theme_has_theme_json() ) {
+-		return;
++		return null;
+ 	}
+ 
+ 	$pattern_settings = wp_get_theme_directory_pattern_slugs();
+ 	if ( empty( $pattern_settings ) ) {
+-		return;
++		return null;
+ 	}
+ 
+ 	$request         = new WP_REST_Request( 'GET', '/wp/v2/pattern-directory/patterns' );
+ 	$request['slug'] = $pattern_settings;
+ 	$response        = rest_do_request( $request );
+ 	if ( $response->is_error() ) {
+-		return;
++		return null;
+ 	}
+ 	$patterns          = $response->get_data();
+ 	$patterns_registry = WP_Block_Patterns_Registry::get_instance();
+@@ -399,6 +407,7 @@
+ 			register_block_pattern( $pattern_name, $normalized_pattern );
+ 		}
+ 	}
++	return null;
+ }
+ 
+ /**
+@@ -411,7 +420,7 @@
+  * @since 6.4.0 Uses the `WP_Theme::get_block_patterns` method.
+  * @access private
+  */
+-function _register_theme_block_patterns() {
++function _register_theme_block_patterns(): mixed {
+ 
+ 	/*
+ 	 * During the bootstrap process, a check for active and valid themes is run.
+@@ -420,7 +429,7 @@
+ 	 * already be set at this point, so bail early if that is the case.
+ 	 */
+ 	if ( empty( wp_get_active_and_valid_themes() ) ) {
+-		return;
++		return null;
+ 	}
+ 
+ 	/*
+@@ -474,5 +483,6 @@
+ 			register_block_pattern( $pattern_data['slug'], $pattern_data );
+ 		}
+ 	}
++	return null;
+ }
+ add_action( 'init', '_register_theme_block_patterns' );

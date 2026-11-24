@@ -1,0 +1,77 @@
+--- a/wp-includes/ms-files.php
++++ b/wp-includes/ms-files.php
+@@ -9,31 +9,31 @@
+  */
+ 
+ define( 'MS_FILES_REQUEST', true );
+-define( 'SHORTINIT', true );
++\wp_aot_bootstrap_mark('SHORTINIT', define( 'SHORTINIT', true ));
+ 
+ /** Load WordPress Bootstrap */
+ require_once dirname( __DIR__ ) . '/wp-load.php';
+ 
+ if ( ! is_multisite() ) {
+-	die( 'Multisite support not enabled' );
++	\wp_aot_exit( 'Multisite support not enabled' );
+ }
+ 
+ ms_file_constants();
+ 
+ if ( '1' === $current_blog->archived || '1' === $current_blog->spam || '1' === $current_blog->deleted ) {
+ 	status_header( 404 );
+-	die( '404 &#8212; File not found.' );
++	\wp_aot_exit( '404 &#8212; File not found.' );
+ }
+ 
+ if ( ! defined( 'BLOGUPLOADDIR' ) ) {
+ 	status_header( 500 );
+-	die( '500 &#8212; Directory not configured.' );
++	\wp_aot_exit( '500 &#8212; Directory not configured.' );
+ }
+ 
+-$file = rtrim( BLOGUPLOADDIR, '/' ) . '/' . str_replace( '..', '', $_GET['file'] );
++$file = rtrim( BLOGUPLOADDIR, '/' ) . '/' . \wp_aot_str_replace( '..', '', $_GET['file'] );
+ if ( ! is_file( $file ) ) {
+ 	status_header( 404 );
+-	die( '404 &#8212; File not found.' );
++	\wp_aot_exit( '404 &#8212; File not found.' );
+ }
+ 
+ $mime = wp_check_filetype( $file );
+@@ -54,19 +54,19 @@
+ 
+ // Optional support for X-Sendfile and X-Accel-Redirect.
+ if ( WPMU_ACCEL_REDIRECT ) {
+-	header( 'X-Accel-Redirect: ' . str_replace( WP_CONTENT_DIR, '', $file ) );
+-	exit;
++	header( 'X-Accel-Redirect: ' . \wp_aot_str_replace( WP_CONTENT_DIR, '', $file ) );
++	\wp_aot_exit();
+ } elseif ( WPMU_SENDFILE ) {
+ 	header( 'X-Sendfile: ' . $file );
+-	exit;
++	\wp_aot_exit();
+ }
+ 
+-$wp_last_modified = gmdate( 'D, d M Y H:i:s', filemtime( $file ) );
++$wp_last_modified = \wp_aot_gmdate( 'D, d M Y H:i:s', filemtime( $file ) );
+ $wp_etag          = '"' . md5( $wp_last_modified ) . '"';
+ 
+ header( "Last-Modified: $wp_last_modified GMT" );
+ header( 'ETag: ' . $wp_etag );
+-header( 'Expires: ' . gmdate( 'D, d M Y H:i:s', time() + 100000000 ) . ' GMT' );
++header( 'Expires: ' . \wp_aot_gmdate( 'D, d M Y H:i:s', time() + 100000000 ) . ' GMT' );
+ 
+ // Support for conditional GET - use stripslashes() to avoid formatting.php dependency.
+ if ( isset( $_SERVER['HTTP_IF_NONE_MATCH'] ) ) {
+@@ -92,9 +92,9 @@
+ 	: ( ( $client_modified_timestamp >= $wp_modified_timestamp ) || ( $client_etag === $wp_etag ) )
+ ) {
+ 	status_header( 304 );
+-	exit;
++	\wp_aot_exit();
+ }
+ 
+ // If we made it this far, just serve the file.
+ readfile( $file );
+-flush();
++\wp_aot_native_api('flush', array());

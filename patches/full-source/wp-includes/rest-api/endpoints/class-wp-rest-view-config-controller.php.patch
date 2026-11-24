@@ -1,0 +1,366 @@
+--- a/wp-includes/rest-api/endpoints/class-wp-rest-view-config-controller.php
++++ b/wp-includes/rest-api/endpoints/class-wp-rest-view-config-controller.php
+@@ -32,7 +32,7 @@
+ 	 *
+ 	 * @since 7.1.0
+ 	 */
+-	public function register_routes() {
++	public function register_routes(): mixed {
+ 		register_rest_route(
+ 			$this->namespace,
+ 			'/' . $this->rest_base,
+@@ -57,6 +57,7 @@
+ 				'schema' => array( $this, 'get_public_item_schema' ),
+ 			)
+ 		);
++		return null;
+ 	}
+ 
+ 	/**
+@@ -67,7 +68,7 @@
+ 	 * @param WP_REST_Request $request Full details about the request.
+ 	 * @return true|WP_Error True if the request has read access, WP_Error object otherwise.
+ 	 */
+-	public function get_items_permissions_check( $request ) {
++	public function get_items_permissions_check( mixed $request ): mixed {
+ 		$kind = $request->get_param( 'kind' );
+ 		$name = $request->get_param( 'name' );
+ 
+@@ -90,6 +91,7 @@
+ 		}
+ 
+ 		return true;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -113,7 +115,7 @@
+ 	 * @return string|null Capability required to read the config, or null if the
+ 	 *                     entity is not registered.
+ 	 */
+-	protected function get_required_capability( $kind, $name ) {
++	protected function get_required_capability( mixed $kind, mixed $name ): mixed {
+ 		switch ( $kind ) {
+ 			case 'postType':
+ 				$post_type = get_post_type_object( $name );
+@@ -134,6 +136,7 @@
+ 		}
+ 
+ 		return 'edit_posts';
++		return null;
+ 	}
+ 
+ 	/**
+@@ -144,7 +147,7 @@
+ 	 * @param WP_REST_Request $request Full details about the request.
+ 	 * @return WP_REST_Response|WP_Error Response object on success, or WP_Error object on failure.
+ 	 */
+-	public function get_items( $request ) {
++	public function get_items( mixed $request ): mixed {
+ 		$kind = $request->get_param( 'kind' );
+ 		$name = $request->get_param( 'name' );
+ 
+@@ -162,6 +165,7 @@
+ 		);
+ 
+ 		return rest_ensure_response( $response );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -187,7 +191,7 @@
+ 	 * @param array $schema The schema node describing the value.
+ 	 * @return mixed The normalized value, with empty object-typed arrays cast to objects.
+ 	 */
+-	protected function cast_empty_objects( $value, $schema ) {
++	protected function cast_empty_objects( mixed $value, mixed $schema ): mixed {
+ 		if ( ! is_array( $value ) || ! is_array( $schema ) ) {
+ 			return $value;
+ 		}
+@@ -237,6 +241,7 @@
+ 		}
+ 
+ 		return $value;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -246,7 +251,7 @@
+ 	 *
+ 	 * @return array Item schema data.
+ 	 */
+-	public function get_item_schema() {
++	public function get_item_schema(): mixed {
+ 		if ( $this->schema ) {
+ 			return $this->add_additional_fields_schema( $this->schema );
+ 		}
+@@ -277,7 +282,7 @@
+ 					'description' => __( 'Default view configuration.' ),
+ 					'type'        => 'object',
+ 					'readonly'    => true,
+-					'properties'  => array_merge(
++					'properties'  => \wp_aot_array_merge(array(
+ 						array(
+ 							'type'   => array(
+ 								'type' => 'string',
+@@ -285,7 +290,7 @@
+ 							'layout' => $this->get_combined_layout_schema(),
+ 						),
+ 						$view_base_properties
+-					),
++					)),
+ 				),
+ 				'default_layouts' => array(
+ 					'description' => __( 'Default layout configurations.' ),
+@@ -294,57 +299,57 @@
+ 					'properties'  => array(
+ 						'table'       => array(
+ 							'type'       => 'object',
+-							'properties' => array_merge(
++							'properties' => \wp_aot_array_merge(array(
+ 								$view_base_properties,
+ 								array(
+ 									'layout' => $this->get_table_layout_schema(),
+ 								)
+-							),
++							)),
+ 						),
+ 						'list'        => array(
+ 							'type'       => 'object',
+-							'properties' => array_merge(
++							'properties' => \wp_aot_array_merge(array(
+ 								$view_base_properties,
+ 								array(
+ 									'layout' => $this->get_list_layout_schema(),
+ 								)
+-							),
++							)),
+ 						),
+ 						'grid'        => array(
+ 							'type'       => 'object',
+-							'properties' => array_merge(
++							'properties' => \wp_aot_array_merge(array(
+ 								$view_base_properties,
+ 								array(
+ 									'layout' => $this->get_grid_layout_schema(),
+ 								)
+-							),
++							)),
+ 						),
+ 						'activity'    => array(
+ 							'type'       => 'object',
+-							'properties' => array_merge(
++							'properties' => \wp_aot_array_merge(array(
+ 								$view_base_properties,
+ 								array(
+ 									'layout' => $this->get_list_layout_schema(),
+ 								)
+-							),
++							)),
+ 						),
+ 						'pickerGrid'  => array(
+ 							'type'       => 'object',
+-							'properties' => array_merge(
++							'properties' => \wp_aot_array_merge(array(
+ 								$view_base_properties,
+ 								array(
+ 									'layout' => $this->get_grid_layout_schema(),
+ 								)
+-							),
++							)),
+ 						),
+ 						'pickerTable' => array(
+ 							'type'       => 'object',
+-							'properties' => array_merge(
++							'properties' => \wp_aot_array_merge(array(
+ 								$view_base_properties,
+ 								array(
+ 									'layout' => $this->get_table_layout_schema(),
+ 								)
+-							),
++							)),
+ 						),
+ 					),
+ 				),
+@@ -363,7 +368,7 @@
+ 							),
+ 							'view'  => array(
+ 								'type'       => 'object',
+-								'properties' => array_merge(
++								'properties' => \wp_aot_array_merge(array(
+ 									array(
+ 										'type'   => array(
+ 											'type' => 'string',
+@@ -371,7 +376,7 @@
+ 										'layout' => $this->get_combined_layout_schema(),
+ 									),
+ 									$view_base_properties
+-								),
++								)),
+ 							),
+ 						),
+ 					),
+@@ -386,6 +391,7 @@
+ 		);
+ 
+ 		return $this->add_additional_fields_schema( $this->schema );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -398,7 +404,7 @@
+ 	 *
+ 	 * @return array Schema properties for the base view configuration.
+ 	 */
+-	protected function get_view_base_schema() {
++	protected function get_view_base_schema(): mixed {
+ 		return array(
+ 			'filters'               => array(
+ 				'type'  => 'array',
+@@ -494,6 +500,7 @@
+ 				'type' => 'boolean',
+ 			),
+ 		);
++		return null;
+ 	}
+ 
+ 	/**
+@@ -503,7 +510,7 @@
+ 	 *
+ 	 * @return array Schema for a column style object.
+ 	 */
+-	protected function get_column_style_schema() {
++	protected function get_column_style_schema(): mixed {
+ 		return array(
+ 			'type'       => 'object',
+ 			'properties' => array(
+@@ -522,6 +529,7 @@
+ 				),
+ 			),
+ 		);
++		return null;
+ 	}
+ 
+ 	/**
+@@ -531,7 +539,7 @@
+ 	 *
+ 	 * @return array Schema for a table layout object.
+ 	 */
+-	protected function get_table_layout_schema() {
++	protected function get_table_layout_schema(): mixed {
+ 		return array(
+ 			'type'       => 'object',
+ 			'properties' => array(
+@@ -548,6 +556,7 @@
+ 				),
+ 			),
+ 		);
++		return null;
+ 	}
+ 
+ 	/**
+@@ -557,7 +566,7 @@
+ 	 *
+ 	 * @return array Schema for a list layout object.
+ 	 */
+-	protected function get_list_layout_schema() {
++	protected function get_list_layout_schema(): mixed {
+ 		return array(
+ 			'type'       => 'object',
+ 			'properties' => array(
+@@ -567,6 +576,7 @@
+ 				),
+ 			),
+ 		);
++		return null;
+ 	}
+ 
+ 	/**
+@@ -580,15 +590,16 @@
+ 	 *
+ 	 * @return array Schema for a combined layout object.
+ 	 */
+-	protected function get_combined_layout_schema() {
++	protected function get_combined_layout_schema(): mixed {
+ 		return array(
+ 			'type'       => 'object',
+-			'properties' => array_merge(
++			'properties' => \wp_aot_array_merge(array(
+ 				$this->get_table_layout_schema()['properties'],
+ 				$this->get_grid_layout_schema()['properties'],
+ 				$this->get_list_layout_schema()['properties']
+-			),
+-		);
++			)),
++		);
++		return null;
+ 	}
+ 
+ 	/**
+@@ -598,7 +609,7 @@
+ 	 *
+ 	 * @return array Schema for a grid layout object.
+ 	 */
+-	protected function get_grid_layout_schema() {
++	protected function get_grid_layout_schema(): mixed {
+ 		return array(
+ 			'type'       => 'object',
+ 			'properties' => array(
+@@ -617,6 +628,7 @@
+ 				),
+ 			),
+ 		);
++		return null;
+ 	}
+ 
+ 	/**
+@@ -629,7 +641,7 @@
+ 	 *
+ 	 * @return array Schema for a form layout object.
+ 	 */
+-	protected function get_form_layout_schema() {
++	protected function get_form_layout_schema(): mixed {
+ 		return array(
+ 			'oneOf' => array(
+ 				// RegularLayout.
+@@ -782,6 +794,7 @@
+ 				),
+ 			),
+ 		);
++		return null;
+ 	}
+ 
+ 	/**
+@@ -791,7 +804,7 @@
+ 	 *
+ 	 * @return array Schema for a form field.
+ 	 */
+-	protected function get_form_field_schema() {
++	protected function get_form_field_schema(): mixed {
+ 		return array(
+ 			'oneOf' => array(
+ 				array( 'type' => 'string' ),
+@@ -825,6 +838,7 @@
+ 				),
+ 			),
+ 		);
++		return null;
+ 	}
+ 
+ 	/**
+@@ -834,7 +848,7 @@
+ 	 *
+ 	 * @return array Schema properties for the form configuration.
+ 	 */
+-	protected function get_form_schema() {
++	protected function get_form_schema(): mixed {
+ 		return array(
+ 			'layout' => $this->get_form_layout_schema(),
+ 			'fields' => array(
+@@ -842,5 +856,6 @@
+ 				'items' => $this->get_form_field_schema(),
+ 			),
+ 		);
++		return null;
+ 	}
+ }

@@ -1,0 +1,110 @@
+--- a/wp-includes/class-wp-list-util.php
++++ b/wp-includes/class-wp-list-util.php
+@@ -48,7 +48,7 @@
+ 	 *
+ 	 * @param array $input Array to perform operations on.
+ 	 */
+-	public function __construct( $input ) {
++	public function __construct( mixed $input ) {
+ 		$this->output = $input;
+ 		$this->input  = $input;
+ 	}
+@@ -60,8 +60,9 @@
+ 	 *
+ 	 * @return array The input array.
+ 	 */
+-	public function get_input() {
++	public function get_input(): mixed {
+ 		return $this->input;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -71,8 +72,9 @@
+ 	 *
+ 	 * @return array The output array.
+ 	 */
+-	public function get_output() {
++	public function get_output(): mixed {
+ 		return $this->output;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -95,7 +97,7 @@
+ 	 *                         match. Default 'AND'.
+ 	 * @return array Array of found values.
+ 	 */
+-	public function filter( $args = array(), $operator = 'AND' ) {
++	public function filter( mixed $args = array(), mixed $operator = 'AND' ): mixed {
+ 		if ( empty( $args ) ) {
+ 			return $this->output;
+ 		}
+@@ -138,6 +140,7 @@
+ 		$this->output = $filtered;
+ 
+ 		return $this->output;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -155,7 +158,7 @@
+ 	 *               corresponding to `$index_key`. If `$index_key` is null, array keys from the original
+ 	 *               `$list` will be preserved in the results.
+ 	 */
+-	public function pluck( $field, $index_key = null ) {
++	public function pluck( mixed $field, mixed $index_key = null ): mixed {
+ 		$newlist = array();
+ 
+ 		if ( ! $index_key ) {
+@@ -211,6 +214,7 @@
+ 		$this->output = $newlist;
+ 
+ 		return $this->output;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -226,7 +230,7 @@
+ 	 * @param bool         $preserve_keys Optional. Whether to preserve keys. Default false.
+ 	 * @return array The sorted array.
+ 	 */
+-	public function sort( $orderby = array(), $order = 'ASC', $preserve_keys = false ) {
++	public function sort( mixed $orderby = array(), mixed $order = 'ASC', mixed $preserve_keys = false ): mixed {
+ 		if ( empty( $orderby ) ) {
+ 			return $this->output;
+ 		}
+@@ -242,14 +246,15 @@
+ 		$this->orderby = $orderby;
+ 
+ 		if ( $preserve_keys ) {
+-			uasort( $this->output, array( $this, 'sort_callback' ) );
++			\wp_aot_uasort( $this->output, $this->sort_callback(...));
+ 		} else {
+-			usort( $this->output, array( $this, 'sort_callback' ) );
++			\wp_aot_usort( $this->output, $this->sort_callback(...));
+ 		}
+ 
+ 		$this->orderby = array();
+ 
+ 		return $this->output;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -263,7 +268,7 @@
+ 	 * @param object|array $b The other object to compare.
+ 	 * @return int 0 if both objects equal. -1 if second object should come first, 1 otherwise.
+ 	 */
+-	private function sort_callback( $a, $b ) {
++	private function sort_callback( mixed $a, mixed $b ): mixed {
+ 		if ( empty( $this->orderby ) ) {
+ 			return 0;
+ 		}
+@@ -290,5 +295,6 @@
+ 		}
+ 
+ 		return 0;
++		return null;
+ 	}
+ }

@@ -1,0 +1,34 @@
+--- a/wp-includes/blocks/navigation-overlay-close.php
++++ b/wp-includes/blocks/navigation-overlay-close.php
+@@ -14,7 +14,7 @@
+  *
+  * @return string Returns the block content.
+  */
+-function render_block_core_navigation_overlay_close( $attributes ) {
++function render_block_core_navigation_overlay_close( mixed $attributes ): mixed {
+ 	$text         = empty( $attributes['text'] ) ? __( 'Close' ) : $attributes['text'];
+ 	$display_mode = empty( $attributes['displayMode'] ) ? 'icon' : $attributes['displayMode'];
+ 	$show_icon    = 'both' === $display_mode || 'icon' === $display_mode;
+@@ -38,6 +38,7 @@
+ 	);
+ 
+ 	return $html_content;
++	return null;
+ }
+ 
+ /**
+@@ -45,12 +46,13 @@
+  *
+  * @since 7.0.0
+  */
+-function register_block_core_navigation_overlay_close() {
++function register_block_core_navigation_overlay_close(): mixed {
+ 	register_block_type_from_metadata(
+ 		__DIR__ . '/navigation-overlay-close',
+ 		array(
+ 			'render_callback' => 'render_block_core_navigation_overlay_close',
+ 		)
+ 	);
++	return null;
+ }
+ add_action( 'init', 'register_block_core_navigation_overlay_close' );

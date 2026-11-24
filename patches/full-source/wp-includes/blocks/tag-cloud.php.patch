@@ -1,0 +1,37 @@
+--- a/wp-includes/blocks/tag-cloud.php
++++ b/wp-includes/blocks/tag-cloud.php
+@@ -14,9 +14,9 @@
+  *
+  * @return string Returns the tag cloud for selected taxonomy.
+  */
+-function render_block_core_tag_cloud( $attributes ) {
++function render_block_core_tag_cloud( mixed $attributes ): mixed {
+ 	$smallest_font_size = $attributes['smallestFontSize'];
+-	$unit               = preg_match( '/^[0-9.]+(?P<unit>[a-z%]+)$/i', $smallest_font_size, $m ) ? $m['unit'] : 'pt';
++	$unit               = preg_match( '/^[0-9.]+(?P<unit>[a-z%]+)$/i', \wp_aot_regex_text( $smallest_font_size ), $m ) ? $m['unit'] : 'pt';
+ 
+ 	$args      = array(
+ 		'echo'       => false,
+@@ -45,6 +45,7 @@
+ 		$wrapper_attributes,
+ 		$tag_cloud
+ 	);
++	return null;
+ }
+ 
+ /**
+@@ -52,12 +53,13 @@
+  *
+  * @since 5.2.0
+  */
+-function register_block_core_tag_cloud() {
++function register_block_core_tag_cloud(): mixed {
+ 	register_block_type_from_metadata(
+ 		__DIR__ . '/tag-cloud',
+ 		array(
+ 			'render_callback' => 'render_block_core_tag_cloud',
+ 		)
+ 	);
++	return null;
+ }
+ add_action( 'init', 'register_block_core_tag_cloud' );

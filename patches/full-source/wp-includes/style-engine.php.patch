@@ -1,0 +1,53 @@
+--- a/wp-includes/style-engine.php
++++ b/wp-includes/style-engine.php
+@@ -60,7 +60,7 @@
+  *     @type string   $classnames   Classnames separated by a space.
+  * }
+  */
+-function wp_style_engine_get_styles( $block_styles, $options = array() ) {
++function wp_style_engine_get_styles( mixed $block_styles, mixed $options = array() ): mixed {
+ 	$options = wp_parse_args(
+ 		$options,
+ 		array(
+@@ -84,10 +84,11 @@
+ 	}
+ 
+ 	if ( ! empty( $parsed_styles['classnames'] ) ) {
+-		$styles_output['classnames'] = implode( ' ', array_unique( $parsed_styles['classnames'] ) );
+-	}
+-
+-	return array_filter( $styles_output );
++		$styles_output['classnames'] = implode( ' ', \wp_aot_array_unique( $parsed_styles['classnames'] ) );
++	}
++
++	return \wp_aot_array_filter( $styles_output );
++	return null;
+ }
+ 
+ /**
+@@ -141,7 +142,7 @@
+  * }
+  * @return string A string of compiled CSS declarations, or empty string.
+  */
+-function wp_style_engine_get_stylesheet_from_css_rules( $css_rules, $options = array() ) {
++function wp_style_engine_get_stylesheet_from_css_rules( mixed $css_rules, mixed $options = array() ): mixed {
+ 	if ( empty( $css_rules ) ) {
+ 		return '';
+ 	}
+@@ -177,6 +178,7 @@
+ 	}
+ 
+ 	return WP_Style_Engine::compile_stylesheet_from_css_rules( $css_rule_objects, $options );
++	return null;
+ }
+ 
+ /**
+@@ -195,6 +197,7 @@
+  * }
+  * @return string A compiled CSS string.
+  */
+-function wp_style_engine_get_stylesheet_from_context( $context, $options = array() ) {
++function wp_style_engine_get_stylesheet_from_context( mixed $context, mixed $options = array() ): mixed {
+ 	return WP_Style_Engine::compile_stylesheet_from_css_rules( WP_Style_Engine::get_store( $context )->get_all_rules(), $options );
++	return null;
+ }

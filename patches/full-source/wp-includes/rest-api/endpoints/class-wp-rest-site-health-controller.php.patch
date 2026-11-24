@@ -1,0 +1,165 @@
+--- a/wp-includes/rest-api/endpoints/class-wp-rest-site-health-controller.php
++++ b/wp-includes/rest-api/endpoints/class-wp-rest-site-health-controller.php
+@@ -32,7 +32,7 @@
+ 	 *
+ 	 * @param WP_Site_Health $site_health An instance of the site health class.
+ 	 */
+-	public function __construct( $site_health ) {
++	public function __construct( mixed $site_health ) {
+ 		$this->namespace = 'wp-site-health/v1';
+ 		$this->rest_base = 'tests';
+ 
+@@ -47,7 +47,7 @@
+ 	 *
+ 	 * @see register_rest_route()
+ 	 */
+-	public function register_routes() {
++	public function register_routes(): mixed {
+ 		register_rest_route(
+ 			$this->namespace,
+ 			sprintf(
+@@ -175,6 +175,7 @@
+ 				),
+ 			)
+ 		);
++		return null;
+ 	}
+ 
+ 	/**
+@@ -185,7 +186,7 @@
+ 	 * @param string $check The endpoint check being ran.
+ 	 * @return bool
+ 	 */
+-	protected function validate_request_permission( $check ) {
++	protected function validate_request_permission( mixed $check ): mixed {
+ 		$default_capability = 'view_site_health_checks';
+ 
+ 		/**
+@@ -199,6 +200,7 @@
+ 		$capability = apply_filters( "site_health_test_rest_capability_{$check}", $default_capability, $check );
+ 
+ 		return current_user_can( $capability );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -208,9 +210,10 @@
+ 	 *
+ 	 * @return array
+ 	 */
+-	public function test_background_updates() {
++	public function test_background_updates(): mixed {
+ 		$this->load_admin_textdomain();
+ 		return $this->site_health->get_test_background_updates();
++		return null;
+ 	}
+ 
+ 	/**
+@@ -220,9 +223,10 @@
+ 	 *
+ 	 * @return array
+ 	 */
+-	public function test_dotorg_communication() {
++	public function test_dotorg_communication(): mixed {
+ 		$this->load_admin_textdomain();
+ 		return $this->site_health->get_test_dotorg_communication();
++		return null;
+ 	}
+ 
+ 	/**
+@@ -232,9 +236,10 @@
+ 	 *
+ 	 * @return array
+ 	 */
+-	public function test_loopback_requests() {
++	public function test_loopback_requests(): mixed {
+ 		$this->load_admin_textdomain();
+ 		return $this->site_health->get_test_loopback_requests();
++		return null;
+ 	}
+ 
+ 	/**
+@@ -244,9 +249,10 @@
+ 	 *
+ 	 * @return array
+ 	 */
+-	public function test_https_status() {
++	public function test_https_status(): mixed {
+ 		$this->load_admin_textdomain();
+ 		return $this->site_health->get_test_https_status();
++		return null;
+ 	}
+ 
+ 	/**
+@@ -256,9 +262,10 @@
+ 	 *
+ 	 * @return array
+ 	 */
+-	public function test_authorization_header() {
++	public function test_authorization_header(): mixed {
+ 		$this->load_admin_textdomain();
+ 		return $this->site_health->get_test_authorization_header();
++		return null;
+ 	}
+ 
+ 	/**
+@@ -268,9 +275,10 @@
+ 	 *
+ 	 * @return array The test result.
+ 	 */
+-	public function test_page_cache() {
++	public function test_page_cache(): mixed {
+ 		$this->load_admin_textdomain();
+ 		return $this->site_health->get_test_page_cache();
++		return null;
+ 	}
+ 
+ 	/**
+@@ -280,7 +288,7 @@
+ 	 *
+ 	 * @return array|WP_Error
+ 	 */
+-	public function get_directory_sizes() {
++	public function get_directory_sizes(): mixed {
+ 		if ( ! class_exists( 'WP_Debug_Data' ) ) {
+ 			require_once ABSPATH . 'wp-admin/includes/class-wp-debug-data.php';
+ 		}
+@@ -322,6 +330,7 @@
+ 		}
+ 
+ 		return $all_sizes;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -332,12 +341,13 @@
+ 	 *
+ 	 * @since 5.6.0
+ 	 */
+-	protected function load_admin_textdomain() {
++	protected function load_admin_textdomain(): mixed {
+ 		// Accounts for inner REST API requests in the admin.
+ 		if ( ! is_admin() ) {
+ 			$locale = determine_locale();
+ 			load_textdomain( 'default', WP_LANG_DIR . "/admin-$locale.mo", $locale );
+ 		}
++		return null;
+ 	}
+ 
+ 	/**
+@@ -347,7 +357,7 @@
+ 	 *
+ 	 * @return array The test schema.
+ 	 */
+-	public function get_item_schema() {
++	public function get_item_schema(): mixed {
+ 		if ( $this->schema ) {
+ 			return $this->schema;
+ 		}
+@@ -403,5 +413,6 @@
+ 		);
+ 
+ 		return $this->schema;
++		return null;
+ 	}
+ }

@@ -1,0 +1,348 @@
+--- a/wp-includes/cron.php
++++ b/wp-includes/cron.php
+@@ -45,7 +45,7 @@
+  * @param bool   $wp_error   Optional. Whether to return a WP_Error on failure. Default false.
+  * @return bool|WP_Error True if event successfully scheduled. False or WP_Error on failure.
+  */
+-function wp_schedule_single_event( $timestamp, $hook, $args = array(), $wp_error = false ) {
++function wp_schedule_single_event( mixed $timestamp, mixed $hook, mixed $args = array(), mixed $wp_error = false ): mixed {
+ 	// Make sure timestamp is a positive integer.
+ 	if ( ! is_numeric( $timestamp ) || $timestamp <= 0 ) {
+ 		if ( $wp_error ) {
+@@ -200,12 +200,13 @@
+ 	}
+ 
+ 	$crons[ $event->timestamp ][ $event->hook ][ $key ] = array(
+-		'schedule' => $event->schedule,
+-		'args'     => $event->args,
++		'schedule' => \wp_aot_mixed($event->schedule),
++		'args'     => \wp_aot_mixed($event->args),
+ 	);
+-	uksort( $crons, 'strnatcasecmp' );
++	\wp_aot_uksort( $crons, 'strnatcasecmp' );
+ 
+ 	return _set_cron_array( $crons, $wp_error );
++	return null;
+ }
+ 
+ /**
+@@ -249,7 +250,7 @@
+  * @param bool   $wp_error   Optional. Whether to return a WP_Error on failure. Default false.
+  * @return bool|WP_Error True if event successfully scheduled. False or WP_Error on failure.
+  */
+-function wp_schedule_event( $timestamp, $recurrence, $hook, $args = array(), $wp_error = false ) {
++function wp_schedule_event( mixed $timestamp, mixed $recurrence, mixed $hook, mixed $args = array(), mixed $wp_error = false ): mixed {
+ 	// Make sure timestamp is a positive integer.
+ 	if ( ! is_numeric( $timestamp ) || $timestamp <= 0 ) {
+ 		if ( $wp_error ) {
+@@ -321,13 +322,14 @@
+ 	$crons = _get_cron_array();
+ 
+ 	$crons[ $event->timestamp ][ $event->hook ][ $key ] = array(
+-		'schedule' => $event->schedule,
+-		'args'     => $event->args,
+-		'interval' => $event->interval,
++		'schedule' => \wp_aot_mixed($event->schedule),
++		'args'     => \wp_aot_mixed($event->args),
++		'interval' => \wp_aot_mixed($event->interval),
+ 	);
+-	uksort( $crons, 'strnatcasecmp' );
++	\wp_aot_uksort( $crons, 'strnatcasecmp' );
+ 
+ 	return _set_cron_array( $crons, $wp_error );
++	return null;
+ }
+ 
+ /**
+@@ -364,7 +366,7 @@
+  * @param bool   $wp_error   Optional. Whether to return a WP_Error on failure. Default false.
+  * @return bool|WP_Error True if event successfully rescheduled. False or WP_Error on failure.
+  */
+-function wp_reschedule_event( $timestamp, $recurrence, $hook, $args = array(), $wp_error = false ) {
++function wp_reschedule_event( mixed $timestamp, mixed $recurrence, mixed $hook, mixed $args = array(), mixed $wp_error = false ): mixed {
+ 	// Make sure timestamp is a positive integer.
+ 	if ( ! is_numeric( $timestamp ) || $timestamp <= 0 ) {
+ 		if ( $wp_error ) {
+@@ -464,6 +466,7 @@
+ 	}
+ 
+ 	return wp_schedule_event( $timestamp, $recurrence, $hook, $args, $wp_error );
++	return null;
+ }
+ 
+ /**
+@@ -486,7 +489,7 @@
+  * @param bool   $wp_error  Optional. Whether to return a WP_Error on failure. Default false.
+  * @return bool|WP_Error True if event successfully unscheduled. False or WP_Error on failure.
+  */
+-function wp_unschedule_event( $timestamp, $hook, $args = array(), $wp_error = false ) {
++function wp_unschedule_event( mixed $timestamp, mixed $hook, mixed $args = array(), mixed $wp_error = false ): mixed {
+ 	// Make sure timestamp is a positive integer.
+ 	if ( ! is_numeric( $timestamp ) || $timestamp <= 0 ) {
+ 		if ( $wp_error ) {
+@@ -548,6 +551,7 @@
+ 	}
+ 
+ 	return _set_cron_array( $crons, $wp_error );
++	return null;
+ }
+ 
+ /**
+@@ -573,7 +577,7 @@
+  *                            events were registered with the hook and arguments combination), false or WP_Error
+  *                            if unscheduling one or more events fail.
+  */
+-function wp_clear_scheduled_hook( $hook, $args = array(), $wp_error = false ) {
++function wp_clear_scheduled_hook( mixed $hook, mixed $args = array(), mixed $wp_error = false ): mixed {
+ 	/*
+ 	 * Backward compatibility.
+ 	 * Previously, this function took the arguments as discrete vars rather than an array like the rest of the API.
+@@ -585,7 +589,7 @@
+ 			__( 'This argument has changed to an array to match the behavior of the other cron functions.' )
+ 		);
+ 
+-		$args     = array_slice( func_get_args(), 1 ); // phpcs:ignore PHPCompatibility.FunctionUse.ArgumentFunctionsReportCurrentValue.NeedsInspection
++		$args     = \wp_aot_array_slice( func_get_args(), 1 ); // phpcs:ignore PHPCompatibility.FunctionUse.ArgumentFunctionsReportCurrentValue.NeedsInspection
+ 		$wp_error = false;
+ 	}
+ 
+@@ -643,7 +647,7 @@
+ 		}
+ 	}
+ 
+-	$errors = array_filter( $results, 'is_wp_error' );
++	$errors = \wp_aot_array_filter( $results, 'is_wp_error' );
+ 	$error  = new WP_Error();
+ 
+ 	if ( $errors ) {
+@@ -657,6 +661,7 @@
+ 	}
+ 
+ 	return count( $results );
++	return null;
+ }
+ 
+ /**
+@@ -678,7 +683,7 @@
+  * @return int|false|WP_Error On success an integer indicating number of events unscheduled (0 indicates no
+  *                            events were registered on the hook), false or WP_Error if unscheduling fails.
+  */
+-function wp_unschedule_hook( $hook, $wp_error = false ) {
++function wp_unschedule_hook( mixed $hook, mixed $wp_error = false ): mixed {
+ 	/**
+ 	 * Filter to override clearing all events attached to the hook.
+ 	 *
+@@ -748,6 +753,7 @@
+ 	}
+ 
+ 	return $set;
++	return null;
+ }
+ 
+ /**
+@@ -775,7 +781,7 @@
+  *     @type int          $interval  Optional. The interval time in seconds for the schedule. Only present for recurring events.
+  * }
+  */
+-function wp_get_scheduled_event( $hook, $args = array(), $timestamp = null ) {
++function wp_get_scheduled_event( mixed $hook, mixed $args = array(), mixed $timestamp = null ): mixed {
+ 	/**
+ 	 * Filter to override retrieving a scheduled event.
+ 	 *
+@@ -842,6 +848,7 @@
+ 	}
+ 
+ 	return $event;
++	return null;
+ }
+ 
+ /**
+@@ -856,7 +863,7 @@
+  *                     arguments do not match exactly, the event will not be found. Default empty array.
+  * @return int|false The Unix timestamp (UTC) of the next time the event will occur. False if the event doesn't exist.
+  */
+-function wp_next_scheduled( $hook, $args = array() ) {
++function wp_next_scheduled( mixed $hook, mixed $args = array() ): mixed {
+ 	$next_event = wp_get_scheduled_event( $hook, $args );
+ 
+ 	if ( ! $next_event ) {
+@@ -885,6 +892,7 @@
+ 	 *                           callback function.
+ 	 */
+ 	return apply_filters( 'wp_next_scheduled', $next_event->timestamp, $next_event, $hook, $args );
++	return null;
+ }
+ 
+ /**
+@@ -896,7 +904,7 @@
+  * @param int $gmt_time Optional. Unix timestamp (UTC). Default 0 (current time is used).
+  * @return bool True if spawned, false if no events spawned.
+  */
+-function spawn_cron( $gmt_time = 0 ) {
++function spawn_cron( mixed $gmt_time = 0 ): mixed {
+ 	if ( ! $gmt_time ) {
+ 		$gmt_time = microtime( true );
+ 	}
+@@ -934,7 +942,7 @@
+ 		return false;
+ 	}
+ 
+-	if ( defined( 'ALTERNATE_WP_CRON' ) && ALTERNATE_WP_CRON ) {
++	if ( defined( 'ALTERNATE_WP_CRON' ) && \wp_aot_undefined_constant('ALTERNATE_WP_CRON') ) {
+ 		if ( 'GET' !== $_SERVER['REQUEST_METHOD'] || defined( 'DOING_AJAX' ) || defined( 'XMLRPC_REQUEST' ) ) {
+ 			return false;
+ 		}
+@@ -948,7 +956,7 @@
+ 
+ 		// Flush any buffers and send the headers.
+ 		wp_ob_end_flush_all();
+-		flush();
++		\wp_aot_native_api('flush', array());
+ 
+ 		require_once ABSPATH . 'wp-cron.php';
+ 		return true;
+@@ -999,6 +1007,7 @@
+ 	$result = wp_remote_post( $cron_request['url'], $cron_request['args'] );
+ 
+ 	return ! is_wp_error( $result );
++	return null;
+ }
+ 
+ /**
+@@ -1018,7 +1027,7 @@
+  *              unless `ALTERNATE_WP_CRON` is enabled; the function now always returns void.
+  */
+ function wp_cron(): void {
+-	if ( defined( 'ALTERNATE_WP_CRON' ) && ALTERNATE_WP_CRON ) {
++	if ( defined( 'ALTERNATE_WP_CRON' ) && \wp_aot_undefined_constant('ALTERNATE_WP_CRON') ) {
+ 		if ( did_action( 'wp_loaded' ) ) {
+ 			_wp_cron();
+ 		} else {
+@@ -1045,10 +1054,10 @@
+  * @return int|false On success an integer indicating number of events spawned (0 indicates no
+  *                   events needed to be spawned), false if spawning fails for one or more events.
+  */
+-function _wp_cron() {
++function _wp_cron(): mixed {
+ 	// Prevent infinite loops caused by lack of wp-cron.php.
+ 	if ( str_contains( $_SERVER['REQUEST_URI'], '/wp-cron.php' )
+-		|| ( defined( 'DISABLE_WP_CRON' ) && DISABLE_WP_CRON )
++		|| ( \wp_aot_bootstrap_defined( 'DISABLE_WP_CRON' ) && DISABLE_WP_CRON )
+ 	) {
+ 		return 0;
+ 	}
+@@ -1089,6 +1098,7 @@
+ 	}
+ 
+ 	return count( $results );
++	return null;
+ }
+ 
+ /**
+@@ -1130,7 +1140,7 @@
+  *     }
+  * }
+  */
+-function wp_get_schedules() {
++function wp_get_schedules(): mixed {
+ 	$schedules = array(
+ 		'hourly'     => array(
+ 			'interval' => HOUR_IN_SECONDS,
+@@ -1166,7 +1176,8 @@
+ 	 *     }
+ 	 * }
+ 	 */
+-	return array_merge( apply_filters( 'cron_schedules', array() ), $schedules );
++	return \wp_aot_array_merge(array( apply_filters( 'cron_schedules', array() ), $schedules ));
++	return null;
+ }
+ 
+ /**
+@@ -1182,7 +1193,7 @@
+  *                     Default empty array.
+  * @return string|false Schedule name on success, false if no schedule.
+  */
+-function wp_get_schedule( $hook, $args = array() ) {
++function wp_get_schedule( mixed $hook, mixed $args = array() ): mixed {
+ 	$schedule = false;
+ 	$event    = wp_get_scheduled_event( $hook, $args );
+ 
+@@ -1200,6 +1211,7 @@
+ 	 * @param array        $args     Arguments to pass to the hook's callback function.
+ 	 */
+ 	return apply_filters( 'get_schedule', $schedule, $hook, $args );
++	return null;
+ }
+ 
+ /**
+@@ -1212,7 +1224,7 @@
+  *
+  * @return array[] Array of cron job arrays ready to be run.
+  */
+-function wp_get_ready_cron_jobs() {
++function wp_get_ready_cron_jobs(): mixed {
+ 	/**
+ 	 * Filter to override retrieving ready cron jobs.
+ 	 *
+@@ -1243,6 +1255,7 @@
+ 	}
+ 
+ 	return $results;
++	return null;
+ }
+ 
+ //
+@@ -1258,10 +1271,10 @@
+  *
+  * @return array<int, array<string, array<string, array{ schedule: string|false, args: array<mixed>, interval?: non-negative-int }>>>|array{} Array of cron events.
+  */
+-function _get_cron_array() {
++function _get_cron_array(): mixed {
+ 	$cron = get_option( 'cron' );
+ 	if ( ! is_array( $cron ) ) {
+-		return array();
++		return \wp_aot_empty_request_map();
+ 	}
+ 
+ 	/**
+@@ -1276,6 +1289,7 @@
+ 
+ 	/** @var array<int, array<string, array<string, array{ schedule: string|false, args: array<mixed>, interval?: non-negative-int }>>> $cron */
+ 	return $cron;
++	return null;
+ }
+ 
+ /**
+@@ -1294,7 +1308,7 @@
+  * @phpstan-param array<int, array<string, array<string, array{ schedule: string|false, args: array<mixed>, interval?: non-negative-int }>>> $cron
+  * @phpstan-return ( $wp_error is true ? true|WP_Error : bool )
+  */
+-function _set_cron_array( $cron, $wp_error = false ) {
++function _set_cron_array( mixed $cron, mixed $wp_error = false ): mixed {
+ 	if ( ! is_array( $cron ) ) {
+ 		$cron = array();
+ 	}
+@@ -1311,6 +1325,7 @@
+ 	}
+ 
+ 	return $result;
++	return null;
+ }
+ 
+ /**
+@@ -1328,7 +1343,7 @@
+  *               |array<int, array<string, array{ schedule: string|false, args: array<mixed>, interval?: non-negative-int }>> $cron
+  * @phpstan-return array{ version: 2, ...<int, array<string, array<string, array{ schedule: string|false, args: array<mixed>, interval?: non-negative-int }>>> }
+  */
+-function _upgrade_cron_array( $cron ) {
++function _upgrade_cron_array( mixed $cron ): mixed {
+ 	if ( isset( $cron['version'] ) && 2 === $cron['version'] ) {
+ 		return $cron;
+ 	}
+@@ -1348,4 +1363,5 @@
+ 	update_option( 'cron', $new_cron, true );
+ 
+ 	return $new_cron;
+-}
++	return null;
++}

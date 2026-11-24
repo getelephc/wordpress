@@ -1,8 +1,11 @@
 --- a/wp-includes/media-template.php
 +++ b/wp-includes/media-template.php
-@@ -15,36 +15,50 @@
+@@ -13,38 +13,53 @@
+  *
+  * @since 3.9.0
   */
- function wp_underscore_audio_template() {
+-function wp_underscore_audio_template() {
++function wp_underscore_audio_template(): mixed {
  	$audio_types = wp_get_audio_extensions();
 -	?>
 -<audio style="visibility: hidden"
@@ -65,12 +68,16 @@
 +	;
 +echo '</audio>
 +	';
++	return null;
  }
  
  /**
-@@ -55,14 +69,14 @@
+@@ -53,16 +68,16 @@
+  *
+  * @since 3.9.0
   */
- function wp_underscore_video_template() {
+-function wp_underscore_video_template() {
++function wp_underscore_video_template(): mixed {
  	$video_types = wp_get_video_extensions();
 -	?>
 -<#  var w_rule = '', classes = [],
@@ -87,7 +94,7 @@
  	}
  
  	if ( settings.contentWidth && data.model.width >= settings.contentWidth ) {
-@@ -78,52 +92,74 @@
+@@ -78,52 +93,74 @@
  	}
  
  	if ( w ) {
@@ -182,7 +189,7 @@
  >
  	<# if ( ! _.isEmpty( data.model.src ) ) {
  		if ( isYouTube ) { #>
-@@ -131,21 +167,28 @@
+@@ -131,21 +168,29 @@
  		<# } else if ( isVimeo ) { #>
  		<source src="{{ data.model.src }}" type="video/vimeo" />
  		<# } else { #>
@@ -216,10 +223,20 @@
  </div>
 -	<?php
 +	';
++	return null;
  }
  
  /**
-@@ -174,15 +217,19 @@
+@@ -153,7 +198,7 @@
+  *
+  * @since 3.5.0
+  */
+-function wp_print_media_templates() {
++function wp_print_media_templates(): mixed {
+ 	$class = 'media-modal wp-core-ui';
+ 
+ 	$is_cross_origin_isolation_enabled = wp_is_client_side_media_processing_enabled();
+@@ -174,15 +219,19 @@
  			__( '(opens in a new tab)' )
  		)
  	);
@@ -246,7 +263,7 @@
  		</button>
  		<div class="media-frame-menu"></div>
  		<div class="media-frame-tab-panel">
-@@ -190,92 +237,115 @@
+@@ -190,92 +239,115 @@
  			<div class="media-frame-content"></div>
  		</div>
  		<h2 class="media-frame-actions-heading screen-reader-text">
@@ -401,7 +418,7 @@
  				/** This action is documented in wp-admin/includes/media.php */
  				do_action( 'pre-upload-ui' ); // phpcs:ignore WordPress.NamingConventions.ValidHookName.UseUnderscores
  				/** This action is documented in wp-admin/includes/media.php */
-@@ -294,59 +364,68 @@
+@@ -294,59 +366,68 @@
  				if ( ! $max_upload_size ) {
  					$max_upload_size = 0;
  				}
@@ -500,7 +517,7 @@
  
  		<div class="media-progress-bar"><div></div></div>
  		<div class="upload-details">
-@@ -357,30 +436,41 @@
+@@ -357,30 +438,41 @@
  			<span class="upload-filename"></span>
  		</div>
  		<div class="upload-errors"></div>
@@ -555,7 +572,7 @@
  			if ( isset( $_GET['error'] ) && 'deprecated' === $_GET['error'] ) {
  				wp_admin_notice(
  					__( 'The Edit Media screen is deprecated as of WordPress 6.3. Please use the Media Library instead.' ),
-@@ -390,8 +480,10 @@
+@@ -390,8 +482,10 @@
  					)
  				);
  			}
@@ -568,7 +585,7 @@
  			<div class="thumbnail thumbnail-{{ data.type }}">
  				<# if ( data.uploading ) { #>
  					<div class="media-progress-bar"><div></div></div>
-@@ -399,22 +491,22 @@
+@@ -399,22 +493,22 @@
  					<img class="details-image" src="{{ data.sizes.full.url }}" draggable="false" alt="" />
  				<# } else if ( data.sizes && data.sizes.large ) { #>
  					<img class="details-image" src="{{ data.sizes.large.url }}" draggable="false" alt="" />
@@ -597,7 +614,7 @@
  					}
  				#>
  				<div style="{{ w_rule }}" class="wp-media-wrapper wp-video">
-@@ -428,10 +520,14 @@
+@@ -428,10 +522,14 @@
  				<# } #>
  
  				<div class="attachment-actions">
@@ -616,7 +633,7 @@
  					<# } #>
  				</div>
  			</div>
-@@ -439,18 +535,24 @@
+@@ -439,18 +537,24 @@
  		<div class="attachment-info">
  			<span class="settings-save-status" role="status">
  				<span class="spinner"></span>
@@ -647,7 +664,7 @@
  						<# if ( data.authorLink ) { #>
  							<a href="{{ data.authorLink }}">{{ data.authorName }}</a>
  						<# } else { #>
-@@ -459,7 +561,9 @@
+@@ -459,7 +563,9 @@
  				</div>
  				<# if ( data.uploadedToTitle ) { #>
  					<div class="uploaded-to">
@@ -658,7 +675,7 @@
  						<# if ( data.uploadedToLink ) { #>
  							<a href="{{ data.uploadedToLink }}">{{ data.uploadedToTitle }}</a>
  						<# } else { #>
-@@ -467,45 +571,61 @@
+@@ -467,45 +573,61 @@
  						<# } #>
  					</div>
  				<# } #>
@@ -734,7 +751,7 @@
  				<# } #>
  
  				<div class="compat-meta">
-@@ -516,51 +636,84 @@
+@@ -516,51 +638,84 @@
  			</div>
  
  			<div class="settings">
@@ -843,7 +860,7 @@
  					</span>
  				</span>
  				<div class="attachment-compat"></div>
-@@ -568,46 +721,62 @@
+@@ -568,46 +723,62 @@
  
  			<div class="actions">
  				<# if ( data.link ) { #>
@@ -922,7 +939,7 @@
  					<div class="centered">
  						<img src="{{ data.size.url }}" draggable="false" alt="" />
  					</div>
-@@ -632,67 +801,87 @@
+@@ -632,67 +803,87 @@
  			</div>
  			<# if ( data.buttons.close ) { #>
  				<button type="button" class="button-link attachment-close"><span class="media-modal-icon" aria-hidden="true"></span><span class="screen-reader-text">
@@ -1038,7 +1055,7 @@
  				}
  			#>
  				<div style="{{ w_rule }}" class="wp-media-wrapper wp-video">
-@@ -707,7 +896,7 @@
+@@ -707,7 +898,7 @@
  				<div class="thumbnail thumbnail-{{ data.type }}">
  					<# if ( data.uploading ) { #>
  						<div class="media-progress-bar"><div></div></div>
@@ -1047,7 +1064,7 @@
  						<img src="{{ data.size.url }}" draggable="false" alt="" />
  					<# } else { #>
  						<img src="{{ data.icon }}" class="icon" draggable="false" alt="" />
-@@ -720,50 +909,65 @@
+@@ -720,50 +911,65 @@
  				<div class="uploaded">{{ data.dateFormatted }}</div>
  
  				<div class="file-size">{{ data.filesizeHumanReadable }}</div>
@@ -1136,7 +1153,7 @@
  
  				<div class="compat-meta">
  					<# if ( data.compat && data.compat.meta ) { #>
-@@ -772,76 +976,119 @@
+@@ -772,76 +978,119 @@
  				</div>
  			</div>
  		</div>
@@ -1289,7 +1306,7 @@
  				<select id="attachment-display-settings-alignment" class="alignment"
  					data-setting="align"
  					<# if ( data.userSettings ) { #>
-@@ -849,17 +1096,21 @@
+@@ -849,17 +1098,21 @@
  					<# } #>>
  
  					<option value="left">
@@ -1319,7 +1336,7 @@
  				</select>
  			</span>
  		<# } #>
-@@ -867,10 +1118,12 @@
+@@ -867,10 +1120,12 @@
  		<span class="setting">
  			<label for="attachment-display-settings-link-to" class="name">
  				<# if ( data.model.canEmbed ) { #>
@@ -1336,7 +1353,7 @@
  			</label>
  			<select id="attachment-display-settings-link-to" class="link-to"
  				data-setting="link"
-@@ -880,49 +1133,60 @@
+@@ -880,49 +1135,60 @@
  
  			<# if ( data.model.canEmbed ) { #>
  				<option value="embed" selected>
@@ -1416,7 +1433,7 @@
  					/** This filter is documented in wp-admin/includes/media.php */
  					$sizes = apply_filters(
  						'image_size_names_choose',
-@@ -935,74 +1199,104 @@
+@@ -935,74 +1201,104 @@
  					);
  
  					foreach ( $sizes as $value => $name ) :
@@ -1552,7 +1569,7 @@
  				/** This filter is documented in wp-admin/includes/media.php */
  				$size_names = apply_filters(
  					'image_size_names_choose',
-@@ -1015,21 +1309,28 @@
+@@ -1015,21 +1311,28 @@
  				);
  
  				foreach ( $size_names as $size => $label ) :
@@ -1591,7 +1608,7 @@
  
  		<span class="setting">
  			<input type="checkbox" id="playlist-settings-show-list" data-setting="tracklist" <# if ( emptyModel ) { #>
-@@ -1037,10 +1338,12 @@
+@@ -1037,10 +1340,12 @@
  			<# } #> />
  			<label for="playlist-settings-show-list" class="checkbox-label-inline">
  				<# if ( isVideo ) { #>
@@ -1608,7 +1625,7 @@
  			</label>
  		</span>
  
-@@ -1050,8 +1353,9 @@
+@@ -1050,8 +1355,9 @@
  				checked="checked"
  			<# } #> />
  			<label for="playlist-settings-show-artist" class="checkbox-label-inline">
@@ -1620,7 +1637,7 @@
  		</span>
  		<# } #>
  
-@@ -1060,15 +1364,19 @@
+@@ -1060,15 +1366,19 @@
  				checked="checked"
  			<# } #> />
  			<label for="playlist-settings-show-images" class="checkbox-label-inline">
@@ -1645,7 +1662,7 @@
  			<input type="text" id="embed-link-settings-link-text" class="alignment" data-setting="linkText" />
  		</span>
  		<div class="embed-container" style="display: none;">
-@@ -1076,8 +1384,9 @@
+@@ -1076,8 +1386,9 @@
  		</div>
  	</script>
  
@@ -1657,7 +1674,7 @@
  		<div class="wp-clearfix">
  			<div class="thumbnail">
  				<img src="{{ data.model.url }}" draggable="false" alt="" />
-@@ -1085,115 +1394,153 @@
+@@ -1085,115 +1396,153 @@
  		</div>
  
  		<span class="setting alt-text has-description">
@@ -1861,7 +1878,7 @@
  									/** This filter is documented in wp-admin/includes/media.php */
  									$sizes = apply_filters(
  										'image_size_names_choose',
-@@ -1206,87 +1553,124 @@
+@@ -1206,87 +1555,124 @@
  									);
  
  									foreach ( $sizes as $value => $name ) :
@@ -2017,7 +2034,7 @@
  									<input type="text" id="image-details-link-css-class" data-setting="linkClassName" value="{{ data.model.linkClassName }}" />
  								</span>
  							</div>
-@@ -1298,8 +1682,12 @@
+@@ -1298,8 +1684,12 @@
  						<img src="{{ data.model.url }}" draggable="false" alt="" />
  						<# if ( data.attachment && window.imageEdit ) { #>
  							<div class="actions">
@@ -2032,7 +2049,7 @@
  							</div>
  						<# } #>
  					</div>
-@@ -1308,56 +1696,85 @@
+@@ -1308,56 +1698,85 @@
  		</div>
  	</script>
  
@@ -2140,7 +2157,7 @@
  					<span class="setting">
  						<span class="button-large">
  						<# _.each( html5types, function (mime, type) { #>
-@@ -1369,12 +1786,20 @@
+@@ -1369,12 +1788,20 @@
  				<# } #>
  
  				<fieldset class="setting-group">
@@ -2165,7 +2182,7 @@
  						</span>
  					</span>
  				</fieldset>
-@@ -1382,28 +1807,34 @@
+@@ -1382,28 +1809,34 @@
  				<span class="setting-group">
  					<span class="setting checkbox-setting autoplay">
  						<input type="checkbox" id="audio-details-autoplay" data-setting="autoplay" />
@@ -2206,7 +2223,7 @@
  			<div class="embed-media-settings embed-video-settings">
  				<div class="wp-video-holder">
  				<#
-@@ -1415,40 +1846,66 @@
+@@ -1415,40 +1848,66 @@
  				}
  				#>
  
@@ -2289,7 +2306,7 @@
  					<span class="setting">
  						<span class="button-large">
  						<# _.each( html5types, function (mime, type) { #>
-@@ -1461,19 +1918,31 @@
+@@ -1461,19 +1920,31 @@
  
  				<# if ( ! _.isEmpty( data.model.poster ) ) { #>
  				<span class="setting">
@@ -2327,7 +2344,7 @@
  						</span>
  					</span>
  				</fieldset>
-@@ -1481,26 +1950,32 @@
+@@ -1481,26 +1952,32 @@
  				<span class="setting-group">
  					<span class="setting checkbox-setting autoplay">
  						<input type="checkbox" id="video-details-autoplay" data-setting="autoplay" />
@@ -2366,7 +2383,7 @@
  							printf(
  								/* translators: 1: "srclang" HTML attribute, 2: "label" HTML attribute, 3: "kind" HTML attribute. */
  								__( 'The %1$s, %2$s, and %3$s values can be edited to set the video track language and kind.' ),
-@@ -1508,13 +1983,19 @@
+@@ -1508,13 +1985,19 @@
  								'label',
  								'kind'
  							);
@@ -2391,7 +2408,7 @@
  					<# } #>
  					<textarea class="hidden content-setting">{{ content }}</textarea>
  				</span>
-@@ -1522,8 +2003,9 @@
+@@ -1522,8 +2005,9 @@
  		</div>
  	</script>
  
@@ -2403,7 +2420,7 @@
  		<# if ( data.attachments.length ) { #>
  			<div class="gallery gallery-columns-{{ data.columns }}">
  				<# _.each( data.attachments, function( attachment, index ) { #>
-@@ -1548,37 +2030,53 @@
+@@ -1548,37 +2032,53 @@
  			</div>
  		<# } else { #>
  			<div class="wpview-error">
@@ -2468,7 +2485,7 @@
  						<svg role="img" aria-hidden="true" fill="none" xmlns="http://www.w3.org/2000/svg" class="close-button">
  							<path d="M12 13.0607L15.7123 16.773L16.773 15.7123L13.0607 12L16.773 8.28772L15.7123 7.22706L12 10.9394L8.28771 7.22705L7.22705 8.28771L10.9394 12L7.22706 15.7123L8.28772 16.773L12 13.0607Z" />
  						</svg>
-@@ -1588,7 +2086,7 @@
+@@ -1588,7 +2088,7 @@
  		</div>
  	</script>
  
@@ -2477,3 +2494,9 @@
  
  	/**
  	 * Fires when the custom Backbone media templates are printed.
+@@ -1640,4 +2140,5 @@
+ 
+ 		echo $script_processor->get_updated_html();
+ 	}
++	return null;
+ }

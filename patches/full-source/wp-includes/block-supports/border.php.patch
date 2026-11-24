@@ -1,0 +1,53 @@
+--- a/wp-includes/block-supports/border.php
++++ b/wp-includes/block-supports/border.php
+@@ -16,7 +16,7 @@
+  *
+  * @param WP_Block_Type $block_type Block Type.
+  */
+-function wp_register_border_support( $block_type ) {
++function wp_register_border_support( mixed $block_type ): mixed {
+ 	// Setup attributes and styles within that if needed.
+ 	if ( ! $block_type->attributes ) {
+ 		$block_type->attributes = array();
+@@ -33,6 +33,7 @@
+ 			'type' => 'string',
+ 		);
+ 	}
++	return null;
+ }
+ 
+ /**
+@@ -47,7 +48,7 @@
+  * @param array         $block_attributes Block attributes.
+  * @return array Border CSS classes and inline styles.
+  */
+-function wp_apply_border_support( $block_type, $block_attributes ) {
++function wp_apply_border_support( mixed $block_type, mixed $block_attributes ): mixed {
+ 	if ( wp_should_skip_block_supports_serialization( $block_type, 'border' ) ) {
+ 		return array();
+ 	}
+@@ -132,6 +133,7 @@
+ 	}
+ 
+ 	return $attributes;
++	return null;
+ }
+ 
+ /**
+@@ -150,7 +152,7 @@
+  * @param mixed         $default_value Fallback value for feature support, defaults to false.
+  * @return bool Whether the feature is supported.
+  */
+-function wp_has_border_feature_support( $block_type, $feature, $default_value = false ) {
++function wp_has_border_feature_support( mixed $block_type, mixed $feature, mixed $default_value = false ): mixed {
+ 	// Check if all border support features have been opted into via `"__experimentalBorder": true`.
+ 	if ( $block_type instanceof WP_Block_Type ) {
+ 		$block_type_supports_border = $block_type->supports['__experimentalBorder'] ?? $default_value;
+@@ -162,6 +164,7 @@
+ 	// Check if the specific feature has been opted into individually
+ 	// via nested flag under `__experimentalBorder`.
+ 	return block_has_support( $block_type, array( '__experimentalBorder', $feature ), $default_value );
++	return null;
+ }
+ 
+ // Register the block support.

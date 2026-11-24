@@ -1,0 +1,38 @@
+--- a/wp-includes/abilities-api/class-wp-ability-categories-registry.php
++++ b/wp-includes/abilities-api/class-wp-ability-categories-registry.php
+@@ -24,7 +24,7 @@
+ 	 * @since 6.9.0
+ 	 * @var self|null
+ 	 */
+-	private static $instance = null;
++	private static mixed $instance = null;
+ 
+ 	/**
+ 	 * Holds the registered ability categories.
+@@ -65,7 +65,7 @@
+ 			return null;
+ 		}
+ 
+-		if ( ! preg_match( '/^[a-z0-9]+(?:-[a-z0-9]+)*$/', $slug ) ) {
++		if ( ! preg_match( '/^[a-z0-9]+(?:-[a-z0-9]+)*$/', \wp_aot_regex_text( $slug ) ) ) {
+ 			_doing_it_wrong(
+ 				__METHOD__,
+ 				__( 'Ability category slug must contain only lowercase alphanumeric characters and dashes.' ),
+@@ -92,7 +92,7 @@
+ 
+ 		try {
+ 			// WP_Ability_Category::prepare_properties() will throw an exception if the properties are invalid.
+-			$category = new WP_Ability_Category( $slug, $args );
++			$category = new WP_Ability_Category( $slug, \wp_aot_array_input($args ));
+ 		} catch ( InvalidArgumentException $e ) {
+ 			_doing_it_wrong(
+ 				__METHOD__,
+@@ -229,7 +229,7 @@
+ 			do_action( 'wp_abilities_api_categories_init', self::$instance );
+ 		}
+ 
+-		return self::$instance;
++		return \wp_aot_require_nullable_WP_Ability_Categories_Registry(self::$instance);
+ 	}
+ 
+ 	/**

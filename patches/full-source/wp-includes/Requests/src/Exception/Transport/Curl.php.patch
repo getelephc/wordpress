@@ -1,0 +1,48 @@
+--- a/wp-includes/Requests/src/Exception/Transport/Curl.php
++++ b/wp-includes/Requests/src/Exception/Transport/Curl.php
+@@ -25,7 +25,7 @@
+ 	 *
+ 	 * @var integer
+ 	 */
+-	protected $code = -1;
++	protected $wp_aot_code = -1;
+ 
+ 	/**
+ 	 * Which type of cURL error
+@@ -51,21 +51,21 @@
+ 	 * @param mixed  $data    Associated data, if applicable.
+ 	 * @param int    $code    Exception numerical code, if applicable.
+ 	 */
+-	public function __construct($message, $type, $data = null, $code = 0) {
++	public function __construct(?string $message, ?string $type, mixed $data = null, ?int $code = 0) {
+ 		if ($type !== null) {
+ 			$this->type = $type;
+ 		}
+ 
+ 		if ($code !== null) {
+-			$this->code = (int) $code;
++			$this->wp_aot_code = (int) $code;
+ 		}
+ 
+ 		if ($message !== null) {
+ 			$this->reason = $message;
+ 		}
+ 
+-		$message = sprintf('%d %s', $this->code, $this->reason);
+-		parent::__construct($message, $this->type, $data, $this->code);
++		$message = sprintf('%d %s', $this->wp_aot_code, $this->reason);
++		parent::__construct(\wp_aot_weak_string($message), $this->type, $data, $this->wp_aot_code);
+ 	}
+ 
+ 	/**
+@@ -73,8 +73,9 @@
+ 	 *
+ 	 * @return string
+ 	 */
+-	public function getReason() {
++	public function getReason(): mixed {
+ 		return $this->reason;
++		return null;
+ 	}
+ 
+ }

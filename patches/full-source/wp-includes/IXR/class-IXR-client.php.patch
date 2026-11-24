@@ -1,0 +1,122 @@
+--- a/wp-includes/IXR/class-IXR-client.php
++++ b/wp-includes/IXR/class-IXR-client.php
+@@ -9,23 +9,23 @@
+  */
+ class IXR_Client
+ {
+-    var $server;
+-    var $port;
+-    var $path;
+-    var $useragent;
+-    var $response;
+-    var $message = false;
+-    var $debug = false;
+-    var $timeout;
+-    var $headers = array();
++    public $server;
++    public $port;
++    public $path;
++    public $useragent;
++    public $response;
++    public $message = false;
++    public $debug = false;
++    public $timeout;
++    public $headers = array();
+ 
+     // Storage place for an error message
+-    var $error = false;
++    public $error = false;
+ 
+ 	/**
+ 	 * PHP5 constructor.
+ 	 */
+-    function __construct( $server, $path = false, $port = 80, $timeout = 15 )
++    function __construct( mixed $server, mixed $path = false, mixed $port = 80, mixed $timeout = 15 )
+     {
+         if (!$path) {
+             // Assume we have been given a URL instead
+@@ -54,8 +54,9 @@
+ 	/**
+ 	 * PHP4 constructor.
+ 	 */
+-	public function IXR_Client( $server, $path = false, $port = 80, $timeout = 15 ) {
++	public function IXR_Client( mixed $server, mixed $path = false, mixed $port = 80, mixed $timeout = 15 ): mixed {
+ 		self::__construct( $server, $path, $port, $timeout );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -65,9 +66,9 @@
+ 	 *
+ 	 * @return bool
+ 	 */
+-    function query( ...$args )
++    function query( mixed ...$args ): mixed
+     {
+-        $method = array_shift($args);
++        $method = \wp_aot_array_shift($args);
+         $request = new IXR_Request($method, $args);
+         $length = $request->getLength();
+         $xml = $request->getXml();
+@@ -93,21 +94,21 @@
+         }
+ 
+         if ($this->timeout) {
+-            $fp = @fsockopen($this->server, $this->port, $errno, $errstr, $this->timeout);
++            $fp = @\wp_aot_fsockopen($this->server, $this->port, $errno, $errstr, $this->timeout);
+         } else {
+-            $fp = @fsockopen($this->server, $this->port, $errno, $errstr);
++            $fp = @\wp_aot_fsockopen($this->server, $this->port, $errno, $errstr);
+         }
+         if (!$fp) {
+             $this->error = new IXR_Error(-32300, 'transport error - could not open socket');
+             return false;
+         }
+-        fputs($fp, $request);
++        \wp_aot_fwrite($fp, $request);
+         $contents = '';
+         $debugContents = '';
+         $gotFirstLine = false;
+         $gettingHeaders = true;
+         while (!feof($fp)) {
+-            $line = fgets($fp, 4096);
++            $line = \wp_aot_fgets($fp, 4096);
+             if (!$gotFirstLine) {
+                 // Check line for '200'
+                 if (strstr($line, '200') === false) {
+@@ -147,26 +148,31 @@
+ 
+         // Message must be OK
+         return true;
++    	return null;
+     }
+ 
+-    function getResponse()
++    function getResponse(): mixed
+     {
+         // methodResponses can only have one param - return that
+         return $this->message->params[0];
++    	return null;
+     }
+ 
+-    function isError()
++    function isError(): mixed
+     {
+         return (is_object($this->error));
++    	return null;
+     }
+ 
+-    function getErrorCode()
++    function getErrorCode(): mixed
+     {
+         return $this->error->code;
++    	return null;
+     }
+ 
+-    function getErrorMessage()
++    function getErrorMessage(): mixed
+     {
+         return $this->error->message;
++    	return null;
+     }
+ }

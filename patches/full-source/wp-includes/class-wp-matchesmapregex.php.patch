@@ -1,0 +1,47 @@
+--- a/wp-includes/class-wp-matchesmapregex.php
++++ b/wp-includes/class-wp-matchesmapregex.php
+@@ -47,7 +47,7 @@
+ 	 * @param string $subject subject if regex
+ 	 * @param array  $matches data to use in map
+ 	 */
+-	public function __construct( $subject, $matches ) {
++	public function __construct( mixed $subject, mixed $matches ) {
+ 		$this->_subject = $subject;
+ 		$this->_matches = $matches;
+ 		$this->output   = $this->_map();
+@@ -62,9 +62,10 @@
+ 	 * @param array  $matches data used for substitution
+ 	 * @return string
+ 	 */
+-	public static function apply( $subject, $matches ) {
++	public static function apply( mixed $subject, mixed $matches ): mixed {
+ 		$result = new WP_MatchesMapRegex( $subject, $matches );
+ 		return $result->output;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -72,9 +73,10 @@
+ 	 *
+ 	 * @return string
+ 	 */
+-	private function _map() {
++	private function _map(): mixed {
+ 		$callback = array( $this, 'callback' );
+-		return preg_replace_callback( $this->_pattern, $callback, $this->_subject );
++		return \wp_aot_preg_replace_callback( $this->_pattern, $callback, $this->_subject );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -83,8 +85,9 @@
+ 	 * @param array $matches preg_replace regexp matches
+ 	 * @return string
+ 	 */
+-	public function callback( $matches ) {
++	public function callback( mixed $matches ): mixed {
+ 		$index = (int) substr( $matches[0], 9, -1 );
+ 		return ( isset( $this->_matches[ $index ] ) ? urlencode( $this->_matches[ $index ] ) : '' );
++		return null;
+ 	}
+ }

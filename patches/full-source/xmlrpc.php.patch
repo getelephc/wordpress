@@ -1,0 +1,35 @@
+--- a/xmlrpc.php
++++ b/xmlrpc.php
+@@ -56,12 +56,12 @@
+ 	</service>
+ </rsd>
+ 	<?php
+-	exit;
++	\wp_aot_exit();
+ }
+ 
+ require_once ABSPATH . 'wp-admin/includes/admin.php';
+-require_once ABSPATH . WPINC . '/class-IXR.php';
+-require_once ABSPATH . WPINC . '/class-wp-xmlrpc-server.php';
++require_once __DIR__ . '/wp-includes/class-IXR.php';
++require_once __DIR__ . '/wp-includes/class-wp-xmlrpc-server.php';
+ 
+ /**
+  * Posts submitted via the XML-RPC interface get that title
+@@ -84,7 +84,7 @@
+ // Fire off the request.
+ $wp_xmlrpc_server->serve_request();
+ 
+-exit;
++\wp_aot_exit();
+ 
+ /**
+  * logIO() - Writes logging info to a file.
+@@ -101,6 +101,6 @@
+ function logIO( $io, $msg ) {
+ 	_deprecated_function( __FUNCTION__, '3.4.0', 'error_log()' );
+ 	if ( ! empty( $GLOBALS['xmlrpc_logging'] ) ) {
+-		error_log( $io . ' - ' . $msg );
++		\wp_aot_native_api('error_log', array( $io . ' - ' . $msg ));
+ 	}
+ }

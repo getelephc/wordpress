@@ -9,21 +9,119 @@
  
  // Group routes by page and store in globals for page-specific functions
  $routes_by_page = array();
-@@ -50,7 +50,7 @@
+@@ -27,7 +27,7 @@
+ 
+ // Store routes data in globals for each page
+ foreach ( $routes_by_page as $page_slug => $page_routes ) {
+-	$page_slug_underscore = str_replace( '-', '_', $page_slug );
++	$page_slug_underscore = \wp_aot_str_replace( '-', '_', $page_slug );
+ 	$global_name = 'wp_' . $page_slug_underscore . '_routes_data';
+ 	$GLOBALS[ $global_name ] = $page_routes;
+ }
+@@ -38,7 +38,7 @@
+  * @param array  $page_routes           Array of route data for the page.
+  * @param string $register_function_name Name of the function to call for registering each route.
+  */
+-function wp_register_page_routes( $page_routes, $register_function_name ) {
++function wp_register_page_routes( mixed $page_routes, mixed $register_function_name ): mixed {
+ 	// Load build constants
+ 	$build_constants = require __DIR__ . '/constants.php';
+ 
+@@ -50,16 +50,16 @@
  		if ( $route['has_content'] ) {
  			$content_asset_path = __DIR__ . "/routes/{$route['name']}/content.min.asset.php";
  			if ( file_exists( $content_asset_path ) ) {
 -				$content_asset = require $content_asset_path;
 +				$content_asset = aot_require_data( $content_asset_path );
  				$content_handle = 'wp/routes/' . $route['name'] . '/content';
- 				$extension = defined( 'SCRIPT_DEBUG' ) && SCRIPT_DEBUG ? '.js' : '.min.js';
+-				$extension = defined( 'SCRIPT_DEBUG' ) && SCRIPT_DEBUG ? '.js' : '.min.js';
++				$extension = \wp_aot_bootstrap_defined( 'SCRIPT_DEBUG' ) && SCRIPT_DEBUG ? '.js' : '.min.js';
  				// Deregister first to override any previously registered version
-@@ -69,7 +69,7 @@
+ 				// (e.g., Core's default modules when running as a plugin).
+ 				wp_deregister_script_module( $content_handle );
+ 				wp_register_script_module(
+ 					$content_handle,
+ 					$build_constants['build_url'] . 'routes/' . $route['name'] . '/content' . $extension,
+-					$content_asset['module_dependencies'] ?? array(),
++					\wp_aot_array_input($content_asset['module_dependencies'] ?? array()),
+ 					$content_asset['version'] ?? false
+ 				);
+ 			}
+@@ -69,26 +69,27 @@
  		if ( $route['has_route'] ) {
  			$route_asset_path = __DIR__ . "/routes/{$route['name']}/route.min.asset.php";
  			if ( file_exists( $route_asset_path ) ) {
 -				$route_asset = require $route_asset_path;
 +				$route_asset = aot_require_data( $route_asset_path );
  				$route_handle = 'wp/routes/' . $route['name'] . '/route';
- 				$extension = defined( 'SCRIPT_DEBUG' ) && SCRIPT_DEBUG ? '.js' : '.min.js';
+-				$extension = defined( 'SCRIPT_DEBUG' ) && SCRIPT_DEBUG ? '.js' : '.min.js';
++				$extension = \wp_aot_bootstrap_defined( 'SCRIPT_DEBUG' ) && SCRIPT_DEBUG ? '.js' : '.min.js';
  				// Deregister first to override any previously registered version
+ 				// (e.g., Core's default modules when running as a plugin).
+ 				wp_deregister_script_module( $route_handle );
+ 				wp_register_script_module(
+ 					$route_handle,
+ 					$build_constants['build_url'] . 'routes/' . $route['name'] . '/route' . $extension,
+-					$route_asset['module_dependencies'] ?? array(),
++					\wp_aot_array_input($route_asset['module_dependencies'] ?? array()),
+ 					$route_asset['version'] ?? false
+ 				);
+ 			}
+ 		}
+ 
+ 		// Register route with page
+-		if ( function_exists( $register_function_name ) ) {
++		if ( \wp_aot_function_exists( $register_function_name ) ) {
+ 			call_user_func( $register_function_name, $route['path'], $content_handle, $route_handle );
+ 		}
+ 	}
++	return null;
+ }
+ 
+ // Page-specific route registration functions
+@@ -96,18 +97,20 @@
+ /**
+  * Register routes for options-connectors page (full-page mode).
+  */
+-function wp_register_options_connectors_page_routes() {
++function wp_register_options_connectors_page_routes(): mixed {
+ 	global $wp_options_connectors_routes_data;
+ 	wp_register_page_routes( $wp_options_connectors_routes_data, 'wp_register_options_connectors_route' );
++	return null;
+ }
+ add_action( 'options-connectors_init', 'wp_register_options_connectors_page_routes' );
+ 
+ /**
+  * Register routes for options-connectors page (wp-admin mode).
+  */
+-function wp_register_options_connectors_wp_admin_page_routes() {
++function wp_register_options_connectors_wp_admin_page_routes(): mixed {
+ 	global $wp_options_connectors_routes_data;
+ 	wp_register_page_routes( $wp_options_connectors_routes_data, 'wp_register_options_connectors_wp_admin_route' );
++	return null;
+ }
+ add_action( 'options-connectors-wp-admin_init', 'wp_register_options_connectors_wp_admin_page_routes' );
+ 
+@@ -115,18 +118,20 @@
+ /**
+  * Register routes for font-library page (full-page mode).
+  */
+-function wp_register_font_library_page_routes() {
++function wp_register_font_library_page_routes(): mixed {
+ 	global $wp_font_library_routes_data;
+ 	wp_register_page_routes( $wp_font_library_routes_data, 'wp_register_font_library_route' );
++	return null;
+ }
+ add_action( 'font-library_init', 'wp_register_font_library_page_routes' );
+ 
+ /**
+  * Register routes for font-library page (wp-admin mode).
+  */
+-function wp_register_font_library_wp_admin_page_routes() {
++function wp_register_font_library_wp_admin_page_routes(): mixed {
+ 	global $wp_font_library_routes_data;
+ 	wp_register_page_routes( $wp_font_library_routes_data, 'wp_register_font_library_wp_admin_route' );
++	return null;
+ }
+ add_action( 'font-library-wp-admin_init', 'wp_register_font_library_wp_admin_page_routes' );
+ 

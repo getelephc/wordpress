@@ -1,0 +1,11 @@
+--- a/wp-admin/options-head.php
++++ b/wp-admin/options-head.php
+@@ -10,7 +10,7 @@
+ 
+ // Don't load directly.
+ if ( ! defined( 'ABSPATH' ) ) {
+-	exit;
++	\wp_aot_exit();
+ }
+ 
+ $action = ! empty( $_REQUEST['action'] ) ? sanitize_text_field( $_REQUEST['action'] ) : '';

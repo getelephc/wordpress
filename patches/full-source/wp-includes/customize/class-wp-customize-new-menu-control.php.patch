@@ -1,8 +1,20 @@
 --- a/wp-includes/customize/class-wp-customize-new-menu-control.php
 +++ b/wp-includes/customize/class-wp-customize-new-menu-control.php
-@@ -55,9 +55,11 @@
+@@ -42,7 +42,7 @@
+ 	 *                                      See WP_Customize_Control::__construct() for information
+ 	 *                                      on accepted arguments. Default empty array.
  	 */
- 	public function render_content() {
+-	public function __construct( WP_Customize_Manager $manager, $id, array $args = array() ) {
++	public function __construct( WP_Customize_Manager $manager, mixed $id, array $args = array() ) {
+ 		_deprecated_function( __METHOD__, '4.9.0' );
+ 		parent::__construct( $manager, $id, $args );
+ 	}
+@@ -53,11 +53,14 @@
+ 	 * @since 4.3.0
+ 	 * @deprecated 4.9.0
+ 	 */
+-	public function render_content() {
++	public function render_content(): mixed {
  		_deprecated_function( __METHOD__, '4.9.0' );
 -		?>
 -		<button type="button" class="button button-primary" id="create-new-menu-submit"><?php _e( 'Create Menu' ); ?></button>
@@ -13,5 +25,6 @@
  		<span class="spinner"></span>
 -		<?php
 +		';
++		return null;
  	}
  }

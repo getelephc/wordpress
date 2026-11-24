@@ -15,6 +15,7 @@ ROOT = Path(__file__).resolve().parent.parent
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--compiler", default=os.environ.get("ELEPHC_BIN", "elephc"))
+    parser.add_argument("--native", action="store_true", help="Also build and verify the complete native bootstrap")
     args = parser.parse_args()
     compiler = shutil.which(args.compiler)
     if not compiler:
@@ -46,11 +47,28 @@ def main():
         subprocess.run(["python3", "scripts/test-wordpress-bootstrap.py"], cwd=clone, check=True)
         subprocess.run(["python3", "scripts/test-wordpress-controls.py", "--compiler", compiler], cwd=clone, check=True)
         verified = clone / "elephc/build/full-source"
+        if args.native:
+            subprocess.run(["python3", "scripts/test-wordpress-linker.py"], cwd=clone, check=True)
+            environment = os.environ.copy()
+            environment["ELEPHC_BIN"] = compiler
+            subprocess.run(["bash", "scripts/build-wordpress.sh"], cwd=clone, env=environment, check=True)
+            subprocess.run(["python3", "scripts/test-wordpress-bootstrap.py", "--native", str(verified / "bootstrap")],
+                           cwd=clone, check=True)
         report = {"schema": 1,
                   "bootstrap": json.loads((verified / "bootstrap-verification.json").read_text()),
                   "controls": json.loads((verified / "controls.json").read_text())}
+        if args.native:
+            link = json.loads((verified / "bootstrap-link.json").read_text())
+            if (link["linked"] is not True or link["function_folding"] is not False
+                    or link["allocated_contents_sha256"] != link["placed_allocated_contents_sha256"]
+                    or link["source_manifest_sha256"] != report["bootstrap"]["source_manifest_sha256"]
+                    or link["compiler_sha256"] != report["controls"]["compiler_sha256"]):
+                raise SystemExit("Source-only native linker provenance does not match the verified build")
+            report["linker"] = {key: value for key, value in link.items()
+                                if key not in ("section_renames", "common_symbols")}
         report_path.write_text(json.dumps(report, indent=2) + "\n")
-    print("PASS: source-only bootstrap references and native controls; export removed")
+    scope = "complete native bootstrap and controls" if args.native else "bootstrap references and native controls"
+    print(f"PASS: source-only {scope}; export removed")
 
 
 if __name__ == "__main__":

@@ -1,0 +1,36 @@
+--- a/wp-includes/block-supports/position.php
++++ b/wp-includes/block-supports/position.php
+@@ -14,7 +14,7 @@
+  *
+  * @param WP_Block_Type $block_type Block Type.
+  */
+-function wp_register_position_support( $block_type ) {
++function wp_register_position_support( mixed $block_type ): mixed {
+ 	$has_position_support = block_has_support( $block_type, 'position', false );
+ 
+ 	// Set up attributes and styles within that if needed.
+@@ -27,6 +27,7 @@
+ 			'type' => 'object',
+ 		);
+ 	}
++	return null;
+ }
+ 
+ /**
+@@ -39,7 +40,7 @@
+  * @param  array  $block         Block object.
+  * @return string                Filtered block content.
+  */
+-function wp_render_position_support( $block_content, $block ) {
++function wp_render_position_support( mixed $block_content, mixed $block ): mixed {
+ 	$block_type           = WP_Block_Type_Registry::get_instance()->get_registered( $block['blockName'] );
+ 	$has_position_support = block_has_support( $block_type, 'position', false );
+ 
+@@ -139,6 +140,7 @@
+ 	}
+ 
+ 	return $block_content;
++	return null;
+ }
+ 
+ // Register the block support.

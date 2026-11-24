@@ -1,0 +1,41 @@
+--- a/wp-includes/php-ai-client/third-party/Nyholm/Psr7/RequestTrait.php
++++ b/wp-includes/php-ai-client/third-party/Nyholm/Psr7/RequestTrait.php
+@@ -36,12 +36,12 @@
+     /**
+      * @return static
+      */
+-    public function withRequestTarget($requestTarget): RequestInterface
++    public function withRequestTarget(mixed $requestTarget): RequestInterface
+     {
+         if (!\is_string($requestTarget)) {
+             throw new \InvalidArgumentException('Request target must be a string');
+         }
+-        if (\preg_match('#\s#', $requestTarget)) {
++        if (\preg_match('#\s#', \wp_aot_regex_text( (string) ($requestTarget) ))) {
+             throw new \InvalidArgumentException('Invalid request target provided; cannot contain whitespace');
+         }
+         $new = clone $this;
+@@ -55,7 +55,7 @@
+     /**
+      * @return static
+      */
+-    public function withMethod($method): RequestInterface
++    public function withMethod(mixed $method): RequestInterface
+     {
+         if (!\is_string($method)) {
+             throw new \InvalidArgumentException('Method must be a string');
+@@ -66,12 +66,12 @@
+     }
+     public function getUri(): UriInterface
+     {
+-        return $this->uri;
++        return \wp_aot_require_WordPress_AiClientDependencies_Psr_Http_Message_UriInterface( $this->uri );
+     }
+     /**
+      * @return static
+      */
+-    public function withUri(UriInterface $uri, $preserveHost = \false): RequestInterface
++    public function withUri(UriInterface $uri, mixed $preserveHost = \false): RequestInterface
+     {
+         if ($uri === $this->uri) {
+             return $this;

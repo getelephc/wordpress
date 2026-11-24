@@ -1,8 +1,143 @@
 --- a/wp-includes/widgets/class-wp-widget-media-video.php
 +++ b/wp-includes/widgets/class-wp-widget-media-video.php
-@@ -225,10 +225,10 @@
+@@ -32,7 +32,7 @@
+ 			)
+ 		);
+ 
+-		$this->l10n = array_merge(
++		$this->l10n = \wp_aot_array_merge(array(
+ 			$this->l10n,
+ 			array(
+ 				'no_media_selected'          => __( 'No video selected' ),
+@@ -50,7 +50,7 @@
+ 				/* translators: %s: A list of valid video file extensions. */
+ 				'unsupported_file_type'      => sprintf( __( 'Sorry, the video at the supplied URL cannot be loaded. Please check that the URL is for a supported video file (%s) or stream (e.g. YouTube and Vimeo).' ), '<code>.' . implode( '</code>, <code>.', wp_get_video_extensions() ) . '</code>' ),
+ 			)
+-		);
++		));
+ 	}
+ 
+ 	/**
+@@ -64,7 +64,7 @@
+ 	 *
+ 	 * @return array Schema for properties.
  	 */
- 	public function render_control_template_scripts() {
+-	public function get_instance_schema() {
++	public function get_instance_schema(): mixed {
+ 
+ 		$schema = array(
+ 			'preload' => array(
+@@ -99,7 +99,8 @@
+ 			);
+ 		}
+ 
+-		return array_merge( $schema, parent::get_instance_schema() );
++		return \wp_aot_array_merge(array( $schema, parent::get_instance_schema() ));
++		return null;
+ 	}
+ 
+ 	/**
+@@ -109,8 +110,8 @@
+ 	 *
+ 	 * @param array $instance Widget instance props.
+ 	 */
+-	public function render_media( $instance ) {
+-		$instance   = array_merge( wp_list_pluck( $this->get_instance_schema(), 'default' ), $instance );
++	public function render_media( mixed $instance ): mixed {
++		$instance   = \wp_aot_array_merge(array( wp_list_pluck( $this->get_instance_schema(), 'default' ), $instance ));
+ 		$attachment = null;
+ 
+ 		if ( $this->is_attachment_with_mime_type( $instance['attachment_id'], $this->widget_options['mime_type'] ) ) {
+@@ -123,20 +124,20 @@
+ 		}
+ 
+ 		if ( empty( $src ) ) {
+-			return;
++			return null;
+ 		}
+ 
+ 		$youtube_pattern = '#^https?://(?:www\.)?(?:youtube\.com/watch|youtu\.be/)#';
+ 		$vimeo_pattern   = '#^https?://(.+\.)?vimeo\.com/.*#';
+ 
+-		if ( $attachment || preg_match( $youtube_pattern, $src ) || preg_match( $vimeo_pattern, $src ) ) {
++		if ( $attachment || preg_match( \wp_aot_regex_text( $youtube_pattern ), \wp_aot_regex_text( $src ) ) || preg_match( \wp_aot_regex_text( $vimeo_pattern ), \wp_aot_regex_text( $src ) ) ) {
+ 			add_filter( 'wp_video_shortcode', array( $this, 'inject_video_max_width_style' ) );
+ 
+ 			echo wp_video_shortcode(
+-				array_merge(
++				\wp_aot_array_merge(array(
+ 					$instance,
+-					compact( 'src' )
+-				),
++					\wp_aot_compact(get_defined_vars(), array( 'src' ))
++				)),
+ 				$instance['content']
+ 			);
+ 
+@@ -144,6 +145,7 @@
+ 		} else {
+ 			echo $this->inject_video_max_width_style( wp_oembed_get( $src ) );
+ 		}
++		return null;
+ 	}
+ 
+ 	/**
+@@ -154,11 +156,12 @@
+ 	 * @param string $html Video shortcode HTML output.
+ 	 * @return string HTML Output.
+ 	 */
+-	public function inject_video_max_width_style( $html ) {
+-		$html = preg_replace( '/\sheight="\d+"/', '', $html );
+-		$html = preg_replace( '/\swidth="\d+"/', '', $html );
+-		$html = preg_replace( '/(?<=width:)\s*\d+px(?=;?)/', '100%', $html );
++	public function inject_video_max_width_style( mixed $html ): mixed {
++		$html = \wp_aot_preg_replace( '/\sheight="\d+"/', '', $html );
++		$html = \wp_aot_preg_replace( '/\swidth="\d+"/', '', $html );
++		$html = \wp_aot_preg_replace( '/(?<=width:)\s*\d+px(?=;?)/', '100%', $html );
+ 		return $html;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -171,13 +174,14 @@
+ 	 *
+ 	 * @since 4.8.0
+ 	 */
+-	public function enqueue_preview_scripts() {
++	public function enqueue_preview_scripts(): mixed {
+ 		/** This filter is documented in wp-includes/media.php */
+ 		if ( 'mediaelement' === apply_filters( 'wp_video_shortcode_library', 'mediaelement' ) ) {
+ 			wp_enqueue_style( 'wp-mediaelement' );
+ 			wp_enqueue_script( 'mediaelement-vimeo' );
+ 			wp_enqueue_script( 'wp-mediaelement' );
+ 		}
++		return null;
+ 	}
+ 
+ 	/**
+@@ -185,7 +189,7 @@
+ 	 *
+ 	 * @since 4.8.0
+ 	 */
+-	public function enqueue_admin_scripts() {
++	public function enqueue_admin_scripts(): mixed {
+ 		parent::enqueue_admin_scripts();
+ 
+ 		$handle = 'media-video-widget';
+@@ -216,6 +220,7 @@
+ 				wp_json_encode( $this->l10n, JSON_HEX_TAG | JSON_UNESCAPED_SLASHES )
+ 			)
+ 		);
++		return null;
+ 	}
+ 
+ 	/**
+@@ -223,12 +228,12 @@
+ 	 *
+ 	 * @since 4.8.0
+ 	 */
+-	public function render_control_template_scripts() {
++	public function render_control_template_scripts(): mixed {
  		parent::render_control_template_scripts()
 -		?>
 -		<script type="text/html" id="tmpl-wp-media-widget-video-preview">
@@ -15,7 +150,7 @@
  				wp_admin_notice(
  					$this->l10n['missing_attachment'],
  					array(
-@@ -236,9 +236,9 @@
+@@ -236,9 +241,9 @@
  						'additional_classes' => array( 'notice-alt', 'notice-missing-attachment' ),
  					)
  				);
@@ -28,7 +163,7 @@
  				wp_admin_notice(
  					$this->l10n['unsupported_file_type'],
  					array(
-@@ -246,9 +246,9 @@
+@@ -246,9 +251,9 @@
  						'additional_classes' => array( 'notice-alt', 'notice-missing-attachment' ),
  					)
  				);
@@ -41,7 +176,7 @@
  				wp_admin_notice(
  					__( 'Unable to preview media due to an unknown error.' ),
  					array(
-@@ -256,8 +256,8 @@
+@@ -256,8 +261,8 @@
  						'additional_classes' => array( 'notice-alt' ),
  					)
  				);
@@ -52,7 +187,7 @@
  				<a href="{{ data.model.src }}" target="_blank" class="media-widget-video-link">
  					<img src="{{ data.model.poster }}" />
  				</a>
-@@ -266,9 +266,10 @@
+@@ -266,9 +271,11 @@
  					<span class="dashicons dashicons-format-video"></span>
  				</a>
  			<# } else if ( data.model.src ) { #>
@@ -64,5 +199,6 @@
  		</script>
 -		<?php
 +		';
++		return null;
  	}
  }

@@ -1,0 +1,495 @@
+--- a/wp-admin/includes/class-wp-filesystem-ssh2.php
++++ b/wp-admin/includes/class-wp-filesystem-ssh2.php
+@@ -95,7 +95,7 @@
+ 	 *     private_key?: non-empty-string,
+ 	 * }|null $opt
+ 	 */
+-	public function __construct( $opt = null ) {
++	public function __construct( mixed $opt = null ) {
+ 		$this->method  = 'ssh2';
+ 		$this->errors  = new WP_Error();
+ 		$this->options = array(
+@@ -158,13 +158,13 @@
+ 	 *
+ 	 * @return bool True on success, false on failure.
+ 	 */
+-	public function connect() {
++	public function connect(): mixed {
+ 		/*
+ 		 * Bail if the constructor recorded a configuration error. Connection and
+ 		 * authentication errors are excluded so that a failed connection attempt
+ 		 * can be retried on the same instance.
+ 		 */
+-		if ( $this->errors->has_errors() && ! array_intersect( array( 'connect', 'auth' ), $this->errors->get_error_codes() ) ) {
++		if ( $this->errors->has_errors() && ! \wp_aot_array_intersect(array( array( 'connect', 'auth' ), $this->errors->get_error_codes() )) ) {
+ 			return false;
+ 		}
+ 
+@@ -231,6 +231,7 @@
+ 		}
+ 
+ 		return true;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -246,12 +247,13 @@
+ 	 * @param string $path The File/Directory path on the remote server to return
+ 	 * @return string The ssh2.sftp:// wrapped path to use.
+ 	 */
+-	public function sftp_path( $path ) {
++	public function sftp_path( mixed $path ): mixed {
+ 		if ( '/' === $path ) {
+ 			$path = '/./';
+ 		}
+ 
+ 		return 'ssh2.sftp://' . $this->sftp_link . '/' . ltrim( $path, '/' );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -264,7 +266,7 @@
+ 	 *
+ 	 * @phpstan-return ( $returnbool is true ? bool : string )
+ 	 */
+-	public function run_command( $command, $returnbool = false ) {
++	public function run_command( mixed $command, mixed $returnbool = false ): mixed {
+ 		if ( ! $this->link ) {
+ 			return false;
+ 		}
+@@ -282,7 +284,7 @@
+ 			);
+ 		} else {
+ 			stream_set_blocking( $stream, true );
+-			stream_set_timeout( $stream, FS_TIMEOUT );
++			stream_set_timeout( $stream, \wp_aot_internal_int( FS_TIMEOUT ) );
+ 			$data = stream_get_contents( $stream );
+ 			fclose( $stream );
+ 
+@@ -294,6 +296,7 @@
+ 		}
+ 
+ 		return false;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -305,8 +308,9 @@
+ 	 * @return string|false Read data on success, false if no temporary file could be opened,
+ 	 *                      or if the file couldn't be retrieved.
+ 	 */
+-	public function get_contents( $file ) {
++	public function get_contents( mixed $file ): mixed {
+ 		return file_get_contents( $this->sftp_path( $file ) );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -317,8 +321,9 @@
+ 	 * @param string $file Path to the file.
+ 	 * @return string[]|false File contents in an array on success, false on failure.
+ 	 */
+-	public function get_contents_array( $file ) {
++	public function get_contents_array( mixed $file ): mixed {
+ 		return file( $this->sftp_path( $file ) );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -332,7 +337,7 @@
+ 	 *                            Default false.
+ 	 * @return bool True on success, false on failure.
+ 	 */
+-	public function put_contents( $file, $contents, $mode = false ) {
++	public function put_contents( mixed $file, mixed $contents, mixed $mode = false ): mixed {
+ 		$ret = file_put_contents( $this->sftp_path( $file ), $contents );
+ 
+ 		if ( strlen( $contents ) !== $ret ) {
+@@ -342,6 +347,7 @@
+ 		$this->chmod( $file, $mode );
+ 
+ 		return true;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -351,7 +357,7 @@
+ 	 *
+ 	 * @return string|false The current working directory on success, false on failure.
+ 	 */
+-	public function cwd() {
++	public function cwd(): mixed {
+ 		if ( ! $this->sftp_link ) {
+ 			return false;
+ 		}
+@@ -363,6 +369,7 @@
+ 		}
+ 
+ 		return trailingslashit( trim( $cwd ) );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -373,8 +380,9 @@
+ 	 * @param string $dir The new current directory.
+ 	 * @return bool True on success, false on failure.
+ 	 */
+-	public function chdir( $dir ) {
++	public function chdir( mixed $dir ): mixed {
+ 		return $this->run_command( 'cd ' . $dir, true );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -388,16 +396,17 @@
+ 	 *                              Default false.
+ 	 * @return bool True on success, false on failure.
+ 	 */
+-	public function chgrp( $file, $group, $recursive = false ) {
++	public function chgrp( mixed $file, mixed $group, mixed $recursive = false ): mixed {
+ 		if ( ! $this->exists( $file ) ) {
+ 			return false;
+ 		}
+ 
+ 		if ( ! $recursive || ! $this->is_dir( $file ) ) {
+-			return $this->run_command( sprintf( 'chgrp %s %s', escapeshellarg( (string) $group ), escapeshellarg( $file ) ), true );
+-		}
+-
+-		return $this->run_command( sprintf( 'chgrp -R %s %s', escapeshellarg( (string) $group ), escapeshellarg( $file ) ), true );
++			return $this->run_command( sprintf( 'chgrp %s %s', \wp_aot_native_api('escapeshellarg', array( (string) $group )), \wp_aot_native_api('escapeshellarg', array( $file )) ), true );
++		}
++
++		return $this->run_command( sprintf( 'chgrp -R %s %s', \wp_aot_native_api('escapeshellarg', array( (string) $group )), \wp_aot_native_api('escapeshellarg', array( $file )) ), true );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -412,7 +421,7 @@
+ 	 *                             Default false.
+ 	 * @return bool True on success, false on failure.
+ 	 */
+-	public function chmod( $file, $mode = false, $recursive = false ) {
++	public function chmod( mixed $file, mixed $mode = false, mixed $recursive = false ): mixed {
+ 		if ( ! $this->exists( $file ) ) {
+ 			return false;
+ 		}
+@@ -428,10 +437,11 @@
+ 		}
+ 
+ 		if ( ! $recursive || ! $this->is_dir( $file ) ) {
+-			return $this->run_command( sprintf( 'chmod %o %s', $mode, escapeshellarg( $file ) ), true );
+-		}
+-
+-		return $this->run_command( sprintf( 'chmod -R %o %s', $mode, escapeshellarg( $file ) ), true );
++			return $this->run_command( sprintf( 'chmod %o %s', $mode, \wp_aot_native_api('escapeshellarg', array( $file )) ), true );
++		}
++
++		return $this->run_command( sprintf( 'chmod -R %o %s', $mode, \wp_aot_native_api('escapeshellarg', array( $file )) ), true );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -445,16 +455,17 @@
+ 	 *                              Default false.
+ 	 * @return bool True on success, false on failure.
+ 	 */
+-	public function chown( $file, $owner, $recursive = false ) {
++	public function chown( mixed $file, mixed $owner, mixed $recursive = false ): mixed {
+ 		if ( ! $this->exists( $file ) ) {
+ 			return false;
+ 		}
+ 
+ 		if ( ! $recursive || ! $this->is_dir( $file ) ) {
+-			return $this->run_command( sprintf( 'chown %s %s', escapeshellarg( (string) $owner ), escapeshellarg( $file ) ), true );
+-		}
+-
+-		return $this->run_command( sprintf( 'chown -R %s %s', escapeshellarg( (string) $owner ), escapeshellarg( $file ) ), true );
++			return $this->run_command( sprintf( 'chown %s %s', \wp_aot_native_api('escapeshellarg', array( (string) $owner )), \wp_aot_native_api('escapeshellarg', array( $file )) ), true );
++		}
++
++		return $this->run_command( sprintf( 'chown -R %s %s', \wp_aot_native_api('escapeshellarg', array( (string) $owner )), \wp_aot_native_api('escapeshellarg', array( $file )) ), true );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -465,7 +476,7 @@
+ 	 * @param string $file Path to the file.
+ 	 * @return string|int<1, max>|false Username of the owner on success, or UID of file owner if not available; false on failure.
+ 	 */
+-	public function owner( $file ) {
++	public function owner( mixed $file ): mixed {
+ 		$owneruid = @fileowner( $this->sftp_path( $file ) );
+ 
+ 		if ( ! $owneruid ) {
+@@ -476,13 +487,14 @@
+ 			return $owneruid;
+ 		}
+ 
+-		$ownerarray = posix_getpwuid( $owneruid );
++		$ownerarray = \wp_aot_native_api('posix_getpwuid', array( $owneruid ));
+ 
+ 		if ( ! $ownerarray ) {
+ 			return false;
+ 		}
+ 
+ 		return $ownerarray['name'];
++		return null;
+ 	}
+ 
+ 	/**
+@@ -493,12 +505,13 @@
+ 	 * @param string $file Path to the file.
+ 	 * @return string Mode of the file (the last 3 digits). Empty string on failure.
+ 	 */
+-	public function getchmod( $file ) {
++	public function getchmod( mixed $file ): mixed {
+ 		$file_perms = @fileperms( $this->sftp_path( $file ) );
+ 		if ( ! is_int( $file_perms ) ) {
+ 			return '';
+ 		}
+ 		return substr( decoct( $file_perms ), -3 );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -509,7 +522,7 @@
+ 	 * @param string $file Path to the file.
+ 	 * @return string|int<1, max>|false Group name on success, or GID of the file's group if not available; false on failure.
+ 	 */
+-	public function group( $file ) {
++	public function group( mixed $file ): mixed {
+ 		$gid = @filegroup( $this->sftp_path( $file ) );
+ 
+ 		if ( ! $gid ) {
+@@ -520,13 +533,14 @@
+ 			return $gid;
+ 		}
+ 
+-		$grouparray = posix_getgrgid( $gid );
++		$grouparray = \wp_aot_native_api('posix_getgrgid', array( $gid ));
+ 
+ 		if ( ! $grouparray ) {
+ 			return false;
+ 		}
+ 
+ 		return $grouparray['name'];
++		return null;
+ 	}
+ 
+ 	/**
+@@ -542,7 +556,7 @@
+ 	 *                               0755 for dirs. Default false.
+ 	 * @return bool True on success, false on failure.
+ 	 */
+-	public function copy( $source, $destination, $overwrite = false, $mode = false ) {
++	public function copy( mixed $source, mixed $destination, mixed $overwrite = false, mixed $mode = false ): mixed {
+ 		if ( ! $overwrite && $this->exists( $destination ) ) {
+ 			return false;
+ 		}
+@@ -554,6 +568,7 @@
+ 		}
+ 
+ 		return $this->put_contents( $destination, $content, $mode );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -574,7 +589,7 @@
+ 	 *                            Default false.
+ 	 * @return bool True on success, false on failure.
+ 	 */
+-	public function move( $source, $destination, $overwrite = false ) {
++	public function move( mixed $source, mixed $destination, mixed $overwrite = false ): mixed {
+ 		if ( $this->exists( $destination ) ) {
+ 			if ( $overwrite ) {
+ 				// We need to remove the destination before we can rename the source.
+@@ -589,6 +604,7 @@
+ 			return false;
+ 		}
+ 		return ssh2_sftp_rename( $this->sftp_link, $source, $destination );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -603,7 +619,7 @@
+ 	 *                                Default false.
+ 	 * @return bool True on success, false on failure.
+ 	 */
+-	public function delete( $file, $recursive = false, $type = false ) {
++	public function delete( mixed $file, mixed $recursive = false, mixed $type = false ): mixed {
+ 		if ( ! $this->sftp_link ) {
+ 			return false;
+ 		}
+@@ -624,6 +640,7 @@
+ 		}
+ 
+ 		return ssh2_sftp_rmdir( $this->sftp_link, $file );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -634,8 +651,9 @@
+ 	 * @param string $path Path to file or directory.
+ 	 * @return bool Whether $path exists or not.
+ 	 */
+-	public function exists( $path ) {
++	public function exists( mixed $path ): mixed {
+ 		return file_exists( $this->sftp_path( $path ) );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -646,8 +664,9 @@
+ 	 * @param string $file File path.
+ 	 * @return bool Whether $file is a file.
+ 	 */
+-	public function is_file( $file ) {
++	public function is_file( mixed $file ): mixed {
+ 		return is_file( $this->sftp_path( $file ) );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -658,8 +677,9 @@
+ 	 * @param string $path Directory path.
+ 	 * @return bool Whether $path is a directory.
+ 	 */
+-	public function is_dir( $path ) {
++	public function is_dir( mixed $path ): mixed {
+ 		return is_dir( $this->sftp_path( $path ) );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -670,8 +690,9 @@
+ 	 * @param string $file Path to file.
+ 	 * @return bool Whether $file is readable.
+ 	 */
+-	public function is_readable( $file ) {
++	public function is_readable( mixed $file ): mixed {
+ 		return is_readable( $this->sftp_path( $file ) );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -682,9 +703,10 @@
+ 	 * @param string $path Path to file or directory.
+ 	 * @return bool Whether $path is writable.
+ 	 */
+-	public function is_writable( $path ) {
++	public function is_writable( mixed $path ): mixed {
+ 		// PHP will base its writable checks on system_user === file_owner, not ssh_user === file_owner.
+ 		return true;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -695,8 +717,9 @@
+ 	 * @param string $file Path to file.
+ 	 * @return int|false Unix timestamp representing last access time, false on failure.
+ 	 */
+-	public function atime( $file ) {
++	public function atime( mixed $file ): mixed {
+ 		return fileatime( $this->sftp_path( $file ) );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -707,8 +730,9 @@
+ 	 * @param string $file Path to file.
+ 	 * @return int|false Unix timestamp representing modification time, false on failure.
+ 	 */
+-	public function mtime( $file ) {
++	public function mtime( mixed $file ): mixed {
+ 		return filemtime( $this->sftp_path( $file ) );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -719,8 +743,9 @@
+ 	 * @param string $file Path to file.
+ 	 * @return int|false Size of the file in bytes on success, false on failure.
+ 	 */
+-	public function size( $file ) {
++	public function size( mixed $file ): mixed {
+ 		return filesize( $this->sftp_path( $file ) );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -737,9 +762,10 @@
+ 	 *                      Default 0.
+ 	 * @return false Always returns false because not implemented.
+ 	 */
+-	public function touch( $file, $time = 0, $atime = 0 ) {
++	public function touch( mixed $file, mixed $time = 0, mixed $atime = 0 ): mixed {
+ 		// Not implemented.
+ 		return false;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -756,7 +782,7 @@
+ 	 *                                Default false.
+ 	 * @return bool True on success, false on failure.
+ 	 */
+-	public function mkdir( $path, $chmod = false, $chown = false, $chgrp = false ) {
++	public function mkdir( mixed $path, mixed $chmod = false, mixed $chown = false, mixed $chgrp = false ): mixed {
+ 		if ( ! $this->sftp_link ) {
+ 			return false;
+ 		}
+@@ -786,6 +812,7 @@
+ 		}
+ 
+ 		return true;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -798,8 +825,9 @@
+ 	 *                          Default false.
+ 	 * @return bool True on success, false on failure.
+ 	 */
+-	public function rmdir( $path, $recursive = false ) {
++	public function rmdir( mixed $path, mixed $recursive = false ): mixed {
+ 		return $this->delete( $path, $recursive );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -838,7 +866,7 @@
+ 	 * }
+ 	 * @phpstan-return array<string, FileListing>|false
+ 	 */
+-	public function dirlist( $path, $include_hidden = true, $recursive = false ) {
++	public function dirlist( mixed $path, mixed $include_hidden = true, mixed $recursive = false ): mixed {
+ 		if ( $this->is_file( $path ) ) {
+ 			$limit_file = basename( $path );
+ 			$path       = dirname( $path );
+@@ -851,7 +879,7 @@
+ 		}
+ 
+ 		$ret = array();
+-		$dir = dir( $this->sftp_path( $path ) );
++		$dir = \wp_aot_native_api('dir', array( $this->sftp_path( $path ) ));
+ 
+ 		if ( ! $dir ) {
+ 			return false;
+@@ -882,8 +910,8 @@
+ 			$struc['group']       = $this->group( $path . $entry );
+ 			$struc['size']        = $this->size( $path . $entry );
+ 			$struc['lastmodunix'] = $this->mtime( $path . $entry );
+-			$struc['lastmod']     = is_int( $struc['lastmodunix'] ) ? gmdate( 'M j', $struc['lastmodunix'] ) : false;
+-			$struc['time']        = is_int( $struc['lastmodunix'] ) ? gmdate( 'h:i:s', $struc['lastmodunix'] ) : false;
++			$struc['lastmod']     = is_int( $struc['lastmodunix'] ) ? \wp_aot_gmdate( 'M j', $struc['lastmodunix'] ) : false;
++			$struc['time']        = is_int( $struc['lastmodunix'] ) ? \wp_aot_gmdate( 'h:i:s', $struc['lastmodunix'] ) : false;
+ 			$struc['type']        = $this->is_dir( $path . $entry ) ? 'd' : 'f';
+ 
+ 			if ( 'd' === $struc['type'] ) {
+@@ -901,5 +929,6 @@
+ 		unset( $dir );
+ 
+ 		return $ret;
++		return null;
+ 	}
+ }

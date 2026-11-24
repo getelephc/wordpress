@@ -1,0 +1,26 @@
+--- a/wp-includes/blocks/tabs.php
++++ b/wp-includes/blocks/tabs.php
+@@ -60,7 +60,7 @@
+ 		// Generate a unique ID for the tabs instance first, so it can be used
+ 		// to derive stable tab IDs.
+ 		$tabs_id                   = $parsed_block['attrs']['anchor'] ?? wp_unique_id( 'tabs_' );
+-		$tabs_list                 = block_core_tabs_generate_tabs_list( $parsed_block['innerBlocks'] ?? array(), $tabs_id );
++		$tabs_list                 = block_core_tabs_generate_tabs_list( \wp_aot_array_input($parsed_block['innerBlocks'] ?? array()), $tabs_id );
+ 		$context['core/tabs-list'] = $tabs_list;
+ 		$context['core/tabs-id']   = $tabs_id;
+ 	}
+@@ -128,12 +128,13 @@
+  *
+  * @since 7.1.0
+  */
+-function register_block_core_tabs() {
++function register_block_core_tabs(): mixed {
+ 	register_block_type_from_metadata(
+ 		__DIR__ . '/tabs',
+ 		array(
+ 			'render_callback' => 'block_core_tabs_render_block_callback',
+ 		)
+ 	);
++	return null;
+ }
+ add_action( 'init', 'register_block_core_tabs' );

@@ -1,0 +1,113 @@
+--- a/wp-includes/class-walker-nav-menu.php
++++ b/wp-includes/class-walker-nav-menu.php
+@@ -23,7 +23,7 @@
+ 	 *
+ 	 * @see Walker::$tree_type
+ 	 */
+-	public $tree_type = array( 'post_type', 'taxonomy', 'custom' );
++	public mixed $tree_type = array( 'post_type', 'taxonomy', 'custom' );
+ 
+ 	/**
+ 	 * Database fields to use.
+@@ -34,7 +34,7 @@
+ 	 *
+ 	 * @see Walker::$db_fields
+ 	 */
+-	public $db_fields = array(
++	public mixed $db_fields = array(
+ 		'parent' => 'menu_item_parent',
+ 		'id'     => 'db_id',
+ 	);
+@@ -67,7 +67,7 @@
+ 	 * @param int      $depth  Depth of menu item. Used for padding.
+ 	 * @param stdClass $args   An object of wp_nav_menu() arguments.
+ 	 */
+-	public function start_lvl( &$output, $depth = 0, $args = null ) {
++	public function start_lvl( mixed &$output, mixed $depth = 0, mixed $args = null ): mixed {
+ 		if ( isset( $args->item_spacing ) && 'discard' === $args->item_spacing ) {
+ 			$t = '';
+ 			$n = '';
+@@ -111,6 +111,7 @@
+ 		$attributes = $this->build_atts( $atts );
+ 
+ 		$output .= "{$n}{$indent}<ul{$attributes}>{$n}";
++		return null;
+ 	}
+ 
+ 	/**
+@@ -124,7 +125,7 @@
+ 	 * @param int      $depth  Depth of menu item. Used for padding.
+ 	 * @param stdClass $args   An object of wp_nav_menu() arguments.
+ 	 */
+-	public function end_lvl( &$output, $depth = 0, $args = null ) {
++	public function end_lvl( mixed &$output, mixed $depth = 0, mixed $args = null ): mixed {
+ 		if ( isset( $args->item_spacing ) && 'discard' === $args->item_spacing ) {
+ 			$t = '';
+ 			$n = '';
+@@ -134,6 +135,7 @@
+ 		}
+ 		$indent  = str_repeat( $t, $depth );
+ 		$output .= "$indent</ul>{$n}";
++		return null;
+ 	}
+ 
+ 	/**
+@@ -153,7 +155,7 @@
+ 	 * @param stdClass $args              An object of wp_nav_menu() arguments.
+ 	 * @param int      $current_object_id Optional. ID of the current menu item. Default 0.
+ 	 */
+-	public function start_el( &$output, $data_object, $depth = 0, $args = null, $current_object_id = 0 ) {
++	public function start_el( mixed &$output, mixed $data_object, mixed $depth = 0, mixed $args = null, mixed $current_object_id = 0 ): mixed {
+ 		// Restores the more descriptive, specific name for use within this method.
+ 		$menu_item = $data_object;
+ 
+@@ -191,7 +193,7 @@
+ 		 * @param stdClass $args      An object of wp_nav_menu() arguments.
+ 		 * @param int      $depth     Depth of menu item. Used for padding.
+ 		 */
+-		$class_names = implode( ' ', apply_filters( 'nav_menu_css_class', array_filter( $classes ), $menu_item, $args, $depth ) );
++		$class_names = implode( ' ', apply_filters( 'nav_menu_css_class', \wp_aot_array_filter( $classes ), $menu_item, $args, $depth ) );
+ 
+ 		/**
+ 		 * Filters the ID attribute applied to a menu item's list item element.
+@@ -318,6 +320,7 @@
+ 		 * @param stdClass $args        An object of wp_nav_menu() arguments.
+ 		 */
+ 		$output .= apply_filters( 'walker_nav_menu_start_el', $item_output, $menu_item, $depth, $args );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -333,7 +336,7 @@
+ 	 * @param int      $depth       Depth of page. Not Used.
+ 	 * @param stdClass $args        An object of wp_nav_menu() arguments.
+ 	 */
+-	public function end_el( &$output, $data_object, $depth = 0, $args = null ) {
++	public function end_el( mixed &$output, mixed $data_object, mixed $depth = 0, mixed $args = null ): mixed {
+ 		if ( isset( $args->item_spacing ) && 'discard' === $args->item_spacing ) {
+ 			$t = '';
+ 			$n = '';
+@@ -342,6 +345,7 @@
+ 			$n = "\n";
+ 		}
+ 		$output .= "</li>{$n}";
++		return null;
+ 	}
+ 
+ 	/**
+@@ -353,7 +357,7 @@
+ 	 * @param  array $atts Optional. An array of HTML attribute key/value pairs. Default empty array.
+ 	 * @return string A string of HTML attributes.
+ 	 */
+-	protected function build_atts( $atts = array() ) {
++	protected function build_atts( mixed $atts = array() ): mixed {
+ 		$attribute_string = '';
+ 		foreach ( $atts as $attr => $value ) {
+ 			if ( false !== $value && '' !== $value && is_scalar( $value ) ) {
+@@ -362,5 +366,6 @@
+ 			}
+ 		}
+ 		return $attribute_string;
++		return null;
+ 	}
+ }

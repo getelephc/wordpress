@@ -1,0 +1,34 @@
+--- a/wp-includes/blocks/post-title.php
++++ b/wp-includes/blocks/post-title.php
+@@ -16,7 +16,7 @@
+  *
+  * @return string Returns the filtered post title for the current post wrapped inside "h1" tags.
+  */
+-function render_block_core_post_title( $attributes, $content, $block ) {
++function render_block_core_post_title( mixed $attributes, mixed $content, mixed $block ): mixed {
+ 	if ( ! isset( $block->context['postId'] ) ) {
+ 		return '';
+ 	}
+@@ -56,6 +56,7 @@
+ 		$wrapper_attributes,
+ 		$title
+ 	);
++	return null;
+ }
+ 
+ /**
+@@ -63,12 +64,13 @@
+  *
+  * @since 5.8.0
+  */
+-function register_block_core_post_title() {
++function register_block_core_post_title(): mixed {
+ 	register_block_type_from_metadata(
+ 		__DIR__ . '/post-title',
+ 		array(
+ 			'render_callback' => 'render_block_core_post_title',
+ 		)
+ 	);
++	return null;
+ }
+ add_action( 'init', 'register_block_core_post_title' );

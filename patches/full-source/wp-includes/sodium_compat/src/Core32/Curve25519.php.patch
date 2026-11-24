@@ -1,0 +1,22 @@
+--- a/wp-includes/sodium_compat/src/Core32/Curve25519.php
++++ b/wp-includes/sodium_compat/src/Core32/Curve25519.php
+@@ -1865,7 +1865,8 @@
+      */
+     public static function ge_select($pos = 0, $b = 0)
+     {
+-        static $base = null;
++        static $base_aot_cell = new \WordPressStaticValueCell();
++        $base =& $base_aot_cell->value;
+         if ($base === null) {
+             $base = array();
+             foreach (self::$base as $i => $bas) {
+@@ -2016,7 +2017,8 @@
+         /** @var array<int, ParagonIE_Sodium_Core32_Curve25519_Ge_Cached> $Ai */
+         $Ai = array();
+ 
+-        static $Bi = array();
++        static $Bi_aot_cell = new \WordPressStaticArrayCell();
++        $Bi =& $Bi_aot_cell->value;
+         /** @var array<int, ParagonIE_Sodium_Core32_Curve25519_Ge_Precomp> $Bi */
+         if (!$Bi) {
+             for ($i = 0; $i < 8; ++$i) {

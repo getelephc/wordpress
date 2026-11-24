@@ -1,11 +1,137 @@
 --- a/wp-includes/icons.php
 +++ b/wp-includes/icons.php
-@@ -109,7 +109,7 @@
- 		return;
- 	}
+@@ -21,8 +21,9 @@
+  * }
+  * @return bool True if the icon collection was registered successfully, else false.
+  */
+-function wp_register_icon_collection( $slug, $args ) {
++function wp_register_icon_collection( mixed $slug, mixed $args ): mixed {
+ 	return WP_Icon_Collections_Registry::get_instance()->register( $slug, $args );
++	return null;
+ }
  
+ /**
+@@ -33,8 +34,9 @@
+  * @param string $slug Icon collection slug.
+  * @return bool True if the icon collection was unregistered successfully, else false.
+  */
+-function wp_unregister_icon_collection( $slug ) {
++function wp_unregister_icon_collection( mixed $slug ): mixed {
+ 	return WP_Icon_Collections_Registry::get_instance()->unregister( $slug );
++	return null;
+ }
+ 
+ /**
+@@ -58,8 +60,9 @@
+  * }
+  * @return bool True if the icon was registered successfully, else false.
+  */
+-function wp_register_icon( $icon_name, $args ) {
++function wp_register_icon( mixed $icon_name, mixed $args ): mixed {
+ 	return WP_Icons_Registry::get_instance()->register( $icon_name, $args );
++	return null;
+ }
+ 
+ /**
+@@ -71,8 +74,9 @@
+  *                          (e.g. "core/arrow-left").
+  * @return bool True if the icon was unregistered successfully, else false.
+  */
+-function wp_unregister_icon( $icon_name ) {
++function wp_unregister_icon( mixed $icon_name ): mixed {
+ 	return WP_Icons_Registry::get_instance()->unregister( $icon_name );
++	return null;
+ }
+ 
+ /**
+@@ -81,7 +85,7 @@
+  * @since 7.1.0
+  * @access private
+  */
+-function _wp_register_default_icon_collections() {
++function _wp_register_default_icon_collections(): mixed {
+ 	wp_register_icon_collection(
+ 		'core',
+ 		array(
+@@ -89,6 +93,7 @@
+ 			'description' => __( 'Default icon collection.' ),
+ 		)
+ 	);
++	return null;
+ }
+ 
+ /**
+@@ -97,7 +102,7 @@
+  * @since 7.1.0
+  * @access private
+  */
+-function _wp_register_default_icons() {
++function _wp_register_default_icons(): mixed {
+ 	$icons_directory = ABSPATH . WPINC . '/images/icon-library/';
+ 	$manifest_path   = ABSPATH . WPINC . '/assets/icon-library-manifest.php';
+ 
+@@ -106,17 +111,17 @@
+ 			__FUNCTION__,
+ 			__( 'Core icon collection manifest is missing or unreadable.' )
+ 		);
+-		return;
+-	}
+-
 -	$collection = include $manifest_path;
-+	$collection = include ABSPATH . WPINC . '/assets/icon-library-manifest.php';
++		return null;
++	}
++
++	$collection = include __DIR__ . '/assets/icon-library-manifest.php';
  
  	if ( empty( $collection ) ) {
  		wp_trigger_error(
+ 			__FUNCTION__,
+ 			__( 'Core icon collection manifest is empty or invalid.' )
+ 		);
+-		return;
++		return null;
+ 	}
+ 
+ 	foreach ( $collection as $icon_name => $icon_data ) {
+@@ -129,7 +134,7 @@
+ 				__( 'Core icon collection manifest must provide a valid "filePath" for each icon.' ),
+ 				'7.0.0'
+ 			);
+-			return;
++			return null;
+ 		}
+ 
+ 		wp_register_icon(
+@@ -140,6 +145,7 @@
+ 			)
+ 		);
+ 	}
++	return null;
+ }
+ 
+ /**
+@@ -163,7 +169,7 @@
+  * }
+  * @return string SVG markup for the icon, or empty string if not found.
+  */
+-function wp_get_icon( $name, $args = array() ) {
++function wp_get_icon( mixed $name, mixed $args = array() ): mixed {
+ 	$icon = WP_Icons_Registry::get_instance()->get_registered_icon( $name );
+ 	if ( is_null( $icon ) ) {
+ 		return '';
+@@ -195,7 +201,7 @@
+ 	}
+ 
+ 	if ( ! empty( $args['class'] ) ) {
+-		foreach ( preg_split( '/\s+/', $args['class'], -1, PREG_SPLIT_NO_EMPTY ) as $class_name ) {
++		foreach ( \wp_aot_preg_split( '/\s+/', \wp_aot_regex_text( $args['class'] ), -1, PREG_SPLIT_NO_EMPTY ) as $class_name ) {
+ 			$processor->add_class( $class_name );
+ 		}
+ 	}
+@@ -213,4 +219,5 @@
+ 	}
+ 
+ 	return $processor->get_updated_html();
+-}
++	return null;
++}

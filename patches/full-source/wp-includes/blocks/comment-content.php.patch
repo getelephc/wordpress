@@ -1,0 +1,34 @@
+--- a/wp-includes/blocks/comment-content.php
++++ b/wp-includes/blocks/comment-content.php
+@@ -15,7 +15,7 @@
+  * @param WP_Block $block      Block instance.
+  * @return string Return the post comment's content.
+  */
+-function render_block_core_comment_content( $attributes, $content, $block ) {
++function render_block_core_comment_content( mixed $attributes, mixed $content, mixed $block ): mixed {
+ 	if ( ! isset( $block->context['commentId'] ) ) {
+ 		return '';
+ 	}
+@@ -67,6 +67,7 @@
+ 		$moderation_note,
+ 		$comment_text
+ 	);
++	return null;
+ }
+ 
+ /**
+@@ -74,12 +75,13 @@
+  *
+  * @since 6.0.0
+  */
+-function register_block_core_comment_content() {
++function register_block_core_comment_content(): mixed {
+ 	register_block_type_from_metadata(
+ 		__DIR__ . '/comment-content',
+ 		array(
+ 			'render_callback' => 'render_block_core_comment_content',
+ 		)
+ 	);
++	return null;
+ }
+ add_action( 'init', 'register_block_core_comment_content' );

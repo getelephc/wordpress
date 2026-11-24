@@ -1,0 +1,92 @@
+--- a/wp-includes/SimplePie/src/Registry.php
++++ b/wp-includes/SimplePie/src/Registry.php
+@@ -109,7 +109,7 @@
+      * @param bool $legacy Whether to enable legacy support for this class
+      * @return bool Successfulness
+      */
+-    public function register(string $type, $class, bool $legacy = false)
++    public function register(string $type, mixed $class, bool $legacy = false): mixed
+     {
+         if (array_key_exists($type, $this->legacyTypes)) {
+             // trigger_error(sprintf('"%s"(): Using argument #1 ($type) with value "%s" is deprecated since SimplePie 1.8.0, use class-string "%s" instead.', __METHOD__, $type, $this->legacyTypes[$type]), \E_USER_DEPRECATED);
+@@ -121,7 +121,7 @@
+             return false;
+         }
+ 
+-        if (!class_exists($class)) {
++        if (!\wp_aot_metadata_class_exists($class)) {
+             return false;
+         }
+ 
+@@ -139,6 +139,7 @@
+         }
+ 
+         return true;
++    	return null;
+     }
+ 
+     /**
+@@ -150,7 +151,7 @@
+      * @param class-string<T> $type
+      * @return class-string<T>|null
+      */
+-    public function get_class($type)
++    public function get_class(mixed $type): mixed
+     {
+         if (array_key_exists($type, $this->legacyTypes)) {
+             // trigger_error(sprintf('"%s"(): Using argument #1 ($type) with value "%s" is deprecated since SimplePie 1.8.0, use class-string "%s" instead.', __METHOD__, $type, $this->legacyTypes[$type]), \E_USER_DEPRECATED);
+@@ -173,6 +174,7 @@
+         }
+ 
+         return $class;
++    	return null;
+     }
+ 
+     /**
+@@ -183,7 +185,7 @@
+      * @param array<mixed> $parameters Parameters to pass to the constructor
+      * @return T Instance of class
+      */
+-    public function &create($type, array $parameters = [])
++    public function &create(mixed $type, array $parameters = [])
+     {
+         $class = $this->get_class($type);
+         if ($class === null) {
+@@ -194,18 +196,18 @@
+             ), 1);
+         }
+ 
+-        if (!method_exists($class, '__construct')) {
++        if (!\wp_aot_native_api('method_exists', array($class, '__construct'))) {
+             $instance = new $class();
+         } else {
+-            $reflector = new \ReflectionClass($class);
++            $reflector = \wp_aot_native_new('ReflectionClass', array($class));
+             // For PHPStan: $class is T.
+             /** @var T */
+-            $instance = $reflector->newInstanceArgs($parameters);
++            $instance = \wp_aot_native_method($reflector, 'newInstanceArgs', array($parameters));
+         }
+ 
+         if ($instance instanceof RegistryAware) {
+             $instance->set_registry($this);
+-        } elseif (method_exists($instance, 'set_registry')) {
++        } elseif (\wp_aot_native_api('method_exists', array($instance, 'set_registry'))) {
+             trigger_error(sprintf('Using the method "set_registry()" without implementing "%s" is deprecated since SimplePie 1.8.0, implement "%s" in "%s".', RegistryAware::class, RegistryAware::class, $class), \E_USER_DEPRECATED);
+             $instance->set_registry($this);
+         }
+@@ -221,7 +223,7 @@
+      * @param array<mixed> $parameters
+      * @return mixed
+      */
+-    public function &call($type, string $method, array $parameters = [])
++    public function &call(mixed $type, string $method, array $parameters = [])
+     {
+         $class = $this->get_class($type);
+         if ($class === null) {
+@@ -255,4 +257,4 @@
+     }
+ }
+ 
+-class_alias('SimplePie\Registry', 'SimplePie_Registry');
++(!defined('WP_AOT_NATIVE_RUNTIME') && (bool) \wp_aot_native_api('class_alias', array('SimplePie\Registry', 'SimplePie_Registry')));

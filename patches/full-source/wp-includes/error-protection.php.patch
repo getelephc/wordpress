@@ -1,11 +1,114 @@
 --- a/wp-includes/error-protection.php
 +++ b/wp-includes/error-protection.php
-@@ -85,7 +85,7 @@
+@@ -11,7 +11,7 @@
+  *
+  * @return WP_Paused_Extensions_Storage
+  */
+-function wp_paused_plugins() {
++function wp_paused_plugins(): mixed {
+ 	static $storage = null;
+ 
+ 	if ( null === $storage ) {
+@@ -19,6 +19,7 @@
+ 	}
+ 
+ 	return $storage;
++	return null;
+ }
+ 
+ /**
+@@ -26,7 +27,7 @@
+  *
+  * @return WP_Paused_Extensions_Storage
+  */
+-function wp_paused_themes() {
++function wp_paused_themes(): mixed {
+ 	static $storage = null;
+ 
+ 	if ( null === $storage ) {
+@@ -34,6 +35,7 @@
+ 	}
+ 
+ 	return $storage;
++	return null;
+ }
+ 
+ /**
+@@ -44,7 +46,7 @@
+  * @param array $error Error details from `error_get_last()`.
+  * @return string Formatted error description.
+  */
+-function wp_get_extension_error_description( $error ) {
++function wp_get_extension_error_description( mixed $error ): mixed {
+ 	$constants   = get_defined_constants( true );
+ 	$constants   = $constants['Core'] ?? $constants['internal'];
+ 	$core_errors = array();
+@@ -69,6 +71,7 @@
+ 		"<code>{$error['file']}</code>",
+ 		"<code>{$error['message']}</code>"
+ 	);
++	return null;
+ }
+ 
+ /**
+@@ -78,14 +81,14 @@
+  *
+  * @since 5.2.0
+  */
+-function wp_register_fatal_error_handler() {
++function wp_register_fatal_error_handler(): mixed {
+ 	if ( ! wp_is_fatal_error_handler_enabled() ) {
+-		return;
++		return null;
+ 	}
  
  	$handler = null;
- 	if ( defined( 'WP_CONTENT_DIR' ) && is_readable( WP_CONTENT_DIR . '/fatal-error-handler.php' ) ) {
+-	if ( defined( 'WP_CONTENT_DIR' ) && is_readable( WP_CONTENT_DIR . '/fatal-error-handler.php' ) ) {
 -		$handler = include WP_CONTENT_DIR . '/fatal-error-handler.php';
++	if ( \wp_aot_bootstrap_defined( 'WP_CONTENT_DIR' ) && is_readable( WP_CONTENT_DIR . '/fatal-error-handler.php' ) ) {
 +		throw new RuntimeException( 'Custom fatal-error handlers are outside the finite Elephc manifest.' );
  	}
  
  	if ( ! is_object( $handler ) || ! is_callable( array( $handler, 'handle' ) ) ) {
+@@ -93,6 +96,7 @@
+ 	}
+ 
+ 	register_shutdown_function( array( $handler, 'handle' ) );
++	return null;
+ }
+ 
+ /**
+@@ -105,8 +109,8 @@
+  *
+  * @return bool True if the fatal error handler is enabled, false otherwise.
+  */
+-function wp_is_fatal_error_handler_enabled() {
+-	$enabled = ! defined( 'WP_DISABLE_FATAL_ERROR_HANDLER' ) || ! WP_DISABLE_FATAL_ERROR_HANDLER;
++function wp_is_fatal_error_handler_enabled(): mixed {
++	$enabled = ! \wp_aot_bootstrap_defined( 'WP_DISABLE_FATAL_ERROR_HANDLER' ) || ! WP_DISABLE_FATAL_ERROR_HANDLER;
+ 
+ 	/**
+ 	 * Filters whether the fatal error handler is enabled.
+@@ -137,6 +141,7 @@
+ 	 * @param bool $enabled True if the fatal error handler is enabled, false otherwise.
+ 	 */
+ 	return apply_filters( 'wp_fatal_error_handler_enabled', $enabled );
++	return null;
+ }
+ 
+ /**
+@@ -146,7 +151,7 @@
+  *
+  * @return WP_Recovery_Mode
+  */
+-function wp_recovery_mode() {
++function wp_recovery_mode(): mixed {
+ 	static $wp_recovery_mode;
+ 
+ 	if ( ! $wp_recovery_mode ) {
+@@ -154,4 +159,5 @@
+ 	}
+ 
+ 	return $wp_recovery_mode;
++	return null;
+ }

@@ -1,0 +1,20 @@
+--- a/wp-admin/revision.php
++++ b/wp-admin/revision.php
+@@ -12,7 +12,7 @@
+ /** WordPress Administration Bootstrap */
+ require_once __DIR__ . '/admin.php';
+ 
+-require ABSPATH . 'wp-admin/includes/revision.php';
++require_once ABSPATH . 'wp-admin/includes/revision.php';
+ 
+ /**
+  * @global int    $revision_id Optional. The revision ID.
+@@ -123,7 +123,7 @@
+ 
+ if ( ! empty( $redirect ) ) {
+ 	wp_redirect( $redirect );
+-	exit;
++	\wp_aot_exit();
+ }
+ 
+ // This is so that the correct "Edit" menu item is selected.

@@ -1,0 +1,144 @@
+--- a/wp-includes/style-engine/class-wp-style-engine-css-declarations.php
++++ b/wp-includes/style-engine/class-wp-style-engine-css-declarations.php
+@@ -47,7 +47,7 @@
+ 	 *                               e.g. `array( "$property" => "$value", "$property" => "$value" )`.
+ 	 *                               Default empty array.
+ 	 */
+-	public function __construct( $declarations = array() ) {
++	public function __construct( mixed $declarations = array() ) {
+ 		$this->add_declarations( $declarations );
+ 	}
+ 
+@@ -66,7 +66,7 @@
+ 	 * }
+ 	 * @return WP_Style_Engine_CSS_Declarations Returns the object to allow chaining methods.
+ 	 */
+-	public function add_declaration( $property, $value, $options = array() ) {
++	public function add_declaration( mixed $property, mixed $value, mixed $options = array() ): mixed {
+ 		// Sanitizes the property.
+ 		$property = $this->sanitize_property( $property );
+ 		// Bails early if the property is empty.
+@@ -91,7 +91,7 @@
+ 				'important' => false,
+ 			)
+ 		);
+-		$options = array_filter( $options );
++		$options = \wp_aot_array_filter( $options );
+ 
+ 		// Adds the declaration property/value pair.
+ 		$this->declarations[ $property ] = $value;
+@@ -102,6 +102,7 @@
+ 		}
+ 
+ 		return $this;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -112,10 +113,11 @@
+ 	 * @param string $property The CSS property.
+ 	 * @return WP_Style_Engine_CSS_Declarations Returns the object to allow chaining methods.
+ 	 */
+-	public function remove_declaration( $property ) {
++	public function remove_declaration( mixed $property ): mixed {
+ 		unset( $this->declarations[ $property ] );
+ 		unset( $this->declaration_options[ $property ] );
+ 		return $this;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -126,11 +128,12 @@
+ 	 * @param string[] $declarations An array of declarations.
+ 	 * @return WP_Style_Engine_CSS_Declarations Returns the object to allow chaining methods.
+ 	 */
+-	public function add_declarations( $declarations ) {
++	public function add_declarations( mixed $declarations ): mixed {
+ 		foreach ( $declarations as $property => $value ) {
+ 			$this->add_declaration( $property, $value );
+ 		}
+ 		return $this;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -141,11 +144,12 @@
+ 	 * @param string[] $properties Optional. An array of properties. Default empty array.
+ 	 * @return WP_Style_Engine_CSS_Declarations Returns the object to allow chaining methods.
+ 	 */
+-	public function remove_declarations( $properties = array() ) {
++	public function remove_declarations( mixed $properties = array() ): mixed {
+ 		foreach ( $properties as $property ) {
+ 			$this->remove_declaration( $property );
+ 		}
+ 		return $this;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -155,8 +159,9 @@
+ 	 *
+ 	 * @return string[] The declarations array.
+ 	 */
+-	public function get_declarations() {
++	public function get_declarations(): mixed {
+ 		return $this->declarations;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -166,8 +171,9 @@
+ 	 *
+ 	 * @return array Declaration options keyed by property name.
+ 	 */
+-	public function get_declaration_options() {
++	public function get_declaration_options(): mixed {
+ 		return $this->declaration_options;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -187,7 +193,7 @@
+ 	 * }
+ 	 * @return string The filtered declaration or an empty string.
+ 	 */
+-	protected static function filter_declaration( $property, $value, $spacer = '', $options = array() ) {
++	protected static function filter_declaration( mixed $property, mixed $value, mixed $spacer = '', mixed $options = array() ): mixed {
+ 		$filtered_value = wp_strip_all_tags( $value, true );
+ 		if ( '' !== $filtered_value ) {
+ 			$options = wp_parse_args(
+@@ -207,6 +213,7 @@
+ 			return $filtered_declaration;
+ 		}
+ 		return '';
++		return null;
+ 	}
+ 
+ 	/**
+@@ -220,7 +227,7 @@
+ 	 *                              Applies if `prettify` is `true`. Default 0.
+ 	 * @return string The CSS declarations.
+ 	 */
+-	public function get_declarations_string( $should_prettify = false, $indent_count = 0 ) {
++	public function get_declarations_string( mixed $should_prettify = false, mixed $indent_count = 0 ): mixed {
+ 		$declarations_array  = $this->get_declarations();
+ 		$declarations_output = '';
+ 		$indent              = $should_prettify ? str_repeat( "\t", $indent_count ) : '';
+@@ -236,6 +243,7 @@
+ 		}
+ 
+ 		return rtrim( $declarations_output );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -246,7 +254,8 @@
+ 	 * @param string $property The CSS property.
+ 	 * @return string The sanitized property name.
+ 	 */
+-	protected function sanitize_property( $property ) {
++	protected function sanitize_property( mixed $property ): mixed {
+ 		return sanitize_key( $property );
++		return null;
+ 	}
+ }

@@ -1,0 +1,41 @@
+--- a/wp-admin/upload.php
++++ b/wp-admin/upload.php
+@@ -247,7 +247,7 @@
+ 	</div>
+ 	<?php
+ 	require_once ABSPATH . 'wp-admin/admin-footer.php';
+-	exit;
++	\wp_aot_exit();
+ }
+ 
+ $wp_list_table = _get_list_table( 'WP_Media_List_Table' );
+@@ -262,14 +262,14 @@
+ 	$post_ids = array();
+ 
+ 	if ( 'delete_all' === $doaction ) {
+-		$post_ids = $wpdb->get_col( "SELECT ID FROM $wpdb->posts WHERE post_type='attachment' AND post_status = 'trash'" );
++		$post_ids = \wp_aot_require_wpdb( $wpdb )->get_col( "SELECT ID FROM $wpdb->posts WHERE post_type='attachment' AND post_status = 'trash'" );
+ 		$doaction = 'delete';
+ 	} elseif ( isset( $_REQUEST['media'] ) ) {
+ 		$post_ids = $_REQUEST['media'];
+ 	} elseif ( isset( $_REQUEST['ids'] ) ) {
+ 		$post_ids = explode( ',', $_REQUEST['ids'] );
+ 	}
+-	$post_ids = array_map( 'intval', (array) $post_ids );
++	$post_ids = \wp_aot_array_map( 'intval', (array) $post_ids );
+ 
+ 	$location = 'upload.php';
+ 	$referer  = wp_get_referer();
+@@ -347,10 +347,10 @@
+ 	}
+ 
+ 	wp_redirect( $location );
+-	exit;
++	\wp_aot_exit();
+ } elseif ( ! empty( $_GET['_wp_http_referer'] ) ) {
+ 	wp_redirect( remove_query_arg( array( '_wp_http_referer', '_wpnonce' ), wp_unslash( $_SERVER['REQUEST_URI'] ) ) );
+-	exit;
++	\wp_aot_exit();
+ }
+ 
+ $wp_list_table->prepare_items();

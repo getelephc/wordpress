@@ -1,0 +1,84 @@
+--- a/wp-admin/edit.php
++++ b/wp-admin/edit.php
+@@ -24,7 +24,7 @@
+ 
+ if ( 'attachment' === $typenow ) {
+ 	if ( wp_redirect( admin_url( 'upload.php' ) ) ) {
+-		exit;
++		\wp_aot_exit();
+ 	}
+ }
+ 
+@@ -56,7 +56,7 @@
+ foreach ( array( 'p', 'attachment_id', 'page_id' ) as $_redirect ) {
+ 	if ( ! empty( $_REQUEST[ $_redirect ] ) ) {
+ 		wp_redirect( admin_url( 'edit-comments.php?p=' . absint( $_REQUEST[ $_redirect ] ) ) );
+-		exit;
++		\wp_aot_exit();
+ 	}
+ }
+ unset( $_redirect );
+@@ -89,7 +89,7 @@
+ 
+ 	if ( 'delete_all' === $doaction ) {
+ 		// Prepare for deletion of all posts with a specified post status (i.e. Empty Trash).
+-		$post_status = preg_replace( '/[^a-z0-9_-]+/i', '', $_REQUEST['post_status'] );
++		$post_status = \wp_aot_preg_replace( '/[^a-z0-9_-]+/i', '', $_REQUEST['post_status'] );
+ 		// Validate the post status exists.
+ 		if ( get_post_status_object( $post_status ) ) {
+ 			/**
+@@ -97,7 +97,7 @@
+ 			 */
+ 			global $wpdb;
+ 
+-			$post_ids = $wpdb->get_col( $wpdb->prepare( "SELECT ID FROM $wpdb->posts WHERE post_type=%s AND post_status = %s", $post_type, $post_status ) );
++			$post_ids = \wp_aot_require_wpdb( $wpdb )->get_col( \wp_aot_require_wpdb( $wpdb )->prepare( "SELECT ID FROM $wpdb->posts WHERE post_type=%s AND post_status = %s", $post_type, $post_status ) );
+ 		}
+ 		$doaction = 'delete';
+ 	} elseif ( isset( $_REQUEST['media'] ) ) {
+@@ -105,12 +105,12 @@
+ 	} elseif ( isset( $_REQUEST['ids'] ) ) {
+ 		$post_ids = explode( ',', $_REQUEST['ids'] );
+ 	} elseif ( ! empty( $_REQUEST['post'] ) ) {
+-		$post_ids = array_map( 'intval', $_REQUEST['post'] );
++		$post_ids = \wp_aot_array_map( 'intval', $_REQUEST['post'] );
+ 	}
+ 
+ 	if ( empty( $post_ids ) ) {
+ 		wp_redirect( $sendback );
+-		exit;
++		\wp_aot_exit();
+ 	}
+ 
+ 	switch ( $doaction ) {
+@@ -226,10 +226,10 @@
+ 	$sendback = remove_query_arg( array( 'action', 'action2', 'tags_input', 'post_author', 'comment_status', 'ping_status', '_status', 'post', 'bulk_edit', 'post_view' ), $sendback );
+ 
+ 	wp_redirect( $sendback );
+-	exit;
++	\wp_aot_exit();
+ } elseif ( ! empty( $_REQUEST['_wp_http_referer'] ) ) {
+ 	wp_redirect( remove_query_arg( array( '_wp_http_referer', '_wpnonce' ), wp_unslash( $_SERVER['REQUEST_URI'] ) ) );
+-	exit;
++	\wp_aot_exit();
+ }
+ 
+ $wp_list_table->prepare_items();
+@@ -406,7 +406,7 @@
+  * @param int[]   $bulk_counts   Array of item counts for each message, used to build internationalized strings.
+  */
+ $bulk_messages = apply_filters( 'bulk_post_updated_messages', $bulk_messages, $bulk_counts );
+-$bulk_counts   = array_filter( $bulk_counts );
++$bulk_counts   = \wp_aot_array_filter( $bulk_counts );
+ 
+ require_once ABSPATH . 'wp-admin/admin-header.php';
+ ?>
+@@ -446,7 +446,7 @@
+ 	}
+ 
+ 	if ( 'trashed' === $message && isset( $_REQUEST['ids'] ) ) {
+-		$ids = preg_replace( '/[^0-9,]/', '', $_REQUEST['ids'] );
++		$ids = \wp_aot_preg_replace( '/[^0-9,]/', '', $_REQUEST['ids'] );
+ 
+ 		$messages[] = sprintf(
+ 			'<a href="%1$s">%2$s</a>',

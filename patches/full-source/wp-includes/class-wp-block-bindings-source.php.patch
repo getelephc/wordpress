@@ -1,0 +1,28 @@
+--- a/wp-includes/class-wp-block-bindings-source.php
++++ b/wp-includes/class-wp-block-bindings-source.php
+@@ -41,7 +41,7 @@
+ 	 * @since 6.5.0
+ 	 * @var callable
+ 	 */
+-	private $get_value_callback;
++	private mixed $get_value_callback = null;
+ 
+ 	/**
+ 	 * The context added to the blocks needed by the source.
+@@ -82,7 +82,7 @@
+ 	 * @param string   $attribute_name The name of the target attribute.
+ 	 * @return mixed The value of the source.
+ 	 */
+-	public function get_value( array $source_args, $block_instance, string $attribute_name ) {
++	public function get_value( array $source_args, mixed $block_instance, string $attribute_name ): mixed {
+ 		$value = call_user_func_array( $this->get_value_callback, array( $source_args, $block_instance, $attribute_name ) );
+ 		/**
+ 		 * Filters the output of a block bindings source.
+@@ -96,6 +96,7 @@
+ 		 * @param string   $attribute_name The name of an attribute.
+ 		 */
+ 		return apply_filters( 'block_bindings_source_value', $value, $this->name, $source_args, $block_instance, $attribute_name );
++		return null;
+ 	}
+ 
+ 	/**

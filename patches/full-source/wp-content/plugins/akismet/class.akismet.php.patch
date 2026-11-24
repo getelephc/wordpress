@@ -1,0 +1,361 @@
+--- a/wp-content/plugins/akismet/class.akismet.php
++++ b/wp-content/plugins/akismet/class.akismet.php
+@@ -34,7 +34,7 @@
+ 
+ 	private static $last_comment                      = '';
+ 	private static $initiated                         = false;
+-	private static $last_comment_result               = null;
++	private static mixed $last_comment_result               = null;
+ 	private static $comment_as_submitted_allowed_keys = array(
+ 		'blog'                 => '',
+ 		'blog_charset'         => '',
+@@ -169,7 +169,8 @@
+ 	 * @return string
+ 	 */
+ 	public static function get_access_token() {
+-		static $access_token = null;
++		static $access_token_aot_cell = new \WordPressStaticValueCell();
++		$access_token =& $access_token_aot_cell->value;
+ 
+ 		if ( is_null( $access_token ) ) {
+ 			$request_args = array( 'api_key' => self::get_api_key() );
+@@ -325,7 +326,7 @@
+ 		}
+ 
+ 		// Build the request array with required and optional fields.
+-		$request = array_merge(
++		$request = \wp_aot_array_merge(array(
+ 			array(
+ 				'blog'         => get_option( 'home' ),
+ 				'blog_lang'    => get_locale(),
+@@ -334,7 +335,7 @@
+ 				'user_agent'   => self::get_user_agent(),
+ 			),
+ 			$comment_data
+-		);
++		));
+ 
+ 		$request = apply_filters( 'akismet_request_args', $request, 'comment-check' );
+ 
+@@ -500,12 +501,12 @@
+ 				continue;
+ 			}
+ 
+-			if ( preg_match( '/^HTTP_COOKIE/', $key ) ) {
++			if ( preg_match( '/^HTTP_COOKIE/', \wp_aot_regex_text( $key ) ) ) {
+ 				continue;
+ 			}
+ 
+ 			// Send any potentially useful $_SERVER vars, but avoid sending junk we don't need.
+-			if ( preg_match( '/^(HTTP_|REMOTE_ADDR|REQUEST_URI|DOCUMENT_URI)/', $key ) ) {
++			if ( preg_match( '/^(HTTP_|REMOTE_ADDR|REQUEST_URI|DOCUMENT_URI)/', \wp_aot_regex_text( $key ) ) ) {
+ 				$comment[ "$key" ] = $value;
+ 			}
+ 		}
+@@ -554,7 +555,7 @@
+ 
+ 		do_action( 'akismet_comment_check_response', $response );
+ 
+-		$commentdata['comment_as_submitted'] = array_intersect_key( $comment, self::$comment_as_submitted_allowed_keys );
++		$commentdata['comment_as_submitted'] = \wp_aot_array_intersect_key(array( $comment, self::$comment_as_submitted_allowed_keys ));
+ 
+ 		// Also include any form fields we inject into the comment form, like ak_js
+ 		foreach ( $_POST as $key => $value ) {
+@@ -637,7 +638,7 @@
+ 					// Redirect back to the previous page, or failing that, the post permalink, or failing that, the homepage of the blog.
+ 					$redirect_to = isset( $_SERVER['HTTP_REFERER'] ) ? $_SERVER['HTTP_REFERER'] : ( $post ? get_permalink( $post ) : home_url() );
+ 					wp_safe_redirect( esc_url_raw( $redirect_to ) );
+-					die();
++					\wp_aot_exit();
+ 				}
+ 			} elseif ( 'rest_api' === $context ) {
+ 				// The way the REST API structures its calls, we can set the comment_approved value right away.
+@@ -683,10 +684,10 @@
+ 			// We filter it here so that it matches the filtered comment data that we'll have to compare against later.
+ 			// wp_filter_comment expects comment_author_IP
+ 			self::$last_comment = wp_filter_comment(
+-				array_merge(
++				\wp_aot_array_merge(array(
+ 					array( 'comment_author_IP' => self::get_ip_address() ),
+ 					$comment
+-				)
++				))
+ 			);
+ 		}
+ 	}
+@@ -847,7 +848,7 @@
+ 				if ( ! empty( $history ) ) {
+ 					$most_recent_history_event = $history[0];
+ 
+-					error_log( 'Comment history: ' . print_r( $history, true ) );
++					\wp_aot_native_api('error_log', array( 'Comment history: ' . print_r( $history, true ) ));
+ 				}
+ 			}
+ 		} else {
+@@ -874,7 +875,7 @@
+ 		$delete_interval = apply_filters( 'akismet_delete_comment_interval', 15 );
+ 		$delete_interval = max( 1, intval( $delete_interval ) );
+ 
+-		while ( $comment_ids = $wpdb->get_col( $wpdb->prepare( "SELECT comment_id FROM {$wpdb->comments} WHERE DATE_SUB(NOW(), INTERVAL %d DAY) > comment_date_gmt AND comment_approved = 'spam' LIMIT %d", $delete_interval, $delete_limit ) ) ) {
++		while ( $comment_ids = \wp_aot_require_wpdb( $wpdb )->get_col( \wp_aot_require_wpdb( $wpdb )->prepare( "SELECT comment_id FROM {$wpdb->comments} WHERE DATE_SUB(NOW(), INTERVAL %d DAY) > comment_date_gmt AND comment_approved = 'spam' LIMIT %d", $delete_interval, $delete_limit ) ) ) {
+ 			if ( empty( $comment_ids ) ) {
+ 				return;
+ 			}
+@@ -893,8 +894,8 @@
+ 			// Prepared as strings since comment_id is an unsigned BIGINT, and using %d will constrain the value to the maximum signed BIGINT.
+ 			$format_string = implode( ', ', array_fill( 0, is_countable( $comment_ids ) ? count( $comment_ids ) : 0, '%s' ) );
+ 
+-			$wpdb->query( $wpdb->prepare( "DELETE FROM {$wpdb->comments} WHERE comment_id IN ( " . $format_string . ' )', $comment_ids ) );
+-			$wpdb->query( $wpdb->prepare( "DELETE FROM {$wpdb->commentmeta} WHERE comment_id IN ( " . $format_string . ' )', $comment_ids ) );
++			\wp_aot_require_wpdb( $wpdb )->query( \wp_aot_require_wpdb( $wpdb )->prepare( "DELETE FROM {$wpdb->comments} WHERE comment_id IN ( " . $format_string . ' )', $comment_ids ) );
++			\wp_aot_require_wpdb( $wpdb )->query( \wp_aot_require_wpdb( $wpdb )->prepare( "DELETE FROM {$wpdb->commentmeta} WHERE comment_id IN ( " . $format_string . ' )', $comment_ids ) );
+ 
+ 			foreach ( $comment_ids as $comment_id ) {
+ 				do_action( 'deleted_comment', $comment_id, $comments[ $comment_id ] );
+@@ -906,7 +907,7 @@
+ 		}
+ 
+ 		if ( apply_filters( 'akismet_optimize_table', ( mt_rand( 1, 5000 ) == 11 ), $wpdb->comments ) ) { // lucky number
+-			$wpdb->query( "OPTIMIZE TABLE {$wpdb->comments}" );
++			\wp_aot_require_wpdb( $wpdb )->query( "OPTIMIZE TABLE {$wpdb->comments}" );
+ 		}
+ 	}
+ 
+@@ -923,7 +924,7 @@
+ 
+ 		// akismet_as_submitted meta values are large, so expire them
+ 		// after $interval days regardless of the comment status
+-		while ( $comment_ids = $wpdb->get_col( $wpdb->prepare( "SELECT m.comment_id FROM {$wpdb->commentmeta} as m INNER JOIN {$wpdb->comments} as c USING(comment_id) WHERE m.meta_key = 'akismet_as_submitted' AND DATE_SUB(NOW(), INTERVAL %d DAY) > c.comment_date_gmt LIMIT 10000", $interval ) ) ) {
++		while ( $comment_ids = \wp_aot_require_wpdb( $wpdb )->get_col( \wp_aot_require_wpdb( $wpdb )->prepare( "SELECT m.comment_id FROM {$wpdb->commentmeta} as m INNER JOIN {$wpdb->comments} as c USING(comment_id) WHERE m.meta_key = 'akismet_as_submitted' AND DATE_SUB(NOW(), INTERVAL %d DAY) > c.comment_date_gmt LIMIT 10000", $interval ) ) ) {
+ 			if ( empty( $comment_ids ) ) {
+ 				return;
+ 			}
+@@ -939,7 +940,7 @@
+ 		}
+ 
+ 		if ( apply_filters( 'akismet_optimize_table', ( mt_rand( 1, 5000 ) == 11 ), $wpdb->commentmeta ) ) { // lucky number
+-			$wpdb->query( "OPTIMIZE TABLE {$wpdb->commentmeta}" );
++			\wp_aot_require_wpdb( $wpdb )->query( "OPTIMIZE TABLE {$wpdb->commentmeta}" );
+ 		}
+ 	}
+ 
+@@ -951,7 +952,7 @@
+ 		$start_time    = isset( $_SERVER['REQUEST_TIME_FLOAT'] ) ? $_SERVER['REQUEST_TIME_FLOAT'] : microtime( true );
+ 		$max_exec_time = max( ini_get( 'max_execution_time' ) - 5, 3 );
+ 
+-		while ( $commentmeta_results = $wpdb->get_results( $wpdb->prepare( "SELECT m.meta_id, m.comment_id, m.meta_key FROM {$wpdb->commentmeta} as m LEFT JOIN {$wpdb->comments} as c USING(comment_id) WHERE c.comment_id IS NULL AND m.meta_id > %d ORDER BY m.meta_id LIMIT 1000", $last_meta_id ) ) ) {
++		while ( $commentmeta_results = \wp_aot_require_wpdb( $wpdb )->get_results( \wp_aot_require_wpdb( $wpdb )->prepare( "SELECT m.meta_id, m.comment_id, m.meta_key FROM {$wpdb->commentmeta} as m LEFT JOIN {$wpdb->comments} as c USING(comment_id) WHERE c.comment_id IS NULL AND m.meta_id > %d ORDER BY m.meta_id LIMIT 1000", $last_meta_id ) ) ) {
+ 			if ( empty( $commentmeta_results ) ) {
+ 				return;
+ 			}
+@@ -979,7 +980,7 @@
+ 		}
+ 
+ 		if ( apply_filters( 'akismet_optimize_table', ( mt_rand( 1, 5000 ) == 11 ), $wpdb->commentmeta ) ) { // lucky number
+-			$wpdb->query( "OPTIMIZE TABLE {$wpdb->commentmeta}" );
++			\wp_aot_require_wpdb( $wpdb )->query( "OPTIMIZE TABLE {$wpdb->commentmeta}" );
+ 		}
+ 	}
+ 
+@@ -1005,19 +1006,19 @@
+ 		$comment_type_where = '';
+ 
+ 		if ( is_array( $excluded_comment_types ) && ! empty( $excluded_comment_types ) ) {
+-			$excluded_comment_types = array_unique( $excluded_comment_types );
++			$excluded_comment_types = \wp_aot_array_unique( $excluded_comment_types );
+ 
+ 			foreach ( $excluded_comment_types as $excluded_comment_type ) {
+-				$comment_type_where .= $wpdb->prepare( ' AND comment_type <> %s ', $excluded_comment_type );
++				$comment_type_where .= \wp_aot_require_wpdb( $wpdb )->prepare( ' AND comment_type <> %s ', $excluded_comment_type );
+ 			}
+ 		}
+ 
+ 		if ( ! empty( $user_id ) ) {
+-			return (int) $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(*) FROM {$wpdb->comments} WHERE user_id = %d AND comment_approved = 1" . $comment_type_where, $user_id ) );
++			return (int) \wp_aot_require_wpdb( $wpdb )->get_var( \wp_aot_require_wpdb( $wpdb )->prepare( "SELECT COUNT(*) FROM {$wpdb->comments} WHERE user_id = %d AND comment_approved = 1" . $comment_type_where, $user_id ) );
+ 		}
+ 
+ 		if ( ! empty( $comment_author_email ) ) {
+-			return (int) $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(*) FROM {$wpdb->comments} WHERE comment_author_email = %s AND comment_author = %s AND comment_author_url = %s AND comment_approved = 1" . $comment_type_where, $comment_author_email, $comment_author, $comment_author_url ) );
++			return (int) \wp_aot_require_wpdb( $wpdb )->get_var( \wp_aot_require_wpdb( $wpdb )->prepare( "SELECT COUNT(*) FROM {$wpdb->comments} WHERE comment_author_email = %s AND comment_author = %s AND comment_author_url = %s AND comment_approved = 1" . $comment_type_where, $comment_author_email, $comment_author, $comment_author_url ) );
+ 		}
+ 
+ 		return 0;
+@@ -1078,14 +1079,14 @@
+ 
+ 		// Validate history entries to guard against malformed data.
+ 		// In one case, serialized data was returned in $entry instead of an array.
+-		$history = array_filter(
++		$history = \wp_aot_array_filter(
+ 			$history,
+ 			function ( $entry ) {
+ 				return is_array( $entry ) && isset( $entry['time'] ) && is_numeric( $entry['time'] );
+ 			}
+ 		);
+ 
+-		usort( $history, 'Akismet::_cmp_time' );
++		\wp_aot_usort( $history, 'Akismet::_cmp_time' );
+ 
+ 		return $history;
+ 	}
+@@ -1127,7 +1128,7 @@
+ 			return new WP_Error( 'akismet-not-configured', __( 'Akismet is not configured. Please enter an API key.', 'akismet' ) );
+ 		}
+ 
+-		$c = $wpdb->get_row( $wpdb->prepare( "SELECT * FROM {$wpdb->comments} WHERE comment_ID = %d", $id ), ARRAY_A );
++		$c = \wp_aot_require_wpdb( $wpdb )->get_row( \wp_aot_require_wpdb( $wpdb )->prepare( "SELECT * FROM {$wpdb->comments} WHERE comment_ID = %d", $id ), ARRAY_A );
+ 
+ 		if ( ! $c ) {
+ 			return new WP_Error( 'invalid-comment-id', __( 'Comment not found.', 'akismet' ) );
+@@ -1288,7 +1289,7 @@
+ 
+ 		$comment_id = (int) $comment_id;
+ 
+-		$comment = $wpdb->get_row( $wpdb->prepare( "SELECT * FROM {$wpdb->comments} WHERE comment_ID = %d", $comment_id ), ARRAY_A );
++		$comment = \wp_aot_require_wpdb( $wpdb )->get_row( \wp_aot_require_wpdb( $wpdb )->prepare( "SELECT * FROM {$wpdb->comments} WHERE comment_ID = %d", $comment_id ), ARRAY_A );
+ 
+ 		if ( ! $comment ) {
+ 			// it was deleted
+@@ -1310,7 +1311,7 @@
+ 		$as_submitted = self::sanitize_comment_as_submitted( get_comment_meta( $comment_id, 'akismet_as_submitted', true ) );
+ 
+ 		if ( $as_submitted && is_array( $as_submitted ) && isset( $as_submitted['comment_content'] ) ) {
+-			$comment = array_merge( $comment, $as_submitted );
++			$comment = \wp_aot_array_merge(array( $comment, $as_submitted ));
+ 		}
+ 
+ 		$comment['blog']         = get_option( 'home' );
+@@ -1361,7 +1362,7 @@
+ 
+ 		$comment_id = (int) $comment_id;
+ 
+-		$comment = $wpdb->get_row( $wpdb->prepare( "SELECT * FROM {$wpdb->comments} WHERE comment_ID = %d", $comment_id ), ARRAY_A );
++		$comment = \wp_aot_require_wpdb( $wpdb )->get_row( \wp_aot_require_wpdb( $wpdb )->prepare( "SELECT * FROM {$wpdb->comments} WHERE comment_ID = %d", $comment_id ), ARRAY_A );
+ 
+ 		if ( ! $comment ) {
+ 			// it was deleted
+@@ -1379,7 +1380,7 @@
+ 		$as_submitted = self::sanitize_comment_as_submitted( get_comment_meta( $comment_id, 'akismet_as_submitted', true ) );
+ 
+ 		if ( $as_submitted && is_array( $as_submitted ) && isset( $as_submitted['comment_content'] ) ) {
+-			$comment = array_merge( $comment, $as_submitted );
++			$comment = \wp_aot_array_merge(array( $comment, $as_submitted ));
+ 		}
+ 
+ 		$comment['blog']         = get_option( 'home' );
+@@ -1440,7 +1441,7 @@
+ 
+ 		delete_option( 'akismet_available_servers' );
+ 
+-		$comment_errors = $wpdb->get_col( "SELECT comment_id FROM {$wpdb->commentmeta} WHERE meta_key = 'akismet_error'	LIMIT 100" );
++		$comment_errors = \wp_aot_require_wpdb( $wpdb )->get_col( "SELECT comment_id FROM {$wpdb->commentmeta} WHERE meta_key = 'akismet_error'	LIMIT 100" );
+ 
+ 		foreach ( (array) $comment_errors as $comment_id ) {
+ 			// if the comment no longer exists, or is too old, remove the meta entry from the queue to avoid getting stuck
+@@ -1498,7 +1499,7 @@
+ 			} else {
+ 				// If this comment has been pending moderation for longer than MAX_DELAY_BEFORE_MODERATION_EMAIL,
+ 				// send a moderation email now.
+-				if ( ( intval( gmdate( 'U' ) ) - strtotime( $comment->comment_date_gmt ) ) < self::MAX_DELAY_BEFORE_MODERATION_EMAIL ) {
++				if ( ( intval( \wp_aot_gmdate( 'U' ) ) - strtotime( $comment->comment_date_gmt ) ) < self::MAX_DELAY_BEFORE_MODERATION_EMAIL ) {
+ 					delete_comment_meta( $comment_id, 'akismet_delay_moderation_email' );
+ 					delete_comment_meta( $comment_id, 'akismet_delayed_moderation_email' );
+ 
+@@ -1516,7 +1517,7 @@
+ 			delete_comment_meta( $comment_id, 'akismet_rechecking' );
+ 		}
+ 
+-		$remaining = $wpdb->get_var( "SELECT COUNT(*) FROM {$wpdb->commentmeta} WHERE meta_key = 'akismet_error'" );
++		$remaining = \wp_aot_require_wpdb( $wpdb )->get_var( "SELECT COUNT(*) FROM {$wpdb->commentmeta} WHERE meta_key = 'akismet_error'" );
+ 
+ 		if ( $remaining && ! wp_next_scheduled( 'akismet_schedule_cron_recheck' ) ) {
+ 			wp_schedule_single_event( time() + 1200, 'akismet_schedule_cron_recheck' );
+@@ -1846,7 +1847,7 @@
+ 
+ 		$response = wp_remote_post( $akismet_url, $http_args );
+ 
+-		self::log( compact( 'akismet_url', 'http_args', 'response' ) );
++		self::log( \wp_aot_compact(get_defined_vars(), array( 'akismet_url', 'http_args', 'response' )) );
+ 
+ 		if ( $ssl && is_wp_error( $response ) ) {
+ 			do_action( 'akismet_https_request_failure', $response );
+@@ -1856,7 +1857,7 @@
+ 			// Retry the HTTPS request once before disabling SSL for a time.
+ 			$response = wp_remote_post( $akismet_url, $http_args );
+ 
+-			self::log( compact( 'akismet_url', 'http_args', 'response' ) );
++			self::log( \wp_aot_compact(get_defined_vars(), array( 'akismet_url', 'http_args', 'response' )) );
+ 
+ 			if ( is_wp_error( $response ) ) {
+ 				$ssl_failed = true;
+@@ -1868,7 +1869,7 @@
+ 				// Try the request again without SSL.
+ 				$response = wp_remote_post( $http_akismet_url, $http_args );
+ 
+-				self::log( compact( 'http_akismet_url', 'http_args', 'response' ) );
++				self::log( \wp_aot_compact(get_defined_vars(), array( 'http_akismet_url', 'http_args', 'response' )) );
+ 			}
+ 		}
+ 
+@@ -1922,7 +1923,7 @@
+ 				$value = $response[0][ $alert_header_prefix . $alert_header_name ];
+ 			}
+ 
+-			$option_name = $alert_option_prefix . str_replace( '-', '_', $alert_header_name );
++			$option_name = $alert_option_prefix . \wp_aot_str_replace( '-', '_', $alert_header_name );
+ 			if ( $value != get_option( $option_name ) ) {
+ 				if ( ! $value ) {
+ 					delete_option( $option_name );
+@@ -1943,7 +1944,7 @@
+ 			return $tag;
+ 		}
+ 
+-		return preg_replace( '/^<script /i', '<script defer ', $tag );
++		return \wp_aot_preg_replace( '/^<script /i', '<script defer ', $tag );
+ 	}
+ 
+ 	public static function get_akismet_form_fields() {
+@@ -1986,7 +1987,7 @@
+ 	}
+ 
+ 	public static function inject_custom_form_fields( $html ) {
+-		$html = str_replace( '</form>', self::get_akismet_form_fields() . '</form>', $html );
++		$html = \wp_aot_str_replace( '</form>', self::get_akismet_form_fields() . '</form>', $html );
+ 
+ 		return $html;
+ 	}
+@@ -2069,10 +2070,10 @@
+ 			}
+ 
+ 			if ( $update ) {
+-				update_option( 'active_plugins', array_filter( $plugins ) );
+-			}
+-		}
+-		exit;
++				update_option( 'active_plugins', \wp_aot_array_filter( $plugins ) );
++			}
++		}
++		\wp_aot_exit();
+ 	}
+ 
+ 	public static function view( $name, array $args = array() ) {
+@@ -2151,8 +2152,8 @@
+ 	 * @param mixed $akismet_debug The data to log.
+ 	 */
+ 	public static function log( $akismet_debug ) {
+-		if ( apply_filters( 'akismet_debug_log', defined( 'WP_DEBUG' ) && WP_DEBUG && defined( 'WP_DEBUG_LOG' ) && WP_DEBUG_LOG && defined( 'AKISMET_DEBUG' ) && AKISMET_DEBUG ) ) {
+-			error_log( print_r( compact( 'akismet_debug' ), true ) );
++		if ( apply_filters( 'akismet_debug_log', \wp_aot_bootstrap_defined( 'WP_DEBUG' ) && WP_DEBUG && \wp_aot_bootstrap_defined( 'WP_DEBUG_LOG' ) && WP_DEBUG_LOG && defined( 'AKISMET_DEBUG' ) && AKISMET_DEBUG ) ) {
++			\wp_aot_native_api('error_log', array( print_r( \wp_aot_compact(get_defined_vars(), array( 'akismet_debug' )), true ) ));
+ 		}
+ 	}
+ 
+@@ -2379,7 +2380,7 @@
+ 		$history = self::get_comment_history( $comment_id );
+ 
+ 		if ( $history ) {
+-			$history = array_reverse( $history );
++			$history = \wp_aot_array_reverse( $history );
+ 
+ 			foreach ( $history as $akismet_history_entry ) {
+ 				// We've always been consistent in how history entries are formatted

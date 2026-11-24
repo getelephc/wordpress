@@ -37,8 +37,10 @@ printf "<?php\nrequire __DIR__ . '/wordpress/aot-probe.php';\n" > "$out/bootstra
 cd "$out"
 "$compiler" native install --locked 2>&1 | tee native.log
 if [[ "$mode" == --check ]]; then
-    "$compiler" --php-version 8.4 --check bootstrap.php 2>&1 | tee bootstrap-check.log
+    "$compiler" --php-version 8.4 --with-regex --check bootstrap.php 2>&1 | tee bootstrap-check.log
     exit 0
 fi
-"$compiler" --php-version 8.4 --link sodium bootstrap.php 2>&1 | tee bootstrap-build.log
+python3 "$root/scripts/wordpress-link.py" --compiler "$compiler" -- \
+    --php-version 8.4 --with-regex --ir-opt=off --gc-stats --heap-size=536870912 \
+    --link sodium bootstrap.php 2>&1 | tee bootstrap-build.log
 printf 'Built elephc/build/full-source/bootstrap\n'

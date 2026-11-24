@@ -1,0 +1,135 @@
+--- a/wp-includes/blocks/index.php
++++ b/wp-includes/blocks/index.php
+@@ -7,15 +7,15 @@
+ 
+ // Don't load directly.
+ if ( ! defined( 'ABSPATH' ) ) {
+-	exit;
++	\wp_aot_exit();
+ }
+ 
+ define( 'BLOCKS_PATH', ABSPATH . WPINC . '/blocks/' );
+ 
+ // Include files required for core blocks registration.
+-require BLOCKS_PATH . 'legacy-widget.php';
+-require BLOCKS_PATH . 'widget-group.php';
+-require BLOCKS_PATH . 'require-dynamic-blocks.php';
++require_once __DIR__ . '/legacy-widget.php';
++require_once __DIR__ . '/widget-group.php';
++require __DIR__ . '/require-dynamic-blocks.php';
+ 
+ /**
+  * Registers core block style handles.
+@@ -26,24 +26,25 @@
+  *
+  * @since 6.3.0
+  */
+-function register_core_block_style_handles() {
++function register_core_block_style_handles(): mixed {
+ 	$wp_version = wp_get_wp_version();
+ 
+ 	if ( ! wp_should_load_separate_core_block_assets() ) {
+-		return;
++		return null;
+ 	}
+ 
+ 	$blocks_url   = includes_url( 'blocks/' );
+ 	$suffix       = wp_scripts_get_suffix();
+-	$wp_styles    = wp_styles();
++	$wp_styles    = \wp_aot_require_WP_Styles( wp_styles() );
+ 	$style_fields = array(
+ 		'style'       => 'style',
+ 		'editorStyle' => 'editor',
+ 	);
+ 
+-	static $core_blocks_meta;
++	static $core_blocks_meta_aot_cell = new \WordPressStaticValueCell();
++	$core_blocks_meta =& $core_blocks_meta_aot_cell->value;
+ 	if ( ! $core_blocks_meta ) {
+-		$core_blocks_meta = require BLOCKS_PATH . 'blocks-json.php';
++		$core_blocks_meta = require __DIR__ . '/blocks-json.php';
+ 	}
+ 
+ 	$files          = false;
+@@ -70,14 +71,14 @@
+ 	}
+ 
+ 	if ( ! $files ) {
+-		$files = glob( wp_normalize_path( BLOCKS_PATH . '**/**.css' ) );
++		$files = glob( wp_normalize_path( __DIR__ . '/**/**.css' ) );
+ 
+ 		// Normalize BLOCKS_PATH prior to substitution for Windows environments.
+-		$normalized_blocks_path = wp_normalize_path( BLOCKS_PATH );
++		$normalized_blocks_path = wp_normalize_path( __DIR__ . '/' );
+ 
+-		$files = array_map(
+-			static function ( $file ) use ( $normalized_blocks_path ) {
+-				return str_replace( $normalized_blocks_path, '', $file );
++		$files = \wp_aot_array_map(
++			static function ( mixed $file ) use ( $normalized_blocks_path ) {
++				return \wp_aot_str_replace( $normalized_blocks_path, '', $file );
+ 			},
+ 			$files
+ 		);
+@@ -94,9 +95,9 @@
+ 		}
+ 	}
+ 
+-	$register_style = static function ( $name, $filename, $style_handle ) use ( $blocks_url, $suffix, $wp_styles, $files ) {
++	$register_style = static function ( mixed $name, mixed $filename, mixed $style_handle ) use ( $blocks_url, $suffix, $wp_styles, $files ) {
+ 		$style_path = "{$name}/{$filename}{$suffix}.css";
+-		$path       = wp_normalize_path( BLOCKS_PATH . $style_path );
++		$path       = wp_normalize_path( __DIR__ . '/' . $style_path );
+ 
+ 		if ( ! in_array( $style_path, $files, true ) ) {
+ 			$wp_styles->add(
+@@ -113,7 +114,7 @@
+ 		if ( is_rtl() && in_array( $rtl_file, $files, true ) ) {
+ 			$wp_styles->add_data( $style_handle, 'rtl', 'replace' );
+ 			$wp_styles->add_data( $style_handle, 'suffix', $suffix );
+-			$wp_styles->add_data( $style_handle, 'path', str_replace( "{$suffix}.css", "-rtl{$suffix}.css", $path ) );
++			$wp_styles->add_data( $style_handle, 'path', \wp_aot_str_replace( "{$suffix}.css", "-rtl{$suffix}.css", $path ) );
+ 		}
+ 	};
+ 
+@@ -140,6 +141,7 @@
+ 			$register_style( $name, $filename, $style_handle );
+ 		}
+ 	}
++	return null;
+ }
+ add_action( 'init', 'register_core_block_style_handles', 9 );
+ 
+@@ -149,13 +151,14 @@
+  *
+  * @since 5.5.0
+  */
+-function register_core_block_types_from_metadata() {
+-	$block_folders = require BLOCKS_PATH . 'require-static-blocks.php';
++function register_core_block_types_from_metadata(): mixed {
++	$block_folders = require __DIR__ . '/require-static-blocks.php';
+ 	foreach ( $block_folders as $block_folder ) {
+ 		register_block_type_from_metadata(
+-			BLOCKS_PATH . $block_folder
++			__DIR__ . '/' . $block_folder
+ 		);
+ 	}
++	return null;
+ }
+ add_action( 'init', 'register_core_block_types_from_metadata' );
+ 
+@@ -168,10 +171,11 @@
+  *
+  * @since 6.7.0
+  */
+-function wp_register_core_block_metadata_collection() {
++function wp_register_core_block_metadata_collection(): mixed {
+ 	wp_register_block_metadata_collection(
+-		BLOCKS_PATH,
+-		BLOCKS_PATH . 'blocks-json.php'
++		__DIR__ . '/',
++		__DIR__ . '/blocks-json.php'
+ 	);
++	return null;
+ }
+ add_action( 'init', 'wp_register_core_block_metadata_collection', 9 );

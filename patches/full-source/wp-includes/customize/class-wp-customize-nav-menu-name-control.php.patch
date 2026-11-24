@@ -1,21 +1,32 @@
 --- a/wp-includes/customize/class-wp-customize-nav-menu-name-control.php
 +++ b/wp-includes/customize/class-wp-customize-nav-menu-name-control.php
-@@ -37,8 +37,8 @@
+@@ -29,16 +29,16 @@
+ 	 *
  	 * @since 4.3.0
  	 */
- 	protected function content_template() {
+-	protected function render_content() {}
++	protected function render_content(): mixed { return null; }
+ 
+ 	/**
+ 	 * Render the Underscore template for this control.
+ 	 *
+ 	 * @since 4.3.0
+ 	 */
+-	protected function content_template() {
 -		?>
 -		<label>
++	protected function content_template(): mixed {
 +		;
 +echo '		<label>
  			<# if ( data.label ) { #>
  				<span class="customize-control-title">{{ data.label }}</span>
  			<# } #>
-@@ -51,6 +51,6 @@
+@@ -51,6 +51,7 @@
  		<# if ( data.description ) { #>
  			<p id="{{ data.section }}-description">{{ data.description }}</p>
  		<# } #>
 -		<?php
 +		';
++		return null;
  	}
  }

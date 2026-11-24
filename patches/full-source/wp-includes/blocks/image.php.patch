@@ -1,0 +1,132 @@
+--- a/wp-includes/blocks/image.php
++++ b/wp-includes/blocks/image.php
+@@ -17,7 +17,7 @@
+  *
+  * @return string The block content with the data-id attribute added.
+  */
+-function render_block_core_image( $attributes, $content, $block ) {
++function render_block_core_image( mixed $attributes, mixed $content, mixed $block ): mixed {
+ 	if ( false === stripos( $content, '<img' ) ) {
+ 		return '';
+ 	}
+@@ -33,7 +33,7 @@
+ 		 *
+ 		 * @return WP_HTML_Span|false Span of input if the element is empty; otherwise false.
+ 		 */
+-		public function block_core_image_extract_empty_figcaption_element() {
++		public function block_core_image_extract_empty_figcaption_element(): mixed {
+ 			$this->set_bookmark( 'here' );
+ 			$opener = $this->bookmarks['here'];
+ 
+@@ -50,6 +50,7 @@
+ 			$closer = $this->bookmarks['here'];
+ 
+ 			return new WP_HTML_Span( $opener->start, $closer->start + $closer->length - $opener->start );
++			return null;
+ 		}
+ 	};
+ 
+@@ -68,7 +69,7 @@
+ 		$image_classnames         = $processor->get_attribute( 'class' );
+ 		$class_with_binding_value = "wp-image-$id";
+ 		if ( is_string( $image_classnames ) && ! str_contains( $image_classnames, $class_with_binding_value ) ) {
+-			$image_classnames = preg_replace( '/wp-image-(\d+)/', $class_with_binding_value, $image_classnames );
++			$image_classnames = \wp_aot_preg_replace( '/wp-image-(\d+)/', $class_with_binding_value, $image_classnames );
+ 			$processor->set_attribute( 'class', $image_classnames );
+ 		}
+ 	}
+@@ -130,6 +131,7 @@
+ 		return substr( $output, 0, $figcaption_span->start ) . substr( $output, $figcaption_span->start + $figcaption_span->length );
+ 	}
+ 	return $output;
++	return null;
+ }
+ 
+ /**
+@@ -143,7 +145,7 @@
+  *
+  * @return array|null Filtered block data.
+  */
+-function block_core_image_get_lightbox_settings( $block ) {
++function block_core_image_get_lightbox_settings( mixed $block ): mixed {
+ 	// Gets the lightbox setting from the block attributes.
+ 	if ( isset( $block['attrs']['lightbox'] ) ) {
+ 		$lightbox_settings = $block['attrs']['lightbox'];
+@@ -164,6 +166,7 @@
+ 	}
+ 
+ 	return $lightbox_settings ?? null;
++	return null;
+ }
+ 
+ /**
+@@ -177,7 +180,7 @@
+  *
+  * @return string Filtered block content.
+  */
+-function block_core_image_render_lightbox( $block_content, array $block, WP_Block $block_instance ) {
++function block_core_image_render_lightbox( mixed $block_content, array $block, WP_Block $block_instance ): mixed {
+ 	/*
+ 	 * If there's no IMG tag in the block then return the given block content
+ 	 * as-is. There's nothing that this code can knowingly modify to add the
+@@ -231,7 +234,7 @@
+ 	$figure_styles      = $processor->get_attribute( 'style' );
+ 
+ 	// Create unique id and set the image metadata in the state.
+-	$unique_image_id = uniqid();
++	$unique_image_id = \wp_aot_native_api('uniqid', array());
+ 	wp_interactivity_state(
+ 		'core/image',
+ 		array(
+@@ -314,11 +317,12 @@
+ 		 *
+ 		 * @param string $html HTML to insert.
+ 		 */
+-		public function block_core_image_insert_after( string $html ) {
++		public function block_core_image_insert_after( string $html ): mixed {
+ 			$this->set_bookmark( 'here' );
+ 			$span = $this->bookmarks['here'];
+ 
+ 			$this->lexical_updates[] = new WP_HTML_Text_Replacement( $span->start + $span->length, 0, $html );
++			return null;
+ 		}
+ 	};
+ 
+@@ -330,12 +334,13 @@
+ 	add_action( 'wp_footer', 'block_core_image_print_lightbox_overlay' );
+ 
+ 	return $body_content;
++	return null;
+ }
+ 
+ /**
+  * @since 6.5.0
+  */
+-function block_core_image_print_lightbox_overlay() {
++function block_core_image_print_lightbox_overlay(): mixed {
+ 	$dialog_label      = esc_attr__( 'Enlarged images' );
+ 	$close_button_text = esc_attr__( 'Close' );
+ 	$prev_button_text  = esc_attr_x( 'Previous', 'previous image in lightbox' );
+@@ -417,6 +422,7 @@
+ 				<div class="scrim" style="background-color: {$background_color}" aria-hidden="true"></div>
+ 		</div>
+ HTML;
++	return null;
+ }
+ 
+ /**
+@@ -424,12 +430,13 @@
+  *
+  * @since 5.9.0
+  */
+-function register_block_core_image() {
++function register_block_core_image(): mixed {
+ 	register_block_type_from_metadata(
+ 		__DIR__ . '/image',
+ 		array(
+ 			'render_callback' => 'render_block_core_image',
+ 		)
+ 	);
++	return null;
+ }
+ add_action( 'init', 'register_block_core_image' );

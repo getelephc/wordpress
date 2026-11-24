@@ -1,0 +1,20 @@
+--- a/wp-includes/html-api/class-wp-html-processor-state.php
++++ b/wp-includes/html-api/class-wp-html-processor-state.php
+@@ -313,7 +313,7 @@
+ 	 *
+ 	 * @var array<string>
+ 	 */
+-	public $stack_of_template_insertion_modes = array();
++	public mixed $stack_of_template_insertion_modes = array();
+ 
+ 	/**
+ 	 * Tracks open elements while scanning HTML.
+@@ -348,7 +348,7 @@
+ 	 *
+ 	 * @var WP_HTML_Token|null
+ 	 */
+-	public $current_token = null;
++	public ?WP_HTML_Token $current_token = null;
+ 
+ 	/**
+ 	 * Tree construction insertion mode.

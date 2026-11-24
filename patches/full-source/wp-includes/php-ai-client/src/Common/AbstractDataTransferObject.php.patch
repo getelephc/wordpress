@@ -1,0 +1,63 @@
+--- a/wp-includes/php-ai-client/src/Common/AbstractDataTransferObject.php
++++ b/wp-includes/php-ai-client/src/Common/AbstractDataTransferObject.php
+@@ -22,8 +22,8 @@
+  *
+  * @since 0.1.0
+  *
+- * @template TArrayShape of array<string, mixed>
+- * @implements WithArrayTransformationInterface<TArrayShape>
++ * @phpstan-template TArrayShape of array<string, mixed>
++ * @phpstan-implements WithArrayTransformationInterface<TArrayShape>
+  */
+ abstract class AbstractDataTransferObject implements WithArrayTransformationInterface, WithJsonSchemaInterface, JsonSerializable
+ {
+@@ -75,7 +75,7 @@
+      * @return mixed The JSON-serializable representation.
+      */
+     #[\ReturnTypeWillChange]
+-    public function jsonSerialize()
++    public function jsonSerialize(): mixed
+     {
+         $data = $this->toArray();
+         $schema = static::getJsonSchema();
+@@ -90,7 +90,7 @@
+      * @param array<mixed, mixed> $schema The JSON schema for the data.
+      * @return mixed The processed data.
+      */
+-    private function convertEmptyArraysToObjects($data, array $schema)
++    private function convertEmptyArraysToObjects(mixed $data, array $schema): mixed
+     {
+         // If data is an empty array and schema expects object, convert to stdClass
+         if (is_array($data) && empty($data) && isset($schema['type']) && $schema['type'] === 'object') {
+@@ -102,14 +102,14 @@
+             if (isset($schema['properties']) && is_array($schema['properties'])) {
+                 foreach ($data as $key => $value) {
+                     if (isset($schema['properties'][$key]) && is_array($schema['properties'][$key])) {
+-                        $data[$key] = $this->convertEmptyArraysToObjects($value, $schema['properties'][$key]);
++                        $data[$key] = $this->convertEmptyArraysToObjects($value, \wp_aot_require_array( $schema['properties'][$key] ));
+                     }
+                 }
+             }
+             // Handle array items
+             if (isset($schema['items']) && is_array($schema['items'])) {
+                 foreach ($data as $index => $item) {
+-                    $data[$index] = $this->convertEmptyArraysToObjects($item, $schema['items']);
++                    $data[$index] = $this->convertEmptyArraysToObjects($item, \wp_aot_require_array( $schema['items'] ));
+                 }
+             }
+             // Handle oneOf/anyOf schemas - just use the first one
+@@ -117,12 +117,13 @@
+                 if (isset($schema[$keyword]) && is_array($schema[$keyword])) {
+                     foreach ($schema[$keyword] as $possibleSchema) {
+                         if (is_array($possibleSchema)) {
+-                            return $this->convertEmptyArraysToObjects($data, $possibleSchema);
++                            return $this->convertEmptyArraysToObjects($data, \wp_aot_require_array( $possibleSchema ));
+                         }
+                     }
+                 }
+             }
+         }
+         return $data;
++    	return null;
+     }
+ }

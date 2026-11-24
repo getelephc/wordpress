@@ -1,0 +1,530 @@
+--- a/wp-includes/class-wp-plugin-dependencies.php
++++ b/wp-includes/class-wp-plugin-dependencies.php
+@@ -14,6 +14,16 @@
+  * `Requires Plugins` header to a new view in the plugins install page.
+  */
+ class WP_Plugin_Dependencies {
++	/** Keeps each dependency-name lookup in the original live class cache. */
++	private static function wp_aot_inactive_dependency_name(mixed $dependency): mixed {
++		if ( isset( self::$dependency_api_data[ $dependency ]['Name'] ) ) {
++			$inactive_dependency_name = self::$dependency_api_data[ $dependency ]['Name'];
++		} else {
++			$inactive_dependency_name = $dependency;
++		}
++		return $inactive_dependency_name;
++	}
++
+ 
+ 	/**
+ 	 * Holds 'get_plugins()'.
+@@ -118,12 +128,13 @@
+ 	 *
+ 	 * @since 6.5.0
+ 	 */
+-	public static function initialize() {
++	public static function initialize(): mixed {
+ 		if ( false === self::$initialized ) {
+ 			self::read_dependencies_from_plugin_headers();
+ 			self::get_dependency_api_data();
+ 			self::$initialized = true;
+ 		}
++		return null;
+ 	}
+ 
+ 	/**
+@@ -134,8 +145,9 @@
+ 	 * @param string $plugin_file The plugin's filepath, relative to the plugins directory.
+ 	 * @return bool Whether the plugin has plugins that depend on it.
+ 	 */
+-	public static function has_dependents( $plugin_file ) {
++	public static function has_dependents( mixed $plugin_file ): mixed {
+ 		return in_array( self::convert_to_slug( $plugin_file ), (array) self::$dependency_slugs, true );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -146,8 +158,9 @@
+ 	 * @param string $plugin_file The plugin's filepath, relative to the plugins directory.
+ 	 * @return bool Whether a plugin has plugin dependencies.
+ 	 */
+-	public static function has_dependencies( $plugin_file ) {
++	public static function has_dependencies( mixed $plugin_file ): mixed {
+ 		return isset( self::$dependencies[ $plugin_file ] );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -158,7 +171,7 @@
+ 	 * @param string $plugin_file The plugin's filepath, relative to the plugins directory.
+ 	 * @return bool Whether the plugin has active dependents.
+ 	 */
+-	public static function has_active_dependents( $plugin_file ) {
++	public static function has_active_dependents( mixed $plugin_file ): mixed {
+ 		require_once ABSPATH . 'wp-admin/includes/plugin.php';
+ 
+ 		$dependents = self::get_dependents( self::convert_to_slug( $plugin_file ) );
+@@ -169,6 +182,7 @@
+ 		}
+ 
+ 		return false;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -179,7 +193,7 @@
+ 	 * @param string $slug The dependency's slug.
+ 	 * @return array An array of dependent plugin filepaths, relative to the plugins directory.
+ 	 */
+-	public static function get_dependents( $slug ) {
++	public static function get_dependents( mixed $slug ): mixed {
+ 		$dependents = array();
+ 
+ 		foreach ( (array) self::$dependencies as $dependent => $dependencies ) {
+@@ -189,6 +203,7 @@
+ 		}
+ 
+ 		return $dependents;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -199,8 +214,9 @@
+ 	 * @param string $plugin_file The dependent plugin's filepath, relative to the plugins directory.
+ 	 * @return array An array of dependency plugin slugs.
+ 	 */
+-	public static function get_dependencies( $plugin_file ) {
++	public static function get_dependencies( mixed $plugin_file ): mixed {
+ 		return self::$dependencies[ $plugin_file ] ?? array();
++		return null;
+ 	}
+ 
+ 	/**
+@@ -212,10 +228,11 @@
+ 	 * @return string|false The dependent plugin's filepath, relative to the plugins directory,
+ 	 *                      or false if the plugin has no dependencies.
+ 	 */
+-	public static function get_dependent_filepath( $slug ) {
+-		$filepath = array_search( $slug, self::$dependent_slugs, true );
++	public static function get_dependent_filepath( mixed $slug ): mixed {
++		$filepath = \wp_aot_array_search( $slug, self::$dependent_slugs, true );
+ 
+ 		return $filepath ? $filepath : false;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -226,7 +243,7 @@
+ 	 * @param string $plugin_file The plugin's filepath, relative to the plugins directory.
+ 	 * @return bool Whether the plugin has unmet dependencies.
+ 	 */
+-	public static function has_unmet_dependencies( $plugin_file ) {
++	public static function has_unmet_dependencies( mixed $plugin_file ): mixed {
+ 		if ( ! isset( self::$dependencies[ $plugin_file ] ) ) {
+ 			return false;
+ 		}
+@@ -242,6 +259,7 @@
+ 		}
+ 
+ 		return false;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -252,7 +270,7 @@
+ 	 * @param string $plugin_file The plugin's filepath, relative to the plugins directory.
+ 	 * @return bool Whether the plugin has a circular dependency.
+ 	 */
+-	public static function has_circular_dependency( $plugin_file ) {
++	public static function has_circular_dependency( mixed $plugin_file ): mixed {
+ 		if ( ! is_array( self::$circular_dependencies_slugs ) ) {
+ 			self::get_circular_dependencies();
+ 		}
+@@ -266,6 +284,7 @@
+ 		}
+ 
+ 		return false;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -276,7 +295,7 @@
+ 	 * @param string $plugin_file The plugin's filepath, relative to the plugins directory.
+ 	 * @return array An array of dependent names.
+ 	 */
+-	public static function get_dependent_names( $plugin_file ) {
++	public static function get_dependent_names( mixed $plugin_file ): mixed {
+ 		$dependent_names = array();
+ 		$plugins         = self::get_plugins();
+ 		$slug            = self::convert_to_slug( $plugin_file );
+@@ -284,9 +303,10 @@
+ 		foreach ( self::get_dependents( $slug ) as $dependent ) {
+ 			$dependent_names[ $dependent ] = $plugins[ $dependent ]['Name'];
+ 		}
+-		sort( $dependent_names );
++		\wp_aot_sort( $dependent_names );
+ 
+ 		return $dependent_names;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -297,7 +317,7 @@
+ 	 * @param string $plugin_file The dependent plugin's filepath, relative to the plugins directory.
+ 	 * @return array An array of dependency names.
+ 	 */
+-	public static function get_dependency_names( $plugin_file ) {
++	public static function get_dependency_names( mixed $plugin_file ): mixed {
+ 		$dependency_api_data = self::get_dependency_api_data();
+ 		$dependencies        = self::get_dependencies( $plugin_file );
+ 		$plugins             = self::get_plugins();
+@@ -320,6 +340,7 @@
+ 		}
+ 
+ 		return $dependency_names;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -330,7 +351,7 @@
+ 	 * @param string $slug The dependency's slug.
+ 	 * @return string|false If installed, the dependency's filepath relative to the plugins directory, otherwise false.
+ 	 */
+-	public static function get_dependency_filepath( $slug ) {
++	public static function get_dependency_filepath( mixed $slug ): mixed {
+ 		$dependency_filepaths = self::get_dependency_filepaths();
+ 
+ 		if ( ! isset( $dependency_filepaths[ $slug ] ) ) {
+@@ -338,6 +359,7 @@
+ 		}
+ 
+ 		return $dependency_filepaths[ $slug ];
++		return null;
+ 	}
+ 
+ 	/**
+@@ -348,9 +370,10 @@
+ 	 * @param string $slug The dependency's slug.
+ 	 * @return array|false The dependency's API data on success, otherwise false.
+ 	 */
+-	public static function get_dependency_data( $slug ) {
++	public static function get_dependency_data( mixed $slug ): mixed {
+ 		$dependency_api_data = self::get_dependency_api_data();
+ 		return $dependency_api_data[ $slug ] ?? false;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -358,7 +381,7 @@
+ 	 *
+ 	 * @since 6.5.0
+ 	 */
+-	public static function display_admin_notice_for_unmet_dependencies() {
++	public static function display_admin_notice_for_unmet_dependencies(): mixed {
+ 		if ( in_array( false, self::get_dependency_filepaths(), true ) ) {
+ 			$error_message = __( 'Some required plugins are missing or inactive.' );
+ 
+@@ -387,6 +410,7 @@
+ 				)
+ 			);
+ 		}
++		return null;
+ 	}
+ 
+ 	/**
+@@ -394,10 +418,10 @@
+ 	 *
+ 	 * @since 6.5.0
+ 	 */
+-	public static function display_admin_notice_for_circular_dependencies() {
++	public static function display_admin_notice_for_circular_dependencies(): mixed {
+ 		$circular_dependencies = self::get_circular_dependencies();
+ 		if ( ! empty( $circular_dependencies ) && count( $circular_dependencies ) > 1 ) {
+-			$circular_dependencies = array_unique( $circular_dependencies, SORT_REGULAR );
++			$circular_dependencies = \wp_aot_array_unique( $circular_dependencies, SORT_REGULAR );
+ 			$plugins               = self::get_plugins();
+ 			$plugin_dirnames       = self::get_plugin_dirnames();
+ 
+@@ -427,6 +451,7 @@
+ 				)
+ 			);
+ 		}
++		return null;
+ 	}
+ 
+ 	/**
+@@ -436,7 +461,7 @@
+ 	 *
+ 	 * @return never
+ 	 */
+-	public static function check_plugin_dependencies_during_ajax() {
++	public static function check_plugin_dependencies_during_ajax(): mixed {
+ 		check_ajax_referer( 'updates' );
+ 
+ 		if ( empty( $_POST['slug'] ) ) {
+@@ -498,15 +523,8 @@
+ 		}
+ 
+ 		if ( ! empty( $inactive_dependencies ) ) {
+-			$inactive_dependency_names = array_map(
+-				function ( $dependency ) {
+-					if ( isset( self::$dependency_api_data[ $dependency ]['Name'] ) ) {
+-						$inactive_dependency_name = self::$dependency_api_data[ $dependency ]['Name'];
+-					} else {
+-						$inactive_dependency_name = $dependency;
+-					}
+-					return $inactive_dependency_name;
+-				},
++			$inactive_dependency_names = \wp_aot_array_map(
++				WP_Plugin_Dependencies::wp_aot_inactive_dependency_name(...),
+ 				$inactive_dependencies
+ 			);
+ 
+@@ -516,13 +534,14 @@
+ 				__( 'The following plugins must be activated first: %s.' ),
+ 				implode( ', ', $inactive_dependency_names )
+ 			);
+-			$status['errorData'] = array_combine( $inactive_dependencies, $inactive_dependency_names );
++			$status['errorData'] = \wp_aot_array_combine( $inactive_dependencies, $inactive_dependency_names );
+ 
+ 			wp_send_json_error( $status );
+ 		}
+ 
+ 		$status['message'] = __( 'All required plugins are installed and activated.' );
+ 		wp_send_json_success( $status );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -532,7 +551,7 @@
+ 	 *
+ 	 * @return array An array of plugin data.
+ 	 */
+-	protected static function get_plugins() {
++	protected static function get_plugins(): mixed {
+ 		if ( is_array( self::$plugins ) ) {
+ 			return self::$plugins;
+ 		}
+@@ -541,6 +560,7 @@
+ 		self::$plugins = get_plugins();
+ 
+ 		return self::$plugins;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -548,7 +568,7 @@
+ 	 *
+ 	 * @since 6.5.0
+ 	 */
+-	protected static function read_dependencies_from_plugin_headers() {
++	protected static function read_dependencies_from_plugin_headers(): mixed {
+ 		self::$dependencies     = array();
+ 		self::$dependency_slugs = array();
+ 		self::$dependent_slugs  = array();
+@@ -560,12 +580,13 @@
+ 
+ 			$dependency_slugs              = self::sanitize_dependency_slugs( $header['RequiresPlugins'] );
+ 			self::$dependencies[ $plugin ] = $dependency_slugs;
+-			self::$dependency_slugs        = array_merge( self::$dependency_slugs, $dependency_slugs );
++			self::$dependency_slugs        = \wp_aot_array_merge(array( self::$dependency_slugs, $dependency_slugs ));
+ 
+ 			$dependent_slug                   = self::convert_to_slug( $plugin );
+ 			self::$dependent_slugs[ $plugin ] = $dependent_slug;
+ 		}
+-		self::$dependency_slugs = array_unique( self::$dependency_slugs );
++		self::$dependency_slugs = \wp_aot_array_unique( self::$dependency_slugs );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -576,7 +597,7 @@
+ 	 * @param string $slugs A comma-separated string of plugin dependency slugs.
+ 	 * @return array An array of sanitized plugin dependency slugs.
+ 	 */
+-	protected static function sanitize_dependency_slugs( $slugs ) {
++	protected static function sanitize_dependency_slugs( mixed $slugs ): mixed {
+ 		$sanitized_slugs = array();
+ 		$slugs           = explode( ',', $slugs );
+ 
+@@ -596,14 +617,15 @@
+ 			$slug = apply_filters( 'wp_plugin_dependencies_slug', $slug );
+ 
+ 			// Match to WordPress.org slug format.
+-			if ( preg_match( '/^[a-z0-9]+(-[a-z0-9]+)*$/mu', $slug ) ) {
++			if ( preg_match( '/^[a-z0-9]+(-[a-z0-9]+)*$/mu', \wp_aot_regex_text( $slug ) ) ) {
+ 				$sanitized_slugs[] = $slug;
+ 			}
+ 		}
+-		$sanitized_slugs = array_unique( $sanitized_slugs );
+-		sort( $sanitized_slugs );
++		$sanitized_slugs = \wp_aot_array_unique( $sanitized_slugs );
++		\wp_aot_sort( $sanitized_slugs );
+ 
+ 		return $sanitized_slugs;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -614,7 +636,7 @@
+ 	 *
+ 	 * @return array An array of install dependencies filepaths, relative to the plugins directory.
+ 	 */
+-	protected static function get_dependency_filepaths() {
++	protected static function get_dependency_filepaths(): mixed {
+ 		if ( is_array( self::$dependency_filepaths ) ) {
+ 			return self::$dependency_filepaths;
+ 		}
+@@ -636,6 +658,7 @@
+ 		}
+ 
+ 		return self::$dependency_filepaths;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -647,7 +670,7 @@
+ 	 *
+ 	 * @return array|null An array of dependency API data, or null on early exit.
+ 	 */
+-	protected static function get_dependency_api_data() {
++	protected static function get_dependency_api_data(): mixed {
+ 		global $pagenow;
+ 
+ 		if ( ! is_admin() || ( 'plugins.php' !== $pagenow && 'plugin-install.php' !== $pagenow ) ) {
+@@ -711,17 +734,18 @@
+ 		}
+ 
+ 		// Remove from self::$dependency_api_data if slug no longer a dependency.
+-		$differences = array_diff( array_keys( self::$dependency_api_data ), self::$dependency_slugs );
++		$differences = \wp_aot_array_diff(array( array_keys( self::$dependency_api_data ), self::$dependency_slugs ));
+ 		foreach ( $differences as $difference ) {
+ 			unset( self::$dependency_api_data[ $difference ] );
+ 		}
+ 
+-		ksort( self::$dependency_api_data );
++		\wp_aot_ksort( self::$dependency_api_data );
+ 		// Remove empty elements.
+-		self::$dependency_api_data = array_filter( self::$dependency_api_data );
++		self::$dependency_api_data = \wp_aot_array_filter( self::$dependency_api_data );
+ 		set_site_transient( 'wp_plugin_dependencies_plugin_data', self::$dependency_api_data, 0 );
+ 
+ 		return self::$dependency_api_data;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -731,7 +755,7 @@
+ 	 *
+ 	 * @return array An array of plugin directory names.
+ 	 */
+-	protected static function get_plugin_dirnames() {
++	protected static function get_plugin_dirnames(): mixed {
+ 		if ( is_array( self::$plugin_dirnames ) ) {
+ 			return self::$plugin_dirnames;
+ 		}
+@@ -745,6 +769,7 @@
+ 		}
+ 
+ 		return self::$plugin_dirnames;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -754,7 +779,7 @@
+ 	 *
+ 	 * @return array[] An array of circular dependency pairings.
+ 	 */
+-	protected static function get_circular_dependencies() {
++	protected static function get_circular_dependencies(): mixed {
+ 		if ( is_array( self::$circular_dependencies_pairs ) ) {
+ 			return self::$circular_dependencies_pairs;
+ 		}
+@@ -774,13 +799,14 @@
+ 			 */
+ 			$dependent_slug = self::convert_to_slug( $dependent );
+ 
+-			self::$circular_dependencies_pairs = array_merge(
++			self::$circular_dependencies_pairs = \wp_aot_array_merge(array(
+ 				self::$circular_dependencies_pairs,
+ 				self::check_for_circular_dependencies( array( $dependent_slug ), $dependencies )
+-			);
++			));
+ 		}
+ 
+ 		return self::$circular_dependencies_pairs;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -792,18 +818,18 @@
+ 	 * @param array $dependencies Array of plugins dependencies.
+ 	 * @return array A circular dependency pairing, or an empty array if none exists.
+ 	 */
+-	protected static function check_for_circular_dependencies( $dependents, $dependencies ) {
++	protected static function check_for_circular_dependencies( mixed $dependents, mixed $dependencies ): mixed {
+ 		$circular_dependencies_pairs = array();
+ 
+ 		// Check for a self-dependency.
+-		$dependents_location_in_its_own_dependencies = array_intersect( $dependents, $dependencies );
++		$dependents_location_in_its_own_dependencies = \wp_aot_array_intersect(array( $dependents, $dependencies ));
+ 		if ( ! empty( $dependents_location_in_its_own_dependencies ) ) {
+ 			foreach ( $dependents_location_in_its_own_dependencies as $self_dependency ) {
+ 				self::$circular_dependencies_slugs[] = $self_dependency;
+ 				$circular_dependencies_pairs[]       = array( $self_dependency, $self_dependency );
+ 
+ 				// No need to check for itself again.
+-				unset( $dependencies[ array_search( $self_dependency, $dependencies, true ) ] );
++				unset( $dependencies[ \wp_aot_array_search( $self_dependency, $dependencies, true ) ] );
+ 			}
+ 		}
+ 
+@@ -814,14 +840,14 @@
+ 		 */
+ 		foreach ( $dependencies as $dependency ) {
+ 			// Check if the dependency is also a dependent.
+-			$dependency_location_in_dependents = array_search( $dependency, self::$dependent_slugs, true );
++			$dependency_location_in_dependents = \wp_aot_array_search( $dependency, self::$dependent_slugs, true );
+ 
+ 			if ( false !== $dependency_location_in_dependents ) {
+ 				$dependencies_of_the_dependency = self::$dependencies[ $dependency_location_in_dependents ];
+ 
+ 				foreach ( $dependents as $dependent ) {
+ 					// Check if its dependencies includes one of its own dependents.
+-					$dependent_location_in_dependency_dependencies = array_search(
++					$dependent_location_in_dependency_dependencies = \wp_aot_array_search(
+ 						$dependent,
+ 						$dependencies_of_the_dependency,
+ 						true
+@@ -844,14 +870,15 @@
+ 				 *
+ 				 * Yes, that does make sense.
+ 				 */
+-				$circular_dependencies_pairs = array_merge(
++				$circular_dependencies_pairs = \wp_aot_array_merge(array(
+ 					$circular_dependencies_pairs,
+-					self::check_for_circular_dependencies( $dependents, array_unique( $dependencies_of_the_dependency ) )
+-				);
++					self::check_for_circular_dependencies( $dependents, \wp_aot_array_unique( $dependencies_of_the_dependency ) )
++				));
+ 			}
+ 		}
+ 
+ 		return $circular_dependencies_pairs;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -862,10 +889,11 @@
+ 	 * @param string $plugin_file The plugin's filepath, relative to the plugins directory.
+ 	 * @return string The plugin's slug.
+ 	 */
+-	protected static function convert_to_slug( $plugin_file ) {
++	protected static function convert_to_slug( mixed $plugin_file ): mixed {
+ 		if ( 'hello.php' === $plugin_file ) {
+ 			return 'hello-dolly';
+ 		}
+-		return str_contains( $plugin_file, '/' ) ? dirname( $plugin_file ) : str_replace( '.php', '', $plugin_file );
++		return str_contains( $plugin_file, '/' ) ? dirname( $plugin_file ) : \wp_aot_str_replace( '.php', '', $plugin_file );
++		return null;
+ 	}
+ }

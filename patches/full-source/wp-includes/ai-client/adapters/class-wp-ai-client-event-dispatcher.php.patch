@@ -1,0 +1,11 @@
+--- a/wp-includes/ai-client/adapters/class-wp-ai-client-event-dispatcher.php
++++ b/wp-includes/ai-client/adapters/class-wp-ai-client-event-dispatcher.php
+@@ -72,7 +72,7 @@
+ 		$short_name = false !== $pos ? substr( $class_name, $pos + 1 ) : $class_name;
+ 
+ 		// Convert PascalCase to snake_case.
+-		$snake_case = strtolower( (string) preg_replace( '/([a-z])([A-Z])/', '$1_$2', $short_name ) );
++		$snake_case = strtolower( (string) \wp_aot_preg_replace( '/([a-z])([A-Z])/', '$1_$2', $short_name ) );
+ 
+ 		// Strip '_event' suffix if present.
+ 		if ( str_ends_with( $snake_case, '_event' ) ) {

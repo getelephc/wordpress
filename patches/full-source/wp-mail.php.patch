@@ -1,0 +1,104 @@
+--- a/wp-mail.php
++++ b/wp-mail.php
+@@ -8,7 +8,7 @@
+  */
+ 
+ /** Make sure that the WordPress bootstrap has run before continuing. */
+-require __DIR__ . '/wp-load.php';
++require_once __DIR__ . '/wp-load.php';
+ 
+ /** This filter is documented in wp-admin/options.php */
+ if ( ! apply_filters( 'enable_post_by_email_configuration', true ) ) {
+@@ -29,7 +29,7 @@
+ do_action( 'wp-mail.php' ); // phpcs:ignore WordPress.NamingConventions.ValidHookName.UseUnderscores
+ 
+ /** Get the POP3 class with which to access the mailbox. */
+-require_once ABSPATH . WPINC . '/class-pop3.php';
++require_once __DIR__ . '/wp-includes/class-pop3.php';
+ 
+ /** Only check at this interval for new messages. */
+ if ( ! defined( 'WP_MAIL_INTERVAL' ) ) {
+@@ -99,7 +99,7 @@
+ 		if ( $bodysignal ) {
+ 			$content .= $line;
+ 		} else {
+-			if ( preg_match( '/Content-Type: /i', $line ) ) {
++			if ( preg_match( '/Content-Type: /i', \wp_aot_regex_text( $line ) ) ) {
+ 				$content_type = trim( $line );
+ 				$content_type = substr( $content_type, 14, strlen( $content_type ) - 14 );
+ 				$content_type = explode( ';', $content_type );
+@@ -109,7 +109,7 @@
+ 				}
+ 				$content_type = $content_type[0];
+ 			}
+-			if ( preg_match( '/Content-Transfer-Encoding: /i', $line ) ) {
++			if ( preg_match( '/Content-Transfer-Encoding: /i', \wp_aot_regex_text( $line ) ) ) {
+ 				$content_transfer_encoding = trim( $line );
+ 				$content_transfer_encoding = substr( $content_transfer_encoding, 27, strlen( $content_transfer_encoding ) - 27 );
+ 				$content_transfer_encoding = explode( ';', $content_transfer_encoding );
+@@ -120,7 +120,7 @@
+ 				$boundary = explode( '"', $boundary );
+ 				$boundary = $boundary[1];
+ 			}
+-			if ( preg_match( '/Subject: /i', $line ) ) {
++			if ( preg_match( '/Subject: /i', \wp_aot_regex_text( $line ) ) ) {
+ 				$subject = trim( $line );
+ 				$subject = substr( $subject, 9, strlen( $subject ) - 9 );
+ 				// Captures any text in the subject before $phone_delim as the subject.
+@@ -137,8 +137,8 @@
+ 			 * Set the author using the email address (From or Reply-To, the last used)
+ 			 * otherwise use the site admin.
+ 			 */
+-			if ( ! $author_found && preg_match( '/^(From|Reply-To): /', $line ) ) {
+-				if ( preg_match( '|[a-z0-9_.-]+@[a-z0-9_.-]+(?!.*<)|i', $line, $matches ) ) {
++			if ( ! $author_found && preg_match( '/^(From|Reply-To): /', \wp_aot_regex_text( $line ) ) ) {
++				if ( preg_match( '|[a-z0-9_.-]+@[a-z0-9_.-]+(?!.*<)|i', \wp_aot_regex_text( $line ), $matches ) ) {
+ 					$author = $matches[0];
+ 				} else {
+ 					$author = trim( $line );
+@@ -153,13 +153,13 @@
+ 				}
+ 			}
+ 
+-			if ( preg_match( '/Date: /i', $line ) ) { // Of the form '20 Mar 2002 20:32:37 +0100'.
+-				$ddate = str_replace( 'Date: ', '', trim( $line ) );
++			if ( preg_match( '/Date: /i', \wp_aot_regex_text( $line ) ) ) { // Of the form '20 Mar 2002 20:32:37 +0100'.
++				$ddate = \wp_aot_str_replace( 'Date: ', '', trim( $line ) );
+ 				// Remove parenthesized timezone string if it exists, as this confuses strtotime().
+-				$ddate           = preg_replace( '!\s*\(.+\)\s*$!', '', $ddate );
++				$ddate           = \wp_aot_preg_replace( '!\s*\(.+\)\s*$!', '', $ddate );
+ 				$ddate_timestamp = strtotime( $ddate );
+-				$post_date       = gmdate( 'Y-m-d H:i:s', $ddate_timestamp + $time_difference );
+-				$post_date_gmt   = gmdate( 'Y-m-d H:i:s', $ddate_timestamp );
++				$post_date       = \wp_aot_gmdate( 'Y-m-d H:i:s', $ddate_timestamp + $time_difference );
++				$post_date_gmt   = \wp_aot_gmdate( 'Y-m-d H:i:s', $ddate_timestamp );
+ 			}
+ 		}
+ 	}
+@@ -180,7 +180,7 @@
+ 		$content = $content[2];
+ 
+ 		// Match case-insensitive Content-Transfer-Encoding.
+-		if ( preg_match( '/Content-Transfer-Encoding: quoted-printable/i', $content, $delim ) ) {
++		if ( preg_match( '/Content-Transfer-Encoding: quoted-printable/i', \wp_aot_regex_text( $content ), $delim ) ) {
+ 			$content = explode( $delim[0], $content );
+ 			$content = $content[1];
+ 		}
+@@ -231,7 +231,7 @@
+ 
+ 	$post_category = array( get_option( 'default_email_category' ) );
+ 
+-	$post_data = compact( 'post_content', 'post_title', 'post_date', 'post_date_gmt', 'post_author', 'post_category', 'post_status' );
++	$post_data = \wp_aot_compact(get_defined_vars(), array( 'post_content', 'post_title', 'post_date', 'post_date_gmt', 'post_author', 'post_category', 'post_status' ));
+ 	$post_data = wp_slash( $post_data );
+ 
+ 	$post_ID = wp_insert_post( $post_data );
+@@ -263,7 +263,7 @@
+ 			esc_html( $pop3->ERROR )
+ 		) . '</p>';
+ 		$pop3->reset();
+-		exit;
++		\wp_aot_exit();
+ 	} else {
+ 		echo '<p>' . sprintf(
+ 			/* translators: %s: The message ID. */

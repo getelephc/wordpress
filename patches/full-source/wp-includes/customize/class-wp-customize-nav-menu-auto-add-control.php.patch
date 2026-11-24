@@ -1,12 +1,22 @@
 --- a/wp-includes/customize/class-wp-customize-nav-menu-auto-add-control.php
 +++ b/wp-includes/customize/class-wp-customize-nav-menu-auto-add-control.php
-@@ -37,15 +37,18 @@
+@@ -29,23 +29,27 @@
+ 	 *
  	 * @since 4.3.0
  	 */
- 	protected function content_template() {
+-	protected function render_content() {}
++	protected function render_content(): mixed { return null; }
+ 
+ 	/**
+ 	 * Render the Underscore template for this control.
+ 	 *
+ 	 * @since 4.3.0
+ 	 */
+-	protected function content_template() {
 -		?>
 -		<# var elementId = _.uniqueId( 'customize-nav-menu-auto-add-control-' ); #>
 -		<span class="customize-control-title"><?php _e( 'Menu Options' ); ?></span>
++	protected function content_template(): mixed {
 +		;
 +echo '		<# var elementId = _.uniqueId( \'customize-nav-menu-auto-add-control-\' ); #>
 +		<span class="customize-control-title">';
@@ -23,5 +33,6 @@
  		</span>
 -		<?php
 +		';
++		return null;
  	}
  }

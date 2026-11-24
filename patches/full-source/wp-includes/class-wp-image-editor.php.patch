@@ -1,0 +1,319 @@
+--- a/wp-includes/class-wp-image-editor.php
++++ b/wp-includes/class-wp-image-editor.php
+@@ -28,7 +28,7 @@
+ 	 *
+ 	 * @param string $file Path to the file to load.
+ 	 */
+-	public function __construct( $file ) {
++	public function __construct( mixed $file ) {
+ 		$this->file = $file;
+ 	}
+ 
+@@ -43,8 +43,9 @@
+ 	 * @param array $args
+ 	 * @return bool
+ 	 */
+-	public static function test( $args = array() ) {
++	public static function test( mixed $args = array() ): mixed {
+ 		return false;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -58,8 +59,9 @@
+ 	 * @param string $mime_type
+ 	 * @return bool
+ 	 */
+-	public static function supports_mime_type( $mime_type ) {
++	public static function supports_mime_type( mixed $mime_type ): mixed {
+ 		return false;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -69,7 +71,7 @@
+ 	 *
+ 	 * @return true|WP_Error True if loaded; WP_Error on failure.
+ 	 */
+-	abstract public function load();
++	abstract public function load(): mixed;
+ 
+ 	/**
+ 	 * Saves current image to file.
+@@ -90,7 +92,7 @@
+ 	 *     @type int    $filesize  File size of the image.
+ 	 * }
+ 	 */
+-	abstract public function save( $destfilename = null, $mime_type = null );
++	abstract public function save( mixed $destfilename = null, mixed $mime_type = null ): mixed;
+ 
+ 	/**
+ 	 * Resizes current image.
+@@ -113,7 +115,7 @@
+ 	 * }
+ 	 * @return true|WP_Error
+ 	 */
+-	abstract public function resize( $max_w, $max_h, $crop = false );
++	abstract public function resize( mixed $max_w, mixed $max_h, mixed $crop = false ): mixed;
+ 
+ 	/**
+ 	 * Resize multiple images from a single source.
+@@ -131,7 +133,7 @@
+ 	 * }
+ 	 * @return array An array of resized images metadata by size.
+ 	 */
+-	abstract public function multi_resize( $sizes );
++	abstract public function multi_resize( mixed $sizes ): mixed;
+ 
+ 	/**
+ 	 * Crops Image.
+@@ -147,7 +149,7 @@
+ 	 * @param bool $src_abs Optional. If the source crop points are absolute.
+ 	 * @return true|WP_Error
+ 	 */
+-	abstract public function crop( $src_x, $src_y, $src_w, $src_h, $dst_w = null, $dst_h = null, $src_abs = false );
++	abstract public function crop( mixed $src_x, mixed $src_y, mixed $src_w, mixed $src_h, mixed $dst_w = null, mixed $dst_h = null, mixed $src_abs = false ): mixed;
+ 
+ 	/**
+ 	 * Rotates current image counter-clockwise by $angle.
+@@ -157,7 +159,7 @@
+ 	 * @param float $angle
+ 	 * @return true|WP_Error
+ 	 */
+-	abstract public function rotate( $angle );
++	abstract public function rotate( mixed $angle ): mixed;
+ 
+ 	/**
+ 	 * Flips current image.
+@@ -168,7 +170,7 @@
+ 	 * @param bool $vert Flip along Vertical Axis
+ 	 * @return true|WP_Error
+ 	 */
+-	abstract public function flip( $horz, $vert );
++	abstract public function flip( mixed $horz, mixed $vert ): mixed;
+ 
+ 	/**
+ 	 * Streams current image to browser.
+@@ -178,7 +180,7 @@
+ 	 * @param string $mime_type The mime type of the image.
+ 	 * @return true|WP_Error True on success, WP_Error object on failure.
+ 	 */
+-	abstract public function stream( $mime_type = null );
++	abstract public function stream( mixed $mime_type = null ): mixed;
+ 
+ 	/**
+ 	 * Gets dimensions of image.
+@@ -192,8 +194,9 @@
+ 	 *     @type int $height The image height.
+ 	 * }
+ 	 */
+-	public function get_size() {
++	public function get_size(): mixed {
+ 		return $this->size;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -205,12 +208,13 @@
+ 	 * @param int|null $height Image height.
+ 	 * @return true
+ 	 */
+-	protected function update_size( $width = null, $height = null ) {
++	protected function update_size( mixed $width = null, mixed $height = null ): mixed {
+ 		$this->size = array(
+ 			'width'  => (int) $width,
+ 			'height' => (int) $height,
+ 		);
+ 		return true;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -220,12 +224,13 @@
+ 	 *
+ 	 * @return int Compression Quality. Range: [1,100]
+ 	 */
+-	public function get_quality() {
++	public function get_quality(): mixed {
+ 		if ( ! $this->quality ) {
+ 			$this->set_quality();
+ 		}
+ 
+ 		return $this->quality;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -239,7 +244,7 @@
+ 	 * @return true|WP_Error True if set successfully; WP_Error on failure.
+ 
+ 	 */
+-	public function set_quality( $quality = null, $dims = array() ) {
++	public function set_quality( mixed $quality = null, mixed $dims = array() ): mixed {
+ 		// Use the output mime type if present. If not, fall back to the input/initial mime type.
+ 		$mime_type = ! empty( $this->output_mime_type ) ? $this->output_mime_type : $this->mime_type;
+ 		// Get the default quality setting for the mime type.
+@@ -304,6 +309,7 @@
+ 		} else {
+ 			return new WP_Error( 'invalid_image_quality', __( 'Attempted to set image quality outside of the range [1,100].' ) );
+ 		}
++		return null;
+ 	}
+ 
+ 	/**
+@@ -314,7 +320,7 @@
+ 	 * @param string $mime_type
+ 	 * @return int The default quality setting for the mime type.
+ 	 */
+-	protected function get_default_quality( $mime_type ) {
++	protected function get_default_quality( mixed $mime_type ): mixed {
+ 		switch ( $mime_type ) {
+ 			case 'image/webp':
+ 				$quality = 86;
+@@ -325,6 +331,7 @@
+ 		}
+ 
+ 		return $quality;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -341,7 +348,7 @@
+ 	 * @param string $mime_type
+ 	 * @return array { filename|null, extension, mime-type }
+ 	 */
+-	protected function get_output_format( $filename = null, $mime_type = null ) {
++	protected function get_output_format( mixed $filename = null, mixed $mime_type = null ): mixed {
+ 		$new_ext = null;
+ 
+ 		// By default, assume specified type takes priority.
+@@ -419,6 +426,7 @@
+ 		}
+ 
+ 		return array( $filename, $new_ext, $mime_type );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -432,7 +440,7 @@
+ 	 * @param string $extension
+ 	 * @return string filename
+ 	 */
+-	public function generate_filename( $suffix = null, $dest_path = null, $extension = null ) {
++	public function generate_filename( mixed $suffix = null, mixed $dest_path = null, mixed $extension = null ): mixed {
+ 		// If not empty the $suffix will be appended to the destination filename, just before the extension.
+ 		if ( $suffix ) {
+ 			$suffix = '-' . $suffix;
+@@ -440,7 +448,7 @@
+ 			$suffix = '-' . $this->get_suffix();
+ 		}
+ 
+-		$dir = pathinfo( $this->file, PATHINFO_DIRNAME );
++		$dir = \wp_aot_mixed(pathinfo( $this->file, PATHINFO_DIRNAME ));
+ 		$ext = pathinfo( $this->file, PATHINFO_EXTENSION );
+ 
+ 		$name    = wp_basename( $this->file, ".$ext" );
+@@ -458,6 +466,7 @@
+ 		}
+ 
+ 		return trailingslashit( $dir ) . "{$name}{$suffix}.{$new_ext}";
++		return null;
+ 	}
+ 
+ 	/**
+@@ -467,12 +476,13 @@
+ 	 *
+ 	 * @return string|false suffix
+ 	 */
+-	public function get_suffix() {
++	public function get_suffix(): mixed {
+ 		if ( ! $this->get_size() ) {
+ 			return false;
+ 		}
+ 
+ 		return "{$this->size['width']}x{$this->size['height']}";
++		return null;
+ 	}
+ 
+ 	/**
+@@ -483,7 +493,7 @@
+ 	 * @return bool|WP_Error True if the image was rotated. False if not rotated (no EXIF data or the image doesn't need to be rotated).
+ 	 *                       WP_Error if error while rotating.
+ 	 */
+-	public function maybe_exif_rotate() {
++	public function maybe_exif_rotate(): mixed {
+ 		$orientation = null;
+ 
+ 		if ( is_callable( 'exif_read_data' ) && 'image/jpeg' === $this->mime_type ) {
+@@ -553,6 +563,7 @@
+ 		}
+ 
+ 		return $result;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -565,7 +576,7 @@
+ 	 * @param array    $arguments
+ 	 * @return bool
+ 	 */
+-	protected function make_image( $filename, $callback, $arguments ) {
++	protected function make_image( mixed $filename, mixed $callback, mixed $arguments ): mixed {
+ 		$stream = wp_is_stream( $filename );
+ 		if ( $stream ) {
+ 			ob_start();
+@@ -586,7 +597,7 @@
+ 				return false;
+ 			}
+ 
+-			fwrite( $fp, $contents );
++			\wp_aot_fwrite( $fp, $contents );
+ 			fclose( $fp );
+ 		}
+ 
+@@ -595,6 +606,7 @@
+ 		}
+ 
+ 		return $result;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -606,7 +618,7 @@
+ 	 * @param string $extension
+ 	 * @return string|false
+ 	 */
+-	protected static function get_mime_type( $extension = null ) {
++	protected static function get_mime_type( mixed $extension = null ): mixed {
+ 		if ( ! $extension ) {
+ 			return false;
+ 		}
+@@ -615,12 +627,13 @@
+ 		$extensions = array_keys( $mime_types );
+ 
+ 		foreach ( $extensions as $_extension ) {
+-			if ( preg_match( "/{$extension}/i", $_extension ) ) {
++			if ( preg_match( \wp_aot_regex_text( "/{$extension}/i" ), \wp_aot_regex_text( $_extension ) ) ) {
+ 				return $mime_types[ $_extension ];
+ 			}
+ 		}
+ 
+ 		return false;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -632,11 +645,12 @@
+ 	 * @param string $mime_type
+ 	 * @return string|false
+ 	 */
+-	protected static function get_extension( $mime_type = null ) {
++	protected static function get_extension( mixed $mime_type = null ): mixed {
+ 		if ( empty( $mime_type ) ) {
+ 			return false;
+ 		}
+ 
+ 		return wp_get_default_extension_for_mime_type( $mime_type );
++		return null;
+ 	}
+ }

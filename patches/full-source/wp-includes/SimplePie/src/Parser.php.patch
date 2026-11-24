@@ -1,22 +1,437 @@
 --- a/wp-includes/SimplePie/src/Parser.php
 +++ b/wp-includes/SimplePie/src/Parser.php
-@@ -316,8 +316,8 @@
+@@ -31,19 +31,19 @@
+     /** @var string */
+     public $separator = ' ';
+     /** @var string[] */
+-    public $namespace = [''];
++    public mixed $namespace = [''];
+     /** @var string[] */
+-    public $element = [''];
++    public mixed $element = [''];
+     /** @var string[] */
+-    public $xml_base = [''];
++    public mixed $xml_base = [''];
+     /** @var bool[] */
+-    public $xml_base_explicit = [false];
++    public mixed $xml_base_explicit = [false];
+     /** @var string[] */
+-    public $xml_lang = [''];
++    public mixed $xml_lang = [''];
+     /** @var array<string, mixed> */
+     public $data = [];
+     /** @var array<array<string, mixed>> */
+-    public $datas = [[]];
++    public mixed $datas = [[]];
+     /** @var int */
+     public $current_xhtml_construct = -1;
+     /** @var string */
+@@ -54,15 +54,16 @@
+     /**
+      * @return void
+      */
+-    public function set_registry(\SimplePie\Registry $registry)
++    public function set_registry(\SimplePie\Registry $registry): mixed
+     {
+         $this->registry = $registry;
++    	return null;
+     }
+ 
+     /**
+      * @return bool
+      */
+-    public function parse(string &$data, string $encoding, string $url = '')
++    public function parse(string &$data, string $encoding, string $url = ''): mixed
+     {
+         if (class_exists('DOMXpath') && function_exists('Mf2\parse')) {
+             $doc = new \DOMDocument();
+@@ -112,7 +113,7 @@
+             $declaration = $this->registry->create(DeclarationParser::class, [substr($data, 5, $pos - 5)]);
+             if ($declaration->parse()) {
+                 $data = substr($data, $pos + 2);
+-                $data = '<?xml version="' . $declaration->version . '" encoding="' . $encoding . '" standalone="' . (($declaration->standalone) ? 'yes' : 'no') . '"?>' . "\n" .
++                $data = '<?xml version="' . \wp_aot_mixed($declaration)->version . '" encoding="' . $encoding . '" standalone="' . ((\wp_aot_mixed($declaration)->standalone) ? 'yes' : 'no') . '"?>' . "\n" .
+                     self::set_doctype($data);
+             } else {
+                 $this->error_string = 'SimplePie bug! Please report this!';
+@@ -124,7 +125,8 @@
+ 
+         $return = true;
+ 
+-        static $xml_is_sane = null;
++        static $xml_is_sane_aot_cell = new \WordPressStaticValueCell();
++        $xml_is_sane =& $xml_is_sane_aot_cell->value;
+         if ($xml_is_sane === null) {
+             $parser_check = xml_parser_create();
+             xml_parse_into_struct($parser_check, '<foo>&amp;</foo>', $values);
+@@ -145,11 +147,11 @@
+             // Parse!
+             $wrapper = @is_writable(sys_get_temp_dir()) ? 'php://temp' : 'php://memory';
+             if (($stream = fopen($wrapper, 'r+')) &&
+-                fwrite($stream, $data) &&
++                \wp_aot_fwrite($stream, $data) &&
+                 rewind($stream)) {
+                 //Parse by chunks not to use too much memory
+                 do {
+-                    $stream_data = (string) fread($stream, 1048576);
++                    $stream_data = (string) \wp_aot_fread($stream, 1048576);
+ 
+                     if (!xml_parse($xml, $stream_data, feof($stream))) {
+                         $this->error_code = xml_get_error_code($xml);
+@@ -172,12 +174,12 @@
+             return $return;
+         }
+ 
+-        libxml_clear_errors();
+-        $xml = new \XMLReader();
++        \wp_aot_native_api('libxml_clear_errors', array());
++        $xml = \wp_aot_native_new('XMLReader', array());
+         $xml->xml($data);
+         while (@$xml->read()) {
+             switch ($xml->nodeType) {
+-                case \XMLReader::END_ELEMENT:
++                case (int) \wp_aot_metadata_constant('XMLReader::END_ELEMENT'):
+                     if ($xml->namespaceURI !== '') {
+                         $tagName = $xml->namespaceURI . $this->separator . $xml->localName;
+                     } else {
+@@ -185,7 +187,7 @@
+                     }
+                     $this->tag_close(null, $tagName);
+                     break;
+-                case \XMLReader::ELEMENT:
++                case (int) \wp_aot_metadata_constant('XMLReader::ELEMENT'):
+                     $empty = $xml->isEmptyElement;
+                     if ($xml->namespaceURI !== '') {
+                         $tagName = $xml->namespaceURI . $this->separator . $xml->localName;
+@@ -206,14 +208,14 @@
+                         $this->tag_close(null, $tagName);
+                     }
+                     break;
+-                case \XMLReader::TEXT:
+-
+-                case \XMLReader::CDATA:
++                case (int) \wp_aot_metadata_constant('XMLReader::TEXT'):
++
++                case (int) \wp_aot_metadata_constant('XMLReader::CDATA'):
+                     $this->cdata(null, $xml->value);
+                     break;
+             }
+         }
+-        if ($error = libxml_get_last_error()) {
++        if ($error = \wp_aot_native_api('libxml_get_last_error', array())) {
+             $this->error_code = $error->code;
+             $this->error_string = $error->message;
+             $this->current_line = $error->line;
+@@ -222,54 +224,61 @@
+         }
+ 
+         return true;
++    	return null;
+     }
+ 
+     /**
+      * @return int
+      */
+-    public function get_error_code()
++    public function get_error_code(): mixed
+     {
+         return $this->error_code;
++    	return null;
+     }
+ 
+     /**
+      * @return string
+      */
+-    public function get_error_string()
++    public function get_error_string(): mixed
+     {
+         return $this->error_string;
++    	return null;
+     }
+ 
+     /**
+      * @return int
+      */
+-    public function get_current_line()
++    public function get_current_line(): mixed
+     {
+         return $this->current_line;
++    	return null;
+     }
+ 
+     /**
+      * @return int
+      */
+-    public function get_current_column()
++    public function get_current_column(): mixed
+     {
+         return $this->current_column;
++    	return null;
+     }
+ 
+     /**
+      * @return int
+      */
+-    public function get_current_byte()
++    public function get_current_byte(): mixed
+     {
+         return $this->current_byte;
++    	return null;
+     }
+ 
+     /**
+      * @return array<string, mixed>
+      */
+-    public function get_data()
++    public function get_data(): mixed
+     {
+         return $this->data;
++    	return null;
+     }
+ 
+     /**
+@@ -277,7 +286,7 @@
+      * @param array<string, string> $attributes
+      * @return void
+      */
+-    public function tag_open($parser, string $tag, array $attributes)
++    public function tag_open(mixed $parser, string $tag, array $attributes): mixed
+     {
+         [$this->namespace[], $this->element[]] = $this->split_ns($tag);
+ 
+@@ -288,26 +297,26 @@
+         }
+ 
+         if (isset($attribs[\SimplePie\SimplePie::NAMESPACE_XML]['base'])) {
+-            $base = $this->registry->call(Misc::class, 'absolutize_url', [$attribs[\SimplePie\SimplePie::NAMESPACE_XML]['base'], end($this->xml_base)]);
++            $base = $this->registry->call(Misc::class, 'absolutize_url', [$attribs[\SimplePie\SimplePie::NAMESPACE_XML]['base'], \wp_aot_array_last( $this->xml_base )]);
+             if ($base !== false) {
+                 $this->xml_base[] = $base;
+                 $this->xml_base_explicit[] = true;
+             }
+         } else {
+-            $this->xml_base[] = end($this->xml_base) ?: '';
+-            $this->xml_base_explicit[] = end($this->xml_base_explicit);
++            $this->xml_base[] = \wp_aot_array_last( $this->xml_base ) ?: '';
++            $this->xml_base_explicit[] = \wp_aot_array_last( $this->xml_base_explicit );
+         }
+ 
+         if (isset($attribs[\SimplePie\SimplePie::NAMESPACE_XML]['lang'])) {
+             $this->xml_lang[] = $attribs[\SimplePie\SimplePie::NAMESPACE_XML]['lang'];
+         } else {
+-            $this->xml_lang[] = end($this->xml_lang) ?: '';
++            $this->xml_lang[] = \wp_aot_array_last( $this->xml_lang ) ?: '';
+         }
+ 
+         if ($this->current_xhtml_construct >= 0) {
+             $this->current_xhtml_construct++;
+-            if (end($this->namespace) === \SimplePie\SimplePie::NAMESPACE_XHTML) {
+-                $this->data['data'] .= '<' . end($this->element);
++            if (\wp_aot_array_last( $this->namespace ) === \SimplePie\SimplePie::NAMESPACE_XHTML) {
++                $this->data['data'] .= '<' . \wp_aot_array_last( $this->element );
+                 if (isset($attribs[''])) {
+                     foreach ($attribs[''] as $name => $value) {
+                         $this->data['data'] .= ' ' . $name . '="' . htmlspecialchars($value, ENT_COMPAT, $this->encoding) . '"';
+@@ -316,65 +325,70 @@
                  $this->data['data'] .= '>';
              }
          } else {
 -            $this->datas[] = &$this->data;
 -            $this->data = &$this->data['child'][end($this->namespace)][end($this->element)][];
+-            $this->data = ['data' => '', 'attribs' => $attribs, 'xml_base' => end($this->xml_base), 'xml_base_explicit' => end($this->xml_base_explicit), 'xml_lang' => end($this->xml_lang)];
+-            if ((end($this->namespace) === \SimplePie\SimplePie::NAMESPACE_ATOM_03 && in_array(end($this->element), ['title', 'tagline', 'copyright', 'info', 'summary', 'content']) && isset($attribs['']['mode']) && $attribs['']['mode'] === 'xml')
+-            || (end($this->namespace) === \SimplePie\SimplePie::NAMESPACE_ATOM_10 && in_array(end($this->element), ['rights', 'subtitle', 'summary', 'info', 'title', 'content']) && isset($attribs['']['type']) && $attribs['']['type'] === 'xhtml')
+-            || (end($this->namespace) === \SimplePie\SimplePie::NAMESPACE_RSS_20 && in_array(end($this->element), ['title']))
+-            || (end($this->namespace) === \SimplePie\SimplePie::NAMESPACE_RSS_090 && in_array(end($this->element), ['title']))
+-            || (end($this->namespace) === \SimplePie\SimplePie::NAMESPACE_RSS_10 && in_array(end($this->element), ['title']))) {
 +            throw new \RuntimeException('RSS XML tree-reference parsing is outside the finite bootstrap fixture.');
 +            throw new \RuntimeException('RSS XML tree-reference parsing is outside the finite bootstrap fixture.');
-             $this->data = ['data' => '', 'attribs' => $attribs, 'xml_base' => end($this->xml_base), 'xml_base_explicit' => end($this->xml_base_explicit), 'xml_lang' => end($this->xml_lang)];
-             if ((end($this->namespace) === \SimplePie\SimplePie::NAMESPACE_ATOM_03 && in_array(end($this->element), ['title', 'tagline', 'copyright', 'info', 'summary', 'content']) && isset($attribs['']['mode']) && $attribs['']['mode'] === 'xml')
-             || (end($this->namespace) === \SimplePie\SimplePie::NAMESPACE_ATOM_10 && in_array(end($this->element), ['rights', 'subtitle', 'summary', 'info', 'title', 'content']) && isset($attribs['']['type']) && $attribs['']['type'] === 'xhtml')
-@@ -355,7 +355,7 @@
++            $this->data = ['data' => '', 'attribs' => $attribs, 'xml_base' => \wp_aot_array_last( $this->xml_base ), 'xml_base_explicit' => \wp_aot_array_last( $this->xml_base_explicit ), 'xml_lang' => \wp_aot_array_last( $this->xml_lang )];
++            if ((\wp_aot_array_last( $this->namespace ) === \SimplePie\SimplePie::NAMESPACE_ATOM_03 && in_array(\wp_aot_array_last( $this->element ), ['title', 'tagline', 'copyright', 'info', 'summary', 'content']) && isset($attribs['']['mode']) && $attribs['']['mode'] === 'xml')
++            || (\wp_aot_array_last( $this->namespace ) === \SimplePie\SimplePie::NAMESPACE_ATOM_10 && in_array(\wp_aot_array_last( $this->element ), ['rights', 'subtitle', 'summary', 'info', 'title', 'content']) && isset($attribs['']['type']) && $attribs['']['type'] === 'xhtml')
++            || (\wp_aot_array_last( $this->namespace ) === \SimplePie\SimplePie::NAMESPACE_RSS_20 && in_array(\wp_aot_array_last( $this->element ), ['title']))
++            || (\wp_aot_array_last( $this->namespace ) === \SimplePie\SimplePie::NAMESPACE_RSS_090 && in_array(\wp_aot_array_last( $this->element ), ['title']))
++            || (\wp_aot_array_last( $this->namespace ) === \SimplePie\SimplePie::NAMESPACE_RSS_10 && in_array(\wp_aot_array_last( $this->element ), ['title']))) {
+                 $this->current_xhtml_construct = 0;
+             }
+         }
++    	return null;
+     }
+ 
+     /**
+      * @param XMLParser|resource|null $parser
+      * @return void
+      */
+-    public function cdata($parser, string $cdata)
++    public function cdata(mixed $parser, string $cdata): mixed
+     {
+         if ($this->current_xhtml_construct >= 0) {
+             $this->data['data'] .= htmlspecialchars($cdata, ENT_QUOTES, $this->encoding);
+         } else {
+             $this->data['data'] .= $cdata;
+         }
++    	return null;
+     }
+ 
+     /**
+      * @param XMLParser|resource|null $parser
+      * @return void
+      */
+-    public function tag_close($parser, string $tag)
++    public function tag_close(mixed $parser, string $tag): mixed
+     {
+         if ($this->current_xhtml_construct >= 0) {
+             $this->current_xhtml_construct--;
+-            if (end($this->namespace) === \SimplePie\SimplePie::NAMESPACE_XHTML && !in_array(end($this->element), ['area', 'base', 'basefont', 'br', 'col', 'frame', 'hr', 'img', 'input', 'isindex', 'link', 'meta', 'param'])) {
+-                $this->data['data'] .= '</' . end($this->element) . '>';
++            if (\wp_aot_array_last( $this->namespace ) === \SimplePie\SimplePie::NAMESPACE_XHTML && !in_array(\wp_aot_array_last( $this->element ), ['area', 'base', 'basefont', 'br', 'col', 'frame', 'hr', 'img', 'input', 'isindex', 'link', 'meta', 'param'])) {
++                $this->data['data'] .= '</' . \wp_aot_array_last( $this->element ) . '>';
              }
          }
          if ($this->current_xhtml_construct === -1) {
 -            $this->data = &$this->datas[count($this->datas) - 1];
+-            array_pop($this->datas);
+-        }
+-
+-        array_pop($this->element);
+-        array_pop($this->namespace);
+-        array_pop($this->xml_base);
+-        array_pop($this->xml_base_explicit);
+-        array_pop($this->xml_lang);
 +            throw new \RuntimeException('RSS XML tree-reference parsing is outside the finite bootstrap fixture.');
-             array_pop($this->datas);
-         }
++            \wp_aot_array_pop($this->datas);
++        }
++
++        \wp_aot_array_pop($this->element);
++        \wp_aot_array_pop($this->namespace);
++        \wp_aot_array_pop($this->xml_base);
++        \wp_aot_array_pop($this->xml_base_explicit);
++        \wp_aot_array_pop($this->xml_lang);
++    	return null;
+     }
  
+     /**
+      * @return array{string, string}
+      */
+-    public function split_ns(string $string)
+-    {
+-        static $cache = [];
++    public function split_ns(string $string): mixed
++    {
++        static $cache_aot_cell = new \WordPressStaticArrayCell();
++        $cache =& $cache_aot_cell->value;
+         if (!isset($cache[$string])) {
+             if ($pos = strpos($string, $this->separator)) {
+-                static $separator_length;
++                static $separator_length_aot_cell = new \WordPressStaticValueCell();
++                $separator_length =& $separator_length_aot_cell->value;
+                 if (!$separator_length) {
+                     $separator_length = strlen($this->separator);
+                 }
+@@ -398,6 +412,7 @@
+             }
+         }
+         return $cache[$string];
++    	return null;
+     }
+ 
+     /**
+@@ -418,7 +433,7 @@
+                     $name = $link;
+                 } else {
+                     // can't have commas in categories.
+-                    $name = str_replace(',', '', $name);
++                    $name = \wp_aot_str_replace(',', '', $name);
+                 }
+                 $person_tag = $category ? '<span class="person-tag"></span>' : '';
+                 return '<a class="h-card" href="'.$link.'">'.$person_tag.$name.'</a>';
+@@ -440,7 +455,7 @@
+         $author_cache = [];
+         $items = [];
+         $entries = [];
+-        $mf = \Mf2\parse($data, $url);
++        $mf = \wp_aot_native_api('Mf2\\parse', array($data, $url));
+         // First look for an h-feed.
+         $h_feed = [];
+         foreach ($mf['items'] as $mf_item) {
+@@ -515,12 +530,12 @@
+                     // get the actual h-card.
+                     $author = $entry['properties']['author'][0] ?? $feed_author;
+                     if (!is_string($author)) {
+-                        $author = $this->parse_hcard($author);
++                        $author = $this->parse_hcard(\wp_aot_array_input($author));
+                     } elseif (strpos($author, 'http') === 0) {
+                         if (isset($author_cache[$author])) {
+                             $author = $author_cache[$author];
+                         } else {
+-                            if ($mf = \Mf2\fetch($author)) {
++                            if ($mf = \wp_aot_native_api('Mf2\\fetch', array($author))) {
+                                 foreach ($mf['items'] as $hcard) {
+                                     // Only interested in an h-card by itself in this case.
+                                     if (!in_array('h-card', $hcard['type'])) {
+@@ -534,7 +549,7 @@
+                                     // Save parse_hcard the trouble of finding the correct url.
+                                     $hcard['properties']['url'][0] = $author;
+                                     // Cache this h-card for the next h-entry to check.
+-                                    $author_cache[$author] = $this->parse_hcard($hcard);
++                                    $author_cache[$author] = $this->parse_hcard(\wp_aot_require_array($hcard));
+                                     $author = $author_cache[$author];
+                                     break;
+                                 }
+@@ -561,7 +576,7 @@
+                     // anything unique except for the content itself, so use that.
+                     $count = count($photo_list);
+                     if ($count > 1) {
+-                        $image_set_id = preg_replace('/[[:^alnum:]]/', '', $photo_list[0]);
++                        $image_set_id = \wp_aot_preg_replace('/[[:^alnum:]]/', '', $photo_list[0]);
+                         $description = '<p>';
+                         for ($j = 0; $j < $count; $j++) {
+                             $hidden = $j === 0 ? '' : 'class="hidden" ';
+@@ -606,9 +621,9 @@
+                         }
+                         if (is_string($category)) {
+                             // Can't have commas in categories.
+-                            $category_csv .= str_replace(',', '', $category);
++                            $category_csv .= \wp_aot_str_replace(',', '', $category);
+                         } else {
+-                            $category_csv .= $this->parse_hcard($category, true);
++                            $category_csv .= $this->parse_hcard(\wp_aot_array_input($category), true);
+                         }
+                     }
+                     $item['category'] = [['data' => $category_csv]];
+@@ -629,7 +644,7 @@
+         }
+         // Mimic RSS data format when storing microformats.
+         $link = [['data' => $url]];
+-        $image = '';
++        $image = \wp_aot_mixed('');
+         if (!is_string($feed_author) &&
+                 isset($feed_author['properties']['photo'][0])) {
+             $image = [['child' => ['' => ['url' =>
+@@ -642,7 +657,7 @@
+             $start = $position < 200 ? 0 : $position - 200;
+             $check = substr($data, $start, 400);
+             $matches = [];
+-            if (preg_match('/<title>(.+)<\/title>/', $check, $matches)) {
++            if (preg_match('/<title>(.+)<\/title>/', \wp_aot_regex_text( $check ), $matches)) {
+                 $feed_title = [['data' => htmlspecialchars($matches[1])]];
+             }
+         }
+@@ -658,9 +673,9 @@
+     private static function set_doctype(string $data): string
+     {
+         // Strip DOCTYPE except if containing an [internal subset]
+-        $data = preg_replace('/^\\s*<!DOCTYPE\\s[^>\\[\\]]*>\s*/', '', $data) ?? $data;
++        $data = \wp_aot_preg_replace('/^\\s*<!DOCTYPE\\s[^>\\[\\]]*>\s*/', '', $data) ?? $data;
+         // Declare HTML entities only if no remaining DOCTYPE
+-        $doctype = preg_match('/^\\s*<!DOCTYPE\\s/', $data) ? '' : self::declare_html_entities();
++        $doctype = preg_match('/^\\s*<!DOCTYPE\\s/', \wp_aot_regex_text( $data )) ? '' : self::declare_html_entities();
+         return $doctype . $data;
+     }
+ 
+@@ -672,4 +687,4 @@
+     }
+ }
+ 
+-class_alias('SimplePie\Parser', 'SimplePie_Parser');
++(!defined('WP_AOT_NATIVE_RUNTIME') && (bool) \wp_aot_native_api('class_alias', array('SimplePie\Parser', 'SimplePie_Parser')));

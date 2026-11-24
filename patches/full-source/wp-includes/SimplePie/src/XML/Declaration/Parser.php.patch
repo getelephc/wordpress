@@ -1,0 +1,39 @@
+--- a/wp-includes/SimplePie/src/XML/Declaration/Parser.php
++++ b/wp-includes/SimplePie/src/XML/Declaration/Parser.php
+@@ -144,11 +144,12 @@
+      *
+      * @return int Number of whitespace characters passed
+      */
+-    public function skip_whitespace()
++    public function skip_whitespace(): mixed
+     {
+         $whitespace = strspn($this->data, "\x09\x0A\x0D\x20", $this->position);
+         $this->position += $whitespace;
+         return $whitespace;
++    	return null;
+     }
+ 
+     /**
+@@ -156,7 +157,7 @@
+      *
+      * @return string|false
+      */
+-    public function get_value()
++    public function get_value(): mixed
+     {
+         $quote = substr($this->data, $this->position, 1);
+         if ($quote === '"' || $quote === "'") {
+@@ -169,6 +170,7 @@
+             }
+         }
+         return false;
++    	return null;
+     }
+ 
+     public function before_version_name(): void
+@@ -305,4 +307,4 @@
+     }
+ }
+ 
+-class_alias('SimplePie\XML\Declaration\Parser', 'SimplePie_XML_Declaration_Parser');
++(!defined('WP_AOT_NATIVE_RUNTIME') && (bool) \wp_aot_native_api('class_alias', array('SimplePie\XML\Declaration\Parser', 'SimplePie_XML_Declaration_Parser')));

@@ -1,0 +1,103 @@
+--- a/wp-includes/SimplePie/src/Cache/Redis.php
++++ b/wp-includes/SimplePie/src/Cache/Redis.php
+@@ -52,7 +52,7 @@
+      * @param string $name Unique ID for the cache
+      * @param Base::TYPE_FEED|Base::TYPE_IMAGE|array<string, mixed>|null $options Either TYPE_FEED for SimplePie data, or TYPE_IMAGE for image data
+      */
+-    public function __construct(string $location, string $name, $options = null)
++    public function __construct(string $location, string $name, mixed $options = null)
+     {
+         //$this->cache = \flow\simple\cache\Redis::getRedisClientInstance();
+         $parsed = \SimplePie\Cache::parse_URL($location);
+@@ -82,9 +82,10 @@
+      * @param NativeRedis $cache
+      * @return void
+      */
+-    public function setRedisClient(NativeRedis $cache)
++    public function setRedisClient(NativeRedis $cache): mixed
+     {
+         $this->cache = $cache;
++    	return null;
+     }
+ 
+     /**
+@@ -93,7 +94,7 @@
+      * @param array<mixed>|\SimplePie\SimplePie $data Data to store in the cache. If passed a SimplePie object, only cache the $data property
+      * @return bool Successfulness
+      */
+-    public function save($data)
++    public function save(mixed $data): mixed
+     {
+         if ($data instanceof \SimplePie\SimplePie) {
+             $data = $data->data;
+@@ -104,6 +105,7 @@
+         }
+ 
+         return $response;
++    	return null;
+     }
+ 
+     /**
+@@ -111,7 +113,7 @@
+      *
+      * @return array<mixed>|false Data for SimplePie::$data
+      */
+-    public function load()
++    public function load(): mixed
+     {
+         $data = $this->cache->get($this->name);
+ 
+@@ -119,6 +121,7 @@
+             return unserialize($data);
+         }
+         return false;
++    	return null;
+     }
+ 
+     /**
+@@ -126,7 +129,7 @@
+      *
+      * @return int|false Timestamp
+      */
+-    public function mtime()
++    public function mtime(): mixed
+     {
+         $data = $this->cache->get($this->name);
+ 
+@@ -135,6 +138,7 @@
+         }
+ 
+         return false;
++    	return null;
+     }
+ 
+     /**
+@@ -142,7 +146,7 @@
+      *
+      * @return bool Success status
+      */
+-    public function touch()
++    public function touch(): mixed
+     {
+         $data = $this->cache->get($this->name);
+ 
+@@ -155,6 +159,7 @@
+         }
+ 
+         return false;
++    	return null;
+     }
+ 
+     /**
+@@ -162,9 +167,10 @@
+      *
+      * @return bool Success status
+      */
+-    public function unlink()
++    public function unlink(): mixed
+     {
+         return $this->cache->set($this->name, null);
++    	return null;
+     }
+ }
+ 

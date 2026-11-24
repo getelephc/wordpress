@@ -1,0 +1,47 @@
+--- a/wp-includes/block-supports/colors.php
++++ b/wp-includes/block-supports/colors.php
+@@ -15,16 +15,16 @@
+  *
+  * @param WP_Block_Type $block_type Block Type.
+  */
+-function wp_register_colors_support( $block_type ) {
++function wp_register_colors_support( mixed $block_type ): mixed {
+ 	$color_support = false;
+ 	if ( $block_type instanceof WP_Block_Type ) {
+ 		$color_support = $block_type->supports['color'] ?? false;
+ 	}
+ 	$has_text_colors_support       = true === $color_support ||
+-		( isset( $color_support['text'] ) && $color_support['text'] ) ||
++		( isset( $color_support['text'] ) && \wp_aot_mixed($color_support)['text'] ) ||
+ 		( is_array( $color_support ) && ! isset( $color_support['text'] ) );
+ 	$has_background_colors_support = true === $color_support ||
+-		( isset( $color_support['background'] ) && $color_support['background'] ) ||
++		( isset( $color_support['background'] ) && \wp_aot_mixed($color_support)['background'] ) ||
+ 		( is_array( $color_support ) && ! isset( $color_support['background'] ) );
+ 	$has_gradients_support         = $color_support['gradients'] ?? false;
+ 	$has_link_colors_support       = $color_support['link'] ?? false;
+@@ -64,6 +64,7 @@
+ 			'type' => 'string',
+ 		);
+ 	}
++	return null;
+ }
+ 
+ 
+@@ -81,7 +82,7 @@
+  *
+  * @return array Colors CSS classes and inline styles.
+  */
+-function wp_apply_colors_support( $block_type, $block_attributes ) {
++function wp_apply_colors_support( mixed $block_type, mixed $block_attributes ): mixed {
+ 	$color_support = $block_type->supports['color'] ?? false;
+ 
+ 	if (
+@@ -143,6 +144,7 @@
+ 	}
+ 
+ 	return $attributes;
++	return null;
+ }
+ 
+ // Register the block support.

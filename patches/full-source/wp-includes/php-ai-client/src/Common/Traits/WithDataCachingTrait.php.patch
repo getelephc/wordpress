@@ -1,0 +1,45 @@
+--- a/wp-includes/php-ai-client/src/Common/Traits/WithDataCachingTrait.php
++++ b/wp-includes/php-ai-client/src/Common/Traits/WithDataCachingTrait.php
+@@ -69,7 +69,7 @@
+      *                                         Ignored for local cache.
+      * @return mixed The cached or computed value.
+      */
+-    protected function cached(string $key, callable $callback, $ttl = null)
++    protected function cached(string $key, callable $callback, mixed $ttl = null): mixed
+     {
+         if ($this->hasCache($key)) {
+             return $this->getCache($key);
+@@ -77,6 +77,7 @@
+         $value = $callback();
+         $this->setCache($key, $value, $ttl);
+         return $value;
++    	return null;
+     }
+     /**
+      * Gets a value from the cache.
+@@ -87,7 +88,7 @@
+      * @param mixed  $default The default value to return if the key does not exist.
+      * @return mixed The cached value or the default value if not found.
+      */
+-    protected function getCache(string $key, $default = null)
++    protected function getCache(string $key, mixed $default = null): mixed
+     {
+         $fullKey = $this->buildCacheKey($key);
+         $cache = AiClient::getCache();
+@@ -95,6 +96,7 @@
+             return $cache->get($fullKey, $default);
+         }
+         return $this->localCache[$fullKey] ?? $default;
++    	return null;
+     }
+     /**
+      * Sets a value in the cache.
+@@ -106,7 +108,7 @@
+      * @param int|\DateInterval|null $ttl   The TTL for the cache entry, or null for default. Ignored for local cache.
+      * @return bool True on success, false on failure.
+      */
+-    protected function setCache(string $key, $value, $ttl = null): bool
++    protected function setCache(string $key, mixed $value, mixed $ttl = null): bool
+     {
+         $fullKey = $this->buildCacheKey($key);
+         $cache = AiClient::getCache();

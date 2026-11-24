@@ -1,12 +1,656 @@
 --- a/wp-includes/embed.php
 +++ b/wp-includes/embed.php
-@@ -1139,11 +1139,13 @@
- 	if ( is_404() || ! ( get_comments_number() || comments_open() ) ) {
- 		return;
+@@ -22,9 +22,10 @@
+  * @param int      $priority Optional. Used to specify the order in which the registered handlers will
+  *                           be tested. Default 10.
+  */
+-function wp_embed_register_handler( $id, $regex, $callback, $priority = 10 ) {
++function wp_embed_register_handler( mixed $id, mixed $regex, mixed $callback, mixed $priority = 10 ): mixed {
+ 	global $wp_embed;
+ 	$wp_embed->register_handler( $id, $regex, $callback, $priority );
++	return null;
+ }
+ 
+ /**
+@@ -37,9 +38,10 @@
+  * @param string $id       The handler ID that should be removed.
+  * @param int    $priority Optional. The priority of the handler to be removed. Default 10.
+  */
+-function wp_embed_unregister_handler( $id, $priority = 10 ) {
++function wp_embed_unregister_handler( mixed $id, mixed $priority = 10 ): mixed {
+ 	global $wp_embed;
+ 	$wp_embed->unregister_handler( $id, $priority );
++	return null;
+ }
+ 
+ /**
+@@ -64,7 +66,7 @@
+  *     @type int $1 The embed height.
+  * }
+  */
+-function wp_embed_defaults( $url = '' ) {
++function wp_embed_defaults( mixed $url = '' ): mixed {
+ 	if ( ! empty( $GLOBALS['content_width'] ) ) {
+ 		$width = (int) $GLOBALS['content_width'];
  	}
+@@ -88,7 +90,8 @@
+ 	 * }
+ 	 * @param string $url  The URL that should be embedded.
+ 	 */
+-	return apply_filters( 'embed_defaults', compact( 'width', 'height' ), $url );
++	return apply_filters( 'embed_defaults', \wp_aot_compact(get_defined_vars(), array( 'width', 'height' )), $url );
++	return null;
+ }
+ 
+ /**
+@@ -110,9 +113,10 @@
+  * }
+  * @return string|false The embed HTML on success, false on failure.
+  */
+-function wp_oembed_get( $url, $args = '' ) {
++function wp_oembed_get( mixed $url, mixed $args = '' ): mixed {
+ 	$oembed = _wp_oembed_get_object();
+ 	return $oembed->get_html( $url, $args );
++	return null;
+ }
+ 
+ /**
+@@ -123,13 +127,14 @@
+  *
+  * @return WP_oEmbed object.
+  */
+-function _wp_oembed_get_object() {
++function _wp_oembed_get_object(): mixed {
+ 	static $wp_oembed = null;
+ 
+ 	if ( is_null( $wp_oembed ) ) {
+ 		$wp_oembed = new WP_oEmbed();
+ 	}
+ 	return $wp_oembed;
++	return null;
+ }
+ 
+ /**
+@@ -144,13 +149,14 @@
+  * @param string $provider The URL to the oEmbed provider.
+  * @param bool   $regex    Optional. Whether the `$format` parameter is in a RegEx format. Default false.
+  */
+-function wp_oembed_add_provider( $format, $provider, $regex = false ) {
++function wp_oembed_add_provider( mixed $format, mixed $provider, mixed $regex = false ): mixed {
+ 	if ( did_action( 'plugins_loaded' ) ) {
+ 		$oembed                       = _wp_oembed_get_object();
+ 		$oembed->providers[ $format ] = array( $provider, $regex );
+ 	} else {
+ 		WP_oEmbed::_add_provider_early( $format, $provider, $regex );
+ 	}
++	return null;
+ }
+ 
+ /**
+@@ -163,7 +169,7 @@
+  * @param string $format The URL format for the oEmbed provider to remove.
+  * @return bool Was the provider removed successfully?
+  */
+-function wp_oembed_remove_provider( $format ) {
++function wp_oembed_remove_provider( mixed $format ): mixed {
+ 	if ( did_action( 'plugins_loaded' ) ) {
+ 		$oembed = _wp_oembed_get_object();
+ 
+@@ -176,6 +182,7 @@
+ 	}
+ 
+ 	return false;
++	return null;
+ }
+ 
+ /**
+@@ -188,7 +195,7 @@
+  *
+  * @see wp_embed_register_handler()
+  */
+-function wp_maybe_load_embeds() {
++function wp_maybe_load_embeds(): mixed {
+ 	/**
+ 	 * Filters whether to load the default embed handlers.
+ 	 *
+@@ -199,7 +206,7 @@
+ 	 * @param bool $maybe_load_embeds Whether to load the embeds library. Default true.
+ 	 */
+ 	if ( ! apply_filters( 'load_default_embeds', true ) ) {
+-		return;
++		return null;
+ 	}
+ 
+ 	wp_embed_register_handler( 'youtube_embed_url', '#https?://(www\.)?youtube\.com/(?:v|embed)/([^/]+)#i', 'wp_embed_handler_youtube' );
+@@ -221,6 +228,7 @@
+ 	 * @param callable $handler Video embed handler callback function.
+ 	 */
+ 	wp_embed_register_handler( 'video', '#^https?://.+?\.(' . implode( '|', wp_get_video_extensions() ) . ')$#i', apply_filters( 'wp_video_embed_handler', 'wp_embed_handler_video' ), 9999 );
++	return null;
+ }
+ 
+ /**
+@@ -239,7 +247,7 @@
+  * @param array  $rawattr The original unmodified attributes.
+  * @return string The embed HTML.
+  */
+-function wp_embed_handler_youtube( $matches, $attr, $url, $rawattr ) {
++function wp_embed_handler_youtube( mixed $matches, mixed $attr, mixed $url, mixed $rawattr ): mixed {
+ 	global $wp_embed;
+ 	$embed = $wp_embed->autoembed( sprintf( 'https://youtube.com/watch?v=%s', urlencode( $matches[2] ) ) );
+ 
+@@ -256,6 +264,7 @@
+ 	 * @param array  $rawattr The original unmodified attributes.
+ 	 */
+ 	return apply_filters( 'wp_embed_handler_youtube', $embed, $attr, $url, $rawattr );
++	return null;
+ }
+ 
+ /**
+@@ -269,7 +278,7 @@
+  * @param array  $rawattr The original unmodified attributes.
+  * @return string The embed HTML.
+  */
+-function wp_embed_handler_audio( $matches, $attr, $url, $rawattr ) {
++function wp_embed_handler_audio( mixed $matches, mixed $attr, mixed $url, mixed $rawattr ): mixed {
+ 	$audio = sprintf( '[audio src="%s" /]', esc_url( $url ) );
+ 
+ 	/**
+@@ -283,6 +292,7 @@
+ 	 * @param array  $rawattr The original unmodified attributes.
+ 	 */
+ 	return apply_filters( 'wp_embed_handler_audio', $audio, $attr, $url, $rawattr );
++	return null;
+ }
+ 
+ /**
+@@ -296,7 +306,7 @@
+  * @param array  $rawattr The original unmodified attributes.
+  * @return string The embed HTML.
+  */
+-function wp_embed_handler_video( $matches, $attr, $url, $rawattr ) {
++function wp_embed_handler_video( mixed $matches, mixed $attr, mixed $url, mixed $rawattr ): mixed {
+ 	$dimensions = '';
+ 	if ( ! empty( $rawattr['width'] ) && ! empty( $rawattr['height'] ) ) {
+ 		$dimensions .= sprintf( 'width="%d" ', (int) $rawattr['width'] );
+@@ -315,6 +325,7 @@
+ 	 * @param array  $rawattr The original unmodified attributes.
+ 	 */
+ 	return apply_filters( 'wp_embed_handler_video', $video, $attr, $url, $rawattr );
++	return null;
+ }
+ 
+ /**
+@@ -322,9 +333,10 @@
+  *
+  * @since 4.4.0
+  */
+-function wp_oembed_register_route() {
++function wp_oembed_register_route(): mixed {
+ 	$controller = new WP_oEmbed_Controller();
+ 	$controller->register_routes();
++	return null;
+ }
+ 
+ /**
+@@ -334,11 +346,11 @@
+  * @since 6.8.0 Output was adjusted to only embed if the post supports it.
+  * @since 6.9.0 Now runs first at `wp_head` priority 4, with a fallback to priority 10. This helps ensure the discovery links appear within the first 150KB.
+  */
+-function wp_oembed_add_discovery_links() {
++function wp_oembed_add_discovery_links(): mixed {
+ 	if ( doing_action( 'wp_head' ) ) {
+ 		// For back-compat, short-circuit if a plugin has removed the action at the original priority.
+ 		if ( ! has_action( 'wp_head', 'wp_oembed_add_discovery_links', 10 ) ) {
+-			return;
++			return null;
+ 		}
+ 
+ 		// Prevent running again at the original priority.
+@@ -363,6 +375,7 @@
+ 	 * @param string $output HTML of the discovery links.
+ 	 */
+ 	echo apply_filters( 'oembed_discovery_links', $output );
++	return null;
+ }
+ 
+ /**
+@@ -384,7 +397,7 @@
+  * @since 4.4.0
+  * @deprecated 5.9.0 Use {@see wp_maybe_enqueue_oembed_host_js()} instead.
+  */
+-function wp_oembed_add_host_js() {}
++function wp_oembed_add_host_js(): mixed { return null; }
+ 
+ /**
+  * Enqueue the wp-embed script if the provided oEmbed HTML contains a post embed.
+@@ -397,15 +410,16 @@
+  * @param string $html Embed markup.
+  * @return string Embed markup (without modifications).
+  */
+-function wp_maybe_enqueue_oembed_host_js( $html ) {
++function wp_maybe_enqueue_oembed_host_js( mixed $html ): mixed {
+ 	if (
+ 		has_action( 'wp_head', 'wp_oembed_add_host_js' )
+ 		&&
+-		preg_match( '/<blockquote\s[^>]*?wp-embedded-content/', $html )
++		preg_match( '/<blockquote\s[^>]*?wp-embedded-content/', \wp_aot_regex_text( $html ) )
+ 	) {
+ 		wp_enqueue_script( 'wp-embed' );
+ 	}
+ 	return $html;
++	return null;
+ }
+ 
+ /**
+@@ -416,7 +430,7 @@
+  * @param int|WP_Post|null $post Optional. Post ID or object. Defaults to the current post.
+  * @return string|false The post embed URL on success, false if the post doesn't exist.
+  */
+-function get_post_embed_url( $post = null ) {
++function get_post_embed_url( mixed $post = null ): mixed {
+ 	$post = get_post( $post );
+ 
+ 	if ( ! $post ) {
+@@ -424,7 +438,7 @@
+ 	}
+ 
+ 	$embed_url     = trailingslashit( get_permalink( $post ) ) . user_trailingslashit( 'embed' );
+-	$path_conflict = get_page_by_path( str_replace( home_url(), '', $embed_url ), OBJECT, get_post_types( array( 'public' => true ) ) );
++	$path_conflict = get_page_by_path( \wp_aot_str_replace( home_url(), '', $embed_url ), OBJECT, get_post_types( array( 'public' => true ) ) );
+ 
+ 	if ( ! get_option( 'permalink_structure' ) || $path_conflict ) {
+ 		$embed_url = add_query_arg( array( 'embed' => 'true' ), get_permalink( $post ) );
+@@ -439,6 +453,7 @@
+ 	 * @param WP_Post $post      The corresponding post object.
+ 	 */
+ 	return sanitize_url( apply_filters( 'post_embed_url', $embed_url, $post ) );
++	return null;
+ }
+ 
+ /**
+@@ -452,7 +467,7 @@
+  * @param string $format    Optional. The requested response format. Default 'json'.
+  * @return string The oEmbed endpoint URL.
+  */
+-function get_oembed_endpoint_url( $permalink = '', $format = 'json' ) {
++function get_oembed_endpoint_url( mixed $permalink = '', mixed $format = 'json' ): mixed {
+ 	$url = rest_url( 'oembed/1.0/embed' );
+ 
+ 	if ( '' !== $permalink ) {
+@@ -475,6 +490,7 @@
+ 	 * @param string $format    The requested response format.
+ 	 */
+ 	return apply_filters( 'oembed_endpoint_url', $url, $permalink, $format );
++	return null;
+ }
+ 
+ /**
+@@ -487,7 +503,7 @@
+  * @param int|WP_Post|null $post   Optional. Post ID or object. Default is global `$post`.
+  * @return string|false Embed code on success, false if post doesn't exist.
+  */
+-function get_post_embed_html( $width, $height, $post = null ) {
++function get_post_embed_html( mixed $width, mixed $height, mixed $post = null ): mixed {
+ 	$post = get_post( $post );
+ 
+ 	if ( ! $post ) {
+@@ -545,6 +561,7 @@
+ 	 * @param int     $height Height of the response.
+ 	 */
+ 	return apply_filters( 'embed_html', $output, $post, $width, $height );
++	return null;
+ }
+ 
+ /**
+@@ -558,7 +575,7 @@
+  * @return array|false Response data on success, false if post doesn't exist,
+  *                     is not publicly viewable or post type is not embeddable.
+  */
+-function get_oembed_response_data( $post, $width ) {
++function get_oembed_response_data( mixed $post, mixed $width ): mixed {
+ 	$post  = get_post( $post );
+ 	$width = absint( $width );
+ 
+@@ -595,7 +612,7 @@
+ 	);
+ 
+ 	/** @var array{ min: positive-int, max: positive-int } $min_max_width */
+-	$width  = clamp( $width, $min_max_width['min'], $min_max_width['max'] );
++	$width  = \wp_aot_clamp( $width, $min_max_width['min'], $min_max_width['max'] );
+ 	$height = max( (int) ceil( $width / 16 * 9 ), 200 );
+ 
+ 	$data = array(
+@@ -626,6 +643,7 @@
+ 	 * @param int     $height The calculated height.
+ 	 */
+ 	return apply_filters( 'oembed_response_data', $data, $post, $width, $height );
++	return null;
+ }
+ 
+ 
+@@ -638,7 +656,7 @@
+  * @param array  $args oEmbed remote get arguments.
+  * @return object|false oEmbed response data if the URL does belong to the current site. False otherwise.
+  */
+-function get_oembed_response_data_for_url( $url, $args ) {
++function get_oembed_response_data_for_url( mixed $url, mixed $args ): mixed {
+ 	$switched_blog = false;
+ 
+ 	if ( is_multisite() ) {
+@@ -703,6 +721,7 @@
+ 	}
+ 
+ 	return $data ? (object) $data : false;
++	return null;
+ }
+ 
+ 
+@@ -717,7 +736,7 @@
+  * @param int     $height The calculated height.
+  * @return array The modified response data.
+  */
+-function get_oembed_response_data_rich( $data, $post, $width, $height ) {
++function get_oembed_response_data_rich( mixed $data, mixed $post, mixed $width, mixed $height ): mixed {
+ 	$data['width']  = absint( $width );
+ 	$data['height'] = absint( $height );
+ 	$data['type']   = 'rich';
+@@ -750,6 +769,7 @@
+ 	}
+ 
+ 	return $data;
++	return null;
+ }
+ 
+ /**
+@@ -760,12 +780,13 @@
+  * @param string $format The oEmbed response format. Accepts 'json' or 'xml'.
+  * @return string The format, either 'xml' or 'json'. Default 'json'.
+  */
+-function wp_oembed_ensure_format( $format ) {
++function wp_oembed_ensure_format( mixed $format ): mixed {
+ 	if ( ! in_array( $format, array( 'json', 'xml' ), true ) ) {
+ 		return 'json';
+ 	}
+ 
+ 	return $format;
++	return null;
+ }
+ 
+ /**
+@@ -783,7 +804,7 @@
+  * @param WP_REST_Server   $server  Server instance.
+  * @return bool True if the request was served, false otherwise.
+  */
+-function _oembed_rest_pre_serve_request( $served, $result, $request, $server ) {
++function _oembed_rest_pre_serve_request( mixed $served, mixed $result, mixed $request, mixed $server ): mixed {
+ 	$params = $request->get_params();
+ 
+ 	if ( '/oembed/1.0/embed' !== $request->get_route() || 'GET' !== $request->get_method() ) {
+@@ -799,7 +820,7 @@
+ 
+ 	if ( ! class_exists( 'SimpleXMLElement' ) ) {
+ 		status_header( 501 );
+-		die( get_status_header_desc( 501 ) );
++		\wp_aot_exit( get_status_header_desc( 501 ) );
+ 	}
+ 
+ 	$result = _oembed_create_xml( $data );
+@@ -807,16 +828,17 @@
+ 	// Bail if there's no XML.
+ 	if ( ! $result ) {
+ 		status_header( 501 );
+-		die( get_status_header_desc( 501 ) );
+-	}
+-
+-	if ( ! headers_sent() ) {
++		\wp_aot_exit( get_status_header_desc( 501 ) );
++	}
++
++	if ( ! \wp_aot_native_headers_sent() ) {
+ 		$server->send_header( 'Content-Type', 'text/xml; charset=' . get_option( 'blog_charset' ) );
+ 	}
+ 
+ 	echo $result;
+ 
+ 	return true;
++	return null;
+ }
+ 
+ /**
+@@ -829,7 +851,7 @@
+  * @param SimpleXMLElement $node Optional. XML node to append the result to recursively.
+  * @return string|false XML string on success, false on error.
+  */
+-function _oembed_create_xml( $data, $node = null ) {
++function _oembed_create_xml( mixed $data, mixed $node = null ): mixed {
+ 	if ( ! is_array( $data ) || empty( $data ) ) {
+ 		return false;
+ 	}
+@@ -852,6 +874,7 @@
+ 	}
+ 
+ 	return $node->asXML();
++	return null;
+ }
+ 
+ /**
+@@ -864,7 +887,7 @@
+  * @param string       $url    The URL of the content to be embedded.
+  * @return string|false The filtered oEmbed result.
+  */
+-function wp_filter_oembed_iframe_title_attribute( $result, $data, $url ) {
++function wp_filter_oembed_iframe_title_attribute( mixed $result, mixed $data, mixed $url ): mixed {
+ 	if ( false === $result || ! in_array( $data->type, array( 'rich', 'video' ), true ) ) {
+ 		return $result;
+ 	}
+@@ -872,7 +895,7 @@
+ 	$title = ! empty( $data->title ) ? $data->title : '';
+ 
+ 	$pattern = '`<iframe([^>]*)>`i';
+-	if ( preg_match( $pattern, $result, $matches ) ) {
++	if ( preg_match( \wp_aot_regex_text( $pattern ), \wp_aot_regex_text( $result ), $matches ) ) {
+ 		$attrs = wp_kses_hair( $matches[1], wp_allowed_protocols() );
+ 
+ 		foreach ( $attrs as $attr => $item ) {
+@@ -910,9 +933,10 @@
+ 	if ( isset( $attrs['title'] ) ) {
+ 		unset( $attrs['title'] );
+ 		$attr_string = implode( ' ', wp_list_pluck( $attrs, 'whole' ) );
+-		$result      = str_replace( $matches[0], '<iframe ' . trim( $attr_string ) . '>', $result );
++		$result      = \wp_aot_str_replace( $matches[0], '<iframe ' . trim( $attr_string ) . '>', $result );
+ 	}
+ 	return str_ireplace( '<iframe ', sprintf( '<iframe title="%s" ', esc_attr( $title ) ), $result );
++	return null;
+ }
+ 
+ 
+@@ -931,7 +955,7 @@
+  * @param string       $url    The URL of the content to be embedded.
+  * @return string|false The filtered and sanitized oEmbed result.
+  */
+-function wp_filter_oembed_result( $result, $data, $url ) {
++function wp_filter_oembed_result( mixed $result, mixed $data, mixed $url ): mixed {
+ 	if ( false === $result || ! in_array( $data->type, array( 'rich', 'video' ), true ) ) {
+ 		return $result;
+ 	}
+@@ -962,14 +986,14 @@
+ 
+ 	$html = wp_kses( $result, $allowed_html );
+ 
+-	preg_match( '|(<blockquote>.*?</blockquote>)?.*(<iframe.*?></iframe>)|ms', $html, $content );
++	preg_match( '|(<blockquote>.*?</blockquote>)?.*(<iframe.*?></iframe>)|ms', \wp_aot_regex_text( $html ), $content );
+ 	// We require at least the iframe to exist.
+ 	if ( empty( $content[2] ) ) {
+ 		return false;
+ 	}
+ 	$html = $content[1] . $content[2];
+ 
+-	preg_match( '/ src=([\'"])(.*?)\1/', $html, $results );
++	preg_match( '/ src=([\'"])(.*?)\1/', \wp_aot_regex_text( $html ), $results );
+ 
+ 	if ( ! empty( $results ) ) {
+ 		$secret = wp_generate_password( 10, false );
+@@ -977,8 +1001,8 @@
+ 		$url = esc_url( "{$results[2]}#?secret=$secret" );
+ 		$q   = $results[1];
+ 
+-		$html = str_replace( $results[0], ' src=' . $q . $url . $q . ' data-secret=' . $q . $secret . $q, $html );
+-		$html = str_replace( '<blockquote', "<blockquote data-secret=\"$secret\"", $html );
++		$html = \wp_aot_str_replace( $results[0], ' src=' . $q . $url . $q . ' data-secret=' . $q . $secret . $q, $html );
++		$html = \wp_aot_str_replace( '<blockquote', "<blockquote data-secret=\"$secret\"", $html );
+ 	}
+ 
+ 	$allowed_html['blockquote']['data-secret'] = true;
+@@ -988,13 +1012,14 @@
+ 
+ 	if ( ! empty( $content[1] ) ) {
+ 		// We have a blockquote to fall back on. Hide the iframe by default.
+-		$html = str_replace( '<iframe', '<iframe style="position: absolute; visibility: hidden;"', $html );
+-		$html = str_replace( '<blockquote', '<blockquote class="wp-embedded-content"', $html );
++		$html = \wp_aot_str_replace( '<iframe', '<iframe style="position: absolute; visibility: hidden;"', $html );
++		$html = \wp_aot_str_replace( '<blockquote', '<blockquote class="wp-embedded-content"', $html );
+ 	}
+ 
+ 	$html = str_ireplace( '<iframe', '<iframe class="wp-embedded-content" sandbox="allow-scripts" security="restricted"', $html );
+ 
+ 	return $html;
++	return null;
+ }
+ 
+ /**
+@@ -1008,7 +1033,7 @@
+  * @param string $more_string Default 'more' string.
+  * @return string 'Continue reading' link prepended with an ellipsis.
+  */
+-function wp_embed_excerpt_more( $more_string ) {
++function wp_embed_excerpt_more( mixed $more_string ): mixed {
+ 	if ( ! is_embed() ) {
+ 		return $more_string;
+ 	}
+@@ -1020,6 +1045,7 @@
+ 		sprintf( __( 'Continue reading %s' ), '<span class="screen-reader-text">' . get_the_title() . '</span>' )
+ 	);
+ 	return ' &hellip; ' . $link;
++	return null;
+ }
+ 
+ /**
+@@ -1029,7 +1055,7 @@
+  *
+  * @since 4.4.0
+  */
+-function the_excerpt_embed() {
++function the_excerpt_embed(): mixed {
+ 	$output = get_the_excerpt();
+ 
+ 	/**
+@@ -1040,6 +1066,7 @@
+ 	 * @param string $output The current post excerpt.
+ 	 */
+ 	echo apply_filters( 'the_excerpt_embed', $output );
++	return null;
+ }
+ 
+ /**
+@@ -1052,12 +1079,13 @@
+  * @param string $content The current post excerpt.
+  * @return string The modified post excerpt.
+  */
+-function wp_embed_excerpt_attachment( $content ) {
++function wp_embed_excerpt_attachment( mixed $content ): mixed {
+ 	if ( is_attachment() ) {
+ 		return prepend_attachment( '' );
+ 	}
+ 
+ 	return $content;
++	return null;
+ }
+ 
+ /**
+@@ -1070,7 +1098,7 @@
+  *
+  * @since 4.4.0
+  */
+-function enqueue_embed_scripts() {
++function enqueue_embed_scripts(): mixed {
+ 
+ 	/**
+ 	 * Fires when scripts and styles are enqueued for the embed iframe.
+@@ -1078,6 +1106,7 @@
+ 	 * @since 4.4.0
+ 	 */
+ 	do_action( 'enqueue_embed_scripts' );
++	return null;
+ }
+ 
+ /**
+@@ -1085,10 +1114,10 @@
+  *
+  * @since 6.4.0
+  */
+-function wp_enqueue_embed_styles() {
++function wp_enqueue_embed_styles(): mixed {
+ 	// Back-compat for plugins that disable functionality by unhooking this action.
+ 	if ( ! has_action( 'embed_head', 'print_embed_styles' ) ) {
+-		return;
++		return null;
+ 	}
+ 	remove_action( 'embed_head', 'print_embed_styles' );
+ 
+@@ -1097,6 +1126,7 @@
+ 	wp_register_style( $handle, false );
+ 	wp_add_inline_style( $handle, file_get_contents( ABSPATH . WPINC . "/css/wp-embed-template$suffix.css" ) );
+ 	wp_enqueue_style( $handle );
++	return null;
+ }
+ 
+ /**
+@@ -1104,11 +1134,12 @@
+  *
+  * @since 4.4.0
+  */
+-function print_embed_scripts() {
++function print_embed_scripts(): mixed {
+ 	$js_path = '/js/wp-embed-template' . wp_scripts_get_suffix() . '.js';
+ 	wp_print_inline_script_tag(
+ 		trim( file_get_contents( ABSPATH . WPINC . $js_path ) ) . "\n//# sourceURL=" . esc_url_raw( includes_url( $js_path ) )
+ 	);
++	return null;
+ }
+ 
+ /**
+@@ -1120,7 +1151,7 @@
+  * @param string $content The content to filter.
+  * @return string The filtered content.
+  */
+-function _oembed_filter_feed_content( $content ) {
++function _oembed_filter_feed_content( mixed $content ): mixed {
+ 	$p = new WP_HTML_Tag_Processor( $content );
+ 	while ( $p->next_tag( array( 'tag_name' => 'iframe' ) ) ) {
+ 		if ( $p->has_class( 'wp-embedded-content' ) ) {
+@@ -1128,6 +1159,7 @@
+ 		}
+ 	}
+ 	return $p->get_updated_html();
++	return null;
+ }
+ 
+ /**
+@@ -1135,15 +1167,17 @@
+  *
+  * @since 4.4.0
+  */
+-function print_embed_comments_button() {
++function print_embed_comments_button(): mixed {
+ 	if ( is_404() || ! ( get_comments_number() || comments_open() ) ) {
+-		return;
+-	}
 -	?>
 -	<div class="wp-embed-comments">
 -		<a href="<?php comments_link(); ?>" target="_top">
++		return null;
++	}
 +	;
 +echo '	<div class="wp-embed-comments">
 +		<a href="';
@@ -18,7 +662,7 @@
  			printf(
  				/* translators: %s: Number of comments. */
  				_n(
-@@ -1153,10 +1155,10 @@
+@@ -1153,10 +1187,11 @@
  				),
  				number_format_i18n( get_comments_number() )
  			);
@@ -29,16 +673,24 @@
  	</div>
 -	<?php
 +	';
++	return null;
  }
  
  /**
-@@ -1168,13 +1170,15 @@
+@@ -1164,17 +1199,20 @@
+  *
+  * @since 4.4.0
+  */
+-function print_embed_sharing_button() {
++function print_embed_sharing_button(): mixed {
  	if ( is_404() ) {
- 		return;
- 	}
+-		return;
+-	}
 -	?>
 -	<div class="wp-embed-share">
 -		<button type="button" class="wp-embed-share-dialog-open" aria-label="<?php esc_attr_e( 'Open sharing dialog' ); ?>">
++		return null;
++	}
 +	;
 +echo '	<div class="wp-embed-share">
 +		<button type="button" class="wp-embed-share-dialog-open" aria-label="';
@@ -49,10 +701,23 @@
  	</div>
 -	<?php
 +	';
++	return null;
  }
  
  /**
-@@ -1192,40 +1196,74 @@
+@@ -1182,9 +1220,9 @@
+  *
+  * @since 4.4.0
+  */
+-function print_embed_sharing_dialog() {
++function print_embed_sharing_dialog(): mixed {
+ 	if ( is_404() ) {
+-		return;
++		return null;
+ 	}
+ 
+ 	$unique_suffix            = get_the_ID() . '-' . wp_rand();
+@@ -1192,40 +1230,75 @@
  	$share_tab_html_id        = 'wp-embed-share-tab-html-' . $unique_suffix;
  	$description_wordpress_id = 'wp-embed-share-description-wordpress-' . $unique_suffix;
  	$description_html_id      = 'wp-embed-share-description-html-' . $unique_suffix;
@@ -142,6 +807,23 @@
  	</div>
 -	<?php
 +	';
++	return null;
  }
  
  /**
+@@ -1281,7 +1354,7 @@
+  * @return null|string The UNSANITIZED (and potentially unsafe) HTML that should be used to embed.
+  *                     Null if the URL does not belong to the current site.
+  */
+-function wp_filter_pre_oembed_result( $result, $url, $args ) {
++function wp_filter_pre_oembed_result( mixed $result, mixed $url, mixed $args ): mixed {
+ 	$data = get_oembed_response_data_for_url( $url, $args );
+ 
+ 	if ( $data ) {
+@@ -1289,4 +1362,5 @@
+ 	}
+ 
+ 	return $result;
+-}
++	return null;
++}

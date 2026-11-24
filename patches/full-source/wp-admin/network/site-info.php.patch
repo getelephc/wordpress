@@ -1,0 +1,11 @@
+--- a/wp-admin/network/site-info.php
++++ b/wp-admin/network/site-info.php
+@@ -120,7 +120,7 @@
+ 			'site-info.php'
+ 		)
+ 	);
+-	exit;
++	\wp_aot_exit();
+ }
+ 
+ if ( isset( $_GET['update'] ) ) {

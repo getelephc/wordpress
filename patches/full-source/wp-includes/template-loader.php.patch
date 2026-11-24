@@ -1,0 +1,29 @@
+--- a/wp-includes/template-loader.php
++++ b/wp-includes/template-loader.php
+@@ -34,7 +34,7 @@
+  * @param bool $exit Whether to exit without generating any content for 'HEAD' requests. Default true.
+  */
+ if ( 'HEAD' === $_SERVER['REQUEST_METHOD'] && apply_filters( 'exit_on_http_head', true ) ) {
+-	exit;
++	\wp_aot_exit();
+ }
+ 
+ // Process feeds and trackbacks even if not using themes.
+@@ -58,7 +58,7 @@
+ 	do_feed();
+ 	return;
+ } elseif ( is_trackback() ) {
+-	require ABSPATH . 'wp-trackback.php';
++	require_once ABSPATH . 'wp-trackback.php';
+ 	return;
+ }
+ 
+@@ -112,7 +112,7 @@
+ 	 * @param string $template The path of the template to include.
+ 	 */
+ 	$template   = apply_filters( 'template_include', $template );
+-	$is_stringy = is_string( $template ) || ( is_object( $template ) && method_exists( $template, '__toString' ) );
++	$is_stringy = is_string( $template ) || ( is_object( $template ) && ($template instanceof \Stringable) );
+ 	$template   = $is_stringy ? realpath( (string) $template ) : null;
+ 	if (
+ 		is_string( $template ) &&

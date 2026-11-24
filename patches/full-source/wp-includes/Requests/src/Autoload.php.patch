@@ -1,78 +1,138 @@
 --- a/wp-includes/Requests/src/Autoload.php
 +++ b/wp-includes/Requests/src/Autoload.php
-@@ -147,7 +147,74 @@
+@@ -18,7 +18,7 @@
+  * and this file being required unconditionally could easily cause
+  * fatal "Class already declared" errors.
+  */
+-if (class_exists('WpOrg\Requests\Autoload') === false) {
++// The finite source manifest loads this canonical class through require_once.
+ 
+ 	/**
+ 	 * Autoloader for Requests for PHP.
+@@ -114,11 +114,12 @@
+ 		 *
+ 		 * @return void
+ 		 */
+-		public static function register() {
++		public static function register(): mixed {
+ 			if (defined('REQUESTS_AUTOLOAD_REGISTERED') === false) {
+ 				spl_autoload_register([self::class, 'load'], true);
+ 				define('REQUESTS_AUTOLOAD_REGISTERED', true);
+ 			}
++			return null;
+ 		}
+ 
+ 		/**
+@@ -128,7 +129,7 @@
+ 		 *
+ 		 * @return bool Whether a class was loaded or not.
+ 		 */
+-		public static function load($class_name) {
++		public static function load(mixed $class_name): mixed {
+ 			// Check that the class starts with "Requests" (PSR-0) or "WpOrg\Requests" (PSR-4).
+ 			$psr_4_prefix_pos = strpos($class_name, 'WpOrg\\Requests\\');
+ 
+@@ -143,11 +144,78 @@
+ 				$file = dirname(__DIR__) . '/library/Requests.php';
+ 			} elseif ($psr_4_prefix_pos === 0) {
+ 				// PSR-4 classname.
+-				$file = __DIR__ . '/' . strtr(substr($class_name, 15), '\\', '/') . '.php';
++				$file = __DIR__ . '/' . \wp_aot_strtr(substr($class_name, 15), '\\', '/') . '.php';
  			}
  
  			if (isset($file) && file_exists($file)) {
 -				include $file;
 +				switch ( $file ) {
-+					case __DIR__ . '/Auth/Basic.php': include __DIR__ . '/Auth/Basic.php'; break;
-+					case __DIR__ . '/Auth.php': include __DIR__ . '/Auth.php'; break;
++					case __DIR__ . '/Auth/Basic.php': include_once __DIR__ . '/Auth/Basic.php'; break;
++					case __DIR__ . '/Auth.php': include_once __DIR__ . '/Auth.php'; break;
 +					case __DIR__ . '/Autoload.php': break;
-+					case __DIR__ . '/Capability.php': include __DIR__ . '/Capability.php'; break;
-+					case __DIR__ . '/Cookie/Jar.php': include __DIR__ . '/Cookie/Jar.php'; break;
-+					case __DIR__ . '/Cookie.php': include __DIR__ . '/Cookie.php'; break;
-+					case __DIR__ . '/Exception/ArgumentCount.php': include __DIR__ . '/Exception/ArgumentCount.php'; break;
-+					case __DIR__ . '/Exception/Http/Status304.php': include __DIR__ . '/Exception/Http/Status304.php'; break;
-+					case __DIR__ . '/Exception/Http/Status305.php': include __DIR__ . '/Exception/Http/Status305.php'; break;
-+					case __DIR__ . '/Exception/Http/Status306.php': include __DIR__ . '/Exception/Http/Status306.php'; break;
-+					case __DIR__ . '/Exception/Http/Status400.php': include __DIR__ . '/Exception/Http/Status400.php'; break;
-+					case __DIR__ . '/Exception/Http/Status401.php': include __DIR__ . '/Exception/Http/Status401.php'; break;
-+					case __DIR__ . '/Exception/Http/Status402.php': include __DIR__ . '/Exception/Http/Status402.php'; break;
-+					case __DIR__ . '/Exception/Http/Status403.php': include __DIR__ . '/Exception/Http/Status403.php'; break;
-+					case __DIR__ . '/Exception/Http/Status404.php': include __DIR__ . '/Exception/Http/Status404.php'; break;
-+					case __DIR__ . '/Exception/Http/Status405.php': include __DIR__ . '/Exception/Http/Status405.php'; break;
-+					case __DIR__ . '/Exception/Http/Status406.php': include __DIR__ . '/Exception/Http/Status406.php'; break;
-+					case __DIR__ . '/Exception/Http/Status407.php': include __DIR__ . '/Exception/Http/Status407.php'; break;
-+					case __DIR__ . '/Exception/Http/Status408.php': include __DIR__ . '/Exception/Http/Status408.php'; break;
-+					case __DIR__ . '/Exception/Http/Status409.php': include __DIR__ . '/Exception/Http/Status409.php'; break;
-+					case __DIR__ . '/Exception/Http/Status410.php': include __DIR__ . '/Exception/Http/Status410.php'; break;
-+					case __DIR__ . '/Exception/Http/Status411.php': include __DIR__ . '/Exception/Http/Status411.php'; break;
-+					case __DIR__ . '/Exception/Http/Status412.php': include __DIR__ . '/Exception/Http/Status412.php'; break;
-+					case __DIR__ . '/Exception/Http/Status413.php': include __DIR__ . '/Exception/Http/Status413.php'; break;
-+					case __DIR__ . '/Exception/Http/Status414.php': include __DIR__ . '/Exception/Http/Status414.php'; break;
-+					case __DIR__ . '/Exception/Http/Status415.php': include __DIR__ . '/Exception/Http/Status415.php'; break;
-+					case __DIR__ . '/Exception/Http/Status416.php': include __DIR__ . '/Exception/Http/Status416.php'; break;
-+					case __DIR__ . '/Exception/Http/Status417.php': include __DIR__ . '/Exception/Http/Status417.php'; break;
-+					case __DIR__ . '/Exception/Http/Status418.php': include __DIR__ . '/Exception/Http/Status418.php'; break;
-+					case __DIR__ . '/Exception/Http/Status428.php': include __DIR__ . '/Exception/Http/Status428.php'; break;
-+					case __DIR__ . '/Exception/Http/Status429.php': include __DIR__ . '/Exception/Http/Status429.php'; break;
-+					case __DIR__ . '/Exception/Http/Status431.php': include __DIR__ . '/Exception/Http/Status431.php'; break;
-+					case __DIR__ . '/Exception/Http/Status500.php': include __DIR__ . '/Exception/Http/Status500.php'; break;
-+					case __DIR__ . '/Exception/Http/Status501.php': include __DIR__ . '/Exception/Http/Status501.php'; break;
-+					case __DIR__ . '/Exception/Http/Status502.php': include __DIR__ . '/Exception/Http/Status502.php'; break;
-+					case __DIR__ . '/Exception/Http/Status503.php': include __DIR__ . '/Exception/Http/Status503.php'; break;
-+					case __DIR__ . '/Exception/Http/Status504.php': include __DIR__ . '/Exception/Http/Status504.php'; break;
-+					case __DIR__ . '/Exception/Http/Status505.php': include __DIR__ . '/Exception/Http/Status505.php'; break;
-+					case __DIR__ . '/Exception/Http/Status511.php': include __DIR__ . '/Exception/Http/Status511.php'; break;
-+					case __DIR__ . '/Exception/Http/StatusUnknown.php': include __DIR__ . '/Exception/Http/StatusUnknown.php'; break;
-+					case __DIR__ . '/Exception/Http.php': include __DIR__ . '/Exception/Http.php'; break;
-+					case __DIR__ . '/Exception/InvalidArgument.php': include __DIR__ . '/Exception/InvalidArgument.php'; break;
-+					case __DIR__ . '/Exception/Transport/Curl.php': include __DIR__ . '/Exception/Transport/Curl.php'; break;
-+					case __DIR__ . '/Exception/Transport.php': include __DIR__ . '/Exception/Transport.php'; break;
-+					case __DIR__ . '/Exception.php': include __DIR__ . '/Exception.php'; break;
-+					case __DIR__ . '/HookManager.php': include __DIR__ . '/HookManager.php'; break;
-+					case __DIR__ . '/Hooks.php': include __DIR__ . '/Hooks.php'; break;
-+					case __DIR__ . '/IdnaEncoder.php': include __DIR__ . '/IdnaEncoder.php'; break;
-+					case __DIR__ . '/Ipv6.php': include __DIR__ . '/Ipv6.php'; break;
-+					case __DIR__ . '/Iri.php': include __DIR__ . '/Iri.php'; break;
-+					case __DIR__ . '/Port.php': include __DIR__ . '/Port.php'; break;
-+					case __DIR__ . '/Proxy/Http.php': include __DIR__ . '/Proxy/Http.php'; break;
-+					case __DIR__ . '/Proxy.php': include __DIR__ . '/Proxy.php'; break;
-+					case __DIR__ . '/Requests.php': include __DIR__ . '/Requests.php'; break;
-+					case __DIR__ . '/Response/Headers.php': include __DIR__ . '/Response/Headers.php'; break;
-+					case __DIR__ . '/Response.php': include __DIR__ . '/Response.php'; break;
-+					case __DIR__ . '/Session.php': include __DIR__ . '/Session.php'; break;
-+					case __DIR__ . '/Ssl.php': include __DIR__ . '/Ssl.php'; break;
-+					case __DIR__ . '/Transport/Curl.php': include __DIR__ . '/Transport/Curl.php'; break;
-+					case __DIR__ . '/Transport/Fsockopen.php': include __DIR__ . '/Transport/Fsockopen.php'; break;
-+					case __DIR__ . '/Transport.php': include __DIR__ . '/Transport.php'; break;
-+					case __DIR__ . '/Utility/CaseInsensitiveDictionary.php': include __DIR__ . '/Utility/CaseInsensitiveDictionary.php'; break;
-+					case __DIR__ . '/Utility/FilteredIterator.php': include __DIR__ . '/Utility/FilteredIterator.php'; break;
-+					case __DIR__ . '/Utility/InputValidator.php': include __DIR__ . '/Utility/InputValidator.php'; break;
-+					case ABSPATH . WPINC . '/Requests/library/Requests.php': include ABSPATH . WPINC . '/Requests/library/Requests.php'; break;
++					case __DIR__ . '/Capability.php': include_once __DIR__ . '/Capability.php'; break;
++					case __DIR__ . '/Cookie/Jar.php': include_once __DIR__ . '/Cookie/Jar.php'; break;
++					case __DIR__ . '/Cookie.php': include_once __DIR__ . '/Cookie.php'; break;
++					case __DIR__ . '/Exception/ArgumentCount.php': include_once __DIR__ . '/Exception/ArgumentCount.php'; break;
++					case __DIR__ . '/Exception/Http/Status304.php': include_once __DIR__ . '/Exception/Http/Status304.php'; break;
++					case __DIR__ . '/Exception/Http/Status305.php': include_once __DIR__ . '/Exception/Http/Status305.php'; break;
++					case __DIR__ . '/Exception/Http/Status306.php': include_once __DIR__ . '/Exception/Http/Status306.php'; break;
++					case __DIR__ . '/Exception/Http/Status400.php': include_once __DIR__ . '/Exception/Http/Status400.php'; break;
++					case __DIR__ . '/Exception/Http/Status401.php': include_once __DIR__ . '/Exception/Http/Status401.php'; break;
++					case __DIR__ . '/Exception/Http/Status402.php': include_once __DIR__ . '/Exception/Http/Status402.php'; break;
++					case __DIR__ . '/Exception/Http/Status403.php': include_once __DIR__ . '/Exception/Http/Status403.php'; break;
++					case __DIR__ . '/Exception/Http/Status404.php': include_once __DIR__ . '/Exception/Http/Status404.php'; break;
++					case __DIR__ . '/Exception/Http/Status405.php': include_once __DIR__ . '/Exception/Http/Status405.php'; break;
++					case __DIR__ . '/Exception/Http/Status406.php': include_once __DIR__ . '/Exception/Http/Status406.php'; break;
++					case __DIR__ . '/Exception/Http/Status407.php': include_once __DIR__ . '/Exception/Http/Status407.php'; break;
++					case __DIR__ . '/Exception/Http/Status408.php': include_once __DIR__ . '/Exception/Http/Status408.php'; break;
++					case __DIR__ . '/Exception/Http/Status409.php': include_once __DIR__ . '/Exception/Http/Status409.php'; break;
++					case __DIR__ . '/Exception/Http/Status410.php': include_once __DIR__ . '/Exception/Http/Status410.php'; break;
++					case __DIR__ . '/Exception/Http/Status411.php': include_once __DIR__ . '/Exception/Http/Status411.php'; break;
++					case __DIR__ . '/Exception/Http/Status412.php': include_once __DIR__ . '/Exception/Http/Status412.php'; break;
++					case __DIR__ . '/Exception/Http/Status413.php': include_once __DIR__ . '/Exception/Http/Status413.php'; break;
++					case __DIR__ . '/Exception/Http/Status414.php': include_once __DIR__ . '/Exception/Http/Status414.php'; break;
++					case __DIR__ . '/Exception/Http/Status415.php': include_once __DIR__ . '/Exception/Http/Status415.php'; break;
++					case __DIR__ . '/Exception/Http/Status416.php': include_once __DIR__ . '/Exception/Http/Status416.php'; break;
++					case __DIR__ . '/Exception/Http/Status417.php': include_once __DIR__ . '/Exception/Http/Status417.php'; break;
++					case __DIR__ . '/Exception/Http/Status418.php': include_once __DIR__ . '/Exception/Http/Status418.php'; break;
++					case __DIR__ . '/Exception/Http/Status428.php': include_once __DIR__ . '/Exception/Http/Status428.php'; break;
++					case __DIR__ . '/Exception/Http/Status429.php': include_once __DIR__ . '/Exception/Http/Status429.php'; break;
++					case __DIR__ . '/Exception/Http/Status431.php': include_once __DIR__ . '/Exception/Http/Status431.php'; break;
++					case __DIR__ . '/Exception/Http/Status500.php': include_once __DIR__ . '/Exception/Http/Status500.php'; break;
++					case __DIR__ . '/Exception/Http/Status501.php': include_once __DIR__ . '/Exception/Http/Status501.php'; break;
++					case __DIR__ . '/Exception/Http/Status502.php': include_once __DIR__ . '/Exception/Http/Status502.php'; break;
++					case __DIR__ . '/Exception/Http/Status503.php': include_once __DIR__ . '/Exception/Http/Status503.php'; break;
++					case __DIR__ . '/Exception/Http/Status504.php': include_once __DIR__ . '/Exception/Http/Status504.php'; break;
++					case __DIR__ . '/Exception/Http/Status505.php': include_once __DIR__ . '/Exception/Http/Status505.php'; break;
++					case __DIR__ . '/Exception/Http/Status511.php': include_once __DIR__ . '/Exception/Http/Status511.php'; break;
++					case __DIR__ . '/Exception/Http/StatusUnknown.php': include_once __DIR__ . '/Exception/Http/StatusUnknown.php'; break;
++					case __DIR__ . '/Exception/Http.php': include_once __DIR__ . '/Exception/Http.php'; break;
++					case __DIR__ . '/Exception/InvalidArgument.php': include_once __DIR__ . '/Exception/InvalidArgument.php'; break;
++					case __DIR__ . '/Exception/Transport/Curl.php': include_once __DIR__ . '/Exception/Transport/Curl.php'; break;
++					case __DIR__ . '/Exception/Transport.php': include_once __DIR__ . '/Exception/Transport.php'; break;
++					case __DIR__ . '/Exception.php': include_once __DIR__ . '/Exception.php'; break;
++					case __DIR__ . '/HookManager.php': include_once __DIR__ . '/HookManager.php'; break;
++					case __DIR__ . '/Hooks.php': include_once __DIR__ . '/Hooks.php'; break;
++					case __DIR__ . '/IdnaEncoder.php': include_once __DIR__ . '/IdnaEncoder.php'; break;
++					case __DIR__ . '/Ipv6.php': include_once __DIR__ . '/Ipv6.php'; break;
++					case __DIR__ . '/Iri.php': include_once __DIR__ . '/Iri.php'; break;
++					case __DIR__ . '/Port.php': include_once __DIR__ . '/Port.php'; break;
++					case __DIR__ . '/Proxy/Http.php': include_once __DIR__ . '/Proxy/Http.php'; break;
++					case __DIR__ . '/Proxy.php': include_once __DIR__ . '/Proxy.php'; break;
++					case __DIR__ . '/Requests.php': include_once __DIR__ . '/Requests.php'; break;
++					case __DIR__ . '/Response/Headers.php': include_once __DIR__ . '/Response/Headers.php'; break;
++					case __DIR__ . '/Response.php': include_once __DIR__ . '/Response.php'; break;
++					case __DIR__ . '/Session.php': include_once __DIR__ . '/Session.php'; break;
++					case __DIR__ . '/Ssl.php': include_once __DIR__ . '/Ssl.php'; break;
++					case __DIR__ . '/Transport/Curl.php': include_once __DIR__ . '/Transport/Curl.php'; break;
++					case __DIR__ . '/Transport/Fsockopen.php': include_once __DIR__ . '/Transport/Fsockopen.php'; break;
++					case __DIR__ . '/Transport.php': include_once __DIR__ . '/Transport.php'; break;
++					case __DIR__ . '/Utility/CaseInsensitiveDictionary.php': include_once __DIR__ . '/Utility/CaseInsensitiveDictionary.php'; break;
++					case __DIR__ . '/Utility/FilteredIterator.php': include_once __DIR__ . '/Utility/FilteredIterator.php'; break;
++					case __DIR__ . '/Utility/InputValidator.php': include_once __DIR__ . '/Utility/InputValidator.php'; break;
++					case \ABSPATH . \WPINC . '/Requests/library/Requests.php': include_once \ABSPATH . \WPINC . '/Requests/library/Requests.php'; break;
 +					default: throw new \RuntimeException( 'Requests class is outside the pinned source manifest.' );
 +				}
  				return true;
  			}
  
+@@ -163,7 +231,7 @@
+ 				 * The constant needs to be defined before the first deprecated class is requested
+ 				 * via this autoloader.
+ 				 */
+-				if (!defined('REQUESTS_SILENCE_PSR0_DEPRECATIONS') || REQUESTS_SILENCE_PSR0_DEPRECATIONS !== true) {
++				if (!defined('REQUESTS_SILENCE_PSR0_DEPRECATIONS') || \wp_aot_metadata_constant('REQUESTS_SILENCE_PSR0_DEPRECATIONS') !== true) {
+ 					// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_trigger_error
+ 					trigger_error(
+ 						'The PSR-0 `Requests_...` class names in the Requests library are deprecated.'
+@@ -178,10 +246,11 @@
+ 				}
+ 
+ 				// Create an alias and let the autoloader recursively kick in to load the PSR-4 class.
+-				return class_alias(self::$deprecated_classes[$class_lower], $class_name, true);
++				return \wp_aot_native_api('class_alias', array(self::$deprecated_classes[$class_lower], $class_name, true));
+ 			}
+ 
+ 			return false;
++			return null;
+ 		}
+ 	}
+-}
++

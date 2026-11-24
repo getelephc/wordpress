@@ -1,6 +1,650 @@
 --- a/wp-admin/includes/post.php
 +++ b/wp-admin/includes/post.php
-@@ -1851,11 +1851,13 @@
+@@ -18,7 +18,7 @@
+  *                              Defaults to the `$_POST` superglobal.
+  * @return array|WP_Error Array of post data on success, WP_Error on failure.
+  */
+-function _wp_translate_postdata( $update = false, $post_data = null ) {
++function _wp_translate_postdata( mixed $update = false, mixed $post_data = null ): mixed {
+ 
+ 	if ( empty( $post_data ) ) {
+ 		$post_data = &$_POST;
+@@ -188,10 +188,10 @@
+ 		$hh = $post_data['hh'];
+ 		$mn = $post_data['mn'];
+ 		$ss = $post_data['ss'];
+-		$aa = ( $aa <= 0 ) ? gmdate( 'Y' ) : $aa;
+-		$mm = ( $mm <= 0 ) ? gmdate( 'n' ) : $mm;
++		$aa = ( $aa <= 0 ) ? \wp_aot_gmdate( 'Y' ) : $aa;
++		$mm = ( $mm <= 0 ) ? \wp_aot_gmdate( 'n' ) : $mm;
+ 		$jj = ( $jj > 31 ) ? 31 : $jj;
+-		$jj = ( $jj <= 0 ) ? gmdate( 'j' ) : $jj;
++		$jj = ( $jj <= 0 ) ? \wp_aot_gmdate( 'j' ) : $jj;
+ 		$hh = ( $hh > 23 ) ? $hh - 24 : $hh;
+ 		$mn = ( $mn > 59 ) ? $mn - 60 : $mn;
+ 		$ss = ( $ss > 59 ) ? $ss - 60 : $ss;
+@@ -226,6 +226,7 @@
+ 	}
+ 
+ 	return $post_data;
++	return null;
+ }
+ 
+ /**
+@@ -237,7 +238,7 @@
+  *                                       Defaults to the `$_POST` superglobal.
+  * @return array|WP_Error Array of post data on success, WP_Error on failure.
+  */
+-function _wp_get_allowed_postdata( $post_data = null ) {
++function _wp_get_allowed_postdata( mixed $post_data = null ): mixed {
+ 	if ( empty( $post_data ) ) {
+ 		$post_data = $_POST;
+ 	}
+@@ -247,7 +248,8 @@
+ 		return $post_data;
+ 	}
+ 
+-	return array_diff_key( $post_data, array_flip( array( 'meta_input', 'file', 'guid' ) ) );
++	return \wp_aot_array_diff_key(array( $post_data, \wp_aot_array_flip( array( 'meta_input', 'file', 'guid' ) ) ));
++	return null;
+ }
+ 
+ /**
+@@ -266,7 +268,7 @@
+  *                              Defaults to the `$_POST` superglobal.
+  * @return int Post ID.
+  */
+-function edit_post( $post_data = null ) {
++function edit_post( mixed $post_data = null ): mixed {
+ 	global $wpdb;
+ 
+ 	if ( empty( $post_data ) ) {
+@@ -363,7 +365,7 @@
+ 		}
+ 	}
+ 
+-	if ( 'attachment' === $post_data['post_type'] && preg_match( '#^(audio|video)/#', $post_data['post_mime_type'] ) ) {
++	if ( 'attachment' === $post_data['post_type'] && preg_match( '#^(audio|video)/#', \wp_aot_regex_text( $post_data['post_mime_type'] ) ) ) {
+ 		$id3data = wp_get_attachment_metadata( $post_id );
+ 		if ( ! is_array( $id3data ) ) {
+ 			$id3data = array();
+@@ -468,7 +470,7 @@
+ 
+ 		foreach ( $fields as $field ) {
+ 			if ( isset( $translated[ $field ] ) ) {
+-				$translated[ $field ] = $wpdb->strip_invalid_text_for_column( $wpdb->posts, $field, $translated[ $field ] );
++				$translated[ $field ] = \wp_aot_require_wpdb( $wpdb )->strip_invalid_text_for_column( $wpdb->posts, $field, $translated[ $field ] );
+ 			}
+ 		}
+ 
+@@ -489,6 +491,7 @@
+ 	}
+ 
+ 	return $post_id;
++	return null;
+ }
+ 
+ /**
+@@ -511,7 +514,7 @@
+  *     @type int[] $locked  An array of locked post IDs.
+  * }
+  */
+-function bulk_edit_posts( $post_data = null ) {
++function bulk_edit_posts( mixed $post_data = null ): mixed {
+ 	global $wpdb;
+ 
+ 	if ( empty( $post_data ) ) {
+@@ -548,7 +551,7 @@
+ 		}
+ 	}
+ 
+-	$post_ids = array_map( 'intval', (array) $post_data['post'] );
++	$post_ids = \wp_aot_array_map( 'intval', (array) $post_data['post'] );
+ 
+ 	$reset = array(
+ 		'post_author',
+@@ -573,7 +576,7 @@
+ 
+ 	if ( isset( $post_data['post_category'] ) ) {
+ 		if ( is_array( $post_data['post_category'] ) && ! empty( $post_data['post_category'] ) ) {
+-			$new_cats = array_map( 'absint', $post_data['post_category'] );
++			$new_cats = \wp_aot_array_map( 'absint', $post_data['post_category'] );
+ 		} else {
+ 			unset( $post_data['post_category'] );
+ 		}
+@@ -587,11 +590,11 @@
+ 			}
+ 
+ 			if ( is_taxonomy_hierarchical( $tax_name ) ) {
+-				$tax_input[ $tax_name ] = array_map( 'absint', $terms );
++				$tax_input[ $tax_name ] = \wp_aot_array_map( 'absint', $terms );
+ 			} else {
+ 				$comma = _x( ',', 'tag delimiter' );
+ 				if ( ',' !== $comma ) {
+-					$terms = str_replace( $comma, ',', $terms );
++					$terms = \wp_aot_str_replace( $comma, ',', $terms );
+ 				}
+ 				$tax_input[ $tax_name ] = explode( ',', trim( $terms, " \n\t\r\0\x0B," ) );
+ 			}
+@@ -600,7 +603,7 @@
+ 
+ 	if ( isset( $post_data['post_parent'] ) && (int) $post_data['post_parent'] ) {
+ 		$parent   = (int) $post_data['post_parent'];
+-		$pages    = $wpdb->get_results( "SELECT ID, post_parent FROM $wpdb->posts WHERE post_type = 'page'" );
++		$pages    = \wp_aot_require_wpdb( $wpdb )->get_results( "SELECT ID, post_parent FROM $wpdb->posts WHERE post_type = 'page'" );
+ 		$children = array();
+ 
+ 		for ( $i = 0; $i < 50 && $parent > 0; $i++ ) {
+@@ -661,7 +664,7 @@
+ 				$current_terms = (array) wp_get_object_terms( $post_id, $tax_name, array( 'fields' => 'names' ) );
+ 			}
+ 
+-			$post_data['tax_input'][ $tax_name ] = array_merge( $current_terms, $new_terms );
++			$post_data['tax_input'][ $tax_name ] = \wp_aot_array_merge(array( $current_terms, $new_terms ));
+ 		}
+ 
+ 		if ( isset( $new_cats ) && in_array( 'category', $tax_names, true ) ) {
+@@ -676,9 +679,9 @@
+ 				$indeterminate_post_category = array();
+ 			}
+ 
+-			$indeterminate_cats         = array_intersect( $cats, $indeterminate_post_category );
+-			$determinate_cats           = array_diff( $new_cats, $indeterminate_post_category );
+-			$post_data['post_category'] = array_unique( array_merge( $indeterminate_cats, $determinate_cats ) );
++			$indeterminate_cats         = \wp_aot_array_intersect(array( $cats, $indeterminate_post_category ));
++			$determinate_cats           = \wp_aot_array_diff(array( $new_cats, $indeterminate_post_category ));
++			$post_data['post_category'] = \wp_aot_array_unique( \wp_aot_array_merge(array( $indeterminate_cats, $determinate_cats )) );
+ 
+ 			unset( $post_data['tax_input']['category'] );
+ 		}
+@@ -744,6 +747,7 @@
+ 		'skipped' => $skipped,
+ 		'locked'  => $locked,
+ 	);
++	return null;
+ }
+ 
+ /**
+@@ -755,7 +759,7 @@
+  * @param bool   $create_in_db Optional. Whether to insert the post into database. Default false.
+  * @return WP_Post Post object containing all the default post data as attributes
+  */
+-function get_default_post_to_edit( $post_type = 'post', $create_in_db = false ) {
++function get_default_post_to_edit( mixed $post_type = 'post', mixed $create_in_db = false ): mixed {
+ 	$post_title = '';
+ 	if ( ! empty( $_REQUEST['post_title'] ) ) {
+ 		$post_title = esc_html( wp_unslash( $_REQUEST['post_title'] ) );
+@@ -851,6 +855,7 @@
+ 	$post->post_excerpt = (string) apply_filters( 'default_excerpt', $post_excerpt, $post );
+ 
+ 	return $post;
++	return null;
+ }
+ 
+ /**
+@@ -869,7 +874,7 @@
+  * @param string $status  Optional. Post status.
+  * @return int Post ID if post exists, 0 otherwise.
+  */
+-function post_exists( $title, $content = '', $date = '', $type = '', $status = '' ) {
++function post_exists( mixed $title, mixed $content = '', mixed $date = '', mixed $type = '', mixed $status = '' ): mixed {
+ 	global $wpdb;
+ 
+ 	$post_title   = wp_unslash( sanitize_post_field( 'post_title', $title, 0, 'db' ) );
+@@ -907,10 +912,11 @@
+ 	}
+ 
+ 	if ( ! empty( $args ) ) {
+-		return (int) $wpdb->get_var( $wpdb->prepare( $query, $args ) );
++		return (int) \wp_aot_require_wpdb( $wpdb )->get_var( \wp_aot_require_wpdb( $wpdb )->prepare( $query, $args ) );
+ 	}
+ 
+ 	return 0;
++	return null;
+ }
+ 
+ /**
+@@ -922,7 +928,7 @@
+  *
+  * @return int|WP_Error Post ID on success, WP_Error on failure.
+  */
+-function wp_write_post() {
++function wp_write_post(): mixed {
+ 	if ( isset( $_POST['post_type'] ) ) {
+ 		$ptype = get_post_type_object( $_POST['post_type'] );
+ 	} else {
+@@ -989,6 +995,7 @@
+ 	wp_set_post_lock( $post_id );
+ 
+ 	return $post_id;
++	return null;
+ }
+ 
+ /**
+@@ -998,13 +1005,14 @@
+  *
+  * @return int Post ID on success. Dies on failure.
+  */
+-function write_post() {
++function write_post(): mixed {
+ 	$result = wp_write_post();
+ 	if ( is_wp_error( $result ) ) {
+ 		wp_die( $result->get_error_message() );
+ 	}
+ 
+ 	return $result;
++	return null;
+ }
+ 
+ //
+@@ -1019,7 +1027,7 @@
+  * @param int $post_id
+  * @return int|bool
+  */
+-function add_meta( $post_id ) {
++function add_meta( mixed $post_id ): mixed {
+ 	$post_id = (int) $post_id;
+ 
+ 	$metakeyselect = isset( $_POST['metakeyselect'] ) ? wp_unslash( trim( $_POST['metakeyselect'] ) ) : '';
+@@ -1052,6 +1060,7 @@
+ 	}
+ 
+ 	return false;
++	return null;
+ }
+ 
+ /**
+@@ -1062,8 +1071,9 @@
+  * @param int $mid
+  * @return bool
+  */
+-function delete_meta( $mid ) {
++function delete_meta( mixed $mid ): mixed {
+ 	return delete_metadata_by_mid( 'post', $mid );
++	return null;
+ }
+ 
+ /**
+@@ -1075,10 +1085,10 @@
+  *
+  * @return string[] Array of meta key names.
+  */
+-function get_meta_keys() {
++function get_meta_keys(): mixed {
+ 	global $wpdb;
+ 
+-	$keys = $wpdb->get_col(
++	$keys = \wp_aot_require_wpdb( $wpdb )->get_col(
+ 		"SELECT meta_key
+ 		FROM $wpdb->postmeta
+ 		GROUP BY meta_key
+@@ -1086,6 +1096,7 @@
+ 	);
+ 
+ 	return $keys;
++	return null;
+ }
+ 
+ /**
+@@ -1096,8 +1107,9 @@
+  * @param int $mid
+  * @return object|bool
+  */
+-function get_post_meta_by_id( $mid ) {
++function get_post_meta_by_id( mixed $mid ): mixed {
+ 	return get_metadata_by_mid( 'post', $mid );
++	return null;
+ }
+ 
+ /**
+@@ -1121,11 +1133,11 @@
+  *     }
+  * }
+  */
+-function has_meta( $post_id ) {
++function has_meta( mixed $post_id ): mixed {
+ 	global $wpdb;
+ 
+-	return $wpdb->get_results(
+-		$wpdb->prepare(
++	return \wp_aot_require_wpdb( $wpdb )->get_results(
++		\wp_aot_require_wpdb( $wpdb )->prepare(
+ 			"SELECT meta_key, meta_value, meta_id, post_id
+ 			FROM $wpdb->postmeta WHERE post_id = %d
+ 			ORDER BY meta_key,meta_id",
+@@ -1133,6 +1145,7 @@
+ 		),
+ 		ARRAY_A
+ 	);
++	return null;
+ }
+ 
+ /**
+@@ -1145,11 +1158,12 @@
+  * @param string $meta_value Meta value. Expect slashed.
+  * @return bool
+  */
+-function update_meta( $meta_id, $meta_key, $meta_value ) {
++function update_meta( mixed $meta_id, mixed $meta_key, mixed $meta_value ): mixed {
+ 	$meta_key   = wp_unslash( $meta_key );
+ 	$meta_value = wp_unslash( $meta_value );
+ 
+ 	return update_metadata_by_mid( 'post', $meta_id, $meta_value, $meta_key );
++	return null;
+ }
+ 
+ //
+@@ -1165,43 +1179,43 @@
+  * @param int|WP_Post $post Post ID or post object.
+  * @return void|int|WP_Error Void if nothing fixed. 0 or WP_Error on update failure. The post ID on update success.
+  */
+-function _fix_attachment_links( $post ) {
++function _fix_attachment_links( mixed $post ): mixed {
+ 	$post    = get_post( $post, ARRAY_A );
+ 	$content = $post['post_content'];
+ 
+ 	// Don't run if no pretty permalinks or post is not published, scheduled, or privately published.
+ 	if ( ! get_option( 'permalink_structure' ) || ! in_array( $post['post_status'], array( 'publish', 'future', 'private' ), true ) ) {
+-		return;
++		return null;
+ 	}
+ 
+ 	// Short if there aren't any links or no '?attachment_id=' strings (strpos cannot be zero).
+-	if ( ! strpos( $content, '?attachment_id=' ) || ! preg_match_all( '/<a ([^>]+)>[\s\S]+?<\/a>/', $content, $link_matches ) ) {
+-		return;
++	if ( ! strpos( $content, '?attachment_id=' ) || ! preg_match_all( '/<a ([^>]+)>[\s\S]+?<\/a>/', \wp_aot_regex_text( $content ), $link_matches ) ) {
++		return null;
+ 	}
+ 
+ 	$site_url = get_bloginfo( 'url' );
+ 	$site_url = substr( $site_url, (int) strpos( $site_url, '://' ) ); // Remove the http(s).
+ 	$replace  = '';
+ 
+-	foreach ( $link_matches[1] as $key => $value ) {
++	foreach ( \wp_aot_mixed($link_matches)[1] as $key => $value ) {
+ 		if ( ! strpos( $value, '?attachment_id=' ) || ! strpos( $value, 'wp-att-' )
+-			|| ! preg_match( '/href=(["\'])[^"\']*\?attachment_id=(\d+)[^"\']*\\1/', $value, $url_match )
+-			|| ! preg_match( '/rel=["\'][^"\']*wp-att-(\d+)/', $value, $rel_match ) ) {
++			|| ! preg_match( '/href=(["\'])[^"\']*\?attachment_id=(\d+)[^"\']*\\1/', \wp_aot_regex_text( $value ), $url_match )
++			|| ! preg_match( '/rel=["\'][^"\']*wp-att-(\d+)/', \wp_aot_regex_text( $value ), $rel_match ) ) {
+ 				continue;
+ 		}
+ 
+-		$quote  = $url_match[1]; // The quote (single or double).
+-		$url_id = (int) $url_match[2];
+-		$rel_id = (int) $rel_match[1];
+-
+-		if ( ! $url_id || ! $rel_id || $url_id !== $rel_id || ! str_contains( $url_match[0], $site_url ) ) {
++		$quote  = \wp_aot_mixed($url_match)[1]; // The quote (single or double).
++		$url_id = (int) \wp_aot_mixed($url_match)[2];
++		$rel_id = (int) \wp_aot_mixed($rel_match)[1];
++
++		if ( ! $url_id || ! $rel_id || $url_id !== $rel_id || ! str_contains( \wp_aot_mixed($url_match)[0], $site_url ) ) {
+ 			continue;
+ 		}
+ 
+-		$link    = $link_matches[0][ $key ];
+-		$replace = str_replace( $url_match[0], 'href=' . $quote . get_attachment_link( $url_id ) . $quote, $link );
+-
+-		$content = str_replace( $link, $replace, $content );
++		$link    = \wp_aot_mixed($link_matches)[0][ $key ];
++		$replace = \wp_aot_str_replace( \wp_aot_mixed($url_match)[0], 'href=' . $quote . get_attachment_link( $url_id ) . $quote, $link );
++
++		$content = \wp_aot_str_replace( $link, $replace, $content );
+ 	}
+ 
+ 	if ( $replace ) {
+@@ -1211,6 +1225,7 @@
+ 
+ 		return wp_update_post( $post );
+ 	}
++	return null;
+ }
+ 
+ /**
+@@ -1221,10 +1236,11 @@
+  * @param string $type The post_type you want the statuses for. Default 'post'.
+  * @return string[] An array of all the statuses for the supplied post type.
+  */
+-function get_available_post_statuses( $type = 'post' ) {
++function get_available_post_statuses( mixed $type = 'post' ): mixed {
+ 	$statuses = wp_count_posts( $type );
+ 
+ 	return array_keys( get_object_vars( $statuses ) );
++	return null;
+ }
+ 
+ /**
+@@ -1236,7 +1252,7 @@
+  *                       Defaults to the `$_GET` superglobal.
+  * @return string[] An array of all the statuses for the queried post type.
+  */
+-function wp_edit_posts_query( $q = false ) {
++function wp_edit_posts_query( mixed $q = false ): mixed {
+ 	if ( false === $q ) {
+ 		$q = $_GET;
+ 	}
+@@ -1311,7 +1327,7 @@
+ 	 */
+ 	$posts_per_page = apply_filters( 'edit_posts_per_page', $posts_per_page, $post_type );
+ 
+-	$query = compact( 'post_type', 'post_status', 'perm', 'order', 'orderby', 'posts_per_page' );
++	$query = \wp_aot_compact(get_defined_vars(), array( 'post_type', 'post_status', 'perm', 'order', 'orderby', 'posts_per_page' ));
+ 
+ 	// Hierarchical types require special args.
+ 	if ( is_post_type_hierarchical( $post_type ) && empty( $orderby ) ) {
+@@ -1329,6 +1345,7 @@
+ 	wp( $query );
+ 
+ 	return $avail_post_stati;
++	return null;
+ }
+ 
+ /**
+@@ -1340,7 +1357,7 @@
+  *                       Defaults to the `$_GET` superglobal.
+  * @return array The parsed query vars.
+  */
+-function wp_edit_attachments_query_vars( $q = false ) {
++function wp_edit_attachments_query_vars( mixed $q = false ): mixed {
+ 	if ( false === $q ) {
+ 		$q = $_GET;
+ 	}
+@@ -1371,7 +1388,7 @@
+ 	$q['posts_per_page'] = apply_filters( 'upload_per_page', $media_per_page );
+ 
+ 	$post_mime_types = get_post_mime_types();
+-	if ( isset( $q['post_mime_type'] ) && ! array_intersect( (array) $q['post_mime_type'], array_keys( $post_mime_types ) ) ) {
++	if ( isset( $q['post_mime_type'] ) && ! \wp_aot_array_intersect(array( (array) $q['post_mime_type'], array_keys( $post_mime_types ) )) ) {
+ 		unset( $q['post_mime_type'] );
+ 	}
+ 
+@@ -1396,6 +1413,7 @@
+ 	}
+ 
+ 	return $q;
++	return null;
+ }
+ 
+ /**
+@@ -1413,13 +1431,14 @@
+  *     @type string[] $avail_post_mime_types Available post mime types.
+  * }
+  */
+-function wp_edit_attachments_query( $q = false ) {
++function wp_edit_attachments_query( mixed $q = false ): mixed {
+ 	wp( wp_edit_attachments_query_vars( $q ) );
+ 
+ 	$post_mime_types       = get_post_mime_types();
+ 	$avail_post_mime_types = get_available_post_mime_types( 'attachment' );
+ 
+ 	return array( $post_mime_types, $avail_post_mime_types );
++	return null;
+ }
+ 
+ /**
+@@ -1431,7 +1450,7 @@
+  * @param string $screen_id The screen on which the meta box is shown.
+  * @return string Space-separated string of class names.
+  */
+-function postbox_classes( $box_id, $screen_id ) {
++function postbox_classes( mixed $box_id, mixed $screen_id ): mixed {
+ 	if ( isset( $_GET['edit'] ) && $_GET['edit'] === $box_id ) {
+ 		$classes = array( '' );
+ 	} elseif ( get_user_option( 'closedpostboxes_' . $screen_id ) ) {
+@@ -1458,6 +1477,7 @@
+ 	$classes = apply_filters( "postbox_classes_{$screen_id}_{$box_id}", $classes );
+ 
+ 	return implode( ' ', $classes );
++	return null;
+ }
+ 
+ /**
+@@ -1476,7 +1496,7 @@
+  *     @type string $1 The post name.
+  * }
+  */
+-function get_sample_permalink( $post, $title = null, $name = null ) {
++function get_sample_permalink( mixed $post, mixed $title = null, mixed $name = null ): mixed {
+ 	$post = get_post( $post );
+ 
+ 	if ( ! $post ) {
+@@ -1511,7 +1531,7 @@
+ 	$permalink = get_permalink( $post, true );
+ 
+ 	// Replace custom post_type token with generic pagename token for ease of use.
+-	$permalink = str_replace( "%$post->post_type%", '%pagename%', $permalink );
++	$permalink = \wp_aot_str_replace( "%$post->post_type%", '%pagename%', $permalink );
+ 
+ 	// Handle page hierarchy.
+ 	if ( $ptype->hierarchical ) {
+@@ -1527,7 +1547,7 @@
+ 		if ( ! empty( $uri ) ) {
+ 			$uri .= '/';
+ 		}
+-		$permalink = str_replace( '%pagename%', "{$uri}%pagename%", $permalink );
++		$permalink = \wp_aot_str_replace( '%pagename%', "{$uri}%pagename%", $permalink );
+ 	}
+ 
+ 	/** This filter is documented in wp-admin/edit-tag-form.php */
+@@ -1554,6 +1574,7 @@
+ 	 * @param WP_Post $post    Post object.
+ 	 */
+ 	return apply_filters( 'get_sample_permalink', $permalink, $post->ID, $title, $name, $post );
++	return null;
+ }
+ 
+ /**
+@@ -1566,7 +1587,7 @@
+  * @param string|null $new_slug  Optional. New slug. Default null.
+  * @return string The HTML of the sample permalink slug editor.
+  */
+-function get_sample_permalink_html( $post, $new_title = null, $new_slug = null ) {
++function get_sample_permalink_html( mixed $post, mixed $new_title = null, mixed $new_slug = null ): mixed {
+ 	$post = get_post( $post );
+ 
+ 	if ( ! $post ) {
+@@ -1587,7 +1608,7 @@
+ 				$view_link = get_permalink( $post );
+ 			} else {
+ 				// Allow non-published (private, future) to be viewed at a pretty permalink, in case $post->post_name is set.
+-				$view_link = str_replace( array( '%pagename%', '%postname%' ), $post->post_name, $permalink );
++				$view_link = \wp_aot_str_replace( array( '%pagename%', '%postname%' ), $post->post_name, $permalink );
+ 			}
+ 		}
+ 	}
+@@ -1617,7 +1638,7 @@
+ 		}
+ 
+ 		$post_name_html = '<span id="editable-post-name">' . esc_html( $post_name_abridged ) . '</span>';
+-		$display_link   = str_replace( array( '%pagename%', '%postname%' ), $post_name_html, esc_html( urldecode( $permalink ) ) );
++		$display_link   = \wp_aot_str_replace( array( '%pagename%', '%postname%' ), $post_name_html, esc_html( urldecode( $permalink ) ) );
+ 
+ 		$return  = '<strong>' . __( 'Permalink:' ) . "</strong>\n";
+ 		$return .= '<span id="sample-permalink"><a href="' . esc_url( $view_link ) . '"' . $preview_target . '>' . $display_link . "</a></span>\n";
+@@ -1641,6 +1662,7 @@
+ 	$return = apply_filters( 'get_sample_permalink_html', $return, $post->ID, $new_title, $new_slug, $post );
+ 
+ 	return $return;
++	return null;
+ }
+ 
+ /**
+@@ -1653,7 +1675,7 @@
+  *                                       with the thumbnail. Defaults to global $post.
+  * @return string The post thumbnail HTML.
+  */
+-function _wp_post_thumbnail_html( $thumbnail_id = null, $post = null ) {
++function _wp_post_thumbnail_html( mixed $thumbnail_id = null, mixed $post = null ): mixed {
+ 	$_wp_additional_image_sizes = wp_get_additional_image_sizes();
+ 
+ 	$post               = get_post( $post );
+@@ -1715,6 +1737,7 @@
+ 	 * @param int|null $thumbnail_id Thumbnail attachment ID, or null if there isn't one.
+ 	 */
+ 	return apply_filters( 'admin_post_thumbnail_html', $content, $post->ID, $thumbnail_id );
++	return null;
+ }
+ 
+ /**
+@@ -1726,7 +1749,7 @@
+  * @return int|false ID of the user with lock. False if the post does not exist, post is not locked,
+  *                   the user with lock does not exist, or the post is locked by current user.
+  */
+-function wp_check_post_lock( $post ) {
++function wp_check_post_lock( mixed $post ): mixed {
+ 	$post = get_post( $post );
+ 
+ 	if ( ! $post ) {
+@@ -1755,6 +1778,7 @@
+ 	}
+ 
+ 	return false;
++	return null;
+ }
+ 
+ /**
+@@ -1771,7 +1795,7 @@
+  *     @type int $1 The ID of the current user.
+  * }
+  */
+-function wp_set_post_lock( $post ) {
++function wp_set_post_lock( mixed $post ): mixed {
+ 	$post = get_post( $post );
+ 
+ 	if ( ! $post ) {
+@@ -1790,6 +1814,7 @@
+ 	update_post_meta( $post->ID, '_edit_lock', $lock );
+ 
+ 	return array( $now, $user_id );
++	return null;
+ }
+ 
+ /**
+@@ -1797,11 +1822,11 @@
+  *
+  * @since 2.8.5
+  */
+-function _admin_notice_post_locked() {
++function _admin_notice_post_locked(): mixed {
+ 	$post = get_post();
+ 
+ 	if ( ! $post ) {
+-		return;
++		return null;
+ 	}
+ 
+ 	$user    = null;
+@@ -1824,7 +1849,7 @@
+ 		 * @param WP_User $user    The user with the lock for the post.
+ 		 */
+ 		if ( ! apply_filters( 'show_post_locked_dialog', true, $post, $user ) ) {
+-			return;
++			return null;
+ 		}
+ 
+ 		$locked = true;
+@@ -1851,11 +1876,13 @@
  
  	$hidden = $locked ? '' : ' hidden';
  
@@ -17,7 +661,7 @@
  
  	if ( $locked ) {
  		$query_args = array();
-@@ -1885,11 +1887,13 @@
+@@ -1885,11 +1912,13 @@
  		$override = apply_filters( 'override_post_lock', true, $post, $user );
  		$tab_last = $override ? '' : ' wp-tab-last';
  
@@ -35,7 +679,7 @@
  		if ( $override ) {
  			/* translators: %s: User's display name. */
  			printf( __( '%s is currently editing this post. Do you want to take over?' ), esc_html( $user->display_name ) );
-@@ -1897,9 +1901,9 @@
+@@ -1897,9 +1926,9 @@
  			/* translators: %s: User's display name. */
  			printf( __( '%s is currently editing this post.' ), esc_html( $user->display_name ) );
  		}
@@ -48,7 +692,7 @@
  		/**
  		 * Fires inside the post locked dialog before the buttons are displayed.
  		 *
-@@ -1910,35 +1914,56 @@
+@@ -1910,35 +1939,56 @@
  		 * @param WP_User $user The user with the lock for the post.
  		 */
  		do_action( 'post_locked_dialog', $post, $user );
@@ -124,7 +768,7 @@
  			/**
  			 * Fires inside the dialog displayed when a user has lost the post lock.
  			 *
-@@ -1947,16 +1972,20 @@
+@@ -1947,16 +1997,21 @@
  			 * @param WP_Post $post Post object.
  			 */
  			do_action( 'post_lock_lost_dialog', $post );
@@ -150,10 +794,173 @@
 -	</div>
 -	<?php
 +	';
++	return null;
  }
  
  /**
-@@ -2390,30 +2419,38 @@
+@@ -1968,7 +2023,7 @@
+  *                             If a numeric post ID is provided, will use the `$_POST` superglobal.
+  * @return int|WP_Error The autosave revision ID. WP_Error or 0 on error.
+  */
+-function wp_create_post_autosave( $post_data ) {
++function wp_create_post_autosave( mixed $post_data ): mixed {
+ 	if ( is_numeric( $post_data ) ) {
+ 		$post_id   = $post_data;
+ 		$post_data = $_POST;
+@@ -1994,8 +2049,8 @@
+ 		$post = get_post( $post_id );
+ 
+ 		// If the new autosave has the same content as the post, delete the autosave.
+-		$fields                = array_intersect( array_keys( $new_autosave ), array_keys( _wp_post_revision_fields( $post ) ) );
+-		$autosave_is_different = array_any( $fields, fn( $field ) => normalize_whitespace( $new_autosave[ $field ] ) !== normalize_whitespace( $post->$field ) );
++		$fields                = \wp_aot_array_intersect(array( array_keys( $new_autosave ), array_keys( _wp_post_revision_fields( $post ) ) ));
++		$autosave_is_different = array_any( $fields, fn( mixed $field ) => normalize_whitespace( $new_autosave[ $field ] ) !== normalize_whitespace( $post->$field ) );
+ 
+ 		if ( ! $autosave_is_different ) {
+ 			wp_delete_post_revision( $old_autosave->ID );
+@@ -2028,6 +2083,7 @@
+ 	}
+ 
+ 	return $revision;
++	return null;
+ }
+ 
+ /**
+@@ -2040,7 +2096,7 @@
+  *
+  * @param array $new_autosave The new post data being autosaved.
+  */
+-function wp_autosave_post_revisioned_meta_fields( $new_autosave ) {
++function wp_autosave_post_revisioned_meta_fields( mixed $new_autosave ): mixed {
+ 	/*
+ 	 * The post data arrives as either $_POST['data']['wp_autosave'] or the $_POST
+ 	 * itself. This sets $posted_data to the correct variable.
+@@ -2076,6 +2132,7 @@
+ 			}
+ 		}
+ 	}
++	return null;
+ }
+ 
+ /**
+@@ -2085,7 +2142,7 @@
+  *
+  * @return string URL to redirect to show the preview.
+  */
+-function post_preview() {
++function post_preview(): mixed {
+ 
+ 	$post_id     = (int) $_POST['post_ID'];
+ 	$_POST['ID'] = $post_id;
+@@ -2136,6 +2193,7 @@
+ 	}
+ 
+ 	return get_preview_post_link( $post, $query_args );
++	return null;
+ }
+ 
+ /**
+@@ -2149,7 +2207,7 @@
+  * @return mixed The value 0 or WP_Error on failure. The saved post ID on success.
+  *               The ID can be the draft post_id or the autosave revision post_id.
+  */
+-function wp_autosave( $post_data ) {
++function wp_autosave( mixed $post_data ): mixed {
+ 	// Back-compat.
+ 	if ( ! defined( 'DOING_AUTOSAVE' ) ) {
+ 		define( 'DOING_AUTOSAVE', true );
+@@ -2189,6 +2247,7 @@
+ 		 */
+ 		return wp_create_post_autosave( wp_slash( $post_data ) );
+ 	}
++	return null;
+ }
+ 
+ /**
+@@ -2199,7 +2258,7 @@
+  * @param int $post_id Optional. Post ID.
+  * @return never
+  */
+-function redirect_post( $post_id = 0 ) {
++function redirect_post( mixed $post_id = 0 ): mixed {
+ 	if ( isset( $_POST['save'] ) || isset( $_POST['publish'] ) ) {
+ 		$status = get_post_status( $post_id );
+ 
+@@ -2240,7 +2299,8 @@
+ 	 * @param int    $post_id  The post ID.
+ 	 */
+ 	wp_redirect( apply_filters( 'redirect_post_location', $location, $post_id ) );
+-	exit;
++	\wp_aot_exit();
++	return null;
+ }
+ 
+ /**
+@@ -2252,8 +2312,9 @@
+  * @param array  $terms    Raw term data from the 'tax_input' field.
+  * @return int[] Array of sanitized term IDs.
+  */
+-function taxonomy_meta_box_sanitize_cb_checkboxes( $taxonomy, $terms ) {
+-	return array_map( 'intval', $terms );
++function taxonomy_meta_box_sanitize_cb_checkboxes( mixed $taxonomy, mixed $terms ): mixed {
++	return \wp_aot_array_map( 'intval', $terms );
++	return null;
+ }
+ 
+ /**
+@@ -2265,7 +2326,7 @@
+  * @param array|string $terms    Raw term data from the 'tax_input' field.
+  * @return array
+  */
+-function taxonomy_meta_box_sanitize_cb_input( $taxonomy, $terms ) {
++function taxonomy_meta_box_sanitize_cb_input( mixed $taxonomy, mixed $terms ): mixed {
+ 	/*
+ 	 * Assume that a 'tax_input' string is a comma-separated list of term names.
+ 	 * Some languages may use a character other than a comma as a delimiter, so we standardize on
+@@ -2274,7 +2335,7 @@
+ 	if ( ! is_array( $terms ) ) {
+ 		$comma = _x( ',', 'tag delimiter' );
+ 		if ( ',' !== $comma ) {
+-			$terms = str_replace( $comma, ',', $terms );
++			$terms = \wp_aot_str_replace( $comma, ',', $terms );
+ 		}
+ 		$terms = explode( ',', trim( $terms, " \n\t\r\0\x0B," ) );
+ 	}
+@@ -2304,6 +2365,7 @@
+ 	}
+ 
+ 	return $clean_terms;
++	return null;
+ }
+ 
+ /**
+@@ -2318,7 +2380,7 @@
+  *
+  * @return array An associative array of registered block data.
+  */
+-function get_block_editor_server_block_settings() {
++function get_block_editor_server_block_settings(): mixed {
+ 	$block_registry = WP_Block_Type_Registry::get_instance();
+ 	$blocks         = array();
+ 	$fields_to_pick = array(
+@@ -2358,6 +2420,7 @@
+ 	}
+ 
+ 	return $blocks;
++	return null;
+ }
+ 
+ /**
+@@ -2369,7 +2432,7 @@
+  * @global WP_Screen $current_screen WordPress current screen object.
+  * @global array     $wp_meta_boxes  Global meta box state.
+  */
+-function the_block_editor_meta_boxes() {
++function the_block_editor_meta_boxes(): mixed {
+ 	global $post, $current_screen, $wp_meta_boxes;
+ 
+ 	// Handle meta box state.
+@@ -2390,30 +2453,38 @@
  	$priorities    = array( 'high', 'sorted', 'core', 'default', 'low' );
  
  	// Render meta boxes.
@@ -206,7 +1013,29 @@
  
  	$meta_boxes_per_location = array();
  	foreach ( $locations as $location ) {
-@@ -2584,15 +2621,27 @@
+@@ -2539,6 +2610,7 @@
+ 
+ 	// Reset meta box data.
+ 	$wp_meta_boxes = $_original_meta_boxes;
++	return null;
+ }
+ 
+ /**
+@@ -2548,7 +2620,7 @@
+  *
+  * @param WP_Post $post Current post object.
+  */
+-function the_block_editor_meta_box_post_form_hidden_fields( $post ) {
++function the_block_editor_meta_box_post_form_hidden_fields( mixed $post ): mixed {
+ 	$form_extra = '';
+ 	if ( 'auto-draft' === $post->post_status ) {
+ 		$form_extra .= "<input type='hidden' id='auto_draft' name='auto_draft' value='1' />";
+@@ -2580,19 +2652,31 @@
+ 			continue;
+ 		}
+ 
+-		if ( preg_match( '/\stype=[\'"]hidden[\'"]\s/', $element ) ) {
++		if ( preg_match( '/\stype=[\'"]hidden[\'"]\s/', \wp_aot_regex_text( $element ) ) ) {
  			echo $element;
  		}
  	}
@@ -243,3 +1072,59 @@
  	if ( 'draft' !== get_post_status( $post ) ) {
  		wp_original_referer_field( true, 'previous' );
  	}
+@@ -2613,6 +2697,7 @@
+ 	 * @param WP_Post $post The post that is being edited.
+ 	 */
+ 	do_action( 'block_editor_meta_box_hidden_fields', $post );
++	return null;
+ }
+ 
+ /**
+@@ -2625,12 +2710,13 @@
+  * @param string $post_type Post type.
+  * @return bool Whether the block editor should be disabled or not.
+  */
+-function _disable_block_editor_for_navigation_post_type( $value, $post_type ) {
++function _disable_block_editor_for_navigation_post_type( mixed $value, mixed $post_type ): mixed {
+ 	if ( 'wp_navigation' === $post_type ) {
+ 		return false;
+ 	}
+ 
+ 	return $value;
++	return null;
+ }
+ 
+ /**
+@@ -2644,13 +2730,14 @@
+  *
+  * @param WP_Post $post An instance of WP_Post class.
+  */
+-function _disable_content_editor_for_navigation_post_type( $post ) {
++function _disable_content_editor_for_navigation_post_type( mixed $post ): mixed {
+ 	$post_type = get_post_type( $post );
+ 	if ( 'wp_navigation' !== $post_type ) {
+-		return;
++		return null;
+ 	}
+ 
+ 	remove_post_type_support( $post_type, 'editor' );
++	return null;
+ }
+ 
+ /**
+@@ -2665,11 +2752,12 @@
+  *
+  * @param WP_Post $post An instance of WP_Post class.
+  */
+-function _enable_content_editor_for_navigation_post_type( $post ) {
++function _enable_content_editor_for_navigation_post_type( mixed $post ): mixed {
+ 	$post_type = get_post_type( $post );
+ 	if ( 'wp_navigation' !== $post_type ) {
+-		return;
++		return null;
+ 	}
+ 
+ 	add_post_type_support( $post_type, 'editor' );
+-}
++	return null;
++}

@@ -1,0 +1,50 @@
+--- a/wp-includes/rest-api/search/class-wp-rest-post-format-search-handler.php
++++ b/wp-includes/rest-api/search/class-wp-rest-post-format-search-handler.php
+@@ -38,7 +38,7 @@
+ 	 *     @type int      $total Total count for the matching search results.
+ 	 * }
+ 	 */
+-	public function search_items( WP_REST_Request $request ) {
++	public function search_items( WP_REST_Request $request ): mixed {
+ 		$format_strings = get_post_format_strings();
+ 		$format_slugs   = array_keys( $format_strings );
+ 
+@@ -81,9 +81,10 @@
+ 		$per_page = (int) $request['per_page'];
+ 
+ 		return array(
+-			self::RESULT_IDS   => array_slice( $found_ids, ( $page - 1 ) * $per_page, $per_page ),
++			self::RESULT_IDS   => \wp_aot_array_slice( $found_ids, ( $page - 1 ) * $per_page, $per_page ),
+ 			self::RESULT_TOTAL => count( $found_ids ),
+ 		);
++		return null;
+ 	}
+ 
+ 	/**
+@@ -102,7 +103,7 @@
+ 	 *     @type string $type  Optional. String 'post-format'.
+ 	 * }
+ 	 */
+-	public function prepare_item( $id, array $fields ) {
++	public function prepare_item( mixed $id, array $fields ): mixed {
+ 		$data = array();
+ 
+ 		if ( in_array( WP_REST_Search_Controller::PROP_ID, $fields, true ) ) {
+@@ -122,6 +123,7 @@
+ 		}
+ 
+ 		return $data;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -132,7 +134,8 @@
+ 	 * @param string $id Item ID, the post format slug.
+ 	 * @return array Links for the given item.
+ 	 */
+-	public function prepare_item_links( $id ) {
++	public function prepare_item_links( mixed $id ): mixed {
+ 		return array();
++		return null;
+ 	}
+ }

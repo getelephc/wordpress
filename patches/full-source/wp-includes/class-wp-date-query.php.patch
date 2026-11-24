@@ -1,0 +1,413 @@
+--- a/wp-includes/class-wp-date-query.php
++++ b/wp-includes/class-wp-date-query.php
+@@ -144,7 +144,7 @@
+ 	 *                               and the {@see 'date_query_valid_columns'} filter for the list of accepted values.
+ 	 *                               Default 'post_date'.
+ 	 */
+-	public function __construct( $date_query, $default_column = 'post_date' ) {
++	public function __construct( mixed $date_query, mixed $default_column = 'post_date' ) {
+ 		if ( empty( $date_query ) || ! is_array( $date_query ) ) {
+ 			return;
+ 		}
+@@ -185,7 +185,7 @@
+ 	 * @param array $parent_query
+ 	 * @return array Sanitized queries.
+ 	 */
+-	public function sanitize_query( $queries, $parent_query = null ) {
++	public function sanitize_query( mixed $queries, mixed $parent_query = null ): mixed {
+ 		$cleaned_query = array();
+ 
+ 		$defaults = array(
+@@ -229,6 +229,7 @@
+ 		}
+ 
+ 		return $cleaned_query;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -242,9 +243,10 @@
+ 	 * @param array $query Query clause.
+ 	 * @return bool True if this is a first-order clause.
+ 	 */
+-	protected function is_first_order_clause( $query ) {
+-		$time_keys = array_intersect( $this->time_keys, array_keys( $query ) );
++	protected function is_first_order_clause( mixed $query ): mixed {
++		$time_keys = \wp_aot_array_intersect(array( $this->time_keys, array_keys( $query ) ));
+ 		return ! empty( $time_keys );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -255,7 +257,7 @@
+ 	 * @param array $query A date query or a date subquery.
+ 	 * @return string The comparison operator.
+ 	 */
+-	public function get_compare( $query ) {
++	public function get_compare( mixed $query ): mixed {
+ 		if ( ! empty( $query['compare'] )
+ 			&& in_array( $query['compare'], array( '=', '!=', '>', '>=', '<', '<=', 'IN', 'NOT IN', 'BETWEEN', 'NOT BETWEEN' ), true )
+ 		) {
+@@ -263,6 +265,7 @@
+ 		}
+ 
+ 		return $this->compare;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -277,7 +280,7 @@
+ 	 * @param array $date_query The date_query array.
+ 	 * @return bool True if all values in the query are valid, false if one or more fail.
+ 	 */
+-	public function validate_date_values( $date_query = array() ) {
++	public function validate_date_values( mixed $date_query = array() ): mixed {
+ 		if ( empty( $date_query ) ) {
+ 			return false;
+ 		}
+@@ -307,12 +310,12 @@
+ 			 * If multiple years are provided (as in a BETWEEN), use the first one.
+ 			 */
+ 			if ( is_array( $date_query['year'] ) ) {
+-				$_year = reset( $date_query['year'] );
++				$_year = wp_aot_array_first( $date_query['year'] );
+ 			} else {
+ 				$_year = $date_query['year'];
+ 			}
+ 
+-			$max_days_of_year = (int) gmdate( 'z', mktime( 0, 0, 0, 12, 31, $_year ) ) + 1;
++			$max_days_of_year = (int) \wp_aot_gmdate( 'z', mktime( 0, 0, 0, 12, 31, \wp_aot_calendar_component( $_year ) ) ) + 1;
+ 		} else {
+ 			// Otherwise we use the max of 366 (leap-year).
+ 			$max_days_of_year = 366;
+@@ -347,7 +350,7 @@
+ 			 * If we have a specific year, use it to calculate number of weeks.
+ 			 * Note: the number of weeks in a year is the date in which Dec 28 appears.
+ 			 */
+-			$week_count = gmdate( 'W', mktime( 0, 0, 0, 12, 28, $_year ) );
++			$week_count = \wp_aot_mixed(\wp_aot_gmdate( 'W', mktime( 0, 0, 0, 12, 28, \wp_aot_calendar_component( $_year ) ) ));
+ 
+ 		} else {
+ 			// Otherwise set the week-count to a maximum of 53.
+@@ -456,6 +459,7 @@
+ 		}
+ 
+ 		return $valid;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -473,10 +477,10 @@
+ 	 * @param string $column The user-supplied column name.
+ 	 * @return string A validated column name value.
+ 	 */
+-	public function validate_column( $column ) {
++	public function validate_column( mixed $column ): mixed {
+ 		global $wpdb;
+ 
+-		$valid_columns = array(
++		$valid_columns = \wp_aot_mixed(array(
+ 			'post_date',         // Part of $wpdb->posts.
+ 			'post_date_gmt',     // Part of $wpdb->posts.
+ 			'post_modified',     // Part of $wpdb->posts.
+@@ -484,16 +488,16 @@
+ 			'comment_date',      // Part of $wpdb->comments.
+ 			'comment_date_gmt',  // Part of $wpdb->comments.
+ 			'user_registered',   // Part of $wpdb->users.
+-		);
++		));
+ 
+ 		if ( is_multisite() ) {
+-			$valid_columns = array_merge(
++			$valid_columns = \wp_aot_array_merge(array(
+ 				$valid_columns,
+ 				array(
+ 					'registered',   // Part of $wpdb->blogs.
+ 					'last_updated', // Part of $wpdb->blogs.
+ 				)
+-			);
++			));
+ 		}
+ 
+ 		// Attempt to detect a table prefix.
+@@ -547,7 +551,8 @@
+ 		}
+ 
+ 		// Remove unsafe characters.
+-		return preg_replace( '/[^a-zA-Z0-9_$\.]/', '', $column );
++		return \wp_aot_preg_replace( '/[^a-zA-Z0-9_$\.]/', '', $column );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -557,7 +562,7 @@
+ 	 *
+ 	 * @return string MySQL WHERE clause.
+ 	 */
+-	public function get_sql() {
++	public function get_sql(): mixed {
+ 		$sql = $this->get_sql_clauses();
+ 
+ 		$where = $sql['where'];
+@@ -571,6 +576,7 @@
+ 		 * @param WP_Date_Query $query The WP_Date_Query instance.
+ 		 */
+ 		return apply_filters( 'get_date_sql', $where, $this );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -588,7 +594,7 @@
+ 	 *     @type string $where SQL fragment to append to the main WHERE clause.
+ 	 * }
+ 	 */
+-	protected function get_sql_clauses() {
++	protected function get_sql_clauses(): mixed {
+ 		$sql = $this->get_sql_for_query( $this->queries );
+ 
+ 		if ( ! empty( $sql['where'] ) ) {
+@@ -596,6 +602,7 @@
+ 		}
+ 
+ 		return $sql;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -616,7 +623,7 @@
+ 	 *     @type string $where SQL fragment to append to the main WHERE clause.
+ 	 * }
+ 	 */
+-	protected function get_sql_for_query( $query, $depth = 0 ) {
++	protected function get_sql_for_query( mixed $query, mixed $depth = 0 ): mixed {
+ 		$sql_chunks = array(
+ 			'join'  => array(),
+ 			'where' => array(),
+@@ -650,7 +657,7 @@
+ 						$sql_chunks['where'][] = '( ' . implode( ' AND ', $clause_sql['where'] ) . ' )';
+ 					}
+ 
+-					$sql_chunks['join'] = array_merge( $sql_chunks['join'], $clause_sql['join'] );
++					$sql_chunks['join'] = \wp_aot_array_merge(array( $sql_chunks['join'], $clause_sql['join'] ));
+ 					// This is a subquery, so we recurse.
+ 				} else {
+ 					$clause_sql = $this->get_sql_for_query( $clause, $depth + 1 );
+@@ -662,8 +669,8 @@
+ 		}
+ 
+ 		// Filter to remove empties.
+-		$sql_chunks['join']  = array_filter( $sql_chunks['join'] );
+-		$sql_chunks['where'] = array_filter( $sql_chunks['where'] );
++		$sql_chunks['join']  = \wp_aot_array_filter( $sql_chunks['join'] );
++		$sql_chunks['where'] = \wp_aot_array_filter( $sql_chunks['where'] );
+ 
+ 		if ( empty( $relation ) ) {
+ 			$relation = 'AND';
+@@ -671,7 +678,7 @@
+ 
+ 		// Filter duplicate JOIN clauses and combine into a single string.
+ 		if ( ! empty( $sql_chunks['join'] ) ) {
+-			$sql['join'] = implode( ' ', array_unique( $sql_chunks['join'] ) );
++			$sql['join'] = implode( ' ', \wp_aot_array_unique( $sql_chunks['join'] ) );
+ 		}
+ 
+ 		// Generate a single WHERE clause with proper brackets and indentation.
+@@ -680,6 +687,7 @@
+ 		}
+ 
+ 		return $sql;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -698,8 +706,9 @@
+ 	 *     @type string[] $where Array of SQL fragments to append to the main WHERE clause.
+ 	 * }
+ 	 */
+-	protected function get_sql_for_subquery( $query ) {
++	protected function get_sql_for_subquery( mixed $query ): mixed {
+ 		return $this->get_sql_for_clause( $query, '' );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -718,7 +727,7 @@
+ 	 *     @type string[] $where Array of SQL fragments to append to the main WHERE clause.
+ 	 * }
+ 	 */
+-	protected function get_sql_for_clause( $query, $parent_query ) {
++	protected function get_sql_for_clause( mixed $query, mixed $parent_query ): mixed {
+ 		global $wpdb;
+ 
+ 		// The sub-parts of a $where part.
+@@ -743,10 +752,10 @@
+ 
+ 		// Range queries.
+ 		if ( ! empty( $query['after'] ) ) {
+-			$where_parts[] = $wpdb->prepare( "$column $gt %s", $this->build_mysql_datetime( $query['after'], ! $inclusive ) );
++			$where_parts[] = \wp_aot_require_wpdb( $wpdb )->prepare( "$column $gt %s", $this->build_mysql_datetime( $query['after'], ! $inclusive ) );
+ 		}
+ 		if ( ! empty( $query['before'] ) ) {
+-			$where_parts[] = $wpdb->prepare( "$column $lt %s", $this->build_mysql_datetime( $query['before'], $inclusive ) );
++			$where_parts[] = \wp_aot_require_wpdb( $wpdb )->prepare( "$column $lt %s", $this->build_mysql_datetime( $query['before'], $inclusive ) );
+ 		}
+ 		// Specific value queries.
+ 
+@@ -805,6 +814,7 @@
+ 			'where' => $where_parts,
+ 			'join'  => array(),
+ 		);
++		return null;
+ 	}
+ 
+ 	/**
+@@ -816,7 +826,7 @@
+ 	 * @param string|array $value   The value.
+ 	 * @return string|false|int The value to be used in SQL or false on error.
+ 	 */
+-	public function build_value( $compare, $value ) {
++	public function build_value( mixed $compare, mixed $value ): mixed {
+ 		if ( ! isset( $value ) ) {
+ 			return false;
+ 		}
+@@ -827,13 +837,13 @@
+ 				$value = (array) $value;
+ 
+ 				// Remove non-numeric values.
+-				$value = array_filter( $value, 'is_numeric' );
++				$value = \wp_aot_array_filter( $value, 'is_numeric' );
+ 
+ 				if ( empty( $value ) ) {
+ 					return false;
+ 				}
+ 
+-				return '(' . implode( ',', array_map( 'intval', $value ) ) . ')';
++				return '(' . implode( ',', \wp_aot_array_map( 'intval', $value ) ) . ')';
+ 
+ 			case 'BETWEEN':
+ 			case 'NOT BETWEEN':
+@@ -850,7 +860,7 @@
+ 					}
+ 				}
+ 
+-				$value = array_map( 'intval', $value );
++				$value = \wp_aot_array_map( 'intval', $value );
+ 
+ 				return $value[0] . ' AND ' . $value[1];
+ 
+@@ -861,6 +871,7 @@
+ 
+ 				return (int) $value;
+ 		}
++		return null;
+ 	}
+ 
+ 	/**
+@@ -879,27 +890,27 @@
+ 	 *                                     Default: false.
+ 	 * @return string|false A MySQL format date/time or false on failure.
+ 	 */
+-	public function build_mysql_datetime( $datetime, $default_to_max = false ) {
++	public function build_mysql_datetime( mixed $datetime, mixed $default_to_max = false ): mixed {
+ 		if ( ! is_array( $datetime ) ) {
+ 
+ 			/*
+ 			 * Try to parse some common date formats, so we can detect
+ 			 * the level of precision and support the 'inclusive' parameter.
+ 			 */
+-			if ( preg_match( '/^(\d{4})$/', $datetime, $matches ) ) {
++			if ( preg_match( '/^(\d{4})$/', \wp_aot_regex_text( $datetime ), $matches ) ) {
+ 				// Y
+ 				$datetime = array(
+ 					'year' => (int) $matches[1],
+ 				);
+ 
+-			} elseif ( preg_match( '/^(\d{4})\-(\d{2})$/', $datetime, $matches ) ) {
++			} elseif ( preg_match( '/^(\d{4})\-(\d{2})$/', \wp_aot_regex_text( $datetime ), $matches ) ) {
+ 				// Y-m
+ 				$datetime = array(
+ 					'year'  => (int) $matches[1],
+ 					'month' => (int) $matches[2],
+ 				);
+ 
+-			} elseif ( preg_match( '/^(\d{4})\-(\d{2})\-(\d{2})$/', $datetime, $matches ) ) {
++			} elseif ( preg_match( '/^(\d{4})\-(\d{2})\-(\d{2})$/', \wp_aot_regex_text( $datetime ), $matches ) ) {
+ 				// Y-m-d
+ 				$datetime = array(
+ 					'year'  => (int) $matches[1],
+@@ -907,7 +918,7 @@
+ 					'day'   => (int) $matches[3],
+ 				);
+ 
+-			} elseif ( preg_match( '/^(\d{4})\-(\d{2})\-(\d{2}) (\d{2}):(\d{2})$/', $datetime, $matches ) ) {
++			} elseif ( preg_match( '/^(\d{4})\-(\d{2})\-(\d{2}) (\d{2}):(\d{2})$/', \wp_aot_regex_text( $datetime ), $matches ) ) {
+ 				// Y-m-d H:i
+ 				$datetime = array(
+ 					'year'   => (int) $matches[1],
+@@ -926,14 +937,14 @@
+ 				$dt = date_create( $datetime, $wp_timezone );
+ 
+ 				if ( false === $dt ) {
+-					return gmdate( 'Y-m-d H:i:s', false );
++					return \wp_aot_gmdate( 'Y-m-d H:i:s', false );
+ 				}
+ 
+ 				return $dt->setTimezone( $wp_timezone )->format( 'Y-m-d H:i:s' );
+ 			}
+ 		}
+ 
+-		$datetime = array_map( 'absint', $datetime );
++		$datetime = \wp_aot_array_map( 'absint', $datetime );
+ 
+ 		if ( ! isset( $datetime['year'] ) ) {
+ 			$datetime['year'] = current_time( 'Y' );
+@@ -944,7 +955,7 @@
+ 		}
+ 
+ 		if ( ! isset( $datetime['day'] ) ) {
+-			$datetime['day'] = ( $default_to_max ) ? (int) gmdate( 't', mktime( 0, 0, 0, $datetime['month'], 1, $datetime['year'] ) ) : 1;
++			$datetime['day'] = ( $default_to_max ) ? (int) \wp_aot_gmdate( 't', mktime( 0, 0, 0, \wp_aot_calendar_component( $datetime['month'] ), 1, \wp_aot_calendar_component( $datetime['year'] ) ) ) : 1;
+ 		}
+ 
+ 		if ( ! isset( $datetime['hour'] ) ) {
+@@ -960,6 +971,7 @@
+ 		}
+ 
+ 		return sprintf( '%04d-%02d-%02d %02d:%02d:%02d', $datetime['year'], $datetime['month'], $datetime['day'], $datetime['hour'], $datetime['minute'], $datetime['second'] );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -980,7 +992,7 @@
+ 	 * @param int|null $second  Optional. A second value (0-59).
+ 	 * @return string|false A query part or false on failure.
+ 	 */
+-	public function build_time_query( $column, $compare, $hour = null, $minute = null, $second = null ) {
++	public function build_time_query( mixed $column, mixed $compare, mixed $hour = null, mixed $minute = null, mixed $second = null ): mixed {
+ 		global $wpdb;
+ 
+ 		// Have to have at least one.
+@@ -1054,7 +1066,8 @@
+ 			$time   .= sprintf( '%02d', $second );
+ 		}
+ 
+-		return $wpdb->prepare( "DATE_FORMAT( $column, %s ) $compare %f", $format, $time );
++		return \wp_aot_require_wpdb( $wpdb )->prepare( "DATE_FORMAT( $column, %s ) $compare %f", $format, $time );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1065,11 +1078,12 @@
+ 	 * @param string $relation Raw relation key from the query argument.
+ 	 * @return string Sanitized relation. Either 'AND' or 'OR'.
+ 	 */
+-	public function sanitize_relation( $relation ) {
++	public function sanitize_relation( mixed $relation ): mixed {
+ 		if ( 'OR' === strtoupper( $relation ) ) {
+ 			return 'OR';
+ 		} else {
+ 			return 'AND';
+ 		}
++		return null;
+ 	}
+ }

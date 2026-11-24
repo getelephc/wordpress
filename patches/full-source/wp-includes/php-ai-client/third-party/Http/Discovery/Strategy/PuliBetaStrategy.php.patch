@@ -1,0 +1,54 @@
+--- a/wp-includes/php-ai-client/third-party/Http/Discovery/Strategy/PuliBetaStrategy.php
++++ b/wp-includes/php-ai-client/third-party/Http/Discovery/Strategy/PuliBetaStrategy.php
+@@ -21,29 +21,19 @@
+     /**
+      * @var GeneratedPuliFactory
+      */
+-    protected static $puliFactory;
++    protected static mixed $puliFactory = null;
+     /**
+      * @var Discovery
+      */
+-    protected static $puliDiscovery;
++    protected static mixed $puliDiscovery = null;
+     /**
+      * @return GeneratedPuliFactory
+      *
+      * @throws PuliUnavailableException
+      */
+-    private static function getPuliFactory()
++    private static function getPuliFactory(): mixed
+     {
+-        if (null === self::$puliFactory) {
+-            if (!defined('PULI_FACTORY_CLASS')) {
+-                throw new PuliUnavailableException('Puli Factory is not available');
+-            }
+-            $puliFactoryClass = PULI_FACTORY_CLASS;
+-            if (!ClassDiscovery::safeClassExists($puliFactoryClass)) {
+-                throw new PuliUnavailableException('Puli Factory class does not exist');
+-            }
+-            self::$puliFactory = new $puliFactoryClass();
+-        }
+-        return self::$puliFactory;
++        throw new PuliUnavailableException('Puli Factory is not available');
+     }
+     /**
+      * Returns the Puli discovery layer.
+@@ -52,7 +42,7 @@
+      *
+      * @throws PuliUnavailableException
+      */
+-    private static function getPuliDiscovery()
++    private static function getPuliDiscovery(): mixed
+     {
+         if (!isset(self::$puliDiscovery)) {
+             $factory = self::getPuliFactory();
+@@ -61,7 +51,7 @@
+         }
+         return self::$puliDiscovery;
+     }
+-    public static function getCandidates($type)
++    public static function getCandidates(mixed $type): array
+     {
+         $returnData = [];
+         $bindings = self::getPuliDiscovery()->findBindings($type);

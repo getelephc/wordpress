@@ -1,0 +1,802 @@
+--- a/wp-includes/rest-api/endpoints/class-wp-rest-attachments-controller.php
++++ b/wp-includes/rest-api/endpoints/class-wp-rest-attachments-controller.php
+@@ -79,7 +79,7 @@
+ 	 *
+ 	 * @see register_rest_route()
+ 	 */
+-	public function register_routes() {
++	public function register_routes(): mixed {
+ 		parent::register_routes();
+ 		register_rest_route(
+ 			$this->namespace,
+@@ -144,7 +144,7 @@
+ 								 * the current list of registered sizes, which reflects sizes added
+ 								 * after route registration (e.g. via add_image_size()).
+ 								 */
+-								'validate_callback' => static function ( $value, WP_REST_Request $request, string $param ) {
++								'validate_callback' => static function ( mixed $value, WP_REST_Request $request, string $param ) {
+ 									/*
+ 									 * Providing a custom callback replaces the default schema
+ 									 * validation, so apply the declared schema (type, minLength,
+@@ -155,7 +155,7 @@
+ 										return $schema_validity;
+ 									}
+ 
+-									return self::validate_image_size_names( $value, $param );
++									return WP_REST_Attachments_Controller::validate_image_size_names( $value, $param );
+ 								},
+ 							),
+ 							'convert_format' => array(
+@@ -200,7 +200,7 @@
+ 								 * registered when the request runs. The callback sits on
+ 								 * sub_sizes because a nested property cannot carry one.
+ 								 */
+-								'validate_callback' => static function ( $value, WP_REST_Request $request, string $param ) {
++								'validate_callback' => static function ( mixed $value, WP_REST_Request $request, string $param ) {
+ 									/*
+ 									 * Providing a custom callback replaces the default schema
+ 									 * validation, so apply the declared schema first. That is what
+@@ -215,7 +215,7 @@
+ 									foreach ( (array) $value as $index => $sub_size ) {
+ 										$sub_size = (array) $sub_size;
+ 
+-										$validity = self::validate_image_size_names(
++										$validity = WP_REST_Attachments_Controller::validate_image_size_names(
+ 											$sub_size['image_size'] ?? null,
+ 											sprintf( '%s[%s][image_size]', $param, $index )
+ 										);
+@@ -275,6 +275,7 @@
+ 				)
+ 			);
+ 		}
++		return null;
+ 	}
+ 
+ 	/**
+@@ -288,7 +289,7 @@
+ 	 *                       Default WP_REST_Server::CREATABLE.
+ 	 * @return array<string, array<string, mixed>> Endpoint arguments.
+ 	 */
+-	public function get_endpoint_args_for_item_schema( $method = WP_REST_Server::CREATABLE ) {
++	public function get_endpoint_args_for_item_schema( mixed $method = WP_REST_Server::CREATABLE ): mixed {
+ 		$args = parent::get_endpoint_args_for_item_schema( $method );
+ 
+ 		if ( WP_REST_Server::CREATABLE !== $method ) {
+@@ -312,7 +313,7 @@
+ 			'format'            => 'uri',
+ 			'description'       => __( 'URL of an external image to sideload into the media library, instead of uploading a file.' ),
+ 			'sanitize_callback' => 'sanitize_url',
+-			'validate_callback' => static function ( $url, $request, $param ) {
++			'validate_callback' => static function ( mixed $url, mixed $request, mixed $param ) {
+ 				/*
+ 				 * A custom validate_callback replaces the default
+ 				 * rest_validate_request_arg(), so re-apply it first to keep
+@@ -341,6 +342,7 @@
+ 		);
+ 
+ 		return $args;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -354,7 +356,7 @@
+ 	 * @param WP_REST_Request $request       Optional. Request to prepare items for.
+ 	 * @return array Array of query arguments.
+ 	 */
+-	protected function prepare_items_query( $prepared_args = array(), $request = null ) {
++	protected function prepare_items_query( mixed $prepared_args = array(), mixed $request = null ): mixed {
+ 		$query_args = parent::prepare_items_query( $prepared_args, $request );
+ 
+ 		if ( empty( $query_args['post_status'] ) ) {
+@@ -367,7 +369,7 @@
+ 		if ( ! empty( $request['media_type'] ) && is_array( $request['media_type'] ) ) {
+ 			foreach ( $request['media_type'] as $type ) {
+ 				if ( isset( $media_types[ $type ] ) ) {
+-					$all_mime_types = array_merge( $all_mime_types, $media_types[ $type ] );
++					$all_mime_types = \wp_aot_array_merge(array( $all_mime_types, $media_types[ $type ] ));
+ 				}
+ 			}
+ 		}
+@@ -382,7 +384,7 @@
+ 		}
+ 
+ 		if ( ! empty( $all_mime_types ) ) {
+-			$query_args['post_mime_type'] = array_values( array_unique( $all_mime_types ) );
++			$query_args['post_mime_type'] = array_values( \wp_aot_array_unique( $all_mime_types ) );
+ 		}
+ 
+ 		// Filter query clauses to include filenames.
+@@ -391,6 +393,7 @@
+ 		}
+ 
+ 		return $query_args;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -401,7 +404,7 @@
+ 	 * @param WP_REST_Request $request Full details about the request.
+ 	 * @return true|WP_Error Boolean true if the attachment may be created, or a WP_Error if not.
+ 	 */
+-	public function create_item_permissions_check( $request ) {
++	public function create_item_permissions_check( mixed $request ): mixed {
+ 		$ret = parent::create_item_permissions_check( $request );
+ 
+ 		if ( ! $ret || is_wp_error( $ret ) ) {
+@@ -496,6 +499,7 @@
+ 		}
+ 
+ 		return true;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -507,7 +511,7 @@
+ 	 * @param WP_REST_Request $request Full details about the request.
+ 	 * @return WP_REST_Response|WP_Error Response object on success, WP_Error object on failure.
+ 	 */
+-	public function create_item( $request ) {
++	public function create_item( mixed $request ): mixed {
+ 		if ( ! empty( $request['post'] ) && in_array( get_post_type( $request['post'] ), array( 'revision', 'attachment' ), true ) ) {
+ 			return new WP_Error(
+ 				'rest_invalid_param',
+@@ -637,6 +641,7 @@
+ 		$response->header( 'Location', rest_url( sprintf( '%s/%s/%d', $this->namespace, $this->rest_base, $attachment_id ) ) );
+ 
+ 		return $response;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -651,7 +656,7 @@
+ 	 * @param WP_REST_Request $request Full details about the request.
+ 	 * @return WP_REST_Response|WP_Error Response object on success, WP_Error object on failure.
+ 	 */
+-	protected function create_item_from_url( WP_REST_Request $request ) {
++	protected function create_item_from_url( WP_REST_Request $request ): mixed {
+ 		// Sideloading downloads and stores a file, so require the upload capability.
+ 		if ( ! current_user_can( 'upload_files' ) ) {
+ 			return new WP_Error(
+@@ -714,7 +719,7 @@
+ 		 * so an oversized remote file is never written to disk in full. One
+ 		 * byte over the ceiling is enough to fail the size check below.
+ 		 */
+-		$limit_response_size = static function ( $args ) use ( $max_size ) {
++		$limit_response_size = static function ( mixed $args ) use ( $max_size ) {
+ 			$args['limit_response_size'] = $max_size + 1;
+ 			return $args;
+ 		};
+@@ -754,7 +759,7 @@
+ 			return new WP_Error(
+ 				'rest_upload_file_too_big',
+ 				/* translators: %s: Maximum allowed file size in kilobytes. */
+-				sprintf( __( 'This file is too big. Files must be less than %s KB in size.' ), number_format( $max_size / KB_IN_BYTES ) ),
++				sprintf( __( 'This file is too big. Files must be less than %s KB in size.' ), \wp_aot_number_format( $max_size / KB_IN_BYTES ) ),
+ 				array( 'status' => 400 )
+ 			);
+ 		}
+@@ -789,6 +794,7 @@
+ 		$response->header( 'Location', rest_url( rest_get_route_for_post( $attachment_id ) ) );
+ 
+ 		return $response;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -812,7 +818,7 @@
+ 	 * @param WP_REST_Request $request
+ 	 * @return array|WP_Error
+ 	 */
+-	protected function insert_attachment( $request ) {
++	protected function insert_attachment( mixed $request ): mixed {
+ 		// Get the file via $_FILES or raw data.
+ 		$files   = $request->get_file_params();
+ 		$headers = $request->get_headers();
+@@ -823,7 +829,7 @@
+ 		if ( ! empty( $request['post'] ) ) {
+ 			$post = get_post( $request['post'] );
+ 			// The post date doesn't usually matter for pages, so don't backdate this upload.
+-			if ( $post && 'page' !== $post->post_type && substr( $post->post_date, 0, 4 ) > 0 ) {
++			if ( $post && 'page' !== $post->post_type && ( \wp_aot_php_compare(substr( $post->post_date, 0, 4 ), 0) > 0 ) ) {
+ 				$time = $post->post_date;
+ 			}
+ 		}
+@@ -884,7 +890,7 @@
+ 
+ 		// Fall back to the original approach.
+ 		if ( empty( $attachment->post_title ) ) {
+-			$attachment->post_title = preg_replace( '/\.[^.]+$/', '', wp_basename( $file ) );
++			$attachment->post_title = \wp_aot_preg_replace( '/\.[^.]+$/', '', wp_basename( $file ) );
+ 		}
+ 
+ 		// $post_parent is inherited from $attachment['post_parent'].
+@@ -921,6 +927,7 @@
+ 			'attachment_id' => $id,
+ 			'file'          => $file,
+ 		);
++		return null;
+ 	}
+ 
+ 	/**
+@@ -932,7 +939,7 @@
+ 	 * @param int $post_id        Post ID.
+ 	 * @return bool|WP_Error Whether the post thumbnail was successfully deleted, otherwise WP_Error.
+ 	 */
+-	protected function handle_featured_media( $featured_media, $post_id ) {
++	protected function handle_featured_media( mixed $featured_media, mixed $post_id ): mixed {
+ 		$post_type         = get_post_type( $post_id );
+ 		$thumbnail_support = current_theme_supports( 'post-thumbnails', $post_type ) && post_type_supports( $post_type, 'thumbnail' );
+ 
+@@ -958,6 +965,7 @@
+ 			),
+ 			array( 'status' => 400 )
+ 		);
++		return null;
+ 	}
+ 
+ 	/**
+@@ -968,7 +976,7 @@
+ 	 * @param WP_REST_Request $request Full details about the request.
+ 	 * @return WP_REST_Response|WP_Error Response object on success, WP_Error object on failure.
+ 	 */
+-	public function update_item( $request ) {
++	public function update_item( mixed $request ): mixed {
+ 		if ( ! empty( $request['post'] ) && in_array( get_post_type( $request['post'] ), array( 'revision', 'attachment' ), true ) ) {
+ 			return new WP_Error(
+ 				'rest_invalid_param',
+@@ -1018,6 +1026,7 @@
+ 		$response = rest_ensure_response( $response );
+ 
+ 		return $response;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1028,7 +1037,7 @@
+ 	 * @param WP_REST_Request $request Full details about the request.
+ 	 * @return WP_REST_Response|WP_Error Response object on success, WP_Error object on failure.
+ 	 */
+-	public function post_process_item( $request ) {
++	public function post_process_item( mixed $request ): mixed {
+ 		switch ( $request['action'] ) {
+ 			case 'create-image-subsizes':
+ 				require_once ABSPATH . 'wp-admin/includes/image.php';
+@@ -1039,6 +1048,7 @@
+ 		$request['context'] = 'edit';
+ 
+ 		return $this->prepare_item_for_response( get_post( $request['id'] ), $request );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1049,8 +1059,9 @@
+ 	 * @param WP_REST_Request $request Full details about the request.
+ 	 * @return true|WP_Error True if the request has access to update the item, WP_Error object otherwise.
+ 	 */
+-	public function post_process_item_permissions_check( $request ) {
++	public function post_process_item_permissions_check( mixed $request ): mixed {
+ 		return $this->update_item_permissions_check( $request );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1061,7 +1072,7 @@
+ 	 * @param WP_REST_Request $request Full details about the request.
+ 	 * @return true|WP_Error True if the request has read access, WP_Error object otherwise.
+ 	 */
+-	public function edit_media_item_permissions_check( $request ) {
++	public function edit_media_item_permissions_check( mixed $request ): mixed {
+ 		if ( ! current_user_can( 'upload_files' ) ) {
+ 			return new WP_Error(
+ 				'rest_cannot_edit_image',
+@@ -1071,6 +1082,7 @@
+ 		}
+ 
+ 		return $this->update_item_permissions_check( $request );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1083,7 +1095,7 @@
+ 	 * @param WP_REST_Request $request Full details about the request.
+ 	 * @return WP_REST_Response|WP_Error Response object on success, WP_Error object on failure.
+ 	 */
+-	public function edit_media_item( $request ) {
++	public function edit_media_item( mixed $request ): mixed {
+ 		require_once ABSPATH . 'wp-admin/includes/image.php';
+ 
+ 		$attachment_id = $request['id'];
+@@ -1256,9 +1268,9 @@
+ 		 * Do not append multiple `-edited` to the file name.
+ 		 * The user may be editing a previously edited image.
+ 		 */
+-		if ( preg_match( '/-edited(-\d+)?$/', $image_name ) ) {
++		if ( preg_match( '/-edited(-\d+)?$/', \wp_aot_regex_text( $image_name ) ) ) {
+ 			// Remove any `-1`, `-2`, etc. `wp_unique_filename()` will add the proper number.
+-			$image_name = preg_replace( '/-edited(-\d+)?$/', '-edited', $image_name );
++			$image_name = \wp_aot_preg_replace( '/-edited(-\d+)?$/', '-edited', $image_name );
+ 		} else {
+ 			// Append `-edited` before the extension.
+ 			$image_name .= '-edited';
+@@ -1288,7 +1300,8 @@
+ 		$new_attachment_post->guid           = $uploads['url'] . "/$filename";
+ 
+ 		// Unset ID so wp_insert_attachment generates a new ID.
+-		unset( $new_attachment_post->ID );
++		$attachment_record = \wp_aot_json_record($new_attachment_post);
++		unset( $attachment_record->ID );
+ 
+ 		// Set new attachment post title with fallbacks.
+ 		$new_attachment_post->post_title = $new_attachment_post->post_title ?? $original_attachment_post->post_title ?? $image_name;
+@@ -1374,6 +1387,7 @@
+ 		$response->header( 'Location', rest_url( sprintf( '%s/%s/%s', $this->namespace, $this->rest_base, $new_attachment_id ) ) );
+ 
+ 		return $response;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1384,7 +1398,7 @@
+ 	 * @param WP_REST_Request $request Request object.
+ 	 * @return stdClass|WP_Error Post object.
+ 	 */
+-	protected function prepare_item_for_database( $request ) {
++	protected function prepare_item_for_database( mixed $request ): mixed {
+ 		$prepared_attachment = parent::prepare_item_for_database( $request );
+ 
+ 		// Attachment caption (post_excerpt internally).
+@@ -1410,6 +1424,7 @@
+ 		}
+ 
+ 		return $prepared_attachment;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1422,7 +1437,7 @@
+ 	 * @param WP_REST_Request $request Request object.
+ 	 * @return WP_REST_Response Response object.
+ 	 */
+-	public function prepare_item_for_response( $item, $request ) {
++	public function prepare_item_for_response( mixed $item, mixed $request ): mixed {
+ 		// Restores the more descriptive, specific name for use within this method.
+ 		$post = $item;
+ 
+@@ -1540,9 +1555,9 @@
+ 				$fallback_sizes = apply_filters( 'fallback_intermediate_image_sizes', $fallback_sizes, $metadata );
+ 
+ 				$registered_sizes = wp_get_registered_image_subsizes();
+-				$merged_sizes     = array_keys( array_intersect_key( $registered_sizes, array_flip( $fallback_sizes ) ) );
+-
+-				$data['missing_image_sizes'] = array_values( array_diff( $merged_sizes, array_keys( $metadata['sizes'] ) ) );
++				$merged_sizes     = array_keys( \wp_aot_array_intersect_key(array( $registered_sizes, \wp_aot_array_flip( $fallback_sizes ) )) );
++
++				$data['missing_image_sizes'] = array_values( \wp_aot_array_diff(array( $merged_sizes, array_keys( $metadata['sizes'] ) )) );
+ 			}
+ 		}
+ 
+@@ -1679,6 +1694,7 @@
+ 		 * @param WP_REST_Request  $request  Request used to generate the response.
+ 		 */
+ 		return apply_filters( 'rest_prepare_attachment', $response, $post, $request );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1689,7 +1705,7 @@
+ 	 * @param WP_Post $post Post object.
+ 	 * @return array Links for the given attachment.
+ 	 */
+-	protected function prepare_links( $post ) {
++	protected function prepare_links( mixed $post ): mixed {
+ 		$links = parent::prepare_links( $post );
+ 
+ 		if ( ! empty( $post->post_parent ) ) {
+@@ -1706,6 +1722,7 @@
+ 		}
+ 
+ 		return $links;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1715,7 +1732,7 @@
+ 	 *
+ 	 * @return array Item schema as an array.
+ 	 */
+-	public function get_item_schema() {
++	public function get_item_schema(): mixed {
+ 		if ( $this->schema ) {
+ 			return $this->add_additional_fields_schema( $this->schema );
+ 		}
+@@ -1890,6 +1907,7 @@
+ 		$this->schema = $schema;
+ 
+ 		return $this->add_additional_fields_schema( $this->schema );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1903,7 +1921,7 @@
+ 	 * @param string|null $time    Optional. Time formatted in 'yyyy/mm'. Default null.
+ 	 * @return array{ file: non-empty-string, url: non-empty-string, type: non-empty-string }|WP_Error Data from wp_handle_sideload().
+ 	 */
+-	protected function upload_from_data( $data, $headers, $time = null ) {
++	protected function upload_from_data( mixed $data, mixed $headers, mixed $time = null ): mixed {
+ 		if ( empty( $data ) ) {
+ 			return new WP_Error(
+ 				'rest_upload_no_data',
+@@ -1939,7 +1957,7 @@
+ 		}
+ 
+ 		if ( ! empty( $headers['content_md5'] ) ) {
+-			$content_md5 = array_shift( $headers['content_md5'] );
++			$content_md5 = \wp_aot_array_shift( $headers['content_md5'] );
+ 			$expected    = trim( $content_md5 );
+ 			$actual      = md5( $data );
+ 
+@@ -1953,7 +1971,7 @@
+ 		}
+ 
+ 		// Get the content-type.
+-		$type = array_shift( $headers['content_type'] );
++		$type = \wp_aot_array_shift( $headers['content_type'] );
+ 
+ 		// Include filesystem functions to get access to wp_tempnam() and wp_handle_sideload().
+ 		require_once ABSPATH . 'wp-admin/includes/file.php';
+@@ -1971,7 +1989,7 @@
+ 			);
+ 		}
+ 
+-		fwrite( $fp, $data );
++		\wp_aot_fwrite( $fp, $data );
+ 		fclose( $fp );
+ 
+ 		// Now, sideload it in.
+@@ -2004,6 +2022,7 @@
+ 		}
+ 
+ 		return $sideloaded;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -2035,7 +2054,7 @@
+ 	 * @param string[] $disposition_header List of Content-Disposition header values.
+ 	 * @return string|null Filename if available, or null if not found.
+ 	 */
+-	public static function get_filename_from_disposition( $disposition_header ) {
++	public static function get_filename_from_disposition( mixed $disposition_header ): mixed {
+ 		// Get the filename.
+ 		$filename = null;
+ 
+@@ -2048,7 +2067,7 @@
+ 
+ 			list( , $attr_parts ) = explode( ';', $value, 2 );
+ 
+-			$attr_parts = explode( ';', $attr_parts );
++			$attr_parts = \wp_aot_mixed(explode( ';', $attr_parts ));
+ 			$attributes = array();
+ 
+ 			foreach ( $attr_parts as $part ) {
+@@ -2074,6 +2093,7 @@
+ 		}
+ 
+ 		return $filename;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -2084,7 +2104,7 @@
+ 	 *
+ 	 * @return array Query parameters for the attachment collection as an array.
+ 	 */
+-	public function get_collection_params() {
++	public function get_collection_params(): mixed {
+ 		$params                            = parent::get_collection_params();
+ 		$params['status']['default']       = 'inherit';
+ 		$params['status']['items']['enum'] = array( 'inherit', 'private', 'trash' );
+@@ -2110,6 +2130,7 @@
+ 		);
+ 
+ 		return $params;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -2123,7 +2144,7 @@
+ 	 * @param string|null $time    Optional. Time formatted in 'yyyy/mm'. Default null.
+ 	 * @return array{ file: non-empty-string, url: non-empty-string, type: non-empty-string }|WP_Error Data from wp_handle_upload().
+ 	 */
+-	protected function upload_from_file( $files, $headers, $time = null ) {
++	protected function upload_from_file( mixed $files, mixed $headers, mixed $time = null ): mixed {
+ 		if ( empty( $files ) ) {
+ 			return new WP_Error(
+ 				'rest_upload_no_data',
+@@ -2134,9 +2155,9 @@
+ 
+ 		// Verify hash, if given.
+ 		if ( ! empty( $headers['content_md5'] ) ) {
+-			$content_md5 = array_shift( $headers['content_md5'] );
++			$content_md5 = \wp_aot_array_shift( $headers['content_md5'] );
+ 			$expected    = trim( $content_md5 );
+-			$actual      = md5_file( $files['file']['tmp_name'] );
++			$actual      = \wp_aot_native_api('md5_file', array( $files['file']['tmp_name'] ));
+ 
+ 			if ( $expected !== $actual ) {
+ 				return new WP_Error(
+@@ -2153,7 +2174,7 @@
+ 		);
+ 
+ 		// Bypasses is_uploaded_file() when running unit tests.
+-		if ( defined( 'DIR_TESTDATA' ) && DIR_TESTDATA ) {
++		if ( defined( 'DIR_TESTDATA' ) && \wp_aot_undefined_constant('DIR_TESTDATA') ) {
+ 			$overrides['action'] = 'wp_handle_mock_upload';
+ 		}
+ 
+@@ -2176,6 +2197,7 @@
+ 		}
+ 
+ 		return $file;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -2187,7 +2209,7 @@
+ 	 *
+ 	 * @return array Array of supported media types.
+ 	 */
+-	protected function get_media_types() {
++	protected function get_media_types(): mixed {
+ 		$media_types = array();
+ 
+ 		foreach ( get_allowed_mime_types() as $mime_type ) {
+@@ -2201,6 +2223,7 @@
+ 		}
+ 
+ 		return $media_types;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -2213,7 +2236,7 @@
+ 	 * @param array $file $_FILES array for a given file.
+ 	 * @return true|WP_Error True if can upload, error for errors.
+ 	 */
+-	protected function check_upload_size( $file ) {
++	protected function check_upload_size( mixed $file ): mixed {
+ 		if ( ! is_multisite() ) {
+ 			return true;
+ 		}
+@@ -2230,7 +2253,7 @@
+ 			return new WP_Error(
+ 				'rest_upload_limited_space',
+ 				/* translators: %s: Required disk space in kilobytes. */
+-				sprintf( __( 'Not enough space to upload. %s KB needed.' ), number_format( ( $file_size - $space_left ) / KB_IN_BYTES ) ),
++				sprintf( __( 'Not enough space to upload. %s KB needed.' ), \wp_aot_number_format( ( $file_size - $space_left ) / KB_IN_BYTES ) ),
+ 				array( 'status' => 400 )
+ 			);
+ 		}
+@@ -2256,6 +2279,7 @@
+ 		}
+ 
+ 		return true;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -2266,7 +2290,7 @@
+ 	 *
+ 	 * @return array
+ 	 */
+-	protected function get_edit_media_item_args() {
++	protected function get_edit_media_item_args(): mixed {
+ 		$args = array(
+ 			'src'       => array(
+ 				'description' => __( 'URL to the edited image file.' ),
+@@ -2449,6 +2473,7 @@
+ 		}
+ 
+ 		return $args;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -2512,8 +2537,9 @@
+ 	 * @param WP_REST_Request $request Full details about the request.
+ 	 * @return true|WP_Error True if the request has access to update the item, WP_Error object otherwise.
+ 	 */
+-	public function sideload_item_permissions_check( $request ) {
++	public function sideload_item_permissions_check( mixed $request ): mixed {
+ 		return $this->edit_media_item_permissions_check( $request );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -2532,23 +2558,23 @@
+ 	 * @param string $param Parameter name, used in the error messages.
+ 	 * @return true|WP_Error True when every name is valid, WP_Error otherwise.
+ 	 */
+-	private static function validate_image_size_names( $value, string $param ) {
++	private static function validate_image_size_names( mixed $value, string $param ): mixed {
+ 		$special_sizes = self::get_special_image_sizes();
+ 		$regular_sizes = array_values(
+-			array_diff(
+-				array_merge(
++			\wp_aot_array_diff(array(
++				\wp_aot_array_merge(array(
+ 					array_keys( wp_get_registered_image_subsizes() ),
+ 					// Not a registered sub-size, but stored as an ordinary
+ 					// entry in the metadata 'sizes' array (PDF thumbnails).
+ 					array( 'full' )
+-				),
++				)),
+ 				$special_sizes
+-			)
++			))
+ 		);
+ 
+ 		if ( is_string( $value ) ) {
+ 			$items       = array( $value );
+-			$valid_sizes = array_merge( $regular_sizes, $special_sizes );
++			$valid_sizes = \wp_aot_array_merge(array( $regular_sizes, $special_sizes ));
+ 		} elseif ( is_array( $value ) ) {
+ 			/**
+ 			 * An array registers one sideloaded file under several size names,
+@@ -2579,6 +2605,7 @@
+ 		}
+ 
+ 		return true;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -2617,7 +2644,7 @@
+ 	 * @param int    $attachment_id The attachment ID.
+ 	 * @return true|WP_Error True if valid, WP_Error if invalid.
+ 	 */
+-	private function validate_image_dimensions( int $width, int $height, string $image_size, int $attachment_id ) {
++	private function validate_image_dimensions( int $width, int $height, string $image_size, int $attachment_id ): mixed {
+ 		// All image sizes require positive dimensions.
+ 		if ( $width <= 0 || $height <= 0 ) {
+ 			return new WP_Error(
+@@ -2723,6 +2750,7 @@
+ 		}
+ 
+ 		return true;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -2749,7 +2777,7 @@
+ 	 * @param WP_REST_Request $request Full details about the request.
+ 	 * @return WP_REST_Response|WP_Error Response object on success, WP_Error object on failure.
+ 	 */
+-	public function sideload_item( WP_REST_Request $request ) {
++	public function sideload_item( WP_REST_Request $request ): mixed {
+ 		$attachment_id = (int) $request['id'];
+ 
+ 		$post = $this->get_post( $attachment_id );
+@@ -2805,8 +2833,8 @@
+ 		 */
+ 		$attachment_filename = wp_basename( $attached_file );
+ 
+-		$filter_filename = static function ( $filename, $ext, $dir, $unique_filename_callback, $alt_filenames, $number ) use ( $attachment_filename ) {
+-			return self::filter_wp_unique_filename( $filename, $dir, $number, $attachment_filename );
++		$filter_filename = static function ( mixed $filename, mixed $ext, mixed $dir, mixed $unique_filename_callback, mixed $alt_filenames, mixed $number ) use ( $attachment_filename ) {
++			return WP_REST_Attachments_Controller::filter_wp_unique_filename( $filename, $dir, $number, $attachment_filename );
+ 		};
+ 
+ 		add_filter( 'wp_unique_filename', $filter_filename, 10, 6 );
+@@ -2814,7 +2842,7 @@
+ 		// Pin the upload to the attachment's own directory, rather than deriving
+ 		// it from the parent post's date as media_handle_upload() does for a
+ 		// brand new upload. See the note above where $subdir is resolved.
+-		$filter_upload_dir = static function ( $uploads ) use ( $subdir ) {
++		$filter_upload_dir = static function ( mixed $uploads ) use ( $subdir ) {
+ 			if (
+ 				is_array( $uploads ) &&
+ 				isset( $uploads['basedir'], $uploads['baseurl'] ) &&
+@@ -3006,6 +3034,7 @@
+ 		}
+ 
+ 		return rest_ensure_response( $sub_size_data );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -3037,7 +3066,7 @@
+ 	 * @param string|null $attachment_filename Original attachment file name.
+ 	 * @return string Filtered file name.
+ 	 */
+-	private static function filter_wp_unique_filename( $filename, $dir, $number, $attachment_filename ) {
++	private static function filter_wp_unique_filename( mixed $filename, mixed $dir, mixed $number, mixed $attachment_filename ): mixed {
+ 		if ( ! is_int( $number ) || ! $attachment_filename ) {
+ 			return $filename;
+ 		}
+@@ -3051,7 +3080,7 @@
+ 		}
+ 
+ 		$matches = array();
+-		if ( preg_match( '/(.*)-(\d+x\d+|scaled)-' . $number . '$/', $name, $matches ) ) {
++		if ( preg_match( \wp_aot_regex_text( '/(.*)-(\d+x\d+|scaled)-' . $number . '$/' ), \wp_aot_regex_text( $name ), $matches ) ) {
+ 			$filename_without_suffix = $matches[1] . '-' . $matches[2] . ".$ext";
+ 			if ( $matches[1] === $orig_name && ! file_exists( "$dir/$filename_without_suffix" ) ) {
+ 				return $filename_without_suffix;
+@@ -3059,6 +3088,7 @@
+ 		}
+ 
+ 		return $filename;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -3084,7 +3114,7 @@
+ 	 *
+ 	 * @phpstan-param list<Image_Sub_Size> $sub_sizes
+ 	 */
+-	protected function validate_sub_size_provenance( int $attachment_id, array $sub_sizes ) {
++	protected function validate_sub_size_provenance( int $attachment_id, array $sub_sizes ): mixed {
+ 		$allowed = $this->get_sideloaded_file_names( $attachment_id );
+ 
+ 		foreach ( $sub_sizes as $sub_size ) {
+@@ -3113,6 +3143,7 @@
+ 		}
+ 
+ 		return true;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -3181,7 +3212,7 @@
+ 			}
+ 		}
+ 
+-		return array_values( array_unique( $allowed ) );
++		return array_values( \wp_aot_array_unique( $allowed ) );
+ 	}
+ 
+ 	/**
+@@ -3244,7 +3275,7 @@
+ 	 * @param WP_REST_Request $request Full details about the request.
+ 	 * @return WP_REST_Response|WP_Error Response object on success, WP_Error object on failure.
+ 	 */
+-	public function finalize_item( WP_REST_Request $request ) {
++	public function finalize_item( WP_REST_Request $request ): mixed {
+ 		$attachment_id = (int) $request['id'];
+ 
+ 		$post = $this->get_post( $attachment_id );
+@@ -3261,7 +3292,7 @@
+ 		 * @var list<Image_Sub_Size> $sub_sizes
+ 		 */
+ 		$sub_sizes  = $request['sub_sizes'] ?? array();
+-		$provenance = $this->validate_sub_size_provenance( $attachment_id, $sub_sizes );
++		$provenance = $this->validate_sub_size_provenance( $attachment_id, \wp_aot_array_input($sub_sizes ));
+ 		if ( is_wp_error( $provenance ) ) {
+ 			return $provenance;
+ 		}
+@@ -3285,7 +3316,7 @@
+ 				 * of the branches below, so grouping one under a shared file
+ 				 * would write it to the wrong place; reject rather than guess.
+ 				 */
+-				if ( array_intersect( $image_size, self::get_special_image_sizes() ) ) {
++				if ( \wp_aot_array_intersect(array( $image_size, self::get_special_image_sizes() )) ) {
+ 					return new WP_Error(
+ 						'rest_invalid_sub_size_name',
+ 						__( 'A grouped sub-size entry may only name regular image sizes.' ),
+@@ -3438,7 +3469,7 @@
+ 			}
+ 		}
+ 
+-		foreach ( array_unique( $consumed ) as $file_name ) {
++		foreach ( \wp_aot_array_unique( $consumed ) as $file_name ) {
+ 			delete_post_meta( $attachment_id, self::META_KEY_SIDELOAD_FILE_NAME, wp_slash( $file_name ) );
+ 		}
+ 
+@@ -3469,5 +3500,6 @@
+ 		}
+ 
+ 		return $this->prepare_item_for_response( $post, $response_request );
++		return null;
+ 	}
+ }

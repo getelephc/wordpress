@@ -1,0 +1,41 @@
+--- a/wp-includes/blocks/comments-pagination.php
++++ b/wp-includes/blocks/comments-pagination.php
+@@ -15,13 +15,13 @@
+  *
+  * @return string Returns the wrapper for the Comments pagination.
+  */
+-function render_block_core_comments_pagination( $attributes, $content ) {
++function render_block_core_comments_pagination( mixed $attributes, mixed $content ): mixed {
+ 	if ( empty( trim( $content ) ) ) {
+ 		return '';
+ 	}
+ 
+ 	if ( post_password_required() ) {
+-		return;
++		return null;
+ 	}
+ 
+ 	$classes            = ( isset( $attributes['style']['elements']['link']['color']['text'] ) ) ? 'has-link-color' : '';
+@@ -37,6 +37,7 @@
+ 		$wrapper_attributes,
+ 		$content
+ 	);
++	return null;
+ }
+ 
+ /**
+@@ -44,12 +45,13 @@
+  *
+  * @since 6.0.0
+  */
+-function register_block_core_comments_pagination() {
++function register_block_core_comments_pagination(): mixed {
+ 	register_block_type_from_metadata(
+ 		__DIR__ . '/comments-pagination',
+ 		array(
+ 			'render_callback' => 'render_block_core_comments_pagination',
+ 		)
+ 	);
++	return null;
+ }
+ add_action( 'init', 'register_block_core_comments_pagination' );

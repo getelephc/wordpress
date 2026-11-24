@@ -1,0 +1,225 @@
+--- a/wp-includes/abilities-api/class-wp-ability.php
++++ b/wp-includes/abilities-api/class-wp-ability.php
+@@ -43,7 +43,7 @@
+ 	 * @since 6.9.0
+ 	 * @var array<string, bool|null>
+ 	 */
+-	protected static $default_annotations = array(
++	protected static mixed $default_annotations = array(
+ 		// If true, the ability does not modify its environment.
+ 		'readonly'    => null,
+ 		/*
+@@ -183,7 +183,7 @@
+ 		$properties = $this->prepare_properties( $args );
+ 
+ 		foreach ( $properties as $property_name => $property_value ) {
+-			if ( ! property_exists( $this, $property_name ) ) {
++			if ( ! \wp_aot_property_exists( $this, $property_name ) ) {
+ 				_doing_it_wrong(
+ 					__METHOD__,
+ 					sprintf(
+@@ -353,13 +353,13 @@
+ 		$args['meta'] = wp_parse_args(
+ 			$args['meta'] ?? array(),
+ 			array(
+-				'annotations' => static::$default_annotations,
++				'annotations' => \wp_aot_mixed(static::$default_annotations),
+ 			)
+ 		);
+ 
+ 		$args['meta']['annotations'] = wp_parse_args(
+ 			$args['meta']['annotations'],
+-			static::$default_annotations
++			\wp_aot_mixed(static::$default_annotations)
+ 		);
+ 
+ 		/*
+@@ -393,7 +393,7 @@
+ 	 * @return string The human-readable ability label.
+ 	 */
+ 	public function get_label(): string {
+-		return $this->label;
++		return \wp_aot_require_string($this->label);
+ 	}
+ 
+ 	/**
+@@ -404,7 +404,7 @@
+ 	 * @return string The detailed description for the ability.
+ 	 */
+ 	public function get_description(): string {
+-		return $this->description;
++		return \wp_aot_require_string($this->description);
+ 	}
+ 
+ 	/**
+@@ -415,7 +415,7 @@
+ 	 * @return string The ability category for the ability.
+ 	 */
+ 	public function get_category(): string {
+-		return $this->category;
++		return \wp_aot_require_string($this->category);
+ 	}
+ 
+ 	/**
+@@ -448,7 +448,7 @@
+ 	 * @return array<string, mixed> The metadata for the ability.
+ 	 */
+ 	public function get_meta(): array {
+-		return $this->meta;
++		return \wp_aot_require_array($this->meta);
+ 	}
+ 
+ 	/**
+@@ -460,8 +460,9 @@
+ 	 * @param mixed  $default_value Optional. The default value to return if the metadata item is not found. Default `null`.
+ 	 * @return mixed The value of the metadata item, or the default value if not found.
+ 	 */
+-	public function get_meta_item( string $key, $default_value = null ) {
+-		return array_key_exists( $key, $this->meta ) ? $this->meta[ $key ] : $default_value;
++	public function get_meta_item( string $key, mixed $default_value = null ): mixed {
++		return array_key_exists( $key, \wp_aot_array_input($this->meta) ) ? \wp_aot_mixed($this->meta)[ $key ] : $default_value;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -480,7 +481,7 @@
+ 	 * @param mixed $input Optional. The raw input provided for the ability. Default `null`.
+ 	 * @return mixed The normalized input, or a `WP_Error` if a filter returned one.
+ 	 */
+-	public function normalize_input( $input = null ) {
++	public function normalize_input( mixed $input = null ): mixed {
+ 		if ( null === $input ) {
+ 			$input_schema = $this->get_input_schema();
+ 			if ( array_key_exists( 'default', $input_schema ) ) {
+@@ -506,6 +507,7 @@
+ 		 * @param WP_Ability $ability      The ability instance.
+ 		 */
+ 		return apply_filters( 'wp_ability_normalize_input', $input, $this->name, $this );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -516,7 +518,7 @@
+ 	 * @param mixed $input Optional. The input data to validate. Default `null`.
+ 	 * @return true|WP_Error Returns true if valid or the WP_Error object if validation fails.
+ 	 */
+-	public function validate_input( $input = null ) {
++	public function validate_input( mixed $input = null ): mixed {
+ 		$input_schema = $this->get_input_schema();
+ 		if ( empty( $input_schema ) ) {
+ 			if ( null === $input ) {
+@@ -535,7 +537,7 @@
+ 
+ 		$valid_input = rest_validate_value_from_schema( $input, $input_schema, 'input' );
+ 		if ( is_wp_error( $valid_input ) ) {
+-			$is_valid = new WP_Error(
++			$is_valid = \wp_aot_mixed(new WP_Error(
+ 				'ability_invalid_input',
+ 				sprintf(
+ 					/* translators: %1$s ability name, %2$s error message. */
+@@ -543,7 +545,7 @@
+ 					$this->name,
+ 					$valid_input->get_error_message()
+ 				)
+-			);
++			));
+ 		} else {
+ 			$is_valid = true;
+ 		}
+@@ -571,6 +573,7 @@
+ 			return $validity;
+ 		}
+ 		return true;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -582,7 +585,7 @@
+ 	 * @param mixed    $input    Optional. The input data for the ability. Default `null`.
+ 	 * @return mixed The result of the callable execution, or a `WP_Error` if the callback threw.
+ 	 */
+-	protected function invoke_callback( callable $callback, $input = null ) {
++	protected function invoke_callback( callable $callback, mixed $input = null ): mixed {
+ 		$args = array();
+ 		if ( ! empty( $this->get_input_schema() ) ) {
+ 			$args[] = $input;
+@@ -601,6 +604,7 @@
+ 				)
+ 			);
+ 		}
++		return null;
+ 	}
+ 
+ 	/**
+@@ -620,7 +624,7 @@
+ 	 * @param mixed $input Optional. The valid input data for permission checking. Default `null`.
+ 	 * @return bool|WP_Error Whether the ability has the necessary permission.
+ 	 */
+-	public function check_permissions( $input = null ) {
++	public function check_permissions( mixed $input = null ): mixed {
+ 		if ( ! is_callable( $this->permission_callback ) ) {
+ 			return new WP_Error(
+ 				'ability_invalid_permission_callback',
+@@ -654,6 +658,7 @@
+ 			$result = false;
+ 		}
+ 		return $result;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -668,7 +673,7 @@
+ 	 * @param mixed $input Optional. The input data for the ability. Default `null`.
+ 	 * @return mixed|WP_Error The result of the ability execution, or WP_Error on failure.
+ 	 */
+-	protected function do_execute( $input = null ) {
++	protected function do_execute( mixed $input = null ): mixed {
+ 		if ( ! is_callable( $this->execute_callback ) ) {
+ 			$result = new WP_Error(
+ 				'ability_invalid_execute_callback',
+@@ -699,6 +704,7 @@
+ 		 * @param WP_Ability $ability      The ability instance.
+ 		 */
+ 		return apply_filters( 'wp_ability_execute_result', $result, $this->name, $input, $this );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -709,10 +715,10 @@
+ 	 * @param mixed $output The output data to validate.
+ 	 * @return true|WP_Error Returns true if valid, or a WP_Error object if validation fails.
+ 	 */
+-	protected function validate_output( $output ) {
++	protected function validate_output( mixed $output ): mixed {
+ 		$output_schema = $this->get_output_schema();
+ 		if ( empty( $output_schema ) ) {
+-			$is_valid = true;
++			$is_valid = \wp_aot_mixed(true);
+ 		} else {
+ 			$valid_output = rest_validate_value_from_schema( $output, $output_schema, 'output' );
+ 			if ( is_wp_error( $valid_output ) ) {
+@@ -753,6 +759,7 @@
+ 			return $validity;
+ 		}
+ 		return true;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -766,7 +773,7 @@
+ 	 * @param mixed $input Optional. The input data for the ability. Default `null`.
+ 	 * @return mixed|WP_Error The result of the ability execution, or WP_Error on failure.
+ 	 */
+-	public function execute( $input = null ) {
++	public function execute( mixed $input = null ): mixed {
+ 		/**
+ 		 * Fires when an ability is invoked, before any processing takes place.
+ 		 *
+@@ -875,6 +882,7 @@
+ 		do_action( 'wp_after_execute_ability', $this->name, $input, $result, $this );
+ 
+ 		return $result;
++		return null;
+ 	}
+ 
+ 	/**

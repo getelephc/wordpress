@@ -1,0 +1,20 @@
+--- a/wp-admin/network.php
++++ b/wp-admin/network.php
+@@ -22,7 +22,7 @@
+ if ( is_multisite() ) {
+ 	if ( ! is_network_admin() ) {
+ 		wp_redirect( network_admin_url( 'setup.php' ) );
+-		exit;
++		\wp_aot_exit();
+ 	}
+ 
+ 	if ( ! defined( 'MULTISITE' ) ) {
+@@ -33,7 +33,7 @@
+ require_once __DIR__ . '/includes/network.php';
+ 
+ // We need to create references to ms global tables to enable Network.
+-foreach ( $wpdb->tables( 'ms_global' ) as $table => $prefixed_table ) {
++foreach ( \wp_aot_require_wpdb( $wpdb )->tables( 'ms_global' ) as $table => $prefixed_table ) {
+ 	$wpdb->$table = $prefixed_table;
+ }
+ 

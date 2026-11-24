@@ -1,0 +1,434 @@
+--- a/wp-includes/class-wp-user.php
++++ b/wp-includes/class-wp-user.php
+@@ -113,7 +113,7 @@
+ 	 * @since 3.3.0
+ 	 * @var array
+ 	 */
+-	private static $back_compat_keys;
++	private static array $back_compat_keys;
+ 
+ 	/**
+ 	 * Constructor.
+@@ -128,7 +128,7 @@
+ 	 * @param string            $name    Optional. User's username
+ 	 * @param int               $site_id Optional Site ID, defaults to current site.
+ 	 */
+-	public function __construct( $id = 0, $name = '', $site_id = 0 ) {
++	public function __construct( mixed $id = 0, mixed $name = '', mixed $site_id = 0 ) {
+ 		global $wpdb;
+ 
+ 		if ( ! isset( self::$back_compat_keys ) ) {
+@@ -178,7 +178,7 @@
+ 	 * @param object $data    User DB row object.
+ 	 * @param int    $site_id Optional. The site ID to initialize for.
+ 	 */
+-	public function init( $data, $site_id = 0 ) {
++	public function init( mixed $data, mixed $site_id = 0 ): mixed {
+ 		if ( ! isset( $data->ID ) ) {
+ 			$data->ID = 0;
+ 		}
+@@ -186,6 +186,7 @@
+ 		$this->ID   = (int) $data->ID;
+ 
+ 		$this->for_site( $site_id );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -200,7 +201,7 @@
+ 	 * @param string|int $value The field value.
+ 	 * @return object|false Raw user object.
+ 	 */
+-	public static function get_data_by( $field, $value ) {
++	public static function get_data_by( mixed $field, mixed $value ): mixed {
+ 		global $wpdb;
+ 
+ 		// 'ID' is an alias of 'id'.
+@@ -254,8 +255,8 @@
+ 			}
+ 		}
+ 
+-		$user = $wpdb->get_row(
+-			$wpdb->prepare(
++		$user = \wp_aot_require_wpdb( $wpdb )->get_row(
++			\wp_aot_require_wpdb( $wpdb )->prepare(
+ 				"SELECT * FROM $wpdb->users WHERE $db_field = %s LIMIT 1",
+ 				$value
+ 			)
+@@ -267,6 +268,7 @@
+ 		update_user_caches( $user );
+ 
+ 		return $user;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -390,7 +392,9 @@
+ 		}
+ 
+ 		if ( isset( $this->data->$key ) ) {
+-			unset( $this->data->$key );
++			$wp_aot_user_record = \wp_aot_json_record( $this->data );
++			$wp_aot_user_field = (string) $key;
++			unset( $wp_aot_user_record->$wp_aot_user_field );
+ 		}
+ 
+ 		if ( isset( self::$back_compat_keys[ $key ] ) ) {
+@@ -405,8 +409,9 @@
+ 	 *
+ 	 * @return bool True if user exists in the database, false if not.
+ 	 */
+-	public function exists() {
++	public function exists(): mixed {
+ 		return ! empty( $this->ID );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -419,8 +424,9 @@
+ 	 * @param string $key Property
+ 	 * @return mixed
+ 	 */
+-	public function get( $key ) {
++	public function get( mixed $key ): mixed {
+ 		return $this->__get( $key );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -433,8 +439,9 @@
+ 	 * @param string $key Property.
+ 	 * @return bool
+ 	 */
+-	public function has_prop( $key ) {
++	public function has_prop( mixed $key ): mixed {
+ 		return $this->__isset( $key );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -444,8 +451,9 @@
+ 	 *
+ 	 * @return array Array representation.
+ 	 */
+-	public function to_array() {
++	public function to_array(): mixed {
+ 		return get_object_vars( $this->data );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -457,11 +465,12 @@
+ 	 * @param array  $arguments Arguments to pass when calling.
+ 	 * @return mixed|false Return value of the callback, false otherwise.
+ 	 */
+-	public function __call( $name, $arguments ) {
++	public function __call( $name, $arguments ): mixed {
+ 		if ( '_init_caps' === $name ) {
+ 			return $this->_init_caps( ...$arguments );
+ 		}
+ 		return false;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -479,13 +488,13 @@
+ 	 *
+ 	 * @param string $cap_key Optional capability key
+ 	 */
+-	protected function _init_caps( $cap_key = '' ) {
++	protected function _init_caps( mixed $cap_key = '' ): mixed {
+ 		global $wpdb;
+ 
+ 		_deprecated_function( __METHOD__, '4.9.0', 'WP_User::for_site()' );
+ 
+ 		if ( empty( $cap_key ) ) {
+-			$this->cap_key = $wpdb->get_blog_prefix( $this->site_id ) . 'capabilities';
++			$this->cap_key = \wp_aot_require_wpdb( $wpdb )->get_blog_prefix( $this->site_id ) . 'capabilities';
+ 		} else {
+ 			$this->cap_key = $cap_key;
+ 		}
+@@ -493,6 +502,7 @@
+ 		$this->caps = $this->get_caps_data();
+ 
+ 		$this->get_role_caps();
++		return null;
+ 	}
+ 
+ 	/**
+@@ -508,7 +518,7 @@
+ 	 * @return bool[] Array of key/value pairs where keys represent a capability name
+ 	 *                and boolean values represent whether the user has that capability.
+ 	 */
+-	public function get_role_caps() {
++	public function get_role_caps(): mixed {
+ 		$switch_site = false;
+ 		if ( is_multisite() && get_current_blog_id() !== $this->site_id ) {
+ 			$switch_site = true;
+@@ -533,15 +543,16 @@
+ 		$this->allcaps = array();
+ 		foreach ( (array) $this->roles as $role ) {
+ 			$the_role      = $wp_roles->get_role( $role );
+-			$this->allcaps = array_merge( (array) $this->allcaps, (array) $the_role->capabilities );
+-		}
+-		$this->allcaps = array_merge( (array) $this->allcaps, (array) $this->caps );
++			$this->allcaps = \wp_aot_array_merge(array( (array) $this->allcaps, (array) $the_role->capabilities ));
++		}
++		$this->allcaps = \wp_aot_array_merge(array( (array) $this->allcaps, (array) $this->caps ));
+ 
+ 		if ( $switch_site ) {
+ 			restore_current_blog();
+ 		}
+ 
+ 		return $this->allcaps;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -553,13 +564,13 @@
+ 	 *
+ 	 * @param string $role Role name.
+ 	 */
+-	public function add_role( $role ) {
++	public function add_role( mixed $role ): mixed {
+ 		if ( empty( $role ) ) {
+-			return;
++			return null;
+ 		}
+ 
+ 		if ( in_array( $role, $this->roles, true ) ) {
+-			return;
++			return null;
+ 		}
+ 
+ 		$this->caps[ $role ] = true;
+@@ -576,6 +587,7 @@
+ 		 * @param string $role    The new role.
+ 		 */
+ 		do_action( 'add_user_role', $this->ID, $role );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -585,9 +597,9 @@
+ 	 *
+ 	 * @param string $role Role name.
+ 	 */
+-	public function remove_role( $role ) {
++	public function remove_role( mixed $role ): mixed {
+ 		if ( ! in_array( $role, $this->roles, true ) ) {
+-			return;
++			return null;
+ 		}
+ 
+ 		unset( $this->caps[ $role ] );
+@@ -604,6 +616,7 @@
+ 		 * @param string $role    The removed role.
+ 		 */
+ 		do_action( 'remove_user_role', $this->ID, $role );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -617,9 +630,9 @@
+ 	 *
+ 	 * @param string $role Role name.
+ 	 */
+-	public function set_role( $role ) {
+-		if ( 1 === count( $this->roles ) && current( $this->roles ) === $role ) {
+-			return;
++	public function set_role( mixed $role ): mixed {
++		if ( 1 === count( $this->roles ) && wp_aot_array_first( $this->roles ) === $role ) {
++			return null;
+ 		}
+ 
+ 		foreach ( (array) $this->roles as $oldrole ) {
+@@ -664,6 +677,7 @@
+ 		 * @param string[] $old_roles An array of the user's previous roles.
+ 		 */
+ 		do_action( 'set_user_role', $this->ID, $role, $old_roles );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -684,13 +698,14 @@
+ 	 * @param string $item Level capability name.
+ 	 * @return int Max Level.
+ 	 */
+-	public function level_reduction( $max, $item ) {
+-		if ( preg_match( '/^level_(10|[0-9])$/i', $item, $matches ) ) {
++	public function level_reduction( mixed $max, mixed $item ): mixed {
++		if ( preg_match( '/^level_(10|[0-9])$/i', \wp_aot_regex_text( $item ), $matches ) ) {
+ 			$level = (int) $matches[1];
+ 			return max( $max, $level );
+ 		} else {
+ 			return $max;
+ 		}
++		return null;
+ 	}
+ 
+ 	/**
+@@ -704,10 +719,11 @@
+ 	 *
+ 	 * @global wpdb $wpdb WordPress database abstraction object.
+ 	 */
+-	public function update_user_level_from_caps() {
++	public function update_user_level_from_caps(): mixed {
+ 		global $wpdb;
+ 		$this->user_level = array_reduce( array_keys( $this->allcaps ), array( $this, 'level_reduction' ), 0 );
+-		update_user_meta( $this->ID, $wpdb->get_blog_prefix() . 'user_level', $this->user_level );
++		update_user_meta( $this->ID, \wp_aot_require_wpdb( $wpdb )->get_blog_prefix() . 'user_level', $this->user_level );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -718,11 +734,12 @@
+ 	 * @param string $cap   Capability name.
+ 	 * @param bool   $grant Whether to grant capability to user.
+ 	 */
+-	public function add_cap( $cap, $grant = true ) {
++	public function add_cap( mixed $cap, mixed $grant = true ): mixed {
+ 		$this->caps[ $cap ] = $grant;
+ 		update_user_meta( $this->ID, $this->cap_key, $this->caps );
+ 		$this->get_role_caps();
+ 		$this->update_user_level_from_caps();
++		return null;
+ 	}
+ 
+ 	/**
+@@ -732,14 +749,15 @@
+ 	 *
+ 	 * @param string $cap Capability name.
+ 	 */
+-	public function remove_cap( $cap ) {
++	public function remove_cap( mixed $cap ): mixed {
+ 		if ( ! isset( $this->caps[ $cap ] ) ) {
+-			return;
++			return null;
+ 		}
+ 		unset( $this->caps[ $cap ] );
+ 		update_user_meta( $this->ID, $this->cap_key, $this->caps );
+ 		$this->get_role_caps();
+ 		$this->update_user_level_from_caps();
++		return null;
+ 	}
+ 
+ 	/**
+@@ -749,12 +767,13 @@
+ 	 *
+ 	 * @global wpdb $wpdb WordPress database abstraction object.
+ 	 */
+-	public function remove_all_caps() {
++	public function remove_all_caps(): mixed {
+ 		global $wpdb;
+ 		$this->caps = array();
+ 		delete_user_meta( $this->ID, $this->cap_key );
+-		delete_user_meta( $this->ID, $wpdb->get_blog_prefix() . 'user_level' );
++		delete_user_meta( $this->ID, \wp_aot_require_wpdb( $wpdb )->get_blog_prefix() . 'user_level' );
+ 		$this->get_role_caps();
++		return null;
+ 	}
+ 
+ 	/**
+@@ -784,7 +803,7 @@
+ 	 * @return bool Whether the user has the given capability, or, if an object ID is passed, whether the user has
+ 	 *              the given capability for that object.
+ 	 */
+-	public function has_cap( $cap, ...$args ) {
++	public function has_cap( mixed $cap, mixed ...$args ): mixed {
+ 		if ( is_numeric( $cap ) ) {
+ 			_deprecated_argument( __FUNCTION__, '2.0.0', __( 'Usage of user levels is deprecated. Use capabilities instead.' ) );
+ 			$cap = $this->translate_level_to_cap( $cap );
+@@ -801,7 +820,7 @@
+ 		}
+ 
+ 		// Maintain BC for the argument passed to the "user_has_cap" filter.
+-		$args = array_merge( array( $cap, $this->ID ), $args );
++		$args = \wp_aot_array_merge(array( array( $cap, $this->ID ), $args ));
+ 
+ 		/**
+ 		 * Dynamically filter a user's capabilities.
+@@ -830,7 +849,8 @@
+ 		unset( $capabilities['do_not_allow'] );
+ 
+ 		// Must have ALL requested caps.
+-		return array_all( (array) $caps, fn( $cap, $key ) => ! empty( $capabilities[ $cap ] ) );
++		return array_all( (array) $caps, fn( mixed $cap, mixed $key ) => ! empty( $capabilities[ $cap ] ) );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -843,8 +863,9 @@
+ 	 * @param int $level Level number, 1 to 10.
+ 	 * @return string
+ 	 */
+-	public function translate_level_to_cap( $level ) {
++	public function translate_level_to_cap( mixed $level ): mixed {
+ 		return 'level_' . $level;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -855,10 +876,11 @@
+ 	 *
+ 	 * @param int $blog_id Optional. Site ID, defaults to current site.
+ 	 */
+-	public function for_blog( $blog_id = 0 ) {
++	public function for_blog( mixed $blog_id = 0 ): mixed {
+ 		_deprecated_function( __METHOD__, '4.9.0', 'WP_User::for_site()' );
+ 
+ 		$this->for_site( $blog_id );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -870,7 +892,7 @@
+ 	 *
+ 	 * @param int $site_id Site ID to initialize user capabilities for. Default is the current site.
+ 	 */
+-	public function for_site( $site_id = 0 ) {
++	public function for_site( mixed $site_id = 0 ): mixed {
+ 		global $wpdb;
+ 
+ 		if ( ! empty( $site_id ) ) {
+@@ -879,11 +901,12 @@
+ 			$this->site_id = get_current_blog_id();
+ 		}
+ 
+-		$this->cap_key = $wpdb->get_blog_prefix( $this->site_id ) . 'capabilities';
++		$this->cap_key = \wp_aot_require_wpdb( $wpdb )->get_blog_prefix( $this->site_id ) . 'capabilities';
+ 
+ 		$this->caps = $this->get_caps_data();
+ 
+ 		$this->get_role_caps();
++		return null;
+ 	}
+ 
+ 	/**
+@@ -893,8 +916,9 @@
+ 	 *
+ 	 * @return int Site ID.
+ 	 */
+-	public function get_site_id() {
++	public function get_site_id(): mixed {
+ 		return $this->site_id;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -905,7 +929,7 @@
+ 	 * @return bool[] List of capabilities keyed by the capability name,
+ 	 *                e.g. `array( 'edit_posts' => true, 'delete_posts' => false )`.
+ 	 */
+-	private function get_caps_data() {
++	private function get_caps_data(): mixed {
+ 		$caps = get_user_meta( $this->ID, $this->cap_key, true );
+ 
+ 		if ( ! is_array( $caps ) ) {
+@@ -913,5 +937,6 @@
+ 		}
+ 
+ 		return $caps;
++		return null;
+ 	}
+ }

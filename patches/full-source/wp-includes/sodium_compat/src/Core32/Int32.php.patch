@@ -1,0 +1,31 @@
+--- a/wp-includes/sodium_compat/src/Core32/Int32.php
++++ b/wp-includes/sodium_compat/src/Core32/Int32.php
+@@ -174,7 +174,7 @@
+                 $r[$i + $j + 1] += $carry;
+             }
+         }
+-        return array_slice($r, 0, 5);
++        return \wp_aot_array_slice($r, 0, 5);
+     }
+ 
+     /**
+@@ -186,7 +186,7 @@
+         // Handle negative numbers
+         $aNeg = ($this->limbs[0] >> 15) & 1;
+         $bNeg = ($int >> 31) & 1;
+-        $a = array_reverse($this->limbs);
++        $a = \wp_aot_array_reverse($this->limbs);
+         $b = array(
+             $int & 0xffff,
+             ($int >> 16) & 0xffff
+@@ -242,8 +242,8 @@
+         $aNeg = ($this->limbs[0] >> 15) & 1;
+         $bNeg = ($right->limbs[0] >> 15) & 1;
+ 
+-        $a = array_reverse($this->limbs);
+-        $b = array_reverse($right->limbs);
++        $a = \wp_aot_array_reverse($this->limbs);
++        $b = \wp_aot_array_reverse($right->limbs);
+         if ($aNeg) {
+             for ($i = 0; $i < 2; ++$i) {
+                 $a[$i] = ($a[$i] ^ 0xffff) & 0xffff;

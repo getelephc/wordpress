@@ -1,0 +1,54 @@
+--- a/wp-includes/PHPMailer/OAuth.php
++++ b/wp-includes/PHPMailer/OAuth.php
+@@ -84,7 +84,7 @@
+      * @param array $options Associative array containing
+      *                       `provider`, `userName`, `clientSecret`, `clientId` and `refreshToken` elements
+      */
+-    public function __construct($options)
++    public function __construct(mixed $options)
+     {
+         $this->provider = $options['provider'];
+         $this->oauthUserEmail = $options['userName'];
+@@ -98,9 +98,10 @@
+      *
+      * @return RefreshToken
+      */
+-    protected function getGrant()
++    protected function getGrant(): mixed
+     {
+         return new RefreshToken();
++    	return null;
+     }
+ 
+     /**
+@@ -108,12 +109,13 @@
+      *
+      * @return AccessToken
+      */
+-    protected function getToken()
++    protected function getToken(): mixed
+     {
+         return $this->provider->getAccessToken(
+             $this->getGrant(),
+             ['refresh_token' => $this->oauthRefreshToken]
+         );
++    	return null;
+     }
+ 
+     /**
+@@ -121,7 +123,7 @@
+      *
+      * @return string
+      */
+-    public function getOauth64()
++    public function getOauth64(): mixed
+     {
+         //Get a new token if it's not available or has expired
+         if (null === $this->oauthToken || $this->oauthToken->hasExpired()) {
+@@ -135,5 +137,6 @@
+             $this->oauthToken .
+             "\001\001"
+         );
++    	return null;
+     }
+ }

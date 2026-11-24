@@ -1,0 +1,20 @@
+--- a/wp-includes/php-ai-client/src/Providers/ApiBasedImplementation/GenerateTextApiBasedProviderAvailability.php
++++ b/wp-includes/php-ai-client/src/Providers/ApiBasedImplementation/GenerateTextApiBasedProviderAvailability.php
+@@ -38,7 +38,7 @@
+         if (!$model instanceof TextGenerationModelInterface) {
+             throw new Exception('The model class to check provider availability must implement TextGenerationModelInterface.');
+         }
+-        $this->model = $model;
++        $this->model = \wp_aot_require_WordPress_AiClient_Providers_Models_Contracts_ModelInterface( $model );
+     }
+     /**
+      * {@inheritDoc}
+@@ -52,7 +52,7 @@
+         $this->model->setConfig($modelConfig);
+         try {
+             // Attempt to generate text to check if the provider is available.
+-            $this->model->generateTextResult([new Message(MessageRoleEnum::user(), [new MessagePart('a')])]);
++            \wp_aot_require_WordPress_AiClient_Providers_Models_TextGeneration_Contracts_TextGenerationModelInterface($this->model)->generateTextResult([new Message(\wp_aot_require_WordPress_AiClient_Messages_Enums_MessageRoleEnum( MessageRoleEnum::user() ), [new MessagePart('a')])]);
+             return \true;
+         } catch (Exception $e) {
+             // If an exception occurs, the provider is not available.

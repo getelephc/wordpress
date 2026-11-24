@@ -1,0 +1,32 @@
+--- a/wp-includes/php-ai-client/src/Tools/DTO/FunctionResponse.php
++++ b/wp-includes/php-ai-client/src/Tools/DTO/FunctionResponse.php
+@@ -15,7 +15,7 @@
+  *
+  * @phpstan-type FunctionResponseArrayShape array{id?: string, name?: string, response: mixed}
+  *
+- * @extends AbstractDataTransferObject<FunctionResponseArrayShape>
++ * @phpstan-extends AbstractDataTransferObject<FunctionResponseArrayShape>
+  */
+ class FunctionResponse extends AbstractDataTransferObject
+ {
+@@ -44,7 +44,7 @@
+      * @param mixed $response The response data from the function.
+      * @throws InvalidArgumentException If neither id nor name is provided.
+      */
+-    public function __construct(?string $id, ?string $name, $response)
++    public function __construct(?string $id, ?string $name, mixed $response)
+     {
+         if ($id === null && $name === null) {
+             throw new InvalidArgumentException('At least one of id or name must be provided.');
+@@ -82,9 +82,10 @@
+      *
+      * @return mixed The response data.
+      */
+-    public function getResponse()
++    public function getResponse(): mixed
+     {
+         return $this->response;
++    	return null;
+     }
+     /**
+      * {@inheritDoc}

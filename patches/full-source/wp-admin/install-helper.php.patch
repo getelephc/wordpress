@@ -1,0 +1,125 @@
+--- a/wp-admin/install-helper.php
++++ b/wp-admin/install-helper.php
+@@ -51,10 +51,10 @@
+ 	 * @param string $create_ddl SQL statement to create table.
+ 	 * @return bool True on success or if the table already exists. False on failure.
+ 	 */
+-	function maybe_create_table( $table_name, $create_ddl ) {
++	function maybe_create_table( mixed $table_name, mixed $create_ddl ): mixed {
+ 		global $wpdb;
+ 
+-		foreach ( $wpdb->get_col( 'SHOW TABLES', 0 ) as $table ) {
++		foreach ( \wp_aot_require_wpdb( $wpdb )->get_col( 'SHOW TABLES', 0 ) as $table ) {
+ 			if ( $table === $table_name ) {
+ 				return true;
+ 			}
+@@ -62,16 +62,17 @@
+ 
+ 		// Didn't find it, so try to create it.
+ 		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- No applicable variables for this query.
+-		$wpdb->query( $create_ddl );
++		\wp_aot_require_wpdb( $wpdb )->query( $create_ddl );
+ 
+ 		// We cannot directly tell whether this succeeded!
+-		foreach ( $wpdb->get_col( 'SHOW TABLES', 0 ) as $table ) {
++		foreach ( \wp_aot_require_wpdb( $wpdb )->get_col( 'SHOW TABLES', 0 ) as $table ) {
+ 			if ( $table === $table_name ) {
+ 				return true;
+ 			}
+ 		}
+ 
+ 		return false;
++		return null;
+ 	}
+ endif;
+ 
+@@ -88,11 +89,11 @@
+ 	 * @param string $create_ddl  SQL statement to add column.
+ 	 * @return bool True on success or if the column already exists. False on failure.
+ 	 */
+-	function maybe_add_column( $table_name, $column_name, $create_ddl ) {
++	function maybe_add_column( mixed $table_name, mixed $column_name, mixed $create_ddl ): mixed {
+ 		global $wpdb;
+ 
+ 		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Cannot be prepared. Fetches columns for table names.
+-		foreach ( $wpdb->get_col( "DESC $table_name", 0 ) as $column ) {
++		foreach ( \wp_aot_require_wpdb( $wpdb )->get_col( "DESC $table_name", 0 ) as $column ) {
+ 			if ( $column === $column_name ) {
+ 				return true;
+ 			}
+@@ -100,17 +101,18 @@
+ 
+ 		// Didn't find it, so try to create it.
+ 		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- No applicable variables for this query.
+-		$wpdb->query( $create_ddl );
++		\wp_aot_require_wpdb( $wpdb )->query( $create_ddl );
+ 
+ 		// We cannot directly tell whether this succeeded!
+ 		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Cannot be prepared. Fetches columns for table names.
+-		foreach ( $wpdb->get_col( "DESC $table_name", 0 ) as $column ) {
++		foreach ( \wp_aot_require_wpdb( $wpdb )->get_col( "DESC $table_name", 0 ) as $column ) {
+ 			if ( $column === $column_name ) {
+ 				return true;
+ 			}
+ 		}
+ 
+ 		return false;
++		return null;
+ 	}
+ endif;
+ 
+@@ -126,20 +128,20 @@
+  * @param string $drop_ddl    SQL statement to drop column.
+  * @return bool True on success or if the column doesn't exist. False on failure.
+  */
+-function maybe_drop_column( $table_name, $column_name, $drop_ddl ) {
++function maybe_drop_column( mixed $table_name, mixed $column_name, mixed $drop_ddl ): mixed {
+ 	global $wpdb;
+ 
+ 	// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Cannot be prepared. Fetches columns for table names.
+-	foreach ( $wpdb->get_col( "DESC $table_name", 0 ) as $column ) {
++	foreach ( \wp_aot_require_wpdb( $wpdb )->get_col( "DESC $table_name", 0 ) as $column ) {
+ 		if ( $column === $column_name ) {
+ 
+ 			// Found it, so try to drop it.
+ 			// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- No applicable variables for this query.
+-			$wpdb->query( $drop_ddl );
++			\wp_aot_require_wpdb( $wpdb )->query( $drop_ddl );
+ 
+ 			// We cannot directly tell whether this succeeded!
+ 			// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Cannot be prepared. Fetches columns for table names.
+-			foreach ( $wpdb->get_col( "DESC $table_name", 0 ) as $column ) {
++			foreach ( \wp_aot_require_wpdb( $wpdb )->get_col( "DESC $table_name", 0 ) as $column ) {
+ 				if ( $column === $column_name ) {
+ 					return false;
+ 				}
+@@ -149,6 +151,7 @@
+ 
+ 	// Else didn't find it.
+ 	return true;
++	return null;
+ }
+ 
+ /**
+@@ -180,13 +183,13 @@
+  * @param mixed  $extra         Optional. Extra value.
+  * @return bool True, if matches. False, if not matching.
+  */
+-function check_column( $table_name, $col_name, $col_type, $is_null = null, $key = null, $default_value = null, $extra = null ) {
++function check_column( mixed $table_name, mixed $col_name, mixed $col_type, mixed $is_null = null, mixed $key = null, mixed $default_value = null, mixed $extra = null ): mixed {
+ 	global $wpdb;
+ 
+ 	$diffs = 0;
+ 
+ 	// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Cannot be prepared. Fetches columns for table names.
+-	$results = $wpdb->get_results( "DESC $table_name" );
++	$results = \wp_aot_require_wpdb( $wpdb )->get_results( "DESC $table_name" );
+ 
+ 	foreach ( $results as $row ) {
+ 
+@@ -218,4 +221,5 @@
+ 	}
+ 
+ 	return false;
++	return null;
+ }

@@ -1,0 +1,287 @@
+--- a/wp-includes/class-wp-tax-query.php
++++ b/wp-includes/class-wp-tax-query.php
+@@ -112,7 +112,7 @@
+ 	 *     }
+ 	 * }
+ 	 */
+-	public function __construct( $tax_query ) {
++	public function __construct( mixed $tax_query ) {
+ 		if ( isset( $tax_query['relation'] ) ) {
+ 			$this->relation = $this->sanitize_relation( $tax_query['relation'] );
+ 		} else {
+@@ -133,7 +133,7 @@
+ 	 * @param array $queries Array of queries clauses.
+ 	 * @return array Sanitized array of query clauses.
+ 	 */
+-	public function sanitize_query( $queries ) {
++	public function sanitize_query( mixed $queries ): mixed {
+ 		$cleaned_query = array();
+ 
+ 		$defaults = array(
+@@ -151,7 +151,7 @@
+ 				// First-order clause.
+ 			} elseif ( self::is_first_order_clause( $query ) ) {
+ 
+-				$cleaned_clause          = array_merge( $defaults, $query );
++				$cleaned_clause          = \wp_aot_array_merge(array( $defaults, $query ));
+ 				$cleaned_clause['terms'] = (array) $cleaned_clause['terms'];
+ 				$cleaned_query[]         = $cleaned_clause;
+ 
+@@ -194,6 +194,7 @@
+ 		}
+ 
+ 		return $cleaned_query;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -204,12 +205,13 @@
+ 	 * @param string $relation Raw relation key from the query argument.
+ 	 * @return string Sanitized relation. Either 'AND' or 'OR'.
+ 	 */
+-	public function sanitize_relation( $relation ) {
++	public function sanitize_relation( mixed $relation ): mixed {
+ 		if ( 'OR' === strtoupper( $relation ) ) {
+ 			return 'OR';
+ 		} else {
+ 			return 'AND';
+ 		}
++		return null;
+ 	}
+ 
+ 	/**
+@@ -226,8 +228,9 @@
+ 	 * @param array $query Tax query arguments.
+ 	 * @return bool Whether the query clause is a first-order clause.
+ 	 */
+-	protected static function is_first_order_clause( $query ) {
++	protected static function is_first_order_clause( mixed $query ): mixed {
+ 		return is_array( $query ) && ( empty( $query ) || array_key_exists( 'terms', $query ) || array_key_exists( 'taxonomy', $query ) || array_key_exists( 'include_children', $query ) || array_key_exists( 'field', $query ) || array_key_exists( 'operator', $query ) );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -244,11 +247,12 @@
+ 	 *     @type string $where SQL fragment to append to the main WHERE clause.
+ 	 * }
+ 	 */
+-	public function get_sql( $primary_table, $primary_id_column ) {
++	public function get_sql( mixed $primary_table, mixed $primary_id_column ): mixed {
+ 		$this->primary_table     = $primary_table;
+ 		$this->primary_id_column = $primary_id_column;
+ 
+ 		return $this->get_sql_clauses();
++		return null;
+ 	}
+ 
+ 	/**
+@@ -266,7 +270,7 @@
+ 	 *     @type string $where SQL fragment to append to the main WHERE clause.
+ 	 * }
+ 	 */
+-	protected function get_sql_clauses() {
++	protected function get_sql_clauses(): mixed {
+ 		/*
+ 		 * $queries are passed by reference to get_sql_for_query() for recursion.
+ 		 * To keep $this->queries unaltered, pass a copy.
+@@ -279,6 +283,7 @@
+ 		}
+ 
+ 		return $sql;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -299,7 +304,7 @@
+ 	 *     @type string $where SQL fragment to append to the main WHERE clause.
+ 	 * }
+ 	 */
+-	protected function get_sql_for_query( &$query, $depth = 0 ) {
++	protected function get_sql_for_query( mixed &$query, mixed $depth = 0 ): mixed {
+ 		$sql_chunks = array(
+ 			'join'  => array(),
+ 			'where' => array(),
+@@ -333,7 +338,7 @@
+ 						$sql_chunks['where'][] = '( ' . implode( ' AND ', $clause_sql['where'] ) . ' )';
+ 					}
+ 
+-					$sql_chunks['join'] = array_merge( $sql_chunks['join'], $clause_sql['join'] );
++					$sql_chunks['join'] = \wp_aot_array_merge(array( $sql_chunks['join'], $clause_sql['join'] ));
+ 					// This is a subquery, so we recurse.
+ 				} else {
+ 					$clause_sql = $this->get_sql_for_query( $clause, $depth + 1 );
+@@ -345,8 +350,8 @@
+ 		}
+ 
+ 		// Filter to remove empties.
+-		$sql_chunks['join']  = array_filter( $sql_chunks['join'] );
+-		$sql_chunks['where'] = array_filter( $sql_chunks['where'] );
++		$sql_chunks['join']  = \wp_aot_array_filter( $sql_chunks['join'] );
++		$sql_chunks['where'] = \wp_aot_array_filter( $sql_chunks['where'] );
+ 
+ 		if ( empty( $relation ) ) {
+ 			$relation = 'AND';
+@@ -354,7 +359,7 @@
+ 
+ 		// Filter duplicate JOIN clauses and combine into a single string.
+ 		if ( ! empty( $sql_chunks['join'] ) ) {
+-			$sql['join'] = implode( ' ', array_unique( $sql_chunks['join'] ) );
++			$sql['join'] = implode( ' ', \wp_aot_array_unique( $sql_chunks['join'] ) );
+ 		}
+ 
+ 		// Generate a single WHERE clause with proper brackets and indentation.
+@@ -363,6 +368,7 @@
+ 		}
+ 
+ 		return $sql;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -381,7 +387,7 @@
+ 	 *     @type string[] $where Array of SQL fragments to append to the main WHERE clause.
+ 	 * }
+ 	 */
+-	public function get_sql_for_clause( &$clause, $parent_query ) {
++	public function get_sql_for_clause( mixed &$clause, mixed $parent_query ): mixed {
+ 		global $wpdb;
+ 
+ 		$sql = array(
+@@ -464,7 +470,7 @@
+ 
+ 		} elseif ( 'NOT EXISTS' === $operator || 'EXISTS' === $operator ) {
+ 
+-			$where = $wpdb->prepare(
++			$where = \wp_aot_require_wpdb( $wpdb )->prepare(
+ 				"$operator (
+ 					SELECT 1
+ 					FROM $wpdb->term_relationships
+@@ -481,6 +487,7 @@
+ 		$sql['join'][]  = $join;
+ 		$sql['where'][] = $where;
+ 		return $sql;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -502,7 +509,7 @@
+ 	 * @param array $parent_query Parent query of $clause.
+ 	 * @return string|false Table alias if found, otherwise false.
+ 	 */
+-	protected function find_compatible_table_alias( $clause, $parent_query ) {
++	protected function find_compatible_table_alias( mixed $clause, mixed $parent_query ): mixed {
+ 		$alias = false;
+ 
+ 		// Confidence check. Only IN queries use the JOIN syntax.
+@@ -528,12 +535,13 @@
+ 
+ 			// The sibling must both have compatible operator to share its alias.
+ 			if ( in_array( strtoupper( $sibling['operator'] ), $compatible_operators, true ) ) {
+-				$alias = preg_replace( '/\W/', '_', $sibling['alias'] );
++				$alias = \wp_aot_preg_replace( '/\W/', '_', $sibling['alias'] );
+ 				break;
+ 			}
+ 		}
+ 
+ 		return $alias;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -543,22 +551,22 @@
+ 	 *
+ 	 * @param array $query The single query. Passed by reference.
+ 	 */
+-	private function clean_query( &$query ) {
++	private function clean_query( mixed &$query ): mixed {
+ 		if ( empty( $query['taxonomy'] ) ) {
+ 			if ( 'term_taxonomy_id' !== $query['field'] ) {
+ 				$query = new WP_Error( 'invalid_taxonomy', __( 'Invalid taxonomy.' ) );
+-				return;
++				return null;
+ 			}
+ 
+ 			// So long as there are shared terms, 'include_children' requires that a taxonomy is set.
+ 			$query['include_children'] = false;
+ 		} elseif ( ! taxonomy_exists( $query['taxonomy'] ) ) {
+ 			$query = new WP_Error( 'invalid_taxonomy', __( 'Invalid taxonomy.' ) );
+-			return;
++			return null;
+ 		}
+ 
+ 		if ( 'slug' === $query['field'] || 'name' === $query['field'] ) {
+-			$query['terms'] = array_unique( (array) $query['terms'] );
++			$query['terms'] = \wp_aot_array_unique( (array) $query['terms'] );
+ 		} else {
+ 			$query['terms'] = wp_parse_id_list( $query['terms'] );
+ 		}
+@@ -567,18 +575,19 @@
+ 			$this->transform_query( $query, 'term_id' );
+ 
+ 			if ( is_wp_error( $query ) ) {
+-				return;
++				return null;
+ 			}
+ 
+ 			$children = array();
+ 			foreach ( $query['terms'] as $term ) {
+-				$children   = array_merge( $children, get_term_children( $term, $query['taxonomy'] ) );
++				$children   = \wp_aot_array_merge(array( $children, get_term_children( $term, $query['taxonomy'] ) ));
+ 				$children[] = $term;
+ 			}
+ 			$query['terms'] = $children;
+ 		}
+ 
+ 		$this->transform_query( $query, 'term_taxonomy_id' );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -593,23 +602,23 @@
+ 	 * @param string $resulting_field The resulting field. Accepts 'slug', 'name', 'term_taxonomy_id',
+ 	 *                                or 'term_id'. Default 'term_id'.
+ 	 */
+-	public function transform_query( &$query, $resulting_field ) {
++	public function transform_query( mixed &$query, mixed $resulting_field ): mixed {
+ 		if ( empty( $query['terms'] ) ) {
+-			return;
++			return null;
+ 		}
+ 
+ 		if ( $query['field'] === $resulting_field ) {
+-			return;
++			return null;
+ 		}
+ 
+ 		$resulting_field = sanitize_key( $resulting_field );
+ 
+ 		// Empty 'terms' always results in a null transformation.
+-		$terms = array_filter( $query['terms'] );
++		$terms = \wp_aot_array_filter( $query['terms'] );
+ 		if ( empty( $terms ) ) {
+ 			$query['terms'] = array();
+ 			$query['field'] = $resulting_field;
+-			return;
++			return null;
+ 		}
+ 
+ 		$args = array(
+@@ -645,15 +654,16 @@
+ 
+ 		if ( is_wp_error( $term_list ) ) {
+ 			$query = $term_list;
+-			return;
++			return null;
+ 		}
+ 
+ 		if ( 'AND' === $query['operator'] && count( $term_list ) < count( $query['terms'] ) ) {
+ 			$query = new WP_Error( 'inexistent_terms', __( 'Inexistent terms.' ) );
+-			return;
++			return null;
+ 		}
+ 
+ 		$query['terms'] = wp_list_pluck( $term_list, $resulting_field );
+ 		$query['field'] = $resulting_field;
++		return null;
+ 	}
+ }

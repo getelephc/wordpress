@@ -1,8 +1,113 @@
 --- a/wp-admin/includes/class-wp-theme-install-list-table.php
 +++ b/wp-admin/includes/class-wp-theme-install-list-table.php
-@@ -205,27 +205,29 @@
+@@ -21,8 +21,9 @@
+ 	/**
+ 	 * @return bool Whether the user can install themes.
  	 */
- 	public function display() {
+-	public function ajax_user_can() {
++	public function ajax_user_can(): mixed {
+ 		return current_user_can( 'install_themes' );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -32,18 +33,18 @@
+ 	 * @global string $type
+ 	 * @global array  $theme_field_defaults
+ 	 */
+-	public function prepare_items() {
+-		require ABSPATH . 'wp-admin/includes/theme-install.php';
++	public function prepare_items(): mixed {
++		require_once ABSPATH . 'wp-admin/includes/theme-install.php';
+ 
+ 		global $tabs, $tab, $paged, $type, $theme_field_defaults;
+ 
+ 		$tab = ! empty( $_REQUEST['tab'] ) ? sanitize_text_field( $_REQUEST['tab'] ) : '';
+ 
+-		$search_terms  = array();
++		$search_terms  = \wp_aot_mixed(array());
+ 		$search_string = '';
+ 		if ( ! empty( $_REQUEST['s'] ) ) {
+ 			$search_string = strtolower( wp_unslash( $_REQUEST['s'] ) );
+-			$search_terms  = array_unique( array_filter( array_map( 'trim', explode( ',', $search_string ) ) ) );
++			$search_terms  = \wp_aot_array_unique( \wp_aot_array_filter( \wp_aot_array_map( 'trim', explode( ',', $search_string ) ) ) );
+ 		}
+ 
+ 		if ( ! empty( $_REQUEST['features'] ) ) {
+@@ -86,18 +87,18 @@
+ 			$tab = key( $tabs );
+ 		}
+ 
+-		$args = array(
++		$args = \wp_aot_mixed(array(
+ 			'page'     => $paged,
+ 			'per_page' => $per_page,
+ 			'fields'   => $theme_field_defaults,
+-		);
++		));
+ 
+ 		switch ( $tab ) {
+ 			case 'search':
+ 				$type = isset( $_REQUEST['type'] ) ? wp_unslash( $_REQUEST['type'] ) : 'term';
+ 				switch ( $type ) {
+ 					case 'tag':
+-						$args['tag'] = array_map( 'sanitize_key', $search_terms );
++						$args['tag'] = \wp_aot_array_map( 'sanitize_key', $search_terms );
+ 						break;
+ 					case 'term':
+ 						$args['search'] = $search_string;
+@@ -150,7 +151,7 @@
+ 		$args = apply_filters( "install_themes_table_api_args_{$tab}", $args );
+ 
+ 		if ( ! $args ) {
+-			return;
++			return null;
+ 		}
+ 
+ 		$api = themes_api( 'query_themes', $args );
+@@ -168,12 +169,14 @@
+ 				'infinite_scroll' => true,
+ 			)
+ 		);
+-	}
+-
+-	/**
+-	 */
+-	public function no_items() {
++		return null;
++	}
++
++	/**
++	 */
++	public function no_items(): mixed {
+ 		_e( 'No themes match your request.' );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -181,7 +184,7 @@
+ 	 * @global string $tab
+ 	 * @return array<string, string> An array of links for the available views.
+ 	 */
+-	protected function get_views() {
++	protected function get_views(): mixed {
+ 		global $tabs, $tab;
+ 
+ 		$display_tabs = array();
+@@ -194,6 +197,7 @@
+ 		}
+ 
+ 		return $this->get_views_links( $display_tabs );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -203,30 +207,33 @@
+ 	 *
+ 	 * @since 3.1.0
+ 	 */
+-	public function display() {
++	public function display( mixed $wp_aot_output_empty = false ): mixed {
  		wp_nonce_field( 'fetch-list-' . get_class( $this ), '_ajax_fetch_list_nonce' );
 -		?>
 -		<div class="tablenav top themes">
@@ -39,10 +144,16 @@
 +
 +		';
  		$this->tablenav( 'bottom' );
++		return null;
  	}
  
-@@ -237,13 +239,13 @@
- 	public function display_rows() {
+ 	/**
+@@ -234,19 +241,20 @@
+ 	 *
+ 	 * @since 3.1.0
+ 	 */
+-	public function display_rows() {
++	public function display_rows( mixed $wp_aot_posts = array(), mixed $wp_aot_level = 0 ): mixed {
  		$themes = $this->items;
  		foreach ( $themes as $theme ) {
 -			?>
@@ -61,7 +172,25 @@
  		} // End foreach $theme_names.
  
  		$this->theme_installer();
-@@ -360,29 +362,43 @@
++		return null;
+ 	}
+ 
+ 	/**
+@@ -272,11 +280,11 @@
+ 	 *     @type string $download_link  Theme ZIP download URL.
+ 	 * }
+ 	 */
+-	public function single_row( $theme ) {
++	public function single_row( mixed $theme, mixed $wp_aot_second = null, mixed $wp_aot_third = null, mixed $wp_aot_fourth = null ): mixed {
+ 		global $themes_allowedtags;
+ 
+ 		if ( empty( $theme ) ) {
+-			return;
++			return null;
+ 		}
+ 
+ 		$name   = wp_kses( $theme->name, $themes_allowedtags );
+@@ -360,56 +368,78 @@
  		 */
  		$actions = apply_filters( 'theme_install_actions', $actions, $theme );
  
@@ -115,14 +244,16 @@
 -		<?php
 +		';
  		$this->install_theme_info( $theme );
++		return null;
  	}
  
-@@ -390,26 +406,32 @@
+ 	/**
  	 * Prints the wrapper for the theme installer.
  	 */
- 	public function theme_installer() {
+-	public function theme_installer() {
 -		?>
 -		<div id="theme-installer" class="wp-full-overlay expanded">
++	public function theme_installer(): mixed {
 +		;
 +echo '		<div id="theme-installer" class="wp-full-overlay expanded">
  			<div class="wp-full-overlay-sidebar">
@@ -153,15 +284,18 @@
  		</div>
 -		<?php
 +		';
++		return null;
  	}
  
  	/**
-@@ -419,16 +441,19 @@
+@@ -418,17 +448,21 @@
+ 	 *
  	 * @param stdClass $theme A WordPress.org Theme API object.
  	 */
- 	public function theme_installer_single( $theme ) {
+-	public function theme_installer_single( $theme ) {
 -		?>
 -		<div id="theme-installer" class="wp-full-overlay single-theme">
++	public function theme_installer_single( mixed $theme ): mixed {
 +		;
 +echo '		<div id="theme-installer" class="wp-full-overlay single-theme">
  			<div class="wp-full-overlay-sidebar">
@@ -179,10 +313,25 @@
  		</div>
 -		<?php
 +		';
++		return null;
  	}
  
  	/**
-@@ -466,9 +491,9 @@
+@@ -438,11 +472,11 @@
+ 	 *
+ 	 * @param stdClass $theme A WordPress.org Theme API object.
+ 	 */
+-	public function install_theme_info( $theme ) {
++	public function install_theme_info( mixed $theme ): mixed {
+ 		global $themes_allowedtags;
+ 
+ 		if ( empty( $theme ) ) {
+-			return;
++			return null;
+ 		}
+ 
+ 		$name   = wp_kses( $theme->name, $themes_allowedtags );
+@@ -466,9 +500,9 @@
  
  		$status = $this->_get_theme_status( $theme );
  
@@ -195,7 +344,7 @@
  		switch ( $status ) {
  			case 'update_available':
  				printf(
-@@ -495,19 +520,25 @@
+@@ -495,19 +529,25 @@
  				);
  				break;
  		}
@@ -231,7 +380,7 @@
  				wp_star_rating(
  					array(
  						'rating' => $theme->rating,
-@@ -515,18 +546,24 @@
+@@ -515,18 +555,25 @@
  						'number' => $theme->num_ratings,
  					)
  				);
@@ -262,6 +411,36 @@
  		</div>
 -		<?php
 +		';
++		return null;
  	}
  
  	/**
+@@ -539,9 +586,10 @@
+ 	 *
+ 	 * @param array $extra_args Unused.
+ 	 */
+-	public function _js_vars( $extra_args = array() ) {
++	public function _js_vars( mixed $extra_args = array() ): mixed {
+ 		global $tab, $type;
+-		parent::_js_vars( compact( 'tab', 'type' ) );
++		parent::_js_vars( \wp_aot_compact(get_defined_vars(), array( 'tab', 'type' )) );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -552,7 +600,7 @@
+ 	 * @param stdClass $theme A WordPress.org Theme API object.
+ 	 * @return string Theme status.
+ 	 */
+-	private function _get_theme_status( $theme ) {
++	private function _get_theme_status( mixed $theme ): mixed {
+ 		$status = 'install';
+ 
+ 		$installed_theme = wp_get_theme( $theme->slug );
+@@ -567,5 +615,6 @@
+ 		}
+ 
+ 		return $status;
++		return null;
+ 	}
+ }

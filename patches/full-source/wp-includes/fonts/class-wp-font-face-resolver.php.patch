@@ -1,0 +1,148 @@
+--- a/wp-includes/fonts/class-wp-font-face-resolver.php
++++ b/wp-includes/fonts/class-wp-font-face-resolver.php
+@@ -25,7 +25,7 @@
+ 	 *
+ 	 * @return array Returns the font-families, each with their font-face variations.
+ 	 */
+-	public static function get_fonts_from_theme_json() {
++	public static function get_fonts_from_theme_json(): mixed {
+ 		$settings = wp_get_global_settings();
+ 
+ 		// Bail out early if there are no font settings.
+@@ -33,7 +33,8 @@
+ 			return array();
+ 		}
+ 
+-		return static::parse_settings( $settings );
++		return static::parse_settings( \wp_aot_array_input($settings ));
++		return null;
+ 	}
+ 
+ 	/**
+@@ -43,7 +44,7 @@
+ 	 *
+ 	 * @return array Returns an array of font-families.
+ 	 */
+-	public static function get_fonts_from_style_variations() {
++	public static function get_fonts_from_style_variations(): mixed {
+ 		$variations = WP_Theme_JSON_Resolver::get_style_variations();
+ 		$fonts      = array();
+ 
+@@ -53,7 +54,7 @@
+ 
+ 		foreach ( $variations as $variation ) {
+ 			if ( ! empty( $variation['settings']['typography']['fontFamilies']['theme'] ) ) {
+-				$fonts = array_merge( $fonts, $variation['settings']['typography']['fontFamilies']['theme'] );
++				$fonts = \wp_aot_array_merge(array( $fonts, $variation['settings']['typography']['fontFamilies']['theme'] ));
+ 			}
+ 		}
+ 
+@@ -66,6 +67,7 @@
+ 		);
+ 
+ 		return static::parse_settings( $settings );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -76,7 +78,7 @@
+ 	 * @param array $settings Font settings to parse.
+ 	 * @return array Returns an array of fonts, grouped by font-family.
+ 	 */
+-	private static function parse_settings( array $settings ) {
++	private static function parse_settings( array $settings ): mixed {
+ 		$fonts = array();
+ 
+ 		foreach ( $settings['typography']['fontFamilies'] as $font_families ) {
+@@ -99,11 +101,12 @@
+ 					continue;
+ 				}
+ 
+-				$fonts[] = static::convert_font_face_properties( $definition['fontFace'], $font_family_name );
++				$fonts[] = static::convert_font_face_properties( \wp_aot_array_input($definition['fontFace']), $font_family_name );
+ 			}
+ 		}
+ 
+ 		return $fonts;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -117,12 +120,13 @@
+ 	 * @param string $font_family Font family `fontFamily' to parse.
+ 	 * @return string Font-family name.
+ 	 */
+-	private static function maybe_parse_name_from_comma_separated_list( $font_family ) {
++	private static function maybe_parse_name_from_comma_separated_list( mixed $font_family ): mixed {
+ 		if ( str_contains( $font_family, ',' ) ) {
+ 			$font_family = explode( ',', $font_family )[0];
+ 		}
+ 
+ 		return trim( $font_family, "\"'" );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -134,7 +138,7 @@
+ 	 * @param string $font_family_property The value to store in the font-face font-family property.
+ 	 * @return array Converted font-face properties.
+ 	 */
+-	private static function convert_font_face_properties( array $font_face_definition, $font_family_property ) {
++	private static function convert_font_face_properties( array $font_face_definition, mixed $font_family_property ): mixed {
+ 		$converted_font_faces = array();
+ 
+ 		foreach ( $font_face_definition as $font_face ) {
+@@ -147,12 +151,13 @@
+ 			}
+ 
+ 			// Convert camelCase properties into kebab-case.
+-			$font_face = static::to_kebab_case( $font_face );
++			$font_face = static::to_kebab_case( \wp_aot_array_input($font_face ));
+ 
+ 			$converted_font_faces[] = $font_face;
+ 		}
+ 
+ 		return $converted_font_faces;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -167,7 +172,7 @@
+ 	 * @param array $src An array of font file sources to process.
+ 	 * @return array An array of font file src URI(s).
+ 	 */
+-	private static function to_theme_file_uri( array $src ) {
++	private static function to_theme_file_uri( array $src ): mixed {
+ 		$placeholder = 'file:./';
+ 
+ 		foreach ( $src as $src_key => $src_url ) {
+@@ -176,11 +181,12 @@
+ 				continue;
+ 			}
+ 
+-			$src_file        = str_replace( $placeholder, '', $src_url );
++			$src_file        = \wp_aot_str_replace( $placeholder, '', $src_url );
+ 			$src[ $src_key ] = get_theme_file_uri( $src_file );
+ 		}
+ 
+ 		return $src;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -191,7 +197,7 @@
+ 	 * @param array $data The array to process.
+ 	 * @return array Data with first dimension keys converted into kebab-case.
+ 	 */
+-	private static function to_kebab_case( array $data ) {
++	private static function to_kebab_case( array $data ): mixed {
+ 		foreach ( $data as $key => $value ) {
+ 			$kebab_case          = _wp_to_kebab_case( $key );
+ 			$data[ $kebab_case ] = $value;
+@@ -201,5 +207,6 @@
+ 		}
+ 
+ 		return $data;
++		return null;
+ 	}
+ }

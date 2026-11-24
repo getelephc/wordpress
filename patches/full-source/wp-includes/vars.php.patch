@@ -1,0 +1,61 @@
+--- a/wp-includes/vars.php
++++ b/wp-includes/vars.php
+@@ -17,7 +17,7 @@
+ 
+ // Don't load directly.
+ if ( ! defined( 'ABSPATH' ) ) {
+-	exit;
++	\wp_aot_exit();
+ }
+ 
+ global $pagenow,
+@@ -28,28 +28,28 @@
+ if ( is_admin() ) {
+ 	// wp-admin pages are checked more carefully.
+ 	if ( is_network_admin() ) {
+-		preg_match( '#/wp-admin/network/?(.*?)$#i', $_SERVER['PHP_SELF'], $self_matches );
++		preg_match( '#/wp-admin/network/?(.*?)$#i', \wp_aot_regex_text( $_SERVER['PHP_SELF'] ), $self_matches );
+ 	} elseif ( is_user_admin() ) {
+-		preg_match( '#/wp-admin/user/?(.*?)$#i', $_SERVER['PHP_SELF'], $self_matches );
++		preg_match( '#/wp-admin/user/?(.*?)$#i', \wp_aot_regex_text( $_SERVER['PHP_SELF'] ), $self_matches );
+ 	} else {
+-		preg_match( '#/wp-admin/?(.*?)$#i', $_SERVER['PHP_SELF'], $self_matches );
++		preg_match( '#/wp-admin/?(.*?)$#i', \wp_aot_regex_text( $_SERVER['PHP_SELF'] ), $self_matches );
+ 	}
+ 
+ 	$pagenow = ! empty( $self_matches[1] ) ? $self_matches[1] : '';
+ 	$pagenow = trim( $pagenow, '/' );
+-	$pagenow = preg_replace( '#\?.*?$#', '', $pagenow );
++	$pagenow = \wp_aot_preg_replace( '#\?.*?$#', '', $pagenow );
+ 
+ 	if ( '' === $pagenow || 'index' === $pagenow || 'index.php' === $pagenow ) {
+ 		$pagenow = 'index.php';
+ 	} else {
+-		preg_match( '#(.*?)(/|$)#', $pagenow, $self_matches );
++		preg_match( '#(.*?)(/|$)#', \wp_aot_regex_text( $pagenow ), $self_matches );
+ 		$pagenow = strtolower( $self_matches[1] );
+ 		if ( ! str_ends_with( $pagenow, '.php' ) ) {
+ 			$pagenow .= '.php'; // For `Options +Multiviews`: /wp-admin/themes/index.php (themes.php is queried).
+ 		}
+ 	}
+ } else {
+-	if ( preg_match( '#([^/]+\.php)([?/].*?)?$#i', $_SERVER['PHP_SELF'], $self_matches ) ) {
++	if ( preg_match( '#([^/]+\.php)([?/].*?)?$#i', \wp_aot_regex_text( $_SERVER['PHP_SELF'] ), $self_matches ) ) {
+ 		$pagenow = strtolower( $self_matches[1] );
+ 	} else {
+ 		$pagenow = 'index.php';
+@@ -160,7 +160,7 @@
+  *
+  * @return bool Whether the request is from a mobile device.
+  */
+-function wp_is_mobile() {
++function wp_is_mobile(): mixed {
+ 	if ( isset( $_SERVER['HTTP_SEC_CH_UA_MOBILE'] ) ) {
+ 		// This is the `Sec-CH-UA-Mobile` user agent client hint HTTP request header.
+ 		// See <https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Sec-CH-UA-Mobile>.
+@@ -187,4 +187,5 @@
+ 	 * @param bool $is_mobile Whether the request is from a mobile device or not.
+ 	 */
+ 	return apply_filters( 'wp_is_mobile', $is_mobile );
++	return null;
+ }

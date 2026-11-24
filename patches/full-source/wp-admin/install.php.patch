@@ -1,0 +1,116 @@
+--- a/wp-admin/install.php
++++ b/wp-admin/install.php
+@@ -41,7 +41,7 @@
+ require_once ABSPATH . 'wp-admin/includes/translation-install.php';
+ 
+ /** Load wpdb */
+-require_once ABSPATH . WPINC . '/class-wpdb.php';
++require_once __DIR__ . '/../wp-includes/class-wpdb.php';
+ 
+ nocache_headers();
+ 
+@@ -54,7 +54,7 @@
+  *
+  * @param string $body_classes Class attribute values for the body tag.
+  */
+-function display_header( $body_classes = '' ) {
++function display_header( mixed $body_classes = '' ): mixed {
+ 	header( 'Content-Type: text/html; charset=utf-8' );
+ 	if ( is_rtl() ) {
+ 		$body_classes .= 'rtl';
+@@ -76,6 +76,7 @@
+ <p id="logo"><?php _e( 'WordPress' ); ?></p>
+ 
+ 	<?php
++	return null;
+ } // End display_header().
+ 
+ /**
+@@ -87,10 +88,10 @@
+  *
+  * @param string|null $error Error message to display, if any.
+  */
+-function display_setup_form( $error = null ) {
++function display_setup_form( mixed $error = null ): mixed {
+ 	global $wpdb;
+ 
+-	$user_table = ( $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $wpdb->esc_like( $wpdb->users ) ) ) !== null );
++	$user_table = ( \wp_aot_require_wpdb( $wpdb )->get_var( \wp_aot_require_wpdb( $wpdb )->prepare( 'SHOW TABLES LIKE %s', \wp_aot_require_wpdb( $wpdb )->esc_like( $wpdb->users ) ) ) !== null );
+ 
+ 	// Ensure that sites appear in search engines by default.
+ 	$blog_public = 1;
+@@ -210,12 +211,13 @@
+ 	<input type="hidden" name="language" value="<?php echo isset( $_REQUEST['language'] ) ? esc_attr( $_REQUEST['language'] ) : ''; ?>" />
+ </form>
+ 	<?php
++	return null;
+ } // End display_setup_form().
+ 
+ // Let's check to make sure WP isn't already installed.
+ if ( is_blog_installed() ) {
+ 	display_header();
+-	die(
++	\wp_aot_exit(
+ 		'<h1>' . __( 'Already Installed' ) . '</h1>' .
+ 		'<p>' . __( 'You appear to have already installed WordPress. To reinstall please clear your old database tables first.' ) . '</p>' .
+ 		'<p class="step"><a href="' . esc_url( wp_login_url() ) . '">' . __( 'Log In' ) . '</a></p>' .
+@@ -233,7 +235,7 @@
+ global $wp_version, $required_php_version, $required_php_extensions, $required_mysql_version, $wpdb;
+ 
+ $php_version   = PHP_VERSION;
+-$mysql_version = $wpdb->db_version();
++$mysql_version = \wp_aot_require_wpdb( $wpdb )->db_version();
+ $php_compat    = version_compare( $php_version, $required_php_version, '>=' );
+ $mysql_compat  = version_compare( $mysql_version, $required_mysql_version, '>=' ) || file_exists( WP_CONTENT_DIR . '/db.php' );
+ 
+@@ -288,14 +290,14 @@
+ 
+ if ( ! $mysql_compat || ! $php_compat ) {
+ 	display_header();
+-	die( '<h1>' . __( 'Requirements Not Met' ) . '</h1><p>' . $compat . '</p></body></html>' );
++	\wp_aot_exit( '<h1>' . __( 'Requirements Not Met' ) . '</h1><p>' . $compat . '</p></body></html>' );
+ }
+ 
+ if ( isset( $required_php_extensions ) && is_array( $required_php_extensions ) ) {
+ 	$missing_extensions = array();
+ 
+ 	foreach ( $required_php_extensions as $extension ) {
+-		if ( extension_loaded( $extension ) ) {
++		if ( \wp_aot_extension_loaded( $extension ) ) {
+ 			continue;
+ 		}
+ 
+@@ -310,13 +312,13 @@
+ 
+ 	if ( count( $missing_extensions ) > 0 ) {
+ 		display_header();
+-		die( '<h1>' . __( 'Requirements Not Met' ) . '</h1><p>' . implode( '</p><p>', $missing_extensions ) . '</p></body></html>' );
++		\wp_aot_exit( '<h1>' . __( 'Requirements Not Met' ) . '</h1><p>' . implode( '</p><p>', $missing_extensions ) . '</p></body></html>' );
+ 	}
+ }
+ 
+ if ( ! is_string( $wpdb->base_prefix ) || '' === $wpdb->base_prefix ) {
+ 	display_header();
+-	die(
++	\wp_aot_exit(
+ 		'<h1>' . __( 'Configuration Error' ) . '</h1>' .
+ 		'<p>' . sprintf(
+ 			/* translators: %s: wp-config.php */
+@@ -329,7 +331,7 @@
+ // Set error message if DO_NOT_UPGRADE_GLOBAL_TABLES isn't set as it will break install.
+ if ( defined( 'DO_NOT_UPGRADE_GLOBAL_TABLES' ) ) {
+ 	display_header();
+-	die(
++	\wp_aot_exit(
+ 		'<h1>' . __( 'Configuration Error' ) . '</h1>' .
+ 		'<p>' . sprintf(
+ 			/* translators: %s: DO_NOT_UPGRADE_GLOBAL_TABLES */
+@@ -438,7 +440,7 @@
+ 		}
+ 
+ 		if ( false === $error ) {
+-			$wpdb->show_errors();
++			\wp_aot_require_wpdb( $wpdb )->show_errors();
+ 			$result = wp_install( $weblog_title, $user_name, $admin_email, $public, '', wp_slash( $admin_password ), $loaded_language );
+ 			?>
+ 

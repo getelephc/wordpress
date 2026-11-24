@@ -1,8 +1,19 @@
 --- a/wp-includes/customize/class-wp-customize-nav-menu-control.php
 +++ b/wp-includes/customize/class-wp-customize-nav-menu-control.php
-@@ -38,32 +38,41 @@
+@@ -29,41 +29,51 @@
+ 	 *
+ 	 * @since 4.3.0
  	 */
- 	public function content_template() {
+-	public function render_content() {}
++	public function render_content(): mixed { return null; }
+ 
+ 	/**
+ 	 * JS/Underscore template for the control UI.
+ 	 *
+ 	 * @since 4.3.0
+ 	 */
+-	public function content_template() {
++	public function content_template(): mixed {
  		$add_items = __( 'Add Items' );
 -		?>
 -		<p class="new-menu-item-invitation">
@@ -54,6 +65,21 @@
 +			;
 +echo '		</p>
 +		';
++		return null;
  	}
  
  	/**
+@@ -73,10 +83,11 @@
+ 	 *
+ 	 * @return array Exported parameters.
+ 	 */
+-	public function json() {
++	public function json(): mixed {
+ 		$exported            = parent::json();
+-		$exported['menu_id'] = $this->setting->term_id;
++		$exported['menu_id'] = \wp_aot_mixed($this->setting)->term_id;
+ 
+ 		return $exported;
++		return null;
+ 	}
+ }

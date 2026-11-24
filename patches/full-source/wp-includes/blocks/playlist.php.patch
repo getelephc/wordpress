@@ -1,0 +1,57 @@
+--- a/wp-includes/blocks/playlist.php
++++ b/wp-includes/blocks/playlist.php
+@@ -16,7 +16,7 @@
+  *
+  * @return string Returns the Playlist.
+  */
+-function render_block_core_playlist( $attributes, $content, $block ) {
++function render_block_core_playlist( mixed $attributes, mixed $content, mixed $block ): mixed {
+ 	$playlist_id              = wp_unique_id( 'playlist-' );
+ 	$playlist_tracks          = array();
+ 	$tracks_data              = array();
+@@ -33,7 +33,7 @@
+ 					continue;
+ 				}
+ 
+-				$track_id          = 'track-' . count( $playlist_tracks );
++				$track_id          = \wp_aot_mixed('track-' . count( $playlist_tracks ));
+ 				$playlist_tracks[] = $track_id;
+ 
+ 				// Extract track metadata from block attributes.
+@@ -148,11 +148,12 @@
+ 		 *
+ 		 * @param string $html HTML to insert.
+ 		 */
+-		public function block_core_playlist_insert_after( string $html ) {
++		public function block_core_playlist_insert_after( string $html ): mixed {
+ 			$this->set_bookmark( 'here' );
+ 			$span = $this->bookmarks['here'];
+ 
+ 			$this->lexical_updates[] = new WP_HTML_Text_Replacement( $span->start + $span->length, 0, $html );
++			return null;
+ 		}
+ 	};
+ 
+@@ -202,6 +203,7 @@
+ 	}
+ 
+ 	return $processor->get_updated_html();
++	return null;
+ }
+ 
+ /**
+@@ -209,12 +211,13 @@
+  *
+  * @since 7.1.0
+  */
+-function register_block_core_playlist() {
++function register_block_core_playlist(): mixed {
+ 	register_block_type_from_metadata(
+ 		__DIR__ . '/playlist',
+ 		array(
+ 			'render_callback' => 'render_block_core_playlist',
+ 		)
+ 	);
++	return null;
+ }
+ add_action( 'init', 'register_block_core_playlist' );

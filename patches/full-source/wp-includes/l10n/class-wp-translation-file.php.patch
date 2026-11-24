@@ -1,0 +1,105 @@
+--- a/wp-includes/l10n/class-wp-translation-file.php
++++ b/wp-includes/l10n/class-wp-translation-file.php
+@@ -81,7 +81,7 @@
+ 	 * @param string|null $filetype Optional. File type. Default inferred from file name.
+ 	 * @return false|WP_Translation_File
+ 	 */
+-	public static function create( string $file, ?string $filetype = null ) {
++	public static function create( string $file, ?string $filetype = null ): mixed {
+ 		if ( ! is_readable( $file ) ) {
+ 			return false;
+ 		}
+@@ -101,6 +101,7 @@
+ 			default:
+ 				return false;
+ 		}
++		return null;
+ 	}
+ 
+ 	/**
+@@ -112,7 +113,7 @@
+ 	 * @param string $filetype Desired target file type.
+ 	 * @return string|false Transformed translation file contents on success, false otherwise.
+ 	 */
+-	public static function transform( string $file, string $filetype ) {
++	public static function transform( string $file, string $filetype ): mixed {
+ 		$source = self::create( $file );
+ 
+ 		if ( false === $source ) {
+@@ -137,6 +138,7 @@
+ 		}
+ 
+ 		return $destination->export();
++		return null;
+ 	}
+ 
+ 	/**
+@@ -150,7 +152,7 @@
+ 		if ( ! $this->parsed ) {
+ 			$this->parse_file();
+ 		}
+-		return $this->headers;
++		return \wp_aot_array_input($this->headers);
+ 	}
+ 
+ 	/**
+@@ -165,7 +167,7 @@
+ 			$this->parse_file();
+ 		}
+ 
+-		return $this->entries;
++		return \wp_aot_array_input($this->entries);
+ 	}
+ 
+ 	/**
+@@ -175,8 +177,9 @@
+ 	 *
+ 	 * @return string|null Error message or null if no error.
+ 	 */
+-	public function error() {
++	public function error(): mixed {
+ 		return $this->error;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -198,12 +201,13 @@
+ 	 * @param string $text String to translate.
+ 	 * @return false|string Translation(s) on success, false otherwise.
+ 	 */
+-	public function translate( string $text ) {
++	public function translate( string $text ): mixed {
+ 		if ( ! $this->parsed ) {
+ 			$this->parse_file();
+ 		}
+ 
+ 		return $this->entries[ $text ] ?? false;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -248,7 +252,7 @@
+ 	 * @return string Plural forms expression.
+ 	 */
+ 	protected function get_plural_expression_from_header( string $header ): string {
+-		if ( preg_match( '/^\s*nplurals\s*=\s*(\d+)\s*;\s+plural\s*=\s*(.+)$/', $header, $matches ) ) {
++		if ( preg_match( '/^\s*nplurals\s*=\s*(\d+)\s*;\s+plural\s*=\s*(.+)$/', \wp_aot_regex_text( $header ), $matches ) ) {
+ 			return trim( $matches[2] );
+ 		}
+ 
+@@ -299,7 +303,7 @@
+ 	 *
+ 	 * @since 6.5.0
+ 	 */
+-	abstract protected function parse_file();
++	abstract protected function parse_file(): mixed;
+ 
+ 	/**
+ 	 * Exports translation contents as a string.
+@@ -308,5 +312,5 @@
+ 	 *
+ 	 * @return string Translation file contents.
+ 	 */
+-	abstract public function export();
++	abstract public function export(): mixed;
+ }

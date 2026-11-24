@@ -1,0 +1,20 @@
+--- a/wp-includes/php-ai-client/src/Results/DTO/Candidate.php
++++ b/wp-includes/php-ai-client/src/Results/DTO/Candidate.php
+@@ -19,7 +19,7 @@
+  *
+  * @phpstan-type CandidateArrayShape array{message: MessageArrayShape, finishReason: string}
+  *
+- * @extends AbstractDataTransferObject<CandidateArrayShape>
++ * @phpstan-extends AbstractDataTransferObject<CandidateArrayShape>
+  */
+ class Candidate extends AbstractDataTransferObject
+ {
+@@ -100,7 +100,7 @@
+     {
+         static::validateFromArrayData($array, [self::KEY_MESSAGE, self::KEY_FINISH_REASON]);
+         $messageData = $array[self::KEY_MESSAGE];
+-        return new self(Message::fromArray($messageData), FinishReasonEnum::from($array[self::KEY_FINISH_REASON]));
++        return new self(Message::fromArray(\wp_aot_require_array( $messageData )), \wp_aot_require_WordPress_AiClient_Results_Enums_FinishReasonEnum( FinishReasonEnum::from($array[self::KEY_FINISH_REASON]) ));
+     }
+     /**
+      * Performs a deep clone of the candidate.

@@ -1,0 +1,70 @@
+--- a/wp-includes/SimplePie/src/Gzdecode.php
++++ b/wp-includes/SimplePie/src/Gzdecode.php
+@@ -163,7 +163,7 @@
+      *
+      * @return bool Successfulness
+      */
+-    public function parse()
++    public function parse(): mixed
+     {
+         if ($this->compressed_size >= $this->min_compressed_size) {
+             $len = 0;
+@@ -187,10 +187,10 @@
+             // MTIME
+             $mtime = substr($this->compressed_data, $this->position, 4);
+             // Reverse the string if we're on a big-endian arch because l is the only signed long and is machine endianness
+-            if (current((array) unpack('S', "\x00\x01")) === 1) {
++            if (\wp_aot_array_current_value((array) unpack('S', "\x00\x01")) === 1) {
+                 $mtime = strrev($mtime);
+             }
+-            $this->MTIME = current((array) unpack('l', $mtime));
++            $this->MTIME = \wp_aot_array_current_value((array) unpack('l', $mtime));
+             $this->position += 4;
+ 
+             // Get the XFL (eXtra FLags)
+@@ -211,7 +211,7 @@
+                 }
+ 
+                 // Get the length of the extra field
+-                $len = current((array) unpack('v', substr($this->compressed_data, $this->position, 2)));
++                $len = \wp_aot_array_current_value((array) unpack('v', substr($this->compressed_data, $this->position, 2)));
+                 $this->position += 2;
+ 
+                 // Check the length of the string is still valid
+@@ -263,7 +263,7 @@
+                 $this->min_compressed_size += $len + 2;
+                 if ($this->compressed_size >= $this->min_compressed_size) {
+                     // Read the CRC
+-                    $crc = current((array) unpack('v', substr($this->compressed_data, $this->position, 2)));
++                    $crc = \wp_aot_array_current_value((array) unpack('v', substr($this->compressed_data, $this->position, 2)));
+ 
+                     // Check the CRC matches
+                     if ((crc32(substr($this->compressed_data, 0, $this->position)) & 0xFFFF) === $crc) {
+@@ -285,7 +285,7 @@
+             $this->position = $this->compressed_size - 8;
+ 
+             // Check CRC of data
+-            $crc = current((array) unpack('V', substr($this->compressed_data, $this->position, 4)));
++            $crc = \wp_aot_array_current_value((array) unpack('V', substr($this->compressed_data, $this->position, 4)));
+             $this->position += 4;
+             /*if (extension_loaded('hash') && sprintf('%u', current(unpack('V', hash('crc32b', $this->data)))) !== sprintf('%u', $crc))
+             {
+@@ -293,7 +293,7 @@
+             }*/
+ 
+             // Check ISIZE of data
+-            $isize = current((array) unpack('V', substr($this->compressed_data, $this->position, 4)));
++            $isize = \wp_aot_array_current_value((array) unpack('V', substr($this->compressed_data, $this->position, 4)));
+             $this->position += 4;
+             if (sprintf('%u', strlen($this->data) & 0xFFFFFFFF) !== sprintf('%u', $isize)) {
+                 return false;
+@@ -304,7 +304,8 @@
+         }
+ 
+         return false;
++    	return null;
+     }
+ }
+ 
+-class_alias('SimplePie\Gzdecode', 'SimplePie_gzdecode');
++(!defined('WP_AOT_NATIVE_RUNTIME') && (bool) \wp_aot_native_api('class_alias', array('SimplePie\Gzdecode', 'SimplePie_gzdecode')));

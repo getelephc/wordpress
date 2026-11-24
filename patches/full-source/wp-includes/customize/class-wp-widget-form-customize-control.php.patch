@@ -1,0 +1,38 @@
+--- a/wp-includes/customize/class-wp-widget-form-customize-control.php
++++ b/wp-includes/customize/class-wp-widget-form-customize-control.php
+@@ -86,7 +86,7 @@
+ 	 *
+ 	 * @global array $wp_registered_widgets
+ 	 */
+-	public function to_json() {
++	public function to_json(): mixed {
+ 		global $wp_registered_widgets;
+ 
+ 		parent::to_json();
+@@ -118,6 +118,7 @@
+ 
+ 		$this->json['widget_control'] = $widget_control_parts['control'];
+ 		$this->json['widget_content'] = $widget_control_parts['content'];
++		return null;
+ 	}
+ 
+ 	/**
+@@ -125,7 +126,7 @@
+ 	 *
+ 	 * @since 3.9.0
+ 	 */
+-	public function render_content() {}
++	public function render_content(): mixed { return null; }
+ 
+ 	/**
+ 	 * Whether the current widget is rendered on the page.
+@@ -134,7 +135,8 @@
+ 	 *
+ 	 * @return bool Whether the widget is rendered.
+ 	 */
+-	public function active_callback() {
++	public function active_callback(): mixed {
+ 		return $this->manager->widgets->is_widget_rendered( $this->widget_id );
++		return null;
+ 	}
+ }

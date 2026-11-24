@@ -1,0 +1,344 @@
+--- a/wp-admin/update-core.php
++++ b/wp-admin/update-core.php
+@@ -16,7 +16,7 @@
+ 
+ if ( is_multisite() && ! is_network_admin() ) {
+ 	wp_redirect( network_admin_url( 'update-core.php' ) );
+-	exit;
++	\wp_aot_exit();
+ }
+ 
+ if ( ! current_user_can( 'update_core' ) && ! current_user_can( 'update_themes' ) && ! current_user_can( 'update_plugins' ) && ! current_user_can( 'update_languages' ) ) {
+@@ -33,7 +33,7 @@
+  *
+  * @param object $update
+  */
+-function list_core_update( $update ) {
++function list_core_update( mixed $update ): mixed {
+ 	global $wp_local_package, $wpdb;
+ 	static $first_pass = true;
+ 
+@@ -60,13 +60,13 @@
+ 	$message       = '';
+ 	$form_action   = 'update-core.php?action=do-core-upgrade';
+ 	$php_version   = PHP_VERSION;
+-	$mysql_version = $wpdb->db_version();
++	$mysql_version = \wp_aot_require_wpdb( $wpdb )->db_version();
+ 	$show_buttons  = true;
+ 
+ 	// Nightly build versions have two hyphens and a commit number.
+-	if ( preg_match( '/-\w+-\d+/', $update->current ) ) {
++	if ( preg_match( '/-\w+-\d+/', \wp_aot_regex_text( $update->current ) ) ) {
+ 		// Retrieve the major version number.
+-		preg_match( '/^\d+.\d+/', $update->current, $update_major );
++		preg_match( '/^\d+.\d+/', \wp_aot_regex_text( $update->current ), $update_major );
+ 		/* translators: %s: WordPress version. */
+ 		$submit = sprintf( __( 'Update to latest %s nightly' ), $update_major[0] );
+ 	} else {
+@@ -191,6 +191,7 @@
+ 	}
+ 
+ 	echo '</form>';
++	return null;
+ }
+ 
+ /**
+@@ -198,7 +199,7 @@
+  *
+  * @since 2.7.0
+  */
+-function dismissed_updates() {
++function dismissed_updates(): mixed {
+ 	$dismissed = get_core_updates(
+ 		array(
+ 			'dismissed' => true,
+@@ -235,6 +236,7 @@
+ 		}
+ 		echo '</ul>';
+ 	}
++	return null;
+ }
+ 
+ /**
+@@ -242,13 +244,13 @@
+  *
+  * @since 2.7.0
+  */
+-function core_upgrade_preamble() {
++function core_upgrade_preamble(): mixed {
+ 	$updates = get_core_updates();
+ 
+ 	// Include an unmodified $wp_version.
+-	require ABSPATH . WPINC . '/version.php';
+-
+-	$is_development_version = preg_match( '/alpha|beta|RC/', $wp_version );
++	require __DIR__ . '/../wp-includes/version.php';
++
++	$is_development_version = preg_match( '/alpha|beta|RC/', \wp_aot_regex_text( $wp_version ) );
+ 
+ 	if ( isset( $updates[0]->version ) && version_compare( $updates[0]->version, $wp_version, '>' ) ) {
+ 		echo '<h2 class="response">';
+@@ -296,6 +298,7 @@
+ 	}
+ 
+ 	dismissed_updates();
++	return null;
+ }
+ 
+ /**
+@@ -303,7 +306,7 @@
+  *
+  * @since 5.6.0
+  */
+-function core_auto_updates_settings() {
++function core_auto_updates_settings(): mixed {
+ 	if ( isset( $_GET['core-major-auto-updates-saved'] ) ) {
+ 		if ( 'enabled' === $_GET['core-major-auto-updates-saved'] ) {
+ 			$notice_text = __( 'Automatic updates for all WordPress versions have been enabled. Thank you!' );
+@@ -337,19 +340,19 @@
+ 	$can_set_update_option = true;
+ 	// WP_AUTO_UPDATE_CORE = true (all), 'beta', 'rc', 'development', 'branch-development', 'minor', false.
+ 	if ( defined( 'WP_AUTO_UPDATE_CORE' ) ) {
+-		if ( false === WP_AUTO_UPDATE_CORE ) {
++		if ( false === \wp_aot_undefined_constant('WP_AUTO_UPDATE_CORE') ) {
+ 			// Defaults to turned off, unless a filter allows it.
+ 			$upgrade_dev   = false;
+ 			$upgrade_minor = false;
+ 			$upgrade_major = false;
+-		} elseif ( true === WP_AUTO_UPDATE_CORE
+-			|| in_array( WP_AUTO_UPDATE_CORE, array( 'beta', 'rc', 'development', 'branch-development' ), true )
++		} elseif ( true === \wp_aot_undefined_constant('WP_AUTO_UPDATE_CORE')
++			|| in_array( \wp_aot_undefined_constant('WP_AUTO_UPDATE_CORE'), array( 'beta', 'rc', 'development', 'branch-development' ), true )
+ 		) {
+ 			// ALL updates for core.
+ 			$upgrade_dev   = true;
+ 			$upgrade_minor = true;
+ 			$upgrade_major = true;
+-		} elseif ( 'minor' === WP_AUTO_UPDATE_CORE ) {
++		} elseif ( 'minor' === \wp_aot_undefined_constant('WP_AUTO_UPDATE_CORE') ) {
+ 			// Only minor updates for core.
+ 			$upgrade_dev   = false;
+ 			$upgrade_minor = true;
+@@ -452,6 +455,7 @@
+ 	 * }
+ 	 */
+ 	do_action( 'after_core_auto_updates_settings', $auto_update_settings );
++	return null;
+ }
+ 
+ /**
+@@ -459,16 +463,16 @@
+  *
+  * @since 2.9.0
+  */
+-function list_plugin_updates() {
++function list_plugin_updates(): mixed {
+ 	$wp_version     = wp_get_wp_version();
+-	$cur_wp_version = preg_replace( '/-.*$/', '', $wp_version );
++	$cur_wp_version = \wp_aot_preg_replace( '/-.*$/', '', $wp_version );
+ 
+ 	require_once ABSPATH . 'wp-admin/includes/plugin-install.php';
+ 	$plugins = get_plugin_updates();
+ 	if ( empty( $plugins ) ) {
+ 		echo '<h2>' . __( 'Plugins' ) . '</h2>';
+ 		echo '<p>' . __( 'Your plugins are all up to date.' ) . '</p>';
+-		return;
++		return null;
+ 	}
+ 	$form_action = 'update-core.php?action=do-plugin-upgrade';
+ 
+@@ -629,6 +633,7 @@
+ <p><input id="upgrade-plugins-2" class="button" type="submit" value="<?php esc_attr_e( 'Update Plugins' ); ?>" name="upgrade" /></p>
+ </form>
+ 	<?php
++	return null;
+ }
+ 
+ /**
+@@ -636,12 +641,12 @@
+  *
+  * @since 2.9.0
+  */
+-function list_theme_updates() {
++function list_theme_updates(): mixed {
+ 	$themes = get_theme_updates();
+ 	if ( empty( $themes ) ) {
+ 		echo '<h2>' . __( 'Themes' ) . '</h2>';
+ 		echo '<p>' . __( 'Your themes are all up to date.' ) . '</p>';
+-		return;
++		return null;
+ 	}
+ 
+ 	$form_action = 'update-core.php?action=do-theme-upgrade';
+@@ -805,6 +810,7 @@
+ <p><input id="upgrade-themes-2" class="button" type="submit" value="<?php esc_attr_e( 'Update Themes' ); ?>" name="upgrade" /></p>
+ </form>
+ 	<?php
++	return null;
+ }
+ 
+ /**
+@@ -812,14 +818,14 @@
+  *
+  * @since 3.7.0
+  */
+-function list_translation_updates() {
++function list_translation_updates(): mixed {
+ 	$updates = wp_get_translation_updates();
+ 	if ( ! $updates ) {
+ 		if ( 'en_US' !== get_locale() ) {
+ 			echo '<h2>' . __( 'Translations' ) . '</h2>';
+ 			echo '<p>' . __( 'Your translations are all up to date.' ) . '</p>';
+ 		}
+-		return;
++		return null;
+ 	}
+ 
+ 	$form_action = 'update-core.php?action=do-translation-upgrade';
+@@ -831,6 +837,7 @@
+ 		<p><input class="button" type="submit" value="<?php esc_attr_e( 'Update Translations' ); ?>" name="upgrade" /></p>
+ 	</form>
+ 	<?php
++	return null;
+ }
+ 
+ /**
+@@ -842,7 +849,7 @@
+  *
+  * @param bool $reinstall Optional. Whether to reinstall WordPress. Default false.
+  */
+-function do_core_upgrade( $reinstall = false ) {
++function do_core_upgrade( mixed $reinstall = false ): mixed {
+ 	global $wp_filesystem;
+ 
+ 	require_once ABSPATH . 'wp-admin/includes/class-wp-upgrader.php';
+@@ -858,7 +865,7 @@
+ 	$locale  = $_POST['locale'] ?? 'en_US';
+ 	$update  = find_core_update( $version, $locale );
+ 	if ( ! $update ) {
+-		return;
++		return null;
+ 	}
+ 
+ 	/*
+@@ -875,14 +882,14 @@
+ 	$credentials = request_filesystem_credentials( $url, '', false, ABSPATH, array( 'version', 'locale' ), $allow_relaxed_file_ownership );
+ 	if ( false === $credentials ) {
+ 		echo '</div>';
+-		return;
++		return null;
+ 	}
+ 
+ 	if ( ! WP_Filesystem( $credentials, ABSPATH, $allow_relaxed_file_ownership ) ) {
+ 		// Failed to connect. Error and request again.
+ 		request_filesystem_credentials( $url, '', true, ABSPATH, array( 'version', 'locale' ), $allow_relaxed_file_ownership );
+ 		echo '</div>';
+-		return;
++		return null;
+ 	}
+ 
+ 	if ( $wp_filesystem->errors->has_errors() ) {
+@@ -890,7 +897,7 @@
+ 			show_message( $message );
+ 		}
+ 		echo '</div>';
+-		return;
++		return null;
+ 	}
+ 
+ 	if ( $reinstall ) {
+@@ -913,7 +920,7 @@
+ 			show_message( __( 'Installation failed.' ) );
+ 		}
+ 		echo '</div>';
+-		return;
++		return null;
+ 	}
+ 
+ 	show_message( __( 'WordPress updated successfully.' ) );
+@@ -939,6 +946,7 @@
+ 	window.location = '<?php echo esc_url( self_admin_url( 'about.php?updated' ) ); ?>';
+ 	</script>
+ 	<?php
++	return null;
+ }
+ 
+ /**
+@@ -946,16 +954,17 @@
+  *
+  * @since 2.7.0
+  */
+-function do_dismiss_core_update() {
++function do_dismiss_core_update(): mixed {
+ 	$version = $_POST['version'] ?? false;
+ 	$locale  = $_POST['locale'] ?? 'en_US';
+ 	$update  = find_core_update( $version, $locale );
+ 	if ( ! $update ) {
+-		return;
++		return null;
+ 	}
+ 	dismiss_core_update( $update );
+ 	wp_redirect( wp_nonce_url( 'update-core.php?action=upgrade-core', 'upgrade-core' ) );
+-	exit;
++	\wp_aot_exit();
++	return null;
+ }
+ 
+ /**
+@@ -963,16 +972,17 @@
+  *
+  * @since 2.7.0
+  */
+-function do_undismiss_core_update() {
++function do_undismiss_core_update(): mixed {
+ 	$version = $_POST['version'] ?? false;
+ 	$locale  = $_POST['locale'] ?? 'en_US';
+ 	$update  = find_core_update( $version, $locale );
+ 	if ( ! $update ) {
+-		return;
++		return null;
+ 	}
+ 	undismiss_core_update( $version, $locale );
+ 	wp_redirect( wp_nonce_url( 'update-core.php?action=upgrade-core', 'upgrade-core' ) );
+-	exit;
++	\wp_aot_exit();
++	return null;
+ }
+ 
+ $action = $_GET['action'] ?? 'upgrade-core';
+@@ -1199,7 +1209,7 @@
+ 		$plugins = (array) $_POST['checked'];
+ 	} else {
+ 		wp_redirect( admin_url( 'update-core.php' ) );
+-		exit;
++		\wp_aot_exit();
+ 	}
+ 
+ 	$url = 'update.php?action=update-selected&plugins=' . urlencode( implode( ',', $plugins ) );
+@@ -1240,7 +1250,7 @@
+ 		$themes = (array) $_POST['checked'];
+ 	} else {
+ 		wp_redirect( admin_url( 'update-core.php' ) );
+-		exit;
++		\wp_aot_exit();
+ 	}
+ 
+ 	$url = 'update.php?action=update-selected-themes&themes=' . urlencode( implode( ',', $themes ) );
+@@ -1283,7 +1293,7 @@
+ 	$title   = __( 'Update Translations' );
+ 	$context = WP_LANG_DIR;
+ 
+-	$upgrader = new Language_Pack_Upgrader( new Language_Pack_Upgrader_Skin( compact( 'url', 'nonce', 'title', 'context' ) ) );
++	$upgrader = new Language_Pack_Upgrader( new Language_Pack_Upgrader_Skin( \wp_aot_compact(get_defined_vars(), array( 'url', 'nonce', 'title', 'context' )) ) );
+ 	$result   = $upgrader->bulk_upgrade();
+ 
+ 	wp_localize_script(
+@@ -1317,7 +1327,7 @@
+ 	}
+ 
+ 	wp_redirect( $redirect_url );
+-	exit;
++	\wp_aot_exit();
+ } else {
+ 	/**
+ 	 * Fires for each custom update action on the WordPress Updates screen.

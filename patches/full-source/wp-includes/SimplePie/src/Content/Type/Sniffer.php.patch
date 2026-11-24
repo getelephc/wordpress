@@ -1,0 +1,104 @@
+--- a/wp-includes/SimplePie/src/Content/Type/Sniffer.php
++++ b/wp-includes/SimplePie/src/Content/Type/Sniffer.php
+@@ -36,7 +36,7 @@
+      *
+      * @param File|Response $file Input file
+      */
+-    public function __construct(/* File */ $file)
++    public function __construct(/* File */ mixed $file)
+     {
+         if (!is_object($file) || !$file instanceof Response) {
+             // For BC we're asking for `File`, but internally we accept every `Response` implementation
+@@ -55,7 +55,7 @@
+      *
+      * @return string Actual Content-Type
+      */
+-    public function get_type()
++    public function get_type(): mixed
+     {
+         $content_type = $this->file->has_header('content-type') ? $this->file->get_header_line('content-type') : null;
+         $content_encoding = $this->file->has_header('content-encoding') ? $this->file->get_header_line('content-encoding') : null;
+@@ -96,6 +96,7 @@
+         }
+ 
+         return $this->unknown();
++    	return null;
+     }
+ 
+     /**
+@@ -103,7 +104,7 @@
+      *
+      * @return string Actual Content-Type
+      */
+-    public function text_or_binary()
++    public function text_or_binary(): mixed
+     {
+         $body = $this->file->get_body_content();
+ 
+@@ -112,11 +113,12 @@
+             || substr($body, 0, 4) === "\x00\x00\xFE\xFF"
+             || substr($body, 0, 3) === "\xEF\xBB\xBF") {
+             return 'text/plain';
+-        } elseif (preg_match('/[\x00-\x08\x0E-\x1A\x1C-\x1F]/', $body)) {
++        } elseif (preg_match('/[\x00-\x08\x0E-\x1A\x1C-\x1F]/', \wp_aot_regex_text( $body ))) {
+             return 'application/octet-stream';
+         }
+ 
+         return 'text/plain';
++    	return null;
+     }
+ 
+     /**
+@@ -124,7 +126,7 @@
+      *
+      * @return string Actual Content-Type
+      */
+-    public function unknown()
++    public function unknown(): mixed
+     {
+         $body = $this->file->get_body_content();
+ 
+@@ -151,6 +153,7 @@
+         }
+ 
+         return $this->text_or_binary();
++    	return null;
+     }
+ 
+     /**
+@@ -158,7 +161,7 @@
+      *
+      * @return string|false Actual Content-Type
+      */
+-    public function image()
++    public function image(): mixed
+     {
+         $body = $this->file->get_body_content();
+ 
+@@ -176,6 +179,7 @@
+         }
+ 
+         return false;
++    	return null;
+     }
+ 
+     /**
+@@ -183,7 +187,7 @@
+      *
+      * @return string Actual Content-Type
+      */
+-    public function feed_or_html()
++    public function feed_or_html(): mixed
+     {
+         $body = $this->file->get_body_content();
+ 
+@@ -237,7 +241,8 @@
+         }
+ 
+         return 'text/html';
++    	return null;
+     }
+ }
+ 
+-class_alias('SimplePie\Content\Type\Sniffer', 'SimplePie_Content_Type_Sniffer');
++(!defined('WP_AOT_NATIVE_RUNTIME') && (bool) \wp_aot_native_api('class_alias', array('SimplePie\Content\Type\Sniffer', 'SimplePie_Content_Type_Sniffer')));

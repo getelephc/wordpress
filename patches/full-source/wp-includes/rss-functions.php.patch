@@ -1,0 +1,13 @@
+--- a/wp-includes/rss-functions.php
++++ b/wp-includes/rss-functions.php
+@@ -8,8 +8,8 @@
+ 
+ // Don't load directly.
+ if ( ! defined( 'ABSPATH' ) ) {
+-	exit;
++	\wp_aot_exit();
+ }
+ 
+ _deprecated_file( basename( __FILE__ ), '2.1.0', WPINC . '/rss.php' );
+-require_once ABSPATH . WPINC . '/rss.php';
++require_once __DIR__ . '/rss.php';

@@ -1,0 +1,11 @@
+--- a/wp-admin/index.php
++++ b/wp-admin/index.php
+@@ -111,7 +111,7 @@
+ $wp_version = get_bloginfo( 'version', 'display' );
+ /* translators: %s: WordPress version. */
+ $wp_version_text = sprintf( __( 'Version %s' ), $wp_version );
+-$is_dev_version  = preg_match( '/alpha|beta|RC/', $wp_version );
++$is_dev_version  = preg_match( '/alpha|beta|RC/', \wp_aot_regex_text( $wp_version ) );
+ 
+ if ( ! $is_dev_version ) {
+ 	$version_url = sprintf(

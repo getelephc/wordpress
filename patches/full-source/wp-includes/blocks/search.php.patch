@@ -1,0 +1,195 @@
+--- a/wp-includes/blocks/search.php
++++ b/wp-includes/blocks/search.php
+@@ -14,7 +14,7 @@
+  *
+  * @return string The search block markup.
+  */
+-function render_block_core_search( $attributes ) {
++function render_block_core_search( mixed $attributes ): mixed {
+ 	// Older versions of the Search block defaulted the label and buttonText
+ 	// attributes to `__( 'Search' )` meaning that many posts contain `<!--
+ 	// wp:search /-->`. Support these by defaulting an undefined label and
+@@ -34,7 +34,7 @@
+ 	$show_button         = ( ! empty( $attributes['buttonPosition'] ) && 'no-button' === $attributes['buttonPosition'] ) ? false : true;
+ 	$button_position     = $show_button ? $attributes['buttonPosition'] : null;
+ 	$query_params        = ( ! empty( $attributes['query'] ) ) ? $attributes['query'] : array();
+-	$button              = '';
++	$button              = \wp_aot_mixed('');
+ 	$query_params_markup = '';
+ 	$inline_styles       = styles_for_block_core_search( $attributes );
+ 	$color_classes       = get_color_classes_for_block_core_search( $attributes );
+@@ -222,6 +222,7 @@
+ 		$form_directives,
+ 		$label . $field_markup
+ 	);
++	return null;
+ }
+ 
+ /**
+@@ -229,13 +230,14 @@
+  *
+  * @since 5.2.0
+  */
+-function register_block_core_search() {
++function register_block_core_search(): mixed {
+ 	register_block_type_from_metadata(
+ 		__DIR__ . '/search',
+ 		array(
+ 			'render_callback' => 'render_block_core_search',
+ 		)
+ 	);
++	return null;
+ }
+ add_action( 'init', 'register_block_core_search' );
+ 
+@@ -248,7 +250,7 @@
+  *
+  * @return string The classnames used in the block.
+  */
+-function classnames_for_block_core_search( $attributes ) {
++function classnames_for_block_core_search( mixed $attributes ): mixed {
+ 	$classnames = array();
+ 
+ 	if ( ! empty( $attributes['buttonPosition'] ) ) {
+@@ -280,6 +282,7 @@
+ 	}
+ 
+ 	return implode( ' ', $classnames );
++	return null;
+ }
+ 
+ /**
+@@ -297,7 +300,7 @@
+  * @param array  $button_styles  Current collection of button styles.
+  * @param array  $input_styles   Current collection of input styles.
+  */
+-function apply_block_core_search_border_style( $attributes, $property, $side, &$wrapper_styles, &$button_styles, &$input_styles ) {
++function apply_block_core_search_border_style( mixed $attributes, mixed $property, mixed $side, mixed &$wrapper_styles, mixed &$button_styles, mixed &$input_styles ): mixed {
+ 	$is_button_inside = isset( $attributes['buttonPosition'] ) && 'button-inside' === $attributes['buttonPosition'];
+ 
+ 	$path = array( 'style', 'border', $property );
+@@ -309,7 +312,7 @@
+ 	$value = _wp_array_get( $attributes, $path, false );
+ 
+ 	if ( empty( $value ) ) {
+-		return;
++		return null;
+ 	}
+ 
+ 	if ( 'color' === $property && $side ) {
+@@ -328,6 +331,7 @@
+ 		$button_styles[] = sprintf( 'border-%s: %s;', $property_suffix, esc_attr( $value ) );
+ 		$input_styles[]  = sprintf( 'border-%s: %s;', $property_suffix, esc_attr( $value ) );
+ 	}
++	return null;
+ }
+ 
+ /**
+@@ -343,12 +347,13 @@
+  * @param array  $button_styles  Current collection of button styles.
+  * @param array  $input_styles   Current collection of input styles.
+  */
+-function apply_block_core_search_border_styles( $attributes, $property, &$wrapper_styles, &$button_styles, &$input_styles ) {
++function apply_block_core_search_border_styles( mixed $attributes, mixed $property, mixed &$wrapper_styles, mixed &$button_styles, mixed &$input_styles ): mixed {
+ 	apply_block_core_search_border_style( $attributes, $property, null, $wrapper_styles, $button_styles, $input_styles );
+ 	apply_block_core_search_border_style( $attributes, $property, 'top', $wrapper_styles, $button_styles, $input_styles );
+ 	apply_block_core_search_border_style( $attributes, $property, 'right', $wrapper_styles, $button_styles, $input_styles );
+ 	apply_block_core_search_border_style( $attributes, $property, 'bottom', $wrapper_styles, $button_styles, $input_styles );
+ 	apply_block_core_search_border_style( $attributes, $property, 'left', $wrapper_styles, $button_styles, $input_styles );
++	return null;
+ }
+ 
+ /**
+@@ -364,7 +369,7 @@
+  *
+  * @return array Style HTML attribute.
+  */
+-function styles_for_block_core_search( $attributes ) {
++function styles_for_block_core_search( mixed $attributes ): mixed {
+ 	$wrapper_styles   = array();
+ 	$button_styles    = array();
+ 	$input_styles     = array();
+@@ -408,7 +413,7 @@
+ 
+ 				if ( null !== $value ) {
+ 					// Convert camelCase key to kebab-case.
+-					$name = strtolower( preg_replace( '/(?<!^)[A-Z]/', '-$0', $key ) );
++					$name = strtolower( \wp_aot_preg_replace( '/(?<!^)[A-Z]/', '-$0', $key ) );
+ 
+ 					// Add shared styles for individual border radii for input & button.
+ 					$border_style    = sprintf(
+@@ -514,6 +519,7 @@
+ 		'wrapper' => ! empty( $wrapper_styles ) ? sprintf( ' style="%s"', esc_attr( safecss_filter_attr( implode( ' ', $wrapper_styles ) ) ) ) : '',
+ 		'label'   => ! empty( $label_styles ) ? sprintf( ' style="%s"', esc_attr( safecss_filter_attr( implode( ' ', $label_styles ) ) ) ) : '',
+ 	);
++	return null;
+ }
+ 
+ /**
+@@ -525,7 +531,7 @@
+  *
+  * @return string The typography color classnames to be applied to the block elements.
+  */
+-function get_typography_classes_for_block_core_search( $attributes ) {
++function get_typography_classes_for_block_core_search( mixed $attributes ): mixed {
+ 	$typography_classes    = array();
+ 	$has_named_font_family = ! empty( $attributes['fontFamily'] );
+ 	$has_named_font_size   = ! empty( $attributes['fontSize'] );
+@@ -539,6 +545,7 @@
+ 	}
+ 
+ 	return implode( ' ', $typography_classes );
++	return null;
+ }
+ 
+ /**
+@@ -551,7 +558,7 @@
+  *
+  * @return string A string of typography CSS declarations.
+  */
+-function get_typography_styles_for_block_core_search( $attributes ) {
++function get_typography_styles_for_block_core_search( mixed $attributes ): mixed {
+ 	$typography_styles = array();
+ 
+ 	// Add typography styles.
+@@ -592,6 +599,7 @@
+ 	}
+ 
+ 	return implode( '', $typography_styles );
++	return null;
+ }
+ 
+ /**
+@@ -603,7 +611,7 @@
+  *
+  * @return string The border color classnames to be applied to the block elements.
+  */
+-function get_border_color_classes_for_block_core_search( $attributes ) {
++function get_border_color_classes_for_block_core_search( mixed $attributes ): mixed {
+ 	$border_color_classes    = array();
+ 	$has_custom_border_color = ! empty( $attributes['style']['border']['color'] );
+ 	$has_named_border_color  = ! empty( $attributes['borderColor'] );
+@@ -617,6 +625,7 @@
+ 	}
+ 
+ 	return implode( ' ', $border_color_classes );
++	return null;
+ }
+ 
+ /**
+@@ -628,7 +637,7 @@
+  *
+  * @return string The color classnames to be applied to the block elements.
+  */
+-function get_color_classes_for_block_core_search( $attributes ) {
++function get_color_classes_for_block_core_search( mixed $attributes ): mixed {
+ 	$classnames = array();
+ 
+ 	// Text color.
+@@ -662,4 +671,5 @@
+ 	}
+ 
+ 	return implode( ' ', $classnames );
+-}
++	return null;
++}

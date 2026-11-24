@@ -1,0 +1,409 @@
+--- a/wp-admin/includes/class-wp-filesystem-ftpsockets.php
++++ b/wp-admin/includes/class-wp-filesystem-ftpsockets.php
+@@ -55,7 +55,7 @@
+ 	 *     port?: non-negative-int,
+ 	 * }|null $opt
+ 	 */
+-	public function __construct( $opt = null ) {
++	public function __construct( mixed $opt = null ) {
+ 		$this->method  = 'ftpsockets';
+ 		$this->errors  = new WP_Error();
+ 		$this->options = array(
+@@ -107,13 +107,13 @@
+ 	 *
+ 	 * @return bool True on success, false on failure.
+ 	 */
+-	public function connect() {
++	public function connect(): mixed {
+ 		/*
+ 		 * Bail if the constructor recorded a configuration error. Connection and
+ 		 * authentication errors are excluded so that a failed connection attempt
+ 		 * can be retried on the same instance.
+ 		 */
+-		if ( $this->errors->has_errors() && ! array_intersect( array( 'connect', 'auth' ), $this->errors->get_error_codes() ) ) {
++		if ( $this->errors->has_errors() && ! \wp_aot_array_intersect(array( array( 'connect', 'auth' ), $this->errors->get_error_codes() )) ) {
+ 			return false;
+ 		}
+ 
+@@ -167,6 +167,7 @@
+ 		$this->ftp->SetTimeout( FS_TIMEOUT );
+ 
+ 		return true;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -178,7 +179,7 @@
+ 	 * @return string|false Read data on success, false if no temporary file could be opened,
+ 	 *                      or if the file couldn't be retrieved.
+ 	 */
+-	public function get_contents( $file ) {
++	public function get_contents( mixed $file ): mixed {
+ 		if ( ! $this->exists( $file ) ) {
+ 			return false;
+ 		}
+@@ -208,13 +209,14 @@
+ 		$contents = '';
+ 
+ 		while ( ! feof( $temphandle ) ) {
+-			$contents .= fread( $temphandle, 8 * KB_IN_BYTES );
++			$contents .= \wp_aot_fread( $temphandle, \wp_aot_internal_int( 8 * KB_IN_BYTES ) );
+ 		}
+ 
+ 		fclose( $temphandle );
+ 		unlink( $tempfile );
+ 
+ 		return $contents;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -225,12 +227,13 @@
+ 	 * @param string $file Path to the file.
+ 	 * @return string[]|false File contents in an array on success, false on failure.
+ 	 */
+-	public function get_contents_array( $file ) {
++	public function get_contents_array( mixed $file ): mixed {
+ 		$contents = $this->get_contents( $file );
+ 		if ( is_string( $contents ) ) {
+ 			return explode( "\n", $contents );
+ 		}
+ 		return false;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -244,7 +247,7 @@
+ 	 *                            Default false.
+ 	 * @return bool True on success, false on failure.
+ 	 */
+-	public function put_contents( $file, $contents, $mode = false ) {
++	public function put_contents( mixed $file, mixed $contents, mixed $mode = false ): mixed {
+ 		$tempfile   = wp_tempnam( $file );
+ 		$temphandle = @fopen( $tempfile, 'w+' );
+ 
+@@ -256,7 +259,7 @@
+ 		// The FTP class uses string functions internally during file download/upload.
+ 		mbstring_binary_safe_encoding();
+ 
+-		$bytes_written = fwrite( $temphandle, $contents );
++		$bytes_written = \wp_aot_fwrite( $temphandle, $contents );
+ 
+ 		if ( false === $bytes_written || strlen( $contents ) !== $bytes_written ) {
+ 			fclose( $temphandle );
+@@ -279,6 +282,7 @@
+ 		$this->chmod( $file, $mode );
+ 
+ 		return $ret;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -288,7 +292,7 @@
+ 	 *
+ 	 * @return string|false The current working directory on success, false on failure.
+ 	 */
+-	public function cwd() {
++	public function cwd(): mixed {
+ 		$cwd = $this->ftp->pwd();
+ 		if ( ! is_string( $cwd ) ) {
+ 			return false;
+@@ -299,6 +303,7 @@
+ 		}
+ 
+ 		return $cwd;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -309,8 +314,9 @@
+ 	 * @param string $dir The new current directory.
+ 	 * @return bool True on success, false on failure.
+ 	 */
+-	public function chdir( $dir ) {
++	public function chdir( mixed $dir ): mixed {
+ 		return (bool) $this->ftp->chdir( $dir );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -325,7 +331,7 @@
+ 	 *                             Default false.
+ 	 * @return bool True on success, false on failure.
+ 	 */
+-	public function chmod( $file, $mode = false, $recursive = false ) {
++	public function chmod( mixed $file, mixed $mode = false, mixed $recursive = false ): mixed {
+ 		if ( ! $mode ) {
+ 			if ( $this->is_file( $file ) ) {
+ 				$mode = FS_CHMOD_FILE;
+@@ -347,6 +353,7 @@
+ 
+ 		// chmod the file or directory.
+ 		return (bool) $this->ftp->chmod( $file, $mode );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -357,10 +364,11 @@
+ 	 * @param string $file Path to the file.
+ 	 * @return string|int<1, max>|false Username of the owner on success, false on failure.
+ 	 */
+-	public function owner( $file ) {
++	public function owner( mixed $file ): mixed {
+ 		$dir = $this->dirlist( $file );
+ 
+ 		return $dir[ $file ]['owner'] ?? '';
++		return null;
+ 	}
+ 
+ 	/**
+@@ -371,10 +379,11 @@
+ 	 * @param string $file Path to the file.
+ 	 * @return string Mode of the file (the last 3 digits).
+ 	 */
+-	public function getchmod( $file ) {
++	public function getchmod( mixed $file ): mixed {
+ 		$dir = $this->dirlist( $file );
+ 
+ 		return $dir[ $file ]['permsn'] ?? '';
++		return null;
+ 	}
+ 
+ 	/**
+@@ -385,10 +394,11 @@
+ 	 * @param string $file Path to the file.
+ 	 * @return string|int<1, max>|false The group on success, false on failure.
+ 	 */
+-	public function group( $file ) {
++	public function group( mixed $file ): mixed {
+ 		$dir = $this->dirlist( $file );
+ 
+ 		return $dir[ $file ]['group'] ?? '';
++		return null;
+ 	}
+ 
+ 	/**
+@@ -404,7 +414,7 @@
+ 	 *                               0755 for dirs. Default false.
+ 	 * @return bool True on success, false on failure.
+ 	 */
+-	public function copy( $source, $destination, $overwrite = false, $mode = false ) {
++	public function copy( mixed $source, mixed $destination, mixed $overwrite = false, mixed $mode = false ): mixed {
+ 		if ( ! $overwrite && $this->exists( $destination ) ) {
+ 			return false;
+ 		}
+@@ -416,6 +426,7 @@
+ 		}
+ 
+ 		return $this->put_contents( $destination, $content, $mode );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -436,8 +447,9 @@
+ 	 *                            Default false.
+ 	 * @return bool True on success, false on failure.
+ 	 */
+-	public function move( $source, $destination, $overwrite = false ) {
++	public function move( mixed $source, mixed $destination, mixed $overwrite = false ): mixed {
+ 		return (bool) $this->ftp->rename( $source, $destination );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -452,7 +464,7 @@
+ 	 *                                Default false.
+ 	 * @return bool True on success, false on failure.
+ 	 */
+-	public function delete( $file, $recursive = false, $type = false ) {
++	public function delete( mixed $file, mixed $recursive = false, mixed $type = false ): mixed {
+ 		if ( empty( $file ) ) {
+ 			return false;
+ 		}
+@@ -466,6 +478,7 @@
+ 		}
+ 
+ 		return (bool) $this->ftp->mdel( $file );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -477,7 +490,7 @@
+ 	 * @param string $path Path to file or directory.
+ 	 * @return bool Whether $path exists or not.
+ 	 */
+-	public function exists( $path ) {
++	public function exists( mixed $path ): mixed {
+ 		/*
+ 		 * Check for empty path. If ftp::nlist() receives an empty path,
+ 		 * it checks the current working directory and may return true.
+@@ -496,6 +509,7 @@
+ 
+ 		return ! empty( $list ); // Empty list = no file, so invert.
+ 		// Return $this->ftp->is_exists($file); has issues with ABOR+426 responses on the ncFTPd server.
++		return null;
+ 	}
+ 
+ 	/**
+@@ -506,7 +520,7 @@
+ 	 * @param string $file File path.
+ 	 * @return bool Whether $file is a file.
+ 	 */
+-	public function is_file( $file ) {
++	public function is_file( mixed $file ): mixed {
+ 		if ( $this->is_dir( $file ) ) {
+ 			return false;
+ 		}
+@@ -516,6 +530,7 @@
+ 		}
+ 
+ 		return false;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -526,7 +541,7 @@
+ 	 * @param string $path Directory path.
+ 	 * @return bool Whether $path is a directory.
+ 	 */
+-	public function is_dir( $path ) {
++	public function is_dir( mixed $path ): mixed {
+ 		$cwd = $this->cwd();
+ 		if ( ! $cwd ) {
+ 			return false;
+@@ -538,6 +553,7 @@
+ 		}
+ 
+ 		return false;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -548,8 +564,9 @@
+ 	 * @param string $file Path to file.
+ 	 * @return bool Whether $file is readable.
+ 	 */
+-	public function is_readable( $file ) {
++	public function is_readable( mixed $file ): mixed {
+ 		return true;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -560,8 +577,9 @@
+ 	 * @param string $path Path to file or directory.
+ 	 * @return bool Whether $path is writable.
+ 	 */
+-	public function is_writable( $path ) {
++	public function is_writable( mixed $path ): mixed {
+ 		return true;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -572,8 +590,9 @@
+ 	 * @param string $file Path to file.
+ 	 * @return int|false Unix timestamp representing last access time, false on failure.
+ 	 */
+-	public function atime( $file ) {
++	public function atime( mixed $file ): mixed {
+ 		return false;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -584,12 +603,13 @@
+ 	 * @param string $file Path to file.
+ 	 * @return int|false Unix timestamp representing modification time, false on failure.
+ 	 */
+-	public function mtime( $file ) {
++	public function mtime( mixed $file ): mixed {
+ 		$modified_time = $this->ftp->mdtm( $file );
+ 		if ( false === $modified_time ) {
+ 			return false;
+ 		}
+ 		return (int) $modified_time;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -600,12 +620,13 @@
+ 	 * @param string $file Path to file.
+ 	 * @return int|false Size of the file in bytes on success, false on failure.
+ 	 */
+-	public function size( $file ) {
++	public function size( mixed $file ): mixed {
+ 		$size = $this->ftp->filesize( $file );
+ 		if ( false === $size ) {
+ 			return false;
+ 		}
+ 		return (int) $size;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -622,8 +643,9 @@
+ 	 *                      Default 0.
+ 	 * @return bool True on success, false on failure.
+ 	 */
+-	public function touch( $file, $time = 0, $atime = 0 ) {
++	public function touch( mixed $file, mixed $time = 0, mixed $atime = 0 ): mixed {
+ 		return false;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -640,7 +662,7 @@
+ 	 *                                Default false.
+ 	 * @return bool True on success, false on failure.
+ 	 */
+-	public function mkdir( $path, $chmod = false, $chown = false, $chgrp = false ) {
++	public function mkdir( mixed $path, mixed $chmod = false, mixed $chown = false, mixed $chgrp = false ): mixed {
+ 		$path = untrailingslashit( $path );
+ 
+ 		if ( empty( $path ) ) {
+@@ -658,6 +680,7 @@
+ 		$this->chmod( $path, $chmod );
+ 
+ 		return true;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -670,8 +693,9 @@
+ 	 *                          Default false.
+ 	 * @return bool True on success, false on failure.
+ 	 */
+-	public function rmdir( $path, $recursive = false ) {
++	public function rmdir( mixed $path, mixed $recursive = false ): mixed {
+ 		return $this->delete( $path, $recursive );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -710,7 +734,7 @@
+ 	 * }
+ 	 * @phpstan-return array<string, FileListing>|false
+ 	 */
+-	public function dirlist( $path = '.', $include_hidden = true, $recursive = false ) {
++	public function dirlist( mixed $path = '.', mixed $include_hidden = true, mixed $recursive = false ): mixed {
+ 		if ( $this->is_file( $path ) ) {
+ 			$limit_file = basename( $path );
+ 			$path       = dirname( $path ) . '/';
+@@ -757,7 +781,7 @@
+ 
+ 			// Replace symlinks formatted as "source -> target" with just the source name.
+ 			if ( $struc['islink'] ?? false ) {
+-				$struc['name'] = (string) preg_replace( '/(\s*->\s*.*)$/', '', $struc['name'] );
++				$struc['name'] = (string) \wp_aot_preg_replace( '/(\s*->\s*.*)$/', '', $struc['name'] );
+ 			}
+ 
+ 			// Add the octal representation of the file permissions.
+@@ -771,6 +795,7 @@
+ 		reset_mbstring_encoding();
+ 
+ 		return $ret;
++		return null;
+ 	}
+ 
+ 	/**

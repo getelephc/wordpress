@@ -1,6 +1,274 @@
 --- a/wp-admin/includes/class-wp-ms-themes-list-table.php
 +++ b/wp-admin/includes/class-wp-ms-themes-list-table.php
-@@ -532,20 +532,26 @@
+@@ -42,7 +42,7 @@
+ 	 *
+ 	 * @param array $args An associative array of arguments.
+ 	 */
+-	public function __construct( $args = array() ) {
++	public function __construct( mixed $args = array() ) {
+ 		global $status, $page;
+ 
+ 		parent::__construct(
+@@ -74,9 +74,10 @@
+ 	 *
+ 	 * @return string[] The list of CSS classes.
+ 	 */
+-	protected function get_table_classes() {
++	protected function get_table_classes(): mixed {
+ 		// @todo Remove and add CSS for .themes.
+ 		return array( 'widefat', 'plugins' );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -84,12 +85,13 @@
+ 	 *
+ 	 * @return bool True if the current user has permissions, false otherwise.
+ 	 */
+-	public function ajax_user_can() {
++	public function ajax_user_can(): mixed {
+ 		if ( $this->is_site_themes ) {
+ 			return current_user_can( 'manage_sites' );
+ 		} else {
+ 			return current_user_can( 'manage_network_themes' );
+ 		}
++		return null;
+ 	}
+ 
+ 	/**
+@@ -102,7 +104,7 @@
+ 	 * @global string             $order   The order of the themes list (ASC or DESC).
+ 	 * @global string             $s       The search string.
+ 	 */
+-	public function prepare_items() {
++	public function prepare_items(): mixed {
+ 		global $status, $totals, $page, $orderby, $order, $s;
+ 
+ 		$orderby = ! empty( $_REQUEST['orderby'] ) ? sanitize_text_field( $_REQUEST['orderby'] ) : '';
+@@ -158,15 +160,15 @@
+ 			$filter                    = $theme->is_allowed( $allowed_where, $this->site_id ) ? 'enabled' : 'disabled';
+ 			$themes[ $filter ][ $key ] = $themes['all'][ $key ];
+ 
+-			$theme_data = array(
++			$theme_data = \wp_aot_mixed(array(
+ 				'update_supported' => $theme->update_supported ?? true,
+-			);
++			));
+ 
+ 			// Extra info if known. array_merge() ensures $theme_data has precedence if keys collide.
+ 			if ( isset( $current->response[ $key ] ) ) {
+-				$theme_data = array_merge( (array) $current->response[ $key ], $theme_data );
++				$theme_data = \wp_aot_array_merge(array( (array) $current->response[ $key ], $theme_data ));
+ 			} elseif ( isset( $current->no_update[ $key ] ) ) {
+-				$theme_data = array_merge( (array) $current->no_update[ $key ], $theme_data );
++				$theme_data = \wp_aot_array_merge(array( (array) $current->no_update[ $key ], $theme_data ));
+ 			} else {
+ 				$theme_data['update_supported'] = false;
+ 			}
+@@ -177,16 +179,16 @@
+ 			 * Create the expected payload for the auto_update_theme filter, this is the same data
+ 			 * as contained within $updates or $no_updates but used when the Theme is not known.
+ 			 */
+-			$filter_payload = array(
++			$filter_payload = \wp_aot_mixed(array(
+ 				'theme'        => $key,
+ 				'new_version'  => '',
+ 				'url'          => '',
+ 				'package'      => '',
+ 				'requires'     => '',
+ 				'requires_php' => '',
+-			);
+-
+-			$filter_payload = (object) array_merge( $filter_payload, array_intersect_key( $theme_data, $filter_payload ) );
++			));
++
++			$filter_payload = (object) \wp_aot_array_merge(array( $filter_payload, \wp_aot_array_intersect_key(array( $theme_data, $filter_payload )) ));
+ 
+ 			$auto_update_forced = wp_is_auto_update_forced_for_item( 'theme', null, $filter_payload );
+ 
+@@ -210,7 +212,7 @@
+ 
+ 		if ( $s ) {
+ 			$status           = 'search';
+-			$themes['search'] = array_filter( array_merge( $themes['all'], $themes['broken'] ), array( $this, '_search_callback' ) );
++			$themes['search'] = \wp_aot_array_filter( \wp_aot_array_merge(array( $themes['all'], $themes['broken'] )), $this->_search_callback(...));
+ 		}
+ 
+ 		$totals    = array();
+@@ -245,17 +247,17 @@
+ 
+ 			if ( 'Name' === $orderby ) {
+ 				if ( 'ASC' === $order ) {
+-					$this->items = array_reverse( $this->items );
++					$this->items = \wp_aot_array_reverse( $this->items );
+ 				}
+ 			} else {
+-				uasort( $this->items, array( $this, '_order_callback' ) );
++				\wp_aot_uasort( $this->items, $this->_order_callback(...));
+ 			}
+ 		}
+ 
+ 		$start = ( $page - 1 ) * $themes_per_page;
+ 
+ 		if ( $total_this_page > $themes_per_page ) {
+-			$this->items = array_slice( $this->items, $start, $themes_per_page, true );
++			$this->items = \wp_aot_array_slice( $this->items, $start, $themes_per_page, true );
+ 		}
+ 
+ 		$this->set_pagination_args(
+@@ -264,6 +266,7 @@
+ 				'per_page'    => $themes_per_page,
+ 			)
+ 		);
++		return null;
+ 	}
+ 
+ 	/**
+@@ -272,8 +275,9 @@
+ 	 * @param WP_Theme $theme The WP_Theme object to check.
+ 	 * @return bool True if the theme matches the search term, false otherwise.
+ 	 */
+-	public function _search_callback( $theme ) {
+-		static $term = null;
++	public function _search_callback( mixed $theme ): mixed {
++		static $term_aot_cell = new \WordPressStaticValueCell();
++		$term =& $term_aot_cell->value;
+ 		if ( is_null( $term ) ) {
+ 			$term = wp_unslash( $_REQUEST['s'] );
+ 		}
+@@ -294,6 +298,7 @@
+ 		}
+ 
+ 		return false;
++		return null;
+ 	}
+ 
+ 	// Not used by any core columns.
+@@ -307,7 +312,7 @@
+ 	 * @param WP_Theme $theme_b The second theme to compare.
+ 	 * @return int 0 if equal, -1 if the first is less than the second, 1 if more.
+ 	 */
+-	public function _order_callback( $theme_a, $theme_b ) {
++	public function _order_callback( mixed $theme_a, mixed $theme_b ): mixed {
+ 		global $orderby, $order;
+ 
+ 		$a = $theme_a[ $orderby ];
+@@ -316,17 +321,19 @@
+ 		return 'DESC' === $order ?
+ 			$b <=> $a :
+ 			$a <=> $b;
++		return null;
+ 	}
+ 
+ 	/**
+ 	 * Displays the message when there are no items to list.
+ 	 */
+-	public function no_items() {
++	public function no_items(): mixed {
+ 		if ( $this->has_items ) {
+ 			_e( 'No themes found.' );
+ 		} else {
+ 			_e( 'No themes are currently available.' );
+ 		}
++		return null;
+ 	}
+ 
+ 	/**
+@@ -334,7 +341,7 @@
+ 	 *
+ 	 * @return array<string, string> Array of column titles keyed by their column name.
+ 	 */
+-	public function get_columns() {
++	public function get_columns(): mixed {
+ 		$columns = array(
+ 			'cb'          => '<input type="checkbox" />',
+ 			'name'        => __( 'Theme' ),
+@@ -346,6 +353,7 @@
+ 		}
+ 
+ 		return $columns;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -353,10 +361,11 @@
+ 	 *
+ 	 * @return array<string, array<int, mixed>> An array of sortable columns.
+ 	 */
+-	protected function get_sortable_columns() {
++	protected function get_sortable_columns(): mixed {
+ 		return array(
+ 			'name' => array( 'name', false, __( 'Theme' ), __( 'Table ordered by Theme Name.' ), 'asc' ),
+ 		);
++		return null;
+ 	}
+ 
+ 	/**
+@@ -366,8 +375,9 @@
+ 	 *
+ 	 * @return string Unalterable name of the primary column name, in this case, 'name'.
+ 	 */
+-	protected function get_primary_column_name() {
++	protected function get_primary_column_name(): mixed {
+ 		return 'name';
++		return null;
+ 	}
+ 
+ 	/**
+@@ -378,7 +388,7 @@
+ 	 *
+ 	 * @return array<string, string> The list of views.
+ 	 */
+-	protected function get_views() {
++	protected function get_views(): mixed {
+ 		global $totals, $status;
+ 
+ 		$status_links = array();
+@@ -467,6 +477,7 @@
+ 		}
+ 
+ 		return $this->get_views_links( $status_links );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -476,7 +487,7 @@
+ 	 *
+ 	 * @return array<string, string> The list of bulk actions.
+ 	 */
+-	protected function get_bulk_actions() {
++	protected function get_bulk_actions(): mixed {
+ 		global $status;
+ 
+ 		$actions = array();
+@@ -506,6 +517,7 @@
+ 		}
+ 
+ 		return $actions;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -513,10 +525,11 @@
+ 	 *
+ 	 * @since 3.1.0
+ 	 */
+-	public function display_rows() {
++	public function display_rows( mixed $wp_aot_posts = array(), mixed $wp_aot_level = 0 ): mixed {
+ 		foreach ( $this->items as $theme ) {
+ 			$this->single_row( $theme );
+ 		}
++		return null;
+ 	}
+ 
+ 	/**
+@@ -527,25 +540,32 @@
+ 	 *
+ 	 * @param WP_Theme $item The current WP_Theme object.
+ 	 */
+-	public function column_cb( $item ) {
++	public function column_cb( mixed $item ): mixed {
+ 		// Restores the more descriptive, specific name for use within this method.
  		$theme = $item;
  
  		$checkbox_id = 'checkbox_' . md5( $theme->get( 'Name' ) );
@@ -31,15 +299,132 @@
  		</label>
 -		<?php
 +		';
++		return null;
  	}
  
  	/**
-@@ -806,7 +812,7 @@
- 	public function column_autoupdates( $theme ) {
+@@ -559,7 +579,7 @@
+ 	 *
+ 	 * @param WP_Theme $theme The current WP_Theme object.
+ 	 */
+-	public function column_name( $theme ) {
++	public function column_name( mixed $theme ): mixed {
+ 		global $status, $page, $s;
+ 
+ 		$context = $status;
+@@ -684,7 +704,7 @@
+ 		 * @param WP_Theme $theme   The current WP_Theme object.
+ 		 * @param string   $context Status of the theme, one of 'all', 'enabled', or 'disabled'.
+ 		 */
+-		$actions = apply_filters( 'theme_action_links', array_filter( $actions ), $theme, $context );
++		$actions = apply_filters( 'theme_action_links', \wp_aot_array_filter( $actions ), $theme, $context );
+ 
+ 		/**
+ 		 * Filters the action links of a specific theme in the Multisite themes
+@@ -703,6 +723,7 @@
+ 		$actions = apply_filters( "theme_action_links_{$stylesheet}", $actions, $theme, $context );
+ 
+ 		echo $this->row_actions( $actions, true );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -715,7 +736,7 @@
+ 	 *
+ 	 * @param WP_Theme $theme The current WP_Theme object.
+ 	 */
+-	public function column_description( $theme ) {
++	public function column_description( mixed $theme ): mixed {
+ 		global $status, $totals;
+ 
+ 		if ( $theme->errors() ) {
+@@ -791,6 +812,7 @@
+ 		echo implode( ' | ', $theme_meta );
+ 
+ 		echo '</div>';
++		return null;
+ 	}
+ 
+ 	/**
+@@ -803,10 +825,12 @@
+ 	 *
+ 	 * @param WP_Theme $theme The current WP_Theme object.
+ 	 */
+-	public function column_autoupdates( $theme ) {
++	public function column_autoupdates( mixed $theme ): mixed {
  		global $status, $page;
  
 -		static $auto_updates, $available_updates;
-+		static $auto_updates; static  $available_updates;
++		static $auto_updates_aot_cell = new \WordPressStaticValueCell();
++		$auto_updates =& $auto_updates_aot_cell->value; static $available_updates_aot_cell = new \WordPressStaticValueCell();
++		$available_updates =& $available_updates_aot_cell->value;
  
  		if ( ! $auto_updates ) {
  			$auto_updates = (array) get_site_option( 'auto_update_themes', array() );
+@@ -872,7 +896,7 @@
+ 			);
+ 		}
+ 
+-		$html = implode( '', $html );
++		$html = \wp_aot_mixed(implode( '', $html ));
+ 
+ 		/**
+ 		 * Filters the HTML of the auto-updates setting for each theme in the Themes list table.
+@@ -893,6 +917,7 @@
+ 				'additional_classes' => array( 'notice-alt', 'inline', 'hidden' ),
+ 			)
+ 		);
++		return null;
+ 	}
+ 
+ 	/**
+@@ -904,7 +929,7 @@
+ 	 * @param WP_Theme $item        The current WP_Theme object.
+ 	 * @param string   $column_name The current column name.
+ 	 */
+-	public function column_default( $item, $column_name ) {
++	public function column_default( mixed $item, mixed $column_name ): mixed {
+ 		// Restores the more descriptive, specific name for use within this method.
+ 		$theme = $item;
+ 
+@@ -920,6 +945,7 @@
+ 		 * @param WP_Theme $theme       Current WP_Theme object.
+ 		 */
+ 		do_action( 'manage_themes_custom_column', $column_name, $stylesheet, $theme );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -929,7 +955,7 @@
+ 	 *
+ 	 * @param WP_Theme $item The current WP_Theme object.
+ 	 */
+-	public function single_row_columns( $item ) {
++	public function single_row_columns( mixed $item ): mixed {
+ 		list( $columns, $hidden, $sortable, $primary ) = $this->get_column_info();
+ 
+ 		foreach ( $columns as $column_name => $column_display_name ) {
+@@ -997,6 +1023,7 @@
+ 					break;
+ 			}
+ 		}
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1007,7 +1034,7 @@
+ 	 *
+ 	 * @param WP_Theme $theme The current WP_Theme object.
+ 	 */
+-	public function single_row( $theme ) {
++	public function single_row( mixed $theme, mixed $wp_aot_second = null, mixed $wp_aot_third = null, mixed $wp_aot_fourth = null ): mixed {
+ 		global $status, $totals;
+ 
+ 		if ( $this->is_site_themes ) {
+@@ -1062,5 +1089,6 @@
+ 		 * @param string   $status     Status of the theme.
+ 		 */
+ 		do_action( "after_theme_row_{$stylesheet}", $stylesheet, $theme, $status );
++		return null;
+ 	}
+ }

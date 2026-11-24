@@ -1,0 +1,222 @@
+--- a/wp-includes/functions.wp-scripts.php
++++ b/wp-includes/functions.wp-scripts.php
+@@ -17,14 +17,14 @@
+  *
+  * @return WP_Scripts WP_Scripts instance.
+  */
+-function wp_scripts() {
++function wp_scripts(): WP_Scripts {
+ 	global $wp_scripts;
+ 
+ 	if ( ! ( $wp_scripts instanceof WP_Scripts ) ) {
+ 		$wp_scripts = new WP_Scripts();
+ 	}
+ 
+-	return $wp_scripts;
++	return \wp_aot_require_WP_Scripts($wp_scripts);
+ }
+ 
+ /**
+@@ -38,11 +38,11 @@
+  * @param string $handle        Optional. Name of the script or stylesheet that was
+  *                              registered or enqueued too early. Default empty.
+  */
+-function _wp_scripts_maybe_doing_it_wrong( $function_name, $handle = '' ) {
++function _wp_scripts_maybe_doing_it_wrong( mixed $function_name, mixed $handle = '' ): mixed {
+ 	if ( did_action( 'init' ) || did_action( 'wp_enqueue_scripts' )
+ 		|| did_action( 'admin_enqueue_scripts' ) || did_action( 'login_enqueue_scripts' )
+ 	) {
+-		return;
++		return null;
+ 	}
+ 
+ 	$message = sprintf(
+@@ -66,6 +66,7 @@
+ 		$message,
+ 		'3.3.0'
+ 	);
++	return null;
+ }
+ 
+ /**
+@@ -91,7 +92,7 @@
+  */
+ function _wp_scripts_add_args_data( WP_Scripts $wp_scripts, string $handle, array $args ): void {
+ 	$allowed_keys = array( 'strategy', 'in_footer', 'fetchpriority', 'module_dependencies' );
+-	$unknown_keys = array_diff( array_keys( $args ), $allowed_keys );
++	$unknown_keys = \wp_aot_array_diff(array( array_keys( $args ), $allowed_keys ));
+ 	if ( ! empty( $unknown_keys ) ) {
+ 		$trace         = debug_backtrace( DEBUG_BACKTRACE_IGNORE_ARGS, 2 );
+ 		$function_name = ( $trace[1]['class'] ?? '' ) . ( $trace[1]['type'] ?? '' ) . ( $trace[1]['function'] ?? __FUNCTION__ );
+@@ -164,7 +165,7 @@
+  * @param string|string[]|false $handles Optional. Scripts to be printed. Default 'false'.
+  * @return string[] On success, an array of handles of processed WP_Dependencies items; otherwise, an empty array.
+  */
+-function wp_print_scripts( $handles = false ) {
++function wp_print_scripts( mixed $handles = false ): mixed {
+ 	global $wp_scripts;
+ 
+ 	/**
+@@ -187,6 +188,7 @@
+ 	}
+ 
+ 	return wp_scripts()->do_items( $handles );
++	return null;
+ }
+ 
+ /**
+@@ -207,7 +209,7 @@
+  *                         or after. Default 'after'.
+  * @return bool True on success, false on failure.
+  */
+-function wp_add_inline_script( $handle, $data, $position = 'after' ) {
++function wp_add_inline_script( mixed $handle, mixed $data, mixed $position = 'after' ): mixed {
+ 	_wp_scripts_maybe_doing_it_wrong( __FUNCTION__, $handle );
+ 
+ 	if ( false !== stripos( $data, '</script>' ) ) {
+@@ -221,10 +223,11 @@
+ 			),
+ 			'4.5.0'
+ 		);
+-		$data = trim( (string) preg_replace( '#<script[^>]*>(.*)</script>#is', '$1', $data ) );
++		$data = trim( (string) \wp_aot_preg_replace( '#<script[^>]*>(.*)</script>#is', '$1', $data ) );
+ 	}
+ 
+ 	return wp_scripts()->add_inline_script( $handle, $data, $position );
++	return null;
+ }
+ 
+ /**
+@@ -275,7 +278,7 @@
+  *     module_dependencies?: array<non-empty-string|array{ id: non-empty-string, ... }>,
+  * }|bool $args
+  */
+-function wp_register_script( $handle, $src, $deps = array(), $ver = false, $args = array() ) {
++function wp_register_script( mixed $handle, mixed $src, mixed $deps = array(), mixed $ver = false, mixed $args = array() ): mixed {
+ 	if ( ! is_array( $args ) ) {
+ 		$args = array(
+ 			'in_footer' => (bool) $args,
+@@ -286,9 +289,10 @@
+ 	$wp_scripts = wp_scripts();
+ 
+ 	$registered = $wp_scripts->add( $handle, $src, $deps, $ver );
+-	_wp_scripts_add_args_data( $wp_scripts, $handle, $args );
++	_wp_scripts_add_args_data( $wp_scripts, $handle, \wp_aot_array_input($args ));
+ 
+ 	return $registered;
++	return null;
+ }
+ 
+ /**
+@@ -317,10 +321,11 @@
+  * @param array<string, mixed> $l10n        The data itself. The data can be either a single or multi-dimensional array.
+  * @return bool True if the script was successfully localized, false otherwise.
+  */
+-function wp_localize_script( $handle, $object_name, $l10n ) {
++function wp_localize_script( mixed $handle, mixed $object_name, mixed $l10n ): mixed {
+ 	$wp_scripts = wp_scripts();
+ 
+ 	return $wp_scripts->localize( $handle, $object_name, $l10n );
++	return null;
+ }
+ 
+ /**
+@@ -339,7 +344,7 @@
+  * @param string $path   Optional. The full file path to the directory containing translation files.
+  * @return bool True if the text domain was successfully localized, false otherwise.
+  */
+-function wp_set_script_translations( $handle, $domain = 'default', $path = '' ) {
++function wp_set_script_translations( mixed $handle, mixed $domain = 'default', mixed $path = '' ): mixed {
+ 	global $wp_scripts;
+ 
+ 	if ( ! ( $wp_scripts instanceof WP_Scripts ) ) {
+@@ -348,6 +353,7 @@
+ 	}
+ 
+ 	return $wp_scripts->set_translations( $handle, $domain, $path );
++	return null;
+ }
+ 
+ /**
+@@ -364,7 +370,7 @@
+  *
+  * @param string $handle Name of the script to be removed.
+  */
+-function wp_deregister_script( $handle ) {
++function wp_deregister_script( mixed $handle ): mixed {
+ 	global $pagenow;
+ 
+ 	_wp_scripts_maybe_doing_it_wrong( __FUNCTION__, $handle );
+@@ -416,11 +422,12 @@
+ 				),
+ 				'3.6.0'
+ 			);
+-			return;
++			return null;
+ 		}
+ 	}
+ 
+ 	wp_scripts()->remove( $handle );
++	return null;
+ }
+ 
+ /**
+@@ -470,7 +477,7 @@
+  *     module_dependencies?: array<non-empty-string|array{ id: non-empty-string, ... }>,
+  * }|bool $args
+  */
+-function wp_enqueue_script( $handle, $src = '', $deps = array(), $ver = false, $args = array() ) {
++function wp_enqueue_script( mixed $handle, mixed $src = '', mixed $deps = array(), mixed $ver = false, mixed $args = array() ): mixed {
+ 	_wp_scripts_maybe_doing_it_wrong( __FUNCTION__, $handle );
+ 
+ 	$wp_scripts = wp_scripts();
+@@ -488,11 +495,12 @@
+ 			$wp_scripts->add( $_handle[0], $src, $deps, $ver );
+ 		}
+ 		if ( ! empty( $args ) ) {
+-			_wp_scripts_add_args_data( $wp_scripts, $_handle[0], $args );
++			_wp_scripts_add_args_data( $wp_scripts, $_handle[0], \wp_aot_array_input($args ));
+ 		}
+ 	}
+ 
+ 	$wp_scripts->enqueue( $handle );
++	return null;
+ }
+ 
+ /**
+@@ -504,10 +512,11 @@
+  *
+  * @param string $handle Name of the script to be removed.
+  */
+-function wp_dequeue_script( $handle ) {
++function wp_dequeue_script( mixed $handle ): mixed {
+ 	_wp_scripts_maybe_doing_it_wrong( __FUNCTION__, $handle );
+ 
+ 	wp_scripts()->dequeue( $handle );
++	return null;
+ }
+ 
+ /**
+@@ -525,10 +534,11 @@
+  *                       Accepts 'enqueued', 'registered', 'queue', 'to_do', and 'done'.
+  * @return bool Whether the script is queued.
+  */
+-function wp_script_is( $handle, $status = 'enqueued' ) {
++function wp_script_is( mixed $handle, mixed $status = 'enqueued' ): mixed {
+ 	_wp_scripts_maybe_doing_it_wrong( __FUNCTION__, $handle );
+ 
+ 	return (bool) wp_scripts()->query( $handle, $status );
++	return null;
+ }
+ 
+ /**
+@@ -549,6 +559,7 @@
+  * @param mixed  $value  String containing the data to be added.
+  * @return bool True on success, false on failure.
+  */
+-function wp_script_add_data( $handle, $key, $value ) {
++function wp_script_add_data( mixed $handle, mixed $key, mixed $value ): mixed {
+ 	return wp_scripts()->add_data( $handle, $key, $value );
+-}
++	return null;
++}

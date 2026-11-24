@@ -1,0 +1,118 @@
+--- a/wp-includes/php-ai-client/third-party/Nyholm/Psr7/MessageTrait.php
++++ b/wp-includes/php-ai-client/third-party/Nyholm/Psr7/MessageTrait.php
+@@ -31,7 +31,7 @@
+     /**
+      * @return static
+      */
+-    public function withProtocolVersion($version): MessageInterface
++    public function withProtocolVersion(mixed $version): MessageInterface
+     {
+         if (!\is_scalar($version)) {
+             throw new \InvalidArgumentException('Protocol version must be a string');
+@@ -47,33 +47,33 @@
+     {
+         return $this->headers;
+     }
+-    public function hasHeader($header): bool
++    public function hasHeader(mixed $header): bool
+     {
+-        return isset($this->headerNames[\strtr($header, 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz')]);
++        return isset($this->headerNames[\wp_aot_strtr($header, 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz')]);
+     }
+-    public function getHeader($header): array
++    public function getHeader(mixed $header): array
+     {
+         if (!\is_string($header)) {
+             throw new \InvalidArgumentException('Header name must be an RFC 7230 compatible string');
+         }
+-        $header = \strtr($header, 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz');
++        $header = \wp_aot_strtr($header, 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz');
+         if (!isset($this->headerNames[$header])) {
+-            return [];
++            return \wp_aot_require_array( [] );
+         }
+         $header = $this->headerNames[$header];
+-        return $this->headers[$header];
++        return \wp_aot_require_array( $this->headers[$header] );
+     }
+-    public function getHeaderLine($header): string
++    public function getHeaderLine(mixed $header): string
+     {
+         return \implode(', ', $this->getHeader($header));
+     }
+     /**
+      * @return static
+      */
+-    public function withHeader($header, $value): MessageInterface
++    public function withHeader(mixed $header, mixed $value): MessageInterface
+     {
+         $value = $this->validateAndTrimHeader($header, $value);
+-        $normalized = \strtr($header, 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz');
++        $normalized = \wp_aot_strtr($header, 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz');
+         $new = clone $this;
+         if (isset($new->headerNames[$normalized])) {
+             unset($new->headers[$new->headerNames[$normalized]]);
+@@ -85,7 +85,7 @@
+     /**
+      * @return static
+      */
+-    public function withAddedHeader($header, $value): MessageInterface
++    public function withAddedHeader(mixed $header, mixed $value): MessageInterface
+     {
+         if (!\is_string($header) || '' === $header) {
+             throw new \InvalidArgumentException('Header name must be an RFC 7230 compatible string');
+@@ -97,12 +97,12 @@
+     /**
+      * @return static
+      */
+-    public function withoutHeader($header): MessageInterface
++    public function withoutHeader(mixed $header): MessageInterface
+     {
+         if (!\is_string($header)) {
+             throw new \InvalidArgumentException('Header name must be an RFC 7230 compatible string');
+         }
+-        $normalized = \strtr($header, 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz');
++        $normalized = \wp_aot_strtr($header, 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz');
+         if (!isset($this->headerNames[$normalized])) {
+             return $this;
+         }
+@@ -139,10 +139,10 @@
+                 $header = (string) $header;
+             }
+             $value = $this->validateAndTrimHeader($header, $value);
+-            $normalized = \strtr($header, 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz');
++            $normalized = \wp_aot_strtr($header, 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz');
+             if (isset($this->headerNames[$normalized])) {
+                 $header = $this->headerNames[$normalized];
+-                $this->headers[$header] = \array_merge($this->headers[$header], $value);
++                $this->headers[$header] = \wp_aot_array_merge(array(\wp_aot_require_array( $this->headers[$header] ), \wp_aot_require_array($value)));
+             } else {
+                 $this->headerNames[$normalized] = $header;
+                 $this->headers[$header] = $value;
+@@ -167,14 +167,14 @@
+      *
+      * @see https://tools.ietf.org/html/rfc7230#section-3.2.4
+      */
+-    private function validateAndTrimHeader($header, $values): array
++    private function validateAndTrimHeader(mixed $header, mixed $values): array
+     {
+-        if (!\is_string($header) || 1 !== \preg_match("@^[!#\$%&'*+.^_`|~0-9A-Za-z-]+\$@D", $header)) {
++        if (!\is_string($header) || 1 !== \preg_match("@^[!#\$%&'*+.^_`|~0-9A-Za-z-]+\$@D", \wp_aot_regex_text( (string) ($header) ))) {
+             throw new \InvalidArgumentException('Header name must be an RFC 7230 compatible string');
+         }
+         if (!\is_array($values)) {
+             // This is simple, just one value.
+-            if (!\is_numeric($values) && !\is_string($values) || 1 !== \preg_match("@^[ \t!-~\x80-\xff]*\$@", (string) $values)) {
++            if (!\is_numeric($values) && !\is_string($values) || 1 !== \preg_match("@^[ \t!-~\x80-\xff]*\$@", \wp_aot_regex_text( (string) $values ))) {
+                 throw new \InvalidArgumentException('Header values must be RFC 7230 compatible strings');
+             }
+             return [\trim((string) $values, " \t")];
+@@ -185,7 +185,7 @@
+         // Assert Non empty array
+         $returnValues = [];
+         foreach ($values as $v) {
+-            if (!\is_numeric($v) && !\is_string($v) || 1 !== \preg_match("@^[ \t!-~\x80-\xff]*\$@D", (string) $v)) {
++            if (!\is_numeric($v) && !\is_string($v) || 1 !== \preg_match("@^[ \t!-~\x80-\xff]*\$@D", \wp_aot_regex_text( (string) $v ))) {
+                 throw new \InvalidArgumentException('Header values must be RFC 7230 compatible strings');
+             }
+             $returnValues[] = \trim((string) $v, " \t");

@@ -1,0 +1,11 @@
+--- a/wp-admin/media-new.php
++++ b/wp-admin/media-new.php
+@@ -36,7 +36,7 @@
+ 		}
+ 	}
+ 	wp_redirect( admin_url( 'upload.php' ) );
+-	exit;
++	\wp_aot_exit();
+ }
+ 
+ // Used in the HTML title tag.

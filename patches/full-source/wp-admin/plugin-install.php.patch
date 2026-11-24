@@ -1,0 +1,29 @@
+--- a/wp-admin/plugin-install.php
++++ b/wp-admin/plugin-install.php
+@@ -21,7 +21,7 @@
+ 
+ if ( is_multisite() && ! is_network_admin() ) {
+ 	wp_redirect( network_admin_url( 'plugin-install.php' ) );
+-	exit;
++	\wp_aot_exit();
+ }
+ 
+ $wp_list_table = _get_list_table( 'WP_Plugin_Install_List_Table' );
+@@ -35,7 +35,7 @@
+ 	}
+ 
+ 	wp_redirect( $location );
+-	exit;
++	\wp_aot_exit();
+ }
+ 
+ $wp_list_table->prepare_items();
+@@ -53,7 +53,7 @@
+ 
+ if ( $pagenum > $total_pages && $total_pages > 0 ) {
+ 	wp_redirect( add_query_arg( 'paged', $total_pages ) );
+-	exit;
++	\wp_aot_exit();
+ }
+ 
+ // Used in the HTML title tag.

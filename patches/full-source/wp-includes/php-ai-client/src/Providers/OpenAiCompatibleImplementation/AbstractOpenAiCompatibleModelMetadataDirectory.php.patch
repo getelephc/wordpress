@@ -1,0 +1,24 @@
+--- a/wp-includes/php-ai-client/src/Providers/OpenAiCompatibleImplementation/AbstractOpenAiCompatibleModelMetadataDirectory.php
++++ b/wp-includes/php-ai-client/src/Providers/OpenAiCompatibleImplementation/AbstractOpenAiCompatibleModelMetadataDirectory.php
+@@ -29,9 +29,9 @@
+     protected function sendListModelsRequest(): array
+     {
+         $httpTransporter = $this->getHttpTransporter();
+-        $request = $this->createRequest(HttpMethodEnum::GET(), 'models');
+-        $request = $this->getRequestAuthentication()->authenticateRequest($request);
+-        $response = $httpTransporter->send($request);
++        $request = $this->createRequest(\wp_aot_require_WordPress_AiClient_Providers_Http_Enums_HttpMethodEnum( HttpMethodEnum::GET() ), 'models');
++        $request = $this->getRequestAuthentication()->authenticateRequest(\wp_aot_require_WordPress_AiClient_Providers_Http_DTO_Request( $request ));
++        $response = $httpTransporter->send(\wp_aot_require_WordPress_AiClient_Providers_Http_DTO_Request( $request ));
+         $this->throwIfNotSuccessful($response);
+         $modelsMetadataList = $this->parseResponseToModelMetadataList($response);
+         $modelMetadataMap = [];
+@@ -51,7 +51,7 @@
+      * @param string|array<string, mixed>|null $data The request data.
+      * @return Request The request object.
+      */
+-    abstract protected function createRequest(HttpMethodEnum $method, string $path, array $headers = [], $data = null): Request;
++    abstract protected function createRequest(HttpMethodEnum $method, string $path, array $headers = [], mixed $data = null): Request;
+     /**
+      * Throws an exception if the response is not successful.
+      *

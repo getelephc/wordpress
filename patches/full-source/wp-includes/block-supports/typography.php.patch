@@ -1,0 +1,145 @@
+--- a/wp-includes/block-supports/typography.php
++++ b/wp-includes/block-supports/typography.php
+@@ -16,14 +16,14 @@
+  *
+  * @param WP_Block_Type $block_type Block Type.
+  */
+-function wp_register_typography_support( $block_type ) {
++function wp_register_typography_support( mixed $block_type ): mixed {
+ 	if ( ! ( $block_type instanceof WP_Block_Type ) ) {
+-		return;
++		return null;
+ 	}
+ 
+ 	$typography_supports = $block_type->supports['typography'] ?? false;
+ 	if ( ! $typography_supports ) {
+-		return;
++		return null;
+ 	}
+ 
+ 	$has_font_family_support     = $typography_supports['__experimentalFontFamily'] ?? false;
+@@ -73,6 +73,7 @@
+ 			'type' => 'string',
+ 		);
+ 	}
++	return null;
+ }
+ 
+ /**
+@@ -90,7 +91,7 @@
+  * @param array         $block_attributes Block attributes.
+  * @return array Typography CSS classes and inline styles.
+  */
+-function wp_apply_typography_support( $block_type, $block_attributes ) {
++function wp_apply_typography_support( mixed $block_type, mixed $block_attributes ): mixed {
+ 	if ( ! ( $block_type instanceof WP_Block_Type ) ) {
+ 		return array();
+ 	}
+@@ -256,6 +257,7 @@
+ 	}
+ 
+ 	return $attributes;
++	return null;
+ }
+ 
+ /**
+@@ -274,7 +276,7 @@
+  * @param string $css_property Slug for the CSS property the inline style sets.
+  * @return string A CSS inline style value.
+  */
+-function wp_typography_get_preset_inline_style_value( $style_value, $css_property ) {
++function wp_typography_get_preset_inline_style_value( mixed $style_value, mixed $css_property ): mixed {
+ 	// If the style value is not a preset CSS variable go no further.
+ 	if ( empty( $style_value ) || ! str_contains( $style_value, "var:preset|{$css_property}|" ) ) {
+ 		return $style_value;
+@@ -292,6 +294,7 @@
+ 	// Return the actual CSS inline style value,
+ 	// e.g. `var(--wp--preset--text-decoration--underline);`.
+ 	return sprintf( 'var(--wp--preset--%s--%s);', $css_property, $slug );
++	return null;
+ }
+ 
+ /**
+@@ -303,7 +306,7 @@
+  * @param array  $block         Block object.
+  * @return string Filtered block content.
+  */
+-function wp_render_typography_support( $block_content, $block ) {
++function wp_render_typography_support( mixed $block_content, mixed $block ): mixed {
+ 	if ( ! empty( $block['attrs']['fitText'] ) && $block['attrs']['fitText'] && ! is_admin() ) {
+ 		wp_enqueue_script_module( '@wordpress/block-editor/utils/fit-text-frontend' );
+ 
+@@ -336,10 +339,11 @@
+ 	 */
+ 	if ( ! empty( $fluid_font_size ) && $fluid_font_size !== $custom_font_size ) {
+ 		// Replaces the first instance of `font-size:$custom_font_size` with `font-size:$fluid_font_size`.
+-		return preg_replace( '/font-size\s*:\s*' . preg_quote( $custom_font_size, '/' ) . '\s*;?/', 'font-size:' . esc_attr( $fluid_font_size ) . ';', $block_content, 1 );
++		return \wp_aot_preg_replace( '/font-size\s*:\s*' . preg_quote( \wp_aot_regex_text( $custom_font_size ), '/' ) . '\s*;?/', 'font-size:' . esc_attr( $fluid_font_size ) . ';', $block_content, 1 );
+ 	}
+ 
+ 	return $block_content;
++	return null;
+ }
+ 
+ /**
+@@ -365,7 +369,7 @@
+  * } $options
+  * @phpstan-return array{ value: float, unit: non-empty-string }|null
+  */
+-function wp_get_typography_value_and_unit( $raw_value, $options = array() ): ?array {
++function wp_get_typography_value_and_unit( mixed $raw_value, mixed $options = array() ): ?array {
+ 	if ( ! is_string( $raw_value ) && ! is_int( $raw_value ) && ! is_float( $raw_value ) ) {
+ 		_doing_it_wrong(
+ 			__FUNCTION__,
+@@ -400,7 +404,7 @@
+ 	$options = wp_parse_args( $options, $defaults );
+ 
+ 	// Bails out if the raw value can't be parsed.
+-	if ( ! preg_match( '/^(\d*\.?\d+)([a-zA-Z]+|%)$/', $raw_value, $matches ) ) {
++	if ( ! preg_match( '/^(\d*\.?\d+)([a-zA-Z]+|%)$/', \wp_aot_regex_text( $raw_value ), $matches ) ) {
+ 		return null;
+ 	}
+ 
+@@ -461,7 +465,7 @@
+  * }
+  * @return string|null A font-size value using clamp() on success, otherwise null.
+  */
+-function wp_get_computed_fluid_typography_value( $args = array() ) {
++function wp_get_computed_fluid_typography_value( mixed $args = array() ): mixed {
+ 	$maximum_viewport_width_raw = $args['maximum_viewport_width'] ?? null;
+ 	$minimum_viewport_width_raw = $args['minimum_viewport_width'] ?? null;
+ 	$maximum_font_size_raw      = $args['maximum_font_size'] ?? null;
+@@ -534,6 +538,7 @@
+ 	$fluid_target_font_size = implode( '', $minimum_font_size_rem ) . " + ((1vw - $view_port_width_offset) * $linear_factor_scaled)";
+ 
+ 	return "clamp($minimum_font_size_raw, $fluid_target_font_size, $maximum_font_size_raw)";
++	return null;
+ }
+ 
+ /**
+@@ -562,7 +567,7 @@
+  */
+ 
+ 
+-function wp_get_typography_font_size_value( $preset, $settings = array() ) {
++function wp_get_typography_font_size_value( mixed $preset, mixed $settings = array() ): mixed {
+ 	if ( ! isset( $preset['size'] ) ) {
+ 		return null;
+ 	}
+@@ -681,7 +686,7 @@
+ 		 * For a - b * log2(), lower values of b will make the curve move towards the minimum faster.
+ 		 * The scale factor is constrained between min and max values.
+ 		 */
+-		$minimum_font_size_factor     = clamp( 1 - 0.075 * log( $preferred_font_size_in_px, 2 ), $default_minimum_font_size_factor_min, $default_minimum_font_size_factor_max );
++		$minimum_font_size_factor     = \wp_aot_clamp( 1 - 0.075 * log( $preferred_font_size_in_px, 2 ), $default_minimum_font_size_factor_min, $default_minimum_font_size_factor_max );
+ 		$calculated_minimum_font_size = round( $preferred_size['value'] * $minimum_font_size_factor, 3 );
+ 
+ 		// Only use calculated min font size if it's > $minimum_font_size_limit value.
+@@ -707,6 +712,7 @@
+ 	}
+ 
+ 	return $preset['size'];
++	return null;
+ }
+ 
+ // Register the block support.

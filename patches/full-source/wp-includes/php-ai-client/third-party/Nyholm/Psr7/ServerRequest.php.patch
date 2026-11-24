@@ -1,0 +1,99 @@
+--- a/wp-includes/php-ai-client/third-party/Nyholm/Psr7/ServerRequest.php
++++ b/wp-includes/php-ai-client/third-party/Nyholm/Psr7/ServerRequest.php
+@@ -38,7 +38,7 @@
+      * @param string $version Protocol version
+      * @param array $serverParams Typically the $_SERVER superglobal
+      */
+-    public function __construct(string $method, $uri, array $headers = [], $body = null, string $version = '1.1', array $serverParams = [])
++    public function __construct(string $method, mixed $uri, array $headers = [], mixed $body = null, string $version = '1.1', array $serverParams = [])
+     {
+         $this->serverParams = $serverParams;
+         if (!$uri instanceof UriInterface) {
+@@ -48,7 +48,9 @@
+         $this->uri = $uri;
+         $this->setHeaders($headers);
+         $this->protocol = $version;
+-        \parse_str($uri->getQuery(), $this->queryParams);
++        $queryParams = array();
++        \parse_str($uri->getQuery(), $queryParams);
++        $this->queryParams = $queryParams;
+         if (!$this->hasHeader('Host')) {
+             $this->updateHostFromUri();
+         }
+@@ -63,7 +65,7 @@
+     }
+     public function getUploadedFiles(): array
+     {
+-        return $this->uploadedFiles;
++        return \wp_aot_require_array( $this->uploadedFiles );
+     }
+     /**
+      * @return static
+@@ -76,7 +78,7 @@
+     }
+     public function getCookieParams(): array
+     {
+-        return $this->cookieParams;
++        return \wp_aot_require_array( $this->cookieParams );
+     }
+     /**
+      * @return static
+@@ -89,7 +91,7 @@
+     }
+     public function getQueryParams(): array
+     {
+-        return $this->queryParams;
++        return \wp_aot_require_array( $this->queryParams );
+     }
+     /**
+      * @return static
+@@ -103,14 +105,15 @@
+     /**
+      * @return array|object|null
+      */
+-    public function getParsedBody()
++    public function getParsedBody(): mixed
+     {
+         return $this->parsedBody;
++    	return null;
+     }
+     /**
+      * @return static
+      */
+-    public function withParsedBody($data): ServerRequestInterface
++    public function withParsedBody(mixed $data): ServerRequestInterface
+     {
+         if (!\is_array($data) && !\is_object($data) && null !== $data) {
+             throw new \InvalidArgumentException('First parameter to withParsedBody MUST be object, array or null');
+@@ -126,7 +129,7 @@
+     /**
+      * @return mixed
+      */
+-    public function getAttribute($attribute, $default = null)
++    public function getAttribute(mixed $attribute, mixed $default = null): mixed
+     {
+         if (!\is_string($attribute)) {
+             throw new \InvalidArgumentException('Attribute name must be a string');
+@@ -135,11 +138,12 @@
+             return $default;
+         }
+         return $this->attributes[$attribute];
++    	return null;
+     }
+     /**
+      * @return static
+      */
+-    public function withAttribute($attribute, $value): ServerRequestInterface
++    public function withAttribute(mixed $attribute, mixed $value): ServerRequestInterface
+     {
+         if (!\is_string($attribute)) {
+             throw new \InvalidArgumentException('Attribute name must be a string');
+@@ -151,7 +155,7 @@
+     /**
+      * @return static
+      */
+-    public function withoutAttribute($attribute): ServerRequestInterface
++    public function withoutAttribute(mixed $attribute): ServerRequestInterface
+     {
+         if (!\is_string($attribute)) {
+             throw new \InvalidArgumentException('Attribute name must be a string');

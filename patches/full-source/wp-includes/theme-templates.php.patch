@@ -1,0 +1,109 @@
+--- a/wp-includes/theme-templates.php
++++ b/wp-includes/theme-templates.php
+@@ -10,25 +10,26 @@
+  *
+  * @param int $post_id Post ID.
+  */
+-function wp_set_unique_slug_on_create_template_part( $post_id ) {
++function wp_set_unique_slug_on_create_template_part( mixed $post_id ): mixed {
+ 	$post = get_post( $post_id );
+ 	if ( 'auto-draft' !== $post->post_status ) {
+-		return;
++		return null;
+ 	}
+ 
+ 	if ( ! $post->post_name ) {
+ 		wp_update_post(
+ 			array(
+ 				'ID'        => $post_id,
+-				'post_name' => 'custom_slug_' . uniqid(),
++				'post_name' => 'custom_slug_' . \wp_aot_native_api('uniqid', array()),
+ 			)
+ 		);
+ 	}
+ 
+ 	$terms = get_the_terms( $post_id, 'wp_theme' );
+-	if ( ! is_array( $terms ) || ! count( $terms ) ) {
++	if ( ! is_array( $terms ) || ! \wp_aot_count( $terms ) ) {
+ 		wp_set_post_terms( $post_id, get_stylesheet(), 'wp_theme' );
+ 	}
++	return null;
+ }
+ 
+ /**
+@@ -44,7 +45,7 @@
+  * @param string $post_type     Post type.
+  * @return string The original, desired slug.
+  */
+-function wp_filter_wp_template_unique_post_slug( $override_slug, $slug, $post_id, $post_status, $post_type ) {
++function wp_filter_wp_template_unique_post_slug( mixed $override_slug, mixed $slug, mixed $post_id, mixed $post_status, mixed $post_type ): mixed {
+ 	if ( 'wp_template' !== $post_type && 'wp_template_part' !== $post_type ) {
+ 		return $override_slug;
+ 	}
+@@ -83,19 +84,20 @@
+ 	$check_query      = new WP_Query( $check_query_args );
+ 	$posts            = $check_query->posts;
+ 
+-	if ( count( $posts ) > 0 ) {
++	if ( \wp_aot_count( $posts ) > 0 ) {
+ 		$suffix = 2;
+ 		do {
+ 			$query_args                  = $check_query_args;
+-			$alt_post_name               = _truncate_post_slug( $override_slug, 200 - ( strlen( $suffix ) + 1 ) ) . "-$suffix";
++			$alt_post_name               = _truncate_post_slug( $override_slug, 200 - ( \wp_aot_strlen( $suffix ) + 1 ) ) . "-$suffix";
+ 			$query_args['post_name__in'] = array( $alt_post_name );
+ 			$query                       = new WP_Query( $query_args );
+ 			++$suffix;
+-		} while ( count( $query->posts ) > 0 );
++		} while ( \wp_aot_count( $query->posts ) > 0 );
+ 		$override_slug = $alt_post_name;
+ 	}
+ 
+ 	return $override_slug;
++	return null;
+ }
+ 
+ /**
+@@ -107,26 +109,27 @@
+  *
+  * @global string $_wp_current_template_content
+  */
+-function wp_enqueue_block_template_skip_link() {
++function wp_enqueue_block_template_skip_link(): mixed {
+ 	global $_wp_current_template_content;
+ 
+ 	// Back-compat for plugins that disable functionality by unhooking this action.
+ 	if ( ! has_action( 'wp_footer', 'the_block_template_skip_link' ) ) {
+-		return;
++		return null;
+ 	}
+ 	remove_action( 'wp_footer', 'the_block_template_skip_link' );
+ 
+ 	// Early exit if not a block theme.
+ 	if ( ! current_theme_supports( 'block-templates' ) ) {
+-		return;
++		return null;
+ 	}
+ 
+ 	// Early exit if not a block template.
+ 	if ( ! $_wp_current_template_content ) {
+-		return;
++		return null;
+ 	}
+ 
+ 	wp_enqueue_style( 'wp-block-template-skip-link' );
++	return null;
+ }
+ 
+ /**
+@@ -135,8 +138,9 @@
+  * @access private
+  * @since 5.8.0
+  */
+-function wp_enable_block_templates() {
++function wp_enable_block_templates(): mixed {
+ 	if ( wp_is_block_theme() || wp_theme_has_theme_json() ) {
+ 		add_theme_support( 'block-templates' );
+ 	}
++	return null;
+ }

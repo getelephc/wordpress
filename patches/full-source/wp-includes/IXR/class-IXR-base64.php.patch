@@ -1,0 +1,34 @@
+--- a/wp-includes/IXR/class-IXR-base64.php
++++ b/wp-includes/IXR/class-IXR-base64.php
+@@ -8,12 +8,12 @@
+  */
+ class IXR_Base64
+ {
+-    var $data;
++    public $data;
+ 
+ 	/**
+ 	 * PHP5 constructor.
+ 	 */
+-    function __construct( $data )
++    function __construct( mixed $data )
+     {
+         $this->data = $data;
+     }
+@@ -21,12 +21,14 @@
+ 	/**
+ 	 * PHP4 constructor.
+ 	 */
+-	public function IXR_Base64( $data ) {
++	public function IXR_Base64( mixed $data ): mixed {
+ 		self::__construct( $data );
++		return null;
+ 	}
+ 
+-    function getXml()
++    function getXml(): mixed
+     {
+         return '<base64>'.base64_encode($this->data).'</base64>';
++    	return null;
+     }
+ }

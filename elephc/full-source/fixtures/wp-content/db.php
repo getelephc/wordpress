@@ -12,6 +12,11 @@ class ElephcFixtureDatabase extends wpdb {
         $this->charset = 'utf8mb4';
         $this->collate = '';
         $this->fixture->exec( 'CREATE TABLE wp_options (option_id INTEGER PRIMARY KEY, option_name TEXT UNIQUE, option_value TEXT, autoload TEXT)' );
+        // Empty content tables let original theme-style queries run against SQL.
+        $this->fixture->exec( 'CREATE TABLE wp_terms (term_id INTEGER PRIMARY KEY, name TEXT, slug TEXT, term_group INTEGER)' );
+        $this->fixture->exec( 'CREATE TABLE wp_term_taxonomy (term_taxonomy_id INTEGER PRIMARY KEY, term_id INTEGER, taxonomy TEXT, description TEXT, parent INTEGER, count INTEGER)' );
+        $this->fixture->exec( 'CREATE TABLE wp_term_relationships (object_id INTEGER, term_taxonomy_id INTEGER, term_order INTEGER)' );
+        $this->fixture->exec( 'CREATE TABLE wp_posts (ID INTEGER PRIMARY KEY, post_author INTEGER, post_date TEXT, post_date_gmt TEXT, post_content TEXT, post_title TEXT, post_excerpt TEXT, post_status TEXT, comment_status TEXT, ping_status TEXT, post_password TEXT, post_name TEXT, to_ping TEXT, pinged TEXT, post_modified TEXT, post_modified_gmt TEXT, post_content_filtered TEXT, post_parent INTEGER, guid TEXT, menu_order INTEGER, post_type TEXT, post_mime_type TEXT, comment_count INTEGER)' );
         $options = array(
             'siteurl' => 'http://127.0.0.1:9000',
             'home' => 'http://127.0.0.1:9000',
@@ -36,7 +41,8 @@ class ElephcFixtureDatabase extends wpdb {
         }
     }
 
-    public function query( $query ) {
+    public function query( mixed $query ): mixed {
+        $query = apply_filters( 'query', $query );
         $this->last_query = $query;
         $this->last_result = array();
         $this->last_error = '';
@@ -59,15 +65,15 @@ class ElephcFixtureDatabase extends wpdb {
         return $this->rows_affected;
     }
 
-    public function _real_escape( $data ) {
+    public function _real_escape( mixed $data ): mixed {
         return str_replace( "'", "''", (string) $data );
     }
 
-    public function db_version() {
+    public function db_version(): mixed {
         return '8.0.0';
     }
 
-    public function db_server_info() {
+    public function db_server_info(): mixed {
         return '8.0.0-elephc-sqlite-fixture';
     }
 }

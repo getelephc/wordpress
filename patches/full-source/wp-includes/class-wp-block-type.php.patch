@@ -1,0 +1,155 @@
+--- a/wp-includes/class-wp-block-type.php
++++ b/wp-includes/class-wp-block-type.php
+@@ -164,7 +164,7 @@
+ 	 * @since 5.0.0
+ 	 * @var callable
+ 	 */
+-	public $render_callback = null;
++	public mixed $render_callback = null;
+ 
+ 	/**
+ 	 * Block type attributes property schemas.
+@@ -344,7 +344,7 @@
+ 	 *     @type string[]      $view_style_handles       Block type front end only style handles.
+ 	 * }
+ 	 */
+-	public function __construct( $block_type, $args = array() ) {
++	public function __construct( mixed $block_type, mixed $args = array() ) {
+ 		$this->name = $block_type;
+ 
+ 		$this->set_props( $args );
+@@ -376,7 +376,7 @@
+ 
+ 		$new_name = $name . '_handles';
+ 
+-		if ( ! property_exists( $this, $new_name ) || ! is_array( $this->{$new_name} ) ) {
++		if ( ! \wp_aot_property_exists( $this, $new_name ) || ! is_array( $this->{$new_name} ) ) {
+ 			return null;
+ 		}
+ 
+@@ -429,7 +429,7 @@
+ 		$new_name = $name . '_handles';
+ 
+ 		if ( is_array( $value ) ) {
+-			$filtered = array_filter( $value, 'is_string' );
++			$filtered = \wp_aot_array_filter( $value, 'is_string' );
+ 
+ 			if ( count( $filtered ) !== count( $value ) ) {
+ 					_doing_it_wrong(
+@@ -463,7 +463,7 @@
+ 	 * @param string $content    Optional. Block content. Default empty string.
+ 	 * @return string Rendered block type output.
+ 	 */
+-	public function render( $attributes = array(), $content = '' ) {
++	public function render( mixed $attributes = array(), mixed $content = '' ): mixed {
+ 		if ( ! $this->is_dynamic() ) {
+ 			return '';
+ 		}
+@@ -471,6 +471,7 @@
+ 		$attributes = $this->prepare_attributes_for_render( $attributes );
+ 
+ 		return (string) call_user_func( $this->render_callback, $attributes, $content );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -481,8 +482,9 @@
+ 	 *
+ 	 * @return bool Whether block type is dynamic.
+ 	 */
+-	public function is_dynamic() {
++	public function is_dynamic(): mixed {
+ 		return is_callable( $this->render_callback );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -494,7 +496,7 @@
+ 	 * @param array $attributes Original block attributes.
+ 	 * @return array Prepared block attributes.
+ 	 */
+-	public function prepare_attributes_for_render( $attributes ) {
++	public function prepare_attributes_for_render( mixed $attributes ): mixed {
+ 		// If there are no attribute definitions for the block type, skip
+ 		// processing and return verbatim.
+ 		if ( ! isset( $this->attributes ) ) {
+@@ -522,7 +524,7 @@
+ 
+ 		// Populate values of any missing attributes for which the block type
+ 		// defines a default.
+-		$missing_schema_attributes = array_diff_key( $this->attributes, $attributes );
++		$missing_schema_attributes = \wp_aot_array_diff_key(array( $this->attributes, $attributes ));
+ 		foreach ( $missing_schema_attributes as $attribute_name => $schema ) {
+ 			if ( isset( $schema['default'] ) ) {
+ 				$attributes[ $attribute_name ] = $schema['default'];
+@@ -530,6 +532,7 @@
+ 		}
+ 
+ 		return $attributes;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -540,7 +543,7 @@
+ 	 * @param array|string $args Array or string of arguments for registering a block type.
+ 	 *                           See WP_Block_Type::__construct() for information on accepted arguments.
+ 	 */
+-	public function set_props( $args ) {
++	public function set_props( mixed $args ): mixed {
+ 		$args = wp_parse_args(
+ 			$args,
+ 			array(
+@@ -575,6 +578,7 @@
+ 		foreach ( $args as $property_name => $property_value ) {
+ 			$this->$property_name = $property_value;
+ 		}
++		return null;
+ 	}
+ 
+ 	/**
+@@ -584,10 +588,11 @@
+ 	 *
+ 	 * @return array Array of attributes.
+ 	 */
+-	public function get_attributes() {
++	public function get_attributes(): mixed {
+ 		return is_array( $this->attributes ) ?
+ 			$this->attributes :
+ 			array();
++		return null;
+ 	}
+ 
+ 	/**
+@@ -597,7 +602,7 @@
+ 	 *
+ 	 * @return array[]
+ 	 */
+-	public function get_variations() {
++	public function get_variations(): mixed {
+ 		if ( ! isset( $this->variations ) ) {
+ 			$this->variations = array();
+ 			if ( is_callable( $this->variation_callback ) ) {
+@@ -614,6 +619,7 @@
+ 		 * @param WP_Block_Type $block_type The full block type object.
+ 		 */
+ 		return apply_filters( 'get_block_type_variations', $this->variations, $this );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -623,7 +629,7 @@
+ 	 *
+ 	 * @return string[]
+ 	 */
+-	public function get_uses_context() {
++	public function get_uses_context(): mixed {
+ 		/**
+ 		 * Filters the registered uses context for a block type.
+ 		 *
+@@ -633,5 +639,6 @@
+ 		 * @param WP_Block_Type $block_type   The full block type object.
+ 		 */
+ 		return apply_filters( 'get_block_type_uses_context', $this->uses_context, $this );
++		return null;
+ 	}
+ }

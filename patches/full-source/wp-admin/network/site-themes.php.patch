@@ -1,0 +1,17 @@
+--- a/wp-admin/network/site-themes.php
++++ b/wp-admin/network/site-themes.php
+@@ -155,12 +155,12 @@
+ 			$referer
+ 		)
+ 	);
+-	exit;
++	\wp_aot_exit();
+ }
+ 
+ if ( isset( $_GET['action'] ) && 'update-site' === $_GET['action'] ) {
+ 	wp_safe_redirect( $referer );
+-	exit;
++	\wp_aot_exit();
+ }
+ 
+ add_thickbox();

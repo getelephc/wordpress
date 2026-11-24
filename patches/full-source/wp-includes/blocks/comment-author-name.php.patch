@@ -1,0 +1,34 @@
+--- a/wp-includes/blocks/comment-author-name.php
++++ b/wp-includes/blocks/comment-author-name.php
+@@ -15,7 +15,7 @@
+  * @param WP_Block $block      Block instance.
+  * @return string Return the post comment's author.
+  */
+-function render_block_core_comment_author_name( $attributes, $content, $block ) {
++function render_block_core_comment_author_name( mixed $attributes, mixed $content, mixed $block ): mixed {
+ 	if ( ! isset( $block->context['commentId'] ) ) {
+ 		return '';
+ 	}
+@@ -51,6 +51,7 @@
+ 		$wrapper_attributes,
+ 		$comment_author
+ 	);
++	return null;
+ }
+ 
+ /**
+@@ -58,12 +59,13 @@
+  *
+  * @since 6.0.0
+  */
+-function register_block_core_comment_author_name() {
++function register_block_core_comment_author_name(): mixed {
+ 	register_block_type_from_metadata(
+ 		__DIR__ . '/comment-author-name',
+ 		array(
+ 			'render_callback' => 'render_block_core_comment_author_name',
+ 		)
+ 	);
++	return null;
+ }
+ add_action( 'init', 'register_block_core_comment_author_name' );

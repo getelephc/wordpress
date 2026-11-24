@@ -1,0 +1,227 @@
+--- a/wp-includes/class-wp-block-parser.php
++++ b/wp-includes/class-wp-block-parser.php
+@@ -14,6 +14,12 @@
+  * @since 4.0.0 returns arrays not objects, all attributes are arrays
+  */
+ class WP_Block_Parser {
++
++    /** Returns the original block through its checked native record layout. */
++    private function wp_aot_require_block(mixed $block): WP_Block_Parser_Block {
++        if (!$block instanceof WP_Block_Parser_Block) throw new TypeError('The parser frame must contain a block record.');
++        return $block;
++    }
+ 	/**
+ 	 * Input document being parsed
+ 	 *
+@@ -22,7 +28,7 @@
+ 	 * @since 5.0.0
+ 	 * @var string
+ 	 */
+-	public $document;
++	public mixed $document = null;
+ 
+ 	/**
+ 	 * Tracks parsing progress through document
+@@ -30,7 +36,7 @@
+ 	 * @since 5.0.0
+ 	 * @var int
+ 	 */
+-	public $offset;
++	public mixed $offset = null;
+ 
+ 	/**
+ 	 * List of parsed blocks
+@@ -38,7 +44,7 @@
+ 	 * @since 5.0.0
+ 	 * @var array[]
+ 	 */
+-	public $output;
++	public mixed $output = null;
+ 
+ 	/**
+ 	 * Stack of partially-parsed structures in memory during parse
+@@ -46,7 +52,7 @@
+ 	 * @since 5.0.0
+ 	 * @var WP_Block_Parser_Frame[]
+ 	 */
+-	public $stack;
++	public mixed $stack = null;
+ 
+ 	/**
+ 	 * Parses a document and returns a list of block structures
+@@ -60,7 +66,7 @@
+ 	 * @param string $document Input document being parsed.
+ 	 * @return array[]
+ 	 */
+-	public function parse( $document ) {
++	public function parse( mixed $document ): mixed {
+ 		$this->document = $document;
+ 		$this->offset   = 0;
+ 		$this->output   = array();
+@@ -71,6 +77,7 @@
+ 		}
+ 
+ 		return $this->output;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -87,7 +94,7 @@
+ 	 * @since 5.0.0
+ 	 * @return bool
+ 	 */
+-	public function proceed() {
++	public function proceed(): mixed {
+ 		$next_token = $this->next_token();
+ 		list( $token_type, $block_name, $attrs, $start_offset, $token_length ) = $next_token;
+ 		$stack_depth = count( $this->stack );
+@@ -160,8 +167,8 @@
+ 
+ 			case 'block-opener':
+ 				// track all newly-opened blocks on the stack.
+-				array_push(
+-					$this->stack,
++				\wp_aot_array_push(
++					$this->stack,array(
+ 					new WP_Block_Parser_Frame(
+ 						new WP_Block_Parser_Block( $block_name, $attrs, array(), '', array() ),
+ 						$start_offset,
+@@ -169,7 +176,7 @@
+ 						$start_offset + $token_length,
+ 						$leading_html_start
+ 					)
+-				);
++				));
+ 				$this->offset = $start_offset + $token_length;
+ 				return true;
+ 
+@@ -200,10 +207,10 @@
+ 				 * otherwise we're nested and we have to close out the current
+ 				 * block and add it as a new innerBlock to the parent
+ 				 */
+-				$stack_top                        = array_pop( $this->stack );
++				$stack_top                        = \wp_aot_array_pop( $this->stack );
+ 				$html                             = substr( $this->document, $stack_top->prev_offset, $start_offset - $stack_top->prev_offset );
+ 				$stack_top->block->innerHTML     .= $html;
+-				$stack_top->block->innerContent[] = $html;
++				$this->wp_aot_require_block( $stack_top->block )->innerContent[] = $html;
+ 				$stack_top->prev_offset           = $start_offset + $token_length;
+ 
+ 				$this->add_inner_block(
+@@ -220,6 +227,7 @@
+ 				$this->add_freeform();
+ 				return false;
+ 		}
++		return null;
+ 	}
+ 
+ 	/**
+@@ -233,7 +241,7 @@
+ 	 * @since 4.6.1 fixed a bug in attribute parsing which caused catastrophic backtracking on invalid block comments
+ 	 * @return array
+ 	 */
+-	public function next_token() {
++	public function next_token(): mixed {
+ 		$matches = null;
+ 
+ 		/*
+@@ -244,7 +252,7 @@
+ 		 * a closer has no attributes). we can trap them both and process the
+ 		 * match back in PHP to see which one it was.
+ 		 */
+-		$has_match = preg_match(
++		$has_match = \wp_aot_preg_match(
+ 			'/<!--[ \t\f\r\n]+(?P<closer>\/)?wp:(?P<namespace>[a-z][a-z0-9_-]*\/)?(?P<name>[a-z][a-z0-9_-]*)[ \t\f\r\n]+(?P<attrs>{(?:(?:[^}]+|}+(?=})|(?!}[ \t\f\r\n]+\/?-->).)*+)?}[ \t\f\r\n]+)?(?P<void>\/)?-->/s',
+ 			$this->document,
+ 			$matches,
+@@ -297,6 +305,7 @@
+ 		}
+ 
+ 		return array( 'block-opener', $name, $attrs, $started_at, $length );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -308,8 +317,9 @@
+ 	 * @param string $inner_html HTML content of block.
+ 	 * @return WP_Block_Parser_Block freeform block object.
+ 	 */
+-	public function freeform( $inner_html ) {
++	public function freeform( mixed $inner_html ): mixed {
+ 		return new WP_Block_Parser_Block( null, array(), array(), $inner_html, array( $inner_html ) );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -320,14 +330,15 @@
+ 	 * @since 5.0.0
+ 	 * @param null|int $length How many bytes of document text to output.
+ 	 */
+-	public function add_freeform( $length = null ) {
++	public function add_freeform( mixed $length = null ): mixed {
+ 		$length = $length ? $length : strlen( $this->document ) - $this->offset;
+ 
+ 		if ( 0 === $length ) {
+-			return;
++			return null;
+ 		}
+ 
+ 		$this->output[] = (array) $this->freeform( substr( $this->document, $this->offset, $length ) );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -341,18 +352,19 @@
+ 	 * @param int                   $token_length Byte length of entire block from start of opening token to end of closing token.
+ 	 * @param int|null              $last_offset  Last byte offset into document if continuing form earlier output.
+ 	 */
+-	public function add_inner_block( WP_Block_Parser_Block $block, $token_start, $token_length, $last_offset = null ) {
++	public function add_inner_block( WP_Block_Parser_Block $block, mixed $token_start, mixed $token_length, mixed $last_offset = null ): mixed {
+ 		$parent                       = $this->stack[ array_key_last( $this->stack ) ];
+-		$parent->block->innerBlocks[] = (array) $block;
++		$this->wp_aot_require_block( $parent->block )->innerBlocks[] = (array) $block;
+ 		$html                         = substr( $this->document, $parent->prev_offset, $token_start - $parent->prev_offset );
+ 
+ 		if ( ! empty( $html ) ) {
+ 			$parent->block->innerHTML     .= $html;
+-			$parent->block->innerContent[] = $html;
+-		}
+-
+-		$parent->block->innerContent[] = null;
++			$this->wp_aot_require_block( $parent->block )->innerContent[] = $html;
++		}
++
++		$this->wp_aot_require_block( $parent->block )->innerContent[] = null;
+ 		$parent->prev_offset           = $last_offset ? $last_offset : $token_start + $token_length;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -362,8 +374,8 @@
+ 	 * @since 5.0.0
+ 	 * @param int|null $end_offset byte offset into document for where we should stop sending text output as HTML.
+ 	 */
+-	public function add_block_from_stack( $end_offset = null ) {
+-		$stack_top   = array_pop( $this->stack );
++	public function add_block_from_stack( mixed $end_offset = null ): mixed {
++		$stack_top   = \wp_aot_array_pop( $this->stack );
+ 		$prev_offset = $stack_top->prev_offset;
+ 
+ 		$html = isset( $end_offset )
+@@ -372,7 +384,7 @@
+ 
+ 		if ( ! empty( $html ) ) {
+ 			$stack_top->block->innerHTML     .= $html;
+-			$stack_top->block->innerContent[] = $html;
++			$this->wp_aot_require_block( $stack_top->block )->innerContent[] = $html;
+ 		}
+ 
+ 		if ( isset( $stack_top->leading_html_start ) ) {
+@@ -386,6 +398,7 @@
+ 		}
+ 
+ 		$this->output[] = (array) $stack_top->block;
++		return null;
+ 	}
+ }
+ 

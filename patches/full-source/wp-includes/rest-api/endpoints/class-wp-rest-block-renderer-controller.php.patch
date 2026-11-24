@@ -1,0 +1,87 @@
+--- a/wp-includes/rest-api/endpoints/class-wp-rest-block-renderer-controller.php
++++ b/wp-includes/rest-api/endpoints/class-wp-rest-block-renderer-controller.php
+@@ -33,7 +33,7 @@
+ 	 *
+ 	 * @see register_rest_route()
+ 	 */
+-	public function register_routes() {
++	public function register_routes(): mixed {
+ 		register_rest_route(
+ 			$this->namespace,
+ 			'/' . $this->rest_base . '/(?P<name>[a-z0-9-]+/[a-z0-9-]+)',
+@@ -54,7 +54,7 @@
+ 							'description'       => __( 'Attributes for the block.' ),
+ 							'type'              => 'object',
+ 							'default'           => array(),
+-							'validate_callback' => static function ( $value, $request ) {
++							'validate_callback' => static function ( mixed $value, mixed $request ) {
+ 								$block = WP_Block_Type_Registry::get_instance()->get_registered( $request['name'] );
+ 
+ 								if ( ! $block ) {
+@@ -70,7 +70,7 @@
+ 
+ 								return rest_validate_value_from_schema( $value, $schema );
+ 							},
+-							'sanitize_callback' => static function ( $value, $request ) {
++							'sanitize_callback' => static function ( mixed $value, mixed $request ) {
+ 								$block = WP_Block_Type_Registry::get_instance()->get_registered( $request['name'] );
+ 
+ 								if ( ! $block ) {
+@@ -96,6 +96,7 @@
+ 				'schema' => array( $this, 'get_public_item_schema' ),
+ 			)
+ 		);
++		return null;
+ 	}
+ 
+ 	/**
+@@ -108,7 +109,7 @@
+ 	 * @param WP_REST_Request $request Request.
+ 	 * @return true|WP_Error True if the request has read access, WP_Error object otherwise.
+ 	 */
+-	public function get_item_permissions_check( $request ) {
++	public function get_item_permissions_check( mixed $request ): mixed {
+ 		global $post;
+ 
+ 		$post_id = isset( $request['post_id'] ) ? (int) $request['post_id'] : 0;
+@@ -138,6 +139,7 @@
+ 		}
+ 
+ 		return true;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -150,7 +152,7 @@
+ 	 * @param WP_REST_Request $request Full details about the request.
+ 	 * @return WP_REST_Response|WP_Error Response object on success, or WP_Error object on failure.
+ 	 */
+-	public function get_item( $request ) {
++	public function get_item( mixed $request ): mixed {
+ 		global $post;
+ 
+ 		$post_id = isset( $request['post_id'] ) ? (int) $request['post_id'] : 0;
+@@ -192,6 +194,7 @@
+ 		);
+ 
+ 		return rest_ensure_response( $data );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -201,7 +204,7 @@
+ 	 *
+ 	 * @return array Item schema data.
+ 	 */
+-	public function get_item_schema() {
++	public function get_item_schema(): mixed {
+ 		if ( $this->schema ) {
+ 			return $this->schema;
+ 		}
+@@ -221,5 +224,6 @@
+ 		);
+ 
+ 		return $this->schema;
++		return null;
+ 	}
+ }

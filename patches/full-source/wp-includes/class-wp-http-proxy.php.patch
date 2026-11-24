@@ -1,0 +1,167 @@
+--- a/wp-includes/class-wp-http-proxy.php
++++ b/wp-includes/class-wp-http-proxy.php
+@@ -54,8 +54,9 @@
+ 	 *
+ 	 * @return bool
+ 	 */
+-	public function is_enabled() {
++	public function is_enabled(): mixed {
+ 		return defined( 'WP_PROXY_HOST' ) && defined( 'WP_PROXY_PORT' );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -70,8 +71,9 @@
+ 	 *
+ 	 * @return bool
+ 	 */
+-	public function use_authentication() {
++	public function use_authentication(): mixed {
+ 		return defined( 'WP_PROXY_USERNAME' ) && defined( 'WP_PROXY_PASSWORD' );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -81,12 +83,13 @@
+ 	 *
+ 	 * @return string
+ 	 */
+-	public function host() {
++	public function host(): mixed {
+ 		if ( defined( 'WP_PROXY_HOST' ) ) {
+-			return WP_PROXY_HOST;
+-		}
+-
+-		return '';
++			return \wp_aot_undefined_constant('WP_PROXY_HOST');
++		}
++
++		return '';
++		return null;
+ 	}
+ 
+ 	/**
+@@ -96,12 +99,13 @@
+ 	 *
+ 	 * @return string
+ 	 */
+-	public function port() {
++	public function port(): mixed {
+ 		if ( defined( 'WP_PROXY_PORT' ) ) {
+-			return WP_PROXY_PORT;
+-		}
+-
+-		return '';
++			return \wp_aot_undefined_constant('WP_PROXY_PORT');
++		}
++
++		return '';
++		return null;
+ 	}
+ 
+ 	/**
+@@ -111,12 +115,13 @@
+ 	 *
+ 	 * @return string
+ 	 */
+-	public function username() {
++	public function username(): mixed {
+ 		if ( defined( 'WP_PROXY_USERNAME' ) ) {
+-			return WP_PROXY_USERNAME;
+-		}
+-
+-		return '';
++			return \wp_aot_undefined_constant('WP_PROXY_USERNAME');
++		}
++
++		return '';
++		return null;
+ 	}
+ 
+ 	/**
+@@ -126,12 +131,13 @@
+ 	 *
+ 	 * @return string
+ 	 */
+-	public function password() {
++	public function password(): mixed {
+ 		if ( defined( 'WP_PROXY_PASSWORD' ) ) {
+-			return WP_PROXY_PASSWORD;
+-		}
+-
+-		return '';
++			return \wp_aot_undefined_constant('WP_PROXY_PASSWORD');
++		}
++
++		return '';
++		return null;
+ 	}
+ 
+ 	/**
+@@ -141,8 +147,9 @@
+ 	 *
+ 	 * @return string
+ 	 */
+-	public function authentication() {
++	public function authentication(): mixed {
+ 		return $this->username() . ':' . $this->password();
++		return null;
+ 	}
+ 
+ 	/**
+@@ -152,8 +159,9 @@
+ 	 *
+ 	 * @return string
+ 	 */
+-	public function authentication_header() {
++	public function authentication_header(): mixed {
+ 		return 'Proxy-Authorization: Basic ' . base64_encode( $this->authentication() );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -168,7 +176,7 @@
+ 	 * @param string $uri URL of the request.
+ 	 * @return bool Whether to send the request through the proxy.
+ 	 */
+-	public function send_through_proxy( $uri ) {
++	public function send_through_proxy( mixed $uri ): mixed {
+ 		$check = parse_url( $uri );
+ 
+ 		// Malformed URL, can not process, but this could mean ssl, so let through anyway.
+@@ -204,24 +212,27 @@
+ 			return true;
+ 		}
+ 
+-		static $bypass_hosts   = null;
+-		static $wildcard_regex = array();
++		static $bypass_hosts_aot_cell = new \WordPressStaticValueCell();
++		$bypass_hosts =& $bypass_hosts_aot_cell->value;
++		static $wildcard_regex_aot_cell = new \WordPressStaticArrayCell();
++		$wildcard_regex =& $wildcard_regex_aot_cell->value;
+ 		if ( null === $bypass_hosts ) {
+-			$bypass_hosts = preg_split( '|,\s*|', WP_PROXY_BYPASS_HOSTS );
+-
+-			if ( str_contains( WP_PROXY_BYPASS_HOSTS, '*' ) ) {
+-				$wildcard_regex = array();
++			$bypass_hosts = \wp_aot_preg_split( '|,\s*|', \wp_aot_regex_text( \wp_aot_undefined_constant('WP_PROXY_BYPASS_HOSTS') ) );
++
++			if ( str_contains( \wp_aot_undefined_constant('WP_PROXY_BYPASS_HOSTS'), '*' ) ) {
++				$wildcard_regex = \wp_aot_mixed(array());
+ 				foreach ( $bypass_hosts as $host ) {
+-					$wildcard_regex[] = str_replace( '\*', '.+', preg_quote( $host, '/' ) );
++					\wp_aot_array_push( $wildcard_regex, array( \wp_aot_str_replace( '\*', '.+', preg_quote( \wp_aot_regex_text( $host ), '/' ) ) ) );
+ 				}
+ 				$wildcard_regex = '/^(' . implode( '|', $wildcard_regex ) . ')$/i';
+ 			}
+ 		}
+ 
+ 		if ( ! empty( $wildcard_regex ) ) {
+-			return ! preg_match( $wildcard_regex, $check['host'] );
++			return ! preg_match( \wp_aot_regex_text( $wildcard_regex ), \wp_aot_regex_text( $check['host'] ) );
+ 		} else {
+ 			return ! in_array( $check['host'], $bypass_hosts, true );
+ 		}
++		return null;
+ 	}
+ }

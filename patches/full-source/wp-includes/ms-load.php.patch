@@ -1,0 +1,283 @@
+--- a/wp-includes/ms-load.php
++++ b/wp-includes/ms-load.php
+@@ -15,12 +15,13 @@
+  *
+  * @return bool True if subdomain configuration is enabled, false otherwise.
+  */
+-function is_subdomain_install() {
+-	if ( defined( 'SUBDOMAIN_INSTALL' ) ) {
+-		return SUBDOMAIN_INSTALL;
+-	}
+-
+-	return ( defined( 'VHOST' ) && 'yes' === VHOST );
++function is_subdomain_install(): mixed {
++	if ( wp_aot_subdomain_defined( 'SUBDOMAIN_INSTALL' ) ) {
++		return wp_aot_subdomain_constant( 'SUBDOMAIN_INSTALL' );
++	}
++
++	return ( wp_aot_subdomain_defined( 'VHOST' ) && 'yes' === wp_aot_subdomain_constant( 'VHOST' ) );
++	return null;
+ }
+ 
+ /**
+@@ -34,7 +35,7 @@
+  *
+  * @return string[] Array of absolute paths to files to include.
+  */
+-function wp_get_active_network_plugins() {
++function wp_get_active_network_plugins(): mixed {
+ 	$active_plugins = (array) get_site_option( 'active_sitewide_plugins', array() );
+ 	if ( empty( $active_plugins ) ) {
+ 		return array();
+@@ -42,7 +43,7 @@
+ 
+ 	$plugins        = array();
+ 	$active_plugins = array_keys( $active_plugins );
+-	sort( $active_plugins );
++	\wp_aot_sort( $active_plugins );
+ 
+ 	foreach ( $active_plugins as $plugin ) {
+ 		if ( ! validate_file( $plugin )                     // $plugin must validate as file.
+@@ -54,6 +55,7 @@
+ 	}
+ 
+ 	return $plugins;
++	return null;
+ }
+ 
+ /**
+@@ -71,7 +73,7 @@
+  *
+  * @return true|string Returns true on success, or drop-in file to include.
+  */
+-function ms_site_check() {
++function ms_site_check(): mixed {
+ 
+ 	/**
+ 	 * Filters checking the status of the current blog.
+@@ -104,7 +106,7 @@
+ 		if ( file_exists( WP_CONTENT_DIR . '/blog-inactive.php' ) ) {
+ 			return WP_CONTENT_DIR . '/blog-inactive.php';
+ 		} else {
+-			$admin_email = str_replace( '@', ' AT ', get_site_option( 'admin_email', 'support@' . get_network()->domain ) );
++			$admin_email = \wp_aot_str_replace( '@', ' AT ', get_site_option( 'admin_email', 'support@' . get_network()->domain ) );
+ 			wp_die(
+ 				sprintf(
+ 					/* translators: %s: Admin email link. */
+@@ -124,6 +126,7 @@
+ 	}
+ 
+ 	return true;
++	return null;
+ }
+ 
+ /**
+@@ -138,8 +141,9 @@
+  * @param int|null $segments Path segments to use. Defaults to null, or the full path.
+  * @return WP_Network|false Network object if successful. False when no network is found.
+  */
+-function get_network_by_path( $domain, $path, $segments = null ) {
++function get_network_by_path( mixed $domain, mixed $path, mixed $segments = null ): mixed {
+ 	return WP_Network::get_by_path( $domain, $path, $segments );
++	return null;
+ }
+ 
+ /**
+@@ -160,8 +164,8 @@
+  * @param int|null $segments Path segments to use. Defaults to null, or the full path.
+  * @return WP_Site|false Site object if successful. False when no site is found.
+  */
+-function get_site_by_path( $domain, $path, $segments = null ) {
+-	$path_segments = array_filter( explode( '/', trim( $path, '/' ) ) );
++function get_site_by_path( mixed $domain, mixed $path, mixed $segments = null ): mixed {
++	$path_segments = \wp_aot_array_filter( explode( '/', trim( $path, '/' ) ) );
+ 
+ 	/**
+ 	 * Filters the number of path segments to consider when searching for a site.
+@@ -177,14 +181,14 @@
+ 	$segments = apply_filters( 'site_by_path_segments_count', $segments, $domain, $path );
+ 
+ 	if ( null !== $segments && count( $path_segments ) > $segments ) {
+-		$path_segments = array_slice( $path_segments, 0, $segments );
++		$path_segments = \wp_aot_array_slice( $path_segments, 0, $segments );
+ 	}
+ 
+ 	$paths = array();
+ 
+ 	while ( count( $path_segments ) ) {
+ 		$paths[] = '/' . implode( '/', $path_segments ) . '/';
+-		array_pop( $path_segments );
++		\wp_aot_array_pop( $path_segments );
+ 	}
+ 
+ 	$paths[] = '/';
+@@ -244,24 +248,25 @@
+ 		$args['domain__in']               = $domains;
+ 		$args['orderby']['domain_length'] = 'DESC';
+ 	} else {
+-		$args['domain'] = array_shift( $domains );
++		$args['domain'] = \wp_aot_array_shift( $domains );
+ 	}
+ 
+ 	if ( count( $paths ) > 1 ) {
+ 		$args['path__in']               = $paths;
+ 		$args['orderby']['path_length'] = 'DESC';
+ 	} else {
+-		$args['path'] = array_shift( $paths );
++		$args['path'] = \wp_aot_array_shift( $paths );
+ 	}
+ 
+ 	$result = get_sites( $args );
+-	$site   = array_shift( $result );
++	$site   = \wp_aot_array_shift( $result );
+ 
+ 	if ( $site ) {
+ 		return $site;
+ 	}
+ 
+ 	return false;
++	return null;
+ }
+ 
+ /**
+@@ -294,19 +299,19 @@
+  *                     False if bootstrap could not be properly completed.
+  *                     Redirect URL if parts exist, but the request as a whole can not be fulfilled.
+  */
+-function ms_load_current_site_and_network( $domain, $path, $subdomain = false ) {
++function ms_load_current_site_and_network( mixed $domain, mixed $path, mixed $subdomain = false ): mixed {
+ 	global $current_site, $current_blog;
+ 
+ 	// If the network is defined in wp-config.php, we can simply use that.
+ 	if ( defined( 'DOMAIN_CURRENT_SITE' ) && defined( 'PATH_CURRENT_SITE' ) ) {
+ 		$current_site         = new stdClass();
+-		$current_site->id     = defined( 'SITE_ID_CURRENT_SITE' ) ? SITE_ID_CURRENT_SITE : 1;
+-		$current_site->domain = DOMAIN_CURRENT_SITE;
+-		$current_site->path   = PATH_CURRENT_SITE;
++		$current_site->id     = defined( 'SITE_ID_CURRENT_SITE' ) ? \wp_aot_undefined_constant('SITE_ID_CURRENT_SITE') : 1;
++		$current_site->domain = \wp_aot_undefined_constant('DOMAIN_CURRENT_SITE');
++		$current_site->path   = \wp_aot_undefined_constant('PATH_CURRENT_SITE');
+ 		if ( defined( 'BLOG_ID_CURRENT_SITE' ) ) {
+-			$current_site->blog_id = BLOG_ID_CURRENT_SITE;
++			$current_site->blog_id = \wp_aot_undefined_constant('BLOG_ID_CURRENT_SITE');
+ 		} elseif ( defined( 'BLOGID_CURRENT_SITE' ) ) { // Deprecated.
+-			$current_site->blog_id = BLOGID_CURRENT_SITE;
++			$current_site->blog_id = \wp_aot_undefined_constant('BLOGID_CURRENT_SITE');
+ 		}
+ 
+ 		if ( 0 === strcasecmp( $current_site->domain, $domain ) && 0 === strcasecmp( $current_site->path, $path ) ) {
+@@ -332,7 +337,7 @@
+ 			// Are there even two networks installed?
+ 			$networks = get_networks( array( 'number' => 2 ) );
+ 			if ( count( $networks ) === 1 ) {
+-				$current_site = array_shift( $networks );
++				$current_site = \wp_aot_array_shift( $networks );
+ 				wp_cache_add( 'current_network', $current_site, 'site-options' );
+ 			} elseif ( empty( $networks ) ) {
+ 				// A network not found hook should fire here.
+@@ -419,7 +424,7 @@
+ 
+ 		if ( $subdomain && ! defined( 'NOBLOGREDIRECT' ) ) {
+ 			// For a "subdomain" installation, redirect to the signup form specifically.
+-			$path = 'wp-signup.php?new=' . str_replace( '.' . $current_site->domain, '', $domain );
++			$path = 'wp-signup.php?new=' . \wp_aot_str_replace( '.' . $current_site->domain, '', $domain );
+ 
+ 			/** This filter is documented in wp-includes/link-template.php */
+ 			$destination = apply_filters( 'network_site_url', $destination . $path, $path, $scheme );
+@@ -429,8 +434,8 @@
+ 			 * can be used to avoid a redirect to the signup form.
+ 			 * Using the ms_site_not_found action is preferred to the constant.
+ 			 */
+-			if ( '%siteurl%' !== NOBLOGREDIRECT ) {
+-				$destination = NOBLOGREDIRECT;
++			if ( '%siteurl%' !== \wp_aot_undefined_constant('NOBLOGREDIRECT') ) {
++				$destination = \wp_aot_undefined_constant('NOBLOGREDIRECT');
+ 			}
+ 		} elseif ( 0 === strcasecmp( $current_site->domain, $domain ) ) {
+ 			/*
+@@ -450,6 +455,7 @@
+ 	}
+ 
+ 	return true;
++	return null;
+ }
+ 
+ /**
+@@ -467,7 +473,7 @@
+  * @param string $path   The requested path for the error to reference.
+  * @return never
+  */
+-function ms_not_installed( $domain, $path ) {
++function ms_not_installed( mixed $domain, mixed $path ): mixed {
+ 	global $wpdb;
+ 
+ 	if ( ! is_admin() ) {
+@@ -481,8 +487,8 @@
+ 	$msg   = '<h1>' . $title . '</h1>';
+ 	$msg  .= '<p>' . __( 'If your site does not display, please contact the owner of this network.' ) . '';
+ 	$msg  .= ' ' . __( 'If you are the owner of this network please check that your host&#8217;s database server is running properly and all tables are error free.' ) . '</p>';
+-	$query = $wpdb->prepare( 'SHOW TABLES LIKE %s', $wpdb->esc_like( $wpdb->site ) );
+-	if ( ! $wpdb->get_var( $query ) ) {
++	$query = \wp_aot_require_wpdb( $wpdb )->prepare( 'SHOW TABLES LIKE %s', \wp_aot_require_wpdb( $wpdb )->esc_like( $wpdb->site ) );
++	if ( ! \wp_aot_require_wpdb( $wpdb )->get_var( $query ) ) {
+ 		$msg .= '<p>' . sprintf(
+ 			/* translators: %s: Table name. */
+ 			__( '<strong>Database tables are missing.</strong> This means that your host&#8217;s database server is not running, WordPress was not installed properly, or someone deleted %s. You really should look at your database now.' ),
+@@ -504,7 +510,7 @@
+ 		__( 'https://developer.wordpress.org/advanced-administration/debug/debug-network/' )
+ 	);
+ 	$msg .= ' ' . __( 'If you are still stuck with this message, then check that your database contains the following tables:' ) . '</p><ul>';
+-	foreach ( $wpdb->tables( 'global' ) as $t => $table ) {
++	foreach ( \wp_aot_require_wpdb( $wpdb )->tables( 'global' ) as $t => $table ) {
+ 		if ( 'sitecategories' === $t ) {
+ 			continue;
+ 		}
+@@ -513,6 +519,7 @@
+ 	$msg .= '</ul>';
+ 
+ 	wp_die( $msg, $title, array( 'response' => 500 ) );
++	return null;
+ }
+ 
+ /**
+@@ -528,9 +535,10 @@
+  * @param WP_Network $current_site
+  * @return WP_Network
+  */
+-function get_current_site_name( $current_site ) {
++function get_current_site_name( mixed $current_site ): mixed {
+ 	_deprecated_function( __FUNCTION__, '3.9.0', 'get_current_site()' );
+ 	return $current_site;
++	return null;
+ }
+ 
+ /**
+@@ -547,10 +555,11 @@
+  *
+  * @return WP_Network
+  */
+-function wpmu_current_site() {
++function wpmu_current_site(): mixed {
+ 	global $current_site;
+ 	_deprecated_function( __FUNCTION__, '3.9.0' );
+ 	return $current_site;
++	return null;
+ }
+ 
+ /**
+@@ -565,7 +574,7 @@
+  * @param object|int $network The network's database row or ID.
+  * @return WP_Network|false Object containing network information if found, false if not.
+  */
+-function wp_get_network( $network ) {
++function wp_get_network( mixed $network ): mixed {
+ 	_deprecated_function( __FUNCTION__, '4.7.0', 'get_network()' );
+ 
+ 	$network = get_network( $network );
+@@ -574,4 +583,5 @@
+ 	}
+ 
+ 	return $network;
+-}
++	return null;
++}

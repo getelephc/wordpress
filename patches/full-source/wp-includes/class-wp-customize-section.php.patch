@@ -1,14 +1,135 @@
 --- a/wp-includes/class-wp-customize-section.php
 +++ b/wp-includes/class-wp-customize-section.php
-@@ -335,11 +335,14 @@
+@@ -170,7 +170,7 @@
+ 	 *                                               Default false.
+ 	 * }
+ 	 */
+-	public function __construct( $manager, $id, $args = array() ) {
++	public function __construct( mixed $manager, mixed $id, mixed $args = array() ) {
+ 		$keys = array_keys( get_object_vars( $this ) );
+ 		foreach ( $keys as $key ) {
+ 			if ( isset( $args[ $key ] ) ) {
+@@ -196,7 +196,7 @@
+ 	 *
+ 	 * @return bool Whether the section is active to the current preview.
+ 	 */
+-	final public function active() {
++	final public function active(): mixed {
+ 		$section = $this;
+ 		$active  = call_user_func( $this->active_callback, $this );
+ 
+@@ -211,6 +211,7 @@
+ 		$active = apply_filters( 'customize_section_active', $active, $section );
+ 
+ 		return $active;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -223,8 +224,9 @@
+ 	 *
+ 	 * @return true Always true.
+ 	 */
+-	public function active_callback() {
++	public function active_callback(): mixed {
+ 		return true;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -234,9 +236,9 @@
+ 	 *
+ 	 * @return array The array to be exported to the client as JSON.
+ 	 */
+-	public function json() {
++	public function json(): mixed {
+ 		$array                   = wp_array_slice_assoc( (array) $this, array( 'id', 'description', 'priority', 'panel', 'type', 'description_hidden' ) );
+-		$array['title']          = html_entity_decode( $this->title, ENT_QUOTES, get_bloginfo( 'charset' ) );
++		$array['title']          = \wp_aot_html_entity_decode( $this->title, ENT_QUOTES, get_bloginfo( 'charset' ) );
+ 		$array['content']        = $this->get_content();
+ 		$array['active']         = $this->active();
+ 		$array['instanceNumber'] = $this->instance_number;
+@@ -249,6 +251,7 @@
+ 		}
+ 
+ 		return $array;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -259,16 +262,17 @@
+ 	 *
+ 	 * @return bool False if theme doesn't support the section or user doesn't have the capability.
+ 	 */
+-	final public function check_capabilities() {
++	final public function check_capabilities(): mixed {
+ 		if ( $this->capability && ! current_user_can( $this->capability ) ) {
+ 			return false;
+ 		}
+ 
+-		if ( $this->theme_supports && ! current_theme_supports( ...(array) $this->theme_supports ) ) {
++		if ( $this->theme_supports && ! call_user_func_array( 'current_theme_supports', (array) $this->theme_supports ) ) {
+ 			return false;
+ 		}
+ 
+ 		return true;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -278,10 +282,11 @@
+ 	 *
+ 	 * @return string Contents of the section.
+ 	 */
+-	final public function get_content() {
++	final public function get_content(): mixed {
+ 		ob_start();
+ 		$this->maybe_render();
+ 		return trim( ob_get_clean() );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -289,9 +294,9 @@
+ 	 *
+ 	 * @since 3.4.0
+ 	 */
+-	final public function maybe_render() {
++	final public function maybe_render(): mixed {
+ 		if ( ! $this->check_capabilities() ) {
+-			return;
++			return null;
+ 		}
+ 
+ 		/**
+@@ -313,6 +318,7 @@
+ 		do_action( "customize_render_section_{$this->id}" );
+ 
+ 		$this->render();
++		return null;
+ 	}
+ 
+ 	/**
+@@ -322,7 +328,7 @@
+ 	 *
+ 	 * @since 3.4.0
+ 	 */
+-	protected function render() {}
++	protected function render(): mixed { return null; }
+ 
+ 	/**
+ 	 * Render the section's JS template.
+@@ -334,12 +340,16 @@
+ 	 *
  	 * @see WP_Customize_Manager::render_template()
  	 */
- 	public function print_template() {
+-	public function print_template() {
 -		?>
 -		<script type="text/html" id="tmpl-customize-section-<?php echo $this->type; ?>">
 -			<?php $this->render_template(); ?>
 -		</script>
 -		<?php
++	public function print_template(): mixed {
 +		;
 +echo '		<script type="text/html" id="tmpl-customize-section-';
 +echo $this->type; ;
@@ -17,21 +138,24 @@
 +$this->render_template(); ;
 +echo '		</script>
 +		';
++		return null;
  	}
  
  	/**
-@@ -353,8 +356,8 @@
+@@ -352,9 +362,9 @@
+ 	 *
  	 * @see WP_Customize_Section::print_template()
  	 */
- 	protected function render_template() {
+-	protected function render_template() {
 -		?>
 -		<li id="accordion-section-{{ data.id }}" class="accordion-section control-section control-section-{{ data.type }}">
++	protected function render_template(): mixed {
 +		;
 +echo '		<li id="accordion-section-{{ data.id }}" class="accordion-section control-section control-section-{{ data.type }}">
  			<h3 class="accordion-section-title">
  				<button type="button" class="accordion-trigger" aria-expanded="false" aria-controls="{{ data.id }}-content">
  					{{ data.title }}
-@@ -365,11 +368,11 @@
+@@ -365,11 +375,11 @@
  					<div class="customize-section-title">
  						<button class="customize-section-back" tabindex="-1">
  							<span class="screen-reader-text">
@@ -46,7 +170,7 @@
  						</button>
  						<h3>
  							<span class="customize-action">
-@@ -379,11 +382,11 @@
+@@ -379,11 +389,11 @@
  						</h3>
  						<# if ( data.description && data.description_hidden ) { #>
  							<button type="button" class="customize-help-toggle dashicons dashicons-editor-help" aria-expanded="false"><span class="screen-reader-text">
@@ -61,12 +185,24 @@
  							<div class="description customize-section-description">
  								{{{ data.description }}}
  							</div>
-@@ -400,7 +403,7 @@
+@@ -400,15 +410,16 @@
  				</li>
  			</ul>
  		</li>
 -		<?php
 +		';
++		return null;
  	}
  }
  
+ /** WP_Customize_Themes_Section class */
+-require_once ABSPATH . WPINC . '/customize/class-wp-customize-themes-section.php';
++require_once __DIR__ . '/customize/class-wp-customize-themes-section.php';
+ 
+ /** WP_Customize_Sidebar_Section class */
+-require_once ABSPATH . WPINC . '/customize/class-wp-customize-sidebar-section.php';
++require_once __DIR__ . '/customize/class-wp-customize-sidebar-section.php';
+ 
+ /** WP_Customize_Nav_Menu_Section class */
+-require_once ABSPATH . WPINC . '/customize/class-wp-customize-nav-menu-section.php';
++require_once __DIR__ . '/customize/class-wp-customize-nav-menu-section.php';

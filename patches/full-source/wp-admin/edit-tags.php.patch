@@ -1,0 +1,29 @@
+--- a/wp-admin/edit-tags.php
++++ b/wp-admin/edit-tags.php
+@@ -161,7 +161,7 @@
+ 		}
+ 
+ 		wp_redirect( sanitize_url( get_edit_term_link( $term_id, $taxonomy, $post_type ) ) );
+-		exit;
++		\wp_aot_exit();
+ 
+ 	case 'editedtag':
+ 		$tag_ID = (int) $_POST['tag_ID'];
+@@ -229,7 +229,7 @@
+ 	 * @param WP_Taxonomy $tax      The taxonomy object.
+ 	 */
+ 	wp_redirect( apply_filters( 'redirect_term_location', $location, $tax ) );
+-	exit;
++	\wp_aot_exit();
+ }
+ 
+ $wp_list_table->prepare_items();
+@@ -237,7 +237,7 @@
+ 
+ if ( $pagenum > $total_pages && $total_pages > 0 ) {
+ 	wp_redirect( add_query_arg( 'paged', $total_pages ) );
+-	exit;
++	\wp_aot_exit();
+ }
+ 
+ wp_enqueue_script( 'admin-tags' );

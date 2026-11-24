@@ -1,0 +1,174 @@
+--- a/wp-includes/rest-api/endpoints/class-wp-rest-search-controller.php
++++ b/wp-includes/rest-api/endpoints/class-wp-rest-search-controller.php
+@@ -88,7 +88,7 @@
+ 	 *
+ 	 * @see register_rest_route()
+ 	 */
+-	public function register_routes() {
++	public function register_routes(): mixed {
+ 		register_rest_route(
+ 			$this->namespace,
+ 			'/' . $this->rest_base,
+@@ -102,6 +102,7 @@
+ 				'schema' => array( $this, 'get_public_item_schema' ),
+ 			)
+ 		);
++		return null;
+ 	}
+ 
+ 	/**
+@@ -112,8 +113,9 @@
+ 	 * @param WP_REST_Request $request Full details about the request.
+ 	 * @return true|WP_Error True if the request has search access, WP_Error object otherwise.
+ 	 */
+-	public function get_items_permission_check( $request ) {
++	public function get_items_permission_check( mixed $request ): mixed {
+ 		return true;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -124,7 +126,7 @@
+ 	 * @param WP_REST_Request $request Full details about the request.
+ 	 * @return WP_REST_Response|WP_Error Response object on success, or WP_Error object on failure.
+ 	 */
+-	public function get_items( $request ) {
++	public function get_items( mixed $request ): mixed {
+ 		$handler = $this->get_search_handler( $request );
+ 		if ( is_wp_error( $handler ) ) {
+ 			return $handler;
+@@ -182,6 +184,7 @@
+ 		}
+ 
+ 		return $response;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -195,7 +198,7 @@
+ 	 * @param WP_REST_Request $request Request object.
+ 	 * @return WP_REST_Response Response object.
+ 	 */
+-	public function prepare_item_for_response( $item, $request ) {
++	public function prepare_item_for_response( mixed $item, mixed $request ): mixed {
+ 		// Restores the more descriptive, specific name for use within this method.
+ 		$item_id = $item;
+ 
+@@ -223,6 +226,7 @@
+ 		}
+ 
+ 		return $response;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -232,7 +236,7 @@
+ 	 *
+ 	 * @return array Item schema data.
+ 	 */
+-	public function get_item_schema() {
++	public function get_item_schema(): mixed {
+ 		if ( $this->schema ) {
+ 			return $this->add_additional_fields_schema( $this->schema );
+ 		}
+@@ -242,11 +246,11 @@
+ 
+ 		foreach ( $this->search_handlers as $search_handler ) {
+ 			$types[]  = $search_handler->get_type();
+-			$subtypes = array_merge( $subtypes, $search_handler->get_subtypes() );
+-		}
+-
+-		$types    = array_unique( $types );
+-		$subtypes = array_unique( $subtypes );
++			$subtypes = \wp_aot_array_merge(array( $subtypes, $search_handler->get_subtypes() ));
++		}
++
++		$types    = \wp_aot_array_unique( $types );
++		$subtypes = \wp_aot_array_unique( $subtypes );
+ 
+ 		$schema = array(
+ 			'$schema'    => 'http://json-schema.org/draft-04/schema#',
+@@ -292,6 +296,7 @@
+ 		$this->schema = $schema;
+ 
+ 		return $this->add_additional_fields_schema( $this->schema );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -301,17 +306,17 @@
+ 	 *
+ 	 * @return array Collection parameters.
+ 	 */
+-	public function get_collection_params() {
++	public function get_collection_params(): mixed {
+ 		$types    = array();
+ 		$subtypes = array();
+ 
+ 		foreach ( $this->search_handlers as $search_handler ) {
+ 			$types[]  = $search_handler->get_type();
+-			$subtypes = array_merge( $subtypes, $search_handler->get_subtypes() );
+-		}
+-
+-		$types    = array_unique( $types );
+-		$subtypes = array_unique( $subtypes );
++			$subtypes = \wp_aot_array_merge(array( $subtypes, $search_handler->get_subtypes() ));
++		}
++
++		$types    = \wp_aot_array_unique( $types );
++		$subtypes = \wp_aot_array_unique( $subtypes );
+ 
+ 		$query_params = parent::get_collection_params();
+ 
+@@ -329,7 +334,7 @@
+ 			'description'       => __( 'Limit results to items of one or more object subtypes.' ),
+ 			'type'              => 'array',
+ 			'items'             => array(
+-				'enum' => array_merge( $subtypes, array( self::TYPE_ANY ) ),
++				'enum' => \wp_aot_array_merge(array( $subtypes, array( self::TYPE_ANY ) )),
+ 				'type' => 'string',
+ 			),
+ 			'sanitize_callback' => array( $this, 'sanitize_subtypes' ),
+@@ -354,6 +359,7 @@
+ 		);
+ 
+ 		return $query_params;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -366,7 +372,7 @@
+ 	 * @param string          $parameter Parameter name.
+ 	 * @return string[]|WP_Error List of valid subtypes, or WP_Error object on failure.
+ 	 */
+-	public function sanitize_subtypes( $subtypes, $request, $parameter ) {
++	public function sanitize_subtypes( mixed $subtypes, mixed $request, mixed $parameter ): mixed {
+ 		$subtypes = wp_parse_slug_list( $subtypes );
+ 
+ 		$subtypes = rest_parse_request_arg( $subtypes, $request, $parameter );
+@@ -384,7 +390,8 @@
+ 			return $handler;
+ 		}
+ 
+-		return array_intersect( $subtypes, $handler->get_subtypes() );
++		return \wp_aot_array_intersect(array( $subtypes, $handler->get_subtypes() ));
++		return null;
+ 	}
+ 
+ 	/**
+@@ -395,7 +402,7 @@
+ 	 * @param WP_REST_Request $request Full details about the request.
+ 	 * @return WP_REST_Search_Handler|WP_Error Search handler for the request type, or WP_Error object on failure.
+ 	 */
+-	protected function get_search_handler( $request ) {
++	protected function get_search_handler( mixed $request ): mixed {
+ 		$type = $request->get_param( self::PROP_TYPE );
+ 
+ 		if ( ! $type || ! is_string( $type ) || ! isset( $this->search_handlers[ $type ] ) ) {
+@@ -407,5 +414,6 @@
+ 		}
+ 
+ 		return $this->search_handlers[ $type ];
++		return null;
+ 	}
+ }

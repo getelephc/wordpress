@@ -1,6 +1,28 @@
 --- a/wp-includes/blocks/archives.php
 +++ b/wp-includes/blocks/archives.php
-@@ -122,13 +122,13 @@
+@@ -16,7 +16,7 @@
+  *
+  * @return string Returns the post content with archives added.
+  */
+-function render_block_core_archives( $attributes ) {
++function render_block_core_archives( mixed $attributes ): mixed {
+ 	$show_post_count = ! empty( $attributes['showPostCounts'] );
+ 	$type            = $attributes['type'] ?? 'monthly';
+ 
+@@ -107,6 +107,7 @@
+ 		$wrapper_attributes,
+ 		$archives
+ 	);
++	return null;
+ }
+ 
+ /**
+@@ -118,17 +119,17 @@
+  *
+  * @return string Returns the dropdown onChange redirection script.
+  */
+-function block_core_archives_build_dropdown_script( $dropdown_id ) {
++function block_core_archives_build_dropdown_script( mixed $dropdown_id ): mixed {
  	ob_start();
  
  	$exports = array( $dropdown_id, home_url() );
@@ -17,7 +39,7 @@
  					return;
  				}
  				if ( dropdown.value ) {
-@@ -137,8 +137,8 @@
+@@ -137,8 +138,8 @@
  			}, 250 );
  		}
  		function onKeyUp( event ) {
@@ -28,7 +50,7 @@
  			} else {
  				delete dropdown.dataset.lastkey;
  			}
-@@ -146,12 +146,14 @@
+@@ -146,16 +147,19 @@
  		function onClick() {
  			delete dropdown.dataset.lastkey;
  		}
@@ -46,5 +68,26 @@
 -	<?php
 +	';
  	return wp_get_inline_script_tag(
- 		trim( str_replace( array( '<script>', '</script>' ), '', ob_get_clean() ) ) .
+-		trim( str_replace( array( '<script>', '</script>' ), '', ob_get_clean() ) ) .
++		trim( \wp_aot_str_replace( array( '<script>', '</script>' ), '', ob_get_clean() ) ) .
  		"\n//# sourceURL=" . rawurlencode( __FUNCTION__ )
+ 	);
++	return null;
+ }
+ 
+ /**
+@@ -163,12 +167,13 @@
+  *
+  * @since 5.0.0
+  */
+-function register_block_core_archives() {
++function register_block_core_archives(): mixed {
+ 	register_block_type_from_metadata(
+ 		__DIR__ . '/archives',
+ 		array(
+ 			'render_callback' => 'render_block_core_archives',
+ 		)
+ 	);
++	return null;
+ }
+ add_action( 'init', 'register_block_core_archives' );

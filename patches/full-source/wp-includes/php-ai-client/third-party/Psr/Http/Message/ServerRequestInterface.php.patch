@@ -1,0 +1,38 @@
+--- a/wp-includes/php-ai-client/third-party/Psr/Http/Message/ServerRequestInterface.php
++++ b/wp-includes/php-ai-client/third-party/Psr/Http/Message/ServerRequestInterface.php
+@@ -157,7 +157,7 @@
+      * @return null|array|object The deserialized body parameters, if any.
+      *     These will typically be an array or object.
+      */
+-    public function getParsedBody();
++    public function getParsedBody(): mixed;
+     /**
+      * Return an instance with the specified body parameters.
+      *
+@@ -186,7 +186,7 @@
+      * @throws \InvalidArgumentException if an unsupported argument type is
+      *     provided.
+      */
+-    public function withParsedBody($data): ServerRequestInterface;
++    public function withParsedBody(mixed $data): ServerRequestInterface;
+     /**
+      * Retrieve attributes derived from the request.
+      *
+@@ -214,7 +214,7 @@
+      * @param mixed $default Default value to return if the attribute does not exist.
+      * @return mixed
+      */
+-    public function getAttribute(string $name, $default = null);
++    public function getAttribute(string $name, mixed $default = null): mixed;
+     /**
+      * Return an instance with the specified derived request attribute.
+      *
+@@ -230,7 +230,7 @@
+      * @param mixed $value The value of the attribute.
+      * @return static
+      */
+-    public function withAttribute(string $name, $value): ServerRequestInterface;
++    public function withAttribute(string $name, mixed $value): ServerRequestInterface;
+     /**
+      * Return an instance that removes the specified derived request attribute.
+      *

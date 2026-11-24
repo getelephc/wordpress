@@ -1,0 +1,53 @@
+--- a/wp-includes/blocks/post-excerpt.php
++++ b/wp-includes/blocks/post-excerpt.php
+@@ -15,13 +15,13 @@
+  * @param WP_Block $block      Block instance.
+  * @return string Returns the filtered post excerpt for the current post wrapped inside "p" tags.
+  */
+-function render_block_core_post_excerpt( $attributes, $content, $block ) {
++function render_block_core_post_excerpt( mixed $attributes, mixed $content, mixed $block ): mixed {
+ 	if ( ! isset( $block->context['postId'] ) ) {
+ 		return '';
+ 	}
+ 
+ 	$more_text           = ! empty( $attributes['moreText'] ) ? '<a class="wp-block-post-excerpt__more-link" href="' . esc_url( get_the_permalink( $block->context['postId'] ) ) . '">' . wp_kses_post( $attributes['moreText'] ) . '</a>' : '';
+-	$filter_excerpt_more = static function ( $more ) use ( $more_text ) {
++	$filter_excerpt_more = static function ( mixed $more ) use ( $more_text ) {
+ 		return empty( $more_text ) ? $more : '';
+ 	};
+ 	/**
+@@ -78,6 +78,7 @@
+ 	}
+ 	remove_filter( 'excerpt_more', $filter_excerpt_more );
+ 	return sprintf( '<div %1$s>%2$s</div>', $wrapper_attributes, $content );
++	return null;
+ }
+ 
+ /**
+@@ -85,13 +86,14 @@
+  *
+  * @since 5.8.0
+  */
+-function register_block_core_post_excerpt() {
++function register_block_core_post_excerpt(): mixed {
+ 	register_block_type_from_metadata(
+ 		__DIR__ . '/post-excerpt',
+ 		array(
+ 			'render_callback' => 'render_block_core_post_excerpt',
+ 		)
+ 	);
++	return null;
+ }
+ add_action( 'init', 'register_block_core_post_excerpt' );
+ 
+@@ -108,8 +110,9 @@
+  *
+  * @return int The excerpt length.
+  */
+-function block_core_post_excerpt_excerpt_length() {
++function block_core_post_excerpt_excerpt_length(): mixed {
+ 	return 101;
++	return null;
+ }
+ 
+ if ( is_admin() ) {

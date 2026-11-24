@@ -1,0 +1,280 @@
+--- a/wp-admin/includes/class-wp-importer.php
++++ b/wp-admin/includes/class-wp-importer.php
+@@ -19,7 +19,7 @@
+ 	 * @param string $blog_id
+ 	 * @return array
+ 	 */
+-	public function get_imported_posts( $importer_name, $blog_id ) {
++	public function get_imported_posts( mixed $importer_name, mixed $blog_id ): mixed {
+ 		global $wpdb;
+ 
+ 		$hashtable = array();
+@@ -30,8 +30,8 @@
+ 		// Grab all posts in chunks.
+ 		do {
+ 			$meta_key = $importer_name . '_' . $blog_id . '_permalink';
+-			$results  = $wpdb->get_results(
+-				$wpdb->prepare(
++			$results  = \wp_aot_require_wpdb( $wpdb )->get_results(
++				\wp_aot_require_wpdb( $wpdb )->prepare(
+ 					"SELECT post_id, meta_value FROM $wpdb->postmeta WHERE meta_key = %s LIMIT %d,%d",
+ 					$meta_key,
+ 					$offset,
+@@ -51,6 +51,7 @@
+ 		} while ( count( $results ) === $limit );
+ 
+ 		return $hashtable;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -62,15 +63,15 @@
+ 	 * @param string $blog_id
+ 	 * @return int
+ 	 */
+-	public function count_imported_posts( $importer_name, $blog_id ) {
++	public function count_imported_posts( mixed $importer_name, mixed $blog_id ): mixed {
+ 		global $wpdb;
+ 
+ 		$count = 0;
+ 
+ 		// Get count of permalinks.
+ 		$meta_key = $importer_name . '_' . $blog_id . '_permalink';
+-		$result   = $wpdb->get_results(
+-			$wpdb->prepare(
++		$result   = \wp_aot_require_wpdb( $wpdb )->get_results(
++			\wp_aot_require_wpdb( $wpdb )->prepare(
+ 				"SELECT COUNT( post_id ) AS cnt FROM $wpdb->postmeta WHERE meta_key = %s",
+ 				$meta_key
+ 			)
+@@ -81,6 +82,7 @@
+ 		}
+ 
+ 		return $count;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -91,7 +93,7 @@
+ 	 * @param string $blog_id
+ 	 * @return array
+ 	 */
+-	public function get_imported_comments( $blog_id ) {
++	public function get_imported_comments( mixed $blog_id ): mixed {
+ 		global $wpdb;
+ 
+ 		$hashtable = array();
+@@ -101,8 +103,8 @@
+ 
+ 		// Grab all comments in chunks.
+ 		do {
+-			$results = $wpdb->get_results(
+-				$wpdb->prepare(
++			$results = \wp_aot_require_wpdb( $wpdb )->get_results(
++				\wp_aot_require_wpdb( $wpdb )->prepare(
+ 					"SELECT comment_ID, comment_agent FROM $wpdb->comments LIMIT %d,%d",
+ 					$offset,
+ 					$limit
+@@ -128,6 +130,7 @@
+ 		} while ( count( $results ) === $limit );
+ 
+ 		return $hashtable;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -140,15 +143,15 @@
+ 	 * @param int|string $blog_id Blog ID or URL.
+ 	 * @return int Blog ID on success. Exits on failure.
+ 	 */
+-	public function set_blog( $blog_id ) {
++	public function set_blog( mixed $blog_id ): mixed {
+ 		if ( is_numeric( $blog_id ) ) {
+ 			$blog_id = (int) $blog_id;
+ 		} else {
+-			$blog   = 'http://' . preg_replace( '#^https?://#', '', $blog_id );
++			$blog   = 'http://' . \wp_aot_preg_replace( '#^https?://#', '', $blog_id );
+ 			$parsed = parse_url( $blog );
+ 			if ( ! $parsed || empty( $parsed['host'] ) ) {
+-				fwrite( STDERR, "Error: can not determine blog_id from $blog_id\n" );
+-				exit;
++				\wp_aot_fwrite( STDERR, "Error: can not determine blog_id from $blog_id\n" );
++				\wp_aot_exit();
+ 			}
+ 			if ( empty( $parsed['path'] ) ) {
+ 				$parsed['path'] = '/';
+@@ -161,10 +164,10 @@
+ 				)
+ 			);
+ 			if ( ! $blogs ) {
+-				fwrite( STDERR, "Error: Could not find blog\n" );
+-				exit;
+-			}
+-			$blog    = array_shift( $blogs );
++				\wp_aot_fwrite( STDERR, "Error: Could not find blog\n" );
++				\wp_aot_exit();
++			}
++			$blog    = \wp_aot_array_shift( $blogs );
+ 			$blog_id = (int) $blog->blog_id;
+ 		}
+ 
+@@ -175,13 +178,14 @@
+ 		}
+ 
+ 		return $blog_id;
++		return null;
+ 	}
+ 
+ 	/**
+ 	 * @param int $user_id
+ 	 * @return int
+ 	 */
+-	public function set_user( $user_id ) {
++	public function set_user( mixed $user_id ): mixed {
+ 		if ( is_numeric( $user_id ) ) {
+ 			$user_id = (int) $user_id;
+ 		} else {
+@@ -189,11 +193,12 @@
+ 		}
+ 
+ 		if ( ! $user_id || ! wp_set_current_user( $user_id ) ) {
+-			fwrite( STDERR, "Error: can not find user\n" );
+-			exit;
++			\wp_aot_fwrite( STDERR, "Error: can not find user\n" );
++			\wp_aot_exit();
+ 		}
+ 
+ 		return $user_id;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -203,8 +208,9 @@
+ 	 * @param string $b
+ 	 * @return int
+ 	 */
+-	public function cmpr_strlen( $a, $b ) {
++	public function cmpr_strlen( mixed $a, mixed $b ): mixed {
+ 		return strlen( $b ) - strlen( $a );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -217,12 +223,12 @@
+ 	 * @return array
+ 	 */
+ 	public function get_page(
+-		$url,
+-		$username = '',
++		mixed $url,
++		mixed $username = '',
+ 		#[\SensitiveParameter]
+ 		$password = '',
+-		$head = false
+-	) {
++		mixed $head = false
++	): mixed {
+ 		// Increase the timeout.
+ 		add_filter( 'http_request_timeout', array( $this, 'bump_request_timeout' ) );
+ 
+@@ -238,6 +244,7 @@
+ 		$args['headers'] = $headers;
+ 
+ 		return wp_safe_remote_request( $url, $args );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -246,8 +253,9 @@
+ 	 * @param int $val
+ 	 * @return int
+ 	 */
+-	public function bump_request_timeout( $val ) {
++	public function bump_request_timeout( mixed $val ): mixed {
+ 		return 60;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -255,7 +263,7 @@
+ 	 *
+ 	 * @return bool
+ 	 */
+-	public function is_user_over_quota() {
++	public function is_user_over_quota(): mixed {
+ 		if ( function_exists( 'upload_is_user_over_quota' ) ) {
+ 			if ( upload_is_user_over_quota() ) {
+ 				return true;
+@@ -263,6 +271,7 @@
+ 		}
+ 
+ 		return false;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -271,8 +280,9 @@
+ 	 * @param string $text
+ 	 * @return string
+ 	 */
+-	public function min_whitespace( $text ) {
+-		return preg_replace( '|[\r\n\t ]+|', ' ', $text );
++	public function min_whitespace( mixed $text ): mixed {
++		return \wp_aot_preg_replace( '|[\r\n\t ]+|', ' ', $text );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -283,12 +293,13 @@
+ 	 * @global wpdb  $wpdb       WordPress database abstraction object.
+ 	 * @global int[] $wp_actions Stores the number of times each action was triggered.
+ 	 */
+-	public function stop_the_insanity() {
++	public function stop_the_insanity(): mixed {
+ 		global $wpdb, $wp_actions;
+ 		// Or define( 'WP_IMPORTING', true );
+ 		$wpdb->queries = array();
+ 		// Reset $wp_actions to keep it from growing out of control.
+ 		$wp_actions = array();
++		return null;
+ 	}
+ }
+ 
+@@ -304,7 +315,7 @@
+  *                          is missing, as the function exits instead.
+  * @phpstan-return ( $required is true ? string|true : string|true|null )
+  */
+-function get_cli_args( $param, $required = false ) {
++function get_cli_args( mixed $param, mixed $required = false ): mixed {
+ 	$args = $_SERVER['argv'];
+ 	if ( ! is_array( $args ) ) {
+ 		$args = array();
+@@ -318,14 +329,14 @@
+ 	$il = count( $args );
+ 
+ 	for ( $i = 1, $il; $i < $il; $i++ ) {
+-		if ( (bool) preg_match( '/^--(.+)/', $args[ $i ], $match ) ) {
++		if ( (bool) preg_match( '/^--(.+)/', \wp_aot_regex_text( $args[ $i ] ), $match ) ) {
+ 			$parts = explode( '=', $match[1] );
+-			$key   = preg_replace( '/[^a-z0-9]+/', '', $parts[0] );
++			$key   = \wp_aot_preg_replace( '/[^a-z0-9]+/', '', $parts[0] );
+ 
+ 			$out[ $key ] = $parts[1] ?? true;
+ 
+ 			$last_arg = $key;
+-		} elseif ( (bool) preg_match( '/^-([a-zA-Z0-9]+)/', $args[ $i ], $match ) ) {
++		} elseif ( (bool) preg_match( '/^-([a-zA-Z0-9]+)/', \wp_aot_regex_text( $args[ $i ] ), $match ) ) {
+ 			for ( $j = 0, $jl = strlen( $match[1] ); $j < $jl; $j++ ) {
+ 				$key         = $match[1][ $j ];
+ 				$out[ $key ] = true;
+@@ -347,8 +358,9 @@
+ 	if ( ! isset( $out[ $param ] ) && $required ) {
+ 		// Display message and exit.
+ 		echo "\"$param\" parameter is required but was not specified\n";
+-		exit;
++		\wp_aot_exit();
+ 	}
+ 
+ 	return $return;
++	return null;
+ }

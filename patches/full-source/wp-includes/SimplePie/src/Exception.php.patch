@@ -1,0 +1,8 @@
+--- a/wp-includes/SimplePie/src/Exception.php
++++ b/wp-includes/SimplePie/src/Exception.php
+@@ -16,4 +16,4 @@
+ {
+ }
+ 
+-class_alias('SimplePie\Exception', 'SimplePie_Exception');
++(!defined('WP_AOT_NATIVE_RUNTIME') && (bool) \wp_aot_native_api('class_alias', array('SimplePie\Exception', 'SimplePie_Exception')));

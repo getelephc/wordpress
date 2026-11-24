@@ -1,6 +1,240 @@
 --- a/wp-admin/includes/class-wp-posts-list-table.php
 +++ b/wp-admin/includes/class-wp-posts-list-table.php
-@@ -532,16 +532,20 @@
+@@ -70,7 +70,7 @@
+ 	 *
+ 	 * @param array $args An associative array of arguments.
+ 	 */
+-	public function __construct( $args = array() ) {
++	public function __construct( mixed $args = array() ) {
+ 		global $post_type_object, $wpdb;
+ 
+ 		parent::__construct(
+@@ -89,8 +89,8 @@
+ 			)
+ 		);
+ 
+-		$this->user_posts_count = (int) $wpdb->get_var(
+-			$wpdb->prepare(
++		$this->user_posts_count = (int) \wp_aot_require_wpdb( $wpdb )->get_var(
++			\wp_aot_require_wpdb( $wpdb )->prepare(
+ 				"SELECT COUNT( 1 )
+ 				FROM $wpdb->posts
+ 				WHERE post_type = %s
+@@ -112,10 +112,10 @@
+ 		$sticky_posts = get_option( 'sticky_posts' );
+ 
+ 		if ( 'post' === $post_type && $sticky_posts ) {
+-			$sticky_posts = implode( ', ', array_map( 'absint', (array) $sticky_posts ) );
+-
+-			$this->sticky_posts_count = (int) $wpdb->get_var(
+-				$wpdb->prepare(
++			$sticky_posts = implode( ', ', \wp_aot_array_map( 'absint', (array) $sticky_posts ) );
++
++			$this->sticky_posts_count = (int) \wp_aot_require_wpdb( $wpdb )->get_var(
++				\wp_aot_require_wpdb( $wpdb )->prepare(
+ 					"SELECT COUNT( 1 )
+ 					FROM $wpdb->posts
+ 					WHERE post_type = %s
+@@ -134,15 +134,17 @@
+ 	 *
+ 	 * @param bool $display Whether the table layout should be hierarchical.
+ 	 */
+-	public function set_hierarchical_display( $display ) {
++	public function set_hierarchical_display( mixed $display ): mixed {
+ 		$this->hierarchical_display = $display;
++		return null;
+ 	}
+ 
+ 	/**
+ 	 * @return bool
+ 	 */
+-	public function ajax_user_can() {
++	public function ajax_user_can(): mixed {
+ 		return current_user_can( get_post_type_object( $this->screen->post_type )->cap->edit_posts );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -151,7 +153,7 @@
+ 	 * @global WP_Query $wp_query         WordPress Query object.
+ 	 * @global int      $per_page
+ 	 */
+-	public function prepare_items() {
++	public function prepare_items(): mixed {
+ 		global $mode, $avail_post_stati, $wp_query, $per_page;
+ 
+ 		if ( ! empty( $_REQUEST['mode'] ) ) {
+@@ -206,23 +208,26 @@
+ 				'per_page'    => $per_page,
+ 			)
+ 		);
++		return null;
+ 	}
+ 
+ 	/**
+ 	 * @return bool
+ 	 */
+-	public function has_items() {
++	public function has_items(): mixed {
+ 		return have_posts();
+-	}
+-
+-	/**
+-	 */
+-	public function no_items() {
++		return null;
++	}
++
++	/**
++	 */
++	public function no_items(): mixed {
+ 		if ( isset( $_REQUEST['post_status'] ) && 'trash' === $_REQUEST['post_status'] ) {
+ 			echo get_post_type_object( $this->screen->post_type )->labels->not_found_in_trash;
+ 		} else {
+ 			echo get_post_type_object( $this->screen->post_type )->labels->not_found;
+ 		}
++		return null;
+ 	}
+ 
+ 	/**
+@@ -232,7 +237,7 @@
+ 	 *
+ 	 * @return bool Whether the current view is the "All" view.
+ 	 */
+-	protected function is_base_request() {
++	protected function is_base_request(): mixed {
+ 		$vars = $_GET;
+ 		unset( $vars['paged'] );
+ 
+@@ -243,6 +248,7 @@
+ 		}
+ 
+ 		return 1 === count( $vars ) && ! empty( $vars['mode'] );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -255,7 +261,7 @@
+ 	 * @param string   $css_class Optional. Class attribute. Default empty string.
+ 	 * @return string The formatted link string.
+ 	 */
+-	protected function get_edit_link( $args, $link_text, $css_class = '' ) {
++	protected function get_edit_link( mixed $args, mixed $link_text, mixed $css_class = '' ): mixed {
+ 		$url = add_query_arg( $args, 'edit.php' );
+ 
+ 		$class_html   = '';
+@@ -279,6 +285,7 @@
+ 			$aria_current,
+ 			$link_text
+ 		);
++		return null;
+ 	}
+ 
+ 	/**
+@@ -286,7 +293,7 @@
+ 	 * @global array $avail_post_stati
+ 	 * @return array
+ 	 */
+-	protected function get_views() {
++	protected function get_views(): mixed {
+ 		global $locked_post_status, $avail_post_stati;
+ 
+ 		$post_type = $this->screen->post_type;
+@@ -302,7 +309,7 @@
+ 
+ 		$current_user_id = get_current_user_id();
+ 		$all_args        = array( 'post_type' => $post_type );
+-		$mine            = '';
++		$mine            = \wp_aot_mixed('');
+ 
+ 		// Subtract post types that are not included in the admin all list.
+ 		foreach ( get_post_stati( array( 'show_in_admin_all_list' => false ) ) as $state ) {
+@@ -419,17 +426,18 @@
+ 			);
+ 
+ 			// Sticky comes after Publish, or if not listed, after All.
+-			$split        = 1 + array_search( ( isset( $status_links['publish'] ) ? 'publish' : 'all' ), array_keys( $status_links ), true );
+-			$status_links = array_merge( array_slice( $status_links, 0, $split ), $sticky_link, array_slice( $status_links, $split ) );
++			$split        = 1 + \wp_aot_array_search( ( isset( $status_links['publish'] ) ? 'publish' : 'all' ), array_keys( $status_links ), true );
++			$status_links = \wp_aot_array_merge(array( \wp_aot_array_slice( $status_links, 0, $split ), $sticky_link, \wp_aot_array_slice( $status_links, $split ) ));
+ 		}
+ 
+ 		return $this->get_views_links( $status_links );
++		return null;
+ 	}
+ 
+ 	/**
+ 	 * @return array
+ 	 */
+-	protected function get_bulk_actions() {
++	protected function get_bulk_actions(): mixed {
+ 		$actions       = array();
+ 		$post_type_obj = get_post_type_object( $this->screen->post_type );
+ 
+@@ -450,6 +458,7 @@
+ 		}
+ 
+ 		return $actions;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -461,7 +470,7 @@
+ 	 *
+ 	 * @param string $post_type Post type slug.
+ 	 */
+-	protected function categories_dropdown( $post_type ) {
++	protected function categories_dropdown( mixed $post_type ): mixed {
+ 		global $cat;
+ 
+ 		/**
+@@ -473,7 +482,7 @@
+ 		 * @param string $post_type Post type slug.
+ 		 */
+ 		if ( false !== apply_filters( 'disable_categories_dropdown', false, $post_type ) ) {
+-			return;
++			return null;
+ 		}
+ 
+ 		if ( is_object_in_taxonomy( $post_type, 'category' ) ) {
+@@ -490,6 +499,7 @@
+ 
+ 			wp_dropdown_categories( $dropdown_options );
+ 		}
++		return null;
+ 	}
+ 
+ 	/**
+@@ -499,7 +509,7 @@
+ 	 *
+ 	 * @param string $post_type Post type slug.
+ 	 */
+-	protected function formats_dropdown( $post_type ) {
++	protected function formats_dropdown( mixed $post_type ): mixed {
+ 		/**
+ 		 * Filters whether to remove the 'Formats' drop-down from the post list table.
+ 		 *
+@@ -510,12 +520,12 @@
+ 		 * @param string $post_type Post type slug.
+ 		 */
+ 		if ( apply_filters( 'disable_formats_dropdown', false, $post_type ) ) {
+-			return;
++			return null;
+ 		}
+ 
+ 		// Return if the post type doesn't have post formats or if we're in the Trash.
+ 		if ( ! is_object_in_taxonomy( $post_type, 'post_format' ) || $this->is_trash ) {
+-			return;
++			return null;
+ 		}
+ 
+ 		// Make sure the dropdown shows only formats with a post count greater than 0.
+@@ -528,23 +538,27 @@
+ 
+ 		// Return if there are no posts using formats.
+ 		if ( ! $used_post_formats ) {
+-			return;
++			return null;
  		}
  
  		$displayed_post_format = $_GET['post_format'] ?? '';
@@ -27,8 +261,12 @@
 +			';
  			foreach ( $used_post_formats as $used_post_format ) {
  				// Post format slug.
- 				$slug = str_replace( 'post-format-', '', $used_post_format->slug );
-@@ -552,22 +556,28 @@
+-				$slug = str_replace( 'post-format-', '', $used_post_format->slug );
++				$slug = \wp_aot_str_replace( 'post-format-', '', $used_post_format->slug );
+ 				// Pretty, translated version of the post format slug.
+ 				$pretty_name = get_post_format_string( $slug );
+ 
+@@ -552,22 +566,29 @@
  				if ( 'standard' === $slug ) {
  					continue;
  				}
@@ -52,22 +290,24 @@
 +			;
 +echo '		</select>
 +		';
++		return null;
  	}
  
  	/**
  	 * @param string $which
  	 */
- 	protected function extra_tablenav( $which ) {
+-	protected function extra_tablenav( $which ) {
 -		?>
 -		<div class="alignleft actions">
 -		<?php
++	protected function extra_tablenav( mixed $which ): mixed {
 +		;
 +echo '		<div class="alignleft actions">
 +		';
  		if ( 'top' === $which ) {
  			ob_start();
  
-@@ -605,9 +615,9 @@
+@@ -605,9 +626,9 @@
  		) {
  			submit_button( __( 'Empty Trash' ), 'apply', 'delete_all', false );
  		}
@@ -80,7 +320,216 @@
  		/**
  		 * Fires immediately following the closing "actions" div in the tablenav for the posts
  		 * list table.
-@@ -1079,29 +1089,35 @@
+@@ -617,17 +638,19 @@
+ 		 * @param string $which The location of the extra table nav markup: 'top' or 'bottom'.
+ 		 */
+ 		do_action( 'manage_posts_extra_tablenav', $which );
++		return null;
+ 	}
+ 
+ 	/**
+ 	 * @return string
+ 	 */
+-	public function current_action() {
++	public function current_action(): mixed {
+ 		if ( isset( $_REQUEST['delete_all'] ) || isset( $_REQUEST['delete_all2'] ) ) {
+ 			return 'delete_all';
+ 		}
+ 
+ 		return parent::current_action();
++		return null;
+ 	}
+ 
+ 	/**
+@@ -635,7 +658,7 @@
+ 	 *
+ 	 * @return array
+ 	 */
+-	protected function get_table_classes() {
++	protected function get_table_classes(): mixed {
+ 		global $mode;
+ 
+ 		$mode_class = esc_attr( 'table-view-' . $mode );
+@@ -647,12 +670,13 @@
+ 			$mode_class,
+ 			is_post_type_hierarchical( $this->screen->post_type ) ? 'pages' : 'posts',
+ 		);
++		return null;
+ 	}
+ 
+ 	/**
+ 	 * @return string[] Array of column titles keyed by their column name.
+ 	 */
+-	public function get_columns() {
++	public function get_columns(): mixed {
+ 		$post_type = $this->screen->post_type;
+ 
+ 		$posts_columns = array();
+@@ -686,7 +710,7 @@
+ 		 * @param string   $post_type  The post type.
+ 		 */
+ 		$taxonomies = apply_filters( "manage_taxonomies_for_{$post_type}_columns", $taxonomies, $post_type );
+-		$taxonomies = array_filter( $taxonomies, 'taxonomy_exists' );
++		$taxonomies = \wp_aot_array_filter( $taxonomies, 'taxonomy_exists' );
+ 
+ 		foreach ( $taxonomies as $taxonomy ) {
+ 			if ( 'category' === $taxonomy ) {
+@@ -753,12 +777,13 @@
+ 		 * @param string[] $posts_columns An associative array of column headings.
+ 		 */
+ 		return apply_filters( "manage_{$post_type}_posts_columns", $posts_columns );
++		return null;
+ 	}
+ 
+ 	/**
+ 	 * @return array
+ 	 */
+-	protected function get_sortable_columns() {
++	protected function get_sortable_columns(): mixed {
+ 
+ 		$post_type = $this->screen->post_type;
+ 
+@@ -786,6 +811,7 @@
+ 		// Custom Post Types: there's a filter for that, see get_column_info().
+ 
+ 		return $sortables;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -799,7 +825,7 @@
+ 	 * @param array $posts
+ 	 * @param int   $level
+ 	 */
+-	public function display_rows( $posts = array(), $level = 0 ) {
++	public function display_rows( mixed $posts = array(), mixed $level = 0 ): mixed {
+ 		global $wp_query, $per_page;
+ 
+ 		if ( empty( $posts ) ) {
+@@ -813,13 +839,14 @@
+ 		} else {
+ 			$this->_display_rows( $posts, $level );
+ 		}
++		return null;
+ 	}
+ 
+ 	/**
+ 	 * @param array $posts
+ 	 * @param int   $level
+ 	 */
+-	private function _display_rows( $posts, $level = 0 ) {
++	private function _display_rows( mixed $posts, mixed $level = 0 ): mixed {
+ 		$post_type = $this->screen->post_type;
+ 
+ 		// Create array of post IDs.
+@@ -837,6 +864,7 @@
+ 		foreach ( $posts as $post ) {
+ 			$this->single_row( $post, $level );
+ 		}
++		return null;
+ 	}
+ 
+ 	/**
+@@ -846,7 +874,7 @@
+ 	 * @param int   $pagenum
+ 	 * @param int   $per_page
+ 	 */
+-	private function _display_rows_hierarchical( $pages, $pagenum = 1, $per_page = 20 ) {
++	private function _display_rows_hierarchical( mixed $pages, mixed $pagenum = 1, mixed $per_page = 20 ): mixed {
+ 		global $wpdb;
+ 
+ 		$level = 0;
+@@ -855,7 +883,7 @@
+ 			$pages = get_pages( array( 'sort_column' => 'menu_order' ) );
+ 
+ 			if ( ! $pages ) {
+-				return;
++				return null;
+ 			}
+ 		}
+ 
+@@ -874,7 +902,7 @@
+ 				// Catch and repair bad pages.
+ 				if ( $page->post_parent === $page->ID ) {
+ 					$page->post_parent = 0;
+-					$wpdb->update( $wpdb->posts, array( 'post_parent' => 0 ), array( 'ID' => $page->ID ) );
++					\wp_aot_require_wpdb( $wpdb )->update( $wpdb->posts, array( 'post_parent' => 0 ), array( 'ID' => $page->ID ) );
+ 					clean_post_cache( $page );
+ 				}
+ 
+@@ -928,7 +956,7 @@
+ 
+ 		$ids = array_keys( $to_display );
+ 		_prime_post_caches( $ids );
+-		$_posts = array_map( 'get_post', $ids );
++		$_posts = \wp_aot_array_map( 'get_post', $ids );
+ 		update_post_author_caches( $_posts );
+ 
+ 		if ( ! isset( $GLOBALS['post'] ) ) {
+@@ -939,6 +967,7 @@
+ 			echo "\t";
+ 			$this->single_row( $page_id, $level );
+ 		}
++		return null;
+ 	}
+ 
+ 	/**
+@@ -956,9 +985,9 @@
+ 	 * @param int   $per_page
+ 	 * @param array $to_display List of pages to be displayed. Passed by reference.
+ 	 */
+-	private function _page_rows( &$children_pages, &$count, $parent_page, $level, $pagenum, $per_page, &$to_display ) {
++	private function _page_rows( mixed &$children_pages, mixed &$count, mixed $parent_page, mixed $level, mixed $pagenum, mixed $per_page, mixed &$to_display ): mixed {
+ 		if ( ! isset( $children_pages[ $parent_page ] ) ) {
+-			return;
++			return null;
+ 		}
+ 
+ 		$start = ( $pagenum - 1 ) * $per_page;
+@@ -994,7 +1023,7 @@
+ 
+ 				$num_parents = count( $my_parents );
+ 
+-				while ( $my_parent = array_pop( $my_parents ) ) {
++				while ( $my_parent = \wp_aot_array_pop( $my_parents ) ) {
+ 					$to_display[ $my_parent->ID ] = $level - $num_parents;
+ 					--$num_parents;
+ 				}
+@@ -1010,6 +1039,7 @@
+ 		}
+ 
+ 		unset( $children_pages[ $parent_page ] ); // Required in order to keep track of orphans.
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1025,7 +1055,7 @@
+ 	 * @param WP_Post $post The current WP_Post object.
+ 	 * @return string The escaped, trimmed excerpt, or an empty string.
+ 	 */
+-	protected function get_no_title_excerpt( $post ) {
++	protected function get_no_title_excerpt( mixed $post ): mixed {
+ 		global $mode;
+ 
+ 		if ( 'excerpt' === $mode
+@@ -1043,6 +1073,7 @@
+ 		}
+ 
+ 		return esc_html( wp_trim_words( $excerpt, 15 ) );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1054,7 +1085,7 @@
+ 	 *
+ 	 * @param WP_Post $item The current WP_Post object.
+ 	 */
+-	public function column_cb( $item ) {
++	public function column_cb( mixed $item ): mixed {
+ 		// Restores the more descriptive, specific name for use within this method.
+ 		$post = $item;
+ 
+@@ -1079,30 +1110,37 @@
  			if ( '' !== $no_title_excerpt ) {
  				$post_title .= ' ' . $no_title_excerpt;
  			}
@@ -124,15 +573,80 @@
 -			<?php
 +			';
  		endif;
++		return null;
  	}
  
-@@ -1360,15 +1376,15 @@
+ 	/**
+@@ -1113,13 +1151,14 @@
+ 	 * @param string  $data
+ 	 * @param string  $primary
+ 	 */
+-	protected function _column_title( $post, $classes, $data, $primary ) {
++	protected function _column_title( mixed $post, mixed $classes, mixed $data, mixed $primary ): mixed {
+ 		$aria_label = $this->get_primary_column_aria_label( $post );
+ 		$aria_attr  = ( '' !== $aria_label ) ? ' aria-label="' . esc_attr( $aria_label ) . '"' : '';
+ 		echo '<th scope="row" class="' . $classes . ' page-title" ', $data, $aria_attr, '>';
+ 		echo $this->column_title( $post );
+ 		echo $this->handle_row_actions( $post, 'title', $primary );
+ 		echo '</th>';
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1134,8 +1173,9 @@
+ 	 * @param WP_Post $item The current post object.
+ 	 * @return string The post title, or 'no title' if no title.
+ 	 */
+-	protected function get_primary_column_aria_label( $item ) {
++	protected function get_primary_column_aria_label( mixed $item ): mixed {
+ 		return isset( $item->post_title ) && ! empty( $item->post_title ) ? $item->post_title : __( 'no title' );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1148,7 +1188,7 @@
+ 	 *
  	 * @param WP_Post $post The current WP_Post object.
  	 */
- 	public function column_comments( $post ) {
+-	public function column_title( $post ) {
++	public function column_title( mixed $post ): mixed {
+ 		global $mode;
+ 
+ 		if ( $this->hierarchical_display ) {
+@@ -1277,6 +1317,7 @@
+ 		if ( $quick_edit_enabled ) {
+ 			get_inline_data( $post );
+ 		}
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1288,7 +1329,7 @@
+ 	 *
+ 	 * @param WP_Post $post The current WP_Post object.
+ 	 */
+-	public function column_date( $post ) {
++	public function column_date( mixed $post ): mixed {
+ 		global $mode;
+ 
+ 		if ( '0000-00-00 00:00:00' === $post->post_date ) {
+@@ -1350,6 +1391,7 @@
+ 		 * @param string  $mode        The list display mode ('excerpt' or 'list').
+ 		 */
+ 		echo apply_filters( 'post_date_column_time', $t_time, $post, 'date', $mode );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1359,16 +1401,17 @@
+ 	 *
+ 	 * @param WP_Post $post The current WP_Post object.
+ 	 */
+-	public function column_comments( $post ) {
 -		?>
 -		<div class="post-com-count-wrapper">
 -		<?php
++	public function column_comments( mixed $post ): mixed {
 +		;
 +echo '		<div class="post-com-count-wrapper">
 +		';
@@ -145,10 +659,69 @@
 +		;
 +echo '		</div>
 +		';
++		return null;
  	}
  
  	/**
-@@ -1537,11 +1553,16 @@
+@@ -1379,7 +1422,7 @@
+ 	 *
+ 	 * @param WP_Post $post The current WP_Post object.
+ 	 */
+-	public function column_author( $post ) {
++	public function column_author( mixed $post ): mixed {
+ 		$author = get_the_author();
+ 
+ 		if ( ! empty( $author ) ) {
+@@ -1391,6 +1434,7 @@
+ 		} else {
+ 			echo '<span aria-hidden="true">&#8212;</span><span class="screen-reader-text">' . __( '(no author)' ) . '</span>';
+ 		}
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1402,12 +1446,12 @@
+ 	 * @param WP_Post $item        The current WP_Post object.
+ 	 * @param string  $column_name The current column name.
+ 	 */
+-	public function column_default( $item, $column_name ) {
++	public function column_default( mixed $item, mixed $column_name ): mixed {
+ 		// Restores the more descriptive, specific name for use within this method.
+ 		$post = $item;
+ 
+ 		if ( 'categories' === $column_name ) {
+-			$taxonomy = 'category';
++			$taxonomy = \wp_aot_mixed('category');
+ 		} elseif ( 'tags' === $column_name ) {
+ 			$taxonomy = 'post_tag';
+ 		} elseif ( str_starts_with( $column_name, 'taxonomy-' ) ) {
+@@ -1457,7 +1501,7 @@
+ 			} else {
+ 				echo '<span aria-hidden="true">&#8212;</span><span class="screen-reader-text">' . $taxonomy_object->labels->no_terms . '</span>';
+ 			}
+-			return;
++			return null;
+ 		}
+ 
+ 		if ( is_post_type_hierarchical( $post->post_type ) ) {
+@@ -1506,6 +1550,7 @@
+ 		 * @param int    $post_id     The current post ID.
+ 		 */
+ 		do_action( "manage_{$post->post_type}_posts_custom_column", $column_name, $post->ID );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1514,7 +1559,7 @@
+ 	 * @param int|WP_Post $post
+ 	 * @param int         $level
+ 	 */
+-	public function single_row( $post, $level = 0 ) {
++	public function single_row( mixed $post, mixed $level = 0, mixed $wp_aot_third = null, mixed $wp_aot_fourth = null ): mixed {
+ 		$global_post = get_post();
+ 
+ 		$post                = get_post( $post );
+@@ -1537,12 +1582,18 @@
  		} else {
  			$classes .= ' level-0';
  		}
@@ -168,9 +741,48 @@
 +echo '		</tr>
 +		';
  		$GLOBALS['post'] = $global_post;
++		return null;
  	}
  
-@@ -1763,11 +1784,11 @@
+ 	/**
+@@ -1552,8 +1603,9 @@
+ 	 *
+ 	 * @return string Name of the default primary column, in this case, 'title'.
+ 	 */
+-	protected function get_default_primary_column_name() {
++	protected function get_default_primary_column_name(): mixed {
+ 		return 'title';
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1568,7 +1620,7 @@
+ 	 * @return string Row actions output for posts, or an empty string
+ 	 *                if the current column is not the primary column.
+ 	 */
+-	protected function handle_row_actions( $item, $column_name, $primary ) {
++	protected function handle_row_actions( mixed $item, mixed $column_name, mixed $primary ): mixed {
+ 		if ( $primary !== $column_name ) {
+ 			return '';
+ 		}
+@@ -1706,6 +1758,7 @@
+ 		}
+ 
+ 		return $this->row_actions( $actions );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1715,7 +1768,7 @@
+ 	 *
+ 	 * @global string $mode List table view mode.
+ 	 */
+-	public function inline_edit() {
++	public function inline_edit(): mixed {
+ 		global $mode;
+ 
+ 		$screen = $this->screen;
+@@ -1763,11 +1816,11 @@
  			'comments'   => true,
  			'author'     => true,
  		);
@@ -185,7 +797,7 @@
  		$hclass              = count( $hierarchical_taxonomies ) ? 'post' : 'page';
  		$inline_edit_classes = "inline-edit-row inline-edit-row-$hclass";
  		$bulk_edit_classes   = "bulk-edit-row bulk-edit-row-$hclass bulk-edit-{$screen->post_type}";
-@@ -1778,51 +1799,79 @@
+@@ -1778,51 +1831,79 @@
  		while ( $bulk < 2 ) :
  			$classes  = $inline_edit_classes . ' ';
  			$classes .= $bulk ? $bulk_edit_classes : $quick_edit_classes;
@@ -294,7 +906,7 @@
  				if ( post_type_supports( $screen->post_type, 'author' ) ) {
  					$authors_dropdown = '';
  
-@@ -1873,69 +1922,90 @@
+@@ -1873,69 +1954,90 @@
  						echo $authors_dropdown;
  					}
  				} // post_type_supports( ... 'author' )
@@ -419,7 +1031,7 @@
  							$dropdown_args = array(
  								'post_type'         => $post_type_object->name,
  								'selected'          => $post->post_parent,
-@@ -1964,128 +2034,203 @@
+@@ -1964,128 +2066,203 @@
  							$dropdown_args = apply_filters( 'quick_edit_dropdown_pages_args', $dropdown_args, $bulk );
  
  							wp_dropdown_pages( $dropdown_args );
@@ -704,7 +1316,7 @@
  								$inline_edit_statuses = array();
  								if ( $bulk ) {
  									$inline_edit_statuses['-1'] = __( '&mdash; No Change &mdash;' );
-@@ -2116,62 +2261,98 @@
+@@ -2116,62 +2293,98 @@
  								$inline_edit_statuses = apply_filters( 'quick_edit_statuses', $inline_edit_statuses, $screen->post_type, $bulk, $can_publish );
  
  								foreach ( $inline_edit_statuses as $inline_status_value => $inline_status_text ) :
@@ -838,7 +1450,7 @@
  			list( $columns ) = $this->get_column_info();
  
  			foreach ( $columns as $column_name => $column_display_name ) {
-@@ -2204,29 +2385,48 @@
+@@ -2204,29 +2417,48 @@
  					do_action( 'quick_edit_custom_box', $column_name, $screen->post_type, '' );
  				}
  			}
@@ -909,7 +1521,7 @@
  				wp_admin_notice(
  					'<p class="error"></p>',
  					array(
-@@ -2235,18 +2435,18 @@
+@@ -2235,18 +2467,19 @@
  						'paragraph_wrap'     => false,
  					)
  				);
@@ -932,5 +1544,6 @@
  		</form>
 -		<?php
 +		';
++		return null;
  	}
  }

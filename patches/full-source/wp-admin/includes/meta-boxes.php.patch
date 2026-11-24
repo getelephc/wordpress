@@ -1,6 +1,14 @@
 --- a/wp-admin/includes/meta-boxes.php
 +++ b/wp-admin/includes/meta-boxes.php
-@@ -34,38 +34,48 @@
+@@ -27,45 +27,55 @@
+  *     @type array    $args     Extra meta box arguments.
+  * }
+  */
+-function post_submit_meta_box( $post, $args = array() ) {
++function post_submit_meta_box( mixed $post, mixed $args = array() ): mixed {
+ 	global $action;
+ 
+ 	$post_id          = (int) $post->ID;
  	$post_type        = $post->post_type;
  	$post_type_object = get_post_type_object( $post_type );
  	$can_publish      = current_user_can( $post_type_object->cap->publish_posts );
@@ -456,7 +464,7 @@
  	/**
  	 * Fires at the beginning of the publishing actions section of the Publish meta box.
  	 *
-@@ -357,57 +462,73 @@
+@@ -357,57 +462,74 @@
  	 *                           null on Edit Link screen.
  	 */
  	do_action( 'post_submitbox_start', $post );
@@ -555,15 +563,18 @@
  </div>
 -	<?php
 +	';
++	return null;
  }
  
  /**
-@@ -418,21 +539,23 @@
+@@ -417,22 +539,24 @@
+  *
   * @param WP_Post $post Current post object.
   */
- function attachment_submit_meta_box( $post ) {
+-function attachment_submit_meta_box( $post ) {
 -	?>
 -<div class="submitbox" id="submitpost">
++function attachment_submit_meta_box( mixed $post ): mixed {
 +	;
 +echo '<div class="submitbox" id="submitpost">
  
@@ -589,7 +600,7 @@
  			$uploaded_on = sprintf(
  				/* translators: Publish box date string. 1: Date, 2: Time. */
  				__( '%1$s at %2$s' ),
-@@ -443,11 +566,11 @@
+@@ -443,11 +567,11 @@
  			);
  			/* translators: Attachment information. %s: Date the attachment was uploaded. */
  			printf( __( 'Uploaded on: %s' ), '<b>' . $uploaded_on . '</b>' );
@@ -604,7 +615,7 @@
  	/**
  	 * Fires after the 'Uploaded on' section of the Save meta box
  	 * in the attachment editing screen.
-@@ -458,14 +581,14 @@
+@@ -458,14 +582,14 @@
  	 * @param WP_Post $post WP_Post object for the current attachment.
  	 */
  	do_action( 'attachment_submitbox_misc_actions', $post );
@@ -622,7 +633,7 @@
  	if ( current_user_can( 'delete_post', $post->ID ) ) {
  		if ( EMPTY_TRASH_DAYS && MEDIA_TRASH ) {
  			printf(
-@@ -484,20 +607,24 @@
+@@ -484,20 +608,25 @@
  			);
  		}
  	}
@@ -649,10 +660,20 @@
  
 -	<?php
 +	';
++	return null;
  }
  
  /**
-@@ -528,22 +655,40 @@
+@@ -515,7 +644,7 @@
+  *     @type array    $args     Extra meta box arguments.
+  * }
+  */
+-function post_format_meta_box( $post, $box ) {
++function post_format_meta_box( mixed $post, mixed $box ): mixed {
+ 	if ( current_theme_supports( 'post-formats' ) && post_type_supports( $post->post_type, 'post-formats' ) ) :
+ 		$post_formats = get_theme_support( 'post-formats' );
+ 
+@@ -528,24 +657,43 @@
  			if ( $post_format && ! in_array( $post_format, $post_formats[0], true ) ) {
  				$post_formats[0][] = $post_format;
  			}
@@ -703,8 +724,20 @@
 +			';
  	endif;
  endif;
++	return null;
  }
-@@ -585,30 +730,75 @@
+ 
+ /**
+@@ -569,7 +717,7 @@
+  *     }
+  * }
+  */
+-function post_tags_meta_box( $post, $box ) {
++function post_tags_meta_box( mixed $post, mixed $box ): mixed {
+ 	$defaults = array( 'taxonomy' => 'post_tag' );
+ 	if ( ! isset( $box['args'] ) || ! is_array( $box['args'] ) ) {
+ 		$args = array();
+@@ -585,30 +733,76 @@
  	if ( ! is_string( $terms_to_edit ) ) {
  		$terms_to_edit = '';
  	}
@@ -732,7 +765,7 @@
 +echo ' aria-describedby="new-tag-';
 +echo $tax_name; ;
 +echo '-desc">';
-+echo str_replace( ',', $comma . ' ', $terms_to_edit ); // textarea_escaped by esc_attr() ;
++echo \wp_aot_str_replace( ',', $comma . ' ', $terms_to_edit ); // textarea_escaped by esc_attr() ;
 +echo '</textarea></p>
  	</div>
 -	<?php if ( $user_can_assign_terms ) : ?>
@@ -795,10 +828,20 @@
 +';
 +endif; ;
 +echo '	';
++	return null;
  }
  
  /**
-@@ -642,27 +832,54 @@
+@@ -632,7 +826,7 @@
+  *     }
+  * }
+  */
+-function post_categories_meta_box( $post, $box ) {
++function post_categories_meta_box( mixed $post, mixed $box ): mixed {
+ 	$defaults = array( 'taxonomy' => 'category' );
+ 	if ( ! isset( $box['args'] ) || ! is_array( $box['args'] ) ) {
+ 		$args = array();
+@@ -642,27 +836,54 @@
  	$parsed_args = wp_parse_args( $args, $defaults );
  	$tax_name    = esc_attr( $parsed_args['taxonomy'] );
  	$taxonomy    = get_taxonomy( $parsed_args['taxonomy'] );
@@ -867,7 +910,7 @@
  				wp_terms_checklist(
  					$post->ID,
  					array(
-@@ -670,24 +887,46 @@
+@@ -670,24 +891,46 @@
  						'popular_cats' => $popular_ids,
  					)
  				);
@@ -929,7 +972,7 @@
  					$parent_dropdown_args = array(
  						'taxonomy'         => $tax_name,
  						'hide_empty'       => 0,
-@@ -724,15 +963,27 @@
+@@ -724,15 +967,28 @@
  					$parent_dropdown_args = apply_filters( 'post_edit_category_parent_dropdown_args', $parent_dropdown_args );
  
  					wp_dropdown_categories( $parent_dropdown_args );
@@ -961,16 +1004,19 @@
 +endif; ;
 +echo '	</div>
 +	';
++	return null;
  }
  
  /**
-@@ -743,23 +994,25 @@
+@@ -742,24 +998,27 @@
+  *
   * @param WP_Post $post Current post object.
   */
- function post_excerpt_meta_box( $post ) {
+-function post_excerpt_meta_box( $post ) {
 -	?>
 -<label class="screen-reader-text" for="excerpt">
 -	<?php
++function post_excerpt_meta_box( mixed $post ): mixed {
 +	;
 +echo '<label class="screen-reader-text" for="excerpt">
 +	';
@@ -996,10 +1042,23 @@
 +	;
 +echo '</p>
 +	';
++	return null;
  }
  
  /**
-@@ -782,22 +1035,27 @@
+@@ -769,9 +1028,9 @@
+  *
+  * @param WP_Post $post Current post object.
+  */
+-function post_trackback_meta_box( $post ) {
++function post_trackback_meta_box( mixed $post ): mixed {
+ 	$form_trackback = '<input type="text" name="trackback_url" id="trackback_url" class="code" value="' .
+-		esc_attr( str_replace( "\n", ' ', $post->to_ping ) ) . '" aria-describedby="trackback-url-desc" />';
++		esc_attr( \wp_aot_str_replace( "\n", ' ', $post->to_ping ) ) . '" aria-describedby="trackback-url-desc" />';
+ 
+ 	if ( '' !== $post->pinged ) {
+ 		$pings          = '<p>' . __( 'Already pinged:' ) . '</p><ul>';
+@@ -782,25 +1041,31 @@
  		$pings .= '</ul>';
  	}
  
@@ -1037,12 +1096,18 @@
  	if ( ! empty( $pings ) ) {
  		echo $pings;
  	}
-@@ -811,10 +1069,10 @@
++	return null;
+ }
+ 
+ /**
+@@ -810,11 +1075,11 @@
+  *
   * @param WP_Post $post Current post object.
   */
- function post_custom_meta_box( $post ) {
+-function post_custom_meta_box( $post ) {
 -	?>
 -<div id="postcustomstuff">
++function post_custom_meta_box( mixed $post ): mixed {
 +	;
 +echo '<div id="postcustomstuff">
  <div id="ajax-response"></div>
@@ -1051,7 +1116,7 @@
  	$metadata = has_meta( $post->ID );
  	foreach ( $metadata as $key => $value ) {
  		if ( is_protected_meta( $metadata[ $key ]['meta_key'], 'post' ) || ! current_user_can( 'edit_post_meta', $post->ID, $metadata[ $key ]['meta_key'] ) ) {
-@@ -823,18 +1081,18 @@
+@@ -823,18 +1088,19 @@
  	}
  	list_meta( $metadata );
  	meta_form( $post );
@@ -1073,15 +1138,18 @@
 +	;
 +echo '</p>
 +	';
++	return null;
  }
  
  /**
-@@ -845,20 +1103,26 @@
+@@ -844,21 +1110,27 @@
+  *
   * @param WP_Post $post Current post object.
   */
- function post_comment_status_meta_box( $post ) {
+-function post_comment_status_meta_box( $post ) {
 -	?>
 -<input name="advanced_view" type="hidden" value="1" />
++function post_comment_status_meta_box( mixed $post ): mixed {
 +	;
 +echo '<input name="advanced_view" type="hidden" value="1" />
  <p class="meta-options">
@@ -1111,7 +1179,7 @@
  	/**
  	 * Fires at the end of the Discussion meta box on the post editing screen.
  	 *
-@@ -867,9 +1131,9 @@
+@@ -867,9 +1139,10 @@
  	 * @param WP_Post $post WP_Post object for the current post.
  	 */
  	do_action( 'post_comment_status_meta_box-options', $post ); // phpcs:ignore WordPress.NamingConventions.ValidHookName.UseUnderscores
@@ -1121,12 +1189,28 @@
 +	;
 +echo '</p>
 +	';
++	return null;
  }
  
  /**
-@@ -894,9 +1158,13 @@
+@@ -880,9 +1153,10 @@
+  * @param array $result Table header rows.
+  * @return array
   */
- function post_comment_meta_box( $post ) {
+-function post_comment_meta_box_thead( $result ) {
++function post_comment_meta_box_thead( mixed $result ): mixed {
+ 	unset( $result['cb'], $result['response'] );
+ 	return $result;
++	return null;
+ }
+ 
+ /**
+@@ -892,11 +1166,15 @@
+  *
+  * @param WP_Post $post Current post object.
+  */
+-function post_comment_meta_box( $post ) {
++function post_comment_meta_box( mixed $post ): mixed {
  	wp_nonce_field( 'get-comments', 'add_comment_nonce', false );
 -	?>
 -	<p class="hide-if-no-js" id="add-new-comment"><button type="button" class="button" onclick="window.commentReply && commentReply.addcomment(<?php echo $post->ID; ?>);"><?php _e( 'Add Comment' ); ?></button></p>
@@ -1141,7 +1225,7 @@
  
  	$total         = get_comments(
  		array(
-@@ -913,14 +1181,20 @@
+@@ -913,17 +1191,24 @@
  	} else {
  		$hidden = get_hidden_meta_boxes( get_current_screen() );
  		if ( ! in_array( 'commentsdiv', $hidden, true ) ) {
@@ -1168,8 +1252,16 @@
  	}
  
  	wp_comment_trashnotice();
-@@ -936,14 +1210,16 @@
- function post_slug_meta_box( $post ) {
++	return null;
+ }
+ 
+ /**
+@@ -933,17 +1218,20 @@
+  *
+  * @param WP_Post $post Current post object.
+  */
+-function post_slug_meta_box( $post ) {
++function post_slug_meta_box( mixed $post ): mixed {
  	/** This filter is documented in wp-admin/edit-tag-form.php */
  	$editable_slug = apply_filters( 'editable_slug', $post->post_name, $post );
 -	?>
@@ -1188,10 +1280,16 @@
 +echo esc_attr( $editable_slug ); ;
 +echo '" />
 +	';
++	return null;
  }
  
  /**
-@@ -959,14 +1235,14 @@
+@@ -955,18 +1243,18 @@
+  *
+  * @param WP_Post $post Current post object.
+  */
+-function post_author_meta_box( $post ) {
++function post_author_meta_box( mixed $post ): mixed {
  	global $user_ID;
  
  	$post_type_object = get_post_type_object( $post->post_type );
@@ -1212,7 +1310,35 @@
  	wp_dropdown_users(
  		array(
  			'capability'       => array( $post_type_object->cap->edit_posts ),
-@@ -1025,18 +1301,23 @@
+@@ -976,6 +1264,7 @@
+ 			'show'             => 'display_name_with_login',
+ 		)
+ 	);
++	return null;
+ }
+ 
+ /**
+@@ -985,8 +1274,9 @@
+  *
+  * @param WP_Post $post Current post object.
+  */
+-function post_revisions_meta_box( $post ) {
++function post_revisions_meta_box( mixed $post ): mixed {
+ 	wp_list_post_revisions( $post );
++	return null;
+ }
+ 
+ //
+@@ -1000,7 +1290,7 @@
+  *
+  * @param WP_Post $post Current post object.
+  */
+-function page_attributes_meta_box( $post ) {
++function page_attributes_meta_box( mixed $post ): mixed {
+ 	if ( is_post_type_hierarchical( $post->post_type ) ) :
+ 		$dropdown_args = array(
+ 			'post_type'        => $post->post_type,
+@@ -1025,18 +1315,23 @@
  		$dropdown_args = apply_filters( 'page_attributes_dropdown_pages_args', $dropdown_args, $post );
  		$pages         = wp_dropdown_pages( $dropdown_args );
  		if ( ! empty( $pages ) ) :
@@ -1243,7 +1369,7 @@
  		/**
  		 * Fires immediately after the label inside the 'Template' section
  		 * of the 'Page Attributes' meta box.
-@@ -1047,10 +1328,10 @@
+@@ -1047,10 +1342,10 @@
  		 * @param WP_Post      $post     The current post.
  		 */
  		do_action( 'page_attributes_meta_box_template', $template, $post );
@@ -1257,7 +1383,7 @@
  		/**
  		 * Filters the title of the default page template displayed in the drop-down.
  		 *
-@@ -1061,15 +1342,24 @@
+@@ -1061,15 +1356,24 @@
  		 *                        include 'meta-box' or 'quick-edit'.
  		 */
  		$default_title = apply_filters( 'default_page_template_title', __( 'Default template' ), 'meta-box' );
@@ -1291,7 +1417,7 @@
  		/**
  		 * Fires before the help hint text in the 'Page Attributes' meta box.
  		 *
-@@ -1078,10 +1368,13 @@
+@@ -1078,12 +1382,16 @@
  		 * @param WP_Post $post The current post.
  		 */
  		do_action( 'page_attributes_misc_attributes', $post );
@@ -1308,13 +1434,18 @@
 +			';
  	endif;
  	endif;
++	return null;
  }
-@@ -1098,40 +1391,52 @@
+ 
+ //
+@@ -1097,41 +1405,53 @@
+  *
   * @param object $link Current link object.
   */
- function link_submit_meta_box( $link ) {
+-function link_submit_meta_box( $link ) {
 -	?>
 -<div class="submitbox" id="submitlink">
++function link_submit_meta_box( mixed $link ): mixed {
 +	;
 +echo '<div class="submitbox" id="submitlink">
  
@@ -1377,7 +1508,7 @@
  	if ( ! empty( $_GET['action'] ) && 'edit' === $_GET['action'] && current_user_can( 'manage_links' ) ) {
  		printf(
  			'<a class="submitdelete deletion" href="%s" onclick="return confirm( \'%s\' );">%s</a>',
-@@ -1141,29 +1446,36 @@
+@@ -1141,29 +1461,37 @@
  			__( 'Delete' )
  		);
  	}
@@ -1423,15 +1554,18 @@
  </div>
 -	<?php
 +	';
++	return null;
  }
  
  /**
-@@ -1174,48 +1486,60 @@
+@@ -1173,49 +1501,62 @@
+  *
   * @param object $link Current link object.
   */
- function link_categories_meta_box( $link ) {
+-function link_categories_meta_box( $link ) {
 -	?>
 -<div id="taxonomy-linkcategory" class="categorydiv">
++function link_categories_meta_box( mixed $link ): mixed {
 +	;
 +echo '<div id="taxonomy-linkcategory" class="categorydiv">
  	<ul id="category-tabs" class="category-tabs" role="tablist">
@@ -1502,15 +1636,20 @@
  </div>
 -	<?php
 +	';
++	return null;
  }
  
  /**
-@@ -1227,20 +1551,36 @@
+@@ -1225,22 +1566,39 @@
+  *
+  * @param object $link Current link object.
   */
- function link_target_meta_box( $link ) {
- 
+-function link_target_meta_box( $link ) {
+-
 -	?>
 -<fieldset><legend class="screen-reader-text"><span><?php _e( 'Target' ); ?></span></legend>
++function link_target_meta_box( mixed $link ): mixed {
++
 +	;
 +echo '<fieldset><legend class="screen-reader-text"><span>';
 +_e( 'Target' ); ;
@@ -1549,15 +1688,67 @@
 +_e( 'Choose the target frame for your link.' ); ;
 +echo '</p>
 +	';
++	return null;
  }
  
  /**
-@@ -1310,128 +1650,233 @@
+@@ -1258,7 +1616,7 @@
+  *                                 Default empty string.
+  * @param mixed  $deprecated       Deprecated. Not used.
+  */
+-function xfn_check( $xfn_relationship, $xfn_value = '', $deprecated = '' ) {
++function xfn_check( mixed $xfn_relationship, mixed $xfn_value = '', mixed $deprecated = '' ): mixed {
+ 	global $link;
+ 
+ 	if ( ! empty( $deprecated ) ) {
+@@ -1266,7 +1624,7 @@
+ 	}
+ 
+ 	$link_rel  = $link->link_rel ?? '';
+-	$link_rels = preg_split( '/\s+/', $link_rel );
++	$link_rels = \wp_aot_preg_split( '/\s+/', \wp_aot_regex_text( $link_rel ) );
+ 
+ 	// Mark the specified value as checked if it matches the current link's relationship.
+ 	if ( '' !== $xfn_value && in_array( $xfn_value, $link_rels, true ) ) {
+@@ -1276,19 +1634,19 @@
+ 	if ( '' === $xfn_value ) {
+ 		// Mark the 'none' value as checked if the current link does not match the specified relationship.
+ 		if ( 'family' === $xfn_relationship
+-			&& ! array_intersect( $link_rels, array( 'child', 'parent', 'sibling', 'spouse', 'kin' ) )
++			&& ! \wp_aot_array_intersect(array( $link_rels, array( 'child', 'parent', 'sibling', 'spouse', 'kin' ) ))
+ 		) {
+ 			echo ' checked="checked"';
+ 		}
+ 
+ 		if ( 'friendship' === $xfn_relationship
+-			&& ! array_intersect( $link_rels, array( 'friend', 'acquaintance', 'contact' ) )
++			&& ! \wp_aot_array_intersect(array( $link_rels, array( 'friend', 'acquaintance', 'contact' ) ))
+ 		) {
+ 			echo ' checked="checked"';
+ 		}
+ 
+ 		if ( 'geographical' === $xfn_relationship
+-			&& ! array_intersect( $link_rels, array( 'co-resident', 'neighbor' ) )
++			&& ! \wp_aot_array_intersect(array( $link_rels, array( 'co-resident', 'neighbor' ) ))
+ 		) {
+ 			echo ' checked="checked"';
+ 		}
+@@ -1300,6 +1658,7 @@
+ 			echo ' checked="checked"';
+ 		}
+ 	}
++	return null;
+ }
+ 
+ /**
+@@ -1309,129 +1668,235 @@
+  *
   * @param object $link Current link object.
   */
- function link_xfn_meta_box( $link ) {
+-function link_xfn_meta_box( $link ) {
 -	?>
 -<table class="links-table">
++function link_xfn_meta_box( mixed $link ): mixed {
 +	;
 +echo '<table class="links-table">
  	<tr>
@@ -1859,15 +2050,18 @@
 +_e( 'If the link is to a person, you can specify your relationship with them using the above form. If you would like to learn more about the idea check out <a href="https://gmpg.org/xfn/">XFN</a>.' ); ;
 +echo '</p>
 +	';
++	return null;
  }
  
  /**
-@@ -1442,31 +1887,43 @@
+@@ -1441,32 +1906,44 @@
+  *
   * @param object $link Current link object.
   */
- function link_advanced_meta_box( $link ) {
+-function link_advanced_meta_box( $link ) {
 -	?>
 -<table class="links-table" cellpadding="0">
++function link_advanced_meta_box( mixed $link ): mixed {
 +	;
 +echo '<table class="links-table" cellpadding="0">
  	<tr>
@@ -1918,7 +2112,7 @@
  		for ( $rating = 0; $rating <= 10; $rating++ ) {
  			echo '<option value="' . $rating . '"';
  			if ( isset( $link->link_rating ) && $link->link_rating === $rating ) {
-@@ -1474,12 +1931,13 @@
+@@ -1474,12 +1951,14 @@
  			}
  			echo '>' . $rating . '</option>';
  		}
@@ -1933,10 +2127,32 @@
  </table>
 -	<?php
 +	';
++	return null;
  }
  
  /**
-@@ -1512,12 +1970,20 @@
+@@ -1489,9 +1968,10 @@
+  *
+  * @param WP_Post $post Current post object.
+  */
+-function post_thumbnail_meta_box( $post ) {
++function post_thumbnail_meta_box( mixed $post ): mixed {
+ 	$thumbnail_id = get_post_meta( $post->ID, '_thumbnail_id', true );
+ 	echo _wp_post_thumbnail_html( $thumbnail_id, $post->ID );
++	return null;
+ }
+ 
+ /**
+@@ -1501,7 +1981,7 @@
+  *
+  * @param WP_Post $post Current post object.
+  */
+-function attachment_id3_data_meta_box( $post ) {
++function attachment_id3_data_meta_box( mixed $post ): mixed {
+ 	$meta = array();
+ 	if ( ! empty( $post->ID ) ) {
+ 		$meta = wp_get_attachment_metadata( $post->ID );
+@@ -1512,13 +1992,22 @@
  		if ( ! empty( $meta[ $key ] ) ) {
  			$value = $meta[ $key ];
  		}
@@ -1960,5 +2176,23 @@
 -		<?php
 +		';
  	endforeach;
++	return null;
  }
  
+ /**
+@@ -1528,7 +2017,7 @@
+  *
+  * @param WP_Post $post The post object that these meta boxes are being generated for.
+  */
+-function register_and_do_post_meta_boxes( $post ) {
++function register_and_do_post_meta_boxes( mixed $post ): mixed {
+ 	$post_type        = $post->post_type;
+ 	$post_type_object = get_post_type_object( $post_type );
+ 
+@@ -1730,4 +2219,5 @@
+ 	do_action( 'do_meta_boxes', $post_type, 'advanced', $post );
+ 	/** This action is documented in wp-admin/includes/meta-boxes.php */
+ 	do_action( 'do_meta_boxes', $post_type, 'side', $post );
+-}
++	return null;
++}

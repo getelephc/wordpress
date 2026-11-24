@@ -1,8 +1,54 @@
 --- a/wp-admin/includes/plugin-install.php
 +++ b/wp-admin/includes/plugin-install.php
-@@ -263,12 +263,16 @@
+@@ -97,7 +97,7 @@
+  *         {@link https://developer.wordpress.org/reference/functions/plugins_api/ function reference article}
+  *         for more information on the make-up of possible return values depending on the value of `$action`.
   */
- function install_dashboard() {
+-function plugins_api( $action, $args = array() ) {
++function plugins_api( mixed $action, mixed $args = array() ): mixed {
+ 	if ( is_array( $args ) ) {
+ 		$args = (object) $args;
+ 	}
+@@ -176,7 +176,7 @@
+ 						__( 'An unexpected error occurred. Something may be wrong with WordPress.org or this server&#8217;s configuration. If you continue to have problems, please try the <a href="%s">support forums</a>.' ),
+ 						__( 'https://wordpress.org/support/forums/' )
+ 					) . ' ' . __( '(WordPress could not establish a secure connection to WordPress.org. Please contact your server administrator.)' ),
+-					headers_sent() || WP_DEBUG ? E_USER_WARNING : E_USER_NOTICE
++					\wp_aot_native_headers_sent() || WP_DEBUG ? E_USER_WARNING : E_USER_NOTICE
+ 				);
+ 			}
+ 
+@@ -228,6 +228,7 @@
+ 	 * @param object          $args   Plugin API arguments.
+ 	 */
+ 	return apply_filters( 'plugins_api_result', $res, $action, $args );
++	return null;
+ }
+ 
+ /**
+@@ -238,7 +239,7 @@
+  * @param array $args
+  * @return array|WP_Error
+  */
+-function install_popular_tags( $args = array() ) {
++function install_popular_tags( mixed $args = array() ): mixed {
+ 	$key  = md5( serialize( $args ) );
+ 	$tags = get_site_transient( 'poptags_' . $key );
+ 	if ( false !== $tags ) {
+@@ -254,6 +255,7 @@
+ 	set_site_transient( 'poptags_' . $key, $tags, 3 * HOUR_IN_SECONDS );
+ 
+ 	return $tags;
++	return null;
+ }
+ 
+ /**
+@@ -261,14 +263,18 @@
+  *
+  * @since 2.7.0
+  */
+-function install_dashboard() {
++function install_dashboard(): mixed {
  	display_plugins_table();
 -	?>
 -
@@ -22,8 +68,20 @@
  
  	$api_tags = install_popular_tags();
  
-@@ -313,25 +317,42 @@
- function install_search_form( $deprecated = true ) {
+@@ -300,6 +306,7 @@
+ 		);
+ 	}
+ 	echo '</p><br class="clear" /></div>';
++	return null;
+ }
+ 
+ /**
+@@ -310,28 +317,46 @@
+  *
+  * @param bool $deprecated Not used.
+  */
+-function install_search_form( $deprecated = true ) {
++function install_search_form( mixed $deprecated = true ): mixed {
  	$type = isset( $_REQUEST['type'] ) ? wp_unslash( $_REQUEST['type'] ) : 'term';
  	$term = isset( $_REQUEST['s'] ) ? urldecode( wp_unslash( $_REQUEST['s'] ) ) : '';
 -	?>
@@ -75,13 +133,15 @@
 +submit_button( __( 'Search Plugins' ), 'hide-if-js', false, false, array( 'id' => 'search-submit' ) ); ;
 +echo '	</form>
 +	';
++	return null;
  }
  
  /**
-@@ -340,22 +361,28 @@
+@@ -339,23 +364,30 @@
+  *
   * @since 2.8.0
   */
- function install_plugins_upload() {
+-function install_plugins_upload() {
 -	?>
 -<div class="upload-plugin">
 -	<p class="install-help"><?php _e( 'If you have a plugin in a .zip format, you may install or update it by uploading it here.' ); ?></p>
@@ -89,6 +149,7 @@
 -		<?php wp_nonce_field( 'plugin-upload' ); ?>
 -		<label class="screen-reader-text" for="pluginzip">
 -			<?php
++function install_plugins_upload(): mixed {
 +	;
 +echo '<div class="upload-plugin">
 +	<p class="install-help">';
@@ -116,11 +177,16 @@
  </div>
 -	<?php
 +	';
++	return null;
  }
  
  /**
-@@ -366,18 +393,28 @@
- function install_plugins_favorites_form() {
+@@ -363,21 +395,32 @@
+  *
+  * @since 3.5.0
+  */
+-function install_plugins_favorites_form() {
++function install_plugins_favorites_form(): mixed {
  	$user   = get_user_option( 'wporg_favorites' );
  	$action = 'save_wporg_username_' . get_current_user_id();
 -	?>
@@ -152,10 +218,25 @@
  	</form>
 -	<?php
 +	';
++	return null;
  }
  
  /**
-@@ -410,11 +447,12 @@
+@@ -387,7 +430,7 @@
+  *
+  * @global WP_List_Table $wp_list_table
+  */
+-function display_plugins_table() {
++function display_plugins_table(): mixed {
+ 	global $wp_list_table;
+ 
+ 	switch ( current_filter() ) {
+@@ -406,15 +449,17 @@
+ 			break;
+ 		case 'install_plugins_favorites':
+ 			if ( empty( $_GET['user'] ) && ! get_user_option( 'wporg_favorites' ) ) {
+-				return;
++				return null;
  			}
  			break;
  	}
@@ -170,10 +251,44 @@
 +$wp_list_table->display(); ;
 +echo '	</form>
 +	';
++	return null;
  }
  
  /**
-@@ -605,18 +643,22 @@
+@@ -433,7 +478,7 @@
+  *     @type string $file    Plugin filename relative to the plugins directory.
+  * }
+  */
+-function install_plugin_install_status( $api, $loop = false ) {
++function install_plugin_install_status( mixed $api, mixed $loop = false ): mixed {
+ 	// This function is called recursively, $loop prevents further loops.
+ 	if ( is_array( $api ) ) {
+ 		$api = (object) $api;
+@@ -506,7 +551,8 @@
+ 	}
+ 
+ 	$file = $update_file;
+-	return compact( 'status', 'url', 'version', 'file' );
++	return \wp_aot_compact(get_defined_vars(), array( 'status', 'url', 'version', 'file' ));
++	return null;
+ }
+ 
+ /**
+@@ -516,11 +562,11 @@
+  *
+  * @global string $tab
+  */
+-function install_plugin_information() {
++function install_plugin_information(): mixed {
+ 	global $tab;
+ 
+ 	if ( empty( $_REQUEST['plugin'] ) ) {
+-		return;
++		return null;
+ 	}
+ 
+ 	$api = plugins_api(
+@@ -605,18 +651,22 @@
  		$_with_banner = 'with-banner';
  		$low          = empty( $api->banners['low'] ) ? $api->banners['high'] : $api->banners['low'];
  		$high         = empty( $api->banners['high'] ) ? $api->banners['low'] : $api->banners['high'];
@@ -201,7 +316,16 @@
  	}
  
  	echo '<div id="plugin-information-scrollable">';
-@@ -648,42 +690,73 @@
+@@ -631,7 +681,7 @@
+ 		if ( isset( $plugins_section_titles[ $section_name ] ) ) {
+ 			$title = $plugins_section_titles[ $section_name ];
+ 		} else {
+-			$title = ucwords( str_replace( '_', ' ', $section_name ) );
++			$title = ucwords( \wp_aot_str_replace( '_', ' ', $section_name ) );
+ 		}
+ 
+ 		$class       = ( $section_name === $section ) ? ' class="current"' : '';
+@@ -648,42 +698,73 @@
  
  	echo "</div>\n";
  
@@ -303,7 +427,7 @@
  				if ( $api->active_installs >= 1000000 ) {
  					$active_installs_millions = floor( $api->active_installs / 1000000 );
  					printf(
-@@ -696,19 +769,38 @@
+@@ -696,19 +777,38 @@
  				} else {
  					echo number_format_i18n( $api->active_installs ) . '+';
  				}
@@ -355,7 +479,7 @@
  			wp_star_rating(
  				array(
  					'rating' => $api->rating,
-@@ -716,24 +808,28 @@
+@@ -716,24 +816,28 @@
  					'number' => $api->num_ratings,
  				)
  			);
@@ -394,7 +518,7 @@
  			foreach ( $api->ratings as $key => $ratecount ) {
  				// Avoid div-by-zero.
  				$_rating    = $api->num_ratings ? ( $ratecount / $api->num_ratings ) : 0;
-@@ -749,10 +845,10 @@
+@@ -749,10 +853,10 @@
  						number_format_i18n( $ratecount )
  					)
  				);
@@ -408,7 +532,7 @@
  							printf(
  								'<a href="%s" target="_blank" aria-label="%s">%s</a>',
  								"https://wordpress.org/support/plugin/{$api->slug}/reviews/?filter={$key}",
-@@ -760,21 +856,27 @@
+@@ -760,21 +864,27 @@
  								/* translators: %s: Number of stars. */
  								sprintf( _n( '%d star', '%d stars', $key ), $key )
  							);
@@ -445,7 +569,7 @@
  				foreach ( (array) $api->contributors as $contrib_username => $contrib_details ) {
  					$contrib_name = $contrib_details['display_name'];
  					if ( ! $contrib_name ) {
-@@ -787,15 +889,22 @@
+@@ -787,15 +897,22 @@
  
  					echo "<li><a href='{$contrib_profile}' target='_blank'><img src='{$contrib_avatar}' width='18' height='18' alt='' />{$contrib_name}</a></li>";
  				}
@@ -476,3 +600,41 @@
  	$requires_php = $api->requires_php ?? null;
  	$requires_wp  = $api->requires ?? null;
  
+@@ -872,10 +989,10 @@
+ 	echo "<div id='$tab-footer'>\n";
+ 	if ( ! empty( $api->download_link ) && ( current_user_can( 'install_plugins' ) || current_user_can( 'update_plugins' ) ) ) {
+ 		$button = wp_get_plugin_action_button( $api->name, $api, $compatible_php, $compatible_wp );
+-		$button = str_replace( 'class="', 'class="right ', $button );
++		$button = \wp_aot_str_replace( 'class="', 'class="right ', $button );
+ 
+ 		if ( ! str_contains( $button, _x( 'Activate', 'plugin' ) ) ) {
+-			$button = str_replace( 'class="', 'id="plugin_install_from_iframe" class="', $button );
++			$button = \wp_aot_str_replace( 'class="', 'id="plugin_install_from_iframe" class="', $button );
+ 		}
+ 
+ 		echo wp_kses_post( $button );
+@@ -886,7 +1003,8 @@
+ 	wp_print_admin_notice_templates();
+ 
+ 	iframe_footer();
+-	exit;
++	\wp_aot_exit();
++	return null;
+ }
+ 
+ /**
+@@ -906,7 +1024,7 @@
+  * @param bool         $compatible_wp    The result of a WP compatibility check.
+  * @return string The markup for the dependency row button. An empty string if the user does not have capabilities.
+  */
+-function wp_get_plugin_action_button( $name, $data, $compatible_php, $compatible_wp ) {
++function wp_get_plugin_action_button( mixed $name, mixed $data, mixed $compatible_php, mixed $compatible_wp ): mixed {
+ 	$button           = '';
+ 	$data             = (object) $data;
+ 	$status           = install_plugin_install_status( $data );
+@@ -1033,4 +1151,5 @@
+ 	}
+ 
+ 	return $button;
++	return null;
+ }

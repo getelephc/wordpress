@@ -1,0 +1,281 @@
+--- a/wp-includes/rest-api/endpoints/class-wp-rest-menus-controller.php
++++ b/wp-includes/rest-api/endpoints/class-wp-rest-menus-controller.php
+@@ -24,7 +24,7 @@
+ 	 * @param WP_REST_Request $request Full details about the request.
+ 	 * @return bool|WP_Error True if the request has read access, otherwise false or WP_Error object.
+ 	 */
+-	public function get_items_permissions_check( $request ) {
++	public function get_items_permissions_check( mixed $request ): mixed {
+ 		$has_permission = parent::get_items_permissions_check( $request );
+ 
+ 		if ( true !== $has_permission ) {
+@@ -32,6 +32,7 @@
+ 		}
+ 
+ 		return $this->check_has_read_only_access( $request );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -42,7 +43,7 @@
+ 	 * @param WP_REST_Request $request Full details about the request.
+ 	 * @return true|WP_Error True if the request has read access for the item, otherwise WP_Error object.
+ 	 */
+-	public function get_item_permissions_check( $request ) {
++	public function get_item_permissions_check( mixed $request ): mixed {
+ 		$has_permission = parent::get_item_permissions_check( $request );
+ 
+ 		if ( true !== $has_permission ) {
+@@ -50,6 +51,7 @@
+ 		}
+ 
+ 		return $this->check_has_read_only_access( $request );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -60,7 +62,7 @@
+ 	 * @param int $id Supplied ID.
+ 	 * @return WP_Term|WP_Error Term object if ID is valid, WP_Error otherwise.
+ 	 */
+-	protected function get_term( $id ) {
++	protected function get_term( mixed $id ): mixed {
+ 		$term = parent::get_term( $id );
+ 
+ 		if ( is_wp_error( $term ) ) {
+@@ -71,6 +73,7 @@
+ 		$nav_term->auto_add = $this->get_menu_auto_add( $nav_term->term_id );
+ 
+ 		return $nav_term;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -83,7 +86,7 @@
+ 	 * @param WP_REST_Request $request Full details about the request.
+ 	 * @return true|WP_Error True if the current user has permission, WP_Error object otherwise.
+ 	 */
+-	protected function check_has_read_only_access( $request ) {
++	protected function check_has_read_only_access( mixed $request ): mixed {
+ 		/** This filter is documented in wp-includes/rest-api/endpoints/class-wp-rest-menu-items-controller.php */
+ 		$read_only_access = apply_filters( 'rest_menu_read_access', false, $request, $this );
+ 		if ( $read_only_access ) {
+@@ -109,6 +112,7 @@
+ 			__( 'Sorry, you are not allowed to view menus.' ),
+ 			array( 'status' => rest_authorization_required_code() )
+ 		);
++		return null;
+ 	}
+ 
+ 	/**
+@@ -120,7 +124,7 @@
+ 	 * @param WP_REST_Request $request Request object.
+ 	 * @return WP_REST_Response Response object.
+ 	 */
+-	public function prepare_item_for_response( $term, $request ) {
++	public function prepare_item_for_response( mixed $term, mixed $request ): mixed {
+ 		$nav_menu = wp_get_nav_menu_object( $term );
+ 		$response = parent::prepare_item_for_response( $nav_menu, $request );
+ 
+@@ -147,6 +151,7 @@
+ 
+ 		/** This action is documented in wp-includes/rest-api/endpoints/class-wp-rest-terms-controller.php */
+ 		return apply_filters( "rest_prepare_{$this->taxonomy}", $response, $term, $request );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -157,7 +162,7 @@
+ 	 * @param WP_Term $term Term object.
+ 	 * @return array Links for the given term.
+ 	 */
+-	protected function prepare_links( $term ) {
++	protected function prepare_links( mixed $term ): mixed {
+ 		$links = parent::prepare_links( $term );
+ 
+ 		$locations = $this->get_menu_locations( $term->term_id );
+@@ -171,6 +176,7 @@
+ 		}
+ 
+ 		return $links;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -181,7 +187,7 @@
+ 	 * @param WP_REST_Request $request Request object.
+ 	 * @return object Prepared term data.
+ 	 */
+-	public function prepare_item_for_database( $request ) {
++	public function prepare_item_for_database( mixed $request ): mixed {
+ 		$prepared_term = parent::prepare_item_for_database( $request );
+ 
+ 		$schema = $this->get_item_schema();
+@@ -191,6 +197,7 @@
+ 		}
+ 
+ 		return $prepared_term;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -201,7 +208,7 @@
+ 	 * @param WP_REST_Request $request Full details about the request.
+ 	 * @return WP_REST_Response|WP_Error Response object on success, or WP_Error object on failure.
+ 	 */
+-	public function create_item( $request ) {
++	public function create_item( mixed $request ): mixed {
+ 		if ( isset( $request['parent'] ) ) {
+ 			if ( ! is_taxonomy_hierarchical( $this->taxonomy ) ) {
+ 				return new WP_Error( 'rest_taxonomy_not_hierarchical', __( 'Cannot set parent term, taxonomy is not hierarchical.' ), array( 'status' => 400 ) );
+@@ -280,6 +287,7 @@
+ 		$response->header( 'Location', rest_url( $this->namespace . '/' . $this->rest_base . '/' . $term->term_id ) );
+ 
+ 		return $response;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -290,7 +298,7 @@
+ 	 * @param WP_REST_Request $request Full details about the request.
+ 	 * @return WP_REST_Response|WP_Error Response object on success, or WP_Error object on failure.
+ 	 */
+-	public function update_item( $request ) {
++	public function update_item( mixed $request ): mixed {
+ 		$term = $this->get_term( $request['id'] );
+ 		if ( is_wp_error( $term ) ) {
+ 			return $term;
+@@ -360,6 +368,7 @@
+ 		$response = $this->prepare_item_for_response( $term, $request );
+ 
+ 		return rest_ensure_response( $response );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -370,7 +379,7 @@
+ 	 * @param WP_REST_Request $request Full details about the request.
+ 	 * @return WP_REST_Response|WP_Error Response object on success, or WP_Error object on failure.
+ 	 */
+-	public function delete_item( $request ) {
++	public function delete_item( mixed $request ): mixed {
+ 		$term = $this->get_term( $request['id'] );
+ 		if ( is_wp_error( $term ) ) {
+ 			return $term;
+@@ -404,6 +413,7 @@
+ 		do_action( "rest_delete_{$this->taxonomy}", $term, $response, $request );
+ 
+ 		return $response;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -414,10 +424,11 @@
+ 	 * @param int $menu_id The menu id to query.
+ 	 * @return bool The value of auto_add.
+ 	 */
+-	protected function get_menu_auto_add( $menu_id ) {
++	protected function get_menu_auto_add( mixed $menu_id ): mixed {
+ 		$nav_menu_option = (array) get_option( 'nav_menu_options', array( 'auto_add' => array() ) );
+ 
+ 		return in_array( $menu_id, $nav_menu_option['auto_add'], true );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -429,7 +440,7 @@
+ 	 * @param WP_REST_Request $request Full details about the request.
+ 	 * @return bool True if the auto add setting was successfully updated.
+ 	 */
+-	protected function handle_auto_add( $menu_id, $request ) {
++	protected function handle_auto_add( mixed $menu_id, mixed $request ): mixed {
+ 		if ( ! isset( $request['auto_add'] ) ) {
+ 			return true;
+ 		}
+@@ -442,12 +453,12 @@
+ 
+ 		$auto_add = $request['auto_add'];
+ 
+-		$i = array_search( $menu_id, $nav_menu_option['auto_add'], true );
++		$i = \wp_aot_array_search( $menu_id, $nav_menu_option['auto_add'], true );
+ 
+ 		if ( $auto_add && false === $i ) {
+ 			$nav_menu_option['auto_add'][] = $menu_id;
+ 		} elseif ( ! $auto_add && false !== $i ) {
+-			array_splice( $nav_menu_option['auto_add'], $i, 1 );
++			\wp_aot_array_splice_values( $nav_menu_option['auto_add'], $i, 1 );
+ 		}
+ 
+ 		$update = update_option( 'nav_menu_options', $nav_menu_option );
+@@ -456,6 +467,7 @@
+ 		do_action( 'wp_update_nav_menu', $menu_id, array() );
+ 
+ 		return $update;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -466,7 +478,7 @@
+ 	 * @param int $menu_id The menu id.
+ 	 * @return string[] The locations assigned to the menu.
+ 	 */
+-	protected function get_menu_locations( $menu_id ) {
++	protected function get_menu_locations( mixed $menu_id ): mixed {
+ 		$locations      = get_nav_menu_locations();
+ 		$menu_locations = array();
+ 
+@@ -477,6 +489,7 @@
+ 		}
+ 
+ 		return $menu_locations;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -488,7 +501,7 @@
+ 	 * @param WP_REST_Request $request Full details about the request.
+ 	 * @return true|WP_Error True on success, a WP_Error on an error updating any of the locations.
+ 	 */
+-	protected function handle_locations( $menu_id, $request ) {
++	protected function handle_locations( mixed $menu_id, mixed $request ): mixed {
+ 		if ( ! isset( $request['locations'] ) ) {
+ 			return true;
+ 		}
+@@ -515,10 +528,11 @@
+ 				unset( $assigned_menu[ $location ] );
+ 			}
+ 		}
+-		$new_assignments = array_merge( $assigned_menu, $new_locations );
++		$new_assignments = \wp_aot_array_merge(array( $assigned_menu, $new_locations ));
+ 		set_theme_mod( 'nav_menu_locations', $new_assignments );
+ 
+ 		return true;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -528,7 +542,7 @@
+ 	 *
+ 	 * @return array Item schema data.
+ 	 */
+-	public function get_item_schema() {
++	public function get_item_schema(): mixed {
+ 		if ( $this->schema ) {
+ 			return $this->add_additional_fields_schema( $this->schema );
+ 		}
+@@ -544,7 +558,7 @@
+ 			),
+ 			'context'     => array( 'view', 'edit' ),
+ 			'arg_options' => array(
+-				'validate_callback' => static function ( $locations, $request, $param ) {
++				'validate_callback' => static function ( mixed $locations, mixed $request, mixed $param ) {
+ 					$valid = rest_validate_request_arg( $locations, $request, $param );
+ 
+ 					if ( true !== $valid ) {
+@@ -579,5 +593,6 @@
+ 		$this->schema = $schema;
+ 
+ 		return $this->add_additional_fields_schema( $this->schema );
++		return null;
+ 	}
+ }

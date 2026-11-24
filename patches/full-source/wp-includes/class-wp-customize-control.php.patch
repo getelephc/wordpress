@@ -1,6 +1,216 @@
 --- a/wp-includes/class-wp-customize-control.php
 +++ b/wp-includes/class-wp-customize-control.php
-@@ -496,22 +496,39 @@
+@@ -9,7 +9,7 @@
+ 
+ // Don't load directly.
+ if ( ! defined( 'ABSPATH' ) ) {
+-	exit;
++	\wp_aot_exit();
+ }
+ 
+ /**
+@@ -213,7 +213,7 @@
+ 	 *     @type callable             $active_callback Active callback.
+ 	 * }
+ 	 */
+-	public function __construct( $manager, $id, $args = array() ) {
++	public function __construct( mixed $manager, mixed $id, mixed $args = array() ) {
+ 		$keys = array_keys( get_object_vars( $this ) );
+ 		foreach ( $keys as $key ) {
+ 			if ( isset( $args[ $key ] ) ) {
+@@ -251,7 +251,7 @@
+ 	 *
+ 	 * @since 3.4.0
+ 	 */
+-	public function enqueue() {}
++	public function enqueue(): mixed { return null; }
+ 
+ 	/**
+ 	 * Checks whether control is active to current Customizer preview.
+@@ -260,7 +260,7 @@
+ 	 *
+ 	 * @return bool Whether the control is active to the current preview.
+ 	 */
+-	final public function active() {
++	final public function active(): mixed {
+ 		$control = $this;
+ 		$active  = call_user_func( $this->active_callback, $this );
+ 
+@@ -275,6 +275,7 @@
+ 		$active = apply_filters( 'customize_control_active', $active, $control );
+ 
+ 		return $active;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -287,8 +288,9 @@
+ 	 *
+ 	 * @return true Always true.
+ 	 */
+-	public function active_callback() {
++	public function active_callback(): mixed {
+ 		return true;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -300,10 +302,11 @@
+ 	 * @param string $setting_key
+ 	 * @return mixed The requested setting's value, if the setting exists.
+ 	 */
+-	final public function value( $setting_key = 'default' ) {
++	final public function value( mixed $setting_key = 'default' ): mixed {
+ 		if ( isset( $this->settings[ $setting_key ] ) ) {
+ 			return $this->settings[ $setting_key ]->value();
+ 		}
++		return null;
+ 	}
+ 
+ 	/**
+@@ -311,7 +314,7 @@
+ 	 *
+ 	 * @since 3.4.0
+ 	 */
+-	public function to_json() {
++	public function to_json(): mixed {
+ 		$this->json['settings'] = array();
+ 		foreach ( $this->settings as $key => $setting ) {
+ 			$this->json['settings'][ $key ] = $setting->id;
+@@ -329,6 +332,7 @@
+ 		if ( 'dropdown-pages' === $this->type ) {
+ 			$this->json['allow_addition'] = $this->allow_addition;
+ 		}
++		return null;
+ 	}
+ 
+ 	/**
+@@ -338,9 +342,10 @@
+ 	 *
+ 	 * @return array Array of parameters passed to the JavaScript.
+ 	 */
+-	public function json() {
++	public function json(): mixed {
+ 		$this->to_json();
+ 		return $this->json;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -355,7 +360,7 @@
+ 	 *
+ 	 * @return bool False if theme doesn't support the control or user doesn't have the required permissions, otherwise true.
+ 	 */
+-	final public function check_capabilities() {
++	final public function check_capabilities(): mixed {
+ 		if ( ! empty( $this->capability ) && ! current_user_can( $this->capability ) ) {
+ 			return false;
+ 		}
+@@ -372,6 +377,7 @@
+ 		}
+ 
+ 		return true;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -381,10 +387,11 @@
+ 	 *
+ 	 * @return string Contents of the control.
+ 	 */
+-	final public function get_content() {
++	final public function get_content(): mixed {
+ 		ob_start();
+ 		$this->maybe_render();
+ 		return trim( ob_get_clean() );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -393,9 +400,9 @@
+ 	 * @since 3.4.0
+ 	 * @uses WP_Customize_Control::render()
+ 	 */
+-	final public function maybe_render() {
++	final public function maybe_render(): mixed {
+ 		if ( ! $this->check_capabilities() ) {
+-			return;
++			return null;
+ 		}
+ 
+ 		/**
+@@ -420,6 +427,7 @@
+ 		do_action( "customize_render_control_{$this->id}", $this );
+ 
+ 		$this->render();
++		return null;
+ 	}
+ 
+ 	/**
+@@ -427,13 +435,14 @@
+ 	 *
+ 	 * @since 3.4.0
+ 	 */
+-	protected function render() {
+-		$id    = 'customize-control-' . str_replace( array( '[', ']' ), array( '-', '' ), $this->id );
++	protected function render(): mixed {
++		$id    = 'customize-control-' . \wp_aot_str_replace( array( '[', ']' ), array( '-', '' ), $this->id );
+ 		$class = 'customize-control customize-control-' . $this->type;
+ 
+ 		printf( '<li id="%s" class="%s">', esc_attr( $id ), esc_attr( $class ) );
+ 		$this->render_content();
+ 		echo '</li>';
++		return null;
+ 	}
+ 
+ 	/**
+@@ -447,12 +456,13 @@
+ 	 *                to a pre-registered setting, and a `data-customize-setting-key-link` attribute if the setting
+ 	 *                is not yet registered.
+ 	 */
+-	public function get_link( $setting_key = 'default' ) {
++	public function get_link( mixed $setting_key = 'default' ): mixed {
+ 		if ( isset( $this->settings[ $setting_key ] ) && $this->settings[ $setting_key ] instanceof WP_Customize_Setting ) {
+ 			return 'data-customize-setting-link="' . esc_attr( $this->settings[ $setting_key ]->id ) . '"';
+ 		} else {
+ 			return 'data-customize-setting-key-link="' . esc_attr( $setting_key ) . '"';
+ 		}
++		return null;
+ 	}
+ 
+ 	/**
+@@ -463,8 +473,9 @@
+ 	 *
+ 	 * @param string $setting_key Default 'default'.
+ 	 */
+-	public function link( $setting_key = 'default' ) {
++	public function link( mixed $setting_key = 'default' ): mixed {
+ 		echo $this->get_link( $setting_key );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -472,10 +483,11 @@
+ 	 *
+ 	 * @since 4.0.0
+ 	 */
+-	public function input_attrs() {
++	public function input_attrs(): mixed {
+ 		foreach ( $this->input_attrs as $attr => $value ) {
+ 			echo $attr . '="' . esc_attr( $value ) . '" ';
+ 		}
++		return null;
+ 	}
+ 
+ 	/**
+@@ -490,110 +502,201 @@
+ 	 *
+ 	 * @since 3.4.0
+ 	 */
+-	protected function render_content() {
++	protected function render_content(): mixed {
+ 		$input_id         = '_customize-input-' . $this->id;
+ 		$description_id   = '_customize-description-' . $this->id;
  		$describedby_attr = ( ! empty( $this->description ) ) ? ' aria-describedby="' . esc_attr( $description_id ) . '" ' : '';
  		switch ( $this->type ) {
  			case 'checkbox':
@@ -55,7 +265,8 @@
  				break;
  			case 'radio':
  				if ( empty( $this->choices ) ) {
-@@ -519,81 +536,155 @@
+-					return;
++					return null;
  				}
  
  				$name = '_customize-radio-' . $this->id;
@@ -130,7 +341,8 @@
  				break;
  			case 'select':
  				if ( empty( $this->choices ) ) {
- 					return;
+-					return;
++					return null;
  				}
  
 -				?>
@@ -267,7 +479,22 @@
  				$dropdown_name     = '_customize-dropdown-pages-' . $this->id;
  				$show_option_none  = __( '&mdash; Select &mdash;' );
  				$option_none_value = '0';
-@@ -635,45 +726,82 @@
+@@ -613,7 +716,7 @@
+ 				}
+ 
+ 				// Hackily add in the data link parameter.
+-				$dropdown = str_replace( '<select', '<select ' . $this->get_link() . ' id="' . esc_attr( $input_id ) . '" ' . $describedby_attr, $dropdown );
++				$dropdown = \wp_aot_str_replace( '<select', '<select ' . $this->get_link() . ' id="' . esc_attr( $input_id ) . '" ' . $describedby_attr, $dropdown );
+ 
+ 				/*
+ 				 * Even more hackily add auto-draft page stubs.
+@@ -630,52 +733,90 @@
+ 						}
+ 					}
+ 					if ( $auto_draft_page_options ) {
+-						$dropdown = str_replace( '</select>', $auto_draft_page_options . '</select>', $dropdown );
++						$dropdown = \wp_aot_str_replace( '</select>', $auto_draft_page_options . '</select>', $dropdown );
+ 					}
  				}
  
  				echo $dropdown;
@@ -379,16 +606,21 @@
 +				';
  				break;
  		}
++		return null;
  	}
-@@ -690,11 +818,14 @@
+ 
+ 	/**
+@@ -689,12 +830,16 @@
+ 	 *
  	 * @since 4.1.0
  	 */
- 	final public function print_template() {
+-	final public function print_template() {
 -		?>
 -		<script type="text/html" id="tmpl-customize-control-<?php echo esc_attr( $this->type ); ?>-content">
 -			<?php $this->content_template(); ?>
 -		</script>
 -		<?php
++	final public function print_template(): mixed {
 +		;
 +echo '		<script type="text/html" id="tmpl-customize-control-';
 +echo esc_attr( $this->type ); ;
@@ -397,6 +629,137 @@
 +$this->content_template(); ;
 +echo '		</script>
 +		';
++		return null;
  	}
  
  	/**
+@@ -707,83 +852,83 @@
+ 	 *
+ 	 * @since 4.1.0
+ 	 */
+-	protected function content_template() {}
++	protected function content_template(): mixed { return null; }
+ }
+ 
+ /**
+  * WP_Customize_Color_Control class.
+  */
+-require_once ABSPATH . WPINC . '/customize/class-wp-customize-color-control.php';
++require_once __DIR__ . '/customize/class-wp-customize-color-control.php';
+ 
+ /**
+  * WP_Customize_Media_Control class.
+  */
+-require_once ABSPATH . WPINC . '/customize/class-wp-customize-media-control.php';
++require_once __DIR__ . '/customize/class-wp-customize-media-control.php';
+ 
+ /**
+  * WP_Customize_Upload_Control class.
+  */
+-require_once ABSPATH . WPINC . '/customize/class-wp-customize-upload-control.php';
++require_once __DIR__ . '/customize/class-wp-customize-upload-control.php';
+ 
+ /**
+  * WP_Customize_Image_Control class.
+  */
+-require_once ABSPATH . WPINC . '/customize/class-wp-customize-image-control.php';
++require_once __DIR__ . '/customize/class-wp-customize-image-control.php';
+ 
+ /**
+  * WP_Customize_Background_Image_Control class.
+  */
+-require_once ABSPATH . WPINC . '/customize/class-wp-customize-background-image-control.php';
++require_once __DIR__ . '/customize/class-wp-customize-background-image-control.php';
+ 
+ /**
+  * WP_Customize_Background_Position_Control class.
+  */
+-require_once ABSPATH . WPINC . '/customize/class-wp-customize-background-position-control.php';
++require_once __DIR__ . '/customize/class-wp-customize-background-position-control.php';
+ 
+ /**
+  * WP_Customize_Cropped_Image_Control class.
+  */
+-require_once ABSPATH . WPINC . '/customize/class-wp-customize-cropped-image-control.php';
++require_once __DIR__ . '/customize/class-wp-customize-cropped-image-control.php';
+ 
+ /**
+  * WP_Customize_Site_Icon_Control class.
+  */
+-require_once ABSPATH . WPINC . '/customize/class-wp-customize-site-icon-control.php';
++require_once __DIR__ . '/customize/class-wp-customize-site-icon-control.php';
+ 
+ /**
+  * WP_Customize_Header_Image_Control class.
+  */
+-require_once ABSPATH . WPINC . '/customize/class-wp-customize-header-image-control.php';
++require_once __DIR__ . '/customize/class-wp-customize-header-image-control.php';
+ 
+ /**
+  * WP_Customize_Theme_Control class.
+  */
+-require_once ABSPATH . WPINC . '/customize/class-wp-customize-theme-control.php';
++require_once __DIR__ . '/customize/class-wp-customize-theme-control.php';
+ 
+ /**
+  * WP_Widget_Area_Customize_Control class.
+  */
+-require_once ABSPATH . WPINC . '/customize/class-wp-widget-area-customize-control.php';
++require_once __DIR__ . '/customize/class-wp-widget-area-customize-control.php';
+ 
+ /**
+  * WP_Widget_Form_Customize_Control class.
+  */
+-require_once ABSPATH . WPINC . '/customize/class-wp-widget-form-customize-control.php';
++require_once __DIR__ . '/customize/class-wp-widget-form-customize-control.php';
+ 
+ /**
+  * WP_Customize_Nav_Menu_Control class.
+  */
+-require_once ABSPATH . WPINC . '/customize/class-wp-customize-nav-menu-control.php';
++require_once __DIR__ . '/customize/class-wp-customize-nav-menu-control.php';
+ 
+ /**
+  * WP_Customize_Nav_Menu_Item_Control class.
+  */
+-require_once ABSPATH . WPINC . '/customize/class-wp-customize-nav-menu-item-control.php';
++require_once __DIR__ . '/customize/class-wp-customize-nav-menu-item-control.php';
+ 
+ /**
+  * WP_Customize_Nav_Menu_Location_Control class.
+  */
+-require_once ABSPATH . WPINC . '/customize/class-wp-customize-nav-menu-location-control.php';
++require_once __DIR__ . '/customize/class-wp-customize-nav-menu-location-control.php';
+ 
+ /**
+  * WP_Customize_Nav_Menu_Name_Control class.
+@@ -794,24 +939,24 @@
+  *
+  * @deprecated 4.9.0 This file is no longer used due to new menu creation UX.
+  */
+-require_once ABSPATH . WPINC . '/customize/class-wp-customize-nav-menu-name-control.php';
++require_once __DIR__ . '/customize/class-wp-customize-nav-menu-name-control.php';
+ 
+ /**
+  * WP_Customize_Nav_Menu_Locations_Control class.
+  */
+-require_once ABSPATH . WPINC . '/customize/class-wp-customize-nav-menu-locations-control.php';
++require_once __DIR__ . '/customize/class-wp-customize-nav-menu-locations-control.php';
+ 
+ /**
+  * WP_Customize_Nav_Menu_Auto_Add_Control class.
+  */
+-require_once ABSPATH . WPINC . '/customize/class-wp-customize-nav-menu-auto-add-control.php';
++require_once __DIR__ . '/customize/class-wp-customize-nav-menu-auto-add-control.php';
+ 
+ /**
+  * WP_Customize_Date_Time_Control class.
+  */
+-require_once ABSPATH . WPINC . '/customize/class-wp-customize-date-time-control.php';
++require_once __DIR__ . '/customize/class-wp-customize-date-time-control.php';
+ 
+ /**
+  * WP_Sidebar_Block_Editor_Control class.
+  */
+-require_once ABSPATH . WPINC . '/customize/class-wp-sidebar-block-editor-control.php';
++require_once __DIR__ . '/customize/class-wp-sidebar-block-editor-control.php';

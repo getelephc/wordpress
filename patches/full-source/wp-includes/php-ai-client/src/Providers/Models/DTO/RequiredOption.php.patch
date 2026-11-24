@@ -1,0 +1,40 @@
+--- a/wp-includes/php-ai-client/src/Providers/Models/DTO/RequiredOption.php
++++ b/wp-includes/php-ai-client/src/Providers/Models/DTO/RequiredOption.php
+@@ -18,7 +18,7 @@
+  *     value: mixed
+  * }
+  *
+- * @extends AbstractDataTransferObject<RequiredOptionArrayShape>
++ * @phpstan-extends AbstractDataTransferObject<RequiredOptionArrayShape>
+  */
+ class RequiredOption extends AbstractDataTransferObject
+ {
+@@ -40,7 +40,7 @@
+      * @param OptionEnum $name The option name.
+      * @param mixed $value The value that the model must support for this option.
+      */
+-    public function __construct(OptionEnum $name, $value)
++    public function __construct(OptionEnum $name, mixed $value)
+     {
+         $this->name = $name;
+         $this->value = $value;
+@@ -63,9 +63,10 @@
+      *
+      * @return mixed The value that the model must support.
+      */
+-    public function getValue()
++    public function getValue(): mixed
+     {
+         return $this->value;
++    	return null;
+     }
+     /**
+      * {@inheritDoc}
+@@ -95,6 +96,6 @@
+     public static function fromArray(array $array): self
+     {
+         static::validateFromArrayData($array, [self::KEY_NAME, self::KEY_VALUE]);
+-        return new self(OptionEnum::from($array[self::KEY_NAME]), $array[self::KEY_VALUE]);
++        return new self(\wp_aot_require_WordPress_AiClient_Providers_Models_Enums_OptionEnum( OptionEnum::from($array[self::KEY_NAME]) ), $array[self::KEY_VALUE]);
+     }
+ }

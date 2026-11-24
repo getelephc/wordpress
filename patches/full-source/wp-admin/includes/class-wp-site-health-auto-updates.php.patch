@@ -1,0 +1,248 @@
+--- a/wp-admin/includes/class-wp-site-health-auto-updates.php
++++ b/wp-admin/includes/class-wp-site-health-auto-updates.php
+@@ -26,7 +26,7 @@
+ 	 *
+ 	 * @return array The test results.
+ 	 */
+-	public function run_tests() {
++	public function run_tests(): mixed {
+ 		$tests = array(
+ 			$this->test_constants( 'WP_AUTO_UPDATE_CORE', array( true, 'beta', 'rc', 'development', 'branch-development', 'minor' ) ),
+ 			$this->test_wp_version_check_attached(),
+@@ -40,9 +40,9 @@
+ 			$this->test_accepts_minor_updates(),
+ 		);
+ 
+-		$tests = array_filter( $tests );
+-		$tests = array_map(
+-			static function ( $test ) {
++		$tests = \wp_aot_array_filter( $tests );
++		$tests = \wp_aot_array_map(
++			static function ( mixed $test ) {
+ 				$test = (object) $test;
+ 
+ 				if ( empty( $test->severity ) ) {
+@@ -55,6 +55,7 @@
+ 		);
+ 
+ 		return $tests;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -69,21 +70,22 @@
+ 	 * @return array|null The test results if there are any constants set incorrectly,
+ 	 *                    or null if the test passed.
+ 	 */
+-	public function test_constants( $constant, $value ) {
++	public function test_constants( mixed $constant, mixed $value ): mixed {
+ 		$acceptable_values = (array) $value;
+ 
+-		if ( defined( $constant ) && ! in_array( constant( $constant ), $acceptable_values, true ) ) {
++		if ( \wp_aot_metadata_defined( $constant ) && ! in_array( \wp_aot_metadata_constant( $constant ), $acceptable_values, true ) ) {
+ 			return array(
+ 				'description' => sprintf(
+ 					/* translators: 1: Name of the constant used. 2: Value of the constant used. */
+ 					__( 'The %1$s constant is defined as %2$s' ),
+ 					"<code>$constant</code>",
+-					'<code>' . esc_html( var_export( constant( $constant ), true ) ) . '</code>'
+-				),
+-				'severity'    => 'fail',
+-			);
+-		}
+-
++					'<code>' . esc_html( var_export( \wp_aot_metadata_constant( $constant ), true ) ) . '</code>'
++				),
++				'severity'    => 'fail',
++			);
++		}
++
++		return null;
+ 		return null;
+ 	}
+ 
+@@ -95,7 +97,7 @@
+ 	 * @return array|null The test results if wp_version_check() is disabled,
+ 	 *                    or null if the test passed.
+ 	 */
+-	public function test_wp_version_check_attached() {
++	public function test_wp_version_check_attached(): mixed {
+ 		if ( ( ! is_multisite() || is_main_site() && is_network_admin() )
+ 			&& ! has_filter( 'wp_version_check', 'wp_version_check' )
+ 		) {
+@@ -110,6 +112,7 @@
+ 		}
+ 
+ 		return null;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -120,7 +123,7 @@
+ 	 * @return array|null The test results if the {@see 'automatic_updater_disabled'} filter is set,
+ 	 *                    or null if the test passed.
+ 	 */
+-	public function test_filters_automatic_updater_disabled() {
++	public function test_filters_automatic_updater_disabled(): mixed {
+ 		/** This filter is documented in wp-admin/includes/class-wp-automatic-updater.php */
+ 		if ( apply_filters( 'automatic_updater_disabled', false ) ) {
+ 			return array(
+@@ -134,6 +137,7 @@
+ 		}
+ 
+ 		return null;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -143,7 +147,7 @@
+ 	 *
+ 	 * @return array|false The test results if auto-updates are disabled, false otherwise.
+ 	 */
+-	public function test_wp_automatic_updates_disabled() {
++	public function test_wp_automatic_updates_disabled(): mixed {
+ 		if ( ! class_exists( 'WP_Automatic_Updater' ) ) {
+ 			require_once ABSPATH . 'wp-admin/includes/class-wp-automatic-updater.php';
+ 		}
+@@ -158,6 +162,7 @@
+ 			'description' => __( 'All automatic updates are disabled.' ),
+ 			'severity'    => 'fail',
+ 		);
++		return null;
+ 	}
+ 
+ 	/**
+@@ -167,7 +172,7 @@
+ 	 *
+ 	 * @return array|false The test results if auto-updates previously failed, false otherwise.
+ 	 */
+-	public function test_if_failed_update() {
++	public function test_if_failed_update(): mixed {
+ 		$failed = get_site_option( 'auto_core_update_failed' );
+ 
+ 		if ( ! $failed ) {
+@@ -204,6 +209,7 @@
+ 			'description' => $description,
+ 			'severity'    => 'warning',
+ 		);
++		return null;
+ 	}
+ 
+ 	/**
+@@ -213,7 +219,7 @@
+ 	 *
+ 	 * @return array The test results.
+ 	 */
+-	public function test_vcs_abspath() {
++	public function test_vcs_abspath(): mixed {
+ 		$context_dirs = array( ABSPATH );
+ 		$vcs_dirs     = array( '.svn', '.git', '.hg', '.bzr' );
+ 		$check_dirs   = array();
+@@ -232,7 +238,7 @@
+ 			} while ( $context_dir = dirname( $context_dir ) );
+ 		}
+ 
+-		$check_dirs = array_unique( $check_dirs );
++		$check_dirs = \wp_aot_array_unique( $check_dirs );
+ 		$updater    = new WP_Automatic_Updater();
+ 		$checkout   = false;
+ 
+@@ -280,6 +286,7 @@
+ 			'description' => __( 'No version control systems were detected.' ),
+ 			'severity'    => 'pass',
+ 		);
++		return null;
+ 	}
+ 
+ 	/**
+@@ -289,7 +296,7 @@
+ 	 *
+ 	 * @return array The test results.
+ 	 */
+-	public function test_check_wp_filesystem_method() {
++	public function test_check_wp_filesystem_method(): mixed {
+ 		// Make sure the `request_filesystem_credentials()` function is available during our REST API call.
+ 		if ( ! function_exists( 'request_filesystem_credentials' ) ) {
+ 			require_once ABSPATH . 'wp-admin/includes/file.php';
+@@ -312,6 +319,7 @@
+ 			'description' => __( 'Your installation of WordPress does not require FTP credentials to perform updates.' ),
+ 			'severity'    => 'pass',
+ 		);
++		return null;
+ 	}
+ 
+ 	/**
+@@ -325,10 +333,10 @@
+ 	 *                     or if a list of the checksums could not be retrieved from WordPress.org.
+ 	 *                     False if the core files are not writeable.
+ 	 */
+-	public function test_all_files_writable() {
++	public function test_all_files_writable(): mixed {
+ 		global $wp_filesystem;
+ 
+-		require ABSPATH . WPINC . '/version.php'; // $wp_version; // x.y.z
++		require __DIR__ . '/../../wp-includes/version.php'; // $wp_version; // x.y.z
+ 
+ 		$skin    = new Automatic_Upgrader_Skin();
+ 		$success = $skin->request_filesystem_credentials( false, ABSPATH );
+@@ -388,7 +396,7 @@
+ 
+ 		if ( $unwritable_files ) {
+ 			if ( count( $unwritable_files ) > 20 ) {
+-				$unwritable_files   = array_slice( $unwritable_files, 0, 20 );
++				$unwritable_files   = \wp_aot_array_slice( $unwritable_files, 0, 20 );
+ 				$unwritable_files[] = '...';
+ 			}
+ 			return array(
+@@ -401,6 +409,7 @@
+ 				'severity'    => 'pass',
+ 			);
+ 		}
++		return null;
+ 	}
+ 
+ 	/**
+@@ -411,14 +420,14 @@
+ 	 * @return array|false|null The test results if development updates are blocked.
+ 	 *                          False if it isn't a development version. Null if the test passed.
+ 	 */
+-	public function test_accepts_dev_updates() {
+-		require ABSPATH . WPINC . '/version.php'; // $wp_version; // x.y.z
++	public function test_accepts_dev_updates(): mixed {
++		require __DIR__ . '/../../wp-includes/version.php'; // $wp_version; // x.y.z
+ 		// Only for dev versions.
+ 		if ( ! str_contains( $wp_version, '-' ) ) {
+ 			return false;
+ 		}
+ 
+-		if ( defined( 'WP_AUTO_UPDATE_CORE' ) && ( 'minor' === WP_AUTO_UPDATE_CORE || false === WP_AUTO_UPDATE_CORE ) ) {
++		if ( defined( 'WP_AUTO_UPDATE_CORE' ) && ( 'minor' === \wp_aot_undefined_constant('WP_AUTO_UPDATE_CORE') || false === \wp_aot_undefined_constant('WP_AUTO_UPDATE_CORE') ) ) {
+ 			return array(
+ 				'description' => sprintf(
+ 					/* translators: %s: Name of the constant used. */
+@@ -442,6 +451,7 @@
+ 		}
+ 
+ 		return null;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -452,8 +462,8 @@
+ 	 * @return array|null The test results if minor updates are blocked,
+ 	 *                    or null if the test passed.
+ 	 */
+-	public function test_accepts_minor_updates() {
+-		if ( defined( 'WP_AUTO_UPDATE_CORE' ) && false === WP_AUTO_UPDATE_CORE ) {
++	public function test_accepts_minor_updates(): mixed {
++		if ( defined( 'WP_AUTO_UPDATE_CORE' ) && false === \wp_aot_undefined_constant('WP_AUTO_UPDATE_CORE') ) {
+ 			return array(
+ 				'description' => sprintf(
+ 					/* translators: %s: Name of the constant used. */
+@@ -477,5 +487,6 @@
+ 		}
+ 
+ 		return null;
++		return null;
+ 	}
+ }

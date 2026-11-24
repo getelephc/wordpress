@@ -1,0 +1,72 @@
+--- a/wp-admin/includes/class-wp-ajax-upgrader-skin.php
++++ b/wp-admin/includes/class-wp-ajax-upgrader-skin.php
+@@ -61,7 +61,7 @@
+ 	 *                    override default options. See WP_Upgrader_Skin::__construct().
+ 	 *                    Default empty array.
+ 	 */
+-	public function __construct( $args = array() ) {
++	public function __construct( mixed $args = array() ) {
+ 		parent::__construct( $args );
+ 
+ 		$this->errors = new WP_Error();
+@@ -74,8 +74,9 @@
+ 	 *
+ 	 * @return WP_Error Errors during an upgrade.
+ 	 */
+-	public function get_errors() {
++	public function get_errors(): mixed {
+ 		return $this->errors;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -85,7 +86,7 @@
+ 	 *
+ 	 * @return string Error messages during an upgrade.
+ 	 */
+-	public function get_error_messages() {
++	public function get_error_messages(): mixed {
+ 		$messages = array();
+ 
+ 		foreach ( $this->errors->get_error_codes() as $error_code ) {
+@@ -99,6 +100,7 @@
+ 		}
+ 
+ 		return implode( ', ', $messages );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -111,7 +113,7 @@
+ 	 * @param string|WP_Error $errors  Errors.
+ 	 * @param mixed           ...$args Optional text replacements.
+ 	 */
+-	public function error( $errors, ...$args ) {
++	public function error( mixed $errors, mixed ...$args ): mixed {
+ 		if ( is_string( $errors ) ) {
+ 			$string = $errors;
+ 			if ( ! empty( $this->upgrader->strings[ $string ] ) ) {
+@@ -134,6 +136,7 @@
+ 		}
+ 
+ 		parent::error( $errors, ...$args );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -147,7 +150,7 @@
+ 	 * @param string|array|WP_Error $feedback Message data.
+ 	 * @param mixed                 ...$args  Optional text replacements.
+ 	 */
+-	public function feedback( $feedback, ...$args ) {
++	public function feedback( mixed $feedback, mixed ...$args ): mixed {
+ 		if ( is_wp_error( $feedback ) ) {
+ 			foreach ( $feedback->get_error_codes() as $error_code ) {
+ 				$this->errors->add( $error_code, $feedback->get_error_message( $error_code ), $feedback->get_error_data( $error_code ) );
+@@ -155,5 +158,6 @@
+ 		}
+ 
+ 		parent::feedback( $feedback, ...$args );
++		return null;
+ 	}
+ }

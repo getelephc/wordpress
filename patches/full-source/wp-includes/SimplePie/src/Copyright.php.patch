@@ -1,0 +1,36 @@
+--- a/wp-includes/SimplePie/src/Copyright.php
++++ b/wp-includes/SimplePie/src/Copyright.php
+@@ -62,13 +62,14 @@
+      *
+      * @return string|null URL to copyright information
+      */
+-    public function get_url()
++    public function get_url(): mixed
+     {
+         if ($this->url !== null) {
+             return $this->url;
+         }
+ 
+         return null;
++    	return null;
+     }
+ 
+     /**
+@@ -76,14 +77,15 @@
+      *
+      * @return string|null
+      */
+-    public function get_attribution()
++    public function get_attribution(): mixed
+     {
+         if ($this->label !== null) {
+             return $this->label;
+         }
+ 
+         return null;
++    	return null;
+     }
+ }
+ 
+-class_alias('SimplePie\Copyright', 'SimplePie_Copyright');
++(!defined('WP_AOT_NATIVE_RUNTIME') && (bool) \wp_aot_native_api('class_alias', array('SimplePie\Copyright', 'SimplePie_Copyright')));

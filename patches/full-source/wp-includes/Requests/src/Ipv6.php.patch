@@ -1,0 +1,96 @@
+--- a/wp-includes/Requests/src/Ipv6.php
++++ b/wp-includes/Requests/src/Ipv6.php
+@@ -40,7 +40,7 @@
+ 	 *
+ 	 * @throws \WpOrg\Requests\Exception\InvalidArgument When the passed argument is not a string or a stringable object.
+ 	 */
+-	public static function uncompress($ip) {
++	public static function uncompress(mixed $ip): mixed {
+ 		if (InputValidator::is_string_or_stringable($ip) === false) {
+ 			throw InvalidArgument::create(1, '$ip', 'string|Stringable', gettype($ip));
+ 		}
+@@ -65,18 +65,19 @@
+ 		} elseif ($c1 === -1) {
+ 			// ::xxx
+ 			$fill = str_repeat('0:', 7 - $c2);
+-			$ip   = str_replace('::', $fill, $ip);
++			$ip   = \wp_aot_str_replace('::', $fill, $ip);
+ 		} elseif ($c2 === -1) {
+ 			// xxx::
+ 			$fill = str_repeat(':0', 7 - $c1);
+-			$ip   = str_replace('::', $fill, $ip);
++			$ip   = \wp_aot_str_replace('::', $fill, $ip);
+ 		} else {
+ 			// xxx::xxx
+ 			$fill = ':' . str_repeat('0:', 6 - $c2 - $c1);
+-			$ip   = str_replace('::', $fill, $ip);
++			$ip   = \wp_aot_str_replace('::', $fill, $ip);
+ 		}
+ 
+ 		return $ip;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -94,17 +95,17 @@
+ 	 * @param string $ip An IPv6 address
+ 	 * @return string The compressed IPv6 address
+ 	 */
+-	public static function compress($ip) {
++	public static function compress(mixed $ip): mixed {
+ 		// Prepare the IP to be compressed.
+ 		// Note: Input validation is handled in the `uncompress()` method, which is the first call made in this method.
+ 		$ip       = self::uncompress($ip);
+ 		$ip_parts = self::split_v6_v4($ip);
+ 
+ 		// Replace all leading zeros
+-		$ip_parts[0] = preg_replace('/(^|:)0+([0-9])/', '\1\2', $ip_parts[0]);
++		$ip_parts[0] = \wp_aot_preg_replace('/(^|:)0+([0-9])/', '\1\2', $ip_parts[0]);
+ 
+ 		// Find bunches of zeros
+-		if (preg_match_all('/(?:^|:)(?:0(?::|$))+/', $ip_parts[0], $matches, PREG_OFFSET_CAPTURE)) {
++		if (preg_match_all('/(?:^|:)(?:0(?::|$))+/', \wp_aot_regex_text( $ip_parts[0] ), $matches, PREG_OFFSET_CAPTURE)) {
+ 			$max = 0;
+ 			$pos = null;
+ 			foreach ($matches[0] as $match) {
+@@ -122,6 +123,7 @@
+ 		} else {
+ 			return $ip_parts[0];
+ 		}
++		return null;
+ 	}
+ 
+ 	/**
+@@ -136,7 +138,7 @@
+ 	 * @param string $ip An IPv6 address
+ 	 * @return string[] [0] contains the IPv6 represented part, and [1] the IPv4 represented part
+ 	 */
+-	private static function split_v6_v4($ip) {
++	private static function split_v6_v4(mixed $ip): mixed {
+ 		if (strpos($ip, '.') !== false) {
+ 			$pos       = strrpos($ip, ':');
+ 			$ipv6_part = substr($ip, 0, $pos);
+@@ -145,6 +147,7 @@
+ 		} else {
+ 			return [$ip, ''];
+ 		}
++		return null;
+ 	}
+ 
+ 	/**
+@@ -155,7 +158,7 @@
+ 	 * @param string $ip An IPv6 address
+ 	 * @return bool true if $ip is a valid IPv6 address
+ 	 */
+-	public static function check_ipv6($ip) {
++	public static function check_ipv6(mixed $ip): mixed {
+ 		// Note: Input validation is handled in the `uncompress()` method, which is the first call made in this method.
+ 		$ip                = self::uncompress($ip);
+ 		list($ipv6, $ipv4) = self::split_v6_v4($ip);
+@@ -199,5 +202,6 @@
+ 		} else {
+ 			return false;
+ 		}
++		return null;
+ 	}
+ }

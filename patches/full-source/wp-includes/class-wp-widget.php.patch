@@ -1,6 +1,268 @@
 --- a/wp-includes/class-wp-widget.php
 +++ b/wp-includes/class-wp-widget.php
-@@ -550,7 +550,7 @@
+@@ -110,8 +110,9 @@
+ 	 *                        'before_widget', and 'after_widget'.
+ 	 * @param array $instance The settings for the particular instance of the widget.
+ 	 */
+-	public function widget( $args, $instance ) {
+-		die( 'function WP_Widget::widget() must be overridden in a subclass.' );
++	public function widget( mixed $args, mixed $instance ): mixed {
++		\wp_aot_exit( 'function WP_Widget::widget() must be overridden in a subclass.' );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -128,8 +129,9 @@
+ 	 * @param array $old_instance Old settings for this instance.
+ 	 * @return array Settings to save or bool false to cancel saving.
+ 	 */
+-	public function update( $new_instance, $old_instance ) {
++	public function update( mixed $new_instance, mixed $old_instance ): mixed {
+ 		return $new_instance;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -140,9 +142,10 @@
+ 	 * @param array $instance The settings for the particular instance of the widget.
+ 	 * @return string|null Default return is 'noform'. A subclass may opt to return null.
+ 	 */
+-	public function form( $instance ) {
++	public function form( mixed $instance ): mixed {
+ 		echo '<p class="no-options-widget">' . __( 'There are no options for this widget.' ) . '</p>';
+ 		return 'noform';
++		return null;
+ 	}
+ 
+ 	// Functions you'll need to call.
+@@ -160,11 +163,13 @@
+ 	 * @param array  $control_options Optional. Widget control options. See wp_register_widget_control() for
+ 	 *                                information on accepted arguments. Default empty array.
+ 	 */
+-	public function __construct( $id_base, $name, $widget_options = array(), $control_options = array() ) {
++	public function __construct( mixed $id_base, mixed $name, mixed $widget_options = array(), mixed $control_options = array() ) { $this->wp_aot_initialize($id_base, $name, $widget_options, $control_options); }
++
++private function wp_aot_initialize( mixed $id_base, mixed $name, mixed $widget_options = array(), mixed $control_options = array() ): mixed {
+ 		if ( ! empty( $id_base ) ) {
+ 			$id_base = strtolower( $id_base );
+ 		} else {
+-			$id_base = preg_replace( '/(wp_)?widget_/', '', strtolower( get_class( $this ) ) );
++			$id_base = \wp_aot_preg_replace( '/(wp_)?widget_/', '', strtolower( get_class( $this ) ) );
+ 		}
+ 
+ 		$this->id_base         = $id_base;
+@@ -173,11 +178,12 @@
+ 		$this->widget_options  = wp_parse_args(
+ 			$widget_options,
+ 			array(
+-				'classname'                   => str_replace( '\\', '_', $this->option_name ),
++				'classname'                   => \wp_aot_str_replace( '\\', '_', $this->option_name ),
+ 				'customize_selective_refresh' => false,
+ 			)
+ 		);
+ 		$this->control_options = wp_parse_args( $control_options, array( 'id_base' => $this->id_base ) );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -196,9 +202,10 @@
+ 	 * @param array  $control_options Optional. Widget control options. See wp_register_widget_control() for
+ 	 *                                information on accepted arguments. Default empty array.
+ 	 */
+-	public function WP_Widget( $id_base, $name, $widget_options = array(), $control_options = array() ) {
++	public function WP_Widget( mixed $id_base, mixed $name, mixed $widget_options = array(), mixed $control_options = array() ): mixed {
+ 		_deprecated_constructor( 'WP_Widget', '4.3.0', get_class( $this ) );
+-		WP_Widget::__construct( $id_base, $name, $widget_options, $control_options );
++		$this->wp_aot_initialize( $id_base, $name, $widget_options, $control_options );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -213,7 +220,7 @@
+ 	 * @param string $field_name Field name.
+ 	 * @return string Name attribute for `$field_name`.
+ 	 */
+-	public function get_field_name( $field_name ) {
++	public function get_field_name( mixed $field_name ): mixed {
+ 		$pos = strpos( $field_name, '[' );
+ 
+ 		if ( false !== $pos ) {
+@@ -224,6 +231,7 @@
+ 		}
+ 
+ 		return 'widget-' . $this->id_base . '[' . $this->number . ']' . $field_name;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -238,11 +246,12 @@
+ 	 * @param string $field_name Field name.
+ 	 * @return string ID attribute for `$field_name`.
+ 	 */
+-	public function get_field_id( $field_name ) {
+-		$field_name = str_replace( array( '[]', '[', ']' ), array( '', '-', '' ), $field_name );
++	public function get_field_id( mixed $field_name ): mixed {
++		$field_name = \wp_aot_str_replace( array( '[]', '[', ']' ), array( '', '-', '' ), $field_name );
+ 		$field_name = trim( $field_name, '-' );
+ 
+ 		return 'widget-' . $this->id_base . '-' . $this->number . '-' . $field_name;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -250,7 +259,7 @@
+ 	 *
+ 	 * @since 2.8.0
+ 	 */
+-	public function _register() {
++	public function _register(): mixed {
+ 		$settings = $this->get_settings();
+ 		$empty    = true;
+ 
+@@ -274,6 +283,7 @@
+ 			$this->_set( 1 );
+ 			$this->_register_one();
+ 		}
++		return null;
+ 	}
+ 
+ 	/**
+@@ -284,9 +294,10 @@
+ 	 * @param int $number The unique order number of this widget instance compared to other
+ 	 *                    instances of the same class.
+ 	 */
+-	public function _set( $number ) {
++	public function _set( mixed $number ): mixed {
+ 		$this->number = $number;
+ 		$this->id     = $this->id_base . '-' . $number;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -296,8 +307,9 @@
+ 	 *
+ 	 * @return callable Display callback.
+ 	 */
+-	public function _get_display_callback() {
++	public function _get_display_callback(): mixed {
+ 		return array( $this, 'display_callback' );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -307,8 +319,9 @@
+ 	 *
+ 	 * @return callable Update callback.
+ 	 */
+-	public function _get_update_callback() {
++	public function _get_update_callback(): mixed {
+ 		return array( $this, 'update_callback' );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -318,8 +331,9 @@
+ 	 *
+ 	 * @return callable Form callback.
+ 	 */
+-	public function _get_form_callback() {
++	public function _get_form_callback(): mixed {
+ 		return array( $this, 'form_callback' );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -336,9 +350,10 @@
+ 	 *
+ 	 * @return bool True if within the Customizer preview, false if not.
+ 	 */
+-	public function is_preview() {
++	public function is_preview(): mixed {
+ 		global $wp_customize;
+ 		return ( isset( $wp_customize ) && $wp_customize->is_preview() );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -357,7 +372,7 @@
+ 	 *     @type int $number Number increment used for multiples of the same widget.
+ 	 * }
+ 	 */
+-	public function display_callback( $args, $widget_args = 1 ) {
++	public function display_callback( mixed $args, mixed $widget_args = 1 ): mixed {
+ 		if ( is_numeric( $widget_args ) ) {
+ 			$widget_args = array( 'number' => $widget_args );
+ 		}
+@@ -383,7 +398,7 @@
+ 			$instance = apply_filters( 'widget_display_callback', $instance, $this, $args );
+ 
+ 			if ( false === $instance ) {
+-				return;
++				return null;
+ 			}
+ 
+ 			$was_cache_addition_suspended = wp_suspend_cache_addition();
+@@ -397,6 +412,7 @@
+ 				wp_suspend_cache_addition( $was_cache_addition_suspended );
+ 			}
+ 		}
++		return null;
+ 	}
+ 
+ 	/**
+@@ -408,14 +424,14 @@
+ 	 *
+ 	 * @param int $deprecated Not used.
+ 	 */
+-	public function update_callback( $deprecated = 1 ) {
++	public function update_callback( mixed $deprecated = 1 ): mixed {
+ 		global $wp_registered_widgets;
+ 
+ 		$all_instances = $this->get_settings();
+ 
+ 		// We need to update the data.
+ 		if ( $this->updated ) {
+-			return;
++			return null;
+ 		}
+ 
+ 		if ( isset( $_POST['delete_widget'] ) && $_POST['delete_widget'] ) {
+@@ -423,7 +439,7 @@
+ 			if ( isset( $_POST['the-widget-id'] ) ) {
+ 				$del_id = $_POST['the-widget-id'];
+ 			} else {
+-				return;
++				return null;
+ 			}
+ 
+ 			if ( isset( $wp_registered_widgets[ $del_id ]['params'][0]['number'] ) ) {
+@@ -440,7 +456,7 @@
+ 				$num      = $_POST['multi_number'] ? (int) $_POST['multi_number'] : (int) $_POST['widget_number'];
+ 				$settings = array( $num => array() );
+ 			} else {
+-				return;
++				return null;
+ 			}
+ 
+ 			foreach ( $settings as $number => $new_instance ) {
+@@ -485,6 +501,7 @@
+ 
+ 		$this->save_settings( $all_instances );
+ 		$this->updated = true;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -500,7 +517,7 @@
+ 	 * }
+ 	 * @return string|null
+ 	 */
+-	public function form_callback( $widget_args = 1 ) {
++	public function form_callback( mixed $widget_args = 1 ): mixed {
+ 		if ( is_numeric( $widget_args ) ) {
+ 			$widget_args = array( 'number' => $widget_args );
+ 		}
+@@ -550,10 +567,11 @@
  			 * @param null|string $return   Default 'noform'. Return null if new fields are added.
  			 * @param array       $instance An array of the widget's settings.
  			 */
@@ -9,3 +271,52 @@
  		}
  
  		return $return;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -564,7 +582,7 @@
+ 	 * @param int $number Optional. The unique order number of this widget instance
+ 	 *                    compared to other instances of the same class. Default -1.
+ 	 */
+-	public function _register_one( $number = -1 ) {
++	public function _register_one( mixed $number = -1 ): mixed {
+ 		wp_register_sidebar_widget(
+ 			$this->id,
+ 			$this->name,
+@@ -587,6 +605,7 @@
+ 			$this->control_options,
+ 			array( 'number' => $number )
+ 		);
++		return null;
+ 	}
+ 
+ 	/**
+@@ -596,9 +615,10 @@
+ 	 *
+ 	 * @param array $settings Multi-dimensional array of widget instance settings.
+ 	 */
+-	public function save_settings( $settings ) {
++	public function save_settings( mixed $settings ): mixed {
+ 		$settings['_multiwidget'] = 1;
+ 		update_option( $this->option_name, $settings );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -608,7 +628,7 @@
+ 	 *
+ 	 * @return array Multi-dimensional array of widget instance settings.
+ 	 */
+-	public function get_settings() {
++	public function get_settings(): mixed {
+ 
+ 		$settings = get_option( $this->option_name );
+ 
+@@ -637,5 +657,6 @@
+ 		unset( $settings['_multiwidget'], $settings['__i__'] );
+ 
+ 		return $settings;
++		return null;
+ 	}
+ }

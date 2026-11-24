@@ -1,0 +1,104 @@
+--- a/wp-includes/https-migration.php
++++ b/wp-includes/https-migration.php
+@@ -17,7 +17,7 @@
+  *
+  * @return bool True if insecure URLs should replaced, false otherwise.
+  */
+-function wp_should_replace_insecure_home_url() {
++function wp_should_replace_insecure_home_url(): mixed {
+ 	$should_replace_insecure_home_url = wp_is_using_https()
+ 		&& get_option( 'https_migration_required' )
+ 		// For automatic replacement, both 'home' and 'siteurl' need to not only use HTTPS, they also need to be using
+@@ -35,6 +35,7 @@
+ 	 * @param bool $should_replace_insecure_home_url Whether insecure HTTP URLs to the site should be replaced.
+ 	 */
+ 	return apply_filters( 'wp_should_replace_insecure_home_url', $should_replace_insecure_home_url );
++	return null;
+ }
+ 
+ /**
+@@ -48,19 +49,19 @@
+  * @param string $content Content to replace URLs in.
+  * @return string Filtered content.
+  */
+-function wp_replace_insecure_home_url( $content ) {
++function wp_replace_insecure_home_url( mixed $content ): mixed {
+ 	if ( ! wp_should_replace_insecure_home_url() ) {
+ 		return $content;
+ 	}
+ 
+ 	$https_url = home_url( '', 'https' );
+-	$http_url  = str_replace( 'https://', 'http://', $https_url );
++	$http_url  = \wp_aot_str_replace( 'https://', 'http://', $https_url );
+ 
+ 	// Also replace potentially escaped URL.
+-	$escaped_https_url = str_replace( '/', '\/', $https_url );
+-	$escaped_http_url  = str_replace( '/', '\/', $http_url );
++	$escaped_https_url = \wp_aot_str_replace( '/', '\/', $https_url );
++	$escaped_http_url  = \wp_aot_str_replace( '/', '\/', $http_url );
+ 
+-	return str_replace(
++	return \wp_aot_str_replace(
+ 		array(
+ 			$http_url,
+ 			$escaped_http_url,
+@@ -71,6 +72,7 @@
+ 		),
+ 		$content
+ 	);
++	return null;
+ }
+ 
+ /**
+@@ -83,14 +85,14 @@
+  *
+  * @return bool True on success, false on failure.
+  */
+-function wp_update_urls_to_https() {
++function wp_update_urls_to_https(): mixed {
+ 	// Get current URL options.
+ 	$orig_home    = get_option( 'home' );
+ 	$orig_siteurl = get_option( 'siteurl' );
+ 
+ 	// Get current URL options, replacing HTTP with HTTPS.
+-	$home    = str_replace( 'http://', 'https://', $orig_home );
+-	$siteurl = str_replace( 'http://', 'https://', $orig_siteurl );
++	$home    = \wp_aot_str_replace( 'http://', 'https://', $orig_home );
++	$siteurl = \wp_aot_str_replace( 'http://', 'https://', $orig_siteurl );
+ 
+ 	// Update the options.
+ 	update_option( 'home', $home );
+@@ -108,6 +110,7 @@
+ 
+ 	// Otherwise the URLs were successfully changed to use HTTPS.
+ 	return true;
++	return null;
+ }
+ 
+ /**
+@@ -123,20 +126,21 @@
+  * @param mixed $old_url Previous value of the URL option.
+  * @param mixed $new_url New value of the URL option.
+  */
+-function wp_update_https_migration_required( $old_url, $new_url ) {
++function wp_update_https_migration_required( mixed $old_url, mixed $new_url ): mixed {
+ 	// Do nothing if WordPress is being installed.
+ 	if ( wp_installing() ) {
+-		return;
++		return null;
+ 	}
+ 
+ 	// Delete/reset the option if the new URL is not the HTTPS version of the old URL.
+-	if ( untrailingslashit( (string) $old_url ) !== str_replace( 'https://', 'http://', untrailingslashit( (string) $new_url ) ) ) {
++	if ( untrailingslashit( (string) $old_url ) !== \wp_aot_str_replace( 'https://', 'http://', untrailingslashit( (string) $new_url ) ) ) {
+ 		delete_option( 'https_migration_required' );
+-		return;
++		return null;
+ 	}
+ 
+ 	// If this is a fresh site, there is no content to migrate, so do not require migration.
+ 	$https_migration_required = get_option( 'fresh_site' ) ? false : true;
+ 
+ 	update_option( 'https_migration_required', $https_migration_required );
++	return null;
+ }

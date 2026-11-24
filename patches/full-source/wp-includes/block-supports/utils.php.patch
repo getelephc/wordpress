@@ -1,0 +1,17 @@
+--- a/wp-includes/block-supports/utils.php
++++ b/wp-includes/block-supports/utils.php
+@@ -20,7 +20,7 @@
+  *
+  * @return bool Whether to serialize block support styles & classes.
+  */
+-function wp_should_skip_block_supports_serialization( $block_type, $feature_set, $feature = null ) {
++function wp_should_skip_block_supports_serialization( mixed $block_type, mixed $feature_set, mixed $feature = null ): mixed {
+ 	if ( ! is_object( $block_type ) || ! $feature_set ) {
+ 		return false;
+ 	}
+@@ -33,4 +33,5 @@
+ 	}
+ 
+ 	return $skip_serialization;
++	return null;
+ }

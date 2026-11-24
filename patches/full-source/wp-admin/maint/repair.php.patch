@@ -1,0 +1,81 @@
+--- a/wp-admin/maint/repair.php
++++ b/wp-admin/maint/repair.php
+@@ -40,7 +40,7 @@
+ 	);
+ 	echo "</p><p><code>define('WP_ALLOW_REPAIR', true);</code></p>";
+ 
+-	$default_keys    = array_unique(
++	$default_keys    = \wp_aot_array_unique(
+ 		array(
+ 			'put your unique phrase here',
+ 			/*
+@@ -55,9 +55,9 @@
+ 	$duplicated_keys = array();
+ 
+ 	foreach ( array( 'AUTH_KEY', 'SECURE_AUTH_KEY', 'LOGGED_IN_KEY', 'NONCE_KEY', 'AUTH_SALT', 'SECURE_AUTH_SALT', 'LOGGED_IN_SALT', 'NONCE_SALT' ) as $key ) {
+-		if ( defined( $key ) ) {
++		if ( \wp_aot_metadata_defined( $key ) ) {
+ 			// Check for unique values of each key.
+-			$duplicated_keys[ constant( $key ) ] = isset( $duplicated_keys[ constant( $key ) ] );
++			$duplicated_keys[ \wp_aot_metadata_constant( $key ) ] = isset( $duplicated_keys[ \wp_aot_metadata_constant( $key ) ] );
+ 		} else {
+ 			// If a constant is not defined, it's missing.
+ 			$missing_key = true;
+@@ -72,7 +72,7 @@
+ 	}
+ 
+ 	// Weed out all unique, non-default values.
+-	$duplicated_keys = array_filter( $duplicated_keys );
++	$duplicated_keys = \wp_aot_array_filter( $duplicated_keys );
+ 
+ 	if ( $duplicated_keys || $missing_key ) {
+ 
+@@ -95,7 +95,7 @@
+ 	$okay     = true;
+ 	$problems = array();
+ 
+-	$tables = $wpdb->tables();
++	$tables = \wp_aot_require_wpdb( $wpdb )->tables();
+ 
+ 	/**
+ 	 * Filters additional database tables to repair.
+@@ -104,11 +104,11 @@
+ 	 *
+ 	 * @param string[] $tables Array of prefixed table names to be repaired.
+ 	 */
+-	$tables = array_merge( $tables, (array) apply_filters( 'tables_to_repair', array() ) );
++	$tables = \wp_aot_array_merge(array( $tables, (array) apply_filters( 'tables_to_repair', array() ) ));
+ 
+ 	// Loop over the tables, checking and repairing as needed.
+ 	foreach ( $tables as $table ) {
+-		$check = $wpdb->get_row( $wpdb->prepare( 'CHECK TABLE %i', $table ) );
++		$check = \wp_aot_require_wpdb( $wpdb )->get_row( \wp_aot_require_wpdb( $wpdb )->prepare( 'CHECK TABLE %i', $table ) );
+ 
+ 		echo '<p>';
+ 		if ( 'OK' === $check->Msg_text ) {
+@@ -118,7 +118,7 @@
+ 			/* translators: 1: Table name, 2: Error message. */
+ 			printf( __( 'The %1$s table is not okay. It is reporting the following error: %2$s. WordPress will attempt to repair this table&hellip;' ), "<code>$table</code>", "<code>$check->Msg_text</code>" );
+ 
+-			$repair = $wpdb->get_row( $wpdb->prepare( 'REPAIR TABLE %i', $table ) );
++			$repair = \wp_aot_require_wpdb( $wpdb )->get_row( \wp_aot_require_wpdb( $wpdb )->prepare( 'REPAIR TABLE %i', $table ) );
+ 
+ 			echo '<br />&nbsp;&nbsp;&nbsp;&nbsp;';
+ 			if ( 'OK' === $repair->Msg_text ) {
+@@ -133,14 +133,14 @@
+ 		}
+ 
+ 		if ( $okay && $optimize ) {
+-			$analyze = $wpdb->get_row( $wpdb->prepare( 'ANALYZE TABLE %i', $table ) );
++			$analyze = \wp_aot_require_wpdb( $wpdb )->get_row( \wp_aot_require_wpdb( $wpdb )->prepare( 'ANALYZE TABLE %i', $table ) );
+ 
+ 			echo '<br />&nbsp;&nbsp;&nbsp;&nbsp;';
+ 			if ( 'Table is already up to date' === $analyze->Msg_text ) {
+ 				/* translators: %s: Table name. */
+ 				printf( __( 'The %s table is already optimized.' ), "<code>$table</code>" );
+ 			} else {
+-				$optimize = $wpdb->get_row( $wpdb->prepare( 'OPTIMIZE TABLE %i', $table ) );
++				$optimize = \wp_aot_require_wpdb( $wpdb )->get_row( \wp_aot_require_wpdb( $wpdb )->prepare( 'OPTIMIZE TABLE %i', $table ) );
+ 
+ 				echo '<br />&nbsp;&nbsp;&nbsp;&nbsp;';
+ 				if ( 'OK' === $optimize->Msg_text || 'Table is already up to date' === $optimize->Msg_text ) {

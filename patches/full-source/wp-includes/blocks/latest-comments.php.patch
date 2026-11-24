@@ -1,0 +1,59 @@
+--- a/wp-includes/blocks/latest-comments.php
++++ b/wp-includes/blocks/latest-comments.php
+@@ -25,12 +25,13 @@
+  * @param int|WP_Post $post Optional. Post ID or WP_Post object. Default is global $post.
+  * @return string The post title if set; "(no title)" if no title is set.
+  */
+-function wp_latest_comments_draft_or_post_title( $post = 0 ) {
++function wp_latest_comments_draft_or_post_title( mixed $post = 0 ): mixed {
+ 	$title = get_the_title( $post );
+ 	if ( empty( $title ) ) {
+ 		$title = __( '(no title)' );
+ 	}
+ 	return $title;
++	return null;
+ }
+ 
+ /**
+@@ -42,7 +43,7 @@
+  *
+  * @return string Returns the post content with latest comments added.
+  */
+-function render_block_core_latest_comments( $attributes ) {
++function render_block_core_latest_comments( mixed $attributes ): mixed {
+ 	// Handle backward compatibility: check for old displayExcerpt attribute
+ 	if ( isset( $attributes['displayExcerpt'] ) ) {
+ 		$display_content = $attributes['displayExcerpt'] ? 'excerpt' : 'none';
+@@ -66,7 +67,7 @@
+ 	$list_items_markup = '';
+ 	if ( ! empty( $comments ) ) {
+ 		// Prime the cache for associated posts. This is copied from \WP_Widget_Recent_Comments::widget().
+-		$post_ids = array_unique( wp_list_pluck( $comments, 'comment_post_ID' ) );
++		$post_ids = \wp_aot_array_unique( wp_list_pluck( $comments, 'comment_post_ID' ) );
+ 		_prime_post_caches( $post_ids, strpos( get_option( 'permalink_structure' ), '%category%' ), false );
+ 
+ 		foreach ( $comments as $comment ) {
+@@ -155,6 +156,7 @@
+ 		$wrapper_attributes,
+ 		__( 'No comments to show.' )
+ 	);
++	return null;
+ }
+ 
+ /**
+@@ -162,13 +164,14 @@
+  *
+  * @since 5.3.0
+  */
+-function register_block_core_latest_comments() {
++function register_block_core_latest_comments(): mixed {
+ 	register_block_type_from_metadata(
+ 		__DIR__ . '/latest-comments',
+ 		array(
+ 			'render_callback' => 'render_block_core_latest_comments',
+ 		)
+ 	);
++	return null;
+ }
+ 
+ add_action( 'init', 'register_block_core_latest_comments' );

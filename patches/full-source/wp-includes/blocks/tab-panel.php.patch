@@ -1,0 +1,27 @@
+--- a/wp-includes/blocks/tab-panel.php
++++ b/wp-includes/blocks/tab-panel.php
+@@ -19,7 +19,8 @@
+ function block_core_tab_panel_render( array $attributes, string $content, \WP_Block $block ): string {
+ 	$tabs_id = $block->context['core/tabs-id'] ?? '';
+ 
+-	static $tab_counters = array();
++	static $tab_counters_aot_cell = new \WordPressStaticArrayCell();
++	$tab_counters =& $tab_counters_aot_cell->value;
+ 
+ 	if ( ! isset( $tab_counters[ $tabs_id ] ) ) {
+ 		$tab_counters[ $tabs_id ] = 0;
+@@ -54,12 +55,13 @@
+  *
+  * @since 7.1.0
+  */
+-function register_block_core_tab_panel() {
++function register_block_core_tab_panel(): mixed {
+ 	register_block_type_from_metadata(
+ 		__DIR__ . '/tab-panel',
+ 		array(
+ 			'render_callback' => 'block_core_tab_panel_render',
+ 		)
+ 	);
++	return null;
+ }
+ add_action( 'init', 'register_block_core_tab_panel' );

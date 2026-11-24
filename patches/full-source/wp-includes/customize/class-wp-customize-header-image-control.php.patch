@@ -1,11 +1,60 @@
 --- a/wp-includes/customize/class-wp-customize-header-image-control.php
 +++ b/wp-includes/customize/class-wp-customize-header-image-control.php
-@@ -125,16 +125,18 @@
+@@ -47,7 +47,7 @@
+ 	 *
+ 	 * @param WP_Customize_Manager $manager Customizer bootstrap instance.
+ 	 */
+-	public function __construct( $manager ) {
++	public function __construct( mixed $manager ) {
+ 		parent::__construct(
+ 			$manager,
+ 			'header_image',
+@@ -69,7 +69,7 @@
+ 	 *
  	 * @since 3.9.0
  	 */
- 	public function print_header_image_template() {
+-	public function enqueue() {
++	public function enqueue(): mixed {
+ 		wp_enqueue_media();
+ 		wp_enqueue_script( 'customize-views' );
+ 
+@@ -96,6 +96,7 @@
+ 		);
+ 
+ 		parent::enqueue();
++		return null;
+ 	}
+ 
+ 	/**
+@@ -105,10 +106,10 @@
+ 	 *
+ 	 * @global Custom_Image_Header $custom_image_header
+ 	 */
+-	public function prepare_control() {
++	public function prepare_control(): mixed {
+ 		global $custom_image_header;
+ 		if ( empty( $custom_image_header ) ) {
+-			return;
++			return null;
+ 		}
+ 
+ 		add_action( 'customize_controls_print_footer_scripts', array( $this, 'print_header_image_template' ) );
+@@ -117,6 +118,7 @@
+ 		$custom_image_header->process_default_headers();
+ 		$this->default_headers  = $custom_image_header->get_default_header_images();
+ 		$this->uploaded_headers = $custom_image_header->get_uploaded_header_images();
++		return null;
+ 	}
+ 
+ 	/**
+@@ -124,17 +126,19 @@
+ 	 *
+ 	 * @since 3.9.0
+ 	 */
+-	public function print_header_image_template() {
 -		?>
 -		<script type="text/template" id="tmpl-header-choice">
++	public function print_header_image_template(): mixed {
 +		;
 +echo '		<script type="text/template" id="tmpl-header-choice">
  			<# if (data.random) { #>
@@ -26,7 +75,7 @@
  			</button>
  
  			<# } else { #>
-@@ -143,22 +145,22 @@
+@@ -143,22 +147,22 @@
  				data-customize-image-value="{{data.header.url}}"
  				data-customize-header-image-data="{{JSON.stringify(data.header)}}">
  				<span class="screen-reader-text">
@@ -56,7 +105,7 @@
  				</button>
  			<# } #>
  
-@@ -171,11 +173,13 @@
+@@ -171,11 +175,13 @@
  
  			<div class="placeholder">
  				<span class="dashicons dashicons-randomize dice"></span>
@@ -75,16 +124,37 @@
  			</div>
  
  				<# } else { #>
-@@ -185,7 +189,7 @@
+@@ -185,7 +191,8 @@
  				<# } #>
  			<# } #>
  		</script>
 -		<?php
 +		';
++		return null;
  	}
  
  	/**
-@@ -212,16 +216,16 @@
+@@ -195,12 +202,13 @@
+ 	 *
+ 	 * @return string|null
+ 	 */
+-	public function get_current_image_src() {
++	public function get_current_image_src(): mixed {
+ 		$src = $this->value();
+ 		if ( isset( $this->get_url ) ) {
+ 			$src = call_user_func( $this->get_url, $src );
+ 			return $src;
+ 		}
++		return null;
+ 	}
+ 
+ 	/**
+@@ -208,20 +216,20 @@
+ 	 *
+ 	 * @since 3.9.0
+ 	 */
+-	public function render_content() {
++	public function render_content(): mixed {
  		$visibility = $this->get_current_image_src() ? '' : ' style="display:none" ';
  		$width      = absint( get_theme_support( 'custom-header', 'width' ) );
  		$height     = absint( get_theme_support( 'custom-header', 'height' ) );
@@ -107,7 +177,7 @@
  				if ( current_theme_supports( 'custom-header', 'video' ) ) {
  					_e( 'Click &#8220;Add Image&#8221; to upload an image file from your computer. Your theme works best with an image that matches the size of your video &#8212; you&#8217;ll be able to crop your image once you upload it for a perfect fit.' );
  				} elseif ( $width && $height ) {
-@@ -243,40 +247,57 @@
+@@ -243,40 +251,58 @@
  						sprintf( '<strong>%s</strong>', $height )
  					);
  				}
@@ -177,5 +247,6 @@
  		</div>
 -		<?php
 +		';
++		return null;
  	}
  }

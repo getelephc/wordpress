@@ -1,0 +1,272 @@
+--- a/wp-includes/SimplePie/src/Locator.php
++++ b/wp-includes/SimplePie/src/Locator.php
+@@ -32,9 +32,9 @@
+     /** @var File */
+     public $file;
+     /** @var string[] */
+-    public $local = [];
++    public mixed $local = [];
+     /** @var string[] */
+-    public $elsewhere = [];
++    public mixed $elsewhere = [];
+     /** @var array<mixed> */
+     public $cached_entities = [];
+     /** @var string */
+@@ -96,19 +96,20 @@
+      * Allows you to use your own HTTP client implementations.
+      */
+     final public function set_http_client(
+-        ClientInterface $http_client,
+-        RequestFactoryInterface $request_factory,
+-        UriFactoryInterface $uri_factory
++        mixed $http_client,
++        mixed $request_factory,
++        mixed $uri_factory
+     ): void {
+-        $this->http_client = new Psr18Client($http_client, $request_factory, $uri_factory);
++        throw new \LogicException('The optional unscoped PSR HTTP packages are outside the bundled source manifest.');
+     }
+ 
+     /**
+      * @return void
+      */
+-    public function set_registry(\SimplePie\Registry $registry)
++    public function set_registry(\SimplePie\Registry $registry): mixed
+     {
+         $this->registry = $registry;
++    	return null;
+     }
+ 
+     /**
+@@ -116,7 +117,7 @@
+      * @param array<Response>|null $working
+      * @return Response|null
+      */
+-    public function find(int $type = \SimplePie\SimplePie::LOCATOR_ALL, ?array &$working = null)
++    public function find(int $type = \SimplePie\SimplePie::LOCATOR_ALL, ?array &$working = null): mixed
+     {
+         assert($this->registry !== null);
+ 
+@@ -157,12 +158,13 @@
+             }
+         }
+         return null;
++    	return null;
+     }
+ 
+     /**
+      * @return bool
+      */
+-    public function is_feed(Response $file, bool $check_html = false)
++    public function is_feed(Response $file, bool $check_html = false): mixed
+     {
+         assert($this->registry !== null);
+ 
+@@ -182,12 +184,13 @@
+         } else {
+             return false;
+         }
++    	return null;
+     }
+ 
+     /**
+      * @return void
+      */
+-    public function get_base()
++    public function get_base(): mixed
+     {
+         assert($this->registry !== null);
+ 
+@@ -204,28 +207,30 @@
+                     continue;
+                 }
+                 $this->base = $base;
+-                $this->base_location = method_exists($element, 'getLineNo') ? $element->getLineNo() : 0;
++                $this->base_location = \wp_aot_native_api('method_exists', array($element, 'getLineNo')) ? $element->getLineNo() : 0;
+                 break;
+             }
+         }
++    	return null;
+     }
+ 
+     /**
+      * @return array<Response>|null
+      */
+-    public function autodiscovery()
++    public function autodiscovery(): mixed
+     {
+         $done = [];
+         $feeds = [];
+-        $feeds = array_merge($feeds, $this->search_elements_by_tag('link', $done, $feeds));
+-        $feeds = array_merge($feeds, $this->search_elements_by_tag('a', $done, $feeds));
+-        $feeds = array_merge($feeds, $this->search_elements_by_tag('area', $done, $feeds));
++        $feeds = \wp_aot_array_merge(array($feeds, $this->search_elements_by_tag('link', $done, $feeds)));
++        $feeds = \wp_aot_array_merge(array($feeds, $this->search_elements_by_tag('a', $done, $feeds)));
++        $feeds = \wp_aot_array_merge(array($feeds, $this->search_elements_by_tag('area', $done, $feeds)));
+ 
+         if (!empty($feeds)) {
+             return array_values($feeds);
+         }
+ 
+         return null;
++    	return null;
+     }
+ 
+     /**
+@@ -233,7 +238,7 @@
+      * @param array<string, Response> $feeds
+      * @return array<string, Response>
+      */
+-    protected function search_elements_by_tag(string $name, array &$done, array $feeds)
++    protected function search_elements_by_tag(string $name, array &$done, array $feeds): mixed
+     {
+         assert($this->registry !== null);
+ 
+@@ -247,8 +252,8 @@
+                 break;
+             }
+             if ($link->hasAttribute('href') && $link->hasAttribute('rel')) {
+-                $rel = array_unique($this->registry->call(Misc::class, 'space_separated_tokens', [strtolower($link->getAttribute('rel'))]));
+-                $line = method_exists($link, 'getLineNo') ? $link->getLineNo() : 1;
++                $rel = \wp_aot_array_unique($this->registry->call(Misc::class, 'space_separated_tokens', [strtolower($link->getAttribute('rel'))]));
++                $line = \wp_aot_native_api('method_exists', array($link, 'getLineNo')) ? $link->getLineNo() : 1;
+ 
+                 if ($this->base_location < $line) {
+                     $href = $this->registry->call(Misc::class, 'absolutize_url', [trim($link->getAttribute('href')), $this->base]);
+@@ -280,12 +285,13 @@
+         }
+ 
+         return $feeds;
++    	return null;
+     }
+ 
+     /**
+      * @return true|null
+      */
+-    public function get_links()
++    public function get_links(): mixed
+     {
+         assert($this->registry !== null);
+ 
+@@ -298,8 +304,8 @@
+             if ($link->hasAttribute('href')) {
+                 $href = trim($link->getAttribute('href'));
+                 $parsed = $this->registry->call(Misc::class, 'parse_url', [$href]);
+-                if ($parsed['scheme'] === '' || preg_match('/^(https?|feed)?$/i', $parsed['scheme'])) {
+-                    if (method_exists($link, 'getLineNo') && $this->base_location < $link->getLineNo()) {
++                if (\wp_aot_mixed($parsed)['scheme'] === '' || preg_match('/^(https?|feed)?$/i', \wp_aot_regex_text( $parsed['scheme'] ))) {
++                    if (\wp_aot_native_api('method_exists', array($link, 'getLineNo')) && $this->base_location < $link->getLineNo()) {
+                         $href = $this->registry->call(Misc::class, 'absolutize_url', [trim($link->getAttribute('href')), $this->base]);
+                     } else {
+                         $href = $this->registry->call(Misc::class, 'absolutize_url', [trim($link->getAttribute('href')), $this->http_base]);
+@@ -318,12 +324,13 @@
+                 }
+             }
+         }
+-        $this->local = array_unique($this->local);
+-        $this->elsewhere = array_unique($this->elsewhere);
++        $this->local = \wp_aot_array_unique($this->local);
++        $this->elsewhere = \wp_aot_array_unique($this->elsewhere);
+         if (!empty($this->local) || !empty($this->elsewhere)) {
+             return true;
+         }
+         return null;
++    	return null;
+     }
+ 
+     /**
+@@ -331,7 +338,7 @@
+      *
+      * @return string|null
+      */
+-    public function get_rel_link(string $rel)
++    public function get_rel_link(string $rel): mixed
+     {
+         assert($this->registry !== null);
+ 
+@@ -351,9 +358,9 @@
+         foreach ($queryResult as $link) {
+             $href = trim($link->getAttribute('href'));
+             $parsed = $this->registry->call(Misc::class, 'parse_url', [$href]);
+-            if ($parsed['scheme'] === '' ||
+-                preg_match('/^https?$/i', $parsed['scheme'])) {
+-                if (method_exists($link, 'getLineNo') &&
++            if (\wp_aot_mixed($parsed)['scheme'] === '' ||
++                preg_match('/^https?$/i', \wp_aot_regex_text( $parsed['scheme'] ))) {
++                if (\wp_aot_native_api('method_exists', array($link, 'getLineNo')) &&
+                     $this->base_location < $link->getLineNo()) {
+                     $href = $this->registry->call(
+                         Misc::class,
+@@ -378,14 +385,16 @@
+         }
+ 
+         return null;
++    	return null;
+     }
+ 
+     /**
+      * @param string[] $array
+      * @return array<Response>|null
+      */
+-    public function extension(array &$array)
+-    {
++    public function extension(mixed &$array): mixed
++    {
++        if (!is_array($array)) throw new \TypeError('The original array reference contract requires an array.');
+         foreach ($array as $key => $value) {
+             if ($this->checked_feeds === $this->max_checked_feeds) {
+                 break;
+@@ -412,19 +421,21 @@
+             }
+         }
+         return null;
++    	return null;
+     }
+ 
+     /**
+      * @param string[] $array
+      * @return array<Response>|null
+      */
+-    public function body(array &$array)
+-    {
++    public function body(mixed &$array): mixed
++    {
++        if (!is_array($array)) throw new \TypeError('The original array reference contract requires an array.');
+         foreach ($array as $key => $value) {
+             if ($this->checked_feeds === $this->max_checked_feeds) {
+                 break;
+             }
+-            if (preg_match('/(feed|rss|rdf|atom|xml)/i', $value)) {
++            if (preg_match('/(feed|rss|rdf|atom|xml)/i', \wp_aot_regex_text( $value ))) {
+                 $this->checked_feeds++;
+                 $headers = [
+                     'Accept' => SimplePie::DEFAULT_HTTP_ACCEPT_HEADER,
+@@ -444,6 +455,7 @@
+             }
+         }
+         return null;
++    	return null;
+     }
+ 
+     /**
+@@ -465,14 +477,14 @@
+                 $options['useragent'] = $this->useragent;
+             }
+ 
+-            return new FileClient(
++            return \wp_aot_require_SimplePie_HTTP_Client(new FileClient(
+                 $this->registry,
+                 $options
+-            );
+-        }
+-
+-        return $this->http_client;
++            ));
++        }
++
++        return \wp_aot_require_SimplePie_HTTP_Client($this->http_client);
+     }
+ }
+ 
+-class_alias('SimplePie\Locator', 'SimplePie_Locator', false);
++(!defined('WP_AOT_NATIVE_RUNTIME') && (bool) \wp_aot_native_api('class_alias', array('SimplePie\Locator', 'SimplePie_Locator', false)));

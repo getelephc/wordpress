@@ -1,17 +1,366 @@
 --- a/wp-includes/class-wp-customize-nav-menus.php
 +++ b/wp-includes/class-wp-customize-nav-menus.php
-@@ -1078,8 +1078,8 @@
+@@ -42,7 +42,7 @@
+ 	 *
+ 	 * @param WP_Customize_Manager $manager Customizer bootstrap instance.
+ 	 */
+-	public function __construct( $manager ) {
++	public function __construct( mixed $manager ) {
+ 		$this->manager                     = $manager;
+ 		$this->original_nav_menu_locations = get_nav_menu_locations();
+ 
+@@ -79,9 +79,10 @@
+ 	 * @param string[] $nonces Array of nonces.
+ 	 * @return string[] Modified array of nonces.
+ 	 */
+-	public function filter_nonces( $nonces ) {
++	public function filter_nonces( mixed $nonces ): mixed {
+ 		$nonces['customize-menus'] = wp_create_nonce( 'customize-menus' );
+ 		return $nonces;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -91,7 +92,7 @@
+ 	 *
+ 	 * @return never
+ 	 */
+-	public function ajax_load_available_items() {
++	public function ajax_load_available_items(): mixed {
+ 		check_ajax_referer( 'customize-menus', 'customize-menus-nonce' );
+ 
+ 		if ( ! current_user_can( 'edit_theme_options' ) ) {
+@@ -127,6 +128,7 @@
+ 		}
+ 
+ 		wp_send_json_success( array( 'items' => $all_items ) );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -140,7 +142,7 @@
+ 	 * @param int    $page        Optional. The page number used to generate the query offset. Default is '0'.
+ 	 * @return array|WP_Error An array of menu items on success, a WP_Error object on failure.
+ 	 */
+-	public function load_available_items_query( $object_type = 'post_type', $object_name = 'page', $page = 0 ) {
++	public function load_available_items_query( mixed $object_type = 'post_type', mixed $object_name = 'page', mixed $page = 0 ): mixed {
+ 		$items = array();
+ 
+ 		if ( 'post_type' === $object_type ) {
+@@ -229,11 +231,11 @@
+ 				$args['post__not_in'] = $suppress_page_ids;
+ 			}
+ 
+-			$posts = array_merge(
++			$posts = \wp_aot_array_merge(array(
+ 				$posts,
+ 				$important_pages,
+ 				get_posts( $args )
+-			);
++			));
+ 
+ 			foreach ( $posts as $post ) {
+ 				$post_title = $post->post_title;
+@@ -248,7 +250,7 @@
+ 					$post_type_label = implode( ',', $post_states );
+ 				}
+ 
+-				$title   = html_entity_decode( $post_title, ENT_QUOTES, get_bloginfo( 'charset' ) );
++				$title   = \wp_aot_html_entity_decode( $post_title, ENT_QUOTES, get_bloginfo( 'charset' ) );
+ 				$items[] = array(
+ 					'id'             => "post-{$post->ID}",
+ 					'title'          => $title,
+@@ -282,7 +284,7 @@
+ 			}
+ 
+ 			foreach ( $terms as $term ) {
+-				$title   = html_entity_decode( $term->name, ENT_QUOTES, get_bloginfo( 'charset' ) );
++				$title   = \wp_aot_html_entity_decode( $term->name, ENT_QUOTES, get_bloginfo( 'charset' ) );
+ 				$items[] = array(
+ 					'id'             => "term-{$term->term_id}",
+ 					'title'          => $title,
+@@ -309,6 +311,7 @@
+ 		$items = apply_filters( 'customize_nav_menu_available_items', $items, $object_type, $object_name, $page );
+ 
+ 		return $items;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -318,7 +321,7 @@
+ 	 *
+ 	 * @return never
+ 	 */
+-	public function ajax_search_available_items() {
++	public function ajax_search_available_items(): mixed {
+ 		check_ajax_referer( 'customize-menus', 'customize-menus-nonce' );
+ 
+ 		if ( ! current_user_can( 'edit_theme_options' ) ) {
+@@ -347,6 +350,7 @@
+ 		} else {
+ 			wp_send_json_success( array( 'items' => $items ) );
+ 		}
++		return null;
+ 	}
+ 
+ 	/**
+@@ -359,7 +363,7 @@
+ 	 * @param array $args Optional. Accepts 'pagenum' and 's' (search) arguments.
+ 	 * @return array Menu items.
+ 	 */
+-	public function search_available_items_query( $args = array() ) {
++	public function search_available_items_query( mixed $args = array() ): mixed {
+ 		$items = array();
+ 
+ 		$post_type_objects = get_post_types( array( 'show_in_nav_menus' => true ), 'objects' );
+@@ -379,27 +383,27 @@
+ 			$query['s'] = $args['s'];
+ 		}
+ 
+-		$posts = array();
++		$posts = \wp_aot_mixed(array());
+ 
+ 		// Prepend list of posts with nav_menus_created_posts search results on first page.
+ 		$nav_menus_created_posts_setting = $this->manager->get_setting( 'nav_menus_created_posts' );
+ 		if ( 1 === $args['pagenum'] && $nav_menus_created_posts_setting && count( $nav_menus_created_posts_setting->value() ) > 0 ) {
+ 			$stub_post_query = new WP_Query(
+-				array_merge(
++				\wp_aot_array_merge(array(
+ 					$query,
+ 					array(
+ 						'post_status'    => 'auto-draft',
+ 						'post__in'       => $nav_menus_created_posts_setting->value(),
+ 						'posts_per_page' => -1,
+ 					)
+-				)
++				))
+ 			);
+-			$posts           = array_merge( $posts, $stub_post_query->posts );
++			$posts           = \wp_aot_array_merge(array( $posts, $stub_post_query->posts ));
+ 		}
+ 
+ 		// Query posts.
+ 		$get_posts = new WP_Query( $query );
+-		$posts     = array_merge( $posts, $get_posts->posts );
++		$posts     = \wp_aot_array_merge(array( $posts, $get_posts->posts ));
+ 
+ 		// Create items for posts.
+ 		foreach ( $posts as $post ) {
+@@ -417,7 +421,7 @@
+ 
+ 			$items[] = array(
+ 				'id'         => 'post-' . $post->ID,
+-				'title'      => html_entity_decode( $post_title, ENT_QUOTES, get_bloginfo( 'charset' ) ),
++				'title'      => \wp_aot_html_entity_decode( $post_title, ENT_QUOTES, get_bloginfo( 'charset' ) ),
+ 				'type'       => 'post_type',
+ 				'type_label' => $post_type_label,
+ 				'object'     => $post->post_type,
+@@ -443,7 +447,7 @@
+ 			foreach ( $terms as $term ) {
+ 				$items[] = array(
+ 					'id'         => 'term-' . $term->term_id,
+-					'title'      => html_entity_decode( $term->name, ENT_QUOTES, get_bloginfo( 'charset' ) ),
++					'title'      => \wp_aot_html_entity_decode( $term->name, ENT_QUOTES, get_bloginfo( 'charset' ) ),
+ 					'type'       => 'taxonomy',
+ 					'type_label' => get_taxonomy( $term->taxonomy )->labels->singular_name,
+ 					'object'     => $term->taxonomy,
+@@ -484,6 +488,7 @@
+ 		$items = apply_filters( 'customize_nav_menu_searched_items', $items, $args );
+ 
+ 		return $items;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -491,7 +496,7 @@
+ 	 *
  	 * @since 4.3.0
  	 */
- 	public function print_templates() {
+-	public function enqueue_scripts() {
++	public function enqueue_scripts(): mixed {
+ 		wp_enqueue_style( 'customize-nav-menus' );
+ 		wp_enqueue_script( 'customize-nav-menus' );
+ 
+@@ -580,6 +585,7 @@
+ 			'subMenuMoreDepthFocus'   => __( 'Edit %1$s (%2$s, sub-item %3$d of %4$d under %5$s, level %6$d)' ),
+ 		);
+ 		wp_localize_script( 'nav-menu', 'menus', $nav_menus_l10n );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -595,19 +601,20 @@
+ 	 * @param string      $setting_id   ID for dynamic setting, usually coming from `$_POST['customized']`.
+ 	 * @return array|false
+ 	 */
+-	public function filter_dynamic_setting_args( $setting_args, $setting_id ) {
+-		if ( preg_match( WP_Customize_Nav_Menu_Setting::ID_PATTERN, $setting_id ) ) {
++	public function filter_dynamic_setting_args( mixed $setting_args, mixed $setting_id ): mixed {
++		if ( preg_match( \wp_aot_regex_text( WP_Customize_Nav_Menu_Setting::ID_PATTERN ), \wp_aot_regex_text( $setting_id ) ) ) {
+ 			$setting_args = array(
+ 				'type'      => WP_Customize_Nav_Menu_Setting::TYPE,
+ 				'transport' => 'postMessage',
+ 			);
+-		} elseif ( preg_match( WP_Customize_Nav_Menu_Item_Setting::ID_PATTERN, $setting_id ) ) {
++		} elseif ( preg_match( \wp_aot_regex_text( WP_Customize_Nav_Menu_Item_Setting::ID_PATTERN ), \wp_aot_regex_text( $setting_id ) ) ) {
+ 			$setting_args = array(
+ 				'type'      => WP_Customize_Nav_Menu_Item_Setting::TYPE,
+ 				'transport' => 'postMessage',
+ 			);
+ 		}
+ 		return $setting_args;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -620,7 +627,7 @@
+ 	 * @param array  $setting_args  WP_Customize_Setting or a subclass.
+ 	 * @return string
+ 	 */
+-	public function filter_dynamic_setting_class( $setting_class, $setting_id, $setting_args ) {
++	public function filter_dynamic_setting_class( mixed $setting_class, mixed $setting_id, mixed $setting_args ): mixed {
+ 		unset( $setting_id );
+ 
+ 		if ( ! empty( $setting_args['type'] ) && WP_Customize_Nav_Menu_Setting::TYPE === $setting_args['type'] ) {
+@@ -629,6 +636,7 @@
+ 			$setting_class = 'WP_Customize_Nav_Menu_Item_Setting';
+ 		}
+ 		return $setting_class;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -636,13 +644,13 @@
+ 	 *
+ 	 * @since 4.3.0
+ 	 */
+-	public function customize_register() {
++	public function customize_register(): mixed {
+ 		$changeset = $this->manager->unsanitized_post_values();
+ 
+ 		// Preview settings for nav menus early so that the sections and controls will be added properly.
+ 		$nav_menus_setting_ids = array();
+ 		foreach ( array_keys( $changeset ) as $setting_id ) {
+-			if ( preg_match( '/^(nav_menu_locations|nav_menu|nav_menu_item)\[/', $setting_id ) ) {
++			if ( preg_match( '/^(nav_menu_locations|nav_menu|nav_menu_item)\[/', \wp_aot_regex_text( $setting_id ) ) ) {
+ 				$nav_menus_setting_ids[] = $setting_id;
+ 			}
+ 		}
+@@ -790,7 +798,7 @@
+ 					$this->manager,
+ 					$section_id,
+ 					array(
+-						'title'    => html_entity_decode( $menu->name, ENT_QUOTES, get_bloginfo( 'charset' ) ),
++						'title'    => \wp_aot_html_entity_decode( $menu->name, ENT_QUOTES, get_bloginfo( 'charset' ) ),
+ 						'priority' => 10,
+ 						'panel'    => 'nav_menus',
+ 					)
+@@ -873,6 +881,7 @@
+ 				)
+ 			)
+ 		);
++		return null;
+ 	}
+ 
+ 	/**
+@@ -886,8 +895,9 @@
+ 	 * @param mixed $value Number to convert.
+ 	 * @return int Integer.
+ 	 */
+-	public function intval_base10( $value ) {
++	public function intval_base10( mixed $value ): mixed {
+ 		return intval( $value, 10 );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -898,7 +908,7 @@
+ 	 *
+ 	 * @return array The available menu item types.
+ 	 */
+-	public function available_item_types() {
++	public function available_item_types(): mixed {
+ 		$item_types = array();
+ 
+ 		$post_types = get_post_types( array( 'show_in_nav_menus' => true ), 'objects' );
+@@ -939,6 +949,7 @@
+ 		$item_types = apply_filters( 'customize_nav_menu_available_item_types', $item_types );
+ 
+ 		return $item_types;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -956,7 +967,7 @@
+ 	 * }
+ 	 * @return WP_Post|WP_Error Inserted auto-draft post object or error.
+ 	 */
+-	public function insert_auto_draft_post( $postarr ) {
++	public function insert_auto_draft_post( mixed $postarr ): mixed {
+ 		if ( ! isset( $postarr['post_type'] ) ) {
+ 			return new WP_Error( 'unknown_post_type', __( 'Invalid post type.' ) );
+ 		}
+@@ -993,6 +1004,7 @@
+ 		} else {
+ 			return get_post( $r );
+ 		}
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1002,7 +1014,7 @@
+ 	 *
+ 	 * @return never
+ 	 */
+-	public function ajax_insert_auto_draft_post() {
++	public function ajax_insert_auto_draft_post(): mixed {
+ 		if ( ! check_ajax_referer( 'customize-menus', 'customize-menus-nonce', false ) ) {
+ 			wp_send_json_error( 'bad_nonce', 400 );
+ 		}
+@@ -1016,18 +1028,18 @@
+ 		}
+ 
+ 		$params         = wp_unslash( $_POST['params'] );
+-		$illegal_params = array_diff( array_keys( $params ), array( 'post_type', 'post_title' ) );
++		$illegal_params = \wp_aot_array_diff(array( array_keys( $params ), array( 'post_type', 'post_title' ) ));
+ 		if ( ! empty( $illegal_params ) ) {
+ 			wp_send_json_error( 'illegal_params', 400 );
+ 		}
+ 
+-		$params = array_merge(
++		$params = \wp_aot_array_merge(array(
+ 			array(
+ 				'post_type'  => '',
+ 				'post_title' => '',
+ 			),
+ 			$params
+-		);
++		));
+ 
+ 		if ( empty( $params['post_type'] ) || ! post_type_exists( $params['post_type'] ) ) {
+ 			status_header( 400 );
+@@ -1068,6 +1080,7 @@
+ 			);
+ 			wp_send_json_success( $data );
+ 		}
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1077,9 +1090,9 @@
+ 	 *
+ 	 * @since 4.3.0
+ 	 */
+-	public function print_templates() {
 -		?>
 -		<script type="text/html" id="tmpl-available-menu-item">
++	public function print_templates(): mixed {
 +		;
 +echo '		<script type="text/html" id="tmpl-available-menu-item">
  			<li id="menu-item-tpl-{{ data.id }}" class="menu-item-tpl" data-menu-item-id="{{ data.id }}">
  				<div class="menu-item-bar">
  					<div class="menu-item-handle">
-@@ -1089,11 +1089,11 @@
+@@ -1089,11 +1102,11 @@
  						</span>
  						<button type="button" class="button-link item-add">
  							<span class="screen-reader-text">
@@ -26,7 +375,7 @@
  						</button>
  					</div>
  				</div>
-@@ -1102,7 +1102,7 @@
+@@ -1102,7 +1115,7 @@
  
  		<script type="text/html" id="tmpl-menu-item-reorder-nav">
  			<div class="menu-item-reorder-nav">
@@ -35,7 +384,7 @@
  				printf(
  					'<button type="button" class="menus-move-up">%1$s</button><button type="button" class="menus-move-down">%2$s</button><button type="button" class="menus-move-left">%3$s</button><button type="button" class="menus-move-right">%4$s</button>',
  					__( 'Move up' ),
-@@ -1110,21 +1110,26 @@
+@@ -1110,21 +1123,26 @@
  					__( 'Move one level up' ),
  					__( 'Move one level down' )
  				);
@@ -68,7 +417,7 @@
  		</script>
  
  		<script type="text/html" id="tmpl-nav-menu-locations-header">
-@@ -1134,18 +1139,21 @@
+@@ -1134,18 +1152,22 @@
  
  		<script type="text/html" id="tmpl-nav-menu-create-menu-section-title">
  			<p class="add-new-menu-notice">
@@ -94,15 +443,18 @@
  		</script>
 -		<?php
 +		';
++		return null;
  	}
  
  	/**
-@@ -1154,49 +1162,52 @@
+@@ -1153,50 +1175,53 @@
+ 	 *
  	 * @since 4.3.0
  	 */
- 	public function available_items_template() {
+-	public function available_items_template() {
 -		?>
 -		<div id="available-menu-items" class="accordion-container">
++	public function available_items_template(): mixed {
 +		;
 +echo '		<div id="available-menu-items" class="accordion-container">
  			<div class="customize-section-title">
@@ -168,7 +520,7 @@
  
  			// Ensure the page post type comes first in the list.
  			$item_types     = $this->available_item_types();
-@@ -1216,9 +1227,9 @@
+@@ -1216,9 +1241,10 @@
  			foreach ( $item_types as $item_type ) {
  				$this->print_post_type_container( $item_type );
  			}
@@ -178,12 +530,16 @@
 +			;
 +echo '		</div><!-- #available-menu-items -->
 +		';
++		return null;
  	}
  
  	/**
-@@ -1232,35 +1243,67 @@
+@@ -1230,37 +1256,70 @@
+ 	 *
+ 	 * @param array $available_item_type Menu item data to output, including title, type, and label.
  	 */
- 	protected function print_post_type_container( $available_item_type ) {
+-	protected function print_post_type_container( $available_item_type ) {
++	protected function print_post_type_container( mixed $available_item_type ): mixed {
  		$id = sprintf( 'available-menu-items-%s-%s', $available_item_type['type'], $available_item_type['object'] );
 -		?>
 -		<div id="<?php echo esc_attr( $id ); ?>" class="accordion-section">
@@ -265,15 +621,18 @@
  		</div>
 -		<?php
 +		';
++		return null;
  	}
  
  	/**
-@@ -1269,35 +1312,46 @@
+@@ -1268,36 +1327,48 @@
+ 	 *
  	 * @since 4.7.0
  	 */
- 	protected function print_custom_links_available_menu_item() {
+-	protected function print_custom_links_available_menu_item() {
 -		?>
 -		<div id="new-custom-menu-item" class="accordion-section">
++	protected function print_custom_links_available_menu_item(): mixed {
 +		;
 +echo '		<div id="new-custom-menu-item" class="accordion-section">
  			<h4 class="accordion-section-title">
@@ -322,6 +681,216 @@
  		</div>
 -		<?php
 +		';
++		return null;
  	}
  
  	//
+@@ -1321,13 +1392,13 @@
+ 	 * @param string      $partial_id   Partial ID.
+ 	 * @return array Partial args.
+ 	 */
+-	public function customize_dynamic_partial_args( $partial_args, $partial_id ) {
+-
+-		if ( preg_match( '/^nav_menu_instance\[[0-9a-f]{32}\]$/', $partial_id ) ) {
++	public function customize_dynamic_partial_args( mixed $partial_args, mixed $partial_id ): mixed {
++
++		if ( preg_match( '/^nav_menu_instance\[[0-9a-f]{32}\]$/', \wp_aot_regex_text( $partial_id ) ) ) {
+ 			if ( false === $partial_args ) {
+ 				$partial_args = array();
+ 			}
+-			$partial_args = array_merge(
++			$partial_args = \wp_aot_array_merge(array(
+ 				$partial_args,
+ 				array(
+ 					'type'                => 'nav_menu_instance',
+@@ -1336,10 +1407,11 @@
+ 					'settings'            => array(), // Empty because the nav menu instance may relate to a menu or a location.
+ 					'capability'          => 'edit_theme_options',
+ 				)
+-			);
++			));
+ 		}
+ 
+ 		return $partial_args;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1347,12 +1419,13 @@
+ 	 *
+ 	 * @since 4.3.0
+ 	 */
+-	public function customize_preview_init() {
++	public function customize_preview_init(): mixed {
+ 		add_action( 'wp_enqueue_scripts', array( $this, 'customize_preview_enqueue_deps' ) );
+ 		add_filter( 'wp_nav_menu_args', array( $this, 'filter_wp_nav_menu_args' ), 1000 );
+ 		add_filter( 'wp_nav_menu', array( $this, 'filter_wp_nav_menu' ), 10, 2 );
+ 		add_action( 'wp_footer', array( $this, 'export_preview_data' ), 1 );
+ 		add_filter( 'customize_render_partials_response', array( $this, 'export_partial_rendered_nav_menu_instances' ) );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1362,9 +1435,10 @@
+ 	 *
+ 	 * @global stdClass[] $wp_post_statuses List of post statuses.
+ 	 */
+-	public function make_auto_draft_status_previewable() {
++	public function make_auto_draft_status_previewable(): mixed {
+ 		global $wp_post_statuses;
+ 		$wp_post_statuses['auto-draft']->protected = true;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1375,7 +1449,7 @@
+ 	 * @param array $value Post IDs.
+ 	 * @return array Post IDs.
+ 	 */
+-	public function sanitize_nav_menus_created_posts( $value ) {
++	public function sanitize_nav_menus_created_posts( mixed $value ): mixed {
+ 		$post_ids = array();
+ 		foreach ( wp_parse_id_list( $value ) as $post_id ) {
+ 			if ( empty( $post_id ) ) {
+@@ -1395,6 +1469,7 @@
+ 			$post_ids[] = $post->ID;
+ 		}
+ 		return $post_ids;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1409,7 +1484,7 @@
+ 	 *
+ 	 * @param WP_Customize_Setting $setting Customizer setting object.
+ 	 */
+-	public function save_nav_menus_created_posts( $setting ) {
++	public function save_nav_menus_created_posts( mixed $setting ): mixed {
+ 		$post_ids = $setting->post_value();
+ 		if ( ! empty( $post_ids ) ) {
+ 			foreach ( $post_ids as $post_id ) {
+@@ -1436,6 +1511,7 @@
+ 				delete_post_meta( $post_id, '_customize_draft_post_name' );
+ 			}
+ 		}
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1449,7 +1525,7 @@
+ 	 * @param array $args An array containing wp_nav_menu() arguments.
+ 	 * @return array Arguments.
+ 	 */
+-	public function filter_wp_nav_menu_args( $args ) {
++	public function filter_wp_nav_menu_args( mixed $args ): mixed {
+ 		/*
+ 		 * The following conditions determine whether or not this instance of
+ 		 * wp_nav_menu() can use selective refreshed. A wp_nav_menu() can be
+@@ -1496,12 +1572,13 @@
+ 			$exported_args['menu'] = $exported_args['menu']->term_id;
+ 		}
+ 
+-		ksort( $exported_args );
++		\wp_aot_ksort( $exported_args );
+ 		$exported_args['args_hmac'] = $this->hash_nav_menu_args( $exported_args );
+ 
+ 		$args['customize_preview_nav_menus_args']                            = $exported_args;
+ 		$this->preview_nav_menu_instance_args[ $exported_args['args_hmac'] ] = $exported_args;
+ 		return $args;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1517,14 +1594,15 @@
+ 	 * @param object $args             An object containing wp_nav_menu() arguments.
+ 	 * @return string Nav menu HTML with selective refresh attributes added if partial can be refreshed.
+ 	 */
+-	public function filter_wp_nav_menu( $nav_menu_content, $args ) {
++	public function filter_wp_nav_menu( mixed $nav_menu_content, mixed $args ): mixed {
+ 		if ( isset( $args->customize_preview_nav_menus_args['can_partial_refresh'] ) && $args->customize_preview_nav_menus_args['can_partial_refresh'] ) {
+ 			$attributes       = sprintf( ' data-customize-partial-id="%s"', esc_attr( 'nav_menu_instance[' . $args->customize_preview_nav_menus_args['args_hmac'] . ']' ) );
+ 			$attributes      .= ' data-customize-partial-type="nav_menu_instance"';
+ 			$attributes      .= sprintf( ' data-customize-partial-placement-context="%s"', esc_attr( wp_json_encode( $args->customize_preview_nav_menus_args ) ) );
+-			$nav_menu_content = preg_replace( '#^(<\w+)#', '$1 ' . str_replace( '\\', '\\\\', $attributes ), $nav_menu_content, 1 );
++			$nav_menu_content = \wp_aot_preg_replace( '#^(<\w+)#', '$1 ' . \wp_aot_str_replace( '\\', '\\\\', $attributes ), $nav_menu_content, 1 );
+ 		}
+ 		return $nav_menu_content;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1538,8 +1616,9 @@
+ 	 * @param array $args The arguments to hash.
+ 	 * @return string Hashed nav menu arguments.
+ 	 */
+-	public function hash_nav_menu_args( $args ) {
++	public function hash_nav_menu_args( mixed $args ): mixed {
+ 		return wp_hash( serialize( $args ) );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1547,8 +1626,9 @@
+ 	 *
+ 	 * @since 4.3.0
+ 	 */
+-	public function customize_preview_enqueue_deps() {
++	public function customize_preview_enqueue_deps(): mixed {
+ 		wp_enqueue_script( 'customize-preview-nav-menus' ); // Note that we have overridden this.
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1556,13 +1636,14 @@
+ 	 *
+ 	 * @since 4.3.0
+ 	 */
+-	public function export_preview_data() {
++	public function export_preview_data(): mixed {
+ 
+ 		// Why not wp_localize_script? Because we're not localizing, and it forces values into strings.
+ 		$exports = array(
+ 			'navMenuInstanceArgs' => $this->preview_nav_menu_instance_args,
+ 		);
+ 		wp_print_inline_script_tag( sprintf( 'var _wpCustomizePreviewNavMenusExports = %s;', wp_json_encode( $exports, JSON_HEX_TAG | JSON_UNESCAPED_SLASHES ) ) . "\n//# sourceURL=" . rawurlencode( __METHOD__ ) );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1573,9 +1654,10 @@
+ 	 * @param array $response Response.
+ 	 * @return array Response.
+ 	 */
+-	public function export_partial_rendered_nav_menu_instances( $response ) {
++	public function export_partial_rendered_nav_menu_instances( mixed $response ): mixed {
+ 		$response['nav_menu_instance_args'] = $this->preview_nav_menu_instance_args;
+ 		return $response;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1589,7 +1671,7 @@
+ 	 * @param array                $nav_menu_args Nav menu args supplied as container context.
+ 	 * @return string|false
+ 	 */
+-	public function render_nav_menu_partial( $partial, $nav_menu_args ) {
++	public function render_nav_menu_partial( mixed $partial, mixed $nav_menu_args ): mixed {
+ 		unset( $partial );
+ 
+ 		if ( ! isset( $nav_menu_args['args_hmac'] ) ) {
+@@ -1600,7 +1682,7 @@
+ 		$nav_menu_args_hmac = $nav_menu_args['args_hmac'];
+ 		unset( $nav_menu_args['args_hmac'] );
+ 
+-		ksort( $nav_menu_args );
++		\wp_aot_ksort( $nav_menu_args );
+ 		if ( ! hash_equals( $this->hash_nav_menu_args( $nav_menu_args ), $nav_menu_args_hmac ) ) {
+ 			// Error: args_hmac_mismatch.
+ 			return false;
+@@ -1611,5 +1693,6 @@
+ 		$content = ob_get_clean();
+ 
+ 		return $content;
++		return null;
+ 	}
+ }

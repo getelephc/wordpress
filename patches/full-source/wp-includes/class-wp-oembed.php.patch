@@ -1,0 +1,331 @@
+--- a/wp-includes/class-wp-oembed.php
++++ b/wp-includes/class-wp-oembed.php
+@@ -257,12 +257,13 @@
+ 	 * @param array  $arguments Arguments to pass when calling.
+ 	 * @return mixed|false Return value of the callback, false otherwise.
+ 	 */
+-	public function __call( $name, $arguments ) {
++	public function __call( $name, $arguments ): mixed {
+ 		if ( in_array( $name, $this->compat_methods, true ) ) {
+ 			return $this->$name( ...$arguments );
+ 		}
+ 
+ 		return false;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -278,7 +279,7 @@
+ 	 * @param mixed     $data       The raw provider data to sanitize.
+ 	 * @return array{ match_mask: non-empty-string, endpoint: non-empty-string, is_regex: bool }|null Normalized provider array, or null if malformed.
+ 	 */
+-	private function sanitize_provider( $match_mask, $data ): ?array {
++	private function sanitize_provider( mixed $match_mask, mixed $data ): ?array {
+ 		if (
+ 			is_string( $match_mask ) &&
+ 			'' !== $match_mask &&
+@@ -313,10 +314,10 @@
+ 	 * }
+ 	 * @return string|false The oEmbed provider URL on success, false on failure.
+ 	 */
+-	public function get_provider( $url, $args = '' ) {
++	public function get_provider( mixed $url, mixed $args = '' ): mixed {
+ 		$args = wp_parse_args( $args );
+ 
+-		$provider = false;
++		$provider = \wp_aot_mixed(false);
+ 
+ 		if ( ! isset( $args['discover'] ) ) {
+ 			$args['discover'] = true;
+@@ -331,12 +332,12 @@
+ 
+ 			// Turn the asterisk-type provider URLs into regex.
+ 			if ( ! $provider_data['is_regex'] ) {
+-				$match_mask = '#' . str_replace( '___wildcard___', '(.+)', preg_quote( str_replace( '*', '___wildcard___', $match_mask ), '#' ) ) . '#i';
+-				$match_mask = (string) preg_replace( '|^#http\\\://|', '#https?\://', $match_mask );
+-			}
+-
+-			if ( preg_match( $match_mask, $url ) ) {
+-				$provider = str_replace( '{format}', 'json', $provider_data['endpoint'] ); // JSON is easier to deal with than XML.
++				$match_mask = '#' . \wp_aot_str_replace( '___wildcard___', '(.+)', preg_quote( \wp_aot_regex_text( \wp_aot_str_replace( '*', '___wildcard___', $match_mask ) ), '#' ) ) . '#i';
++				$match_mask = (string) \wp_aot_preg_replace( '|^#http\\\://|', '#https?\://', $match_mask );
++			}
++
++			if ( preg_match( \wp_aot_regex_text( $match_mask ), \wp_aot_regex_text( $url ) ) ) {
++				$provider = \wp_aot_str_replace( '{format}', 'json', $provider_data['endpoint'] ); // JSON is easier to deal with than XML.
+ 				break;
+ 			}
+ 		}
+@@ -346,6 +347,7 @@
+ 		}
+ 
+ 		return $provider;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -366,12 +368,13 @@
+ 	 * @param bool   $regex    Optional. Whether the $format parameter is in a regex format.
+ 	 *                         Default false.
+ 	 */
+-	public static function _add_provider_early( $format, $provider, $regex = false ) {
++	public static function _add_provider_early( mixed $format, mixed $provider, mixed $regex = false ): mixed {
+ 		if ( empty( self::$early_providers['add'] ) ) {
+ 			self::$early_providers['add'] = array();
+ 		}
+ 
+ 		self::$early_providers['add'][ $format ] = array( $provider, $regex );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -389,12 +392,13 @@
+ 	 * @param string $format The format of URL that this provider can handle. You can use
+ 	 *                       asterisks as wildcards.
+ 	 */
+-	public static function _remove_provider_early( $format ) {
++	public static function _remove_provider_early( mixed $format ): mixed {
+ 		if ( empty( self::$early_providers['remove'] ) ) {
+ 			self::$early_providers['remove'] = array();
+ 		}
+ 
+ 		self::$early_providers['remove'][] = $format;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -409,7 +413,7 @@
+ 	 *                           See wp_oembed_get() for accepted arguments. Default empty.
+ 	 * @return object|false The result in the form of an object on success, false on failure.
+ 	 */
+-	public function get_data( $url, $args = '' ) {
++	public function get_data( mixed $url, mixed $args = '' ): mixed {
+ 		$args = wp_parse_args( $args );
+ 
+ 		$provider = $this->get_provider( $url, $args );
+@@ -419,6 +423,7 @@
+ 		}
+ 
+ 		return $this->fetch( $provider, $url, $args );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -435,7 +440,7 @@
+ 	 * @return string|false The UNSANITIZED (and potentially unsafe) HTML that should be used to embed
+ 	 *                      on success, false on failure.
+ 	 */
+-	public function get_html( $url, $args = '' ) {
++	public function get_html( mixed $url, mixed $args = '' ): mixed {
+ 		/**
+ 		 * Filters the oEmbed result before any HTTP requests are made.
+ 		 *
+@@ -476,6 +481,7 @@
+ 		 *                           See wp_oembed_get() for accepted arguments. Default empty.
+ 		 */
+ 		return apply_filters( 'oembed_result', $this->data2html( $data, $url ), $url, $args );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -486,7 +492,7 @@
+ 	 * @param string $url The URL that should be inspected for discovery `<link>` tags.
+ 	 * @return string|false The oEmbed provider URL on success, false on failure.
+ 	 */
+-	public function discover( $url ) {
++	public function discover( mixed $url ): mixed {
+ 		$providers = array();
+ 		$args      = array(
+ 			'limit_response_size' => 153600, // 150 KB
+@@ -542,12 +548,12 @@
+ 				}
+ 			}
+ 
+-			if ( $tagfound && preg_match_all( '#<link([^<>]+)/?>#iU', $html, $links ) ) {
+-				foreach ( $links[1] as $link ) {
++			if ( $tagfound && preg_match_all( '#<link([^<>]+)/?>#iU', \wp_aot_regex_text( $html ), $links ) ) {
++				foreach ( \wp_aot_mixed($links)[1] as $link ) {
+ 					$atts = shortcode_parse_atts( $link );
+ 
+ 					if ( ! empty( $atts['type'] ) && ! empty( $linktypes[ $atts['type'] ] ) && ! empty( $atts['href'] ) ) {
+-						$providers[ $linktypes[ $atts['type'] ] ] = htmlspecialchars_decode( $atts['href'] );
++						$providers[ $linktypes[ $atts['type'] ] ] = \wp_aot_native_api('htmlspecialchars_decode', array( $atts['href'] ));
+ 
+ 						// Stop here if it's JSON (that's all we need).
+ 						if ( 'json' === $linktypes[ $atts['type'] ] ) {
+@@ -566,6 +572,7 @@
+ 		} else {
+ 			return false;
+ 		}
++		return null;
+ 	}
+ 
+ 	/**
+@@ -579,7 +586,7 @@
+ 	 *                               See wp_oembed_get() for accepted arguments. Default empty.
+ 	 * @return object|false The result in the form of an object on success, false on failure.
+ 	 */
+-	public function fetch( $provider, $url, $args = '' ) {
++	public function fetch( mixed $provider, mixed $url, mixed $args = '' ): mixed {
+ 		$args = wp_parse_args( $args, wp_embed_defaults( $url ) );
+ 
+ 		$provider = add_query_arg( 'maxwidth', (int) $args['width'], $provider );
+@@ -610,6 +617,7 @@
+ 		}
+ 
+ 		return false;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -621,7 +629,7 @@
+ 	 * @param string $format                 Format to use.
+ 	 * @return object|false|WP_Error The result in the form of an object on success, false on failure.
+ 	 */
+-	private function _fetch_with_format( $provider_url_with_args, $format ) {
++	private function _fetch_with_format( mixed $provider_url_with_args, mixed $format ): mixed {
+ 		$provider_url_with_args = add_query_arg( 'format', $format, $provider_url_with_args );
+ 
+ 		/** This filter is documented in wp-includes/class-wp-oembed.php */
+@@ -641,6 +649,7 @@
+ 		$parse_method = "_parse_$format";
+ 
+ 		return $this->$parse_method( $body );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -651,10 +660,11 @@
+ 	 * @param string $response_body
+ 	 * @return object|false
+ 	 */
+-	private function _parse_json( $response_body ) {
++	private function _parse_json( mixed $response_body ): mixed {
+ 		$data = json_decode( trim( $response_body ) );
+ 
+ 		return ( $data && is_object( $data ) ) ? $data : false;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -665,7 +675,7 @@
+ 	 * @param string $response_body
+ 	 * @return object|false
+ 	 */
+-	private function _parse_xml( $response_body ) {
++	private function _parse_xml( mixed $response_body ): mixed {
+ 		if ( ! function_exists( 'libxml_disable_entity_loader' ) ) {
+ 			return false;
+ 		}
+@@ -675,21 +685,22 @@
+ 			 * This function has been deprecated in PHP 8.0 because in libxml 2.9.0, external entity loading
+ 			 * is disabled by default, so this function is no longer needed to protect against XXE attacks.
+ 			 */
+-			$loader = libxml_disable_entity_loader( true );
+-		}
+-
+-		$errors = libxml_use_internal_errors( true );
++			$loader = \wp_aot_native_api('libxml_disable_entity_loader', array( true ));
++		}
++
++		$errors = \wp_aot_native_api('libxml_use_internal_errors', array( true ));
+ 
+ 		$return = $this->_parse_xml_body( $response_body );
+ 
+-		libxml_use_internal_errors( $errors );
++		\wp_aot_native_api('libxml_use_internal_errors', array( $errors ));
+ 
+ 		if ( PHP_VERSION_ID < 80000 && isset( $loader ) ) {
+ 			// phpcs:ignore PHPCompatibility.FunctionUse.RemovedFunctions.libxml_disable_entity_loaderDeprecated
+-			libxml_disable_entity_loader( $loader );
++			\wp_aot_native_api('libxml_disable_entity_loader', array( $loader ));
+ 		}
+ 
+ 		return $return;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -700,7 +711,7 @@
+ 	 * @param string $response_body
+ 	 * @return stdClass|false
+ 	 */
+-	private function _parse_xml_body( $response_body ) {
++	private function _parse_xml_body( mixed $response_body ): mixed {
+ 		if ( ! function_exists( 'simplexml_import_dom' ) || ! class_exists( 'DOMDocument', false ) ) {
+ 			return false;
+ 		}
+@@ -732,6 +743,7 @@
+ 		}
+ 
+ 		return $return;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -743,12 +755,12 @@
+ 	 * @param string $url  The URL to the content that is desired to be embedded.
+ 	 * @return string|false The HTML needed to embed on success, false on failure.
+ 	 */
+-	public function data2html( $data, $url ) {
++	public function data2html( mixed $data, mixed $url ): mixed {
+ 		if ( ! is_object( $data ) || empty( $data->type ) ) {
+ 			return false;
+ 		}
+ 
+-		$return = false;
++		$return = \wp_aot_mixed(false);
+ 
+ 		switch ( $data->type ) {
+ 			case 'photo':
+@@ -792,6 +804,7 @@
+ 		 * @param string       $url    The URL of the content to be embedded.
+ 		 */
+ 		return apply_filters( 'oembed_dataparse', $return, $data, $url );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -805,7 +818,7 @@
+ 	 * @param string       $url The original URL passed to oEmbed.
+ 	 * @return string|false Possibly modified $html.
+ 	 */
+-	public function _strip_newlines( $html, $data, $url ) {
++	public function _strip_newlines( mixed $html, mixed $data, mixed $url ): mixed {
+ 		if ( ! str_contains( $html, "\n" ) ) {
+ 			return $html;
+ 		}
+@@ -815,22 +828,23 @@
+ 		$token     = '__PRE__';
+ 		$search    = array( "\t", "\n", "\r", ' ' );
+ 		$replace   = array( '__TAB__', '__NL__', '__CR__', '__SPACE__' );
+-		$tokenized = str_replace( $search, $replace, $html );
+-
+-		preg_match_all( '#(<pre[^>]*>.+?</pre>)#i', $tokenized, $matches, PREG_SET_ORDER );
++		$tokenized = \wp_aot_str_replace( $search, $replace, $html );
++
++		preg_match_all( '#(<pre[^>]*>.+?</pre>)#i', \wp_aot_regex_text( $tokenized ), $matches, PREG_SET_ORDER );
+ 		foreach ( $matches as $i => $match ) {
+-			$tag_html  = str_replace( $replace, $search, $match[0] );
++			$tag_html  = \wp_aot_str_replace( $replace, $search, $match[0] );
+ 			$tag_token = $token . $i;
+ 
+ 			$found[ $tag_token ] = $tag_html;
+-			$html                = str_replace( $tag_html, $tag_token, $html, $count );
+-		}
+-
+-		$replaced = str_replace( $replace, $search, $html );
+-		$stripped = str_replace( array( "\r\n", "\n" ), '', $replaced );
++			$html                = \wp_aot_str_replace( $tag_html, $tag_token, $html, $count );
++		}
++
++		$replaced = \wp_aot_str_replace( $replace, $search, $html );
++		$stripped = \wp_aot_str_replace( array( "\r\n", "\n" ), '', $replaced );
+ 		$pre      = array_values( $found );
+ 		$tokens   = array_keys( $found );
+ 
+-		return str_replace( $tokens, $pre, $stripped );
++		return \wp_aot_str_replace( $tokens, $pre, $stripped );
++		return null;
+ 	}
+ }

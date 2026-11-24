@@ -1,6 +1,272 @@
 --- a/wp-includes/compat.php
 +++ b/wp-includes/compat.php
-@@ -448,7 +448,7 @@
+@@ -23,8 +23,9 @@
+ 	 * @param string $message The message being translated.
+ 	 * @return string
+ 	 */
+-	function _( $message ) {
++	function _( mixed $message ): mixed {
+ 		return $message;
++		return null;
+ 	}
+ }
+ 
+@@ -38,8 +39,9 @@
+  *
+  * @param bool $set Deprecated. This argument is no longer used for testing purposes.
+  */
+-function _wp_can_use_pcre_u( $set = null ) {
+-	static $utf8_pcre = null;
++function _wp_can_use_pcre_u( mixed $set = null ): mixed {
++	static $utf8_pcre_aot_cell = new \WordPressStaticValueCell();
++	$utf8_pcre =& $utf8_pcre_aot_cell->value;
+ 
+ 	if ( isset( $set ) ) {
+ 		_deprecated_argument( __FUNCTION__, '6.9.0' );
+@@ -50,10 +52,11 @@
+ 	}
+ 
+ 	$utf8_pcre = true;
++	$utf8_probe = true;
+ 	set_error_handler(
+-		function ( $errno, $errstr ) use ( &$utf8_pcre ) {
++		function ( mixed $errno, mixed $errstr ) use ( &$utf8_probe ) {
+ 			if ( str_starts_with( $errstr, 'preg_match():' ) ) {
+-				$utf8_pcre = false;
++				$utf8_probe = false;
+ 				return true;
+ 			}
+ 
+@@ -69,8 +72,10 @@
+ 	 */
+ 	preg_match( '//u', '' );
+ 	restore_error_handler();
++	$utf8_pcre = $utf8_probe;
+ 
+ 	return $utf8_pcre;
++	return null;
+ }
+ 
+ /**
+@@ -99,7 +104,7 @@
+  *
+  * @return bool Whether the slug represents the UTF-8 encoding.
+  */
+-function _is_utf8_charset( $charset_slug ) {
++function _is_utf8_charset( mixed $charset_slug ): mixed {
+ 	if ( ! is_string( $charset_slug ) ) {
+ 		return false;
+ 	}
+@@ -108,6 +113,7 @@
+ 		0 === strcasecmp( 'UTF-8', $charset_slug ) ||
+ 		0 === strcasecmp( 'UTF8', $charset_slug )
+ 	);
++	return null;
+ }
+ 
+ if ( ! function_exists( 'mb_chr' ) ) :
+@@ -123,8 +129,9 @@
+ 	 * @param "UTF-8"|null $encoding  Must be 'UTF-8' or null.
+ 	 * @return string|false A string containing the requested character, if it can be represented in the specified encoding or false on failure.
+ 	 */
+-	function mb_chr( $codepoint, $encoding = null ) {
++	function mb_chr( mixed $codepoint, mixed $encoding = null ): mixed {
+ 		return _mb_chr( $codepoint, $encoding );
++		return null;
+ 	}
+ endif;
+ 
+@@ -138,7 +145,7 @@
+  * @param "UTF-8"|null $encoding  Must be 'UTF-8' or null.
+  * @return string|false A string containing the requested character, if it can be represented in the specified encoding or false on failure.
+  */
+-function _mb_chr( $codepoint, $encoding = null ) {
++function _mb_chr( mixed $codepoint, mixed $encoding = null ): mixed {
+ 	if ( ! is_int( $codepoint ) || ( isset( $encoding ) && 'UTF-8' !== $encoding ) ) {
+ 		return false;
+ 	}
+@@ -178,6 +185,7 @@
+ 	$byte4 = chr( $codepoint & 0x3F | 0x80 );
+ 
+ 	return "{$byte1}{$byte2}{$byte3}{$byte4}";
++	return null;
+ }
+ 
+ if ( ! function_exists( 'mb_ord' ) ) :
+@@ -193,8 +201,9 @@
+ 	 * @param "UTF-8"|null $encoding Must be 'UTF-8' or null.
+ 	 * @return int|false The Unicode code point for the first character of string or false on failure.
+ 	 */
+-	function mb_ord( $string, $encoding = null ) {
++	function mb_ord( mixed $string, mixed $encoding = null ): mixed {
+ 		return _mb_ord( $string, $encoding );
++		return null;
+ 	}
+ endif;
+ 
+@@ -208,7 +217,7 @@
+  * @param "UTF-8"|null $encoding Must be 'UTF-8' or null.
+  * @return int|false The Unicode code point for the first character of string or false on failure.
+  */
+-function _mb_ord( $string, $encoding = null ) {
++function _mb_ord( mixed $string, mixed $encoding = null ): mixed {
+ 	if ( ! is_string( $string ) || '' === $string || ( isset( $encoding ) && 'UTF-8' !== $encoding ) ) {
+ 		return false;
+ 	}
+@@ -251,6 +260,7 @@
+ 	}
+ 
+ 	return false;
++	return null;
+ }
+ 
+ if ( ! function_exists( 'mb_substr' ) ) :
+@@ -269,8 +279,9 @@
+ 	 * @param string|null $encoding Optional. Character encoding to use. Default null.
+ 	 * @return string Extracted substring.
+ 	 */
+-	function mb_substr( $string, $start, $length = null, $encoding = null ) { // phpcs:ignore Universal.NamingConventions.NoReservedKeywordParameterNames.stringFound
++	function mb_substr( mixed $string, mixed $start, mixed $length = null, mixed $encoding = null ): mixed { // phpcs:ignore Universal.NamingConventions.NoReservedKeywordParameterNames.stringFound
+ 		return _mb_substr( $string, $start, $length, $encoding );
++		return null;
+ 	}
+ endif;
+ 
+@@ -291,7 +302,7 @@
+  * @param string|null $encoding Optional. Character encoding to use. Default null.
+  * @return string Extracted substring.
+  */
+-function _mb_substr( $str, $start, $length = null, $encoding = null ) {
++function _mb_substr( mixed $str, mixed $start, mixed $length = null, mixed $encoding = null ): mixed {
+ 	if ( null === $str ) {
+ 		return '';
+ 	}
+@@ -336,6 +347,7 @@
+ 
+ 	// The result is a normal byte-level substring using the computed ranges.
+ 	return substr( $str, $starting_byte_offset, $byte_length );
++	return null;
+ }
+ 
+ if ( ! function_exists( 'mb_strlen' ) ) :
+@@ -351,8 +363,9 @@
+ 	 * @param string|null $encoding Optional. Character encoding to use. Default null.
+ 	 * @return int String length of `$string`.
+ 	 */
+-	function mb_strlen( $string, $encoding = null ) { // phpcs:ignore Universal.NamingConventions.NoReservedKeywordParameterNames.stringFound
++	function mb_strlen( mixed $string, mixed $encoding = null ): mixed { // phpcs:ignore Universal.NamingConventions.NoReservedKeywordParameterNames.stringFound
+ 		return _mb_strlen( $string, $encoding );
++		return null;
+ 	}
+ endif;
+ 
+@@ -372,83 +385,56 @@
+  *                              Default is to consult `blog_charset`.
+  * @return int Count of code points if UTF-8, byte length otherwise.
+  */
+-function _mb_strlen( $str, $encoding = null ) {
++function _mb_strlen( mixed $str, mixed $encoding = null ): mixed {
+ 	return _is_utf8_charset( $encoding ?? get_option( 'blog_charset' ) )
+ 		? _wp_utf8_codepoint_count( $str )
+ 		: strlen( $str );
++	return null;
+ }
+ 
+ if ( ! function_exists( 'utf8_encode' ) ) :
+-	if ( extension_loaded( 'mbstring' ) ) :
+-		/**
+-		 * Converts a string from ISO-8859-1 to UTF-8.
+-		 *
+-		 * @deprecated Use {@see \mb_convert_encoding()} instead.
+-		 *
+-		 * @since 6.9.0
+-		 *
+-		 * @param string $iso_8859_1_text Text treated as ISO-8859-1 (latin1) bytes.
+-		 * @return string Text converted into a UTF-8.
+-		 */
+-		function utf8_encode( $iso_8859_1_text ): string {
+-			_deprecated_function( __FUNCTION__, '6.9.0', 'mb_convert_encoding' );
+-
++	/**
++	 * Converts a string from ISO-8859-1 to UTF-8.
++	 *
++	 * @deprecated Use {@see \mb_convert_encoding()} instead.
++	 * @since 6.9.0
++	 * @param string $iso_8859_1_text Text treated as ISO-8859-1 bytes.
++	 * @return string Text converted into UTF-8.
++	 */
++	function utf8_encode( mixed $iso_8859_1_text ): string {
++		_deprecated_function( __FUNCTION__, '6.9.0', 'mb_convert_encoding' );
++
++		if ( extension_loaded( 'mbstring' ) ) {
+ 			return mb_convert_encoding( $iso_8859_1_text, 'UTF-8', 'ISO-8859-1' );
+ 		}
+ 
+-	else :
+-		/**
+-		 * @ignore
+-		 * @private
+-		 *
+-		 * @since 6.9.0
+-		 */
+-		function utf8_encode( $iso_8859_1_text ): string {
+-			_deprecated_function( __FUNCTION__, '6.9.0', 'mb_convert_encoding' );
+-
+-			return _wp_utf8_encode_fallback( $iso_8859_1_text );
+-		}
+-
+-	endif;
++		return _wp_utf8_encode_fallback( $iso_8859_1_text );
++	}
+ endif;
+ 
+ if ( ! function_exists( 'utf8_decode' ) ) :
+-	if ( extension_loaded( 'mbstring' ) ) :
+-		/**
+-		 * Converts a string from UTF-8 to ISO-8859-1.
+-		 *
+-		 * @deprecated Use {@see \mb_convert_encoding()} instead.
+-		 *
+-		 * @since 6.9.0
+-		 *
+-		 * @param string $utf8_text Text treated as UTF-8.
+-		 * @return string Text converted into ISO-8859-1.
+-		 */
+-		function utf8_decode( $utf8_text ): string {
+-			_deprecated_function( __FUNCTION__, '6.9.0', 'mb_convert_encoding' );
+-
++	/**
++	 * Converts a string from UTF-8 to ISO-8859-1.
++	 *
++	 * @deprecated Use {@see \mb_convert_encoding()} instead.
++	 * @since 6.9.0
++	 * @param string $utf8_text Text treated as UTF-8.
++	 * @return string Text converted into ISO-8859-1.
++	 */
++	function utf8_decode( mixed $utf8_text ): string {
++		_deprecated_function( __FUNCTION__, '6.9.0', 'mb_convert_encoding' );
++
++		if ( extension_loaded( 'mbstring' ) ) {
+ 			return mb_convert_encoding( $utf8_text, 'ISO-8859-1', 'UTF-8' );
+ 		}
+ 
+-	else :
+-		/**
+-		 * @ignore
+-		 * @private
+-		 *
+-		 * @since 6.9.0
+-		 */
+-		function utf8_decode( $utf8_text ): string {
+-			_deprecated_function( __FUNCTION__, '6.9.0', 'mb_convert_encoding' );
+-
+-			return _wp_utf8_decode_fallback( $utf8_text );
+-		}
+-
+-	endif;
++		return _wp_utf8_decode_fallback( $utf8_text );
++	}
+ endif;
  
  // sodium_crypto_box() was introduced with Sodium in PHP 7.2, but the extension may not be enabled.
  if ( ! function_exists( 'sodium_crypto_box' ) ) {
@@ -9,3 +275,270 @@
  }
  
  if ( ! function_exists( 'array_is_list' ) ) {
+@@ -466,7 +452,7 @@
+ 	 * @param array<mixed> $arr The array being evaluated.
+ 	 * @return bool True if array is a list, false otherwise.
+ 	 */
+-	function array_is_list( $arr ) {
++	function array_is_list( mixed $arr ): mixed {
+ 		if ( ( array() === $arr ) || ( array_values( $arr ) === $arr ) ) {
+ 			return true;
+ 		}
+@@ -480,6 +466,7 @@
+ 		}
+ 
+ 		return true;
++		return null;
+ 	}
+ }
+ 
+@@ -496,12 +483,13 @@
+ 	 * @param string $needle   The substring to search for in the `$haystack`.
+ 	 * @return bool True if `$needle` is in `$haystack`, otherwise false.
+ 	 */
+-	function str_contains( $haystack, $needle ) {
++	function str_contains( mixed $haystack, mixed $needle ): mixed {
+ 		if ( '' === $needle ) {
+ 			return true;
+ 		}
+ 
+ 		return false !== strpos( $haystack, $needle );
++		return null;
+ 	}
+ }
+ 
+@@ -518,12 +506,13 @@
+ 	 * @param string $needle   The substring to search for in the `$haystack`.
+ 	 * @return bool True if `$haystack` starts with `$needle`, otherwise false.
+ 	 */
+-	function str_starts_with( $haystack, $needle ) {
++	function str_starts_with( mixed $haystack, mixed $needle ): mixed {
+ 		if ( '' === $needle ) {
+ 			return true;
+ 		}
+ 
+ 		return 0 === strpos( $haystack, $needle );
++		return null;
+ 	}
+ }
+ 
+@@ -540,7 +529,7 @@
+ 	 * @param string $needle   The substring to search for in the `$haystack`.
+ 	 * @return bool True if `$haystack` ends with `$needle`, otherwise false.
+ 	 */
+-	function str_ends_with( $haystack, $needle ) {
++	function str_ends_with( mixed $haystack, mixed $needle ): mixed {
+ 		if ( '' === $haystack ) {
+ 			return '' === $needle;
+ 		}
+@@ -548,6 +537,7 @@
+ 		$len = strlen( $needle );
+ 
+ 		return substr( $haystack, -$len, $len ) === $needle;
++		return null;
+ 	}
+ }
+ 
+@@ -563,7 +553,7 @@
+ 	 * @param callable $callback The callback to run for each element.
+ 	 * @return mixed|null The first element in the array that passes the `$callback`, otherwise null.
+ 	 */
+-	function array_find( array $array, callable $callback ) { // phpcs:ignore Universal.NamingConventions.NoReservedKeywordParameterNames.arrayFound
++	function array_find( array $array, callable $callback ): mixed { // phpcs:ignore Universal.NamingConventions.NoReservedKeywordParameterNames.arrayFound
+ 		foreach ( $array as $key => $value ) {
+ 			if ( $callback( $value, $key ) ) {
+ 				return $value;
+@@ -571,6 +561,7 @@
+ 		}
+ 
+ 		return null;
++		return null;
+ 	}
+ }
+ 
+@@ -586,13 +577,14 @@
+ 	 * @param callable $callback The callback to run for each element.
+ 	 * @return int|string|null The first key in the array that passes the `$callback`, otherwise null.
+ 	 */
+-	function array_find_key( array $array, callable $callback ) { // phpcs:ignore Universal.NamingConventions.NoReservedKeywordParameterNames.arrayFound
++	function array_find_key( array $array, callable $callback ): mixed { // phpcs:ignore Universal.NamingConventions.NoReservedKeywordParameterNames.arrayFound
+ 		foreach ( $array as $key => $value ) {
+ 			if ( $callback( $value, $key ) ) {
+ 				return $key;
+ 			}
+ 		}
+ 
++		return null;
+ 		return null;
+ 	}
+ }
+@@ -654,7 +646,7 @@
+ 	 * @param array $array The array to get the first element from.
+ 	 * @return mixed|null The first element of the array, or null if the array is empty.
+ 	 */
+-	function array_first( array $array ) { // phpcs:ignore Universal.NamingConventions.NoReservedKeywordParameterNames.arrayFound
++	function array_first( array $array ): mixed { // phpcs:ignore Universal.NamingConventions.NoReservedKeywordParameterNames.arrayFound
+ 		if ( empty( $array ) ) {
+ 			return null;
+ 		}
+@@ -662,6 +654,7 @@
+ 		foreach ( $array as $value ) {
+ 			return $value;
+ 		}
++		return null;
+ 	}
+ }
+ 
+@@ -676,79 +669,84 @@
+ 	 * @param array $array The array to get the last element from.
+ 	 * @return mixed|null The last element of the array, or null if the array is empty.
+ 	 */
+-	function array_last( array $array ) { // phpcs:ignore Universal.NamingConventions.NoReservedKeywordParameterNames.arrayFound
++	function array_last( array $array ): mixed { // phpcs:ignore Universal.NamingConventions.NoReservedKeywordParameterNames.arrayFound
+ 		if ( empty( $array ) ) {
+ 			return null;
+ 		}
+ 
+ 		return $array[ array_key_last( $array ) ];
+-	}
+-}
+-
+-if ( ! function_exists( 'clamp' ) ) {
+-	/**
+-	 * Polyfill for `clamp()` function added in PHP 8.6.
+-	 *
+-	 * Clamps a value to be within the range of a given minimum and maximum.
+-	 *
+-	 * If the value is within the bounds, the original value is returned.
+-	 * If it is not within the bounds, the closest bound is returned.
+-	 *
+-	 * @since 7.1.0
+-	 *
+-	 * @param mixed $value The value to clamp.
+-	 * @param mixed $min   The minimum bound. Must be less than or equal to `$max`.
+-	 * @param mixed $max   The maximum bound. Must be greater than or equal to `$min`.
+-	 * @return mixed The clamped value. Either `$value`, `$min`, or `$max`.
+-	 *
+-	 * @throws ValueError               If `$min` is greater than `$max`, or if `$min` or `$max` is NAN, and the ValueError class exists (PHP 8.0+ or polyfilled).
+-	 * @throws InvalidArgumentException If `$min` is greater than `$max`, or if `$min` or `$max` is NAN, and the ValueError class does not exist (PHP 7.x).
+-	 *
+-	 * @phpstan-template TValue
+-	 * @phpstan-template TMin
+-	 * @phpstan-template TMax
+-	 * @phpstan-param TValue $value
+-	 * @phpstan-param TMin   $min
+-	 * @phpstan-param TMax   $max
+-	 * @phpstan-return TValue|TMin|TMax
+-	 */
+-	function clamp( $value, $min, $max ) {
+-		$throw_value_error = static function ( string $message ) {
+-			// The ValueError class was introduced in PHP 8, so in 7.4 throw InvalidArgumentException instead.
+-			if ( ! class_exists( 'ValueError', false ) ) {
+-				throw new InvalidArgumentException( $message );
+-			}
+-			throw new ValueError( $message );
+-		};
+-
+-		if ( is_float( $min ) && is_nan( $min ) ) {
+-			$throw_value_error( 'clamp(): Argument #2 ($min) must not be NAN' );
+-		}
+-
+-		if ( is_float( $max ) && is_nan( $max ) ) {
+-			$throw_value_error( 'clamp(): Argument #3 ($max) must not be NAN' );
+-		}
+-
+-		if ( $max < $min ) {
+-			$throw_value_error( 'clamp(): Argument #2 ($min) must be smaller than or equal to argument #3 ($max)' );
+-		}
+-
+-		/*
+-		 * The upper bound is checked before the lower bound to match the order in PHP's
+-		 * implementation. Comparison in PHP is not transitive when operands of different
+-		 * types are mixed (for example, comparing against a bool coerces both operands to
+-		 * bool), so both bounds can compare as exceeded at once, and the first check wins.
+-		 */
+-		if ( $value > $max ) {
+-			return $max;
+-		}
+-
+-		if ( $value < $min ) {
+-			return $min;
+-		}
+-
+-		return $value;
+-	}
++		return null;
++	}
++}
++
++/**
++ * Polyfill for `clamp()` function added in PHP 8.6.
++ *
++ * Clamps a value to be within the range of a given minimum and maximum.
++ *
++ * If the value is within the bounds, the original value is returned.
++ * If it is not within the bounds, the closest bound is returned.
++ *
++ * @since 7.1.0
++ *
++ * @param mixed $value The value to clamp.
++ * @param mixed $min   The minimum bound. Must be less than or equal to `$max`.
++ * @param mixed $max   The maximum bound. Must be greater than or equal to `$min`.
++ * @return mixed The clamped value. Either `$value`, `$min`, or `$max`.
++ *
++ * @throws ValueError               If `$min` is greater than `$max`, or if `$min` or `$max` is NAN, and the ValueError class exists (PHP 8.0+ or polyfilled).
++ * @throws InvalidArgumentException If `$min` is greater than `$max`, or if `$min` or `$max` is NAN, and the ValueError class does not exist (PHP 7.x).
++ *
++ * @phpstan-template TValue
++ * @phpstan-template TMin
++ * @phpstan-template TMax
++ * @phpstan-param TValue $value
++ * @phpstan-param TMin   $min
++ * @phpstan-param TMax   $max
++ * @phpstan-return TValue|TMin|TMax
++ */
++function wp_aot_clamp( mixed $value, mixed $min, mixed $max ): mixed {
++	foreach ( array( $value, $min, $max ) as $wp_aot_clamp_operand ) {
++		if ( is_array( $wp_aot_clamp_operand ) || is_object( $wp_aot_clamp_operand ) || is_resource( $wp_aot_clamp_operand ) ) {
++			throw new LogicException( 'The native clamp fixture accepts scalar or null operands.' );
++		}
++	}
++	$throw_value_error = static function ( string $message ) {
++		// The ValueError class was introduced in PHP 8, so in 7.4 throw InvalidArgumentException instead.
++		if ( ! class_exists( 'ValueError', false ) ) {
++			throw new InvalidArgumentException( $message );
++		}
++		throw new ValueError( $message );
++	};
++
++	if ( is_float( $min ) && is_nan( $min ) ) {
++		$throw_value_error( 'clamp(): Argument #2 ($min) must not be NAN' );
++	}
++
++	if ( is_float( $max ) && is_nan( $max ) ) {
++		$throw_value_error( 'clamp(): Argument #3 ($max) must not be NAN' );
++	}
++
++	if ( $max < $min ) {
++		$throw_value_error( 'clamp(): Argument #2 ($min) must be smaller than or equal to argument #3 ($max)' );
++	}
++
++	/*
++	 * The upper bound is checked before the lower bound to match the order in PHP's
++	 * implementation. Comparison in PHP is not transitive when operands of different
++	 * types are mixed (for example, comparing against a bool coerces both operands to
++	 * bool), so both bounds can compare as exceeded at once, and the first check wins.
++	 */
++	if ( $value > $max ) {
++		return $max;
++	}
++
++	if ( $value < $min ) {
++		return $min;
++	}
++
++	return $value;
++	return null;
+ }
+ 
+ // IMAGETYPE_AVIF constant is only defined in PHP 8.x or later.

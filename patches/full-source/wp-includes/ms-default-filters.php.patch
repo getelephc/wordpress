@@ -1,0 +1,15 @@
+--- a/wp-includes/ms-default-filters.php
++++ b/wp-includes/ms-default-filters.php
+@@ -108,10 +108,10 @@
+ 
+ // Disable somethings by default for multisite.
+ add_filter( 'enable_update_services_configuration', '__return_false' );
+-if ( ! defined( 'POST_BY_EMAIL' ) || ! POST_BY_EMAIL ) { // Back compat constant.
++if ( ! defined( 'POST_BY_EMAIL' ) || ! \wp_aot_undefined_constant('POST_BY_EMAIL') ) { // Back compat constant.
+ 	add_filter( 'enable_post_by_email_configuration', '__return_false' );
+ }
+-if ( ! defined( 'EDIT_ANY_USER' ) || ! EDIT_ANY_USER ) { // Back compat constant.
++if ( ! defined( 'EDIT_ANY_USER' ) || ! \wp_aot_undefined_constant('EDIT_ANY_USER') ) { // Back compat constant.
+ 	add_filter( 'enable_edit_any_user_configuration', '__return_false' );
+ }
+ add_filter( 'force_filtered_html_on_import', '__return_true' );

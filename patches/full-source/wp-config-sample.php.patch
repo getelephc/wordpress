@@ -1,0 +1,40 @@
+--- a/wp-config-sample.php
++++ b/wp-config-sample.php
+@@ -20,22 +20,22 @@
+ 
+ // ** Database settings - You can get this info from your web host ** //
+ /** The name of the database for WordPress */
+-define( 'DB_NAME', 'database_name_here' );
++\wp_aot_bootstrap_mark('DB_NAME', define( 'DB_NAME', 'database_name_here' ));
+ 
+ /** Database username */
+-define( 'DB_USER', 'username_here' );
++\wp_aot_bootstrap_mark('DB_USER', define( 'DB_USER', 'username_here' ));
+ 
+ /** Database password */
+-define( 'DB_PASSWORD', 'password_here' );
++\wp_aot_bootstrap_mark('DB_PASSWORD', define( 'DB_PASSWORD', 'password_here' ));
+ 
+ /** Database hostname */
+-define( 'DB_HOST', 'localhost' );
++\wp_aot_bootstrap_mark('DB_HOST', define( 'DB_HOST', 'localhost' ));
+ 
+ /** Database charset to use in creating database tables. */
+-define( 'DB_CHARSET', 'utf8mb4' );
++\wp_aot_bootstrap_mark('DB_CHARSET', define( 'DB_CHARSET', 'utf8mb4' ));
+ 
+ /** The database collate type. Don't change this if in doubt. */
+-define( 'DB_COLLATE', '' );
++\wp_aot_bootstrap_mark('DB_COLLATE', define( 'DB_COLLATE', '' ));
+ 
+ /**#@+
+  * Authentication unique keys and salts.
+@@ -85,7 +85,7 @@
+  *
+  * @link https://developer.wordpress.org/advanced-administration/debug/debug-wordpress/
+  */
+-define( 'WP_DEBUG', false );
++\wp_aot_bootstrap_mark('WP_DEBUG', define( 'WP_DEBUG', false ));
+ 
+ /* Add any custom values between this line and the "stop editing" line. */
+ 

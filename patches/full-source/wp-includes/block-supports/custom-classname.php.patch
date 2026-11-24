@@ -1,0 +1,36 @@
+--- a/wp-includes/block-supports/custom-classname.php
++++ b/wp-includes/block-supports/custom-classname.php
+@@ -14,7 +14,7 @@
+  *
+  * @param WP_Block_Type $block_type Block Type.
+  */
+-function wp_register_custom_classname_support( $block_type ) {
++function wp_register_custom_classname_support( mixed $block_type ): mixed {
+ 	$has_custom_classname_support = block_has_support( $block_type, 'customClassName', true );
+ 
+ 	if ( $has_custom_classname_support ) {
+@@ -28,6 +28,7 @@
+ 			);
+ 		}
+ 	}
++	return null;
+ }
+ 
+ /**
+@@ -41,7 +42,7 @@
+  *
+  * @return array Block CSS classes and inline styles.
+  */
+-function wp_apply_custom_classname_support( $block_type, $block_attributes ) {
++function wp_apply_custom_classname_support( mixed $block_type, mixed $block_attributes ): mixed {
+ 	$has_custom_classname_support = block_has_support( $block_type, 'customClassName', true );
+ 	$attributes                   = array();
+ 	if ( $has_custom_classname_support ) {
+@@ -53,6 +54,7 @@
+ 	}
+ 
+ 	return $attributes;
++	return null;
+ }
+ 
+ // Register the block support.

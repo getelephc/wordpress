@@ -1,0 +1,86 @@
+--- a/wp-includes/ms-network.php
++++ b/wp-includes/ms-network.php
+@@ -20,7 +20,7 @@
+  * @param WP_Network|int|null $network Optional. Network to retrieve. Default is the current network.
+  * @return WP_Network|null The network object or null if not found.
+  */
+-function get_network( $network = null ) {
++function get_network( mixed $network = null ): mixed {
+ 	global $current_site;
+ 	if ( empty( $network ) && isset( $current_site ) ) {
+ 		$network = $current_site;
+@@ -48,6 +48,7 @@
+ 	$_network = apply_filters( 'get_network', $_network );
+ 
+ 	return $_network;
++	return null;
+ }
+ 
+ /**
+@@ -60,10 +61,11 @@
+  * @return array|int List of WP_Network objects, a list of network IDs when 'fields' is set to 'ids',
+  *                   or the number of networks when 'count' is passed as a query var.
+  */
+-function get_networks( $args = array() ) {
++function get_networks( mixed $args = array() ): mixed {
+ 	$query = new WP_Network_Query();
+ 
+ 	return $query->query( $args );
++	return null;
+ }
+ 
+ /**
+@@ -75,11 +77,11 @@
+  *
+  * @param int|array $ids Network ID or an array of network IDs to remove from cache.
+  */
+-function clean_network_cache( $ids ) {
++function clean_network_cache( mixed $ids ): mixed {
+ 	global $_wp_suspend_cache_invalidation;
+ 
+ 	if ( ! empty( $_wp_suspend_cache_invalidation ) ) {
+-		return;
++		return null;
+ 	}
+ 
+ 	$network_ids = (array) $ids;
+@@ -97,6 +99,7 @@
+ 	}
+ 
+ 	wp_cache_set_last_changed( 'networks' );
++	return null;
+ }
+ 
+ /**
+@@ -110,12 +113,13 @@
+  *
+  * @param array $networks Array of network row objects.
+  */
+-function update_network_cache( $networks ) {
++function update_network_cache( mixed $networks ): mixed {
+ 	$data = array();
+ 	foreach ( (array) $networks as $network ) {
+ 		$data[ $network->id ] = $network;
+ 	}
+ 	wp_cache_add_multiple( $data, 'networks' );
++	return null;
+ }
+ 
+ /**
+@@ -129,13 +133,14 @@
+  *
+  * @param array $network_ids Array of network IDs.
+  */
+-function _prime_network_caches( $network_ids ) {
++function _prime_network_caches( mixed $network_ids ): mixed {
+ 	global $wpdb;
+ 
+ 	$non_cached_ids = _get_non_cached_ids( $network_ids, 'networks' );
+ 	if ( ! empty( $non_cached_ids ) ) {
+-		$fresh_networks = $wpdb->get_results( sprintf( "SELECT $wpdb->site.* FROM $wpdb->site WHERE id IN (%s)", implode( ',', array_map( 'intval', $non_cached_ids ) ) ) ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
++		$fresh_networks = \wp_aot_require_wpdb( $wpdb )->get_results( sprintf( "SELECT $wpdb->site.* FROM $wpdb->site WHERE id IN (%s)", implode( ',', \wp_aot_array_map( 'intval', $non_cached_ids ) ) ) ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+ 
+ 		update_network_cache( $fresh_networks );
+ 	}
++	return null;
+ }

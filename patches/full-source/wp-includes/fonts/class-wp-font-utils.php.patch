@@ -1,0 +1,136 @@
+--- a/wp-includes/fonts/class-wp-font-utils.php
++++ b/wp-includes/fonts/class-wp-font-utils.php
+@@ -29,15 +29,16 @@
+ 	 * @param string $item A font family name.
+ 	 * @return string The font family name with surrounding quotes, if necessary.
+ 	 */
+-	private static function maybe_add_quotes( $item ) {
++	private static function maybe_add_quotes( mixed $item ): mixed {
+ 		// Matches strings that are not exclusively alphabetic characters or hyphens, and do not exactly follow the pattern generic(alphabetic characters or hyphens).
+ 		$regex = '/^(?!generic\([a-zA-Z\-]+\)$)(?!^[a-zA-Z\-]+$).+/';
+ 		$item  = trim( $item );
+-		if ( preg_match( $regex, $item ) ) {
++		if ( preg_match( \wp_aot_regex_text( $regex ), \wp_aot_regex_text( $item ) ) ) {
+ 			$item = trim( $item, "\"'" );
+ 			return '"' . $item . '"';
+ 		}
+ 		return $item;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -57,7 +58,7 @@
+ 	 * @param string $font_family Font family name(s), comma-separated.
+ 	 * @return string Sanitized and formatted font family name(s).
+ 	 */
+-	public static function sanitize_font_family( $font_family ) {
++	public static function sanitize_font_family( mixed $font_family ): mixed {
+ 		if ( ! $font_family ) {
+ 			return '';
+ 		}
+@@ -75,6 +76,7 @@
+ 			return implode( ', ', $formatted_items );
+ 		}
+ 		return self::maybe_add_quotes( $output );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -101,7 +103,7 @@
+ 	 * }
+ 	 * @return string Font face slug.
+ 	 */
+-	public static function get_font_face_slug( $settings ) {
++	public static function get_font_face_slug( mixed $settings ): mixed {
+ 		$defaults = array(
+ 			'fontFamily'   => '',
+ 			'fontStyle'    => 'normal',
+@@ -121,7 +123,7 @@
+ 		$unicode_range = strtoupper( $settings['unicodeRange'] );
+ 
+ 		// Convert weight keywords to numeric strings.
+-		$font_weight = str_replace( array( 'normal', 'bold' ), array( '400', '700' ), $font_weight );
++		$font_weight = \wp_aot_str_replace( array( 'normal', 'bold' ), array( '400', '700' ), $font_weight );
+ 
+ 		// Convert stretch keywords to numeric strings.
+ 		$font_stretch_map = array(
+@@ -135,25 +137,26 @@
+ 			'extra-expanded'  => '150%',
+ 			'ultra-expanded'  => '200%',
+ 		);
+-		$font_stretch     = str_replace( array_keys( $font_stretch_map ), array_values( $font_stretch_map ), $font_stretch );
++		$font_stretch     = \wp_aot_str_replace( array_keys( $font_stretch_map ), array_values( $font_stretch_map ), $font_stretch );
+ 
+ 		$slug_elements = array( $font_family, $font_style, $font_weight, $font_stretch, $unicode_range );
+ 
+-		$slug_elements = array_map(
+-			function ( $elem ) {
++		$slug_elements = \wp_aot_array_map(
++			function ( mixed $elem ) {
+ 				// Remove quotes to normalize font-family names, and ';' to use as a separator.
+-				$elem = trim( str_replace( array( '"', "'", ';' ), '', $elem ) );
++				$elem = trim( \wp_aot_str_replace( array( '"', "'", ';' ), '', $elem ) );
+ 
+ 				// Normalize comma separated lists by removing whitespace in between items,
+ 				// but keep whitespace within items (e.g. "Open Sans" and "OpenSans" are different fonts).
+ 				// CSS spec for whitespace includes: U+000A LINE FEED, U+0009 CHARACTER TABULATION, or U+0020 SPACE,
+ 				// which by default are all matched by \s in PHP.
+-				return preg_replace( '/,\s+/', ',', $elem );
++				return \wp_aot_preg_replace( '/,\s+/', ',', $elem );
+ 			},
+ 			$slug_elements
+ 		);
+ 
+ 		return sanitize_text_field( implode( ';', $slug_elements ) );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -172,7 +175,7 @@
+ 	 * @param array $schema The schema used for sanitization.
+ 	 * @return array The sanitized data.
+ 	 */
+-	public static function sanitize_from_schema( $tree, $schema ) {
++	public static function sanitize_from_schema( mixed $tree, mixed $schema ): mixed {
+ 		if ( ! is_array( $tree ) || ! is_array( $schema ) ) {
+ 			return array();
+ 		}
+@@ -214,6 +217,7 @@
+ 		}
+ 
+ 		return $tree;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -225,12 +229,13 @@
+ 	 * @param callable $sanitizer The sanitizer function to apply.
+ 	 * @return mixed The sanitized value.
+ 	 */
+-	private static function apply_sanitizer( $value, $sanitizer ) {
++	private static function apply_sanitizer( mixed $value, mixed $sanitizer ): mixed {
+ 		if ( null === $sanitizer ) {
+ 			return $value;
+ 
+ 		}
+ 		return call_user_func( $sanitizer, $value );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -246,7 +251,7 @@
+ 	 *
+ 	 * @return string[] A collection of mime types keyed by file extension.
+ 	 */
+-	public static function get_allowed_font_mime_types() {
++	public static function get_allowed_font_mime_types(): mixed {
+ 		$php_7_ttf_mime_type = PHP_VERSION_ID >= 70300 ? 'application/font-sfnt' : 'application/x-font-ttf';
+ 
+ 		return array(
+@@ -255,5 +260,6 @@
+ 			'woff'  => PHP_VERSION_ID >= 80112 ? 'font/woff' : 'application/font-woff',
+ 			'woff2' => PHP_VERSION_ID >= 80112 ? 'font/woff2' : 'application/font-woff2',
+ 		);
++		return null;
+ 	}
+ }

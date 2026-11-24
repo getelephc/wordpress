@@ -1,0 +1,574 @@
+--- a/wp-includes/meta.php
++++ b/wp-includes/meta.php
+@@ -10,7 +10,7 @@
+  * @subpackage Meta
+  */
+ 
+-require ABSPATH . WPINC . '/class-wp-metadata-lazyloader.php';
++require_once __DIR__ . '/class-wp-metadata-lazyloader.php';
+ 
+ /**
+  * Adds metadata for the specified object.
+@@ -37,7 +37,7 @@
+  *                           no change will be made. Default false.
+  * @return int|false The meta ID on success, false on failure.
+  */
+-function add_metadata( $meta_type, $object_id, $meta_key, $meta_value, $unique = false ) {
++function add_metadata( mixed $meta_type, mixed $object_id, mixed $meta_key, mixed $meta_value, mixed $unique = false ): mixed {
+ 	global $wpdb;
+ 
+ 	if ( ! $meta_type || ! $meta_key || ! is_numeric( $object_id ) ) {
+@@ -92,8 +92,8 @@
+ 		return $check;
+ 	}
+ 
+-	if ( $unique && $wpdb->get_var(
+-		$wpdb->prepare(
++	if ( $unique && \wp_aot_require_wpdb( $wpdb )->get_var(
++		\wp_aot_require_wpdb( $wpdb )->prepare(
+ 			"SELECT COUNT(*) FROM $table WHERE meta_key = %s AND $column = %d",
+ 			$meta_key,
+ 			$object_id
+@@ -127,7 +127,7 @@
+ 	 */
+ 	do_action( "add_{$meta_type}_meta", $object_id, $meta_key, $_meta_value );
+ 
+-	$result = $wpdb->insert(
++	$result = \wp_aot_require_wpdb( $wpdb )->insert(
+ 		$table,
+ 		array(
+ 			$column      => $object_id,
+@@ -168,6 +168,7 @@
+ 	do_action( "added_{$meta_type}_meta", $mid, $object_id, $meta_key, $_meta_value );
+ 
+ 	return $mid;
++	return null;
+ }
+ 
+ /**
+@@ -193,7 +194,7 @@
+  *                  false on failure or if the value passed to the function
+  *                  is the same as the one that is already in the database.
+  */
+-function update_metadata( $meta_type, $object_id, $meta_key, $meta_value, $prev_value = '' ) {
++function update_metadata( mixed $meta_type, mixed $object_id, mixed $meta_key, mixed $meta_value, mixed $prev_value = '' ): mixed {
+ 	global $wpdb;
+ 
+ 	if ( ! $meta_type || ! $meta_key || ! is_numeric( $object_id ) ) {
+@@ -262,7 +263,7 @@
+ 		}
+ 	}
+ 
+-	$meta_ids = $wpdb->get_col( $wpdb->prepare( "SELECT $id_column FROM $table WHERE meta_key = %s AND $column = %d", $meta_key, $object_id ) );
++	$meta_ids = \wp_aot_require_wpdb( $wpdb )->get_col( \wp_aot_require_wpdb( $wpdb )->prepare( "SELECT $id_column FROM $table WHERE meta_key = %s AND $column = %d", $meta_key, $object_id ) );
+ 	if ( empty( $meta_ids ) ) {
+ 		return add_metadata( $meta_type, $object_id, $raw_meta_key, $passed_value );
+ 	}
+@@ -270,7 +271,7 @@
+ 	$_meta_value = $meta_value;
+ 	$meta_value  = maybe_serialize( $meta_value );
+ 
+-	$data  = compact( 'meta_value' );
++	$data  = \wp_aot_compact(get_defined_vars(), array( 'meta_value' ));
+ 	$where = array(
+ 		$column    => $object_id,
+ 		'meta_key' => $meta_key,
+@@ -321,7 +322,7 @@
+ 		}
+ 	}
+ 
+-	$result = $wpdb->update( $table, $data, $where );
++	$result = \wp_aot_require_wpdb( $wpdb )->update( $table, $data, $where );
+ 	if ( ! $result ) {
+ 		return false;
+ 	}
+@@ -369,6 +370,7 @@
+ 	}
+ 
+ 	return true;
++	return null;
+ }
+ 
+ /**
+@@ -396,7 +398,7 @@
+  *                           matching metadata entries for the specified object_id. Default false.
+  * @return bool True on successful delete, false on failure.
+  */
+-function delete_metadata( $meta_type, $object_id, $meta_key, $meta_value = '', $delete_all = false ) {
++function delete_metadata( mixed $meta_type, mixed $object_id, mixed $meta_key, mixed $meta_value = '', mixed $delete_all = false ): mixed {
+ 	global $wpdb;
+ 
+ 	if ( ! $meta_type || ! $meta_key || ! is_numeric( $object_id ) && ! $delete_all ) {
+@@ -453,26 +455,26 @@
+ 	$_meta_value = $meta_value;
+ 	$meta_value  = maybe_serialize( $meta_value );
+ 
+-	$query = $wpdb->prepare( "SELECT $id_column FROM $table WHERE meta_key = %s", $meta_key );
++	$query = \wp_aot_require_wpdb( $wpdb )->prepare( "SELECT $id_column FROM $table WHERE meta_key = %s", $meta_key );
+ 
+ 	if ( ! $delete_all ) {
+-		$query .= $wpdb->prepare( " AND $type_column = %d", $object_id );
++		$query .= \wp_aot_require_wpdb( $wpdb )->prepare( " AND $type_column = %d", $object_id );
+ 	}
+ 
+ 	if ( '' !== $meta_value && null !== $meta_value && false !== $meta_value ) {
+-		$query .= $wpdb->prepare( ' AND meta_value = %s', $meta_value );
+-	}
+-
+-	$meta_ids = $wpdb->get_col( $query );
++		$query .= \wp_aot_require_wpdb( $wpdb )->prepare( ' AND meta_value = %s', $meta_value );
++	}
++
++	$meta_ids = \wp_aot_require_wpdb( $wpdb )->get_col( $query );
+ 	if ( ! count( $meta_ids ) ) {
+ 		return false;
+ 	}
+ 
+ 	if ( $delete_all ) {
+ 		if ( '' !== $meta_value && null !== $meta_value && false !== $meta_value ) {
+-			$object_ids = $wpdb->get_col( $wpdb->prepare( "SELECT $type_column FROM $table WHERE meta_key = %s AND meta_value = %s", $meta_key, $meta_value ) );
++			$object_ids = \wp_aot_require_wpdb( $wpdb )->get_col( \wp_aot_require_wpdb( $wpdb )->prepare( "SELECT $type_column FROM $table WHERE meta_key = %s AND meta_value = %s", $meta_key, $meta_value ) );
+ 		} else {
+-			$object_ids = $wpdb->get_col( $wpdb->prepare( "SELECT $type_column FROM $table WHERE meta_key = %s", $meta_key ) );
++			$object_ids = \wp_aot_require_wpdb( $wpdb )->get_col( \wp_aot_require_wpdb( $wpdb )->prepare( "SELECT $type_column FROM $table WHERE meta_key = %s", $meta_key ) );
+ 		}
+ 	}
+ 
+@@ -513,7 +515,7 @@
+ 
+ 	$query = "DELETE FROM $table WHERE $id_column IN( " . implode( ',', $meta_ids ) . ' )';
+ 
+-	$count = $wpdb->query( $query );
++	$count = \wp_aot_require_wpdb( $wpdb )->query( $query );
+ 
+ 	if ( ! $count ) {
+ 		return false;
+@@ -562,6 +564,7 @@
+ 	}
+ 
+ 	return true;
++	return null;
+ }
+ 
+ /**
+@@ -598,13 +601,14 @@
+  *               - numbers (both integer and float) are returned as strings
+  *               Arrays and objects retain their original type.
+  */
+-function get_metadata( $meta_type, $object_id, $meta_key = '', $single = false ) {
++function get_metadata( mixed $meta_type, mixed $object_id, mixed $meta_key = '', mixed $single = false ): mixed {
+ 	$value = get_metadata_raw( $meta_type, $object_id, $meta_key, $single );
+ 	if ( ! is_null( $value ) ) {
+ 		return $value;
+ 	}
+ 
+ 	return get_metadata_default( $meta_type, $object_id, $meta_key, $single );
++	return null;
+ }
+ 
+ /**
+@@ -625,7 +629,7 @@
+  *               or if `$meta_type` is not specified.
+  *               Null if the value does not exist.
+  */
+-function get_metadata_raw( $meta_type, $object_id, $meta_key = '', $single = false ) {
++function get_metadata_raw( mixed $meta_type, mixed $object_id, mixed $meta_key = '', mixed $single = false ): mixed {
+ 	if ( ! $meta_type || ! is_numeric( $object_id ) ) {
+ 		return false;
+ 	}
+@@ -685,10 +689,11 @@
+ 		if ( $single ) {
+ 			return maybe_unserialize( $meta_cache[ $meta_key ][0] );
+ 		} else {
+-			return array_map( 'maybe_unserialize', $meta_cache[ $meta_key ] );
+-		}
+-	}
+-
++			return \wp_aot_array_map( 'maybe_unserialize', $meta_cache[ $meta_key ] );
++		}
++	}
++
++	return null;
+ 	return null;
+ }
+ 
+@@ -709,9 +714,9 @@
+  * @return mixed An array of default values if `$single` is false.
+  *               The default value of the meta field if `$single` is true.
+  */
+-function get_metadata_default( $meta_type, $object_id, $meta_key, $single = false ) {
++function get_metadata_default( mixed $meta_type, mixed $object_id, mixed $meta_key, mixed $single = false ): mixed {
+ 	if ( $single ) {
+-		$value = '';
++		$value = \wp_aot_mixed('');
+ 	} else {
+ 		$value = array();
+ 	}
+@@ -747,6 +752,7 @@
+ 	}
+ 
+ 	return $value;
++	return null;
+ }
+ 
+ /**
+@@ -760,7 +766,7 @@
+  * @param string $meta_key  Metadata key.
+  * @return bool Whether a meta field with the given key exists.
+  */
+-function metadata_exists( $meta_type, $object_id, $meta_key ) {
++function metadata_exists( mixed $meta_type, mixed $object_id, mixed $meta_key ): mixed {
+ 	if ( ! $meta_type || ! is_numeric( $object_id ) ) {
+ 		return false;
+ 	}
+@@ -788,6 +794,7 @@
+ 	}
+ 
+ 	return false;
++	return null;
+ }
+ 
+ /**
+@@ -814,7 +821,7 @@
+  *     @type string $user_id    Optional. The object ID when the meta type is 'user'.
+  * }
+  */
+-function get_metadata_by_mid( $meta_type, $meta_id ) {
++function get_metadata_by_mid( mixed $meta_type, mixed $meta_id ): mixed {
+ 	global $wpdb;
+ 
+ 	if ( ! $meta_type || ! is_numeric( $meta_id ) || floor( $meta_id ) != $meta_id ) {
+@@ -858,7 +865,7 @@
+ 
+ 	$id_column = ( 'user' === $meta_type ) ? 'umeta_id' : 'meta_id';
+ 
+-	$meta = $wpdb->get_row( $wpdb->prepare( "SELECT * FROM $table WHERE $id_column = %d", $meta_id ) );
++	$meta = \wp_aot_require_wpdb( $wpdb )->get_row( \wp_aot_require_wpdb( $wpdb )->prepare( "SELECT * FROM $table WHERE $id_column = %d", $meta_id ) );
+ 
+ 	if ( empty( $meta ) ) {
+ 		return false;
+@@ -869,6 +876,7 @@
+ 	}
+ 
+ 	return $meta;
++	return null;
+ }
+ 
+ /**
+@@ -885,7 +893,7 @@
+  * @param string|false $meta_key   Optional. You can provide a meta key to update it. Default false.
+  * @return bool True on successful update, false on failure.
+  */
+-function update_metadata_by_mid( $meta_type, $meta_id, $meta_value, $meta_key = false ) {
++function update_metadata_by_mid( mixed $meta_type, mixed $meta_id, mixed $meta_value, mixed $meta_key = false ): mixed {
+ 	global $wpdb;
+ 
+ 	// Make sure everything is valid.
+@@ -975,7 +983,7 @@
+ 		}
+ 
+ 		// Run the update query, all fields in $data are %s, $where is a %d.
+-		$result = $wpdb->update( $table, $data, $where, '%s', '%d' );
++		$result = \wp_aot_require_wpdb( $wpdb )->update( $table, $data, $where, '%s', '%d' );
+ 		if ( ! $result ) {
+ 			return false;
+ 		}
+@@ -996,6 +1004,7 @@
+ 
+ 	// And if the meta was not found.
+ 	return false;
++	return null;
+ }
+ 
+ /**
+@@ -1010,7 +1019,7 @@
+  * @param int    $meta_id   ID for a specific meta row.
+  * @return bool True on successful delete, false on failure.
+  */
+-function delete_metadata_by_mid( $meta_type, $meta_id ) {
++function delete_metadata_by_mid( mixed $meta_type, mixed $meta_id ): mixed {
+ 	global $wpdb;
+ 
+ 	// Make sure everything is valid.
+@@ -1086,7 +1095,7 @@
+ 		}
+ 
+ 		// Run the query, will return true if deleted, false otherwise.
+-		$result = (bool) $wpdb->delete( $table, array( $id_column => $meta_id ) );
++		$result = (bool) \wp_aot_require_wpdb( $wpdb )->delete( $table, array( $id_column => $meta_id ) );
+ 
+ 		// Clear the caches.
+ 		wp_cache_delete( $object_id, $meta_type . '_meta' );
+@@ -1120,6 +1129,7 @@
+ 
+ 	// Meta ID was not found.
+ 	return false;
++	return null;
+ }
+ 
+ /**
+@@ -1134,7 +1144,7 @@
+  * @param string|int[] $object_ids Array or comma delimited list of object IDs to update cache for.
+  * @return array|false Metadata cache for the specified objects, or false on failure.
+  */
+-function update_meta_cache( $meta_type, $object_ids ) {
++function update_meta_cache( mixed $meta_type, mixed $object_ids ): mixed {
+ 	global $wpdb;
+ 
+ 	if ( ! $meta_type || ! $object_ids ) {
+@@ -1149,11 +1159,11 @@
+ 	$column = sanitize_key( $meta_type . '_id' );
+ 
+ 	if ( ! is_array( $object_ids ) ) {
+-		$object_ids = preg_replace( '|[^0-9,]|', '', $object_ids );
++		$object_ids = \wp_aot_preg_replace( '|[^0-9,]|', '', $object_ids );
+ 		$object_ids = explode( ',', $object_ids );
+ 	}
+ 
+-	$object_ids = array_map( 'intval', $object_ids );
++	$object_ids = \wp_aot_array_map( 'intval', $object_ids );
+ 
+ 	/**
+ 	 * Short-circuits updating the metadata cache of a specific type.
+@@ -1201,7 +1211,7 @@
+ 	$id_list   = implode( ',', $non_cached_ids );
+ 	$id_column = ( 'user' === $meta_type ) ? 'umeta_id' : 'meta_id';
+ 
+-	$meta_list = $wpdb->get_results( "SELECT $column, meta_key, meta_value FROM $table WHERE $column IN ($id_list) ORDER BY $id_column ASC", ARRAY_A );
++	$meta_list = \wp_aot_require_wpdb( $wpdb )->get_results( "SELECT $column, meta_key, meta_value FROM $table WHERE $column IN ($id_list) ORDER BY $id_column ASC", ARRAY_A );
+ 
+ 	if ( ! empty( $meta_list ) ) {
+ 		foreach ( $meta_list as $metarow ) {
+@@ -1232,6 +1242,7 @@
+ 	wp_cache_add_multiple( $data, $cache_group );
+ 
+ 	return $cache;
++	return null;
+ }
+ 
+ /**
+@@ -1241,7 +1252,7 @@
+  *
+  * @return WP_Metadata_Lazyloader Metadata lazyloader queue.
+  */
+-function wp_metadata_lazyloader() {
++function wp_metadata_lazyloader(): mixed {
+ 	static $wp_metadata_lazyloader;
+ 
+ 	if ( null === $wp_metadata_lazyloader ) {
+@@ -1249,6 +1260,7 @@
+ 	}
+ 
+ 	return $wp_metadata_lazyloader;
++	return null;
+ }
+ 
+ /**
+@@ -1271,9 +1283,10 @@
+  *     @type string $where SQL fragment to append to the main WHERE clause.
+  * }
+  */
+-function get_meta_sql( $meta_query, $type, $primary_table, $primary_id_column, $context = null ) {
++function get_meta_sql( mixed $meta_query, mixed $type, mixed $primary_table, mixed $primary_id_column, mixed $context = null ): mixed {
+ 	$meta_query_obj = new WP_Meta_Query( $meta_query );
+ 	return $meta_query_obj->get_sql( $type, $primary_table, $primary_id_column, $context );
++	return null;
+ }
+ 
+ /**
+@@ -1287,7 +1300,7 @@
+  *                     'user', or any other object type with an associated meta table.
+  * @return string|false Metadata table name, or false if no metadata table exists
+  */
+-function _get_meta_table( $type ) {
++function _get_meta_table( mixed $type ): mixed {
+ 	global $wpdb;
+ 
+ 	$table_name = $type . 'meta';
+@@ -1297,6 +1310,7 @@
+ 	}
+ 
+ 	return $wpdb->$table_name;
++	return null;
+ }
+ 
+ /**
+@@ -1309,8 +1323,8 @@
+  *                          'user', or any other object type with an associated meta table. Default empty string.
+  * @return bool Whether the meta key is considered protected.
+  */
+-function is_protected_meta( $meta_key, $meta_type = '' ) {
+-	$sanitized_key = preg_replace( "/[^\x20-\x7E\p{L}]/", '', $meta_key );
++function is_protected_meta( mixed $meta_key, mixed $meta_type = '' ): mixed {
++	$sanitized_key = \wp_aot_preg_replace( "/[^\x20-\x7E\p{L}]/", '', $meta_key );
+ 	$protected     = strlen( $sanitized_key ) > 0 && ( '_' === $sanitized_key[0] );
+ 
+ 	/**
+@@ -1324,6 +1338,7 @@
+ 	 *                          'user', or any other object type with an associated meta table.
+ 	 */
+ 	return apply_filters( 'is_protected_meta', $protected, $meta_key, $meta_type );
++	return null;
+ }
+ 
+ /**
+@@ -1339,7 +1354,7 @@
+  * @param string $object_subtype Optional. The subtype of the object type. Default empty string.
+  * @return mixed Sanitized $meta_value.
+  */
+-function sanitize_meta( $meta_key, $meta_value, $object_type, $object_subtype = '' ) {
++function sanitize_meta( mixed $meta_key, mixed $meta_value, mixed $object_type, mixed $object_subtype = '' ): mixed {
+ 	if ( ! empty( $object_subtype ) && has_filter( "sanitize_{$object_type}_meta_{$meta_key}_for_{$object_subtype}" ) ) {
+ 
+ 		/**
+@@ -1375,6 +1390,7 @@
+ 	 *                            'user', or any other object type with an associated meta table.
+ 	 */
+ 	return apply_filters( "sanitize_{$object_type}_meta_{$meta_key}", $meta_value, $meta_key, $object_type );
++	return null;
+ }
+ 
+ /**
+@@ -1432,7 +1448,7 @@
+  *              Registering a meta key with distinct sanitize and auth callbacks will fire those callbacks,
+  *              but will not add to the global registry.
+  */
+-function register_meta( $object_type, $meta_key, $args, $deprecated = null ) {
++function register_meta( mixed $object_type, mixed $meta_key, mixed $args, mixed $deprecated = null ): mixed {
+ 	global $wp_meta_keys;
+ 
+ 	if ( ! is_array( $wp_meta_keys ) ) {
+@@ -1537,7 +1553,7 @@
+ 	if ( array_key_exists( 'default', $args ) ) {
+ 		$schema = $args;
+ 		if ( is_array( $args['show_in_rest'] ) && isset( $args['show_in_rest']['schema'] ) ) {
+-			$schema = array_merge( $schema, $args['show_in_rest']['schema'] );
++			$schema = \wp_aot_array_merge(array( $schema, $args['show_in_rest']['schema'] ));
+ 		}
+ 
+ 		$check = rest_validate_value_from_schema( $args['default'], $schema );
+@@ -1562,6 +1578,7 @@
+ 	}
+ 
+ 	return false;
++	return null;
+ }
+ 
+ /**
+@@ -1581,7 +1598,7 @@
+  * @return mixed An array of default values if `$single` is false.
+  *               The default value of the meta field if `$single` is true.
+  */
+-function filter_default_metadata( $value, $object_id, $meta_key, $single, $meta_type ) {
++function filter_default_metadata( mixed $value, mixed $object_id, mixed $meta_key, mixed $single, mixed $meta_type ): mixed {
+ 	global $wp_meta_keys;
+ 
+ 	if ( wp_installing() ) {
+@@ -1623,6 +1640,7 @@
+ 	}
+ 
+ 	return $value;
++	return null;
+ }
+ 
+ /**
+@@ -1638,10 +1656,11 @@
+  * @return bool True if the meta key is registered to the object type and, if provided,
+  *              the object subtype. False if not.
+  */
+-function registered_meta_key_exists( $object_type, $meta_key, $object_subtype = '' ) {
++function registered_meta_key_exists( mixed $object_type, mixed $meta_key, mixed $object_subtype = '' ): mixed {
+ 	$meta_keys = get_registered_meta_keys( $object_type, $object_subtype );
+ 
+ 	return isset( $meta_keys[ $meta_key ] );
++	return null;
+ }
+ 
+ /**
+@@ -1658,7 +1677,7 @@
+  * @param string $object_subtype Optional. The subtype of the object type. Default empty string.
+  * @return bool True if successful. False if the meta key was not registered.
+  */
+-function unregister_meta_key( $object_type, $meta_key, $object_subtype = '' ) {
++function unregister_meta_key( mixed $object_type, mixed $meta_key, mixed $object_subtype = '' ): mixed {
+ 	global $wp_meta_keys;
+ 
+ 	if ( ! registered_meta_key_exists( $object_type, $meta_key, $object_subtype ) ) {
+@@ -1694,6 +1713,7 @@
+ 	}
+ 
+ 	return true;
++	return null;
+ }
+ 
+ /**
+@@ -1709,7 +1729,7 @@
+  * @param string $object_subtype Optional. The subtype of the object type. Default empty string.
+  * @return array[] List of registered metadata args, keyed by their meta keys.
+  */
+-function get_registered_meta_keys( $object_type, $object_subtype = '' ) {
++function get_registered_meta_keys( mixed $object_type, mixed $object_subtype = '' ): mixed {
+ 	global $wp_meta_keys;
+ 
+ 	if ( ! is_array( $wp_meta_keys ) || ! isset( $wp_meta_keys[ $object_type ] ) || ! isset( $wp_meta_keys[ $object_type ][ $object_subtype ] ) ) {
+@@ -1717,6 +1737,7 @@
+ 	}
+ 
+ 	return $wp_meta_keys[ $object_type ][ $object_subtype ];
++	return null;
+ }
+ 
+ /**
+@@ -1735,7 +1756,7 @@
+  * @return mixed A single value or array of values for a key if specified. An array of all registered keys
+  *               and values for an object ID if not. False if a given $meta_key is not registered.
+  */
+-function get_registered_metadata( $object_type, $object_id, $meta_key = '' ) {
++function get_registered_metadata( mixed $object_type, mixed $object_id, mixed $meta_key = '' ): mixed {
+ 	$object_subtype = get_object_subtype( $object_type, $object_id );
+ 
+ 	if ( ! empty( $meta_key ) ) {
+@@ -1762,10 +1783,11 @@
+ 
+ 	$meta_keys = get_registered_meta_keys( $object_type );
+ 	if ( ! empty( $object_subtype ) ) {
+-		$meta_keys = array_merge( $meta_keys, get_registered_meta_keys( $object_type, $object_subtype ) );
+-	}
+-
+-	return array_intersect_key( $data, $meta_keys );
++		$meta_keys = \wp_aot_array_merge(array( $meta_keys, get_registered_meta_keys( $object_type, $object_subtype ) ));
++	}
++
++	return \wp_aot_array_intersect_key(array( $data, $meta_keys ));
++	return null;
+ }
+ 
+ /**
+@@ -1781,8 +1803,9 @@
+  * @param array $default_args Default arguments for `register_meta()`.
+  * @return array Filtered arguments.
+  */
+-function _wp_register_meta_args_allowed_list( $args, $default_args ) {
+-	return array_intersect_key( $args, $default_args );
++function _wp_register_meta_args_allowed_list( mixed $args, mixed $default_args ): mixed {
++	return \wp_aot_array_intersect_key(array( $args, $default_args ));
++	return null;
+ }
+ 
+ /**
+@@ -1795,7 +1818,7 @@
+  * @param int    $object_id   ID of the object to retrieve its subtype.
+  * @return string The object subtype or an empty string if unspecified subtype.
+  */
+-function get_object_subtype( $object_type, $object_id ) {
++function get_object_subtype( mixed $object_type, mixed $object_id ): mixed {
+ 	$object_id      = (int) $object_id;
+ 	$object_subtype = '';
+ 
+@@ -1856,4 +1879,5 @@
+ 	 * @param int    $object_id      ID of the object to get the subtype for.
+ 	 */
+ 	return apply_filters( "get_object_subtype_{$object_type}", $object_subtype, $object_id );
+-}
++	return null;
++}

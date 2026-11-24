@@ -1,0 +1,577 @@
+--- a/wp-includes/rss.php
++++ b/wp-includes/rss.php
+@@ -32,33 +32,33 @@
+ define('MAGPIE_USER_AGENT', 'WordPress/' . $GLOBALS['wp_version']);
+ 
+ class MagpieRSS {
+-	var $parser;
+-	var $current_item	= array();	// item currently being parsed
+-	var $items			= array();	// collection of parsed items
+-	var $channel		= array();	// hash of channel fields
+-	var $textinput		= array();
+-	var $image			= array();
+-	var $feed_type;
+-	var $feed_version;
++	public $parser;
++	public $current_item	= array();	// item currently being parsed
++	public $items			= array();	// collection of parsed items
++	public $channel		= array();	// hash of channel fields
++	public $textinput		= array();
++	public $image			= array();
++	public $feed_type;
++	public $feed_version;
+ 
+ 	// parser variables
+-	var $stack				= array(); // parser stack
+-	var $inchannel			= false;
+-	var $initem 			= false;
+-	var $incontent			= false; // if in Atom <content mode="xml"> field
+-	var $intextinput		= false;
+-	var $inimage 			= false;
+-	var $current_field		= '';
+-	var $current_namespace	= false;
++	public $stack				= array(); // parser stack
++	public $inchannel			= false;
++	public $initem 			= false;
++	public $incontent			= false; // if in Atom <content mode="xml"> field
++	public $intextinput		= false;
++	public $inimage 			= false;
++	public $current_field		= '';
++	public $current_namespace	= false;
+ 
+ 	//var $ERROR = "";
+ 
+-	var $_CONTENT_CONSTRUCTS = array('content', 'summary', 'info', 'title', 'tagline', 'copyright');
++	public $_CONTENT_CONSTRUCTS = array('content', 'summary', 'info', 'title', 'tagline', 'copyright');
+ 
+ 	/**
+ 	 * PHP5 constructor.
+ 	 */
+-	function __construct( $source ) {
++	function __construct( mixed $source ) {
+ 
+ 		# Check if PHP xml isn't compiled
+ 		#
+@@ -105,13 +105,14 @@
+ 	/**
+ 	 * PHP4 constructor.
+ 	 */
+-	public function MagpieRSS( $source ) {
++	public function MagpieRSS( mixed $source ): mixed {
+ 		self::__construct( $source );
+-	}
+-
+-	function feed_start_element($p, $element, &$attrs) {
++		return null;
++	}
++
++	function feed_start_element(mixed $p, mixed $element, mixed &$attrs): mixed {
+ 		$el = $element = strtolower($element);
+-		$attrs = array_change_key_case($attrs, CASE_LOWER);
++		$attrs = \wp_aot_array_change_key_case($attrs, CASE_LOWER);
+ 
+ 		// check for a namespace, and split if found
+ 		$ns	= false;
+@@ -139,7 +140,7 @@
+ 				$this->feed_version = $attrs['version'];
+ 				$this->inchannel = true;
+ 			}
+-			return;
++			return null;
+ 		}
+ 
+ 		if ( $el == 'channel' )
+@@ -189,13 +190,13 @@
+ 		{
+ 			// if tags are inlined, then flatten
+ 			$attrs_str = join(' ',
+-					array_map(array('MagpieRSS', 'map_attrs'),
++					\wp_aot_array_map(array('MagpieRSS', 'map_attrs'),
+ 					array_keys($attrs),
+ 					array_values($attrs) ) );
+ 
+ 			$this->append_content( "<$element $attrs_str>"  );
+ 
+-			array_unshift( $this->stack, $el );
++			\wp_aot_array_unshift( $this->stack,array( $el ));
+ 		}
+ 
+ 		// Atom support many links per containing element.
+@@ -216,23 +217,25 @@
+ 		}
+ 		// set stack[0] to current element
+ 		else {
+-			array_unshift($this->stack, $el);
+-		}
+-	}
+-
+-	function feed_cdata ($p, $text) {
++			\wp_aot_array_unshift($this->stack,array( $el));
++		}
++		return null;
++	}
++
++	function feed_cdata (mixed $p, mixed $text): mixed {
+ 
+ 		if ($this->feed_type == ATOM and $this->incontent)
+ 		{
+ 			$this->append_content( $text );
+ 		}
+ 		else {
+-			$current_el = join('_', array_reverse($this->stack));
++			$current_el = join('_', \wp_aot_array_reverse($this->stack));
+ 			$this->append($current_el, $text);
+ 		}
+-	}
+-
+-	function feed_end_element ($p, $el) {
++		return null;
++	}
++
++	function feed_end_element (mixed $p, mixed $el): mixed {
+ 		$el = strtolower($el);
+ 
+ 		if ( $el == 'item' or $el == 'entry' )
+@@ -268,35 +271,38 @@
+ 				$this->append_content("<$el />");
+ 			}
+ 
+-			array_shift( $this->stack );
+-		}
+-		else {
+-			array_shift( $this->stack );
++			\wp_aot_array_shift( $this->stack );
++		}
++		else {
++			\wp_aot_array_shift( $this->stack );
+ 		}
+ 
+ 		$this->current_namespace = false;
+-	}
+-
+-	function concat (&$str1, $str2="") {
++		return null;
++	}
++
++	function concat (mixed &$str1, mixed $str2=""): mixed {
+ 		if (!isset($str1) ) {
+ 			$str1="";
+ 		}
+ 		$str1 .= $str2;
+-	}
+-
+-	function append_content($text) {
++		return null;
++	}
++
++	function append_content(mixed $text): mixed {
+ 		if ( $this->initem ) {
+ 			$this->concat( $this->current_item[ $this->incontent ], $text );
+ 		}
+ 		elseif ( $this->inchannel ) {
+ 			$this->concat( $this->channel[ $this->incontent ], $text );
+ 		}
++		return null;
+ 	}
+ 
+ 	// smart append - field and namespace aware
+-	function append($el, $text) {
++	function append(mixed $el, mixed $text): mixed {
+ 		if (!$el) {
+-			return;
++			return null;
+ 		}
+ 		if ( $this->current_namespace )
+ 		{
+@@ -336,9 +342,10 @@
+ 			}
+ 
+ 		}
+-	}
+-
+-	function normalize () {
++		return null;
++	}
++
++	function normalize (): mixed {
+ 		// if atom populate rss fields
+ 		if ( $this->is_atom() ) {
+ 			$this->channel['description'] = $this->channel['tagline'];
+@@ -364,36 +371,41 @@
+ 				$this->items[$i] = $item;
+ 			}
+ 		}
+-	}
+-
+-	function is_rss () {
++		return null;
++	}
++
++	function is_rss (): mixed {
+ 		if ( $this->feed_type == RSS ) {
+ 			return $this->feed_version;
+ 		}
+ 		else {
+ 			return false;
+ 		}
+-	}
+-
+-	function is_atom() {
++		return null;
++	}
++
++	function is_atom(): mixed {
+ 		if ( $this->feed_type == ATOM ) {
+ 			return $this->feed_version;
+ 		}
+ 		else {
+ 			return false;
+ 		}
+-	}
+-
+-	function map_attrs($k, $v) {
++		return null;
++	}
++
++	function map_attrs(mixed $k, mixed $v): mixed {
+ 		return "$k=\"$v\"";
+-	}
+-
+-	function error( $errormsg, $lvl = E_USER_WARNING ) {
++		return null;
++	}
++
++	function error( mixed $errormsg, mixed $lvl = E_USER_WARNING ): mixed {
+ 		if ( MAGPIE_DEBUG ) {
+ 			wp_trigger_error('', $errormsg, $lvl);
+ 		} else {
+-			error_log( $errormsg, 0);
+-		}
++			\wp_aot_native_api('error_log', array( $errormsg, 0));
++		}
++		return null;
+ 	}
+ 
+ }
+@@ -409,7 +421,7 @@
+  * @param string $url URL to retrieve feed.
+  * @return MagpieRSS|false MagpieRSS object on success, false on failure.
+  */
+-function fetch_rss ($url) {
++function fetch_rss (mixed $url): mixed {
+ 	// initialize constants
+ 	init();
+ 
+@@ -533,6 +545,7 @@
+ 		return false;
+ 
+ 	} // end if ( !MAGPIE_CACHE_ON ) {
++	return null;
+ } // end fetch_rss()
+ endif;
+ 
+@@ -547,10 +560,10 @@
+  * @param array $headers Optional. Headers to send to the URL. Default empty string.
+  * @return Snoopy style response
+  */
+-function _fetch_remote_file($url, $headers = "" ) {
++function _fetch_remote_file(mixed $url, mixed $headers = "" ): mixed {
+ 	$resp = wp_safe_remote_request( $url, array( 'headers' => $headers, 'timeout' => MAGPIE_FETCH_TIME_OUT ) );
+ 	if ( is_wp_error($resp) ) {
+-		$error = array_shift($resp->errors);
++		$error = \wp_aot_array_shift($resp->errors);
+ 
+ 		$resp = new stdClass;
+ 		$resp->status = 500;
+@@ -578,6 +591,7 @@
+ 	$response->results = wp_remote_retrieve_body( $resp );
+ 
+ 	return $response;
++	return null;
+ }
+ 
+ /**
+@@ -590,7 +604,7 @@
+  * @param array $resp
+  * @return MagpieRSS|bool
+  */
+-function _response_to_rss ($resp) {
++function _response_to_rss (mixed $resp): mixed {
+ 	$rss = new MagpieRSS( $resp->results );
+ 
+ 	// if RSS parsed successfully
+@@ -628,6 +642,7 @@
+ 
+ 		return false;
+ 	} // end if ($rss and !$rss->error)
++	return null;
+ }
+ 
+ /**
+@@ -640,9 +655,9 @@
+  * @package External
+  * @subpackage MagpieRSS
+  */
+-function init () {
++function init (): mixed {
+ 	if ( defined('MAGPIE_INITALIZED') ) {
+-		return;
++		return null;
+ 	}
+ 	else {
+ 		define('MAGPIE_INITALIZED', 1);
+@@ -689,41 +704,48 @@
+ 	if ( !defined('MAGPIE_USE_GZIP') ) {
+ 		define('MAGPIE_USE_GZIP', true);
+ 	}
+-}
+-
+-function is_info ($sc) {
++	return null;
++}
++
++function is_info (mixed $sc): mixed {
+ 	return $sc >= 100 && $sc < 200;
+-}
+-
+-function is_success ($sc) {
++	return null;
++}
++
++function is_success (mixed $sc): mixed {
+ 	return $sc >= 200 && $sc < 300;
+-}
+-
+-function is_redirect ($sc) {
++	return null;
++}
++
++function is_redirect (mixed $sc): mixed {
+ 	return $sc >= 300 && $sc < 400;
+-}
+-
+-function is_error ($sc) {
++	return null;
++}
++
++function is_error (mixed $sc): mixed {
+ 	return $sc >= 400 && $sc < 600;
+-}
+-
+-function is_client_error ($sc) {
++	return null;
++}
++
++function is_client_error (mixed $sc): mixed {
+ 	return $sc >= 400 && $sc < 500;
+-}
+-
+-function is_server_error ($sc) {
++	return null;
++}
++
++function is_server_error (mixed $sc): mixed {
+ 	return $sc >= 500 && $sc < 600;
++	return null;
+ }
+ 
+ class RSSCache {
+-	var $BASE_CACHE;	// where the cache files are stored
+-	var $MAX_AGE	= 43200;  		// when are files stale, default twelve hours
+-	var $ERROR 		= '';			// accumulate error messages
++	public $BASE_CACHE;	// where the cache files are stored
++	public $MAX_AGE	= 43200;  		// when are files stale, default twelve hours
++	public $ERROR 		= '';			// accumulate error messages
+ 
+ 	/**
+ 	 * PHP5 constructor.
+ 	 */
+-	function __construct( $base = '', $age = '' ) {
++	function __construct( mixed $base = '', mixed $age = '' ) {
+ 		$this->BASE_CACHE = WP_CONTENT_DIR . '/cache';
+ 		if ( $base ) {
+ 			$this->BASE_CACHE = $base;
+@@ -737,8 +759,9 @@
+ 	/**
+ 	 * PHP4 constructor.
+ 	 */
+-	public function RSSCache( $base = '', $age = '' ) {
++	public function RSSCache( mixed $base = '', mixed $age = '' ): mixed {
+ 		self::__construct( $base, $age );
++		return null;
+ 	}
+ 
+ /*=======================================================================*\
+@@ -747,12 +770,13 @@
+ 	Input:		url from which the rss file was fetched
+ 	Output:		true on success
+ \*=======================================================================*/
+-	function set ($url, $rss) {
++	function set (mixed $url, mixed $rss): mixed {
+ 		$cache_option = 'rss_' . $this->file_name( $url );
+ 
+ 		set_transient($cache_option, $rss, $this->MAX_AGE);
+ 
+ 		return $cache_option;
++		return null;
+ 	}
+ 
+ /*=======================================================================*\
+@@ -761,7 +785,7 @@
+ 	Input:		url from which the rss file was fetched
+ 	Output:		cached object on HIT, false on MISS
+ \*=======================================================================*/
+-	function get ($url) {
++	function get (mixed $url): mixed {
+ 		$this->ERROR = "";
+ 		$cache_option = 'rss_' . $this->file_name( $url );
+ 
+@@ -773,6 +797,7 @@
+ 		}
+ 
+ 		return $rss;
++		return null;
+ 	}
+ 
+ /*=======================================================================*\
+@@ -782,7 +807,7 @@
+ 	Input:		url from which the rss file was fetched
+ 	Output:		cached object on HIT, false on MISS
+ \*=======================================================================*/
+-	function check_cache ( $url ) {
++	function check_cache ( mixed $url ): mixed {
+ 		$this->ERROR = "";
+ 		$cache_option = 'rss_' . $this->file_name( $url );
+ 
+@@ -793,20 +818,23 @@
+ 			// object does not exist
+ 			return 'MISS';
+ 		}
++		return null;
+ 	}
+ 
+ /*=======================================================================*\
+ 	Function:	serialize
+ \*=======================================================================*/
+-	function serialize ( $rss ) {
++	function serialize ( mixed $rss ): mixed {
+ 		return serialize( $rss );
++		return null;
+ 	}
+ 
+ /*=======================================================================*\
+ 	Function:	unserialize
+ \*=======================================================================*/
+-	function unserialize ( $data ) {
++	function unserialize ( mixed $data ): mixed {
+ 		return unserialize( $data );
++		return null;
+ 	}
+ 
+ /*=======================================================================*\
+@@ -815,42 +843,45 @@
+ 	Input:		url from which the rss file was fetched
+ 	Output:		a file name
+ \*=======================================================================*/
+-	function file_name ($url) {
++	function file_name (mixed $url): mixed {
+ 		return md5( $url );
++		return null;
+ 	}
+ 
+ /*=======================================================================*\
+ 	Function:	error
+ 	Purpose:	register error
+ \*=======================================================================*/
+-	function error ($errormsg, $lvl=E_USER_WARNING) {
++	function error (mixed $errormsg, mixed $lvl=E_USER_WARNING): mixed {
+ 		$this->ERROR = $errormsg;
+ 		if ( MAGPIE_DEBUG ) {
+ 			wp_trigger_error( '', $errormsg, $lvl);
+ 		}
+ 		else {
+-			error_log( $errormsg, 0);
+-		}
+-	}
+-			function debug ($debugmsg, $lvl=E_USER_NOTICE) {
++			\wp_aot_native_api('error_log', array( $errormsg, 0));
++		}
++		return null;
++	}
++			function debug (mixed $debugmsg, mixed $lvl=E_USER_NOTICE): mixed {
+ 		if ( MAGPIE_DEBUG ) {
+ 			$this->error("MagpieRSS [debug] $debugmsg", $lvl);
+ 		}
++		return null;
+ 	}
+ }
+ 
+ if ( !function_exists('parse_w3cdtf') ) :
+-function parse_w3cdtf ( $date_str ) {
++function parse_w3cdtf ( mixed $date_str ): mixed {
+ 
+ 	# regex to match W3C date/time formats
+ 	$pat = "/(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})(:(\d{2}))?(?:([-+])(\d{2}):?(\d{2})|(Z))?/";
+ 
+-	if ( preg_match( $pat, $date_str, $match ) ) {
++	if ( preg_match( \wp_aot_regex_text( $pat ), \wp_aot_regex_text( $date_str ), $match ) ) {
+ 		list( $year, $month, $day, $hours, $minutes, $seconds) =
+ 			array( $match[1], $match[2], $match[3], $match[4], $match[5], $match[7]);
+ 
+ 		# calc epoch for current date assuming GMT
+-		$epoch = gmmktime( $hours, $minutes, $seconds, $month, $day, $year);
++		$epoch = gmmktime( \wp_aot_calendar_component( $hours ), \wp_aot_calendar_component( $minutes ), \wp_aot_calendar_component( $seconds ), \wp_aot_calendar_component( $month ), \wp_aot_calendar_component( $day ), \wp_aot_calendar_component( $year ));
+ 
+ 		$offset = 0;
+ 		if ( $match[11] == 'Z' ) {
+@@ -880,6 +911,7 @@
+ 	else {
+ 		return -1;
+ 	}
++	return null;
+ }
+ endif;
+ 
+@@ -894,12 +926,12 @@
+  * @param string $url URL of feed to display. Will not auto sense feed URL.
+  * @param int $num_items Optional. Number of items to display, default is all.
+  */
+-function wp_rss( $url, $num_items = -1 ) {
++function wp_rss( mixed $url, mixed $num_items = -1 ): mixed {
+ 	if ( $rss = fetch_rss( $url ) ) {
+ 		echo '<ul>';
+ 
+ 		if ( $num_items !== -1 ) {
+-			$rss->items = array_slice( $rss->items, 0, $num_items );
++			$rss->items = \wp_aot_array_slice( $rss->items, 0, $num_items );
+ 		}
+ 
+ 		foreach ( (array) $rss->items as $item ) {
+@@ -915,6 +947,7 @@
+ 	} else {
+ 		_e( 'An error has occurred, which probably means the feed is down. Try again later.' );
+ 	}
++	return null;
+ }
+ endif;
+ 
+@@ -935,10 +968,10 @@
+  * @param int $num_items Optional. Number of items to display, default is all.
+  * @return bool False on failure.
+  */
+-function get_rss ($url, $num_items = 5) { // Like get posts, but for RSS
++function get_rss (mixed $url, mixed $num_items = 5): mixed { // Like get posts, but for RSS
+ 	$rss = fetch_rss($url);
+ 	if ( $rss ) {
+-		$rss->items = array_slice($rss->items, 0, $num_items);
++		$rss->items = \wp_aot_array_slice($rss->items, 0, $num_items);
+ 		foreach ( (array) $rss->items as $item ) {
+ 			echo "<li>\n";
+ 			echo "<a href='$item[link]' title='$item[description]'>";
+@@ -949,5 +982,6 @@
+ 	} else {
+ 		return false;
+ 	}
++	return null;
+ }
+ endif;

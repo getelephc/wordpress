@@ -1,0 +1,803 @@
+--- a/wp-includes/class-wp-theme.php
++++ b/wp-includes/class-wp-theme.php
+@@ -248,7 +248,7 @@
+ 	 * @param string        $theme_root Theme root.
+ 	 * @param WP_Theme|null $_child If this theme is a parent theme, the child may be passed for validation purposes.
+ 	 */
+-	public function __construct( $theme_dir, $theme_root, $_child = null ) {
++	public function __construct( mixed $theme_dir, mixed $theme_root, mixed $_child = null ) {
+ 		global $wp_theme_directories;
+ 
+ 		// Initialize caching on first run.
+@@ -352,7 +352,7 @@
+ 			 * Default themes always trump their pretenders.
+ 			 * Properly identify default themes that are inside a directory within wp-content/themes.
+ 			 */
+-			$default_theme_slug = array_search( $this->headers['Name'], self::$default_themes, true );
++			$default_theme_slug = \wp_aot_array_search( $this->headers['Name'], self::$default_themes, true );
+ 			if ( $default_theme_slug ) {
+ 				if ( basename( $this->stylesheet ) !== $default_theme_slug ) {
+ 					$this->headers['Name'] .= '/' . $this->stylesheet;
+@@ -633,7 +633,7 @@
+ 	 * @param mixed $value
+ 	 */
+ 	#[ReturnTypeWillChange]
+-	public function offsetSet( $offset, $value ) {}
++	public function offsetSet( mixed $offset, mixed $value ) {}
+ 
+ 	/**
+ 	 * Method to implement ArrayAccess for keys formerly returned by get_themes()
+@@ -643,7 +643,7 @@
+ 	 * @param mixed $offset
+ 	 */
+ 	#[ReturnTypeWillChange]
+-	public function offsetUnset( $offset ) {}
++	public function offsetUnset( mixed $offset ) {}
+ 
+ 	/**
+ 	 * Method to implement ArrayAccess for keys formerly returned by get_themes()
+@@ -654,7 +654,7 @@
+ 	 * @return bool
+ 	 */
+ 	#[ReturnTypeWillChange]
+-	public function offsetExists( $offset ) {
++	public function offsetExists( mixed $offset ) {
+ 		static $keys = array(
+ 			'Name',
+ 			'Version',
+@@ -696,7 +696,7 @@
+ 	 * @return mixed
+ 	 */
+ 	#[ReturnTypeWillChange]
+-	public function offsetGet( $offset ) {
++	public function offsetGet( mixed $offset ) {
+ 		switch ( $offset ) {
+ 			case 'Name':
+ 			case 'Title':
+@@ -750,8 +750,9 @@
+ 	 *
+ 	 * @return WP_Error|false WP_Error if there are errors, or false.
+ 	 */
+-	public function errors() {
++	public function errors(): mixed {
+ 		return is_wp_error( $this->errors ) ? $this->errors : false;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -764,8 +765,9 @@
+ 	 *
+ 	 * @return bool Whether the theme exists.
+ 	 */
+-	public function exists() {
++	public function exists(): mixed {
+ 		return ! ( $this->errors() && in_array( 'theme_not_found', $this->errors()->get_error_codes(), true ) );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -775,8 +777,9 @@
+ 	 *
+ 	 * @return WP_Theme|false Parent theme, or false if the active theme is not a child theme.
+ 	 */
+-	public function parent() {
++	public function parent(): mixed {
+ 		return $this->parent ?? false;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -810,8 +813,9 @@
+ 	 * @param array|string $data Data to store
+ 	 * @return bool Return value from wp_cache_add()
+ 	 */
+-	private function cache_add( $key, $data ) {
++	private function cache_add( mixed $key, mixed $data ): mixed {
+ 		return wp_cache_add( $key . '-' . $this->cache_hash, $data, 'themes', self::$cache_expiration );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -824,8 +828,9 @@
+ 	 * @param string $key Type of data to retrieve (theme, screenshot, headers, post_templates)
+ 	 * @return mixed Retrieved data
+ 	 */
+-	private function cache_get( $key ) {
++	private function cache_get( mixed $key ): mixed {
+ 		return wp_cache_get( $key . '-' . $this->cache_hash, 'themes' );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -833,7 +838,7 @@
+ 	 *
+ 	 * @since 3.4.0
+ 	 */
+-	public function cache_delete() {
++	public function cache_delete(): mixed {
+ 		foreach ( array( 'theme', 'screenshot', 'headers', 'post_templates' ) as $key ) {
+ 			wp_cache_delete( $key . '-' . $this->cache_hash, 'themes' );
+ 		}
+@@ -849,6 +854,7 @@
+ 		$this->headers                = array();
+ 		$this->__construct( $this->stylesheet, $this->theme_root );
+ 		$this->delete_pattern_cache();
++		return null;
+ 	}
+ 
+ 	/**
+@@ -875,7 +881,7 @@
+ 	 *             : false )
+ 	 * )
+ 	 */
+-	public function get( $header ) {
++	public function get( mixed $header ): mixed {
+ 		if ( ! isset( $this->headers[ $header ] ) ) {
+ 			return false;
+ 		}
+@@ -902,6 +908,7 @@
+ 		}
+ 
+ 		return $this->headers_sanitized[ $header ];
++		return null;
+ 	}
+ 
+ 	/**
+@@ -915,7 +922,7 @@
+ 	 * @return string|array|false Processed header. An array for Tags if `$markup` is false, string otherwise.
+ 	 *                            False on failure.
+ 	 */
+-	public function display( $header, $markup = true, $translate = true ) {
++	public function display( mixed $header, mixed $markup = true, mixed $translate = true ): mixed {
+ 		$value = $this->get( $header );
+ 		if ( false === $value ) {
+ 			return false;
+@@ -934,6 +941,7 @@
+ 		}
+ 
+ 		return $value;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -949,7 +957,7 @@
+ 	 * @param string $value  Value to sanitize.
+ 	 * @return string|array An array for Tags header, string otherwise.
+ 	 */
+-	private function sanitize_header( $header, $value ) {
++	private function sanitize_header( mixed $header, mixed $value ): mixed {
+ 		switch ( $header ) {
+ 			case 'Status':
+ 				if ( ! $value ) {
+@@ -990,7 +998,7 @@
+ 				$value = sanitize_url( $value );
+ 				break;
+ 			case 'Tags':
+-				$value = array_filter( array_map( 'trim', explode( ',', strip_tags( $value ) ) ) );
++				$value = \wp_aot_array_filter( \wp_aot_array_map( 'trim', explode( ',', strip_tags( $value ) ) ) );
+ 				break;
+ 			case 'Version':
+ 			case 'RequiresWP':
+@@ -1001,6 +1009,7 @@
+ 		}
+ 
+ 		return $value;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1013,7 +1022,7 @@
+ 	 * @param bool         $translate Whether the header has been translated.
+ 	 * @return string Value, marked up.
+ 	 */
+-	private function markup_header( $header, $value, $translate ) {
++	private function markup_header( mixed $header, mixed $value, mixed $translate ): mixed {
+ 		switch ( $header ) {
+ 			case 'Name':
+ 				if ( empty( $value ) ) {
+@@ -1031,7 +1040,8 @@
+ 				}
+ 				break;
+ 			case 'Tags':
+-				static $comma = null;
++				static $comma_aot_cell = new \WordPressStaticValueCell();
++				$comma =& $comma_aot_cell->value;
+ 				if ( ! isset( $comma ) ) {
+ 					$comma = wp_get_list_item_separator();
+ 				}
+@@ -1044,6 +1054,7 @@
+ 		}
+ 
+ 		return $value;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1055,7 +1066,7 @@
+ 	 * @param string|array $value  Value to translate. An array for Tags header, string otherwise.
+ 	 * @return string|array Translated value. An array for Tags header, string otherwise.
+ 	 */
+-	private function translate_header( $header, $value ) {
++	private function translate_header( mixed $header, mixed $value ): mixed {
+ 		switch ( $header ) {
+ 			case 'Name':
+ 				// Cached for sorting reasons.
+@@ -1072,7 +1083,8 @@
+ 					return $value;
+ 				}
+ 
+-				static $tags_list;
++				static $tags_list_aot_cell = new \WordPressStaticValueCell();
++				$tags_list =& $tags_list_aot_cell->value;
+ 				if ( ! isset( $tags_list ) ) {
+ 					$tags_list = array(
+ 						// As of 4.6, deprecated tags which are only used to provide translation for older themes.
+@@ -1121,6 +1133,7 @@
+ 				$value = translate( $value, $this->get( 'TextDomain' ) );
+ 		}
+ 		return $value;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1133,8 +1146,9 @@
+ 	 *
+ 	 * @return string Stylesheet
+ 	 */
+-	public function get_stylesheet() {
++	public function get_stylesheet(): mixed {
+ 		return $this->stylesheet;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1147,8 +1161,9 @@
+ 	 *
+ 	 * @return string Template
+ 	 */
+-	public function get_template() {
++	public function get_template(): mixed {
+ 		return $this->template;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1161,12 +1176,13 @@
+ 	 *
+ 	 * @return string Absolute path of the stylesheet directory.
+ 	 */
+-	public function get_stylesheet_directory() {
++	public function get_stylesheet_directory(): mixed {
+ 		if ( $this->errors() && in_array( 'theme_root_missing', $this->errors()->get_error_codes(), true ) ) {
+ 			return '';
+ 		}
+ 
+ 		return $this->theme_root . '/' . $this->stylesheet;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1179,7 +1195,7 @@
+ 	 *
+ 	 * @return string Absolute path of the template directory.
+ 	 */
+-	public function get_template_directory() {
++	public function get_template_directory(): mixed {
+ 		if ( $this->parent() ) {
+ 			$theme_root = $this->parent()->theme_root;
+ 		} else {
+@@ -1187,6 +1203,7 @@
+ 		}
+ 
+ 		return $theme_root . '/' . $this->template;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1199,8 +1216,9 @@
+ 	 *
+ 	 * @return string URL to the stylesheet directory.
+ 	 */
+-	public function get_stylesheet_directory_uri() {
+-		return $this->get_theme_root_uri() . '/' . str_replace( '%2F', '/', rawurlencode( $this->stylesheet ) );
++	public function get_stylesheet_directory_uri(): mixed {
++		return $this->get_theme_root_uri() . '/' . \wp_aot_str_replace( '%2F', '/', rawurlencode( $this->stylesheet ) );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1213,14 +1231,15 @@
+ 	 *
+ 	 * @return string URL to the template directory.
+ 	 */
+-	public function get_template_directory_uri() {
++	public function get_template_directory_uri(): mixed {
+ 		if ( $this->parent() ) {
+ 			$theme_root_uri = $this->parent()->get_theme_root_uri();
+ 		} else {
+ 			$theme_root_uri = $this->get_theme_root_uri();
+ 		}
+ 
+-		return $theme_root_uri . '/' . str_replace( '%2F', '/', rawurlencode( $this->template ) );
++		return $theme_root_uri . '/' . \wp_aot_str_replace( '%2F', '/', rawurlencode( $this->template ) );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1232,8 +1251,9 @@
+ 	 *
+ 	 * @return string Theme root.
+ 	 */
+-	public function get_theme_root() {
++	public function get_theme_root(): mixed {
+ 		return $this->theme_root;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1247,11 +1267,12 @@
+ 	 *
+ 	 * @return string Theme root URI.
+ 	 */
+-	public function get_theme_root_uri() {
++	public function get_theme_root_uri(): mixed {
+ 		if ( ! isset( $this->theme_root_uri ) ) {
+ 			$this->theme_root_uri = get_theme_root_uri( $this->stylesheet, $this->theme_root );
+ 		}
+ 		return $this->theme_root_uri;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1267,7 +1288,7 @@
+ 	 * @param string $uri Type of URL to return, either 'relative' or an absolute URI. Defaults to absolute URI.
+ 	 * @return string|false Screenshot file. False if the theme does not have a screenshot.
+ 	 */
+-	public function get_screenshot( $uri = 'uri' ) {
++	public function get_screenshot( mixed $uri = 'uri' ): mixed {
+ 		$screenshot = $this->cache_get( 'screenshot' );
+ 		if ( $screenshot ) {
+ 			if ( 'relative' === $uri ) {
+@@ -1290,6 +1311,7 @@
+ 
+ 		$this->cache_add( 'screenshot', 0 );
+ 		return false;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1305,14 +1327,15 @@
+ 	 * @return string[] Array of files, keyed by the path to the file relative to the theme's directory, with the values
+ 	 *                  being absolute paths.
+ 	 */
+-	public function get_files( $type = null, $depth = 0, $search_parent = false ) {
++	public function get_files( mixed $type = null, mixed $depth = 0, mixed $search_parent = false ): mixed {
+ 		$files = (array) self::scandir( $this->get_stylesheet_directory(), $type, $depth );
+ 
+ 		if ( $search_parent && $this->parent() ) {
+-			$files += (array) self::scandir( $this->get_template_directory(), $type, $depth );
+-		}
+-
+-		return array_filter( $files );
++			$files = \wp_aot_value_array_union($files, (array) self::scandir( $this->get_template_directory(), $type, $depth ));
++		}
++
++		return \wp_aot_array_filter( $files );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1324,7 +1347,7 @@
+ 	 * @return array[] Array of page template arrays, keyed by post type and filename,
+ 	 *                 with the value of the translated header name.
+ 	 */
+-	public function get_post_templates() {
++	public function get_post_templates(): mixed {
+ 		// If you screw up your active theme and we invalidate your parent, most things still work. Let it slide.
+ 		if ( $this->errors() && $this->errors()->get_error_codes() !== array( 'theme_parent_invalid' ) ) {
+ 			return array();
+@@ -1395,6 +1418,7 @@
+ 		}
+ 
+ 		return $post_templates;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1408,7 +1432,7 @@
+ 	 *                                If a post is provided, its post type is used.
+ 	 * @return string[] Array of template header names keyed by the template file name.
+ 	 */
+-	public function get_page_templates( $post = null, $post_type = 'page' ) {
++	public function get_page_templates( mixed $post = null, mixed $post_type = 'page' ): mixed {
+ 		if ( $post ) {
+ 			$post_type = get_post_type( $post );
+ 		}
+@@ -1451,6 +1475,7 @@
+ 		$post_templates = (array) apply_filters( "theme_{$post_type}_templates", $post_templates, $this, $post, $post_type );
+ 
+ 		return $post_templates;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1469,7 +1494,7 @@
+ 	 * @return string[]|false Array of files, keyed by the path to the file relative to the `$path` directory prepended
+ 	 *                        with `$relative_path`, with the values being absolute paths. False otherwise.
+ 	 */
+-	private static function scandir( $path, $extensions = null, $depth = 0, $relative_path = '' ) {
++	private static function scandir( mixed $path, mixed $extensions = null, mixed $depth = 0, mixed $relative_path = '' ): mixed {
+ 		if ( ! is_dir( $path ) ) {
+ 			return false;
+ 		}
+@@ -1505,13 +1530,14 @@
+ 					continue;
+ 				}
+ 				$found = self::scandir( $path . '/' . $result, $extensions, $depth - 1, $relative_path . $result );
+-				$files = array_merge_recursive( $files, $found );
+-			} elseif ( ! $extensions || preg_match( '~\.(' . $_extensions . ')$~', $result ) ) {
++				$files = \wp_aot_array_merge_recursive(array( $files, $found ));
++			} elseif ( ! $extensions || preg_match( \wp_aot_regex_text( '~\.(' . $_extensions . ')$~' ), \wp_aot_regex_text( $result ) ) ) {
+ 				$files[ $relative_path . $result ] = $path . '/' . $result;
+ 			}
+ 		}
+ 
+ 		return $files;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1525,7 +1551,7 @@
+ 	 * @return bool True if the textdomain was successfully loaded or has already been loaded.
+ 	 *  False if no textdomain was specified in the file headers, or if the domain could not be loaded.
+ 	 */
+-	public function load_textdomain() {
++	public function load_textdomain(): mixed {
+ 		if ( isset( $this->textdomain_loaded ) ) {
+ 			return $this->textdomain_loaded;
+ 		}
+@@ -1551,6 +1577,7 @@
+ 
+ 		$this->textdomain_loaded = load_theme_textdomain( $textdomain, $path );
+ 		return $this->textdomain_loaded;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1563,7 +1590,7 @@
+ 	 * @param int    $blog_id Optional. Ignored if only network-wide settings are checked. Defaults to current site.
+ 	 * @return bool Whether the theme is allowed for the network. Returns true in single-site.
+ 	 */
+-	public function is_allowed( $check = 'both', $blog_id = null ) {
++	public function is_allowed( mixed $check = 'both', mixed $blog_id = null ): mixed {
+ 		if ( ! is_multisite() ) {
+ 			return true;
+ 		}
+@@ -1583,6 +1610,7 @@
+ 		}
+ 
+ 		return false;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1592,7 +1620,7 @@
+ 	 *
+ 	 * @return bool
+ 	 */
+-	public function is_block_theme() {
++	public function is_block_theme(): mixed {
+ 		if ( isset( $this->block_theme ) ) {
+ 			return $this->block_theme;
+ 		}
+@@ -1612,6 +1640,7 @@
+ 		}
+ 
+ 		return $this->block_theme;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1625,7 +1654,7 @@
+ 	 * @param string $file Optional. File to search for in the stylesheet directory.
+ 	 * @return string The path of the file.
+ 	 */
+-	public function get_file_path( $file = '' ) {
++	public function get_file_path( mixed $file = '' ): mixed {
+ 		$file = ltrim( $file, '/' );
+ 
+ 		$stylesheet_directory = $this->get_stylesheet_directory();
+@@ -1641,6 +1670,7 @@
+ 
+ 		/** This filter is documented in wp-includes/link-template.php */
+ 		return apply_filters( 'theme_file_path', $path, $file );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1652,14 +1682,15 @@
+ 	 *
+ 	 * @return WP_Theme|false Object, or false if no theme is installed, which would be bad.
+ 	 */
+-	public static function get_core_default_theme() {
+-		foreach ( array_reverse( self::$default_themes ) as $slug => $name ) {
++	public static function get_core_default_theme(): mixed {
++		foreach ( \wp_aot_array_reverse( self::$default_themes ) as $slug => $name ) {
+ 			$theme = wp_get_theme( $slug );
+ 			if ( $theme->exists() ) {
+ 				return $theme;
+ 			}
+ 		}
+ 		return false;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1670,7 +1701,7 @@
+ 	 * @param int $blog_id Optional. ID of the site. Defaults to the current site.
+ 	 * @return string[] Array of stylesheet names.
+ 	 */
+-	public static function get_allowed( $blog_id = null ) {
++	public static function get_allowed( mixed $blog_id = null ): mixed {
+ 		/**
+ 		 * Filters the array of themes allowed on the network.
+ 		 *
+@@ -1683,7 +1714,8 @@
+ 		 * @param int      $blog_id        ID of the site.
+ 		 */
+ 		$network = (array) apply_filters( 'network_allowed_themes', self::get_allowed_on_network(), $blog_id );
+-		return $network + self::get_allowed_on_site( $blog_id );
++		return \wp_aot_value_array_union($network , self::get_allowed_on_site( $blog_id ));
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1693,8 +1725,9 @@
+ 	 *
+ 	 * @return string[] Array of stylesheet names.
+ 	 */
+-	public static function get_allowed_on_network() {
+-		static $allowed_themes;
++	public static function get_allowed_on_network(): mixed {
++		static $allowed_themes_aot_cell = new \WordPressStaticValueCell();
++		$allowed_themes =& $allowed_themes_aot_cell->value;
+ 		if ( ! isset( $allowed_themes ) ) {
+ 			$allowed_themes = (array) get_site_option( 'allowedthemes' );
+ 		}
+@@ -1709,6 +1742,7 @@
+ 		$allowed_themes = apply_filters( 'allowed_themes', $allowed_themes );
+ 
+ 		return $allowed_themes;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1719,8 +1753,9 @@
+ 	 * @param int $blog_id Optional. ID of the site. Defaults to the current site.
+ 	 * @return string[] Array of stylesheet names.
+ 	 */
+-	public static function get_allowed_on_site( $blog_id = null ) {
+-		static $allowed_themes = array();
++	public static function get_allowed_on_site( mixed $blog_id = null ): mixed {
++		static $allowed_themes_aot_cell = new \WordPressStaticArrayCell();
++		$allowed_themes =& $allowed_themes_aot_cell->value;
+ 
+ 		if ( ! $blog_id || ! is_multisite() ) {
+ 			$blog_id = get_current_blog_id();
+@@ -1789,6 +1824,7 @@
+ 
+ 		/** This filter is documented in wp-includes/class-wp-theme.php */
+ 		return (array) apply_filters( 'site_allowed_themes', $allowed_themes[ $blog_id ], $blog_id );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1803,7 +1839,7 @@
+ 	 *     @type string $wp_template_part Theme-relative directory name for block template parts.
+ 	 * }
+ 	 */
+-	public function get_block_template_folders() {
++	public function get_block_template_folders(): mixed {
+ 		// Return set/cached value if available.
+ 		if ( isset( $this->block_template_folders ) ) {
+ 			return $this->block_template_folders;
+@@ -1820,6 +1856,7 @@
+ 			);
+ 		}
+ 		return $this->block_template_folders;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1853,7 +1890,7 @@
+ 	 *
+ 	 * @return array Block pattern data.
+ 	 */
+-	public function get_block_patterns() {
++	public function get_block_patterns(): mixed {
+ 		$can_use_cached = ! wp_is_development_mode( 'theme' );
+ 
+ 		$pattern_data = $this->get_pattern_cache();
+@@ -1870,7 +1907,7 @@
+ 
+ 		if ( ! file_exists( $dirpath ) ) {
+ 			if ( $can_use_cached ) {
+-				$this->set_pattern_cache( $pattern_data );
++				$this->set_pattern_cache( \wp_aot_array_input($pattern_data ));
+ 			}
+ 			return $pattern_data;
+ 		}
+@@ -1891,7 +1928,7 @@
+ 
+ 		if ( ! $files ) {
+ 			if ( $can_use_cached ) {
+-				$this->set_pattern_cache( $pattern_data );
++				$this->set_pattern_cache( \wp_aot_array_input($pattern_data ));
+ 			}
+ 			return $pattern_data;
+ 		}
+@@ -1933,7 +1970,7 @@
+ 				continue;
+ 			}
+ 
+-			if ( ! preg_match( '/^[A-z0-9\/_-]+$/', $pattern['slug'] ) ) {
++			if ( ! preg_match( '/^[A-z0-9\/_-]+$/', \wp_aot_regex_text( $pattern['slug'] ) ) ) {
+ 				_doing_it_wrong(
+ 					__FUNCTION__,
+ 					sprintf(
+@@ -1963,7 +2000,7 @@
+ 			// For properties of type array, parse data as comma-separated.
+ 			foreach ( $properties_to_parse as $property ) {
+ 				if ( ! empty( $pattern[ $property ] ) ) {
+-					$pattern[ $property ] = array_filter( wp_parse_list( (string) $pattern[ $property ] ) );
++					$pattern[ $property ] = \wp_aot_array_filter( wp_parse_list( (string) $pattern[ $property ] ) );
+ 				} else {
+ 					unset( $pattern[ $property ] );
+ 				}
+@@ -1989,16 +2026,17 @@
+ 				unset( $pattern[ $property ] );
+ 			}
+ 
+-			$key = str_replace( $dirpath, '', $file );
++			$key = \wp_aot_str_replace( $dirpath, '', $file );
+ 
+ 			$pattern_data[ $key ] = $pattern;
+ 		}
+ 
+ 		if ( $can_use_cached ) {
+-			$this->set_pattern_cache( $pattern_data );
++			$this->set_pattern_cache( \wp_aot_array_input($pattern_data ));
+ 		}
+ 
+ 		return $pattern_data;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -2009,7 +2047,7 @@
+ 	 *
+ 	 * @return array|false Returns an array of patterns if cache is found, otherwise false.
+ 	 */
+-	private function get_pattern_cache() {
++	private function get_pattern_cache(): mixed {
+ 		if ( ! $this->exists() ) {
+ 			return false;
+ 		}
+@@ -2020,6 +2058,7 @@
+ 			return $pattern_data['patterns'];
+ 		}
+ 		return false;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -2030,7 +2069,7 @@
+ 	 *
+ 	 * @param array $patterns Block patterns data to set in cache.
+ 	 */
+-	private function set_pattern_cache( array $patterns ) {
++	private function set_pattern_cache( array $patterns ): mixed {
+ 		$pattern_data = array(
+ 			'version'  => $this->get( 'Version' ),
+ 			'patterns' => $patterns,
+@@ -2062,6 +2101,7 @@
+ 		}
+ 
+ 		set_site_transient( 'wp_theme_files_patterns-' . $this->cache_hash, $pattern_data, $cache_expiration );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -2070,8 +2110,9 @@
+ 	 * @since 6.4.0
+ 	 * @since 6.6.0 Uses transients to cache regardless of site environment.
+ 	 */
+-	public function delete_pattern_cache() {
++	public function delete_pattern_cache(): mixed {
+ 		delete_site_transient( 'wp_theme_files_patterns-' . $this->cache_hash );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -2081,9 +2122,9 @@
+ 	 *
+ 	 * @param string|string[] $stylesheets Stylesheet name or array of stylesheet names.
+ 	 */
+-	public static function network_enable_theme( $stylesheets ) {
++	public static function network_enable_theme( mixed $stylesheets ): mixed {
+ 		if ( ! is_multisite() ) {
+-			return;
++			return null;
+ 		}
+ 
+ 		if ( ! is_array( $stylesheets ) ) {
+@@ -2096,6 +2137,7 @@
+ 		}
+ 
+ 		update_site_option( 'allowedthemes', $allowed_themes );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -2105,9 +2147,9 @@
+ 	 *
+ 	 * @param string|string[] $stylesheets Stylesheet name or array of stylesheet names.
+ 	 */
+-	public static function network_disable_theme( $stylesheets ) {
++	public static function network_disable_theme( mixed $stylesheets ): mixed {
+ 		if ( ! is_multisite() ) {
+-			return;
++			return null;
+ 		}
+ 
+ 		if ( ! is_array( $stylesheets ) ) {
+@@ -2122,6 +2164,7 @@
+ 		}
+ 
+ 		update_site_option( 'allowedthemes', $allowed_themes );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -2131,15 +2174,16 @@
+ 	 *
+ 	 * @param WP_Theme[] $themes Array of theme objects to sort (passed by reference).
+ 	 */
+-	public static function sort_by_name( &$themes ) {
++	public static function sort_by_name( mixed &$themes ): mixed {
+ 		if ( str_starts_with( get_user_locale(), 'en_' ) ) {
+-			uasort( $themes, array( 'WP_Theme', '_name_sort' ) );
++			\wp_aot_uasort( $themes, array( 'WP_Theme', '_name_sort' ) );
+ 		} else {
+ 			foreach ( $themes as $key => $theme ) {
+ 				$theme->translate_header( 'Name', $theme->headers['Name'] );
+ 			}
+-			uasort( $themes, array( 'WP_Theme', '_name_sort_i18n' ) );
+-		}
++			\wp_aot_uasort( $themes, array( 'WP_Theme', '_name_sort_i18n' ) );
++		}
++		return null;
+ 	}
+ 
+ 	/**
+@@ -2155,8 +2199,9 @@
+ 	 * @return int Negative if `$a` falls lower in the natural order than `$b`. Zero if they fall equally.
+ 	 *             Greater than 0 if `$a` falls higher in the natural order than `$b`. Used with usort().
+ 	 */
+-	private static function _name_sort( $a, $b ) {
++	private static function _name_sort( mixed $a, mixed $b ): mixed {
+ 		return strnatcasecmp( $a->headers['Name'], $b->headers['Name'] );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -2169,7 +2214,8 @@
+ 	 * @return int Negative if `$a` falls lower in the natural order than `$b`. Zero if they fall equally.
+ 	 *             Greater than 0 if `$a` falls higher in the natural order than `$b`. Used with usort().
+ 	 */
+-	private static function _name_sort_i18n( $a, $b ) {
++	private static function _name_sort_i18n( mixed $a, mixed $b ): mixed {
+ 		return strnatcasecmp( $a->name_translated, $b->name_translated );
++		return null;
+ 	}
+ }

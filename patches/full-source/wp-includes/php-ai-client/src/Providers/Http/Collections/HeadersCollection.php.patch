@@ -1,0 +1,40 @@
+--- a/wp-includes/php-ai-client/src/Providers/Http/Collections/HeadersCollection.php
++++ b/wp-includes/php-ai-client/src/Providers/Http/Collections/HeadersCollection.php
+@@ -46,10 +46,10 @@
+     {
+         $lowerName = strtolower($name);
+         if (!isset($this->headersMap[$lowerName])) {
+-            return null;
++            return \wp_aot_require_nullable_array( null );
+         }
+         $actualName = $this->headersMap[$lowerName];
+-        return $this->headers[$actualName];
++        return \wp_aot_require_nullable_array( $this->headers[$actualName] );
+     }
+     /**
+      * Gets all headers.
+@@ -96,13 +96,13 @@
+      * @param string|list<string> $value The header value(s).
+      * @return void
+      */
+-    private function set(string $name, $value): void
++    private function set(string $name, mixed $value): void
+     {
+         if (is_array($value)) {
+             $normalizedValues = array_values($value);
+         } else {
+             // Split comma-separated string into array
+-            $normalizedValues = array_map('trim', explode(',', $value));
++            $normalizedValues = \wp_aot_array_map('trim', explode(',', $value));
+         }
+         $lowerName = strtolower($name);
+         // If header exists with different casing, remove the old casing
+@@ -125,7 +125,7 @@
+      * @param string|list<string> $value The header value(s).
+      * @return self A new instance with the header.
+      */
+-    public function withHeader(string $name, $value): self
++    public function withHeader(string $name, mixed $value): self
+     {
+         $new = clone $this;
+         $new->set($name, $value);

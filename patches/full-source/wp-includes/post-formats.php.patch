@@ -1,0 +1,213 @@
+--- a/wp-includes/post-formats.php
++++ b/wp-includes/post-formats.php
+@@ -14,7 +14,7 @@
+  * @param int|WP_Post|null $post Optional. Post ID or post object. Defaults to the current post in the loop.
+  * @return string|false The format if successful. False otherwise.
+  */
+-function get_post_format( $post = null ) {
++function get_post_format( mixed $post = null ): mixed {
+ 	$post = get_post( $post );
+ 
+ 	if ( ! $post ) {
+@@ -33,7 +33,8 @@
+ 
+ 	$format = reset( $_format );
+ 
+-	return str_replace( 'post-format-', '', $format->slug );
++	return \wp_aot_str_replace( 'post-format-', '', $format->slug );
++	return null;
+ }
+ 
+ /**
+@@ -46,7 +47,7 @@
+  * @return bool True if the post has any of the given formats (or any format, if no format specified),
+  *              false otherwise.
+  */
+-function has_post_format( $format = array(), $post = null ) {
++function has_post_format( mixed $format = array(), mixed $post = null ): mixed {
+ 	$prefixed = array();
+ 
+ 	if ( $format ) {
+@@ -56,6 +57,7 @@
+ 	}
+ 
+ 	return has_term( $prefixed, 'post_format', $post );
++	return null;
+ }
+ 
+ /**
+@@ -67,7 +69,7 @@
+  * @param string      $format A format to assign. Use an empty string or array to remove all formats from the post.
+  * @return array|WP_Error|false Array of affected term IDs on success. WP_Error on error.
+  */
+-function set_post_format( $post, $format ) {
++function set_post_format( mixed $post, mixed $format ): mixed {
+ 	$post = get_post( $post );
+ 
+ 	if ( ! $post ) {
+@@ -84,6 +86,7 @@
+ 	}
+ 
+ 	return wp_set_post_terms( $post->ID, $format, 'post_format' );
++	return null;
+ }
+ 
+ /**
+@@ -93,7 +96,7 @@
+  *
+  * @return string[] Array of post format labels keyed by format slug.
+  */
+-function get_post_format_strings() {
++function get_post_format_strings(): mixed {
+ 	$strings = array(
+ 		'standard' => _x( 'Standard', 'Post format' ), // Special case. Any value that evals to false will be considered standard.
+ 		'aside'    => _x( 'Aside', 'Post format' ),
+@@ -107,6 +110,7 @@
+ 		'audio'    => _x( 'Audio', 'Post format' ),
+ 	);
+ 	return $strings;
++	return null;
+ }
+ 
+ /**
+@@ -116,9 +120,10 @@
+  *
+  * @return string[] The array of post format slugs as both keys and values.
+  */
+-function get_post_format_slugs() {
++function get_post_format_slugs(): mixed {
+ 	$slugs = array_keys( get_post_format_strings() );
+-	return array_combine( $slugs, $slugs );
++	return \wp_aot_array_combine( $slugs, $slugs );
++	return null;
+ }
+ 
+ /**
+@@ -129,13 +134,14 @@
+  * @param string $slug A post format slug.
+  * @return string The translated post format name.
+  */
+-function get_post_format_string( $slug ) {
++function get_post_format_string( mixed $slug ): mixed {
+ 	$strings = get_post_format_strings();
+ 	if ( ! $slug ) {
+ 		return $strings['standard'];
+ 	} else {
+ 		return $strings[ $slug ] ?? '';
+ 	}
++	return null;
+ }
+ 
+ /**
+@@ -146,12 +152,13 @@
+  * @param string $format The post format slug.
+  * @return string|WP_Error|false The post format term link.
+  */
+-function get_post_format_link( $format ) {
++function get_post_format_link( mixed $format ): mixed {
+ 	$term = get_term_by( 'slug', 'post-format-' . $format, 'post_format' );
+ 	if ( ! $term || is_wp_error( $term ) ) {
+ 		return false;
+ 	}
+ 	return get_term_link( $term );
++	return null;
+ }
+ 
+ /**
+@@ -163,7 +170,7 @@
+  * @param array $qvs
+  * @return array
+  */
+-function _post_format_request( $qvs ) {
++function _post_format_request( mixed $qvs ): mixed {
+ 	if ( ! isset( $qvs['post_format'] ) ) {
+ 		return $qvs;
+ 	}
+@@ -176,6 +183,7 @@
+ 		$qvs['post_type'] = $tax->object_type;
+ 	}
+ 	return $qvs;
++	return null;
+ }
+ 
+ /**
+@@ -191,17 +199,18 @@
+  * @param string  $taxonomy
+  * @return string
+  */
+-function _post_format_link( $link, $term, $taxonomy ) {
++function _post_format_link( mixed $link, mixed $term, mixed $taxonomy ): mixed {
+ 	global $wp_rewrite;
+ 	if ( 'post_format' !== $taxonomy ) {
+ 		return $link;
+ 	}
+ 	if ( $wp_rewrite->get_extra_permastruct( $taxonomy ) ) {
+-		return str_replace( "/{$term->slug}", '/' . str_replace( 'post-format-', '', $term->slug ), $link );
++		return \wp_aot_str_replace( "/{$term->slug}", '/' . \wp_aot_str_replace( 'post-format-', '', $term->slug ), $link );
+ 	} else {
+ 		$link = remove_query_arg( 'post_format', $link );
+-		return add_query_arg( 'post_format', str_replace( 'post-format-', '', $term->slug ), $link );
+-	}
++		return add_query_arg( 'post_format', \wp_aot_str_replace( 'post-format-', '', $term->slug ), $link );
++	}
++	return null;
+ }
+ 
+ /**
+@@ -213,11 +222,12 @@
+  * @param object $term
+  * @return object
+  */
+-function _post_format_get_term( $term ) {
++function _post_format_get_term( mixed $term ): mixed {
+ 	if ( isset( $term->slug ) ) {
+-		$term->name = get_post_format_string( str_replace( 'post-format-', '', $term->slug ) );
++		$term->name = get_post_format_string( \wp_aot_str_replace( 'post-format-', '', $term->slug ) );
+ 	}
+ 	return $term;
++	return null;
+ }
+ 
+ /**
+@@ -231,21 +241,22 @@
+  * @param array        $args
+  * @return array
+  */
+-function _post_format_get_terms( $terms, $taxonomies, $args ) {
++function _post_format_get_terms( mixed $terms, mixed $taxonomies, mixed $args ): mixed {
+ 	if ( in_array( 'post_format', (array) $taxonomies, true ) ) {
+ 		if ( isset( $args['fields'] ) && 'names' === $args['fields'] ) {
+ 			foreach ( $terms as $order => $name ) {
+-				$terms[ $order ] = get_post_format_string( str_replace( 'post-format-', '', $name ) );
++				$terms[ $order ] = get_post_format_string( \wp_aot_str_replace( 'post-format-', '', $name ) );
+ 			}
+ 		} else {
+ 			foreach ( (array) $terms as $order => $term ) {
+ 				if ( isset( $term->taxonomy ) && 'post_format' === $term->taxonomy ) {
+-					$terms[ $order ]->name = get_post_format_string( str_replace( 'post-format-', '', $term->slug ) );
++					$terms[ $order ]->name = get_post_format_string( \wp_aot_str_replace( 'post-format-', '', $term->slug ) );
+ 				}
+ 			}
+ 		}
+ 	}
+ 	return $terms;
++	return null;
+ }
+ 
+ /**
+@@ -257,11 +268,12 @@
+  * @param array $terms
+  * @return array
+  */
+-function _post_format_wp_get_object_terms( $terms ) {
++function _post_format_wp_get_object_terms( mixed $terms ): mixed {
+ 	foreach ( (array) $terms as $order => $term ) {
+ 		if ( isset( $term->taxonomy ) && 'post_format' === $term->taxonomy ) {
+-			$terms[ $order ]->name = get_post_format_string( str_replace( 'post-format-', '', $term->slug ) );
++			$terms[ $order ]->name = get_post_format_string( \wp_aot_str_replace( 'post-format-', '', $term->slug ) );
+ 		}
+ 	}
+ 	return $terms;
+-}
++	return null;
++}

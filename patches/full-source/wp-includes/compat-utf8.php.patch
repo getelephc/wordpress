@@ -30,7 +30,33 @@
  	}
  
  	return $count;
-@@ -506,7 +509,7 @@
+@@ -430,7 +433,7 @@
+  * @param string $iso_8859_1_text Text treated as ISO-8859-1 (latin1) bytes.
+  * @return string Text converted into UTF-8.
+  */
+-function _wp_utf8_encode_fallback( $iso_8859_1_text ) {
++function _wp_utf8_encode_fallback( mixed $iso_8859_1_text ): mixed {
+ 	$iso_8859_1_text = (string) $iso_8859_1_text;
+ 	$at              = 0;
+ 	$was_at          = 0;
+@@ -470,6 +473,7 @@
+ 
+ 	$utf8 .= substr( $iso_8859_1_text, $was_at );
+ 	return $utf8;
++	return null;
+ }
+ 
+ /**
+@@ -484,7 +488,7 @@
+  * @param string $utf8_text Text treated as UTF-8 bytes.
+  * @return string Text converted into ISO-8859-1.
+  */
+-function _wp_utf8_decode_fallback( $utf8_text ) {
++function _wp_utf8_decode_fallback( mixed $utf8_text ): mixed {
+ 	$utf8_text       = (string) $utf8_text;
+ 	$at              = 0;
+ 	$was_at          = 0;
+@@ -506,7 +510,7 @@
  			continue;
  		}
  
@@ -39,3 +65,10 @@
  		$invalid_length = 0;
  		$found          = _wp_scan_utf8( $utf8_text, $next_at, $invalid_length, null, 1 );
  		$span_length    = $next_at - $at;
+@@ -555,4 +559,5 @@
+ 
+ 	$iso_8859_1_text .= substr( $utf8_text, $was_at );
+ 	return $iso_8859_1_text;
+-}
++	return null;
++}

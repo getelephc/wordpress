@@ -1,0 +1,675 @@
+--- a/wp-includes/SimplePie/src/Enclosure.php
++++ b/wp-includes/SimplePie/src/Enclosure.php
+@@ -200,7 +200,7 @@
+         ?string $link = null,
+         ?string $type = null,
+         ?int $length = null,
+-        $javascript = null,
++        mixed $javascript = null,
+         ?string $bitrate = null,
+         ?array $captions = null,
+         ?array $categories = null,
+@@ -253,7 +253,7 @@
+         if (function_exists('idn_to_ascii')) {
+             $parsed = \SimplePie\Misc::parse_url($link ?? '');
+             if ($parsed['authority'] !== '' && !ctype_print($parsed['authority'])) {
+-                $authority = (string) \idn_to_ascii($parsed['authority'], \IDNA_NONTRANSITIONAL_TO_ASCII, \INTL_IDNA_VARIANT_UTS46);
++                $authority = (string) \wp_aot_native_api('idn_to_ascii', array($parsed['authority'], \wp_aot_metadata_constant('IDNA_NONTRANSITIONAL_TO_ASCII'), \wp_aot_metadata_constant('INTL_IDNA_VARIANT_UTS46')));
+                 $this->link = \SimplePie\Misc::compress_parse_url($parsed['scheme'], $authority, $parsed['path'], $parsed['query'], $parsed['fragment']);
+             }
+         }
+@@ -276,13 +276,14 @@
+      *
+      * @return string|null
+      */
+-    public function get_bitrate()
++    public function get_bitrate(): mixed
+     {
+         if ($this->bitrate !== null) {
+             return $this->bitrate;
+         }
+ 
+         return null;
++    	return null;
+     }
+ 
+     /**
+@@ -291,7 +292,7 @@
+      * @param int $key
+      * @return \SimplePie\Caption|null
+      */
+-    public function get_caption(int $key = 0)
++    public function get_caption(int $key = 0): mixed
+     {
+         $captions = $this->get_captions();
+         if (isset($captions[$key])) {
+@@ -299,6 +300,7 @@
+         }
+ 
+         return null;
++    	return null;
+     }
+ 
+     /**
+@@ -306,13 +308,14 @@
+      *
+      * @return Caption[]|null
+      */
+-    public function get_captions()
++    public function get_captions(): mixed
+     {
+         if ($this->captions !== null) {
+             return $this->captions;
+         }
+ 
+         return null;
++    	return null;
+     }
+ 
+     /**
+@@ -321,7 +324,7 @@
+      * @param int $key
+      * @return \SimplePie\Category|null
+      */
+-    public function get_category(int $key = 0)
++    public function get_category(int $key = 0): mixed
+     {
+         $categories = $this->get_categories();
+         if (isset($categories[$key])) {
+@@ -329,6 +332,7 @@
+         }
+ 
+         return null;
++    	return null;
+     }
+ 
+     /**
+@@ -336,13 +340,14 @@
+      *
+      * @return \SimplePie\Category[]|null
+      */
+-    public function get_categories()
++    public function get_categories(): mixed
+     {
+         if ($this->categories !== null) {
+             return $this->categories;
+         }
+ 
+         return null;
++    	return null;
+     }
+ 
+     /**
+@@ -350,13 +355,14 @@
+      *
+      * @return int|null
+      */
+-    public function get_channels()
++    public function get_channels(): mixed
+     {
+         if ($this->channels !== null) {
+             return $this->channels;
+         }
+ 
+         return null;
++    	return null;
+     }
+ 
+     /**
+@@ -364,13 +370,14 @@
+      *
+      * @return \SimplePie\Copyright|null
+      */
+-    public function get_copyright()
++    public function get_copyright(): mixed
+     {
+         if ($this->copyright !== null) {
+             return $this->copyright;
+         }
+ 
+         return null;
++    	return null;
+     }
+ 
+     /**
+@@ -379,7 +386,7 @@
+      * @param int $key
+      * @return \SimplePie\Credit|null
+      */
+-    public function get_credit(int $key = 0)
++    public function get_credit(int $key = 0): mixed
+     {
+         $credits = $this->get_credits();
+         if (isset($credits[$key])) {
+@@ -387,6 +394,7 @@
+         }
+ 
+         return null;
++    	return null;
+     }
+ 
+     /**
+@@ -394,13 +402,14 @@
+      *
+      * @return Credit[]|null
+      */
+-    public function get_credits()
++    public function get_credits(): mixed
+     {
+         if ($this->credits !== null) {
+             return $this->credits;
+         }
+ 
+         return null;
++    	return null;
+     }
+ 
+     /**
+@@ -408,13 +417,14 @@
+      *
+      * @return string|null
+      */
+-    public function get_description()
++    public function get_description(): mixed
+     {
+         if ($this->description !== null) {
+             return $this->description;
+         }
+ 
+         return null;
++    	return null;
+     }
+ 
+     /**
+@@ -423,7 +433,7 @@
+      * @param bool $convert Convert seconds into hh:mm:ss
+      * @return string|int|null 'hh:mm:ss' string if `$convert` was specified, otherwise integer (or null if none found)
+      */
+-    public function get_duration(bool $convert = false)
++    public function get_duration(bool $convert = false): mixed
+     {
+         if ($this->duration !== null) {
+             if ($convert) {
+@@ -435,6 +445,7 @@
+         }
+ 
+         return null;
++    	return null;
+     }
+ 
+     /**
+@@ -442,13 +453,14 @@
+      *
+      * @return string Probably one of 'sample', 'full', 'nonstop', 'clip'. Defaults to 'full'
+      */
+-    public function get_expression()
++    public function get_expression(): mixed
+     {
+         if ($this->expression !== null) {
+             return $this->expression;
+         }
+ 
+         return 'full';
++    	return null;
+     }
+ 
+     /**
+@@ -456,7 +468,7 @@
+      *
+      * @return string|null
+      */
+-    public function get_extension()
++    public function get_extension(): mixed
+     {
+         if ($this->link !== null) {
+             $url = \SimplePie\Misc::parse_url($this->link);
+@@ -465,6 +477,7 @@
+             }
+         }
+         return null;
++    	return null;
+     }
+ 
+     /**
+@@ -472,13 +485,14 @@
+      *
+      * @return string|null
+      */
+-    public function get_framerate()
++    public function get_framerate(): mixed
+     {
+         if ($this->framerate !== null) {
+             return $this->framerate;
+         }
+ 
+         return null;
++    	return null;
+     }
+ 
+     /**
+@@ -486,9 +500,10 @@
+      *
+      * @return string|null One of 'flash', 'fmedia', 'quicktime', 'wmedia', 'mp3'
+      */
+-    public function get_handler()
++    public function get_handler(): mixed
+     {
+         return $this->get_real_type(true);
++    	return null;
+     }
+ 
+     /**
+@@ -498,7 +513,7 @@
+      * @param int $key
+      * @return string|null Hash as per `media:hash`, prefixed with "$algo:"
+      */
+-    public function get_hash(int $key = 0)
++    public function get_hash(int $key = 0): mixed
+     {
+         $hashes = $this->get_hashes();
+         if (isset($hashes[$key])) {
+@@ -506,6 +521,7 @@
+         }
+ 
+         return null;
++    	return null;
+     }
+ 
+     /**
+@@ -513,13 +529,14 @@
+      *
+      * @return string[]|null Array of strings, see {@see get_hash()}
+      */
+-    public function get_hashes()
++    public function get_hashes(): mixed
+     {
+         if ($this->hashes !== null) {
+             return $this->hashes;
+         }
+ 
+         return null;
++    	return null;
+     }
+ 
+     /**
+@@ -527,13 +544,14 @@
+      *
+      * @return string|null
+      */
+-    public function get_height()
++    public function get_height(): mixed
+     {
+         if ($this->height !== null) {
+             return $this->height;
+         }
+ 
+         return null;
++    	return null;
+     }
+ 
+     /**
+@@ -542,13 +560,14 @@
+      * @link http://tools.ietf.org/html/rfc3066
+      * @return string|null Language code as per RFC 3066
+      */
+-    public function get_language()
++    public function get_language(): mixed
+     {
+         if ($this->lang !== null) {
+             return $this->lang;
+         }
+ 
+         return null;
++    	return null;
+     }
+ 
+     /**
+@@ -557,7 +576,7 @@
+      * @param int $key
+      * @return string|null
+      */
+-    public function get_keyword(int $key = 0)
++    public function get_keyword(int $key = 0): mixed
+     {
+         $keywords = $this->get_keywords();
+         if (isset($keywords[$key])) {
+@@ -565,6 +584,7 @@
+         }
+ 
+         return null;
++    	return null;
+     }
+ 
+     /**
+@@ -572,13 +592,14 @@
+      *
+      * @return string[]|null
+      */
+-    public function get_keywords()
++    public function get_keywords(): mixed
+     {
+         if ($this->keywords !== null) {
+             return $this->keywords;
+         }
+ 
+         return null;
++    	return null;
+     }
+ 
+     /**
+@@ -586,13 +607,14 @@
+      *
+      * @return ?int Length in bytes
+      */
+-    public function get_length()
++    public function get_length(): mixed
+     {
+         if ($this->length !== null) {
+             return $this->length;
+         }
+ 
+         return null;
++    	return null;
+     }
+ 
+     /**
+@@ -600,13 +622,14 @@
+      *
+      * @return string|null
+      */
+-    public function get_link()
++    public function get_link(): mixed
+     {
+         if ($this->link !== null) {
+             return $this->link;
+         }
+ 
+         return null;
++    	return null;
+     }
+ 
+     /**
+@@ -615,13 +638,14 @@
+      * @link http://www.rssboard.org/media-rss#media-content
+      * @return string|null Should be one of 'image', 'audio', 'video', 'document', 'executable'
+      */
+-    public function get_medium()
++    public function get_medium(): mixed
+     {
+         if ($this->medium !== null) {
+             return $this->medium;
+         }
+ 
+         return null;
++    	return null;
+     }
+ 
+     /**
+@@ -630,13 +654,14 @@
+      * Typically the same as {@see get_permalink()}
+      * @return string|null Player URL
+      */
+-    public function get_player()
++    public function get_player(): mixed
+     {
+         if ($this->player !== null) {
+             return $this->player;
+         }
+ 
+         return null;
++    	return null;
+     }
+ 
+     /**
+@@ -645,7 +670,7 @@
+      * @param int $key
+      * @return \SimplePie\Rating|null
+      */
+-    public function get_rating(int $key = 0)
++    public function get_rating(int $key = 0): mixed
+     {
+         $ratings = $this->get_ratings();
+         if (isset($ratings[$key])) {
+@@ -653,6 +678,7 @@
+         }
+ 
+         return null;
++    	return null;
+     }
+ 
+     /**
+@@ -660,13 +686,14 @@
+      *
+      * @return Rating[]|null
+      */
+-    public function get_ratings()
++    public function get_ratings(): mixed
+     {
+         if ($this->ratings !== null) {
+             return $this->ratings;
+         }
+ 
+         return null;
++    	return null;
+     }
+ 
+     /**
+@@ -675,7 +702,7 @@
+      * @param int $key
+      * @return \SimplePie\Restriction|null
+      */
+-    public function get_restriction(int $key = 0)
++    public function get_restriction(int $key = 0): mixed
+     {
+         $restrictions = $this->get_restrictions();
+         if (isset($restrictions[$key])) {
+@@ -683,6 +710,7 @@
+         }
+ 
+         return null;
++    	return null;
+     }
+ 
+     /**
+@@ -690,13 +718,14 @@
+      *
+      * @return Restriction[]|null
+      */
+-    public function get_restrictions()
++    public function get_restrictions(): mixed
+     {
+         if ($this->restrictions !== null) {
+             return $this->restrictions;
+         }
+ 
+         return null;
++    	return null;
+     }
+ 
+     /**
+@@ -704,13 +733,14 @@
+      *
+      * @return string|null
+      */
+-    public function get_sampling_rate()
++    public function get_sampling_rate(): mixed
+     {
+         if ($this->samplingrate !== null) {
+             return $this->samplingrate;
+         }
+ 
+         return null;
++    	return null;
+     }
+ 
+     /**
+@@ -718,7 +748,7 @@
+      *
+      * @return float|null File size in mebibytes (1048 bytes)
+      */
+-    public function get_size()
++    public function get_size(): mixed
+     {
+         $length = $this->get_length();
+         if ($length !== null) {
+@@ -726,6 +756,7 @@
+         }
+ 
+         return null;
++    	return null;
+     }
+ 
+     /**
+@@ -734,7 +765,7 @@
+      * @param int $key
+      * @return string|null Thumbnail URL
+      */
+-    public function get_thumbnail(int $key = 0)
++    public function get_thumbnail(int $key = 0): mixed
+     {
+         $thumbnails = $this->get_thumbnails();
+         if (isset($thumbnails[$key])) {
+@@ -742,6 +773,7 @@
+         }
+ 
+         return null;
++    	return null;
+     }
+ 
+     /**
+@@ -749,13 +781,14 @@
+      *
+      * @return string[]|null Array of thumbnail URLs
+      */
+-    public function get_thumbnails()
++    public function get_thumbnails(): mixed
+     {
+         if ($this->thumbnails !== null) {
+             return $this->thumbnails;
+         }
+ 
+         return null;
++    	return null;
+     }
+ 
+     /**
+@@ -763,13 +796,14 @@
+      *
+      * @return string|null
+      */
+-    public function get_title()
++    public function get_title(): mixed
+     {
+         if ($this->title !== null) {
+             return $this->title;
+         }
+ 
+         return null;
++    	return null;
+     }
+ 
+     /**
+@@ -778,13 +812,14 @@
+      * @see get_real_type()
+      * @return string|null MIME type
+      */
+-    public function get_type()
++    public function get_type(): mixed
+     {
+         if ($this->type !== null) {
+             return $this->type;
+         }
+ 
+         return null;
++    	return null;
+     }
+ 
+     /**
+@@ -792,13 +827,14 @@
+      *
+      * @return string|null
+      */
+-    public function get_width()
++    public function get_width(): mixed
+     {
+         if ($this->width !== null) {
+             return $this->width;
+         }
+ 
+         return null;
++    	return null;
+     }
+ 
+     /**
+@@ -809,9 +845,10 @@
+      * @param array<string, mixed>|string $options See first parameter to {@see embed}
+      * @return string HTML string to output
+      */
+-    public function native_embed($options = '')
++    public function native_embed(mixed $options = ''): mixed
+     {
+         return $this->embed($options, true);
++    	return null;
+     }
+ 
+     /**
+@@ -859,7 +896,7 @@
+      * @param bool $native Use `<embed>`
+      * @return string HTML string to output
+      */
+-    public function embed($options = '', bool $native = false)
++    public function embed(mixed $options = '', bool $native = false): mixed
+     {
+         // Set up defaults
+         $audio = '';
+@@ -867,11 +904,11 @@
+         $alt = '';
+         $altclass = '';
+         $loop = 'false';
+-        $width = 'auto';
+-        $height = 'auto';
++        $width = \wp_aot_mixed('auto');
++        $height = \wp_aot_mixed('auto');
+         $bgcolor = '#ffffff';
+         $mediaplayer = '';
+-        $widescreen = false;
++        $widescreen = \wp_aot_mixed(false);
+         $handler = $this->get_handler();
+         $type = $this->get_real_type();
+         $placeholder = '';
+@@ -1040,6 +1077,7 @@
+         }
+ 
+         return $embed;
++    	return null;
+     }
+ 
+     /**
+@@ -1053,7 +1091,7 @@
+      * @param bool $find_handler Internal use only, use {@see get_handler()} instead
+      * @return string|null MIME type
+      */
+-    public function get_real_type(bool $find_handler = false)
++    public function get_real_type(bool $find_handler = false): mixed
+     {
+         // Mime-types by handler.
+         $types_flash = ['application/x-shockwave-flash', 'application/futuresplash']; // Flash
+@@ -1068,7 +1106,7 @@
+         }
+ 
+         // If we encounter an unsupported mime-type, check the file extension and guess intelligently.
+-        if (!in_array($type, array_merge($types_flash, $types_fmedia, $types_quicktime, $types_wmedia, $types_mp3))) {
++        if (!in_array($type, \wp_aot_array_merge(array($types_flash, $types_fmedia, $types_quicktime, $types_wmedia, $types_mp3)))) {
+             $extension = $this->get_extension();
+             if ($extension === null) {
+                 return null;
+@@ -1211,7 +1249,8 @@
+         }
+ 
+         return $type;
++    	return null;
+     }
+ }
+ 
+-class_alias('SimplePie\Enclosure', 'SimplePie_Enclosure');
++(!defined('WP_AOT_NATIVE_RUNTIME') && (bool) \wp_aot_native_api('class_alias', array('SimplePie\Enclosure', 'SimplePie_Enclosure')));

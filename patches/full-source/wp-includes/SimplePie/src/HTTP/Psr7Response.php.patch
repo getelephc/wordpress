@@ -1,0 +1,23 @@
+--- a/wp-includes/SimplePie/src/HTTP/Psr7Response.php
++++ b/wp-includes/SimplePie/src/HTTP/Psr7Response.php
+@@ -59,7 +59,7 @@
+     public function get_headers(): array
+     {
+         // The filtering is probably redundant but let’s make PHPStan happy.
+-        return array_filter($this->response->getHeaders(), function (array $header): bool {
++        return \wp_aot_array_filter($this->response->getHeaders(), function (array $header): bool {
+             return count($header) >= 1;
+         });
+     }
+@@ -69,9 +69,10 @@
+         return $this->response->hasHeader($name);
+     }
+ 
+-    public function with_header(string $name, $value)
++    public function with_header(string $name, mixed $value): mixed
+     {
+         return new self($this->response->withHeader($name, $value), $this->permanent_url, $this->requested_url);
++    	return null;
+     }
+ 
+     public function get_header(string $name): array

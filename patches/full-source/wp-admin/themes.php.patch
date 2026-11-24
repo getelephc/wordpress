@@ -1,0 +1,84 @@
+--- a/wp-admin/themes.php
++++ b/wp-admin/themes.php
+@@ -32,7 +32,7 @@
+ 
+ 		switch_theme( $theme->get_stylesheet() );
+ 		wp_redirect( admin_url( 'themes.php?activated=true' ) );
+-		exit;
++		\wp_aot_exit();
+ 	} elseif ( 'resume' === $_GET['action'] ) {
+ 		check_admin_referer( 'resume-theme_' . $_GET['stylesheet'] );
+ 		$theme = wp_get_theme( $_GET['stylesheet'] );
+@@ -52,7 +52,7 @@
+ 		}
+ 
+ 		wp_redirect( admin_url( 'themes.php?resumed=true' ) );
+-		exit;
++		\wp_aot_exit();
+ 	} elseif ( 'delete' === $_GET['action'] ) {
+ 		check_admin_referer( 'delete-theme_' . $_GET['stylesheet'] );
+ 		$theme = wp_get_theme( $_GET['stylesheet'] );
+@@ -80,7 +80,7 @@
+ 			delete_theme( $_GET['stylesheet'] );
+ 			wp_redirect( admin_url( 'themes.php?deleted=true' ) );
+ 		}
+-		exit;
++		\wp_aot_exit();
+ 	} elseif ( 'enable-auto-update' === $_GET['action'] ) {
+ 		if ( ! ( current_user_can( 'update_themes' ) && wp_is_auto_update_enabled_for_type( 'theme' ) ) ) {
+ 			wp_die( __( 'Sorry, you are not allowed to enable themes automatic updates.' ) );
+@@ -92,15 +92,15 @@
+ 		$auto_updates = (array) get_site_option( 'auto_update_themes', array() );
+ 
+ 		$auto_updates[] = $_GET['stylesheet'];
+-		$auto_updates   = array_unique( $auto_updates );
++		$auto_updates   = \wp_aot_array_unique( $auto_updates );
+ 		// Remove themes that have been deleted since the site option was last updated.
+-		$auto_updates = array_intersect( $auto_updates, array_keys( $all_items ) );
++		$auto_updates = \wp_aot_array_intersect(array( $auto_updates, array_keys( $all_items ) ));
+ 
+ 		update_site_option( 'auto_update_themes', $auto_updates );
+ 
+ 		wp_redirect( admin_url( 'themes.php?enabled-auto-update=true' ) );
+ 
+-		exit;
++		\wp_aot_exit();
+ 	} elseif ( 'disable-auto-update' === $_GET['action'] ) {
+ 		if ( ! ( current_user_can( 'update_themes' ) && wp_is_auto_update_enabled_for_type( 'theme' ) ) ) {
+ 			wp_die( __( 'Sorry, you are not allowed to disable themes automatic updates.' ) );
+@@ -111,15 +111,15 @@
+ 		$all_items    = wp_get_themes();
+ 		$auto_updates = (array) get_site_option( 'auto_update_themes', array() );
+ 
+-		$auto_updates = array_diff( $auto_updates, array( $_GET['stylesheet'] ) );
++		$auto_updates = \wp_aot_array_diff(array( $auto_updates, array( $_GET['stylesheet'] ) ));
+ 		// Remove themes that have been deleted since the site option was last updated.
+-		$auto_updates = array_intersect( $auto_updates, array_keys( $all_items ) );
++		$auto_updates = \wp_aot_array_intersect(array( $auto_updates, array_keys( $all_items ) ));
+ 
+ 		update_site_option( 'auto_update_themes', $auto_updates );
+ 
+ 		wp_redirect( admin_url( 'themes.php?disabled-auto-update=true' ) );
+ 
+-		exit;
++		\wp_aot_exit();
+ 	}
+ }
+ 
+@@ -780,7 +780,7 @@
+  *
+  * @return string The template for displaying the auto-update setting link.
+  */
+-function wp_theme_auto_update_setting_template() {
++function wp_theme_auto_update_setting_template(): mixed {
+ 	$notice   = wp_get_admin_notice(
+ 		'',
+ 		array(
+@@ -827,6 +827,7 @@
+ 	 * @param string $template The template for displaying the auto-update setting link.
+ 	 */
+ 	return apply_filters( 'theme_auto_update_setting_template', $template );
++	return null;
+ }
+ 
+ /*

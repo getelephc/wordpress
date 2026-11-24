@@ -1,0 +1,155 @@
+--- a/wp-includes/rest-api/endpoints/class-wp-rest-icons-controller.php
++++ b/wp-includes/rest-api/endpoints/class-wp-rest-icons-controller.php
+@@ -34,7 +34,7 @@
+ 	 * @since 7.0.0
+ 	 * @since 7.1.0 Added the `/icons/<collection>` collection-scoped route.
+ 	 */
+-	public function register_routes() {
++	public function register_routes(): mixed {
+ 		register_rest_route(
+ 			$this->namespace,
+ 			'/' . $this->rest_base,
+@@ -90,6 +90,7 @@
+ 				'schema' => array( $this, 'get_public_item_schema' ),
+ 			)
+ 		);
++		return null;
+ 	}
+ 
+ 	/**
+@@ -102,8 +103,8 @@
+ 	 */
+ 	public function get_items_permissions_check(
+ 		// phpcs:ignore VariableAnalysis.CodeAnalysis.VariableAnalysis.UnusedVariable
+-		$request
+-	) {
++		mixed $request
++	): mixed {
+ 		if ( current_user_can( 'edit_posts' ) ) {
+ 			return true;
+ 		}
+@@ -119,6 +120,7 @@
+ 			__( 'Sorry, you are not allowed to view the registered icons.' ),
+ 			array( 'status' => rest_authorization_required_code() )
+ 		);
++		return null;
+ 	}
+ 
+ 	/**
+@@ -129,13 +131,14 @@
+ 	 * @param WP_REST_Request $request Full details about the request.
+ 	 * @return true|WP_Error True if the request has read access for the item, WP_Error object otherwise.
+ 	 */
+-	public function get_item_permissions_check( $request ) {
++	public function get_item_permissions_check( mixed $request ): mixed {
+ 		$check = $this->get_items_permissions_check( $request );
+ 		if ( is_wp_error( $check ) ) {
+ 			return $check;
+ 		}
+ 
+ 		return true;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -147,7 +150,7 @@
+ 	 * @param WP_REST_Request $request Full details about the request.
+ 	 * @return WP_REST_Response|WP_Error Response object on success, or WP_Error object on failure.
+ 	 */
+-	public function get_items( $request ) {
++	public function get_items( mixed $request ): mixed {
+ 		$collection = $request->get_param( 'collection' );
+ 
+ 		if ( null !== $collection && ! WP_Icon_Collections_Registry::get_instance()->is_registered( $collection ) ) {
+@@ -174,6 +177,7 @@
+ 			$response[]    = $this->prepare_response_for_collection( $prepared_icon );
+ 		}
+ 		return rest_ensure_response( $response );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -184,7 +188,7 @@
+ 	 * @param WP_REST_Request $request Full details about the request.
+ 	 * @return WP_REST_Response|WP_Error Response object on success, or WP_Error object on failure.
+ 	 */
+-	public function get_item( $request ) {
++	public function get_item( mixed $request ): mixed {
+ 		$icon = $this->get_icon( $request['name'] );
+ 		if ( is_wp_error( $icon ) ) {
+ 			return $icon;
+@@ -192,6 +196,7 @@
+ 
+ 		$data = $this->prepare_item_for_response( $icon, $request );
+ 		return rest_ensure_response( $data );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -202,7 +207,7 @@
+ 	 * @param string $name Icon name.
+ 	 * @return array|WP_Error Icon data on success, or WP_Error object on failure.
+ 	 */
+-	public function get_icon( $name ) {
++	public function get_icon( mixed $name ): mixed {
+ 		$registry = WP_Icons_Registry::get_instance();
+ 		$icon     = $registry->get_registered_icon( $name );
+ 
+@@ -219,6 +224,7 @@
+ 		}
+ 
+ 		return $icon;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -231,7 +237,7 @@
+ 	 * @param WP_REST_Request $request Request object.
+ 	 * @return WP_REST_Response|WP_Error Response object on success, or WP_Error object on failure.
+ 	 */
+-	public function prepare_item_for_response( $item, $request ) {
++	public function prepare_item_for_response( mixed $item, mixed $request ): mixed {
+ 		$fields = $this->get_fields_for_response( $request );
+ 		$keys   = array(
+ 			'name'       => 'name',
+@@ -250,6 +256,7 @@
+ 		$data    = $this->add_additional_fields_to_object( $data, $request );
+ 		$data    = $this->filter_response_by_context( $data, $context );
+ 		return rest_ensure_response( $data );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -260,7 +267,7 @@
+ 	 *
+ 	 * @return array Item schema data.
+ 	 */
+-	public function get_item_schema() {
++	public function get_item_schema(): mixed {
+ 		if ( $this->schema ) {
+ 			return $this->add_additional_fields_schema( $this->schema );
+ 		}
+@@ -300,6 +307,7 @@
+ 		$this->schema = $schema;
+ 
+ 		return $this->add_additional_fields_schema( $this->schema );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -310,7 +318,7 @@
+ 	 *
+ 	 * @return array Collection parameters.
+ 	 */
+-	public function get_collection_params() {
++	public function get_collection_params(): mixed {
+ 		$query_params                       = parent::get_collection_params();
+ 		$query_params['context']['default'] = 'view';
+ 		$query_params['collection']         = array(
+@@ -319,5 +327,6 @@
+ 			'pattern'     => '^[a-z0-9]([a-z0-9_-]*[a-z0-9])?$',
+ 		);
+ 		return $query_params;
++		return null;
+ 	}
+ }

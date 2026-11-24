@@ -1,0 +1,38 @@
+--- a/wp-includes/blocks/pattern.php
++++ b/wp-includes/blocks/pattern.php
+@@ -10,13 +10,14 @@
+  *
+  * @since 5.9.0
+  */
+-function register_block_core_pattern() {
++function register_block_core_pattern(): mixed {
+ 	register_block_type_from_metadata(
+ 		__DIR__ . '/pattern',
+ 		array(
+ 			'render_callback' => 'render_block_core_pattern',
+ 		)
+ 	);
++	return null;
+ }
+ 
+ /**
+@@ -30,8 +31,9 @@
+  *
+  * @return string Returns the output of the pattern.
+  */
+-function render_block_core_pattern( $attributes ) {
+-	static $seen_refs = array();
++function render_block_core_pattern( mixed $attributes ): mixed {
++	static $seen_refs_aot_cell = new \WordPressStaticArrayCell();
++	$seen_refs =& $seen_refs_aot_cell->value;
+ 
+ 	if ( empty( $attributes['slug'] ) ) {
+ 		return '';
+@@ -67,6 +69,7 @@
+ 
+ 	unset( $seen_refs[ $attributes['slug'] ] );
+ 	return $content;
++	return null;
+ }
+ 
+ add_action( 'init', 'register_block_core_pattern' );

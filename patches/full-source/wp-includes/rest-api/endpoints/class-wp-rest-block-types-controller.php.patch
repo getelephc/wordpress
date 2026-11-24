@@ -1,0 +1,220 @@
+--- a/wp-includes/rest-api/endpoints/class-wp-rest-block-types-controller.php
++++ b/wp-includes/rest-api/endpoints/class-wp-rest-block-types-controller.php
+@@ -53,7 +53,7 @@
+ 	 *
+ 	 * @see register_rest_route()
+ 	 */
+-	public function register_routes() {
++	public function register_routes(): mixed {
+ 
+ 		register_rest_route(
+ 			$this->namespace,
+@@ -108,6 +108,7 @@
+ 				'schema' => array( $this, 'get_public_item_schema' ),
+ 			)
+ 		);
++		return null;
+ 	}
+ 
+ 	/**
+@@ -118,8 +119,9 @@
+ 	 * @param WP_REST_Request $request Full details about the request.
+ 	 * @return true|WP_Error True if the request has read access, WP_Error object otherwise.
+ 	 */
+-	public function get_items_permissions_check( $request ) {
++	public function get_items_permissions_check( mixed $request ): mixed {
+ 		return $this->check_read_permission();
++		return null;
+ 	}
+ 
+ 	/**
+@@ -130,7 +132,7 @@
+ 	 * @param WP_REST_Request $request Full details about the request.
+ 	 * @return WP_REST_Response|WP_Error Response object on success, or WP_Error object on failure.
+ 	 */
+-	public function get_items( $request ) {
++	public function get_items( mixed $request ): mixed {
+ 		if ( $request->is_method( 'HEAD' ) ) {
+ 			// Return early as this handler doesn't add any response headers.
+ 			return new WP_REST_Response( array() );
+@@ -159,6 +161,7 @@
+ 		}
+ 
+ 		return rest_ensure_response( $data );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -169,7 +172,7 @@
+ 	 * @param WP_REST_Request $request Full details about the request.
+ 	 * @return true|WP_Error True if the request has read access for the item, WP_Error object otherwise.
+ 	 */
+-	public function get_item_permissions_check( $request ) {
++	public function get_item_permissions_check( mixed $request ): mixed {
+ 		$check = $this->check_read_permission();
+ 		if ( is_wp_error( $check ) ) {
+ 			return $check;
+@@ -181,6 +184,7 @@
+ 		}
+ 
+ 		return true;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -190,7 +194,7 @@
+ 	 *
+ 	 * @return true|WP_Error True if the block type is visible, WP_Error otherwise.
+ 	 */
+-	protected function check_read_permission() {
++	protected function check_read_permission(): mixed {
+ 		if ( current_user_can( 'edit_posts' ) ) {
+ 			return true;
+ 		}
+@@ -201,6 +205,7 @@
+ 		}
+ 
+ 		return new WP_Error( 'rest_block_type_cannot_view', __( 'Sorry, you are not allowed to manage block types.' ), array( 'status' => rest_authorization_required_code() ) );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -211,13 +216,14 @@
+ 	 * @param string $name Block name.
+ 	 * @return WP_Block_Type|WP_Error Block type object if name is valid, WP_Error otherwise.
+ 	 */
+-	protected function get_block( $name ) {
++	protected function get_block( mixed $name ): mixed {
+ 		$block_type = $this->block_registry->get_registered( $name );
+ 		if ( empty( $block_type ) ) {
+ 			return new WP_Error( 'rest_block_type_invalid', __( 'Invalid block type.' ), array( 'status' => 404 ) );
+ 		}
+ 
+ 		return $block_type;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -228,7 +234,7 @@
+ 	 * @param WP_REST_Request $request Full details about the request.
+ 	 * @return WP_REST_Response|WP_Error Response object on success, or WP_Error object on failure.
+ 	 */
+-	public function get_item( $request ) {
++	public function get_item( mixed $request ): mixed {
+ 		$block_name = sprintf( '%s/%s', $request['namespace'], $request['name'] );
+ 		$block_type = $this->get_block( $block_name );
+ 		if ( is_wp_error( $block_type ) ) {
+@@ -237,6 +243,7 @@
+ 		$data = $this->prepare_item_for_response( $block_type, $request );
+ 
+ 		return rest_ensure_response( $data );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -251,7 +258,7 @@
+ 	 * @param WP_REST_Request $request Full details about the request.
+ 	 * @return WP_REST_Response Block type data.
+ 	 */
+-	public function prepare_item_for_response( $item, $request ) {
++	public function prepare_item_for_response( mixed $item, mixed $request ): mixed {
+ 		// Restores the more descriptive, specific name for use within this method.
+ 		$block_type = $item;
+ 
+@@ -281,7 +288,7 @@
+ 			'editor_style',
+ 			'style',
+ 		);
+-		$extra_fields      = array_merge(
++		$extra_fields      = \wp_aot_array_merge(array(
+ 			array(
+ 				'api_version',
+ 				'name',
+@@ -311,14 +318,14 @@
+ 				'block_hooks',
+ 			),
+ 			$deprecated_fields
+-		);
++		));
+ 		foreach ( $extra_fields as $extra_field ) {
+ 			if ( rest_is_field_included( $extra_field, $fields ) ) {
+ 				if ( isset( $block_type->$extra_field ) ) {
+ 					$field = $block_type->$extra_field;
+ 					if ( in_array( $extra_field, $deprecated_fields, true ) && is_array( $field ) ) {
+ 						// Since the schema only allows strings or null (but no arrays), we return the first array item.
+-						$field = ! empty( $field ) ? array_shift( $field ) : '';
++						$field = ! empty( $field ) ? \wp_aot_array_shift( $field ) : '';
+ 					}
+ 				} elseif ( array_key_exists( 'default', $schema['properties'][ $extra_field ] ) ) {
+ 					$field = $schema['properties'][ $extra_field ]['default'];
+@@ -333,7 +340,7 @@
+ 			$styles         = $this->style_registry->get_registered_styles_for_block( $block_type->name );
+ 			$styles         = array_values( $styles );
+ 			$data['styles'] = wp_parse_args( $styles, $data['styles'] );
+-			$data['styles'] = array_filter( $data['styles'] );
++			$data['styles'] = \wp_aot_array_filter( $data['styles'] );
+ 		}
+ 
+ 		$context = ! empty( $request['context'] ) ? $request['context'] : 'view';
+@@ -358,6 +365,7 @@
+ 		 * @param WP_REST_Request  $request    Request used to generate the response.
+ 		 */
+ 		return apply_filters( 'rest_prepare_block_type', $response, $block_type, $request );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -368,7 +376,7 @@
+ 	 * @param WP_Block_Type $block_type Block type data.
+ 	 * @return array Links for the given block type.
+ 	 */
+-	protected function prepare_links( $block_type ) {
++	protected function prepare_links( mixed $block_type ): mixed {
+ 		list( $namespace ) = explode( '/', $block_type->name );
+ 
+ 		$links = array(
+@@ -394,6 +402,7 @@
+ 		}
+ 
+ 		return $links;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -404,7 +413,7 @@
+ 	 *
+ 	 * @return array Item schema data.
+ 	 */
+-	public function get_item_schema() {
++	public function get_item_schema(): mixed {
+ 		if ( $this->schema ) {
+ 			return $this->add_additional_fields_schema( $this->schema );
+ 		}
+@@ -814,9 +823,10 @@
+ 				'readonly'    => true,
+ 			),
+ 		);
+-		$this->schema['properties'] = array_merge( $this->schema['properties'], $deprecated_properties );
++		$this->schema['properties'] = \wp_aot_array_merge(array( $this->schema['properties'], $deprecated_properties ));
+ 
+ 		return $this->add_additional_fields_schema( $this->schema );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -826,7 +836,7 @@
+ 	 *
+ 	 * @return array Collection parameters.
+ 	 */
+-	public function get_collection_params() {
++	public function get_collection_params(): mixed {
+ 		return array(
+ 			'context'   => $this->get_context_param( array( 'default' => 'view' ) ),
+ 			'namespace' => array(
+@@ -834,5 +844,6 @@
+ 				'type'        => 'string',
+ 			),
+ 		);
++		return null;
+ 	}
+ }

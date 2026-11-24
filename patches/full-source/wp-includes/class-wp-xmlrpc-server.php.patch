@@ -1,0 +1,2084 @@
+--- a/wp-includes/class-wp-xmlrpc-server.php
++++ b/wp-includes/class-wp-xmlrpc-server.php
+@@ -186,7 +186,7 @@
+ 	 *
+ 	 * @since 5.7.3
+ 	 */
+-	private function set_is_enabled() {
++	private function set_is_enabled(): mixed {
+ 		/*
+ 		 * Respect old get_option() filters left for back-compat when the 'enable_xmlrpc'
+ 		 * option was deprecated in 3.5.0. Use the {@see 'xmlrpc_enabled'} hook instead.
+@@ -221,6 +221,7 @@
+ 		 * @param bool $is_enabled Whether XML-RPC is enabled. Default true.
+ 		 */
+ 		$this->is_enabled = apply_filters( 'xmlrpc_enabled', $is_enabled );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -232,11 +233,12 @@
+ 	 * @param array  $arguments Arguments to pass when calling.
+ 	 * @return array|IXR_Error|false Return value of the callback, false otherwise.
+ 	 */
+-	public function __call( $name, $arguments ) {
++	public function __call( $name, $arguments ): mixed {
+ 		if ( '_multisite_getUsersBlogs' === $name ) {
+ 			return $this->_multisite_getUsersBlogs( ...$arguments );
+ 		}
+ 		return false;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -244,8 +246,9 @@
+ 	 *
+ 	 * @since 2.9.0
+ 	 */
+-	public function serve_request() {
++	public function serve_request(): mixed {
+ 		$this->IXR_Server( $this->methods );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -255,8 +258,9 @@
+ 	 *
+ 	 * @return string Hello string response.
+ 	 */
+-	public function sayHello() {
++	public function sayHello(): mixed {
+ 		return 'Hello!';
++		return null;
+ 	}
+ 
+ 	/**
+@@ -272,7 +276,7 @@
+ 	 * }
+ 	 * @return int|IXR_Error Sum of the two given numbers.
+ 	 */
+-	public function addTwoNumbers( $args ) {
++	public function addTwoNumbers( mixed $args ): mixed {
+ 		if ( ! is_array( $args ) || count( $args ) !== 2 || ! is_int( $args[0] ) || ! is_int( $args[1] ) ) {
+ 			$this->error = new IXR_Error( 400, __( 'Invalid arguments passed to this XML-RPC method. Requires two integers.' ) );
+ 			return $this->error;
+@@ -281,6 +285,7 @@
+ 		$number1 = $args[0];
+ 		$number2 = $args[1];
+ 		return $number1 + $number2;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -293,10 +298,10 @@
+ 	 * @return WP_User|false WP_User object if authentication passed, false otherwise.
+ 	 */
+ 	public function login(
+-		$username,
++		mixed $username,
+ 		#[\SensitiveParameter]
+ 		$password
+-	) {
++	): mixed {
+ 		if ( ! $this->is_enabled ) {
+ 			$this->error = new IXR_Error( 405, __( 'XML-RPC services are disabled on this site.' ) );
+ 			return false;
+@@ -328,6 +333,7 @@
+ 
+ 		wp_set_current_user( $user->ID );
+ 		return $user;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -342,11 +348,12 @@
+ 	 * @return bool Whether authentication passed.
+ 	 */
+ 	public function login_pass_ok(
+-		$username,
++		mixed $username,
+ 		#[\SensitiveParameter]
+ 		$password
+-	) {
++	): mixed {
+ 		return (bool) $this->login( $username, $password );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -358,7 +365,7 @@
+ 	 * @return string|null Returns with string if passed, alters by-reference
+ 	 *                     when array is passed.
+ 	 */
+-	public function escape( &$data ) {
++	public function escape( mixed &$data ): mixed {
+ 		if ( ! is_array( $data ) ) {
+ 			return wp_slash( $data );
+ 		}
+@@ -371,6 +378,7 @@
+ 			}
+ 		}
+ 		return null;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -384,7 +392,7 @@
+ 	 * @param IXR_Error|string $error   Error code or an error object.
+ 	 * @param false            $message Error message. Optional.
+ 	 */
+-	public function error( $error, $message = false ) {
++	public function error( mixed $error, mixed $message = false ): mixed {
+ 		// Accepts either an error object or an error code and message
+ 		if ( $message && ! is_object( $error ) ) {
+ 			$error = new IXR_Error( $error, $message );
+@@ -395,6 +403,7 @@
+ 		}
+ 
+ 		$this->output( $error->getXml() );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -405,7 +414,7 @@
+ 	 * @param int $post_id Post ID.
+ 	 * @return array Custom fields, if exist.
+ 	 */
+-	public function get_custom_fields( $post_id ) {
++	public function get_custom_fields( mixed $post_id ): mixed {
+ 		$post_id = (int) $post_id;
+ 
+ 		$custom_fields = array();
+@@ -424,6 +433,7 @@
+ 		}
+ 
+ 		return $custom_fields;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -434,7 +444,7 @@
+ 	 * @param int   $post_id Post ID.
+ 	 * @param array $fields  Custom fields.
+ 	 */
+-	public function set_custom_fields( $post_id, $fields ) {
++	public function set_custom_fields( mixed $post_id, mixed $fields ): mixed {
+ 		$post_id = (int) $post_id;
+ 
+ 		foreach ( (array) $fields as $meta ) {
+@@ -462,6 +472,7 @@
+ 				add_post_meta( $post_id, $meta['key'], $meta['value'] );
+ 			}
+ 		}
++		return null;
+ 	}
+ 
+ 	/**
+@@ -472,7 +483,7 @@
+ 	 * @param int $term_id Term ID.
+ 	 * @return array Array of custom fields, if they exist.
+ 	 */
+-	public function get_term_custom_fields( $term_id ) {
++	public function get_term_custom_fields( mixed $term_id ): mixed {
+ 		$term_id = (int) $term_id;
+ 
+ 		$custom_fields = array();
+@@ -491,6 +502,7 @@
+ 		}
+ 
+ 		return $custom_fields;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -501,7 +513,7 @@
+ 	 * @param int   $term_id Term ID.
+ 	 * @param array $fields  Custom fields.
+ 	 */
+-	public function set_term_custom_fields( $term_id, $fields ) {
++	public function set_term_custom_fields( mixed $term_id, mixed $fields ): mixed {
+ 		$term_id = (int) $term_id;
+ 
+ 		foreach ( (array) $fields as $meta ) {
+@@ -524,6 +536,7 @@
+ 				add_term_meta( $term_id, $meta['key'], $meta['value'] );
+ 			}
+ 		}
++		return null;
+ 	}
+ 
+ 	/**
+@@ -533,7 +546,7 @@
+ 	 *
+ 	 * @since 2.6.0
+ 	 */
+-	public function initialise_blog_option_info() {
++	public function initialise_blog_option_info(): mixed {
+ 		$this->blog_options = array(
+ 			// Read-only options.
+ 			'software_name'           => array(
+@@ -693,6 +706,7 @@
+ 		 * @param array $blog_options An array of XML-RPC blog options.
+ 		 */
+ 		$this->blog_options = apply_filters( 'xmlrpc_blog_options', $this->blog_options );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -714,14 +728,14 @@
+ 	 *  - 'blogName'
+ 	 *  - 'xmlrpc' - url of xmlrpc endpoint
+ 	 */
+-	public function wp_getUsersBlogs( $args ) {
++	public function wp_getUsersBlogs( mixed $args ): mixed {
+ 		if ( ! $this->minimum_args( $args, 2 ) ) {
+ 			return $this->error;
+ 		}
+ 
+ 		// If this isn't on WPMU then just use blogger_getUsersBlogs().
+ 		if ( ! is_multisite() ) {
+-			array_unshift( $args, 1 );
++			\wp_aot_array_unshift( $args,array( 1 ));
+ 			return $this->blogger_getUsersBlogs( $args );
+ 		}
+ 
+@@ -788,6 +802,7 @@
+ 		}
+ 
+ 		return $struct;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -799,13 +814,14 @@
+ 	 * @param int   $count Minimum number of arguments.
+ 	 * @return bool True if `$args` contains at least `$count` arguments, false otherwise.
+ 	 */
+-	protected function minimum_args( $args, $count ) {
++	protected function minimum_args( mixed $args, mixed $count ): mixed {
+ 		if ( ! is_array( $args ) || count( $args ) < $count ) {
+ 			$this->error = new IXR_Error( 400, __( 'Insufficient arguments passed to this XML-RPC method.' ) );
+ 			return false;
+ 		}
+ 
+ 		return true;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -815,7 +831,7 @@
+ 	 * @param array       $fields   The subset of taxonomy fields to return.
+ 	 * @return array The prepared taxonomy data.
+ 	 */
+-	protected function _prepare_taxonomy( $taxonomy, $fields ) {
++	protected function _prepare_taxonomy( mixed $taxonomy, mixed $fields ): mixed {
+ 		$_taxonomy = array(
+ 			'name'         => $taxonomy->name,
+ 			'label'        => $taxonomy->label,
+@@ -838,7 +854,7 @@
+ 		}
+ 
+ 		if ( in_array( 'object_type', $fields, true ) ) {
+-			$_taxonomy['object_type'] = array_unique( (array) $taxonomy->object_type );
++			$_taxonomy['object_type'] = \wp_aot_array_unique( (array) $taxonomy->object_type );
+ 		}
+ 
+ 		/**
+@@ -851,6 +867,7 @@
+ 		 * @param array       $fields    The subset of taxonomy fields to return.
+ 		 */
+ 		return apply_filters( 'xmlrpc_prepare_taxonomy', $_taxonomy, $taxonomy, $fields );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -859,7 +876,7 @@
+ 	 * @param array|object $term The unprepared term data.
+ 	 * @return array The prepared term data.
+ 	 */
+-	protected function _prepare_term( $term ) {
++	protected function _prepare_term( mixed $term ): mixed {
+ 		$_term = $term;
+ 		if ( ! is_array( $_term ) ) {
+ 			$_term = get_object_vars( $_term );
+@@ -886,6 +903,7 @@
+ 		 * @param array|object $term  Term object or array.
+ 		 */
+ 		return apply_filters( 'xmlrpc_prepare_term', $_term, $term );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -894,11 +912,12 @@
+ 	 * @param string $date Date string to convert.
+ 	 * @return IXR_Date IXR_Date object.
+ 	 */
+-	protected function _convert_date( $date ) {
++	protected function _convert_date( mixed $date ): mixed {
+ 		if ( '0000-00-00 00:00:00' === $date ) {
+ 			return new IXR_Date( '00000000T00:00:00Z' );
+ 		}
+ 		return new IXR_Date( mysql2date( 'Ymd\TH:i:s', $date, false ) );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -908,11 +927,12 @@
+ 	 * @param string $date     Date string.
+ 	 * @return IXR_Date IXR_Date object.
+ 	 */
+-	protected function _convert_date_gmt( $date_gmt, $date ) {
++	protected function _convert_date_gmt( mixed $date_gmt, mixed $date ): mixed {
+ 		if ( '0000-00-00 00:00:00' !== $date && '0000-00-00 00:00:00' === $date_gmt ) {
+ 			return new IXR_Date( get_gmt_from_date( mysql2date( 'Y-m-d H:i:s', $date, false ), 'Ymd\TH:i:s' ) );
+ 		}
+ 		return $this->_convert_date( $date_gmt );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -922,7 +942,7 @@
+ 	 * @param array $fields The subset of post type fields to return.
+ 	 * @return array The prepared post data.
+ 	 */
+-	protected function _prepare_post( $post, $fields ) {
++	protected function _prepare_post( mixed $post, mixed $fields ): mixed {
+ 		// Holds the data for this post. built up based on $fields.
+ 		$_post = array( 'post_id' => (string) $post['ID'] );
+ 
+@@ -971,10 +991,10 @@
+ 
+ 		// Merge requested $post_fields fields into $_post.
+ 		if ( in_array( 'post', $fields, true ) ) {
+-			$_post = array_merge( $_post, $post_fields );
++			$_post = \wp_aot_array_merge(array( $_post, $post_fields ));
+ 		} else {
+-			$requested_fields = array_intersect_key( $post_fields, array_flip( $fields ) );
+-			$_post            = array_merge( $_post, $requested_fields );
++			$requested_fields = \wp_aot_array_intersect_key(array( $post_fields, \wp_aot_array_flip( $fields ) ));
++			$_post            = \wp_aot_array_merge(array( $_post, $requested_fields ));
+ 		}
+ 
+ 		$all_taxonomy_fields = in_array( 'taxonomies', $fields, true );
+@@ -1013,6 +1033,7 @@
+ 		 * @param array $fields An array of post fields.
+ 		 */
+ 		return apply_filters( 'xmlrpc_prepare_post', $_post, $post, $fields );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1025,7 +1046,7 @@
+ 	 * @param array        $fields    The subset of post fields to return.
+ 	 * @return array The prepared post type data.
+ 	 */
+-	protected function _prepare_post_type( $post_type, $fields ) {
++	protected function _prepare_post_type( mixed $post_type, mixed $fields ): mixed {
+ 		$_post_type = array(
+ 			'name'         => $post_type->name,
+ 			'label'        => $post_type->label,
+@@ -1066,6 +1087,7 @@
+ 		 * @param WP_Post_Type $post_type  Post type object.
+ 		 */
+ 		return apply_filters( 'xmlrpc_prepare_post_type', $_post_type, $post_type );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1075,7 +1097,7 @@
+ 	 * @param string  $thumbnail_size The image size to use for the thumbnail URL.
+ 	 * @return array The prepared media item data.
+ 	 */
+-	protected function _prepare_media_item( $media_item, $thumbnail_size = 'thumbnail' ) {
++	protected function _prepare_media_item( mixed $media_item, mixed $thumbnail_size = 'thumbnail' ): mixed {
+ 		$_media_item = array(
+ 			'attachment_id'    => (string) $media_item->ID,
+ 			'date_created_gmt' => $this->_convert_date_gmt( $media_item->post_date_gmt, $media_item->post_date ),
+@@ -1106,6 +1128,7 @@
+ 		 * @param string  $thumbnail_size Image size.
+ 		 */
+ 		return apply_filters( 'xmlrpc_prepare_media_item', $_media_item, $media_item, $thumbnail_size );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1114,7 +1137,7 @@
+ 	 * @param WP_Post $page The unprepared page data.
+ 	 * @return array The prepared page data.
+ 	 */
+-	protected function _prepare_page( $page ) {
++	protected function _prepare_page( mixed $page ): mixed {
+ 		// Get all of the page content and link.
+ 		$full_page = get_extended( $page->post_content );
+ 		$link      = get_permalink( $page->ID );
+@@ -1186,6 +1209,7 @@
+ 		 * @param WP_Post $page  Page object.
+ 		 */
+ 		return apply_filters( 'xmlrpc_prepare_page', $_page, $page );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1194,7 +1218,7 @@
+ 	 * @param WP_Comment $comment The unprepared comment data.
+ 	 * @return array The prepared comment data.
+ 	 */
+-	protected function _prepare_comment( $comment ) {
++	protected function _prepare_comment( mixed $comment ): mixed {
+ 		// Format page date.
+ 		$comment_date_gmt = $this->_convert_date_gmt( $comment->comment_date_gmt, $comment->comment_date );
+ 
+@@ -1233,6 +1257,7 @@
+ 		 * @param WP_Comment $comment  Comment object.
+ 		 */
+ 		return apply_filters( 'xmlrpc_prepare_comment', $_comment, $comment );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1242,7 +1267,7 @@
+ 	 * @param array   $fields The subset of user fields to return.
+ 	 * @return array The prepared user data.
+ 	 */
+-	protected function _prepare_user( $user, $fields ) {
++	protected function _prepare_user( mixed $user, mixed $fields ): mixed {
+ 		$_user = array( 'user_id' => (string) $user->ID );
+ 
+ 		$user_fields = array(
+@@ -1260,14 +1285,14 @@
+ 		);
+ 
+ 		if ( in_array( 'all', $fields, true ) ) {
+-			$_user = array_merge( $_user, $user_fields );
++			$_user = \wp_aot_array_merge(array( $_user, $user_fields ));
+ 		} else {
+ 			if ( in_array( 'basic', $fields, true ) ) {
+ 				$basic_fields = array( 'username', 'email', 'registered', 'display_name', 'nicename' );
+-				$fields       = array_merge( $fields, $basic_fields );
+-			}
+-			$requested_fields = array_intersect_key( $user_fields, array_flip( $fields ) );
+-			$_user            = array_merge( $_user, $requested_fields );
++				$fields       = \wp_aot_array_merge(array( $fields, $basic_fields ));
++			}
++			$requested_fields = \wp_aot_array_intersect_key(array( $user_fields, \wp_aot_array_flip( $fields ) ));
++			$_user            = \wp_aot_array_merge(array( $_user, $requested_fields ));
+ 		}
+ 
+ 		/**
+@@ -1280,6 +1305,7 @@
+ 		 * @param array   $fields An array of user fields.
+ 		 */
+ 		return apply_filters( 'xmlrpc_prepare_user', $_user, $user, $fields );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1329,7 +1355,7 @@
+ 	 * }
+ 	 * @return int|IXR_Error Post ID on success, IXR_Error instance otherwise.
+ 	 */
+-	public function wp_newPost( $args ) {
++	public function wp_newPost( mixed $args ): mixed {
+ 		if ( ! $this->minimum_args( $args, 4 ) ) {
+ 			return $this->error;
+ 		}
+@@ -1368,6 +1394,7 @@
+ 		unset( $content_struct['ID'] );
+ 
+ 		return $this->_insert_post( $user, $content_struct );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1378,8 +1405,9 @@
+ 	 * @param int $count Number to compare to one.
+ 	 * @return bool True if the number is greater than one, false otherwise.
+ 	 */
+-	private function _is_greater_than_one( $count ) {
++	private function _is_greater_than_one( mixed $count ): mixed {
+ 		return $count > 1;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1392,7 +1420,7 @@
+ 	 * @param bool  $update
+ 	 * @return void|IXR_Error
+ 	 */
+-	private function _toggle_sticky( $post_data, $update = false ) {
++	private function _toggle_sticky( mixed $post_data, mixed $update = false ): mixed {
+ 		$post_type = get_post_type_object( $post_data['post_type'] );
+ 
+ 		// Private and password-protected posts cannot be stickied.
+@@ -1417,6 +1445,7 @@
+ 				unstick_post( $post_data['ID'] );
+ 			}
+ 		}
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1430,7 +1459,7 @@
+ 	 * @param array|IXR_Error $content_struct Post data to insert.
+ 	 * @return IXR_Error|string
+ 	 */
+-	protected function _insert_post( $user, $content_struct ) {
++	protected function _insert_post( mixed $user, mixed $content_struct ): mixed {
+ 		$defaults = array(
+ 			'post_status'    => 'draft',
+ 			'post_type'      => 'post',
+@@ -1455,7 +1484,7 @@
+ 			'ID'             => null,
+ 		);
+ 
+-		$post_data = wp_parse_args( array_intersect_key( $content_struct, $defaults ), $defaults );
++		$post_data = wp_parse_args( \wp_aot_array_intersect_key(array( $content_struct, $defaults )), $defaults );
+ 
+ 		$post_type = get_post_type_object( $post_data['post_type'] );
+ 		if ( ! $post_type ) {
+@@ -1667,7 +1696,7 @@
+ 						$tax_term_names_count = array_count_values( $tax_term_names );
+ 
+ 						// Filter out non-ambiguous term names.
+-						$ambiguous_tax_term_counts = array_filter( $tax_term_names_count, array( $this, '_is_greater_than_one' ) );
++						$ambiguous_tax_term_counts = \wp_aot_array_filter( $tax_term_names_count, $this->_is_greater_than_one(...));
+ 
+ 						$ambiguous_terms = array_keys( $ambiguous_tax_term_counts );
+ 					}
+@@ -1731,9 +1760,9 @@
+ 		$post_data = apply_filters( 'xmlrpc_wp_insert_post_data', $post_data, $content_struct );
+ 
+ 		// Remove all null values to allow for using the insert/update post default values for those keys instead.
+-		$post_data = array_filter(
++		$post_data = \wp_aot_array_filter(
+ 			$post_data,
+-			static function ( $value ) {
++			static function ( mixed $value ) {
+ 				return null !== $value;
+ 			}
+ 		);
+@@ -1752,6 +1781,7 @@
+ 		}
+ 
+ 		return (string) $post_id;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1773,7 +1803,7 @@
+ 	 * }
+ 	 * @return true|IXR_Error True on success, IXR_Error on failure.
+ 	 */
+-	public function wp_editPost( $args ) {
++	public function wp_editPost( mixed $args ): mixed {
+ 		if ( ! $this->minimum_args( $args, 5 ) ) {
+ 			return $this->error;
+ 		}
+@@ -1830,7 +1860,7 @@
+ 		}
+ 
+ 		$this->escape( $post );
+-		$merged_content_struct = array_merge( $post, $content_struct );
++		$merged_content_struct = \wp_aot_array_merge(array( $post, $content_struct ));
+ 
+ 		$retval = $this->_insert_post( $user, $merged_content_struct );
+ 		if ( $retval instanceof IXR_Error ) {
+@@ -1838,6 +1868,7 @@
+ 		}
+ 
+ 		return true;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1857,7 +1888,7 @@
+ 	 * }
+ 	 * @return true|IXR_Error True on success, IXR_Error instance on failure.
+ 	 */
+-	public function wp_deletePost( $args ) {
++	public function wp_deletePost( mixed $args ): mixed {
+ 		if ( ! $this->minimum_args( $args, 4 ) ) {
+ 			return $this->error;
+ 		}
+@@ -1892,6 +1923,7 @@
+ 		}
+ 
+ 		return true;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -1943,7 +1975,7 @@
+ 	 *  - 'tags'
+ 	 *  - 'enclosure'
+ 	 */
+-	public function wp_getPost( $args ) {
++	public function wp_getPost( mixed $args ): mixed {
+ 		if ( ! $this->minimum_args( $args, 4 ) ) {
+ 			return $this->error;
+ 		}
+@@ -1988,6 +2020,7 @@
+ 		}
+ 
+ 		return $this->_prepare_post( $post, $fields );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -2012,7 +2045,7 @@
+ 	 * }
+ 	 * @return array|IXR_Error Array containing a collection of posts.
+ 	 */
+-	public function wp_getPosts( $args ) {
++	public function wp_getPosts( mixed $args ): mixed {
+ 		if ( ! $this->minimum_args( $args, 3 ) ) {
+ 			return $this->error;
+ 		}
+@@ -2097,6 +2130,7 @@
+ 		}
+ 
+ 		return $struct;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -2118,7 +2152,7 @@
+ 	 * }
+ 	 * @return int|IXR_Error The term ID on success, or an IXR_Error object on failure.
+ 	 */
+-	public function wp_newTerm( $args ) {
++	public function wp_newTerm( mixed $args ): mixed {
+ 		if ( ! $this->minimum_args( $args, 4 ) ) {
+ 			return $this->error;
+ 		}
+@@ -2200,6 +2234,7 @@
+ 		}
+ 
+ 		return (string) $term['term_id'];
++		return null;
+ 	}
+ 
+ 	/**
+@@ -2222,7 +2257,7 @@
+ 	 * }
+ 	 * @return true|IXR_Error True on success, IXR_Error instance on failure.
+ 	 */
+-	public function wp_editTerm( $args ) {
++	public function wp_editTerm( mixed $args ): mixed {
+ 		if ( ! $this->minimum_args( $args, 5 ) ) {
+ 			return $this->error;
+ 		}
+@@ -2320,6 +2355,7 @@
+ 		}
+ 
+ 		return true;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -2340,7 +2376,7 @@
+ 	 * }
+ 	 * @return true|IXR_Error True on success, IXR_Error instance on failure.
+ 	 */
+-	public function wp_deleteTerm( $args ) {
++	public function wp_deleteTerm( mixed $args ): mixed {
+ 		if ( ! $this->minimum_args( $args, 5 ) ) {
+ 			return $this->error;
+ 		}
+@@ -2390,6 +2426,7 @@
+ 		}
+ 
+ 		return $result;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -2419,7 +2456,7 @@
+ 	 *  - 'parent'
+ 	 *  - 'count'
+ 	 */
+-	public function wp_getTerm( $args ) {
++	public function wp_getTerm( mixed $args ): mixed {
+ 		if ( ! $this->minimum_args( $args, 5 ) ) {
+ 			return $this->error;
+ 		}
+@@ -2460,6 +2497,7 @@
+ 		}
+ 
+ 		return $this->_prepare_term( $term );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -2484,7 +2522,7 @@
+ 	 * }
+ 	 * @return array|IXR_Error An associative array of terms data on success, IXR_Error instance otherwise.
+ 	 */
+-	public function wp_getTerms( $args ) {
++	public function wp_getTerms( mixed $args ): mixed {
+ 		if ( ! $this->minimum_args( $args, 4 ) ) {
+ 			return $this->error;
+ 		}
+@@ -2555,6 +2593,7 @@
+ 		}
+ 
+ 		return $struct;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -2577,7 +2616,7 @@
+ 	 * }
+ 	 * @return array|IXR_Error An array of taxonomy data on success, IXR_Error instance otherwise.
+ 	 */
+-	public function wp_getTaxonomy( $args ) {
++	public function wp_getTaxonomy( mixed $args ): mixed {
+ 		if ( ! $this->minimum_args( $args, 4 ) ) {
+ 			return $this->error;
+ 		}
+@@ -2622,6 +2661,7 @@
+ 		}
+ 
+ 		return $this->_prepare_taxonomy( $taxonomy, $fields );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -2643,7 +2683,7 @@
+ 	 * @return array|IXR_Error An associative array of taxonomy data with returned fields determined
+ 	 *                         by `$fields`, or an IXR_Error instance on failure.
+ 	 */
+-	public function wp_getTaxonomies( $args ) {
++	public function wp_getTaxonomies( mixed $args ): mixed {
+ 		if ( ! $this->minimum_args( $args, 3 ) ) {
+ 			return $this->error;
+ 		}
+@@ -2684,6 +2724,7 @@
+ 		}
+ 
+ 		return $struct;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -2722,7 +2763,7 @@
+ 	 *  - 'display_name'
+ 	 *  - 'roles'
+ 	 */
+-	public function wp_getUser( $args ) {
++	public function wp_getUser( mixed $args ): mixed {
+ 		if ( ! $this->minimum_args( $args, 4 ) ) {
+ 			return $this->error;
+ 		}
+@@ -2766,6 +2807,7 @@
+ 		}
+ 
+ 		return $this->_prepare_user( $user_data, $fields );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -2792,7 +2834,7 @@
+ 	 * }
+ 	 * @return array|IXR_Error users data
+ 	 */
+-	public function wp_getUsers( $args ) {
++	public function wp_getUsers( mixed $args ): mixed {
+ 		if ( ! $this->minimum_args( $args, 3 ) ) {
+ 			return $this->error;
+ 		}
+@@ -2856,6 +2898,7 @@
+ 			}
+ 		}
+ 		return $_users;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -2873,7 +2916,7 @@
+ 	 * }
+ 	 * @return array|IXR_Error (@see wp_getUser)
+ 	 */
+-	public function wp_getProfile( $args ) {
++	public function wp_getProfile( mixed $args ): mixed {
+ 		if ( ! $this->minimum_args( $args, 3 ) ) {
+ 			return $this->error;
+ 		}
+@@ -2905,6 +2948,7 @@
+ 		$user_data = get_userdata( $user->ID );
+ 
+ 		return $this->_prepare_user( $user_data, $fields );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -2929,7 +2973,7 @@
+ 	 * }
+ 	 * @return true|IXR_Error True, on success.
+ 	 */
+-	public function wp_editProfile( $args ) {
++	public function wp_editProfile( mixed $args ): mixed {
+ 		if ( ! $this->minimum_args( $args, 4 ) ) {
+ 			return $this->error;
+ 		}
+@@ -2996,6 +3040,7 @@
+ 		}
+ 
+ 		return true;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -3013,7 +3058,7 @@
+ 	 * }
+ 	 * @return array|IXR_Error
+ 	 */
+-	public function wp_getPage( $args ) {
++	public function wp_getPage( mixed $args ): mixed {
+ 		$this->escape( $args );
+ 
+ 		$page_id  = (int) $args[1];
+@@ -3044,6 +3089,7 @@
+ 			// If the page doesn't exist, indicate that.
+ 			return new IXR_Error( 404, __( 'Sorry, no such page.' ) );
+ 		}
++		return null;
+ 	}
+ 
+ 	/**
+@@ -3061,7 +3107,7 @@
+ 	 * }
+ 	 * @return array|IXR_Error
+ 	 */
+-	public function wp_getPages( $args ) {
++	public function wp_getPages( mixed $args ): mixed {
+ 		$this->escape( $args );
+ 
+ 		$username  = $args[1];
+@@ -3103,6 +3149,7 @@
+ 		}
+ 
+ 		return array();
++		return null;
+ 	}
+ 
+ 	/**
+@@ -3122,7 +3169,7 @@
+ 	 * }
+ 	 * @return int|IXR_Error
+ 	 */
+-	public function wp_newPage( $args ) {
++	public function wp_newPage( mixed $args ): mixed {
+ 		// Items not escaped here will be escaped in wp_newPost().
+ 		$username = $this->escape( $args[1] );
+ 		$password = $this->escape( $args[2] );
+@@ -3140,6 +3187,7 @@
+ 
+ 		// Let mw_newPost() do all of the heavy lifting.
+ 		return $this->mw_newPost( $args );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -3157,7 +3205,7 @@
+ 	 * }
+ 	 * @return true|IXR_Error True, if success.
+ 	 */
+-	public function wp_deletePage( $args ) {
++	public function wp_deletePage( mixed $args ): mixed {
+ 		$this->escape( $args );
+ 
+ 		$username = $args[1];
+@@ -3203,6 +3251,7 @@
+ 		do_action( 'xmlrpc_call_success_wp_deletePage', $page_id, $args ); // phpcs:ignore WordPress.NamingConventions.ValidHookName.NotLowercase
+ 
+ 		return true;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -3222,7 +3271,7 @@
+ 	 * }
+ 	 * @return array|IXR_Error
+ 	 */
+-	public function wp_editPage( $args ) {
++	public function wp_editPage( mixed $args ): mixed {
+ 		// Items will be escaped in mw_editPost().
+ 		$page_id  = (int) $args[1];
+ 		$username = $args[2];
+@@ -3266,6 +3315,7 @@
+ 
+ 		// Let mw_editPost() do all of the heavy lifting.
+ 		return $this->mw_editPost( $args );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -3284,7 +3334,7 @@
+ 	 * }
+ 	 * @return array|IXR_Error
+ 	 */
+-	public function wp_getPageList( $args ) {
++	public function wp_getPageList( mixed $args ): mixed {
+ 		global $wpdb;
+ 
+ 		$this->escape( $args );
+@@ -3305,7 +3355,7 @@
+ 		do_action( 'xmlrpc_call', 'wp.getPageList', $args, $this );
+ 
+ 		// Get list of page IDs and titles.
+-		$page_list = $wpdb->get_results(
++		$page_list = \wp_aot_require_wpdb( $wpdb )->get_results(
+ 			"
+ 			SELECT ID page_id,
+ 				post_title page_title,
+@@ -3331,6 +3381,7 @@
+ 		}
+ 
+ 		return $page_list;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -3347,7 +3398,7 @@
+ 	 * }
+ 	 * @return array|IXR_Error
+ 	 */
+-	public function wp_getAuthors( $args ) {
++	public function wp_getAuthors( mixed $args ): mixed {
+ 		$this->escape( $args );
+ 
+ 		$username = $args[1];
+@@ -3375,6 +3426,7 @@
+ 		}
+ 
+ 		return $authors;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -3391,7 +3443,7 @@
+ 	 * }
+ 	 * @return array|IXR_Error
+ 	 */
+-	public function wp_getTags( $args ) {
++	public function wp_getTags( mixed $args ): mixed {
+ 		$this->escape( $args );
+ 
+ 		$username = $args[1];
+@@ -3427,6 +3479,7 @@
+ 		}
+ 
+ 		return $tags;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -3444,7 +3497,7 @@
+ 	 * }
+ 	 * @return int|IXR_Error Category ID.
+ 	 */
+-	public function wp_newCategory( $args ) {
++	public function wp_newCategory( mixed $args ): mixed {
+ 		$this->escape( $args );
+ 
+ 		$username = $args[1];
+@@ -3514,6 +3567,7 @@
+ 		do_action( 'xmlrpc_call_success_wp_newCategory', $cat_id, $args ); // phpcs:ignore WordPress.NamingConventions.ValidHookName.NotLowercase
+ 
+ 		return $cat_id;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -3531,7 +3585,7 @@
+ 	 * }
+ 	 * @return bool|IXR_Error See wp_delete_term() for return info.
+ 	 */
+-	public function wp_deleteCategory( $args ) {
++	public function wp_deleteCategory( mixed $args ): mixed {
+ 		$this->escape( $args );
+ 
+ 		$username    = $args[1];
+@@ -3565,6 +3619,7 @@
+ 		}
+ 
+ 		return $status;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -3583,7 +3638,7 @@
+ 	 * }
+ 	 * @return array|IXR_Error
+ 	 */
+-	public function wp_suggestCategories( $args ) {
++	public function wp_suggestCategories( mixed $args ): mixed {
+ 		$this->escape( $args );
+ 
+ 		$username    = $args[1];
+@@ -3617,6 +3672,7 @@
+ 		}
+ 
+ 		return $category_suggestions;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -3634,7 +3690,7 @@
+ 	 * }
+ 	 * @return array|IXR_Error
+ 	 */
+-	public function wp_getComment( $args ) {
++	public function wp_getComment( mixed $args ): mixed {
+ 		$this->escape( $args );
+ 
+ 		$username   = $args[1];
+@@ -3659,6 +3715,7 @@
+ 		}
+ 
+ 		return $this->_prepare_comment( $comment );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -3690,7 +3747,7 @@
+ 	 *                         See wp_xmlrpc_server::wp_getComment() for a description
+ 	 *                         of each item contents.
+ 	 */
+-	public function wp_getComments( $args ) {
++	public function wp_getComments( mixed $args ): mixed {
+ 		$this->escape( $args );
+ 
+ 		$username = $args[1];
+@@ -3753,6 +3810,7 @@
+ 		}
+ 
+ 		return $comments_struct;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -3773,7 +3831,7 @@
+ 	 * }
+ 	 * @return bool|IXR_Error See wp_delete_comment().
+ 	 */
+-	public function wp_deleteComment( $args ) {
++	public function wp_deleteComment( mixed $args ): mixed {
+ 		$this->escape( $args );
+ 
+ 		$username   = $args[1];
+@@ -3811,6 +3869,7 @@
+ 		}
+ 
+ 		return $status;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -3840,7 +3899,7 @@
+ 	 * }
+ 	 * @return true|IXR_Error True, on success.
+ 	 */
+-	public function wp_editComment( $args ) {
++	public function wp_editComment( mixed $args ): mixed {
+ 		$this->escape( $args );
+ 
+ 		$username       = $args[1];
+@@ -3923,6 +3982,7 @@
+ 		do_action( 'xmlrpc_call_success_wp_editComment', $comment_id, $args ); // phpcs:ignore WordPress.NamingConventions.ValidHookName.NotLowercase
+ 
+ 		return true;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -3941,7 +4001,7 @@
+ 	 * }
+ 	 * @return int|IXR_Error See wp_new_comment().
+ 	 */
+-	public function wp_newComment( $args ) {
++	public function wp_newComment( mixed $args ): mixed {
+ 		$this->escape( $args );
+ 
+ 		$username       = $args[1];
+@@ -4078,6 +4138,7 @@
+ 		do_action( 'xmlrpc_call_success_wp_newComment', $comment_id, $args ); // phpcs:ignore WordPress.NamingConventions.ValidHookName.NotLowercase
+ 
+ 		return $comment_id;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -4094,7 +4155,7 @@
+ 	 * }
+ 	 * @return array|IXR_Error
+ 	 */
+-	public function wp_getCommentStatusList( $args ) {
++	public function wp_getCommentStatusList( mixed $args ): mixed {
+ 		$this->escape( $args );
+ 
+ 		$username = $args[1];
+@@ -4113,6 +4174,7 @@
+ 		do_action( 'xmlrpc_call', 'wp.getCommentStatusList', $args, $this );
+ 
+ 		return get_comment_statuses();
++		return null;
+ 	}
+ 
+ 	/**
+@@ -4130,7 +4192,7 @@
+ 	 * }
+ 	 * @return array|IXR_Error
+ 	 */
+-	public function wp_getCommentCount( $args ) {
++	public function wp_getCommentCount( mixed $args ): mixed {
+ 		$this->escape( $args );
+ 
+ 		$username = $args[1];
+@@ -4162,6 +4224,7 @@
+ 			'spam'                => $count->spam,
+ 			'total_comments'      => $count->total_comments,
+ 		);
++		return null;
+ 	}
+ 
+ 	/**
+@@ -4178,7 +4241,7 @@
+ 	 * }
+ 	 * @return array|IXR_Error
+ 	 */
+-	public function wp_getPostStatusList( $args ) {
++	public function wp_getPostStatusList( mixed $args ): mixed {
+ 		$this->escape( $args );
+ 
+ 		$username = $args[1];
+@@ -4197,6 +4260,7 @@
+ 		do_action( 'xmlrpc_call', 'wp.getPostStatusList', $args, $this );
+ 
+ 		return get_post_statuses();
++		return null;
+ 	}
+ 
+ 	/**
+@@ -4213,7 +4277,7 @@
+ 	 * }
+ 	 * @return array|IXR_Error
+ 	 */
+-	public function wp_getPageStatusList( $args ) {
++	public function wp_getPageStatusList( mixed $args ): mixed {
+ 		$this->escape( $args );
+ 
+ 		$username = $args[1];
+@@ -4232,6 +4296,7 @@
+ 		do_action( 'xmlrpc_call', 'wp.getPageStatusList', $args, $this );
+ 
+ 		return get_page_statuses();
++		return null;
+ 	}
+ 
+ 	/**
+@@ -4248,7 +4313,7 @@
+ 	 * }
+ 	 * @return array|IXR_Error
+ 	 */
+-	public function wp_getPageTemplates( $args ) {
++	public function wp_getPageTemplates( mixed $args ): mixed {
+ 		$this->escape( $args );
+ 
+ 		$username = $args[1];
+@@ -4267,6 +4332,7 @@
+ 		$templates['Default'] = 'default';
+ 
+ 		return $templates;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -4284,7 +4350,7 @@
+ 	 * }
+ 	 * @return array|IXR_Error
+ 	 */
+-	public function wp_getOptions( $args ) {
++	public function wp_getOptions( mixed $args ): mixed {
+ 		$this->escape( $args );
+ 
+ 		$username = $args[1];
+@@ -4302,6 +4368,7 @@
+ 		}
+ 
+ 		return $this->_getOptions( $options );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -4312,7 +4379,7 @@
+ 	 * @param array $options Options to retrieve.
+ 	 * @return array
+ 	 */
+-	public function _getOptions( $options ) {
++	public function _getOptions( mixed $options ): mixed {
+ 		$data       = array();
+ 		$can_manage = current_user_can( 'manage_options' );
+ 		foreach ( $options as $option ) {
+@@ -4331,6 +4398,7 @@
+ 		}
+ 
+ 		return $data;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -4348,7 +4416,7 @@
+ 	 * }
+ 	 * @return array|IXR_Error
+ 	 */
+-	public function wp_setOptions( $args ) {
++	public function wp_setOptions( mixed $args ): mixed {
+ 		$this->escape( $args );
+ 
+ 		$username = $args[1];
+@@ -4380,6 +4448,7 @@
+ 
+ 		// Now return the updated values.
+ 		return $this->_getOptions( $option_names );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -4405,7 +4474,7 @@
+ 	 *  - 'description'
+ 	 *  - 'metadata'
+ 	 */
+-	public function wp_getMediaItem( $args ) {
++	public function wp_getMediaItem( mixed $args ): mixed {
+ 		$this->escape( $args );
+ 
+ 		$username      = $args[1];
+@@ -4430,6 +4499,7 @@
+ 		}
+ 
+ 		return $this->_prepare_media_item( $attachment );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -4461,7 +4531,7 @@
+ 	 *                         See wp_xmlrpc_server::wp_getMediaItem() for a description
+ 	 *                         of each item contents.
+ 	 */
+-	public function wp_getMediaLibrary( $args ) {
++	public function wp_getMediaLibrary( mixed $args ): mixed {
+ 		$this->escape( $args );
+ 
+ 		$username = $args[1];
+@@ -4502,6 +4572,7 @@
+ 		}
+ 
+ 		return $attachments_struct;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -4518,7 +4589,7 @@
+ 	 * }
+ 	 * @return array|IXR_Error List of post formats, otherwise IXR_Error object.
+ 	 */
+-	public function wp_getPostFormats( $args ) {
++	public function wp_getPostFormats( mixed $args ): mixed {
+ 		$this->escape( $args );
+ 
+ 		$username = $args[1];
+@@ -4554,6 +4625,7 @@
+ 		}
+ 
+ 		return $formats;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -4583,7 +4655,7 @@
+ 	 *  - 'taxonomies'
+ 	 *  - 'supports'
+ 	 */
+-	public function wp_getPostType( $args ) {
++	public function wp_getPostType( mixed $args ): mixed {
+ 		if ( ! $this->minimum_args( $args, 4 ) ) {
+ 			return $this->error;
+ 		}
+@@ -4628,6 +4700,7 @@
+ 		}
+ 
+ 		return $this->_prepare_post_type( $post_type, $fields );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -4648,7 +4721,7 @@
+ 	 * }
+ 	 * @return array|IXR_Error
+ 	 */
+-	public function wp_getPostTypes( $args ) {
++	public function wp_getPostTypes( mixed $args ): mixed {
+ 		if ( ! $this->minimum_args( $args, 3 ) ) {
+ 			return $this->error;
+ 		}
+@@ -4687,6 +4760,7 @@
+ 		}
+ 
+ 		return $struct;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -4711,7 +4785,7 @@
+ 	 * }
+ 	 * @return array|IXR_Error Array containing a collection of posts.
+ 	 */
+-	public function wp_getRevisions( $args ) {
++	public function wp_getRevisions( mixed $args ): mixed {
+ 		if ( ! $this->minimum_args( $args, 4 ) ) {
+ 			return $this->error;
+ 		}
+@@ -4781,6 +4855,7 @@
+ 		}
+ 
+ 		return $struct;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -4800,7 +4875,7 @@
+ 	 * }
+ 	 * @return bool|IXR_Error false if there was an error restoring, true if success.
+ 	 */
+-	public function wp_restoreRevision( $args ) {
++	public function wp_restoreRevision( mixed $args ): mixed {
+ 		if ( ! $this->minimum_args( $args, 3 ) ) {
+ 			return $this->error;
+ 		}
+@@ -4845,6 +4920,7 @@
+ 		$post = wp_restore_post_revision( $revision_id );
+ 
+ 		return (bool) $post;
++		return null;
+ 	}
+ 
+ 	/*
+@@ -4868,7 +4944,7 @@
+ 	 * }
+ 	 * @return array|IXR_Error
+ 	 */
+-	public function blogger_getUsersBlogs( $args ) {
++	public function blogger_getUsersBlogs( mixed $args ): mixed {
+ 		if ( ! $this->minimum_args( $args, 3 ) ) {
+ 			return $this->error;
+ 		}
+@@ -4901,6 +4977,7 @@
+ 		);
+ 
+ 		return array( $struct );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -4917,7 +4994,7 @@
+ 	 * }
+ 	 * @return array|IXR_Error
+ 	 */
+-	protected function _multisite_getUsersBlogs( $args ) {
++	protected function _multisite_getUsersBlogs( mixed $args ): mixed {
+ 		$current_blog = get_site();
+ 
+ 		$domain = $current_blog->domain;
+@@ -4938,6 +5015,7 @@
+ 			}
+ 			return array();
+ 		}
++		return null;
+ 	}
+ 
+ 	/**
+@@ -4956,7 +5034,7 @@
+ 	 * }
+ 	 * @return array|IXR_Error
+ 	 */
+-	public function blogger_getUserInfo( $args ) {
++	public function blogger_getUserInfo( mixed $args ): mixed {
+ 		$this->escape( $args );
+ 
+ 		$username = $args[1];
+@@ -4983,6 +5061,7 @@
+ 		);
+ 
+ 		return $struct;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -5000,7 +5079,7 @@
+ 	 * }
+ 	 * @return array|IXR_Error
+ 	 */
+-	public function blogger_getPost( $args ) {
++	public function blogger_getPost( mixed $args ): mixed {
+ 		$this->escape( $args );
+ 
+ 		$post_id  = (int) $args[1];
+@@ -5038,6 +5117,7 @@
+ 		);
+ 
+ 		return $struct;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -5056,7 +5136,7 @@
+ 	 * }
+ 	 * @return array|IXR_Error
+ 	 */
+-	public function blogger_getRecentPosts( $args ) {
++	public function blogger_getRecentPosts( mixed $args ): mixed {
+ 
+ 		$this->escape( $args );
+ 
+@@ -5110,6 +5190,7 @@
+ 		}
+ 
+ 		return $recent_posts;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -5121,8 +5202,9 @@
+ 	 * @param array $args Unused.
+ 	 * @return IXR_Error Error object.
+ 	 */
+-	public function blogger_getTemplate( $args ) {
++	public function blogger_getTemplate( mixed $args ): mixed {
+ 		return new IXR_Error( 403, __( 'Sorry, this method is not supported.' ) );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -5134,8 +5216,9 @@
+ 	 * @param array $args Unused.
+ 	 * @return IXR_Error Error object.
+ 	 */
+-	public function blogger_setTemplate( $args ) {
++	public function blogger_setTemplate( mixed $args ): mixed {
+ 		return new IXR_Error( 403, __( 'Sorry, this method is not supported.' ) );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -5155,7 +5238,7 @@
+ 	 * }
+ 	 * @return int|IXR_Error
+ 	 */
+-	public function blogger_newPost( $args ) {
++	public function blogger_newPost( mixed $args ): mixed {
+ 		$this->escape( $args );
+ 
+ 		$username = $args[2];
+@@ -5187,7 +5270,7 @@
+ 		$post_date     = current_time( 'mysql' );
+ 		$post_date_gmt = current_time( 'mysql', true );
+ 
+-		$post_data = compact(
++		$post_data = \wp_aot_compact(get_defined_vars(), array(
+ 			'post_author',
+ 			'post_date',
+ 			'post_date_gmt',
+@@ -5195,7 +5278,7 @@
+ 			'post_title',
+ 			'post_category',
+ 			'post_status'
+-		);
++		));
+ 
+ 		$post_id = wp_insert_post( $post_data );
+ 		if ( is_wp_error( $post_id ) ) {
+@@ -5219,6 +5302,7 @@
+ 		do_action( 'xmlrpc_call_success_blogger_newPost', $post_id, $args ); // phpcs:ignore WordPress.NamingConventions.ValidHookName.NotLowercase
+ 
+ 		return $post_id;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -5238,7 +5322,7 @@
+ 	 * }
+ 	 * @return true|IXR_Error true when done.
+ 	 */
+-	public function blogger_editPost( $args ) {
++	public function blogger_editPost( mixed $args ): mixed {
+ 
+ 		$this->escape( $args );
+ 
+@@ -5298,6 +5382,7 @@
+ 		do_action( 'xmlrpc_call_success_blogger_editPost', $post_id, $args ); // phpcs:ignore WordPress.NamingConventions.ValidHookName.NotLowercase
+ 
+ 		return true;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -5315,7 +5400,7 @@
+ 	 * }
+ 	 * @return true|IXR_Error True when post is deleted.
+ 	 */
+-	public function blogger_deletePost( $args ) {
++	public function blogger_deletePost( mixed $args ): mixed {
+ 		$this->escape( $args );
+ 
+ 		$post_id  = (int) $args[1];
+@@ -5357,6 +5442,7 @@
+ 		do_action( 'xmlrpc_call_success_blogger_deletePost', $post_id, $args ); // phpcs:ignore WordPress.NamingConventions.ValidHookName.NotLowercase
+ 
+ 		return true;
++		return null;
+ 	}
+ 
+ 	/*
+@@ -5402,7 +5488,7 @@
+ 	 * }
+ 	 * @return int|IXR_Error
+ 	 */
+-	public function mw_newPost( $args ) {
++	public function mw_newPost( mixed $args ): mixed {
+ 		$this->escape( $args );
+ 
+ 		$username       = $args[1];
+@@ -5647,7 +5733,7 @@
+ 			}
+ 		}
+ 
+-		$postdata = compact(
++		$postdata = \wp_aot_compact(get_defined_vars(), array(
+ 			'post_author',
+ 			'post_date',
+ 			'post_date_gmt',
+@@ -5666,7 +5752,7 @@
+ 			'menu_order',
+ 			'tags_input',
+ 			'page_template'
+-		);
++		));
+ 
+ 		$post_id        = get_default_post_to_edit( $post_type, true )->ID;
+ 		$postdata['ID'] = $post_id;
+@@ -5727,6 +5813,7 @@
+ 		do_action( 'xmlrpc_call_success_mw_newPost', $post_id, $args ); // phpcs:ignore WordPress.NamingConventions.ValidHookName.NotLowercase
+ 
+ 		return (string) $post_id;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -5737,7 +5824,7 @@
+ 	 * @param int   $post_id   Post ID.
+ 	 * @param array $enclosure Enclosure data.
+ 	 */
+-	public function add_enclosure_if_new( $post_id, $enclosure ) {
++	public function add_enclosure_if_new( mixed $post_id, mixed $enclosure ): mixed {
+ 		if ( is_array( $enclosure ) && isset( $enclosure['url'] ) && isset( $enclosure['length'] ) && isset( $enclosure['type'] ) ) {
+ 			$encstring  = $enclosure['url'] . "\n" . $enclosure['length'] . "\n" . $enclosure['type'] . "\n";
+ 			$found      = false;
+@@ -5755,6 +5842,7 @@
+ 				add_post_meta( $post_id, 'enclosure', $encstring );
+ 			}
+ 		}
++		return null;
+ 	}
+ 
+ 	/**
+@@ -5767,18 +5855,19 @@
+ 	 * @param int    $post_id      Post ID.
+ 	 * @param string $post_content Post Content for attachment.
+ 	 */
+-	public function attach_uploads( $post_id, $post_content ) {
++	public function attach_uploads( mixed $post_id, mixed $post_content ): mixed {
+ 		global $wpdb;
+ 
+ 		// Find any unattached files.
+-		$attachments = $wpdb->get_results( "SELECT ID, guid FROM {$wpdb->posts} WHERE post_parent = '0' AND post_type = 'attachment'" );
++		$attachments = \wp_aot_require_wpdb( $wpdb )->get_results( "SELECT ID, guid FROM {$wpdb->posts} WHERE post_parent = '0' AND post_type = 'attachment'" );
+ 		if ( is_array( $attachments ) ) {
+ 			foreach ( $attachments as $file ) {
+ 				if ( ! empty( $file->guid ) && str_contains( $post_content, $file->guid ) ) {
+-					$wpdb->update( $wpdb->posts, array( 'post_parent' => $post_id ), array( 'ID' => $file->ID ) );
++					\wp_aot_require_wpdb( $wpdb )->update( $wpdb->posts, array( 'post_parent' => $post_id ), array( 'ID' => $file->ID ) );
+ 				}
+ 			}
+ 		}
++		return null;
+ 	}
+ 
+ 	/**
+@@ -5797,7 +5886,7 @@
+ 	 * }
+ 	 * @return true|IXR_Error True on success.
+ 	 */
+-	public function mw_editPost( $args ) {
++	public function mw_editPost( mixed $args ): mixed {
+ 		$this->escape( $args );
+ 
+ 		$post_id        = (int) $args[0];
+@@ -6053,7 +6142,7 @@
+ 			'ID' => $post_id,
+ 		);
+ 
+-		$newpost += compact(
++		$newpost += \wp_aot_compact(get_defined_vars(), array(
+ 			'post_content',
+ 			'post_title',
+ 			'post_category',
+@@ -6072,7 +6161,7 @@
+ 			'post_author',
+ 			'tags_input',
+ 			'page_template'
+-		);
++		));
+ 
+ 		// We've got all the data -- post it.
+ 		$result = wp_update_post( $newpost, true );
+@@ -6134,6 +6223,7 @@
+ 		do_action( 'xmlrpc_call_success_mw_editPost', $post_id, $args ); // phpcs:ignore WordPress.NamingConventions.ValidHookName.NotLowercase
+ 
+ 		return true;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -6150,7 +6240,7 @@
+ 	 * }
+ 	 * @return array|IXR_Error
+ 	 */
+-	public function mw_getPost( $args ) {
++	public function mw_getPost( mixed $args ): mixed {
+ 		$this->escape( $args );
+ 
+ 		$post_id  = (int) $args[0];
+@@ -6275,6 +6365,7 @@
+ 		} else {
+ 			return new IXR_Error( 404, __( 'Sorry, no such post.' ) );
+ 		}
++		return null;
+ 	}
+ 
+ 	/**
+@@ -6292,7 +6383,7 @@
+ 	 * }
+ 	 * @return array|IXR_Error
+ 	 */
+-	public function mw_getRecentPosts( $args ) {
++	public function mw_getRecentPosts( mixed $args ): mixed {
+ 		$this->escape( $args );
+ 
+ 		$username = $args[1];
+@@ -6402,6 +6493,7 @@
+ 		}
+ 
+ 		return $recent_posts;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -6418,7 +6510,7 @@
+ 	 * }
+ 	 * @return array|IXR_Error
+ 	 */
+-	public function mw_getCategories( $args ) {
++	public function mw_getCategories( mixed $args ): mixed {
+ 		$this->escape( $args );
+ 
+ 		$username = $args[1];
+@@ -6455,6 +6547,7 @@
+ 		}
+ 
+ 		return $categories_struct;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -6485,7 +6578,7 @@
+ 	 * }
+ 	 * @return array|IXR_Error
+ 	 */
+-	public function mw_newMediaObject( $args ) {
++	public function mw_newMediaObject( mixed $args ): mixed {
+ 		if ( ! $this->minimum_args( $args, 4 ) ) {
+ 			return $this->error;
+ 		}
+@@ -6601,6 +6694,7 @@
+ 		$struct['url']  = $struct['link'];
+ 
+ 		return $struct;
++		return null;
+ 	}
+ 
+ 	/*
+@@ -6623,7 +6717,7 @@
+ 	 * }
+ 	 * @return array|IXR_Error
+ 	 */
+-	public function mt_getRecentPostTitles( $args ) {
++	public function mt_getRecentPostTitles( mixed $args ): mixed {
+ 		$this->escape( $args );
+ 
+ 		$username = $args[1];
+@@ -6670,6 +6764,7 @@
+ 		}
+ 
+ 		return $recent_posts;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -6686,7 +6781,7 @@
+ 	 * }
+ 	 * @return array|IXR_Error
+ 	 */
+-	public function mt_getCategoryList( $args ) {
++	public function mt_getCategoryList( mixed $args ): mixed {
+ 		$this->escape( $args );
+ 
+ 		$username = $args[1];
+@@ -6723,6 +6818,7 @@
+ 		}
+ 
+ 		return $categories_struct;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -6739,7 +6835,7 @@
+ 	 * }
+ 	 * @return array|IXR_Error
+ 	 */
+-	public function mt_getPostCategories( $args ) {
++	public function mt_getPostCategories( mixed $args ): mixed {
+ 		$this->escape( $args );
+ 
+ 		$post_id  = (int) $args[0];
+@@ -6776,6 +6872,7 @@
+ 		}
+ 
+ 		return $categories;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -6793,7 +6890,7 @@
+ 	 * }
+ 	 * @return true|IXR_Error True on success.
+ 	 */
+-	public function mt_setPostCategories( $args ) {
++	public function mt_setPostCategories( mixed $args ): mixed {
+ 		$this->escape( $args );
+ 
+ 		$post_id    = (int) $args[0];
+@@ -6825,6 +6922,7 @@
+ 		wp_set_post_categories( $post_id, $cat_ids );
+ 
+ 		return true;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -6834,11 +6932,12 @@
+ 	 *
+ 	 * @return array
+ 	 */
+-	public function mt_supportedMethods() {
++	public function mt_supportedMethods(): mixed {
+ 		/** This action is documented in wp-includes/class-wp-xmlrpc-server.php */
+ 		do_action( 'xmlrpc_call', 'mt.supportedMethods', array(), $this );
+ 
+ 		return array_keys( $this->methods );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -6846,7 +6945,7 @@
+ 	 *
+ 	 * @since 1.5.0
+ 	 */
+-	public function mt_supportedTextFilters() {
++	public function mt_supportedTextFilters(): mixed {
+ 		/** This action is documented in wp-includes/class-wp-xmlrpc-server.php */
+ 		do_action( 'xmlrpc_call', 'mt.supportedTextFilters', array(), $this );
+ 
+@@ -6858,6 +6957,7 @@
+ 		 * @param array $filters An array of text filters.
+ 		 */
+ 		return apply_filters( 'xmlrpc_text_filters', array() );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -6870,7 +6970,7 @@
+ 	 * @param int $post_id
+ 	 * @return array|IXR_Error
+ 	 */
+-	public function mt_getTrackbackPings( $post_id ) {
++	public function mt_getTrackbackPings( mixed $post_id ): mixed {
+ 		global $wpdb;
+ 
+ 		/** This action is documented in wp-includes/class-wp-xmlrpc-server.php */
+@@ -6882,7 +6982,7 @@
+ 			return new IXR_Error( 404, __( 'Sorry, no such post.' ) );
+ 		}
+ 
+-		$comments = $wpdb->get_results( $wpdb->prepare( "SELECT comment_author_url, comment_content, comment_author_IP, comment_type FROM $wpdb->comments WHERE comment_post_ID = %d", $post_id ) );
++		$comments = \wp_aot_require_wpdb( $wpdb )->get_results( \wp_aot_require_wpdb( $wpdb )->prepare( "SELECT comment_author_url, comment_content, comment_author_IP, comment_type FROM $wpdb->comments WHERE comment_post_ID = %d", $post_id ) );
+ 
+ 		if ( ! $comments ) {
+ 			return array();
+@@ -6902,6 +7002,7 @@
+ 		}
+ 
+ 		return $trackback_pings;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -6918,7 +7019,7 @@
+ 	 * }
+ 	 * @return int|IXR_Error
+ 	 */
+-	public function mt_publishPost( $args ) {
++	public function mt_publishPost( mixed $args ): mixed {
+ 		$this->escape( $args );
+ 
+ 		$post_id  = (int) $args[0];
+@@ -6949,6 +7050,7 @@
+ 		$this->escape( $postdata );
+ 
+ 		return wp_update_post( $postdata );
++		return null;
+ 	}
+ 
+ 	/*
+@@ -6971,7 +7073,7 @@
+ 	 * }
+ 	 * @return string|IXR_Error
+ 	 */
+-	public function pingback_ping( $args ) {
++	public function pingback_ping( mixed $args ): mixed {
+ 		global $wpdb;
+ 
+ 		/** This action is documented in wp-includes/class-wp-xmlrpc-server.php */
+@@ -6979,9 +7081,9 @@
+ 
+ 		$this->escape( $args );
+ 
+-		$pagelinkedfrom = str_replace( '&amp;', '&', $args[0] );
+-		$pagelinkedto   = str_replace( '&amp;', '&', $args[1] );
+-		$pagelinkedto   = str_replace( '&', '&amp;', $pagelinkedto );
++		$pagelinkedfrom = \wp_aot_str_replace( '&amp;', '&', $args[0] );
++		$pagelinkedto   = \wp_aot_str_replace( '&amp;', '&', $args[1] );
++		$pagelinkedto   = \wp_aot_str_replace( '&', '&amp;', $pagelinkedto );
+ 
+ 		/**
+ 		 * Filters the pingback source URI.
+@@ -6998,7 +7100,7 @@
+ 		}
+ 
+ 		// Check if the page linked to is on our site.
+-		$pos1 = strpos( $pagelinkedto, str_replace( array( 'http://www.', 'http://', 'https://www.', 'https://' ), '', get_option( 'home' ) ) );
++		$pos1 = strpos( $pagelinkedto, \wp_aot_str_replace( array( 'http://www.', 'http://', 'https://www.', 'https://' ), '', get_option( 'home' ) ) );
+ 		if ( ! $pos1 ) {
+ 			return $this->pingback_error( 0, __( 'Is there no link to us?' ) );
+ 		}
+@@ -7013,11 +7115,11 @@
+ 
+ 		if ( $post_id ) {
+ 			// $way
+-		} elseif ( isset( $urltest['path'] ) && preg_match( '#p/[0-9]{1,}#', $urltest['path'], $match ) ) {
++		} elseif ( isset( $urltest['path'] ) && preg_match( '#p/[0-9]{1,}#', \wp_aot_regex_text( $urltest['path'] ), $match ) ) {
+ 			// The path defines the post_ID (archives/p/XXXX).
+ 			$blah    = explode( '/', $match[0] );
+ 			$post_id = (int) $blah[1];
+-		} elseif ( isset( $urltest['query'] ) && preg_match( '#p=[0-9]{1,}#', $urltest['query'], $match ) ) {
++		} elseif ( isset( $urltest['query'] ) && preg_match( '#p=[0-9]{1,}#', \wp_aot_regex_text( $urltest['query'] ), $match ) ) {
+ 			// The query string defines the post_ID (?p=XXXX).
+ 			$blah    = explode( '=', $match[0] );
+ 			$post_id = (int) $blah[1];
+@@ -7026,14 +7128,14 @@
+ 			if ( (int) $urltest['fragment'] ) {
+ 				// ...an integer #XXXX (simplest case),
+ 				$post_id = (int) $urltest['fragment'];
+-			} elseif ( preg_match( '/post-[0-9]+/', $urltest['fragment'] ) ) {
++			} elseif ( preg_match( '/post-[0-9]+/', \wp_aot_regex_text( $urltest['fragment'] ) ) ) {
+ 				// ...a post ID in the form 'post-###',
+-				$post_id = preg_replace( '/[^0-9]+/', '', $urltest['fragment'] );
++				$post_id = \wp_aot_preg_replace( '/[^0-9]+/', '', $urltest['fragment'] );
+ 			} elseif ( is_string( $urltest['fragment'] ) ) {
+ 				// ...or a string #title, a little more complicated.
+-				$title   = preg_replace( '/[^a-z0-9]/i', '.', $urltest['fragment'] );
+-				$sql     = $wpdb->prepare( "SELECT ID FROM $wpdb->posts WHERE post_title RLIKE %s", $title );
+-				$post_id = $wpdb->get_var( $sql );
++				$title   = \wp_aot_preg_replace( '/[^a-z0-9]/i', '.', $urltest['fragment'] );
++				$sql     = \wp_aot_require_wpdb( $wpdb )->prepare( "SELECT ID FROM $wpdb->posts WHERE post_title RLIKE %s", $title );
++				$post_id = \wp_aot_require_wpdb( $wpdb )->get_var( $sql );
+ 				if ( ! $post_id ) {
+ 					// Returning unknown error '0' is better than die()'ing.
+ 					return $this->pingback_error( 0, '' );
+@@ -7061,7 +7163,7 @@
+ 		}
+ 
+ 		// Let's check that the remote site didn't already pingback this entry.
+-		if ( $wpdb->get_results( $wpdb->prepare( "SELECT * FROM $wpdb->comments WHERE comment_post_ID = %d AND comment_author_url = %s", $post_id, $pagelinkedfrom ) ) ) {
++		if ( \wp_aot_require_wpdb( $wpdb )->get_results( \wp_aot_require_wpdb( $wpdb )->prepare( "SELECT * FROM $wpdb->comments WHERE comment_post_ID = %d AND comment_author_url = %s", $post_id, $pagelinkedfrom ) ) ) {
+ 			return $this->pingback_error( 48, __( 'The pingback has already been registered.' ) );
+ 		}
+ 
+@@ -7080,7 +7182,7 @@
+ 		 */
+ 		sleep( 1 );
+ 
+-		$remote_ip = preg_replace( '/[^0-9a-fA-F:., ]/', '', $_SERVER['REMOTE_ADDR'] );
++		$remote_ip = \wp_aot_preg_replace( '/[^0-9a-fA-F:., ]/', '', $_SERVER['REMOTE_ADDR'] );
+ 
+ 		/** This filter is documented in wp-includes/class-wp-http.php */
+ 		$user_agent = apply_filters( 'http_headers_useragent', 'WordPress/' . get_bloginfo( 'version' ) . '; ' . get_bloginfo( 'url' ), $pagelinkedfrom );
+@@ -7115,28 +7217,28 @@
+ 		$remote_source = apply_filters( 'pre_remote_source', $remote_source, $pagelinkedto );
+ 
+ 		// Work around bug in strip_tags():
+-		$remote_source = str_replace( '<!DOC', '<DOC', $remote_source );
+-		$remote_source = preg_replace( '/[\r\n\t ]+/', ' ', $remote_source ); // normalize spaces
+-		$remote_source = preg_replace( '/<\/*(h1|h2|h3|h4|h5|h6|p|th|td|li|dt|dd|pre|caption|input|textarea|button|body)[^>]*>/', "\n\n", $remote_source );
+-
+-		preg_match( '|<title>([^<]*?)</title>|is', $remote_source, $matchtitle );
++		$remote_source = \wp_aot_str_replace( '<!DOC', '<DOC', $remote_source );
++		$remote_source = \wp_aot_preg_replace( '/[\r\n\t ]+/', ' ', $remote_source ); // normalize spaces
++		$remote_source = \wp_aot_preg_replace( '/<\/*(h1|h2|h3|h4|h5|h6|p|th|td|li|dt|dd|pre|caption|input|textarea|button|body)[^>]*>/', "\n\n", $remote_source );
++
++		preg_match( '|<title>([^<]*?)</title>|is', \wp_aot_regex_text( $remote_source ), $matchtitle );
+ 		$title = $matchtitle[1] ?? '';
+ 		if ( empty( $title ) ) {
+ 			return $this->pingback_error( 32, __( 'A title on that page cannot be found.' ) );
+ 		}
+ 
+ 		// Remove all script and style tags including their content.
+-		$remote_source = preg_replace( '@<(script|style)[^>]*?>.*?</\\1>@si', '', $remote_source );
++		$remote_source = \wp_aot_preg_replace( '@<(script|style)[^>]*?>.*?</\\1>@si', '', $remote_source );
+ 		// Just keep the tag we need.
+ 		$remote_source = strip_tags( $remote_source, '<a>' );
+ 
+ 		$p = explode( "\n\n", $remote_source );
+ 
+-		$preg_target = preg_quote( $pagelinkedto, '|' );
++		$preg_target = preg_quote( \wp_aot_regex_text( $pagelinkedto ), '|' );
+ 
+ 		foreach ( $p as $para ) {
+ 			if ( str_contains( $para, $pagelinkedto ) ) { // It exists, but is it a link?
+-				preg_match( '|<a[^>]+?' . $preg_target . '[^>]*>([^>]+?)</a>|', $para, $context );
++				preg_match( \wp_aot_regex_text( '|<a[^>]+?' . $preg_target . '[^>]*>([^>]+?)</a>|' ), \wp_aot_regex_text( $para ), $context );
+ 
+ 				// If the URL isn't in a link context, keep looking.
+ 				if ( empty( $context ) ) {
+@@ -7147,7 +7249,7 @@
+ 				 * We're going to use this fake tag to mark the context in a bit.
+ 				 * The marker is needed in case the link text appears more than once in the paragraph.
+ 				 */
+-				$excerpt = preg_replace( '|\</?wpcontext\>|', '', $para );
++				$excerpt = \wp_aot_preg_replace( '|\</?wpcontext\>|', '', $para );
+ 
+ 				// prevent really long link text
+ 				if ( strlen( $context[1] ) > 100 ) {
+@@ -7155,11 +7257,11 @@
+ 				}
+ 
+ 				$marker      = '<wpcontext>' . $context[1] . '</wpcontext>';  // Set up our marker.
+-				$excerpt     = str_replace( $context[0], $marker, $excerpt ); // Swap out the link for our marker.
++				$excerpt     = \wp_aot_str_replace( $context[0], $marker, $excerpt ); // Swap out the link for our marker.
+ 				$excerpt     = strip_tags( $excerpt, '<wpcontext>' );         // Strip all tags but our context marker.
+ 				$excerpt     = trim( $excerpt );
+-				$preg_marker = preg_quote( $marker, '|' );
+-				$excerpt     = preg_replace( "|.*?\s(.{0,100}$preg_marker.{0,100})\s.*|s", '$1', $excerpt );
++				$preg_marker = preg_quote( \wp_aot_regex_text( $marker ), '|' );
++				$excerpt     = \wp_aot_preg_replace( "|.*?\s(.{0,100}$preg_marker.{0,100})\s.*|s", '$1', $excerpt );
+ 				$excerpt     = strip_tags( $excerpt ); // YES, again, to remove the marker wrapper.
+ 				break;
+ 			}
+@@ -7169,7 +7271,7 @@
+ 			return $this->pingback_error( 17, __( 'The source URL does not contain a link to the target URL, and so cannot be used as a source.' ) );
+ 		}
+ 
+-		$pagelinkedfrom = str_replace( '&', '&amp;', $pagelinkedfrom );
++		$pagelinkedfrom = \wp_aot_str_replace( '&', '&amp;', $pagelinkedfrom );
+ 
+ 		$context        = '[&#8230;] ' . esc_html( $excerpt ) . ' [&#8230;]';
+ 		$pagelinkedfrom = $this->escape( $pagelinkedfrom );
+@@ -7187,7 +7289,7 @@
+ 			'comment_post_ID' => $comment_post_id,
+ 		);
+ 
+-		$commentdata += compact(
++		$commentdata += \wp_aot_compact(get_defined_vars(), array(
+ 			'comment_author',
+ 			'comment_author_url',
+ 			'comment_author_email',
+@@ -7195,7 +7297,7 @@
+ 			'comment_type',
+ 			'remote_source',
+ 			'remote_source_original'
+-		);
++		));
+ 
+ 		$comment_id = wp_new_comment( $commentdata );
+ 
+@@ -7214,6 +7316,7 @@
+ 
+ 		/* translators: 1: URL of the page linked from, 2: URL of the page linked to. */
+ 		return sprintf( __( 'Pingback from %1$s to %2$s registered. Keep the web talking! :-)' ), $pagelinkedfrom, $pagelinkedto );
++		return null;
+ 	}
+ 
+ 	/**
+@@ -7228,7 +7331,7 @@
+ 	 * @param string $url
+ 	 * @return array|IXR_Error
+ 	 */
+-	public function pingback_extensions_getPingbacks( $url ) {
++	public function pingback_extensions_getPingbacks( mixed $url ): mixed {
+ 		global $wpdb;
+ 
+ 		/** This action is documented in wp-includes/class-wp-xmlrpc-server.php */
+@@ -7249,7 +7352,7 @@
+ 			return $this->pingback_error( 32, __( 'The specified target URL does not exist.' ) );
+ 		}
+ 
+-		$comments = $wpdb->get_results( $wpdb->prepare( "SELECT comment_author_url, comment_content, comment_author_IP, comment_type FROM $wpdb->comments WHERE comment_post_ID = %d", $post_id ) );
++		$comments = \wp_aot_require_wpdb( $wpdb )->get_results( \wp_aot_require_wpdb( $wpdb )->prepare( "SELECT comment_author_url, comment_content, comment_author_IP, comment_type FROM $wpdb->comments WHERE comment_post_ID = %d", $post_id ) );
+ 
+ 		if ( ! $comments ) {
+ 			return array();
+@@ -7263,6 +7366,7 @@
+ 		}
+ 
+ 		return $pingbacks;
++		return null;
+ 	}
+ 
+ 	/**
+@@ -7274,7 +7378,7 @@
+ 	 * @param string $message Error message.
+ 	 * @return IXR_Error Error object.
+ 	 */
+-	protected function pingback_error( $code, $message ) {
++	protected function pingback_error( mixed $code, mixed $message ): mixed {
+ 		/**
+ 		 * Filters the XML-RPC pingback error return.
+ 		 *
+@@ -7283,5 +7387,6 @@
+ 		 * @param IXR_Error $error An IXR_Error object containing the error code and message.
+ 		 */
+ 		return apply_filters( 'xmlrpc_pingback_error', new IXR_Error( $code, $message ) );
++		return null;
+ 	}
+ }
