@@ -1,10 +1,159 @@
 {
   "repository": "illegalstudio/elephc",
-  "revision": "22654308233a43f96ff4ae2482e08afe61fe956e",
+  "revision": "f20729406216d21ce99841cf4636b771db9874dd",
   "target": "linux-x86_64",
-  "artifact_run": 44272348788,
-  "artifact_name": "elephc-dev-linux-x86_64-22654308233a43f96ff4ae2482e08afe61fe956e-1",
-  "archive_sha256": "1792606248d5f33ccf5b33c9c3e3ade9462ce43bcdb0be29bfb564ec9fce6eef",
-  "compiler_sha256": "22ec70718f4ffb9296233821d5da11813dd0fd2a4ea045193b60647e61cde988",
-  "php_profile": "8.4"
+  "artifact_run": 44547711194,
+  "artifact_name": "elephc-dev-linux-x86_64-f20729406216d21ce99841cf4636b771db9874dd-1",
+  "archive_sha256": "0af850c14a9422a0e3125e50a5eb0d160ac2d21700a14c9670aede8b7b454b51",
+  "sdk_compiler_sha256": "0159b3c7763c9724ad4afd3cb01befc1b8498d7bc528bec8556bb928af938238",
+  "compiler_patch": "patches/compiler/wordpress-main.patch",
+  "compiler_patch_sha256": "494a3fdf054c04dbf860de008ee030ec85bb0d0e9a2fbfe1eb75e1ef9d60de1f",
+  "compiler_sha256": "2f75c59ebe654fcf86e481d990ed6428ef462cfdabc005e3060166efb323a9fc",
+  "compiler_build": {
+    "rustc": "rustc 1.98.1 (48a229cea 2026-09-01)",
+    "command": [
+      "env",
+      "CARGO_PROFILE_RELEASE_OPT_LEVEL=1",
+      "CARGO_PROFILE_RELEASE_DEBUG=line-tables-only",
+      "cargo",
+      "build",
+      "--release",
+      "--locked",
+      "-j",
+      "1",
+      "-p",
+      "elephc",
+      "--bin",
+      "elephc"
+    ],
+    "note": "The local binary uses the maintained WordPress compatibility and scaling patch; binary hashes can differ across source build paths and toolchains.",
+    "post_build_comment_formatting": {
+      "kind": "whitespace before existing trailing assembly comments only",
+      "compiler_sha256": "2f75c59ebe654fcf86e481d990ed6428ef462cfdabc005e3060166efb323a9fc",
+      "file": "src/codegen/lower_inst/objects/property_hash_fetch_for_write.rs",
+      "built_file_sha256": "2ed89724ebafb74b17d8eae6abaa2793d63b2be096cec5a72b36c8125a585f9c",
+      "published_file_sha256": "d6dfd69e9a4bf919685be016738a4adf9855c3ad999d9d1a9ac5f4e96cba0acb",
+      "built_source_patch_sha256": "28bd843df189b956b3fb1bc82789f51d23dd41eca9b86202480f29c80fd92ca2",
+      "code_and_comment_text_unchanged": true,
+      "source_line_count_unchanged": true,
+      "changed_comment_columns": [
+        {
+          "line": 156,
+          "built_comment_column": 80,
+          "published_comment_column": 81
+        },
+        {
+          "line": 157,
+          "built_comment_column": 78,
+          "published_comment_column": 81
+        },
+        {
+          "line": 158,
+          "built_comment_column": 79,
+          "published_comment_column": 81
+        },
+        {
+          "line": 160,
+          "built_comment_column": 78,
+          "published_comment_column": 81
+        },
+        {
+          "line": 161,
+          "built_comment_column": 78,
+          "published_comment_column": 81
+        },
+        {
+          "line": 162,
+          "built_comment_column": 78,
+          "published_comment_column": 81
+        },
+        {
+          "line": 164,
+          "built_comment_column": 79,
+          "published_comment_column": 81
+        },
+        {
+          "line": 165,
+          "built_comment_column": 79,
+          "published_comment_column": 81
+        },
+        {
+          "line": 167,
+          "built_comment_column": 79,
+          "published_comment_column": 81
+        },
+        {
+          "line": 168,
+          "built_comment_column": 78,
+          "published_comment_column": 81
+        },
+        {
+          "line": 169,
+          "built_comment_column": 78,
+          "published_comment_column": 81
+        },
+        {
+          "line": 173,
+          "built_comment_column": 79,
+          "published_comment_column": 81
+        },
+        {
+          "line": 174,
+          "built_comment_column": 78,
+          "published_comment_column": 81
+        },
+        {
+          "line": 175,
+          "built_comment_column": 78,
+          "published_comment_column": 81
+        },
+        {
+          "line": 176,
+          "built_comment_column": 79,
+          "published_comment_column": 81
+        },
+        {
+          "line": 178,
+          "built_comment_column": 79,
+          "published_comment_column": 81
+        },
+        {
+          "line": 179,
+          "built_comment_column": 78,
+          "published_comment_column": 81
+        },
+        {
+          "line": 181,
+          "built_comment_column": 79,
+          "published_comment_column": 81
+        },
+        {
+          "line": 182,
+          "built_comment_column": 79,
+          "published_comment_column": 81
+        },
+        {
+          "line": 184,
+          "built_comment_column": 79,
+          "published_comment_column": 81
+        },
+        {
+          "line": 185,
+          "built_comment_column": 79,
+          "published_comment_column": 81
+        }
+      ]
+    }
+  },
+  "php_profile": "8.4",
+  "bootstrap_compile_options": [
+    "--php-version",
+    "8.4",
+    "--with-regex",
+    "--ir-opt=off",
+    "--gc-stats",
+    "--heap-size=536870912",
+    "--link",
+    "sodium"
+  ]
 }
