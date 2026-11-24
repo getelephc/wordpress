@@ -1,74 +1,799 @@
 # WordPress on Elephc porting log
 
+## Complete-source port, 2026-11-22
 
-## Complete-source restart, 2026-11-18
+The primary experiment starts from the entire original WordPress 7.1.4 archive,
+following the Tempest/Laravel workflow. All 3,782 original files are verified
+byte for byte. The current build uses 1,103 checksummed full-file patches and fifteen
+explicit fixtures. No selected function ranges or PHP-hosted extension form the
+primary port.
 
-The primary experiment now follows the sibling Tempest/Laravel workflow: begin
-with the entire original WordPress distribution, preserve full files and apply
-reviewable compatibility patches and finite fixtures. The earlier bounded core
-profiles below remain separate experiments. Their selected ranges do not define
-the new port's source graph.
+The toolchain is main `f20729406216d21ce99841cf4636b771db9874dd`, PHP profile
+8.4, with maintained compiler compatibility and scaling changes. Exact archive, compiler, patch and build
+identities live in `elephc/full-source/toolchain.json`. Current validation passes
+108 exact library tests: six literal-property, eight callable-index, three module-runtime,
+eight sparse callable-state, two global-reference, two callable-array join cases
+and fifteen method-adapter cases, plus seven visibility, four assembly, three physical
+declaration and thirty-five getter/setter target cases, five shared-write target
+cases and ten existing child/handoff target cases.
+Another 28 native regressions pass, covering native/eval property ownership,
+global returns, live aliases, captured aliases, destructor publication and magic
+property cache, probe, visibility, ownership and generated argument collectors. The total is 136 focused
+Rust checks. The property regression
+requires actual calls to the shared literal helpers. Nineteen earlier
+Rust regressions still need refresh. Thirty-five PHP/native CLI program modes pass on
+Linux x86_64; 155 assembly emissions cover all five supported targets. In addition to callable
+names, method lookup, tentative interfaces, ArrayAccess, once discovery, null
+scope inventory and mixed/XML append ownership, the patch bounds constant loop
+paths, indexes virtual families and inherited methods, and finds numeric CFG
+cycles with one iterative component traversal. Opaque callback boundaries inspect
+only tracked reference cells and main-scope globals, preserving mutation epochs
+without rescanning every synthetic temporary.
+Codegen also indexes normalized function, closure, extern and include-dispatch
+names once per module emission, retaining the former scanner's first-match order.
+Emitted class-method membership now shares the per-module index, retaining
+exact class names, normalized method keys and static/instance distinctions. Two
+additional regressions compare every answer with the previous scanner and check
+large-graph reuse and emission isolation.
+Callable-array invocation now joins after target selection, retaining separate
+owned-instance and borrowed-static descriptor lifetimes. Two additional regressions
+cover all five targets; native/PHP probes verify focused behavior and explicit
+retirement. General argument coercion and implicit scope destruction order remain
+separate diagnostic gaps.
+Known literal property reads now choose the runtime class before consulting its
+dynamic hash and magic accessors. Stored null values retain their presence;
+get-only literal coalesce still calls the getter on a miss. Concrete result
+conversion retires its temporary cell. Four new native regressions cover both
+IR modes, with all earlier focused checks retained. The positive managed-value
+probe uses mixed getter returns and verifies copies, object identity and clean
+heap statistics. Concrete string/object getter lifetimes remain a separate
+compiler boundary, preserved by `typed-magic-cache-owners.php`.
+The nested Boolean packing diagnostic also remains explicit. Its finite expected
+entries now have Boolean casts in the WordPress fixture; all 3,087 property/cursor
+comparisons pass without altering WordPress algorithms or removing observations.
+These compiler checks do not establish native CMS startup.
+The final interface adaptation also forwards matching compiler-generated
+argument collectors unchanged while boxing a contravariant fixed prefix. This
+preserves the original SimplePie and WordPress constructor signatures, argument
+values and counts. The standalone constructor/method/captured-callback probe
+matches PHP and is heap-clean in both IR modes; all five targets emit assembly.
+Reference mismatches, differing count protocols and true source variadics keep
+their existing checks. The full CMS still requires native link and bootstrap
+parity on this compiler.
 
-- Original dependency: WordPress 7.1.4, all 3,782 archive files verified byte for
-  byte. Source, patch and resulting complete-file SHA-256 inventories are checked.
-- Main SDK: `22654308233a43f96ff4ae2482e08afe61fe956e`, Linux x86_64, PHP profile
-  8.4. The full artifact identity is in `elephc/full-source/toolchain.json`.
-  Its banner alone says 0.27.8. The optimized nightly
-  `8fd1043dbef1ae7263ffdd1a6eae6acdb13d6bee` is used during parser/import
-  normalization; verified native controls use the main SDK.
-- Entry point: the original `wp-load.php`, an explicit local `wp-config.php`
-  fixture and the complete `wp-settings.php`, with the original theme setup,
-  core hooks, registries and initialization lifecycle. No function-range
-  extraction and no pre-rendered page fixture.
-- Local configuration: single site, English, original Twenty Twenty-Five theme,
-  no plugins or external network. The isolated PDO SQLite drop-in creates only
-  the site-options table in memory. It never opens a database server connection.
+The preceding compiler generated 18,579,013,878 bytes of assembly.
+It assembled all 241 function-section groups and combined
+them into a 4,485,898,632-byte object. Named and `.L` local references retain
+their bindings; physical conditional declarations no longer duplicate bodies.
+The early buffer release reduces observed compiler resident memory from about
+39 GiB to 19 GiB before assembly. All eight native packages, including the
+embedded libmagic database, are installed.
 
-Verified with ordinary PHP: complete original and patched startup agree on
-`wp_loaded`, `init`, site options, 16 post types, eight taxonomies and 116 registered
-blocks, plus original static and dynamic block rendering. Another 468 nested setting results and 18 deprecated template
-transformations, including stateful filter-call order, agree with original core.
-The contents of all 109 core/default-theme patterns also agree, as do 16 block
-visitor serialization results and their reference-mutation traces.
+The final x86_64 executable link fails with relative relocation overflows.
+The object contains 2,220,315,945 bytes of code and 48,086,936 bytes of allocated
+data. That complete attempt exits after 3,052.85 instrumented seconds
+with no PHP or EIR diagnostics. Native bootstrap execution remains unverified.
+Source markers in the two largest functions attribute substantial expansion
+to method dispatch, reference argument materialization and temporary cleanup.
+Twenty bounded source/EIR/assembly/native comparisons pass. Five further
+default-optimizer comparisons pass but reduce the dominant property-write bodies
+by less than 0.4 percent. A complete optimized trial was stopped during repeated
+numeric-domain analysis. Checked nominal views reduce the bounded array-property
+write caller by 96.5 percent. The latest full-file patches use this approach at
+339 HTML parser state accesses and 25 capability-map accesses. They preserve
+object identity and read the live property at each original access. The parser
+requires its declared state class, while capability maps require stdClass;
+arbitrary plugin map implementations remain outside this fixture. No WordPress
+functions have been removed to reduce size. The resulting complete object still
+exceeds x86 relative relocation reach. The selected compiler now extracts a
+concrete receiver after each successful runtime getter class guard. This aims to
+avoid repeated generic method dispatch through unrelated classes. All 111 Rust
+regressions and the native/PHP controls pass, including heap-clean getter reads
+in both IR modes. The complete-graph navigation comparator shrinks from
+189,980,096 to 8,094,663 assembly bytes. The selected compiler retains that correction; the object above still exceeds
+relative relocation reach.
 
-Verified natively with the main SDK: 51 Sodium comparisons against the original
-WordPress polyfill, 672 binary-span results, 18,375 PHP version comparisons and
-90 UTF-8 results using the complete core UTF-8 files, and eight SQLite results,
-including object rows and upserts. Thirteen reference-call results through
-first-class callables, closures, method arrays and invokable objects also pass.
-In total, 19,209 native comparisons pass.
-A source-only export has
-reproduced those controls and the complete original/patched PHP bootstrap.
-These controls do not establish native CMS bootstrap coverage.
+The selected compiler binds already selected native XML write-fetch directly to
+its native method, retaining the boxed receiver protocol. Both call sites already
+prove the native type or guard it at runtime. The ordinary user method path keeps
+its normal magic dispatch. Five additional target regressions and native/PHP comparisons in
+both IR modes pass before selection. The bounded caller shrinks from 987,123 to
+830,439 assembly bytes, but the complete assembly drops only 0.22 percent. Both
+compiler versions match all six result rows and retain three live XML-probe
+blocks totaling 72 bytes; this ownership diagnostic remains explicit.
 
-The original transitive graph required parser and import compatibility work.
-The current series contains 307 complete-file patches and five fixtures. The
-final main-SDK check was stopped after 747 seconds without a final verdict; it
-did not establish either successful type checking or native startup. Current patches lower mixed HTML and comma-separated
-static declarations, preserve integer offset storage for UTF-8 reference calls,
-use finite source loaders and declare unsupported reference-alias interfaces.
-The private returned reference arrays and legacy global aliases have explicit
-snapshot boundaries. Two minimal array-reference probes also fail on the main
-SDK and pass under PHP; their sources are in `elephc/full-source/probes`.
-A separate two-file probe compiles but cannot invoke an included user function
-by its literal string name. Both `function_exists` and `is_callable` return true.
-The same entry-file control and first-class form work; an unused first-class root
-and `require_once` do not repair string dispatch. This is a focused SDK failure,
-with potential impact on WordPress callbacks; the full native bootstrap has not
-run. The public reproducer is documented with the other compiler probes.
-RSS XML tree reference parsing and reference-based feed link maps now fail
-explicitly outside the bootstrap fixture. No successful native WordPress startup, frontend response,
-admin request or REST dispatch is claimed.
+The newly selected compiler shares repeated literal property-write bodies by
+lexical scope, exact spelling, opcode and original value representation. It keeps
+borrowed caller owners and captures the diagnostic line. Its PHP reference probe
+covers managed arrays and objects, ordinary and magic writes, private scopes,
+exceptions and repeated-write pressure. Its 17-row native/PHP probe is heap-clean in both IR modes and emits on all five
+targets. The pressure caller shrinks from 797,742 to 57,106 assembly bytes; the
+complete-graph image still requires measurement. The compiler passes 121 Rust,
+33 native/PHP modes and 145 target emissions before selection. Its complete native
+WordPress rebuild is in progress; the object measurements above precede it.
 
-The real libsodium bridge covers the cryptographic primitives required by the
-fixture. PHP version ordering and binary spans are explicit platform helpers,
-not rewritten WordPress business logic. Missing custom PHP catalogs, plugins,
-themes, filesystem transports and upgrade loaders fail explicitly. A finite
-loader selects the original AI-client classes used at startup; it does not mock
-their implementation.
+The functional bootstrap build uses `--ir-opt=off`, `--gc-stats` and an explicit
+512 MiB heap. The EIR optimizer and generic assembly-body sharing exposed
+additional repeated scans on this complete graph. GC diagnostic mode disables
+the latter size optimization and prints allocation statistics to stderr.
+Native controls keep the default optimizer; source-only verification also runs
+them with `ELEPHC_IR_OPT=off`. This profile makes no runtime performance claim.
 
-Reproduction commands are in the root README. Public scripts use tools on PATH
-or an explicit SDK executable; machine-wide scheduling stays outside the repo.
+The complete original and patched PHP bootstrap agree for `init`, `wp_loaded`,
+116 blocks, 109 pattern contents, 16 post types and eight taxonomies. Another
+955 groups cover 468 setting results, 23 template/widget constructor cases,
+16 visitor traces, 147 hook traces, 147 lazy block-list traces, 82 AI groups
+60 lexical callback cases, six HTML template-state cases and six live capability
+map cases. The latter observe an in-place capability change through the original
+public mapping API, then restore the registry state.
+The isolated single-site English configuration uses Twenty Twenty-Five, no
+plugins or external network, and PDO SQLite in memory with site options and empty
+post and taxonomy tables. The latter let original theme-style SQL queries run
+when rendering the nested Unicode document. All five runtime-input documents
+match between original and patched PHP.
+The probe runs original `do_shortcode` after original `do_blocks`; its fourth
+runtime input renders a local MP4 video shortcode.
+The fifth renders eight navigation blocks with repeated names, Unicode and
+numeric-string labels, and a navigation inside an overlay. Its original and
+patched PHP output agrees, including the original wrapper attribute behavior
+for the label `"0"`. The complete-file navigation patch updates a local mixed
+counter map and publishes the entire late-static property after the original
+increment or initialization. Name lookup stays before the snapshot, publication
+stays before suffix formatting, and property declarations remain unchanged.
+This removes the backend reference-binding failure encountered after `WP_Block`;
+native execution of the navigation document still requires bootstrap parity.
+The remaining closure-scope adaptations keep private `self` targets explicit in
+the URL prefixer and attachment controller. The HTML processor's internal
+bookmark callback calls a private forwarding method whose `parent` target stays
+lexical. This adds one private method to reflection metadata. PHP comparisons
+check inherited URL escaping, exact bookmark keys and void returns with an
+overridden public release method, and real registered attachment validation
+callbacks for valid and invalid values. No upload is dispatched or file written.
+The attachment filename-filter closure remains structurally adapted; these
+finite cases do not execute the upload lifecycle.
+The plugin-dependency name callback keeps its original body in a private named
+static method, passed as a lexical method descriptor. Each call reads the live
+protected cache with the original presence check, `Name` value and slug fallback.
+An explicit class name inside the closure had resolved the receiver but still
+failed native non-public property access. The added private method changes
+reflection metadata. Four PHP-only AJAX checks seed request-local caches,
+validate a real nonce and intercept `wp_die`, preserving rejection responses for
+Unicode names and missing, null, false, empty and numeric values. They do not
+install or activate plugins or request remote dependency data.
+The font-face schema creates its protected `sanitize_src` descriptor in the
+original method scope after the schema-cache guard and captures it in the
+sanitizer closure. This avoids creating a first-class callable on a mixed closure
+receiver. Fourteen PHP comparisons retain scalar/list branches, sparse keys,
+Unicode file keys, input independence, schema callback identity and a subclass
+override that observes live object state. The bounded inputs perform no DNS,
+HTTP or font upload operations.
+Each bootstrap state also includes six results from original `number_format_i18n`,
+checking grouping, rounding and negative zero in the selected English locale.
+The version probe temporarily changes the global version and checks two cached
+`wp_get_wp_version` results around a read of that global, then restores it.
+Original and patched PHP return the original file version twice while retaining
+the temporary global value between them. Version and core-block metadata caches
+populated by complete `require` operations use nullable value cells.
+The bootstrap also calls original `image_edit_apply_changes` with eleven JSON
+history records and an explicit recording editor. Original normalization,
+object mutation, adjacent rotation/flip coalescing, zero-operation skipping,
+filter context, original base size lookup and crop scaling execute under PHP.
+The resulting five operation calls and both record views match between original
+and patched PHP. Pixel operations and file I/O are fixture boundaries. A fresh
+`stdClass` local preserves JSON record identity before writes and deletions;
+custom history object classes remain outside this finite contract.
+
+The full EIR diagnostic identified unrelated `BcMath\Number::add` candidates
+when original error or asset-registry receivers had become mixed. A bounded
+reproduction fails at a string-to-nullable-integer conversion, while a checked
+identity view of the documented error object compiles and matches PHP. The
+complete-file patches now check documented `WP_Error`, `WP_Scripts` and
+`WP_Styles` receivers at error filters, asset-registration entry points,
+header-video validation and the captured core block style registry. They retain
+the original objects and algorithms. Objects outside these documented contracts
+remain outside the finite fixture.
+The original `wp_scripts()` and `wp_styles()` factories expose concrete registry
+returns after their existing initialization guards. A bounded generic `query`
+receiver reproduces the string-to-tagged-scalar backend failure; the concrete
+contract compiles and matches PHP. Root probes check actual factory types,
+repeated-call identity and missing-handle queries. These are PHP checks until
+the complete native bootstrap passes.
+Widget editor dependency checks use the existing script/style identity views at
+all four original query receivers. The probe executes four real queue scenarios,
+checking null returns, original diagnostic messages and ordering, and unchanged
+queue contents. It restores both queues and removes its observer. The fixture's
+`WP_DEBUG=false` checks diagnostic actions without emitting PHP warnings.
+
+The bootstrap also calls original password retrieval with whitespace and original
+registration with empty credentials. Both return their original validation errors
+before user lookup, password hashing, mail or account creation. The complete
+original and patched PHP results match; native bootstrap verification is pending.
+
+A later complete compile passes the earlier error-dispatch frontier and stops at
+mixed property reference binding in `comments_template`. Both original property
+aliases now use checked identity views of the global `WP_Query`. The existing
+`comments` field keeps its original null default in explicit mixed storage, so its
+alias can cross the original mixed by-reference `separate_comments` boundary.
+The originally dynamic
+`comments_by_type` field gains a nullable mixed slot because dynamic-hash reference
+binding is not supported by this SDK. Pre-initialization reflection and property
+existence are explicit boundaries. The expanded property control compares that
+slot with original PHP dynamic-field storage across 24 value/replacement pairs,
+retaining two live aliases, object identity and independent snapshots. Its 312
+new comparisons pass together with the earlier 607. A further 276 comparisons
+cover named-global references, whole-value rebinding and independent snapshots,
+bringing the property control to 1,195 comparisons.
+Another 140 comparisons exercise direct queue-property prepends, live aliases,
+key order and snapshots, for 1,335 comparisons before the sidebar-cache additions.
+The complete PHP bootstrap also verifies the original no-post comments-template
+guard. This does not establish comment SQL or template rendering under native execution.
+
+Mapped Diff keeps its original `orig` and `final` property references through
+checked identity views of the original `Text_Diff_Op` objects. The complete Diff
+class, native engine and classic renderer match six original PHP inputs with
+three context configurations and repeated rendering. The 132 observations check
+reconstructed lines, concrete operations, counts, LCS and exact rendered output.
+The renderer retains its original false/array block lifecycle through mixed
+identity initialization and resets. Its guarded `x0` and `y0` locals receive mixed
+null initializers before the loop: otherwise the SDK emits literal null at reads
+that precede their assignments textually but follow them on a later iteration.
+Every original coordinate assignment and arithmetic operation remains. These
+controls bring the property group to 2,537 comparisons. Complete native WordPress
+verification remains pending.
+
+List-table compatibility deletion expands the original five-name guard into
+literal property deletions, avoiding an unrelated referenced `items` candidate.
+Additional compatibility fields from custom subclasses fail explicitly. The root
+fixture inherits the original magic methods and skips only screen construction.
+Original/patched PHP match fifteen field set/read/remove/rewrite cycles and retain
+a live unrelated `items` alias with an independent snapshot. This is PHP proof
+until the full native bootstrap passes; admin screen setup is outside this probe.
+
+User custom-field deletion keeps its original presence guard and legacy alias
+behavior. At deletion, a checked `stdClass` identity view avoids unrelated
+reference-property candidates. Other record classes are outside this finite
+mutation proof. The root constructs a zero-ID user and compares 21 removals,
+including absent, null, false, nested and numeric-name fields, preserved aliases
+and snapshots, unchanged user ID and three legacy `id` diagnostic actions.
+Original/patched PHP agree; native root execution remains pending.
+
+The complete compiler then reaches `WP_User_Query::__unset`, whose original
+private compatibility guard admits only `results` and `total_users`, but considers
+the unrelated referenced `query_vars` field. Two literal deletions retain that
+guard and the original diagnostic path. Twelve actual original/patched PHP
+lifecycles verify defaults, set/get/isset/unset and rewriting, invalid-field
+returns, and an unchanged live `query_vars` alias with an independent snapshot.
+The empty constructor performs no query. SQL and reflective changes to the private
+compatibility inventory remain outside the fixture; native root proof is pending.
+
+Query result fields `queried_object`, `queried_object_id`, `post` and `comment`
+keep their original null defaults in explicit mixed storage. This lets the SDK's
+owned-reference removal handle every original `init()` reset without replacing
+`unset()` with assignment. Original/patched PHP agree on eight removed fields,
+five detached aliases, snapshots, fresh writes and reset counters/flags. Type
+reflection and direct reads after removal before reinitialization are outside
+this proof: typed mixed raises an error where an untyped PHP property warns and
+returns null. Native execution of this lifecycle remains pending.
+
+Customizer menu item conversion uses a checked `stdClass` view around its original
+array-to-object cast. The original three deletions, `WP_Post` construction and
+three filters stay intact. Original/patched PHP compare three custom-link records,
+removed fields, status/order/IDs, title fallback, string/array classes, independent
+input values and nine filter events in attribute, description and post order.
+The fixture isolates manager construction and value acquisition, supplies author
+and type label, and excludes preview/save and URL discovery for other object types.
+Native execution remains pending. Sixty-seven fixed Customizer loader includes use
+`__DIR__` with the same bundled targets because isolated compiler discovery does
+not resolve the surrounding `WPINC` expression at those sites.
+
+The actual menu-list preview filter matches original/patched PHP in nine cases:
+replacement, insertion, empty lists, prior placeholder IDs, deletion and missing
+IDs, name sorting and the other-blog early guard. Survivor object identity, input
+snapshots and value-read counts are checked independently. The original insertion
+at index `-1` is preserved, including its position before the final item.
+
+Both list splices use `wp_aot_array_splice_values`. The native builtin rejects a
+concrete object replacement for this mixed receiver; boxing the item compiles but
+still leaves associative arrays unchanged. The explicit fixture rebuilds retained
+and removed value arrays with original string-key preservation and integer-key
+reindexing, then updates the caller's array. Its 420 native/PHP cases add 5,880
+comparisons, including negative/null lengths, empty/multiple replacements, aliases,
+snapshots and object identity. Offsets are integers, lengths integers/null and
+replacements arrays; external element reference cells and scalar replacement
+coercion are outside this proof. Full manager construction, preview/save and
+persistence remain isolated. Complete native root execution is still pending. The pure auto-add option transformer also matches
+original/patched PHP in 128 cases, including strict membership, duplicate removal,
+null initialization, sparse/negative keys and the setting's own appended ID.
+Its nested splice uses the same fixture; native controls cover nested reference
+arguments and omitted replacements. No saved-option reads, writes or manager
+save lifecycle are exercised.
+
+Customizer settings, panels and sections keep their original theme guards and
+`current_theme_supports` algorithm. Their array arguments use
+`call_user_func_array`, preserving positional, named and mixed-key variadic tails
+without an arity limit. Six native forwarding cases contribute 18 comparisons
+to the 35-comparison callable control. Sixty actual original/patched PHP checks
+verify feature branches, false filter results and exact filter argument traces.
+The fixture skips manager construction and disables user authorization checks;
+these results do not verify native root execution or user permissions yet.
+
+Customizer template constructors retain their dynamic class names and original
+arguments; all three values use explicit mixed storage. Twelve actual
+manager registration/render cases match original PHP, preserving empty registries,
+duplicates, parent constructors, manager identity and captured output. Inner
+component templates use recording fixture subclasses; the original print wrappers
+and default control templates still run. The final manager is allocated through
+Reflection without its constructor, isolating setup and persistence. Separate
+native/PHP probes verify dynamic arguments beside scalar constructors and
+constructor-free final-class allocation with defaults and owned references.
+These probes do not establish complete native manager or UI execution yet.
+
+The full compile then reaches remote theme JSON cleanup. A fresh checked
+`stdClass` identity view narrows only the original `slug`, `screenshot_url` and
+`author` deletions, avoiding unrelated declared reference-property candidates.
+Five native/PHP scenarios add 35 comparisons for missing/null/false fields,
+identity, shared snapshots and the lingering original foreach reference.
+Earlier `WP_Theme` receivers and preceding remote-record writes remain intact.
+The network request, authorization and complete endpoint are not executed.
+
+Theme JSON resolver file and block caches use fresh local mixed arrays followed
+by whole late-static property writeback. This keeps original class selection
+without binding an eval-overridable late-static reference slot. Twelve native/PHP
+scenarios add 181 comparisons for shared, inherited and separately declared caches,
+single-value reads, live whole-property aliases and independent snapshots.
+The control enables and executes a bounded native eval program. Static values
+collected into array literals need explicit mixed views; otherwise the selected
+compiler returns integer array lengths in the diagnostic probe.
+Forty-six actual original/patched resolver PHP calls cover both bundled theme JSON
+files, cached null/false/scalar/array values, false-like paths and registered-block
+inventories, restoring the original cache afterward. Complete native resolver
+execution, external element reference cells and arbitrary eval programs remain
+unverified.
+
+Fixed core loader paths use the same verified `wp-includes` targets through
+paths relative to each original source file. A complete audit additionally
+rewrites 585 literal includes in 57 files, including root bootstrap and upgrader
+loaders. Every target exists in the immutable archive. The fixture uses the
+standard archive layout; custom `ABSPATH`/`WPINC` remapping is outside this loader
+profile. Dynamic loaders retain their separate documented boundaries.
+
+The complete native build next passes user-query deletion and reaches SimplePie
+IRI byte conversion. The original constant `range()` with string endpoints is
+unsupported by the selected compiler. A complete-source audit finds the same
+128-byte mask in exactly SimplePie and Requests; both now use its exact literal
+bytes while retaining the original loops and lazy cache. Complete original and
+patched classes pass native/PHP checks over 266 byte sequences, repeated calls
+and eight non-string Requests guards. The complete binary control passes 4,742
+comparisons. Its unrelated `substr_compare()` checks retain ordering and exception
+semantics using the [documented result sign](https://www.php.net/manual/en/function.substr-compare.php);
+PHP's raw integer magnitude varied between reference runs. Parsing, normalization,
+IPv6 processing, transports and general string ranges are not verified here.
+
+The next complete build reaches nullable lists in SimplePie item enclosures.
+Fifteen list variables keep 32 original null assignments through mixed identity
+views. Direct native append exposed two history-snapshot mismatches in the new
+five-case corpus. A checked null-or-array append now uses the existing copy-safe
+array push and replaces 48 list appends, preserving untouched null, whole-list
+aliases, inherited copies and earlier observations. All 30 new comparisons pass.
+Fresh checked Registry views narrow 65 calls to the original typed setter's
+contract. Complete original/patched Registry files with controlled overriding
+subclasses pass another 217 native/PHP comparisons for identity, dispatch and
+receiver selection before argument-side rebinding. The real enclosure aggregator,
+reflection factory, external element reference cells and full feed pipeline remain
+outside these execution checks. No compiler speedup is inferred from the views.
+
+The original `wp_convert_widget_settings` front-page alias now uses a named
+global for `_wp_sidebars_widgets`. It preserves the live reference, fallback
+lookup, first-match nested write and separate admin persistence behavior. Another
+672 comparisons cover those reference operations and snapshots, bringing the
+property control to 2,007 before the 132 mapped-Diff and rendering observations. The root probe also invokes the actual conversion
+twice against an isolated in-memory cache and restores its prior value. This
+probe does not execute admin persistence or the full widget rendering lifecycle.
+
+The original dependency queue keeps its empty-array default in explicit mixed
+storage, matching the prepend adapter's reference contract. Property declaration
+type reflection is outside this compatibility proof. The root probe calls the
+original `sizes=auto` CSS enqueue routine and inspects its prepended handle,
+registered dependency, inline CSS and removal of the legacy head hook. Actual
+native bootstrap verification remains required.
+
+The SimplePie parser's original header array now has explicit mixed reference
+storage. A bounded untyped-header fixture reproduces the unrelated reference-slot
+rejection during generic property deletion; mixed storage compiles and matches
+PHP for deletion, surviving aliases and fresh owner assignments. Declaration type
+reflection remains outside this proof. The original `update_term_cache` clone and
+`object_id` removal retain identity views of documented `WP_Term` and SQL `stdClass`
+records. Other record classes are outside this finite fixture. Root probes update actual `WP_Term` and SQL
+`stdClass` records, checking clone identity, source-field retention, cached-field
+removal and independence after changing the source names.
+The two database method checks in `wp_version_check` use the existing checked
+`wpdb` identity view. Root probes inspect both method names on the actual database
+fixture. Version-check networking remains outside the executed probe.
+The core ability's database probe uses the same receiver contract. An inventory
+of the prior complete EIR found 29 method-existence calls; the native builtin
+requires constant member names and concrete targets. Twenty dynamic calls in
+eleven admin, mail, XML and feed files now use the existing platform API boundary.
+PHP executes real `method_exists`; native invocation fails explicitly. Those
+paths are not verified native coverage. The gallery's two original theme JSON
+candidates are unrolled in their original order, retaining literal metadata
+guards, the final local class name and the original core static call.
+
+The oEmbed width and fluid typography clamps now call the complete original
+`compat.php` polyfill under a distinct source name, declared unconditionally.
+This avoids numeric builtin interception and conditional function registration.
+Its original comparison order and ValueError messages remain. The scalar/null
+domain passes 10,648 groups, including mixed boolean precedence, numeric and
+nonnumeric strings, NaN and infinities. The combined UTF-8/compatibility control
+passes 26,350 comparisons. An initial matrix found native/PHP differences involving
+empty arrays; arrays, objects and resources now fail explicitly. The complete
+oEmbed response and frontend typography workflows are not runtime proof.
+
+Navigation's three unstable-location helpers remain under their original
+Gutenberg plugin guard. Their unresolved sibling calls use the existing explicit
+plugin boundary. The plugin is not loaded by this fixture, so these paths are
+outside native execution coverage. The boundary inventory distinguishes direct
+API calls, constructor calls and named unsupported adapters; counts cover prepared
+original files and do not establish execution.
+
+The media upload form preserves its original null success result and nullable
+error accumulator. Its initializer crosses the existing mixed identity boundary,
+allowing the original offset writes to perform PHP's null-to-array conversion.
+The array-mutation control passes 8,993 comparisons, including untouched null,
+integer and string keys, null and boolean keys, and nullable/scalar/array values.
+Two original nested taxonomy-map reads in `upgrade_230` cross the existing mixed
+identity boundary because the same local later holds a flat link map. The writes,
+resets and original algorithm remain. Another 216 comparisons check both branches,
+key forms, nested writes and snapshots. This does not execute a WordPress upgrade.
+This control does not execute uploads or the complete media form lifecycle.
+
+Two plugin-update property walks retain the original `array_walk` and callback
+at source-local receivers. A `finally` block writes back partial changes after
+callback exceptions. Another 168 comparisons cover array and record values,
+snapshots, key traces and partial exceptions. The fixed payload sanitizer keeps
+its original object cast and checks the `stdClass` identity before deletion.
+External property reference cells, observer callbacks and magic payload classes
+remain outside this JSON profile. Plugin-update transport is not executed proof.
+The callback stays at the original source sites because a generic helper in the
+always-loaded array fixture requires a signature even in unrelated profiles.
+The paired plugin and theme update array deletions now use a local value-array
+adapter for integer and string keys. Another 360 comparisons cover present and
+missing keys, original key order and source/snapshot independence. External
+property or element reference cells remain outside the admitted JSON records.
+
+The connector provider registry retains its original `is_active` closure and
+nested array assignment. An explicit mixed value projection avoids an unsupported
+callable-to-string branch during lowering. Callback identity, captured-object
+updates, local rebinding, exception fallback and independent snapshots have 108
+additional comparisons. Provider transport remains outside these controls.
+The introspection control now passes 1,443 comparisons, including 1,382 property
+metadata comparisons against five complete original PHP class definitions.
+Native field-storage schemas are checked independently with original PHP
+Reflection. The metadata inventory preserves 78 declared names, including static,
+protected and private declarations, and every removed instance field. Dynamic
+public null keys retain their presence. The domain is string names on exact
+`WP_Ability`, `WP_Ability_Category`, `WP_Block_Type`, `WP_Post`, `WP_Term` and
+`stdClass` objects. Other classes, subclasses, class strings and non-string names
+fail explicitly. Original file and fixture checksums are recorded in
+`elephc/full-source/property-provenance.json` and checked during preparation.
+The root also constructs original Ability and Category objects and reads their
+prepared metadata. Permission checks, execution and REST exposure remain outside
+that constructor probe. Reports retain harness and auxiliary source hashes.
+
+The complete original REST context filter retains its recursive algorithm. JSON
+object mutation uses fresh `stdClass` identity views; array deletion uses the
+checked value-array adapter. Other object classes and external element reference
+cells remain outside this fixture. The root checks 28 calls over validated JSON
+data and schemas, including nesting, array item filtering and clearing, numeric
+keys, pattern/additional properties, aliases and explicit key order. Fixture JSON
+uses `JSON_THROW_ON_ERROR`. Combining schemas and REST routing remain outside
+these executed cases.
+
+Nine original socket calls in seven complete files use checked scalar operands
+while retaining native `fsockopen`. The adapter preserves nullable timeout defaults
+and initializes error output references after scalar validation. A temporary TCP
+peer on loopback compares six connections with PHP, covering integer, numeric
+string and integral float ports, null and numeric-string timeouts, successful error
+outputs and payload exchange. The stream control includes these 24 comparisons
+and passes 2,345 total. Nullable float conversion brings the weak numeric control
+to 6,790 comparisons. Connection failures, timeout expiry, TLS and complete
+XML-RPC, mail and FTP workflows remain outside this success-only proof. The peer
+and generated test files are cleaned up after each run.
+
+PHPMailer keeps its original static language declaration and publishes the
+original dictionary through a mixed identity view. The root loads the complete
+original class, checks 29 lazily populated English entries, language-code fallback
+results and independent getter snapshots, then restores English. Translation-file
+parsing and mail delivery remain outside that executed probe.
+
+The original bookmark lookup now uses named-global aliases inside the original
+branches. Native getters read named globals; PHP reference getters preserve the
+original `$GLOBALS` expressions. The root probe checks both branches and three
+object identities with one existing record before any links-table query.
+The compiler reads the actual global reference cell and preserves its wrapper
+when later stores publish a new value. General `$GLOBALS` symbol-table reads,
+writes and indexed unset remain separate SDK boundaries.
+
+A token-aware rewrite places 1,105 fresh checked `wpdb` identity views around
+literal method receivers in 96 complete files. The original SQL, arguments,
+subclass dispatch and global rebinding remain. All 96 files pass PHP syntax;
+the 248 SQL comparisons retain real SQLite tests and add bounded stand-in
+base/subclass/rebinding scenarios. They do not prove complete native WordPress SQL.
+
+The complete native control suite is being refreshed for this source. Focused
+checks include real libsodium, byte
+spans/searches/escapes, version comparison, original complete UTF-8 files,
+SQLite, callable references, regex quoting, array cursors, query operations,
+Requests dictionary behavior and the complete bundled AI graph. Source-collected
+compact inventories preserve nulls, ordering, nested names, object identity and
+value independence in 356 comparisons. Binary integer/string pack/unpack adapters
+pass 1,042 comparisons across 523 groups. Merge/map/filter adapters pass 77 groups
+with 154 comparisons including recursive key-order traces. Value-array uniqueness,
+search, sets and slicing pass 603 groups and 1,206 comparisons. Stable generic
+value/key sorting passes 360 groups and 1,260 comparisons, including reference
+updates and explicit key-order traces. Array/scalar string replacement passes
+560 groups and 1,680 comparisons, including sequential replacements, NUL bytes,
+subject keys and accumulated replacement counts.
+Ordered shutdown callbacks add 10 comparisons; recursive merging adds 418.
+Offset-aware PCRE2 captures and scalar/Stringable operand conversion pass 18,416
+comparisons with the expanded split-options control, metadata and complete Requests stringability queries add 61,
+and finite port lookup adds 37. The three complete Gutenberg parser files match
+original PHP for 24 document parses and 30 comparisons, including nesting,
+invalid JSON, UTF-8/NUL input and parser reuse. Checked nominal block receivers
+keep original nested appends on their owning records. Native invariants match
+PHP with assertions enabled in 28 comparisons with explicit descriptions.
+The UTF-8 entity decoder adds 50,828 comparisons over 2,125 named references,
+four doctypes, quote flags, numeric validity boundaries and malformed input.
+Its generated tables retain original WordPress source checksums and the checked
+PHP entity-table identity. Charset conversion and warning state remain boundaries.
+
+The HTML control also verifies UTF-8 escaping with both `double_encode` modes.
+Preserved numeric references follow PHP's escaping rules independently of the
+decoder's scalar-validity checks. Invalid UTF-8, other charsets and
+`ENT_DISALLOWED` remain explicit encoding boundaries. The complete token-map
+class passes 617 comparisons for valid precomputed tables, construction from
+arrays, lookups, offsets, match lengths and array conversion. Constructor cases
+cover empty maps, short and long tokens, equal-length ordering, shared prefixes,
+Unicode mappings, snapshot independence and an inherited call whose child
+comparator must remain unused. The comparator closure names `WP_Token_Map`
+explicitly instead of `self`, preserving the original private lexical target
+while avoiding a native closure-scope diagnostic. The finite case list projects
+its known array arguments explicitly. Its short-token patch explicitly casts the
+original boolean comparison before `strtoupper`; the comparison stays inside
+the call. Source export and invalid-state diagnostics are not
+part of the executed token-map control.
+
+The complete `compat.php` control verifies the original PCRE probe, cached results
+and deprecated arguments together with the UTF-8 fallback files. The error handler
+captures a local probe result and publishes it back to the static cache. Mutually
+exclusive codec declarations share one declaration per name, keeping their
+original mbstring/fallback choice inside the body. The conditional public codec
+polyfills are outside the executed control. Theme cache sorting likewise uses a
+local value before publishing the sorted result back to its original static cache.
+
+The complete Query block file has an isolated pagination control. Persistent
+mixed property cells preserve nested query stacks, dirty flags, callback identity
+and self-removal. The registry and hook boundaries are explicit fixtures. The
+control does not execute script/style enqueueing, HTML rewriting or content-query
+rendering. Reflected identities of adapted function-static variables remain
+outside the profile.
+
+The admin update nonce, temporary-directory and spacing caches retain their
+original empty-string sentinel through persistent mixed property cells. Local
+references keep their original assignments and lazy initialization. The property
+control passes 1,335 comparisons across string, array and nullable cache lifecycles,
+including repeated writes, presence, reads and independent snapshots. Query
+pagination still passes its 55 comparisons.
+Iterator collection checks duplicate keys, numeric-string/null/boolean keys,
+aggregate invocation counts, method order, final positions and catchable failures.
+Value-only collection appends without invoking `key`; keyed collection rejects
+array and object keys explicitly before a native offset write.
+Both remaining original `iterator_to_array` calls use the existing collector.
+The bootstrap calls original `wp_insert_user` with an `ArrayIterator` containing
+a negative ID. Original and patched PHP consume it and return `invalid_user_id`
+before password hashing or any user-table query. User creation remains unverified.
+Admin nonce HTML execution and reflected static-variable identities are outside
+these focused controls.
+
+The stream control loads the complete AVIF parser, POMO stream classes and
+PclZip library. It passes 2,321 comparisons with original PHP in its focused run.
+AVIF read lengths and seek offsets use the existing checked integer adapter;
+its original uncoerced length comparison remains. POMO file reads and seeks use
+the same boundary, retaining the original uncoerced cached position. The control
+checks ordinary binary reads and EOF, AVIF box validation and format recognition,
+and all four POMO reader variants with endian-aware integer decoding. Full AVIF
+image-feature extraction and legacy mbstring overload behavior remain unverified.
+PclZip adds 84 uncompressed copy cases in each of three isolated configurations,
+comparing returned values or exception
+classes, copied bytes, stream positions and EOF state. This preserves partial
+copy effects before the original error for a boolean size. A bounded one-name
+inventory preserves executed `PCLZIP_READ_BLOCK_SIZE` definedness and values.
+The original conditional declaration supplies its unchanged default of 2,048;
+PHP counterparts call real `define`, `defined` and `constant`. Comparison cases
+also verify definedness before and after loading, with explicit fixture block
+sizes 7 and 128. Direct external native definitions,
+duplicate-definition diagnostics, compressed ZIP operations and raw runtime
+enumeration remain boundaries.
+Across complete source files, checked integer conversions now cover native I/O
+lengths, offsets, modes and flags; original loop and comparison values remain.
+The fixture covers valid local seekable streams and scalar write data. Transport
+behavior and invalid-resource diagnostic precedence remain boundaries.
+
+Dynamic regex pattern and subject operands cross the explicit scalar/Stringable
+string fixture. Original PCRE calls, output references, flags and offsets stay
+in their complete files. The focused native control includes the original Vimeo
+and YouTube patterns and valid scalar, null and Stringable inputs. Invalid
+operands are checked by exception class; exact diagnostic wording and validation
+timing relative to other argument expressions remain outside the finite profile.
+
+The replacement control passes 13,322 comparisons, including weak scalar
+subjects, pipe-delimited cookie patterns and the counter after invalid subjects.
+The remaining 470 scalar and array regex replacement calls in 145 complete files
+use the existing PCRE2 replacement adapter. This includes weak scalar cookie-path
+subjects that the native builtin rejects. The original PHP counterpart still
+calls PHP's real replacement API. The bootstrap returns all four cookie paths so
+native startup must also preserve their actual values.
+
+Number formatting crosses a checked numeric boundary while retaining the original
+WordPress locale dispatcher and filter arguments. The adapter preserves signed
+64-bit integer digits and the integer path for large integral doubles, then uses
+PHP half-up rounding and full byte-string separators. Null, numeric strings,
+non-finite values and invalid types have reference cases. The native precision
+range is explicitly -22 through 22; larger precision and exact deprecation
+diagnostics remain boundaries.
+
+The combined weak-integer control passes 6,753 comparisons, including the expanded
+number-formatting corpus, explicit UTC calendar components and formatting vectors.
+Checked component projections retain the original `mktime`/`gmmktime` calls,
+normalization and substring values. The bootstrap also compares two original
+`get_weekstartend` results around leap-day and year boundaries. Null/current-date
+component defaults, extreme ranges, other timezones and argument-error timing
+relative to later side effects remain outside this finite profile.
+
+UTC formatting corrects the SDK's timestamp -1 sentinel, unsigned negative `U`
+field and dropped terminal escape. The adapter derives unchanged UTC fields from
+the adjacent second for timestamp -1, preserves seconds and signed Unix text, and
+expands composite formats and escapes. A terminal escape retains PHP's NUL output.
+Input formats containing NUL and unsupported SDK format fields remain boundaries.
+The complete SimplePie date parser keeps mixed day locals across pattern
+construction and numeric captures.
+Three dynamic regex limits, flags or offsets in two complete files cross the
+existing checked integer boundary. This includes the original word limit plus
+one in `wp_trim_words`, where integer addition can also produce a float. Literal
+flag constants stay unchanged. The bootstrap returns four original word-trimming
+results. The 68 original split calls in 38 complete files use the existing
+PCRE2 capture boundary. This replaces a native builtin with incorrect negative
+limits, empty-match progress and NUL handling. Split delimiter and byte-offset
+captures retain original ordering, and captured delimiters do not consume the
+subject-piece limit.
+
+Initially empty function-static arrays use persistent property cells in 67
+declarations across 34 complete files. Eight appends in seven files use the
+existing array adapter to keep earlier returned snapshots independent. The raw
+reference append mutates earlier snapshots on this SDK, including with an
+explicitly typed array property; a local array copy preserves PHP behavior.
+Cache reads, writes, null/presence distinctions, clearing and value snapshots
+have differential cases. The bootstrap also returns repeated results from
+original `wp_normalize_path` on eight fixed path inputs. Adapted static reflection
+and shutdown ordering remain outside this fixture.
+Another 44 initially-null data caches in 24 complete files use the existing
+nullable value cell. A token audit identified direct string/array assignments;
+the original null checks and population logic remain. These include path
+truncation, texturization data, regexes, URL caches and lookup tables. Object
+singleton caches were excluded from this rewrite. A second audit covers another
+61 scalar/data caches whose values arrive through variables, calls or includes,
+including the current development mode. Seventeen typed object singleton
+declarations retain their original storage and return contracts. The property
+control also checks object identity, reset and retention of an earlier instance.
+An unset-capable local alias needs a by-value boundary when a returned array
+must keep a snapshot; the control checks that case explicitly.
+Nineteen false sentinels and eight further empty-string sentinels in twenty
+complete files use cells with their respective original defaults. The UUID
+fallback cache keeps false and function-name strings. Concrete literal stores
+and their later snapshots are covered in the 1,335-comparison property control.
+
+The image subsize routine uses a callable capability guard for the optional
+public instance `make_subsize` method in the fixture's two core editors. A PHP-only policy
+check loads the complete original GD and Imagick class files and verifies public instance
+visibility, no magic-call fallback, original checksums and the equivalent guards.
+It constructs no image and invokes no image operation. Custom editors with
+non-public methods or magic dispatch remain outside this adaptation; native
+image processing is unverified.
+
+The three `array_combine` calls use the existing scalar-key adapter. A checked
+array return alone still lowered as `Mixed` for this builtin in the isolated
+control, so the source uses the verified adapter. The expanded additional-array
+control passes 1,702 comparisons, preserving earlier cases and adding scalar-value
+array flipping, duplicate/order and numeric-string key cases, input independence
+and non-array argument errors. The 33 flip calls in 23 complete files use a
+guarded integer/string-value fixture. Invalid element values explicitly fail in
+native code; PHP's warning-and-skip paths remain outside that fixture.
+The bootstrap also reads the original theme headers through a
+real additional-header closure filter and returns all ten original post-format
+slugs; original and patched PHP agree on these fields.
+It also executes original `search_theme_directories` with a forced scan and a
+cached read. Both PHP source trees return the same three sorted theme names;
+the probe omits local root paths. Complete native verification must match both
+lists as part of the bootstrap state.
+
+Additional native controls cover generic union, byte translation and string XOR
+(394 comparisons), replacement limits/arrays/callback flags (13,322), additional
+array operations (1,702), associative differences (392), stream reads and seekable
+EOF state (2,321), fresh-value cursor/property reset/iterator and cache operations
+(1,335), weak integer, numeric formatting and calendar operations (6,753), whole
+Walker dispatch (80), glob flags (14) and
+filesystem timestamps on task-owned files (36). Private nullable AI token-limit
+storage preserves null, zero and integer limits. The standalone Walker control
+uses PHP profile 8.5; the primary bootstrap remains on 8.4 and complete compat.php.
+PHP-only service, constructor, method and dynamic property bodies live in the
+PHP counterpart; the LFC counterpart rejects unavailable native operations.
+
+The complete Multisite alias routine adds 113 native comparisons across nine
+isolated configurations, including strict value types and second-call warning
+traces. `VHOST` and `SUBDOMAIN_INSTALL` otherwise recursively expand each other's
+initializer in this SDK. They use a request-local native inventory, while PHP
+counterparts call the engine's actual constant APIs. The original WordPress
+routine still performs conversion, strict comparison and deprecation handling.
+Core detection and reads use the same two-name inventory. Raw global enumeration
+of those runtime entries, duplicate redefinition and complete network/database
+startup remain boundaries. Other upload and cookie APIs in the isolated control
+have explicit throwing declarations and are not counted as executed behavior.
+
+Originally untyped named parameters and compatible returns are explicitly mixed.
+Bodies and defaults remain; original bare/fall-through returns explicitly return
+null where required. Parents of existing void overrides retain their absent return
+annotation. The fixture database matches these contracts. Explicit base-method
+calls share private bodies, preserving legacy widget constructor binding.
+Exception factories retain concrete types. HTML insertion projects its original
+non-null token contract without replacing the parser algorithm.
+Originally untyped reference properties now use explicit mixed storage, retaining
+implicit null defaults. Four static array stacks use persistent mixed property
+cells. Dynamic read receivers cross a PHP identity boundary, preserving values
+and object identity while selecting the native runtime path.
+
+The source pack and merge calls package argument lists explicitly. A standalone
+reproduction confirms that the SDK can lose a generic runtime spread tail after
+fixed variadic arguments. This remains a compiler boundary. The array adapters
+operate on value arrays; external sharing of element reference cells and exact
+native warning-buffer behavior are outside their verified scope. Binary adapters
+cover integer, string/byte, hex and positioning fields, without floating point or
+pointer formats. Original byte-wise UTF-8 algorithms run independently of mbstring.
+Optional absent constants keep their defined guards and executed-read errors.
+
+The widgets merge receives the original `array_values()` list directly, avoiding
+redundant spread repackaging that confuses native Array and Hash layouts. The
+public probe retains that compiler defect. `WP_User` keeps its lazy static cache
+with an uninitialized declared array. The SimplePie registry and Requests Curl
+reference getters retain their reference markers and use matching mixed property
+and return storage. HTTP transports and runtime reflection construction still
+cross the existing explicit platform boundary.
+
+PCRE2 10.47 recipe 8 and libxml2 2.15.3 recipe 11 are locked. The native Sodium
+fixture links the actual system library. AI streams use the original standard
+memory path at every size; SDK userspace wrapper metadata is unsupported.
+Optional external packages, Redis/Memcache adapters, native DOMXPath, RSS reference
+trees, uploads, unsupported URL filters and warning-buffer inspection remain
+explicit boundaries. The native lock also pins Curl 8.21.0 recipe 4, libssh2
+1.11.1 recipe 2, nghttp2 1.70.0 recipe 2, OpenSSL 3.5.8 recipe 1 and zlib 1.3.2
+recipe 1. The complete Requests input-validator control preserves implicit and
+inherited `Stringable` semantics on thirteen scalar, array and object values.
+Its numeric-key and array-access methods are compiled but are not executed proof.
+The fatal-error page handler is disabled to retain native
+diagnostics. Query decoding keeps its one-MiB, 1,000-field and 64-level bounds.
+
+The current compiler shares repeated literal-name mixed-property dispatch by
+lexical scope, exact name and fetch mode. Its borrowed synthetic EIR helpers reuse
+the original property implementation and owned result cleanup. Single sites,
+quiet reads, hook bodies and other representations retain their direct paths.
+The complete native WordPress build is being resumed on this validated compiler.
+**No complete native WordPress
+bootstrap, frontend, admin or REST dispatch is claimed.** The twenty compiler
+changes address observed correctness and scaling blockers, but the current
+source still needs actual native compile/link, PHP bootstrap parity and a
+source-only native reconstruction. The current source and compiler identities, verified controls and pending groups
+are explicit in `docs/elephc/full-source-status.json`. Earlier diagnostic counts belong to
+previous source hashes and are not current compiler results.
+Public scripts use tools on PATH or explicit compiler arguments; workstation
+scheduling stays outside the repository.
 
 ## Baseline, 2026-11-13
 
@@ -523,7 +1248,7 @@ passed the same suite, then removed its temporary tree. Native CLI and worker
 runtime output has no PHP warnings or fatal errors.
 
 The list executable is 584,576 bytes, cache is 1,426,304 bytes and the combined
-server is 24,521,088 bytes. The cache now shares the selected functions bootstrap.
+server is 24,521,089 bytes. The cache now shares the selected functions bootstrap.
 These are build observations, without speed claims.
 
 ## URL string extension, 2026-11-16
@@ -998,6 +1723,151 @@ pin changed. The earlier full/native source-only result remains 3,338 HTTP
 checks on the pinned SDK; that suite was not rerun on the main snapshot.
 The downloaded SDK scratch directory was removed after verification.
 
+## Complete-source PSR size cache, 2026-11-22
+
+The next complete attempt passes the stream getter and stops after 905.13 seconds
+at Nyholm `Uri::getPort` with the same mixed-to-nullable-integer backend error.
+Its getter now returns null explicitly and projects the remaining original value
+through the existing checked integer contract. The private untyped property and
+original `filterPort` casts, range checks and scheme normalization stay intact.
+Thirty valid scheme/port cases and six invalid-port cases add 234 native/PHP
+comparisons for zero, standard and custom ports, numeric strings, 65535, clone
+identity, scheme changes, string round trips and unchanged state after rejection.
+The complete AI control now passes 445 comparisons. Other nullable integer getters
+in this AI tree already have typed property storage and are unchanged.
+
+Compiler19 passes its focused gates and reaches Nyholm Stream::getSize in the
+complete source graph after 938.22 seconds. Its nullable integer return rejects
+an inferred mixed cache value. The two non-null return branches now use the
+existing checked integer projection, preserving the original cache lifecycle.
+
+PSR stream size getters project the two non-null cache returns through the
+existing checked integer contract. Original untyped storage, nullable return,
+cache guards and invalidation remain. Six complete-class native/PHP scenarios
+add 66 comparisons for zero, binary, Unicode and large memory streams: repeated
+and stale cached sizes, external writes, method-write invalidation, resource
+identity on detach, reattach, closed/detached null results and exact content
+hashes. The AI control passes 211 comparisons. These memory-stream checks do not
+establish transport or userspace-wrapper support.
+
+Complete native WordPress compilation and root execution remain pending.
+
+## Complete-source widget factory identity, 2026-11-22
+
+The next complete compile passes both repaired PSR getters and stops after
+888.49 seconds at `WP_Widget_Factory::register`, where `spl_object_id` rejects
+the mixed representation inside the original `instanceof WP_Widget` branch.
+Both factory instance-ID calls now use an object-typed wrapper that invokes the
+original builtin. Original instance guards, prefixed keys and registry algorithms
+stay intact. The full factory file executes with explicit test widget classes.
+Twenty scenarios add 140 native/PHP comparisons for constructor hook arguments,
+instance and class replacement, key uniqueness and lookup order, unknown/repeated
+removal, live registry aliases, independent array snapshots and empty results.
+The property/cursor group passes 2,677 comparisons. Widget constructors, options
+and callback registration remain outside this control. Complete native root
+verification is still pending.
+
+## Complete-source toolbar binding, 2026-11-22
+
+The next full compile passes widget registration and stops after 893.74 seconds
+at `WP_Admin_Bar::_bind`. Generic deletion of a node's `group` field considers
+an unrelated referenced `Text_Diff_Op::$final` property. The original final
+node factory casts every node to an object and stores it privately. A fresh
+checked `stdClass` view now owns only that existing deletion; the rest of the
+original tree algorithm remains unchanged.
+
+Eight complete-class scenarios pass 64 native/PHP comparisons for root replacement,
+automatic groups, nested group containers, top-level order, orphans, removal of
+`group`, shared node handles, cloned public snapshots and one-shot binding.
+Both container insertion and replacement branches execute. The property/cursor
+group now passes 2,741 comparisons. Test-only environment and rendering functions
+throw, and a finite array-default fixture supplies node setup. Full authentication,
+toolbar rendering and native root execution remain outside this proof. Initial
+frontend failures in test stub return/argument types were corrected before the
+successful native run; no additional WordPress algorithm was replaced.
+
+## Complete-source ability annotation defaults, 2026-11-22
+
+The next full compile passes toolbar binding and stops after 925.69 seconds in
+`WP_Ability::prepare_properties`. Its original all-null annotation map reaches a
+nested hash store as `AssocArray<Str, Void>`. Boxed late-static reads fix that
+consumer representation, while an isolated complete-class control then exposes
+the untyped static initializer's `Void` value diagnostic. A reduced native probe
+confirms that `mixed` and `array` declarations preserve the exact original nulls.
+The patch uses `mixed`, keeping all original values, and boxes both consumers.
+Property type reflection and untyped subclass redeclarations remain compatibility
+boundaries of that declaration.
+
+The complete ability class, error class and filter sentinel pass thirty metadata
+scenarios, adding 270 native/PHP comparisons. Cases cover missing annotations,
+explicit null/false/true values, extra metadata, public versus REST precedence,
+getters and independent nested copies. Property/cursor totals 3,011 comparisons.
+English translation is an identity fixture; filters, schema validation and ability
+callback execution throw at explicit control boundaries. Initial missing control
+dependencies and a compiler panic around nested calls to `never` stubs are retained
+in diagnostics. Those stubs now have generic return declarations and still throw.
+Full native bootstrap remains unverified.
+
+## Complete-source REST attachment record, 2026-11-22
+
+The ability map fix advances complete lowering to
+`WP_REST_Posts_Controller::can_access_password_content`, where the assembly
+buffer reaches its 16 GiB capacity. Its 32 GiB growth request exceeds the private
+48 GiB virtual-address limit. Retrying the identical source/compiler at 56 GiB
+passes that boundary with about 38 GiB resident memory; public build commands and
+the 512 MiB application heap are unchanged. The retry then reports a generic
+property deletion error after 910.05 seconds in
+`WP_REST_Attachments_Controller::edit_media_item`.
+
+A REST-source audit finds one direct object-property deletion: removing `ID` from
+the prepared attachment object. A fresh checked `stdClass` view now owns only that
+operation. Eight record cases add 40 native/PHP comparisons for absent/null/false/
+zero/string IDs, unchanged fields and order, object aliases and prior snapshots.
+Property/cursor totals 3,051 comparisons. Non-`stdClass` prepared results remain
+an explicit boundary. Image editing, files, attachment insertion and REST dispatch
+are outside this executed proof. Full native WordPress compilation remains pending.
+
+## Complete-source REST menu auto-add, 2026-11-22
+
+The prepared attachment fix passes its previous frontier and complete lowering
+stops after 916.78 seconds at `WP_REST_Menus_Controller::handle_auto_add`.
+The reported `array_pop Pointer(None)` is inside lowering of its original
+three-argument nested `array_splice`. This is the same operation already covered
+by the menu fixture's nested-reference and omitted-replacement controls.
+That one call now uses `wp_aot_array_splice_values`, preserving the original option
+read, strict lookup, append/remove decision, update and action. Existing 420 native
+splice groups cover 5,880 comparisons within array-mutation's 8,993 observations.
+No new algorithm or controller persistence fixture was introduced. The prepared
+REST tree has no remaining raw stack/splice calls; this is a structural audit,
+not proof of REST dispatch, authentication or saved-option updates. Full native
+WordPress compilation is being resumed under the private 56 GiB address cap.
+
+## Complete-source HTTP status dispatch, 2026-11-21
+
+The complete build reached the original dynamic HTTP exception constructor in
+Requests Response::throw_for_status. Mixed identity views retain both original
+arguments and the exact response object. The first native control exposed boolean
+storage coercion of the original untyped false-default status field; explicit
+mixed property storage preserves the original default and status values. A
+six-case isolated probe then identified leading namespace separators as the
+remaining dynamic-new failure, including with inherited constructors. Normalize
+only the local constructor name, retaining Http::get_class output and selection.
+
+Requests response status handling retains its original dynamic exception selection.
+The status property uses mixed storage with its original false default; dynamic
+constructor arguments use mixed identity views and only the local constructor
+class name loses its optional leading namespace separator. A control loads 38
+complete source files and passes 360 status/success/redirect-policy combinations,
+1,837 total port and exception comparisons against original PHP. It verifies
+strict redirect policy, numeric/string status distinctions, exception class,
+message, type, code, reason and response-data identity. Constructor-free allocation
+isolates these methods; header/cookie constructor fixtures throw if called.
+Normal response construction, transport, routing, arbitrary status types, type
+reflection and property reads after unset before reinitialization remain outside
+these checks.
+
+Complete native WordPress compilation and root execution remain unverified.
+
 ## REST unique-item validation, 2026-11-17
 
 The selected REST graph now includes original rest_stabilize_value and
@@ -1058,3 +1928,489 @@ A source-only export rebuilt the native profiles and passed all 3476 HTTP checks
 and the differential CLI corpora. A separate temporary hybrid project compiled
 the shared library, linked and called the PHP extension, and passed an exact
 Elephc profiling assertion. Both temporary trees were removed.
+
+
+The selected compiler passes 136 focused Rust checks, 35 native/PHP modes and
+155 target emissions. Its 32-row child-property fixture matches PHP with clean
+heaps in both IR modes and reduces the bounded caller assembly by 23.1 percent.
+Only assembly-comment spacing changed after the build; the compiler metadata
+retains the original and published source hashes and mechanical formatting proof.
+
+The complete source graph generates 17,718,439,299 assembly bytes and a
+4,215,159,224-byte combined object, including 2,105,038,654 code bytes. The default
+GNU link exceeds relative relocation reach. The public section-placement linker
+now links that exact object in three adaptive attempts, with identical allocated
+content SHA-256 `23bbcc0240087d52bdadf1c86dad0a8ba1a1a937bd9b3cbf2dc9a083b0cbabd1`.
+It keeps every function address distinct, preserves COMMON size/alignment and
+visibility, and retains TLS, unwind metadata, RELRO and a non-executable stack.
+A separate native control verifies function identity and memory protections.
+The compiler runner also passes a real Elephc compile/link smoke check.
+
+That linked object predates the bootstrap corrections and reaches a null object
+cache caused by an unsupported GLOBALS write. Cache initialization now uses the
+named global cell, and the complete root settings file accesses its eleven global
+objects/maps through named cells in the fixed top-level profile.
+
+A second bounded defect affects function-executed constant presence: a literal
+`defined` call and `get_defined_constants` do not observe an earlier conditional
+definition on the next invocation. A variable argument to `defined` is rejected
+by AOT checking. An explicit 65-name bootstrap/configuration inventory now records
+successful original define calls and seeds the four original entry definitions.
+The original native constants and values remain in use. The original source,
+helper checksums and boundaries are recorded in
+`elephc/full-source/constant-presence-provenance.json`. General dynamic constant
+introspection remains outside this fixture.
+
+The current source preserves 3,782 original files, 1,103 complete-file patches
+and 15 fixtures. The original and patched PHP root, 955 additional groups and
+five runtime documents still agree. Eighteen native constant-policy comparisons
+pass in both IR modes, and 113 Multisite comparisons pass with IR off. A normal
+public build generated all 17,719,906,851 assembly bytes in 1,084.12 seconds,
+then stopped at native-package lookup because its temporary GCC wrapper changed
+the PATH-based cache fingerprint. The public runner now uses `COMPILER_PATH`
+linker interception while preserving `PATH`. Two real PCRE2 compile/link controls
+and the complete prior object pass that path. An exact SDK assembly resumption
+is checking the current startup before another ordinary build. Native root and
+document parity remain unverified.
+
+The current complete 17,719,906,851-byte assembly has now assembled into239
+function-section groups and linked through the public LLD placement path in three
+attempts. A private recovery adapter initially selected raw ld instead of the
+SDK's gcc driver; all groups were preserved and combined with the exact SDK flags.
+That diagnostic recovery is separate from an ordinary successful build. The
+19 prior Rust regressions have also been refreshed successfully on the unchanged
+selected compiler sources.
+
+Native startup now passes the cache initialization frontier, then fails callable
+validation for `_wp_add_global_attributes` inside KSES before its source
+declaration. A two-file probe reproduces this forward-declaration activation gap
+in both IR modes; moving the declaration before its use matches PHP with clean
+31-allocation heaps. The complete KSES patch now moves its original function and
+documentation before initialization, retaining its entire body. The public
+negative compiler reproduction is `elephc/full-source/probes/callable-forward-include.php`.
+Current source identity is `a8cd46722c7d5db534a10e68f6079691b7b4fda5159025018cafacd8c7f655d5`;
+an ordinary rebuild and complete native PHP parity are still required.
+
+A debugger-only activation of that original KSES callback reaches block-support
+registration and exposes an initially null class-static singleton returning null.
+The isolated `nullable-static-singleton.php` probe reproduces this in both IR
+modes. Explicit `mixed` property storage preserves the object; narrowing only
+the return type does not. The current complete-file patches annotate25 such
+properties across18 complete original files. The property controls pass3,189
+PHP comparisons in bothIR, including scalar types, array snapshots, object
+identity and reset. Original/patched PHP startup,955groups and five documents
+still match. Source5343fe7c5eab796271045b574e3be29090ef925ff7ac7bede9040914dcf2d495
+is now undergoing an ordinary public build followed by native parity. Debugger
+state changes have not been counted as successful native execution.
+
+The first ordinary build of those annotations stopped during checking after
+159.63seconds: three existing concrete/nullable singleton return contracts require
+checked projections of the mixed static cells. The original contracts and early
+null returns remain in place. Three identity-view helpers in the existing
+`aot-core-contracts.php` fixture now preserve them. The extended property control
+passes3,192 comparisons in bothIR, including concrete and nullable factory
+identity, and complete original/patched PHP startup and five documents agree.
+The mechanical audit in `nullable-static-property-audit.json` verifies the25
+storage annotations and three checked return projections against the preceding
+complete source files. Current source36f533baa77cd7f5f33d82f08dbb8c7a7e203e4f8a00260fa1762870d35bd235
+is undergoing another ordinary build; complete native parity is still pending.
+
+The ordinary public source36f533ba build now exits0 after2,278.82seconds. It
+generates17,721,100,721 assembly bytes, combines239 groups into4,215,873,576
+object bytes and links2,105,357,842 code bytes without folding. Both allocated
+content hashes are b5be8bd9867942e79393d8a329e69084ef2d1b9fb146a2cb8c27a8349a321773.
+Native startup reaches create_initial_post_types/get_option and the original
+wpdb::prepare before a fixture override returning string corrupts its inherited
+mixed-return call. A two-mode bounded reproduction isolates the ABI gap; matching
+fixture return representations preserve actual string values. Complete runtime
+parity is still pending. The SDK strips its ordinary executable and removes its
+combined user object after linking; WORDPRESS_KEEP_DEBUG=1 now retains an exact
+symbolized copy before stripping, with a passing native linker control.
+
+The SQL frontier now has a complete-file regression control. It loads the
+original database, hook and error files for PHP and their entire prepared
+counterparts for native execution, with the same isolated SQLite fixture.
+It compares93 results covering scalar/array prepare arguments, quotes, percent
+escaping, Unicode, cached scalar values, row/result modes, column reads and
+fixture options. BothIR modes pass; the SQL group totals341 comparisons.
+
+An uninitialized optional local column array in original get_var loses nonempty
+string results natively. Initializing it before the original branch restores
+parity. Explicit mixed result storage, checked row views, return boxing and
+PHPDoc changes did not fix the complete-file case and were removed. The exact
+placeholder count uses an integer projection because the SDK's floating division
+otherwise triggers the original strict diagnostic for equal counts.
+
+Native uniqid now follows the pinned PHP8.4 clock/format algorithm with native
+CSPRNG entropy, passing2830 comparisons in bothIR. Its NUL-free prefix, explicit
+argument-type, thread-local and CSPRNG-failure boundaries are documented in the
+native API manifest. Full source0e2e6f21 is undergoing another ordinary build;
+complete native root/document parity is still pending.
+
+The ordinary source0e2e6f21 build exits0 after2176.85seconds, with239 complete
+assembly groups,17722429793 assembly bytes,4216197480 object bytes and2105513491
+code bytes. Allocated contents remain identical under the public linker,
+SHA936579224b762b4e2b13bc1db34cfc5469aa1c67e92367d636e4e5eeca23e8a0,
+with function folding disabled. Native execution passes the SQL frontier and
+stops at original remove_post_type_support: the nested unset has erased storage
+without a native removal path.
+
+That whole-file patch now uses the existing value-array deletion adapter for an
+existing parent map and preserves absent parents. The mutation control passes
+10273 comparisons in bothIR, including128 feature-map scenarios checking null,
+false, numeric-string and sparse keys, order, aliases and snapshots. The actual
+bootstrap probe also calls the original removal routine for these scenarios and
+restores the original global map. Complete original/patched PHP and five documents
+still match. Current source3fc3c636 is undergoing a new ordinary native build.
+Root/document native parity remains pending.
+
+Private GDB runs that skip the removal routine encounter an allocation failure.
+Those altered executions are diagnostic only and do not prove a native heap bug
+or successful startup. The current source must run without skipped functions.
+
+Source3fc3c636 also compiles/links0 in2172.52seconds:239groups,17754937220assembly
+bytes,4221414040object bytes and2108858265code bytes. Allocated SHA is
+12d425f28929714515bd8809491905ea5d3ac9a99ed1d4312ce2e1d8e95d6bae before and
+after placement, with no folding. Its unmodified native run passes feature
+deletion but exhausts512MiB while scheduling a recovery-mode cron event.
+
+Standard GDB unwinding at the allocator names an unrelated Rust constructor.
+Walking saved frame pointers resolves mixed-array get-for-write growth, original
+wp_schedule_event and WP_Recovery_Mode::initialize. The cron key is a sparse Unix
+timestamp. A fresh associative map, constructed with a transient removed string
+seed, preserves the original empty result and avoids dense numeric allocation.
+The full scheduling algorithm remains original.
+
+A new control loads complete cron/plugin/error files and compares scheduling,
+queries, duplicate/error paths and serialized request-local option storage with
+original PHP. Natural comparison now accepts integer keys by PHP string
+conversion. Event record literals retain schedule/argument/interval values
+through explicit mixed identity views; otherwise native storage converted strings
+and false to0 and argument arrays to their lengths. Cron45 and string1448
+comparisons pass bothIR, and complete original/patched PHP/five documents agree.
+Actual HTTP dispatch, job callbacks, locks and the rest of the cron lifecycle
+remain outside this control. All47 control groups retain the earlier46.
+Current source29b724a1 is rebuilding; full native root/document parity is pending.
+
+
+Source43d0e195 compiles and links through the ordinary public command in2214.81
+seconds. All239 assembly groups and three portable LLD attempts pass. Assembly
+contains17755110259bytes, the object4221457480bytes and code2108877201bytes.
+Allocated contents are identical after placement, with function folding disabled.
+The unmodified native program passes cron and actual widget registration during
+init, then reaches the application probes. Both private widget registries use
+named global cells; the22 original deprecated callbacks remain unchanged. The
+PHP baseline verifies19 default widgets and22 deprecated callback names.
+
+The next observed failure is the original wp_strip_all_tags @script/style regex.
+The fixture now accepts all27 unpaired ASCII punctuation delimiters, leading
+ASCII whitespace and the first unescaped closing delimiter. It ignores modifier
+spaces, carriage returns and newlines as PHP does. Paired and non-ASCII delimiters
+remain explicit boundaries. Replacement15276 and match/split19874 comparisons
+pass with IR on and off, including the exact original WordPress pattern.
+Complete original/patched PHP bootstrap and five documents still agree. Current
+sourcee940badb is rebuilding; full native root/document parity remains pending.
+
+
+Prepared source `e940badb` compiles and links through the ordinary command in
+2,645.94 seconds. All 239 assembly groups and three portable LLD placement
+attempts pass. The assembly has 17,755,293,552 bytes; the combined object has
+4,221,496,976 bytes and 2,108,897,210 code bytes. Allocated SHA-256 remains
+`d17673abfe70a14bc58140fea80baf8e0ed860652ba454a9f8caf78a888d5018`
+before and after placement, with function folding disabled.
+
+The unmodified executable passes the original `wp_strip_all_tags()` pattern and
+reaches script registry initialization. Its next failure is the explicit
+`hash_hmac_algos()` fixture boundary. Whole native bootstrap and document parity
+remain pending. Staged HMAC, query-property, named-capture and builtin-callback
+diagnostics are not counted as completed native WordPress execution.
+
+
+Prepared source `a80a4bc8` verifies the HMAC capability catalog through the actual
+native HMAC implementation. All 44 canonical lowercase names, their ordering
+and digest vectors match PHP. Uppercase direct algorithm aliases remain a
+separate compiler boundary. Whole original hook files retain callback keys and
+use a first-class descriptor when invoking the builtin `strip_tags` callback.
+Complete PHPMailer and SMTP controls preserve named captures, language fallback
+dictionaries, error dictionaries and value snapshots without runtime diagnostics.
+
+Both IR modes pass crypto 2,356, callable 89 and property-cursor 3,252 comparisons,
+including 54 whole-hook and 60 whole-mailer comparisons. Regex controls now also
+cover PHP's ignored `S` and `X` modifiers: replacement 17,220 and match/split
+21,332 comparisons pass in each mode. Original and patched PHP root bootstraps
+and five documents agree. The ordinary full native rebuild is in progress;
+complete native root/document parity remains pending.
+
+
+Prepared source `a80a4bc8` compiles and links through the ordinary public command
+in 2,548.45 seconds. All 239 assembly groups and three portable LLD attempts
+pass. The assembly contains 17,755,718,310 bytes; the object contains
+4,221,600,080 bytes and 2,108,942,991 code bytes. Allocated contents have the
+same SHA-256 before and after placement:
+`e63a912b5172f2fe721f5cd5b701ee65f62405571aa236c7f4abab9d770c2f51`.
+Function folding remains disabled.
+
+The unmodified native executable now passes the HMAC, hook and PHPMailer
+frontiers. It reaches original theme pattern loading and fails nested
+`filePath` deletion in `WP_Block_Patterns_Registry::get_content`. The root probe
+also needs an explicit binding for the existing theme-feature global. Both
+corrections are staged for whole-class/native qualification. Complete native
+root/document parity remains pending.
+
+
+Prepared source `d0fff16d` replaces only the original nested pattern metadata
+`unset` with the existing checked value-array deletion adapter. Complete-file
+checksums and the nullable-static audit include this additional rewrite. The
+root probe now explicitly binds the existing theme-feature global.
+
+The public whole-registry control passes 60 registry comparisons and 24 adapter
+comparisons in both IR modes, without runtime diagnostics. It executes the
+original `more-posts.php` template and verifies first-read path snapshots, cached
+content, independent outside-init state, supplied empty content and unregister.
+Its escaping and block-hook environment is explicit and bounded; the full
+bootstrap retains the real helpers and all 109 original theme includes.
+
+Both IR modes pass mutation 10,357, crypto 2,356, callable 89, property-cursor
+3,252, regex replacement 17,220 and regex match/split 21,332 comparisons through
+the public harnesses. Complete original/patched PHP bootstrap, five documents
+and 955 additional PHP groups agree. The ordinary native rebuild has started;
+whole native root/document parity remains pending.
+
+
+The ordinary build of source `d0fff16d` completes in 2,624.02 seconds. All 239
+assembly groups and three LLD placement attempts pass, with 17,754,243,474
+assembly bytes, 4,221,253,296 object bytes and 2,108,761,605 code bytes. The
+unmodified native root now completes and its default rendered markup matches
+original PHP. Its complete state still differs in nine areas. These include
+27 static block registrations with pointer-valued paths, runtime cookie and
+time constants, 30 pattern URL hashes, REST object filtering, two query array
+snapshots, two observed term names, six capability results and block-dependent
+theme caches. Five native document comparisons remain behind the root gate.
+
+Source `d45c1a35` adds a closed 17-String bootstrap data inventory, integer time
+operands and directory-based bundled block paths, preserving original define
+calls and all registrars. REST object traversal uses public value views; the
+probe's value observations keep original cache/reset operations. The complete
+Style Engine class directly dispatches its two immutable protected callbacks.
+A whole-file capability control reproduces six null returns with missing final
+filter calls. All 66 exits from its single switch now jump to the original
+filter position, preserving all cases and the original return contract.
+
+Original and patched PHP bootstraps still agree on all 116 blocks, 109 patterns,
+five documents and 955 additional groups. Focused both-IR controls pass 80 Style
+Engine comparisons and 52 capability/filter comparisons without runtime
+warnings. Public constant and property controls add runtime String, time-unit,
+public object value and snapshot checks. The new ordinary native build remains
+in progress, so none of these focused results establishes complete native root
+or document parity yet.
+
+
+The first native attempt for `d45c1a35` stops after 26.03 seconds on five
+parenthesized `require` path prefixes, before code generation. PHP accepts this
+syntax; the pinned native parser does not. The whole block index now flattens
+all 11 directory expressions, retaining the same bundled files and data paths.
+Current source `c6077b21` is repeating the reference and native preflight before
+a fresh ordinary build. The compiler is unchanged.
+
+
+Source `c6077b21` compiles and links in 2,580.91 seconds: all 239 assembly groups
+and three LLD attempts pass. The assembly has 17,759,836,087 bytes, the combined
+object 4,222,630,256 bytes and its code 2,109,437,995 bytes. Allocated contents
+retain SHA-256 `8d50f2067bc4ae917119bcc9a4088ef79b4cbd5a37f38217394409b9a605856d`
+with function folding disabled. Native binary SHA-256 is
+`2adbfe0de68ef3f604d826cc354c27ffaa0eca5635e88175965c0a991bc6dffd`.
+
+The actual unmodified default root now matches every original-PHP state field,
+including all nine previously divergent areas, 116 registered blocks and 109
+pattern hashes. Independent execution takes 10.89 seconds and emits only the
+enabled GC statistics. Empty, dynamic-title and video document states also match
+fresh original-PHP states. Video still emits lexer warnings for literal `$1`.
+Nested-group rendering fails cleanup of erased hook iteration arrays, and the
+navigation document crashes while transferring `showSubmenuIcon` context. The
+core confirms an invalid Mixed reference at that assignment, without evidence
+of resource exhaustion. Full document and source-only native gates remain open.
+
+Focused complete hook files now pass 128 comparisons in both IR modes with
+explicit value-array deletion and dense current-filter stack writeback. A small
+probe proves class-constant `isset` incorrectly accepts absent selector keys;
+`array_key_exists` passes the equivalent non-null-map predicate. Another probe
+proves numeric dollars in constant double-quoted strings are interpolated
+incorrectly; escaping them preserves PHP bytes and native output. These changes
+are staged, with whole-block context qualification still in progress.
+
+
+Source `ffac7772` applies the seven qualified complete-file corrections. Both IR
+modes pass the public constant 142, string/style 1,528, callback/capability 215,
+property 3,333 and regex replacement 17,230 comparisons. The whole block/list
+constructor control passes 65 comparisons after capturing both context and
+cached attribute values; context projection alone did not fix nested magic
+attribute reads. Complete original/patched PHP, all five documents and 955
+additional groups agree. The new ordinary native build is in progress with the
+same frozen compiler. Its full native document parity remains pending.
+
+
+The resumed ordinary build of source `ffac7772` completes in 2,731.86 seconds,
+with 17,758,901,473 assembly bytes, a 4,222,411,800-byte combined object and
+2,109,322,145 code bytes. All 239 assembly groups and three LLD attempts pass.
+Allocated contents retain SHA-256
+`753d61c0177950f1afc1f85e1d07aa10c3905222dcd7472f0ddaa88ed01186eb`
+after placement; function folding remains disabled.
+
+The strict native harness passes default and empty state comparisons, then
+nested Unicode rendering still fails erased-array deletion inside hook cleanup.
+The generic value-array adapter still contains a native `unset`, whose removal
+path is absent for this complete-graph specialization. The earlier focused
+whole-hook success did not establish this runtime path. A whole-class candidate
+rebuilds only the three private integer-level maps, whose writes always use
+explicit keys. It is awaiting native qualification and has not been applied to
+the maintained patch series. Complete document and source-only parity remain
+pending. The compiler is unchanged.
+
+
+Independent executions of the same `ffac7772` binary confirm complete original-PHP
+state equality for default, empty, dynamic-title and video-shortcode, with only
+GC statistics as runtime diagnostics. Native SHA-256 is
+`0e56892171509def4b1535a9b703516800fc13de3ae4ed91879b33499cdff8b8`.
+Both nested Unicode and navigation now fail on the same erased-array hook
+cleanup. Navigation reaches rendered markup instead of the earlier invalid
+context-reference crash. A candidate for the private maps matches original PHP
+across 175 groups and 939 comparisons, including the 147 existing mutation/cursor
+scenarios, but has not yet passed native qualification. The first native test
+attempt stopped at the SDK parser's unsupported `require` inside `foreach`; the
+test now stores the complete included result before iterating it. No WordPress
+function ranges were extracted.
+
+
+The complete hook implementation now passes 175 groups and 939 comparisons in
+both native IR modes, without runtime diagnostics, against original PHP.
+The tests retain the 147 existing priority-mutation/cursor scenarios and isolate
+their local variables in a fixture function. The first combined test exposed a
+string/object local-name collision, so the scope change belongs to the test;
+the WordPress files remain complete.
+
+The qualified private iteration-map projection is applied in source `461f71b4`.
+All other prepared files are unchanged. Original, patch and resulting complete
+class checksums are recorded. Component metadata also binds the cursor-case
+file hash. Seven public groups are queued in both IR modes before a fresh
+ordinary full build. Full native document and source-only gates remain pending.
+
+
+Source `461f71b4` compiles and links in 2462.13 seconds with
+17,759,031,809 assembly bytes and 4,222,443,200 object bytes.
+The nested document still throws the same error. Live native tracing corrects
+the earlier attribution to hook cleanup: the actual caller is
+`WP_Theme_JSON::sanitize`, then its constructor, the Theme JSON resolver, global
+settings and layout support before reaching the hook dispatcher. Line 1357
+removes `viewport` from a per-block schema; the PHP-style trace omits those
+intermediate native frames.
+
+An XML-enabled complete-class control reproduces this exact failure. The local
+`VALID_SETTINGS` snapshot and 13 non-null block-dictionary presence predicates
+pass 66 groups and 330 comparisons in both IR modes without runtime diagnostics.
+Inputs include both original theme JSON files and allowed/denied style variations.
+The finite environment collaborators throw for unused migration, registry, CSS
+and capability paths. The exact previous hook class passes all 939 comparisons
+with XML enabled too, so the five private-map projections introduced in the
+previous attempt were removed.
+
+The qualified changes are applied in source `701b8bd5`; original/patch/result
+hashes and component dependencies are recorded. All 18 nullable-static audit
+files and 25 slots are unchanged. Original/patched PHP bootstrap, five documents
+and 955 other groups agree. Seven public native groups precede the next full
+ordinary build; native document and source-only parity remain pending.
+
+
+The schema-corrected source `701b8bd5` completes ordinary public compilation and
+linking in 2201.97 seconds, emitting 17,756,317,206 assembly bytes and a
+4,221,805,816-byte combined object. Allocated contents remain identical after
+section placement, with function folding disabled. The strict native harness
+accepts default and empty states. Nested Unicode rendering advances past the
+previous Theme JSON removal refusal and now fails the explicit original `wpdb`
+receiver contract. The printed hook frame does not establish the actual native
+caller; read-only tracing is the next diagnostic. Complete document parity and
+source-only native reproduction remain pending.
+
+
+Read-only native heap snapshots identify the query cache receiver failure: the
+global symbol keeps the same Mixed-cell address, but its object tag and payload
+are overwritten after recursive traversal. A bounded global-by-value capture
+reproducer fails in both IR modes; its local-capture variant matches PHP in both.
+The entire current `WP_Query` class reproduces the same failure. A whole-class
+candidate with a local capture snapshot passes 60 groups and 360 comparisons in
+each IR mode, including global replacement before capture and during removal.
+
+Prepared source `469ade65` applies that class correction, updates the full-file
+patch checksums and adds a public complete-class query-cache component under the
+SQL control group. It uses the existing real fixture receiver guard. The remaining
+query, taxonomy and metadata environment is explicit and throws on unused paths.
+The original dependency tree is unchanged. A fresh ordinary build and both
+public native control modes are queued. SDK journal task `b1f6b937` will compare
+the reducer with the related borrowed-global fix on `strict-mode`; no SDK source
+was edited or rebuilt here. Complete native document and source-only parity
+remain pending.
+
+
+Source `469ade65` completes ordinary compilation and linking in 2157.95 seconds,
+producing 17,756,320,866 assembly bytes and a 4,221,806,656-byte combined object.
+The strict native harness now matches default, empty, nested Unicode, dynamic
+title and video states with clean runtime diagnostics. The database-capture
+correction advances the previous failing path.
+
+Navigation also executes without errors. All returned fields agree except its
+rendered markup: every navigation label becomes `0`, including the labels that
+should preserve text and receive uniqueness suffixes. The exact mismatch is
+retained separately. The original naming helpers are queued for read-only native
+input/return tracing. Complete document and source-only parity remain pending.
+
+
+Read-only native return tracing confirms that the original navigation name and
+uniqueness helpers return the correct strings. The complete navigation file also
+passes 156 bounded comparisons in both IR modes with a recording wrapper
+collaborator. Real wrapper tracing instead shows integer zero already at the
+input to `esc_attr`.
+
+The complete `class-wp-block-supports.php` reproduces this mismatch for `id` and
+`aria-label` in both IR modes. Four explicit internal string callback contracts
+preserve the arguments that the original caller already normalizes to strings.
+This whole-file candidate passes 409 comparisons per IR mode against original
+PHP, including precedence, empty and zero values, Unicode, escaping and input
+independence. Finite block-type, safe CSS and escaping collaborators bound the
+component control. Prepared source `c19cbe6d` applies only that qualified file
+change; public controls and another ordinary native build are in progress.
+
+
+Source `c19cbe6d` compiles and links through the ordinary public command in
+2172.99 seconds, producing 17,756,316,802 assembly bytes and a 4,221,808,432-byte
+combined object. Allocated contents are unchanged after placement and function
+folding is disabled. The strict native bootstrap and all five runtime documents
+now match original PHP with clean runtime diagnostics. Navigation labels retain
+their text, Unicode escaping and original uniqueness behavior.
+
+Both IR modes pass the seven public groups with 24,744 comparisons each, including
+the complete wrapper file. The final 47-group suite and independent source-only
+ordinary native build are queued; their verification remains pending.
+
+
+Source `c19cbe6d850639389b67fd665a288f491afcf6dfbb929d538db2423bb75d00c5` completes the ordinary public native
+build in 2172.99 seconds. The build emits
+17,756,316,802 assembly bytes, a 4,221,808,432-byte object
+and 2,109,009,393 code bytes. Allocated contents retain SHA-256
+`12c9fd825d5e2d24a2a6c40154db9d1625e36c644c075f72864da1ea7298cbe9` after placement, with function folding
+disabled. Native binary SHA-256 is `cf8296ba1dc808e3070c2cab814587ce0790641894f201d0a3e3f48e21440dbf`.
+
+The actual native root and all five runtime documents now match the complete
+original-PHP states with no unexpected runtime diagnostics. Nested Unicode group
+rendering, navigation context transfer and video shortcode rendering pass the
+previous failing frontiers. This includes 116 core blocks, 109 original pattern
+hashes and the full application-probe state.
+
+All 47 primary native control groups pass 230,504 comparisons with IR
+optimization on. A separate source-only export passes all groups with IR
+optimization off, performs another ordinary complete native build and repeats
+root/five-document parity. Its export is removed. The retained subsystem suite
+also passes independently. The published verification snapshot binds these
+results to the exact source, compiler, test inputs and linker provenance.
+
+These results establish the isolated single-site CLI fixture, not full HTTP,
+administration, authentication, arbitrary plugins or network coverage. No SDK
+source was changed for the final WordPress compatibility corrections.
