@@ -11,7 +11,8 @@ extracted.
 | Input | SHA-256 or revision |
 | --- | --- |
 | WordPress archive | `881e53a4681ff2cd911651b11cccdede5ae477ddf0765af5d6a1a8b219a1d835` |
-| Prepared source manifest | `c19cbe6d850639389b67fd665a288f491afcf6dfbb929d538db2423bb75d00c5` |
+| Prepared source manifest for the recorded CLI and controls | `c19cbe6d850639389b67fd665a288f491afcf6dfbb929d538db2423bb75d00c5` |
+| Current prepared source manifest for HTTP | `22837b12a147e6e3ae01a5723370202d02b193e960bf5788651e253a33b8b567` |
 | Elephc base revision | `f20729406216d21ce99841cf4636b771db9874dd` |
 | Elephc compatibility patch | `494a3fdf054c04dbf860de008ee030ec85bb0d0e9a2fbfe1eb75e1ef9d60de1f` |
 | Verified compiler executable | `2f75c59ebe654fcf86e481d990ed6428ef462cfdabc005e3060166efb323a9fc` |
@@ -48,23 +49,31 @@ source, compiler, test-input, harness and linker identities.
 
 ## Native HTTP rendering
 
-The public `scripts/build-wordpress.sh --web` build uses the same complete core
-manifest and the separate `elephc/full-source/web.php` entry. It finishes in
-2428.73 seconds with compiler
+The public `scripts/build-wordpress.sh --web` build uses the complete prepared
+core and the separate `elephc/full-source/web.php` entry. It finishes in
+2202.89 seconds with compiler
 `5017cabe244cfe49dc7af7620218bc422a2143c115fd398ea5f8f727864a23cc` and executable
-`5c3c4bdf2cd9f18a665039a066fd0bf9fe247e2f95c9c77ff35c48ac3d959db9`.
+`784874db1189c6639b0086147c700feb0c09da21a82ae615d66fe6643ce1f4a2`.
 The linker preserves allocated bytes and disables function folding.
 
-The entry executes the complete existing bootstrap for each HTTP request. A
-named output-buffer callback transforms its live inspection state into HTML
-when original WordPress shutdown flushes the buffer. The rendered content comes
-from the original core block and shortcode pipeline. `scripts/serve-wordpress.sh`
-starts one worker on `127.0.0.1:9000` with request isolation.
+The entry executes the original `wp-load.php` and `wp-settings.php` for each
+request and seeds three published posts in request-local SQLite. The homepage
+renders the original Latest Posts block, which queries those rows through
+`WP_Query` and generates plain WordPress permalinks. The article route uses
+`get_post()` and the core block and shortcode pipeline. The diagnostic probes
+remain on the separate CLI path. `scripts/serve-wordpress.sh` starts one worker
+on `127.0.0.1:9000` with request isolation.
 
-All 14 actual HTTP checks pass, including exact original-PHP content parity for
-the default and all five documents, repeated requests, HEAD, 404, 405 and NUL
-rejection. The existing native CLI bootstrap and all five documents were also
-verified again. No PHP subprocess serves these responses.
+The HTTP harness compares the homepage, all five documents and the three linked
+posts with original PHP. It also checks repeated requests, HEAD, 404, 405 and
+invalid input. All 20 native HTTP checks and the retained native CLI parity pass.
+PHP executes separately to generate the reference pages.
+
+Two retained whole-file patches preserve the nonempty WordPress query path.
+`class-wp-query.php` converts result rows through direct `get_post()` calls with
+the original `OBJECT` and `raw` defaults and preserves result keys. The Latest
+Posts block passes its live loop post to the title and permalink APIs, avoiding
+implicit lookups through the native `GLOBALS` view.
 
 The additional `patches/compiler/wordpress-web.patch` coerces boxed request-global
 replacements into the native hash layout. It unboxes through an indexed view and
@@ -72,9 +81,9 @@ uses the runtime heap kind to pass through a hash or rebuild an indexed array.
 Its five-target IR/assembly test,
 both-IR native HTTP test and five packaged-SDK reproducers pass. The SDK uses
 Rust 1.99.1 and retains all 25 base runtime archives. An independent maintained-file
-export reconstructs the same core and web entry, while original compiler blobs
-plus both patches reconstruct all 69 changed source files exactly. This check
-reconstructs sources; it does not perform another native web build.
+export reconstructs the current core and passes all nine original-PHP web pages.
+The compiler patches remain byte-identical to the independent reconstruction of
+all 69 changed SDK source files.
 
 ## Current adaptations
 

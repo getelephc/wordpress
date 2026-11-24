@@ -8,11 +8,11 @@ continues to call real PHP functions. Optional capability guards inspect the
 original API names and do not advertise unavailable features.
 
 The verified targets are the isolated native CLI bootstrap and bounded native
-HTTP rendering of the default page and five runtime documents. The HTTP entry
-uses the original initialization and content renderer, request isolation and
-basic response headers. Full theme request dispatch, administration, authentication,
-arbitrary plugins, persistent storage and network requests remain outside that
-proof. This includes original paths that need authentication cookie state, password
+HTTP rendering of the homepage, three seeded posts and five runtime documents.
+The HTTP entry uses the original initialization, Latest Posts block and post and
+content APIs with request isolation. Full theme request dispatch, administration,
+authentication, arbitrary plugins, persistent storage and network requests remain
+outside that proof. This includes original paths that need authentication cookie state, password
 hashing, some file/compression/XML operations or unrestricted introspection.
 Compiler traversal does not count these paths as executed native coverage.
 
@@ -22,7 +22,8 @@ The [fixture directory](../../elephc/full-source/fixtures/) supplies:
 
 - A single-site configuration using the bundled default theme and English locale,
   without installed plugins or a shared database.
-- In-memory SQLite containing site options and empty post/taxonomy tables.
+- In-memory SQLite containing site options and empty taxonomy tables. The HTTP
+  entry adds three published posts to the otherwise empty post table per request.
   Original SQL and theme-style queries execute against this finite environment.
 - Checked views for original class contracts and finite native reflection,
   property and constant inventories. Unknown metadata paths fail explicitly.

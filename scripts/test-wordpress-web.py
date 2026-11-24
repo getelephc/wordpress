@@ -3,14 +3,17 @@
 
 import argparse
 import hashlib
+from html.parser import HTMLParser
 import json
 import os
 from pathlib import Path
 import re
 import resource
+import shutil
 import signal
 import socket
 import subprocess
+import tempfile
 import time
 import urllib.error
 import urllib.parse
@@ -18,6 +21,14 @@ import urllib.request
 
 ROOT = Path(__file__).resolve().parent.parent
 OUT = ROOT / "elephc/build/full-source"
+ENTRY = ROOT / "elephc/full-source/web.php"
+FIXTURES = ROOT / "elephc/full-source/fixtures"
+CASES = ROOT / "tests/full-source/bootstrap-render-cases.json"
+POSTS = {
+    1003: ("Da SQLite alla pagina", "SQLite conserva i tre articoli"),
+    1002: ("Come vengono renderizzati i blocchi", "Il core costruisce questo HTML"),
+    1001: ("Un primo articolo su WordPress", "Questo articolo arriva dalla tabella"),
+}
 
 
 def sha(path):
@@ -34,11 +45,87 @@ def request(url, method="GET"):
         return response.status, response.headers, response.read()
 
 
+class LatestPostsLinks(HTMLParser):
+    def __init__(self):
+        super().__init__()
+        self.hrefs = []
+
+    def handle_starttag(self, tag, attrs):
+        attrs = dict(attrs)
+        if tag == "a" and "wp-block-latest-posts__post-title" in attrs.get("class", "").split():
+            self.hrefs.append(attrs.get("href", ""))
+
+
+def post_links(body):
+    if "Ultimi articoli" not in body.decode("utf-8"):
+        raise SystemExit("The homepage is missing its latest-posts heading")
+    links = LatestPostsLinks()
+    links.feed(body.decode("utf-8"))
+    expected = [f"http://127.0.0.1:9000/?p={post_id}" for post_id in POSTS]
+    if links.hrefs != expected:
+        raise SystemExit(f"Expected WordPress to generate three ordered post links, got {links.hrefs}")
+    return ["/?" + urllib.parse.urlsplit(link).query for link in links.hrefs]
+
+
+def php_reference_pages(cases):
+    with tempfile.TemporaryDirectory(prefix=".web-php-reference-", dir=OUT) as temporary:
+        directory = Path(temporary)
+        wordpress = directory / "wordpress"
+        shutil.copytree(ROOT / "upstream/wordpress", wordpress)
+        for path in FIXTURES.rglob("*"):
+            if path.is_file():
+                target = wordpress / path.relative_to(FIXTURES)
+                if target.exists():
+                    raise SystemExit(f"Web reference fixture would overwrite original WordPress: {target.name}")
+                target.parent.mkdir(parents=True, exist_ok=True)
+                shutil.copyfile(path, target)
+        entry = directory / "web.php"
+        entry.write_text(ENTRY.read_text().replace('/wordpress/aot-platform.lfc', '/wordpress/aot-php-platform.php'))
+        php_driver = '''
+            $_SERVER['REQUEST_METHOD'] = 'GET';
+            $_SERVER['REQUEST_URI'] = $argv[2];
+            $_SERVER['PHP_SELF'] = '/index.php';
+            $_SERVER['HTTP_HOST'] = '127.0.0.1:9000';
+            parse_str(parse_url($argv[2], PHP_URL_QUERY) ?? '', $_GET);
+            require $argv[1];
+            fwrite(STDERR, 'STATUS ' . http_response_code());
+        '''
+
+        def fetch(path):
+            completed = subprocess.run(
+                [os.environ.get("PHP_BIN", "php"), "-d", "display_errors=stderr", "-r", php_driver, str(entry), path],
+                cwd=ROOT, capture_output=True, timeout=30,
+            )
+            if completed.returncode or completed.stderr != b"STATUS 200":
+                raise SystemExit(f"Original PHP failed for {path}:\n{completed.stderr.decode(errors='replace')}")
+            return completed.stdout
+
+        pages = {"default": ("/", fetch("/"))}
+        for name, document in cases.items():
+            path = "/?" + urllib.parse.urlencode({"document": document})
+            pages[name] = (path, fetch(path))
+        for post_id, path in zip(POSTS, post_links(pages["default"][1]), strict=True):
+            body = fetch(path)
+            title, excerpt = POSTS[post_id]
+            html = body.decode("utf-8")
+            if f"<h1>{title}</h1>" not in html or excerpt not in html or 'href="/">Tutti gli articoli' not in html:
+                raise SystemExit(f"Original PHP did not render the title, body and back link of article {post_id}")
+            pages[f"post-{post_id}"] = (path, body)
+    return pages
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--native", type=Path, default=OUT / "bootstrap-web")
     parser.add_argument("--port", type=int, default=9000)
+    parser.add_argument("--reference-only", action="store_true", help="Verify the web fixture under original WordPress PHP")
     args = parser.parse_args()
+    cases = json.loads(CASES.read_text())
+    if args.reference_only:
+        subprocess.run(["python3", "scripts/prepare-wordpress.py", "--check"], cwd=ROOT, check=True)
+        pages = php_reference_pages(cases)
+        print(f"PASS: {len(pages)} original PHP web pages, including all three linked posts")
+        return
     binary = args.native.resolve()
     if not binary.is_file():
         parser.error("Build the native WordPress server with scripts/build-wordpress.sh --web")
@@ -66,7 +153,6 @@ def main():
         reference += ["--native", str(cli)]
     subprocess.run(reference, cwd=ROOT, check=True)
     baseline = json.loads((OUT / "bootstrap-verification.json").read_text())
-    cases = json.loads((ROOT / "tests/full-source/bootstrap-render-cases.json").read_text())
     if baseline["source_manifest_sha256"] != source_hash:
         raise SystemExit("The PHP reference uses different prepared sources")
     link = json.loads((OUT / "bootstrap-web-link.json").read_text())
@@ -75,11 +161,12 @@ def main():
             or link["allocated_contents_sha256"] != link["placed_allocated_contents_sha256"]):
         raise SystemExit("The web executable lacks matching content-preserving linker provenance")
     entry = OUT / "bootstrap-web.php"
-    if sha(entry) != sha(ROOT / "elephc/full-source/web.php"):
+    if sha(entry) != sha(ENTRY):
         raise SystemExit("Rebuild the server after changing the maintained HTTP entrypoint")
     if build["entry_sha256"] != sha(entry) or link["entry_sha256"] != sha(entry):
         raise SystemExit("The web build and link refer to another HTTP entrypoint")
 
+    pages = php_reference_pages(cases)
     base_url = f"http://127.0.0.1:{args.port}"
     results = []
     with (OUT / "web-test-server.log").open("w") as log:
@@ -102,23 +189,17 @@ def main():
                         raise SystemExit("The native server did not listen within 30 seconds")
                     time.sleep(0.1)
 
-            sequence = ["default", *cases, "default", "nested-unicode", "navigation-names", "default"]
+            sequence = [*pages, "default", "nested-unicode", "navigation-names", "default"]
             for name in sequence:
-                query = "" if name == "default" else "?" + urllib.parse.urlencode({"document": cases[name]})
-                status, headers, body = request(base_url + "/" + query)
-                html = body.decode("utf-8")
-                expected = (baseline["php"]["original"]["rendered"] if name == "default"
-                            else baseline["render_cases"][name]["rendered"])
-                prefix = '<main class="wp-site-blocks">'
-                footer = '<footer>Rendered by the compiled WordPress core.</footer>'
+                path, expected = pages[name]
+                status, headers, body = request(base_url + path)
                 if (status != 200 or not headers.get("Content-Type", "").startswith("text/html")
                         or headers.get("X-WordPress-Execution") != "elephc-native"
-                        or not html.startswith("<!doctype html>") or prefix not in html or footer not in html):
-                    raise SystemExit(f"Invalid native HTML response for {name}: {status}\n{html[:2000]}")
-                rendered = html.split(prefix, 1)[1].split(footer, 1)[0]
-                if rendered != expected:
+                        or not body.startswith(b"<!doctype html>")):
+                    raise SystemExit(f"Invalid native HTML response for {name}: {status}\n{body[:2000]!r}")
+                if body != expected:
                     (OUT / "web-native-mismatch.json").write_text(json.dumps(
-                        {"case": name, "php": expected, "native": rendered}, indent=2) + "\n")
+                        {"case": name, "php": expected.decode("utf-8"), "native": body.decode("utf-8")}, indent=2) + "\n")
                     raise SystemExit("Native HTTP rendering differs from original PHP: " + name)
                 results.append({"case": name, "status": status, "matches_original_php": True,
                                 "html_sha256": hashlib.sha256(body).hexdigest()})
@@ -126,7 +207,8 @@ def main():
 
             for path, method, expected_status in [
                 ("/", "HEAD", 200), ("/missing", "GET", 404), ("/", "POST", 405),
-                ("/?document=%00", "GET", 400),
+                ("/?document=%00", "GET", 400), ("/?p=9999", "GET", 404),
+                ("/?p=bad", "GET", 400), ("/?p=1001&document=", "GET", 400),
             ]:
                 status, headers, body = request(base_url + path, method)
                 if status != expected_status or (method == "HEAD" and body):
@@ -154,10 +236,10 @@ def main():
         "source_manifest_sha256": source_hash, "compiler_sha256": link["compiler_sha256"],
         "native_sha256": sha(binary), "entry_sha256": sha(entry), "harness_sha256": sha(Path(__file__)),
         "build_driver_sha256": build["driver_sha256"], "runtime_diagnostics_clean": True,
-        "cases_sha256": sha(ROOT / "tests/full-source/bootstrap-render-cases.json"),
+        "cases_sha256": sha(CASES),
         "web_isolation": "request", "workers": 1, "requests": results,
         "cli_native_also_verified": baseline["native_verified"],
-        "note": "Live HTML rendered by the unchanged complete WordPress CLI fixture inside native HTTP requests. Full theme routing and administration are outside this entrypoint.",
+        "note": "Live HTML rendered by the original WordPress bootstrap and SQLite-backed post APIs inside native HTTP requests.",
     }
     report_path.write_text(json.dumps(report, indent=2) + "\n")
     print(f"PASS: {len(results)} native HTTP checks; complete original-PHP rendering parity", flush=True)

@@ -9,7 +9,7 @@
 <h1 align="center">WordPress 7 on Elephc</h1>
 
 <p align="center">
-  <em>WordPress blocks, rendered by an ahead-of-time compiled core.</em>
+  <em>WordPress posts and blocks, rendered by an ahead-of-time compiled core.</em>
 </p>
 
 <p align="center">
@@ -22,7 +22,7 @@
 </p>
 
 <p align="center">
-  An experimental port that starts from the complete WordPress release and compiles the bootstrap and content renderer with <a href="https://github.com/illegalstudio/elephc">Elephc</a>. Each HTTP request renders its block document live in the native executable.
+  An experimental port that starts from the complete WordPress release and compiles the bootstrap and content renderer with <a href="https://github.com/illegalstudio/elephc">Elephc</a>. The native executable serves a list of SQLite-backed posts and renders each article live.
 </p>
 
 <p align="center">
@@ -45,9 +45,10 @@
 - The native CLI bootstrap registers 116 core blocks and matches the original
   PHP result, including 109 original theme pattern hashes. An independent
   source-only export rebuilt the CLI and repeated the parity checks.
-- The native HTTP binary serves `/` and `/index.php` on port 9000. All 14 HTTP
-  checks passed, including exact original-PHP content parity for the default
-  page and five documents, repeated requests, HEAD and error responses.
+- The HTTP fixture serves `/` and `/index.php` on port 9000. The homepage uses
+  Gutenberg's Latest Posts block to list three demo articles. WordPress
+  generates the links as `/?p=<id>` and loads each article from SQLite. All 20
+  native HTTP checks passed, including original-PHP parity for the full pages.
 - All 47 native control groups passed 230,504 comparisons in each IR mode.
   The [verification snapshot](docs/elephc/full-source-status.json) records the
   compiler, build and test identities.
@@ -59,20 +60,21 @@
 | [WordPress source patches](patches/full-source/README.md) | 1,103 | 639 compatibility rewrites and 464 finite-profile adaptations, each applied to a complete original file |
 | [Runtime fixtures](elephc/full-source/fixtures/) | 15 | Local configuration, in-memory SQLite, bootstrap probes and bounded PHP compatibility helpers |
 | [Elephc SDK patches](patches/compiler/README.md) | 2 | Compiler and linker-scale adaptations in `wordpress-main.patch`, followed by the request-global storage fix in `wordpress-web.patch` |
-| [HTTP entrypoint](elephc/full-source/web.php) | 1 | Application adapter that invokes the bootstrap and serves the rendered content |
+| [HTTP entrypoint](elephc/full-source/web.php) | 1 | Application adapter that invokes the bootstrap, seeds three SQL rows and serves the rendered content |
 
 ## Estimated WordPress code exercised
 
-The default page exercises approximately **1.9%** of the distributed PHP source
-lines on the original-PHP reference path (12,028 of 635,648 lines). Across the
-default and all five test documents, the estimate is **2.3%** (14,562 lines),
-with at least one line reached in 444 of the 1,512 original PHP files.
+The default page exercises approximately **1.8%** of the distributed PHP source
+lines on the original-PHP reference path (11,630 of 635,648 lines). Across the
+homepage, five test documents and three articles, the estimate is **2.0%**
+(12,405 lines), with at least one line reached in 322 of the 1,512 original PHP
+files.
 
 The estimate uses PHP 8.5.12's `phpdbg` opcode log for the unmodified WordPress
-7.1.4 bootstrap fixture, including its inspection probes and shutdown. It counts
+7.1.4 web fixture through the end of the response. It counts
 distinct original file/line pairs with opcode hits, divided by all physical
 lines in the archive's PHP files, including comments and blanks. Fixtures and
-non-PHP assets are excluded. All six traced renders matched the PHP baseline.
+non-PHP assets are excluded. All nine traced renders matched the PHP baseline.
 This is a reference-path estimate for the native fixture. Native verification
 compares outputs, while an Elephc line-coverage measurement would require
 instrumenting the native executable.
@@ -110,13 +112,15 @@ locked native dependencies. It compiles with `--php-version 8.4`, `--web` and
 Generated sources, reports and binaries go under `elephc/build/full-source/`.
 `elephc` on `PATH` also works when it belongs to the complete SDK.
 
-The recorded web build took about 40 minutes and produced a 2.24 GB executable.
+The recorded web build took about 37 minutes and produced a 2.22 GB executable.
 Budget about 35 GiB of compiler memory and enough disk space for 17.7 GB of
 assembly plus linker intermediates. Cold native dependency setup can add several
 minutes.
 
 Open [http://127.0.0.1:9000](http://127.0.0.1:9000). `/` and `/index.php` accept
-GET and HEAD. Rerun the serve script to start an already-built binary.
+GET and HEAD. Click an article in the Latest Posts list or open
+[the SQLite article](http://127.0.0.1:9000/?p=1003) directly. Rerun the serve
+script to start an already-built binary.
 
 Try a different block document without recompiling.
 
@@ -145,16 +149,23 @@ and distinct function addresses in the large generated program.
 
 ```text
 Elephc HTTP listener
-  -> web.php validates the route, method and optional block document
-  -> aot-probe.php runs original wp-load.php and wp-settings.php
-  -> WordPress renders do_blocks() and do_shortcode()
-  -> an output-buffer callback wraps the rendered content in HTML
+  -> web.php validates the route, method, post ID or block document
+  -> original wp-load.php and wp-settings.php initialize the site
+  -> the entry inserts three demo posts into the SQLite fixture
+  -> core Latest Posts (WP_Query) or get_post() loads the content
+  -> do_blocks() and do_shortcode() render the response
 ```
 
 The listener uses one worker and a fresh handler process per request. Each
-handler pays the cost of the bootstrap and inspection probes, recreating the
-in-memory SQLite database before rendering. The fixture selects Twenty
-Twenty-Five, English locale and an empty plugin list.
+handler runs the core bootstrap and recreates the in-memory SQLite database
+before rendering. The diagnostic inspection probes run on the separate CLI
+path. The fixture selects Twenty Twenty-Five, English locale and an empty
+plugin list. The WordPress mark in the header comes from the pinned archive.
+
+The maintained `WP_Query` and Latest Posts file patches preserve the same
+query and block. The former converts rows with a direct `get_post()` call
+using its original defaults. The latter passes the live loop post to the
+title and permalink APIs.
 
 ## Verify
 
@@ -168,8 +179,10 @@ python3 scripts/test-wordpress-bootstrap.py \
 python3 scripts/test-wordpress-web.py --port 9001
 ```
 
-The HTTP test starts and stops its own native server and checks exact rendered
-content, repeated requests, HEAD, missing paths, rejected methods and NUL input.
+The HTTP test follows all three links from the WordPress block and compares the
+full native pages with original PHP. It also checks repeated requests, HEAD,
+missing articles, rejected methods and invalid inputs. Pass `--reference-only`
+to run the original-PHP web checks without a compiled web binary.
 For a new SDK, install the locked dependencies before running the control suites.
 
 ```bash
