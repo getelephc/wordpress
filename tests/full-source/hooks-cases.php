@@ -101,7 +101,7 @@ class WordPressHookStructuredRecursionProbe {
     }
 }
 $structured_object = new stdClass();
-$structured_object->label = 'Città';
+$structured_object->label = 'Cafés';
 $structured_object->values = array(true,null,array('nested'=>7));
 foreach (array(array(),array(3=>false,'nested'=>array('label'=>'é','value'=>null)),$structured_object) as $structured_value) {
     foreach (array(1,3,5) as $structured_depth) {

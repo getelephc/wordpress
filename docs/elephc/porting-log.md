@@ -14,7 +14,7 @@ extracted.
 | Prepared source manifest for the recorded CLI and controls | `c19cbe6d850639389b67fd665a288f491afcf6dfbb929d538db2423bb75d00c5` |
 | Current prepared source manifest for HTTP | `22837b12a147e6e3ae01a5723370202d02b193e960bf5788651e253a33b8b567` |
 | Elephc base revision | `f20729406216d21ce99841cf4636b771db9874dd` |
-| Elephc compatibility patch | `494a3fdf054c04dbf860de008ee030ec85bb0d0e9a2fbfe1eb75e1ef9d60de1f` |
+| Elephc compatibility patch | `56d32d2e2293e10176da0b8eddd8d207077c4461f3752fcbd4b0d4de5b0844bb` |
 | Verified compiler executable | `2f75c59ebe654fcf86e481d990ed6428ef462cfdabc005e3060166efb323a9fc` |
 | Ordinary native executable | `cf8296ba1dc808e3070c2cab814587ce0790641894f201d0a3e3f48e21440dbf` |
 | Source-only native executable | `682acf48d0a61e6f5598059e7a9acf69f5cef39d38e2ee01dfc322ee26c6e110` |
@@ -51,13 +51,13 @@ source, compiler, test-input, harness and linker identities.
 
 The public `scripts/build-wordpress.sh --web` build uses the complete prepared
 core and the separate `elephc/full-source/web.php` entry. It finishes in
-2202.89 seconds with compiler
+2171.44 seconds with compiler
 `5017cabe244cfe49dc7af7620218bc422a2143c115fd398ea5f8f727864a23cc` and executable
-`784874db1189c6639b0086147c700feb0c09da21a82ae615d66fe6643ce1f4a2`.
+`c0d62eacb94af5756fe99bc7cb365c375d88f9ff114122dd1284771d16493395`.
 The linker preserves allocated bytes and disables function folding.
 
 The entry executes the original `wp-load.php` and `wp-settings.php` for each
-request and seeds three published posts in request-local SQLite. The homepage
+request and seeds three English posts in request-local SQLite. The homepage
 renders the original Latest Posts block, which queries those rows through
 `WP_Query` and generates plain WordPress permalinks. The article route uses
 `get_post()` and the core block and shortcode pipeline. The diagnostic probes
@@ -82,8 +82,12 @@ Its five-target IR/assembly test,
 both-IR native HTTP test and five packaged-SDK reproducers pass. The SDK uses
 Rust 1.99.1 and retains all 25 base runtime archives. An independent maintained-file
 export reconstructs the current core and passes all nine original-PHP web pages.
-The compiler patches remain byte-identical to the independent reconstruction of
-all 69 changed SDK source files.
+An independent reconstruction applied both compiler patches to the pinned SDK
+source. English sample strings changed in two of the 69 patched files, both
+regression tests. The SDK's compiler and runtime sources are byte-identical
+to the previous reconstruction. Both translated SDK fixtures pass with IR
+optimization on and off. The seven WordPress control groups with translated
+samples also pass 17,165 primary comparisons against original PHP.
 
 ## Current adaptations
 

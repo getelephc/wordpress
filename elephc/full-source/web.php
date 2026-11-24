@@ -13,8 +13,8 @@ function wordpress_web_page(string $title, string $content, bool $article): stri
     $version = esc_html((string) get_bloginfo('version'));
     $logo = base64_encode((string) file_get_contents(ABSPATH . 'wp-includes/images/w-logo-gray-white-bg.svg'));
     $heading = $article ? '<h1>' . $title . '</h1>' : '';
-    $back = $article ? '<p class="back"><a href="/">Tutti gli articoli</a></p>' : '';
-    return '<!doctype html><html lang="it"><head><meta charset="utf-8">'
+    $back = $article ? '<p class="back"><a href="/">All posts</a></p>' : '';
+    return '<!doctype html><html lang="en"><head><meta charset="utf-8">'
         . '<meta name="viewport" content="width=device-width, initial-scale=1">'
         . '<title>' . $title . '</title>'
         . '<style>*{box-sizing:border-box}body{margin:0;background:#f1f5f8;color:#18262e;font:18px/1.6 system-ui,sans-serif}'
@@ -28,21 +28,21 @@ function wordpress_web_page(string $title, string $content, bool $article): stri
         . 'footer{margin-top:32px;padding-top:16px;border-top:1px solid #d5e1e8;color:#465d68}'
         . '</style></head><body><div class="shell"><header class="masthead">'
         . '<img alt="" src="data:image/svg+xml;base64,' . $logo . '"><div><a href="/">' . $site . '</a>'
-        . '<small>WordPress ' . $version . ' · Compilato con Elephc</small></div></header>'
+        . '<small>WordPress ' . $version . ' · Compiled with Elephc</small></div></header>'
         . '<main class="wp-site-blocks">' . $heading . $content . $back
         . '<footer>Rendered by the compiled WordPress core.</footer></main></div></body></html>';
 }
 
 function wordpress_web_seed_posts(wpdb $database): void {
     $articles = array(
-        array(1001, '2026-01-12 09:00:00', 'primo-articolo', 'Un primo articolo su WordPress',
-            '<!-- wp:paragraph --><p>Questo articolo arriva dalla tabella dei post di WordPress.</p><!-- /wp:paragraph -->'),
-        array(1002, '2026-01-13 09:00:00', 'blocchi-gutenberg', 'Come vengono renderizzati i blocchi',
-            '<!-- wp:paragraph --><p>Gutenberg salva nel database il documento a blocchi.</p><!-- /wp:paragraph -->'
-            . '<!-- wp:quote --><blockquote class="wp-block-quote"><!-- wp:paragraph --><p>Il core costruisce questo HTML a ogni richiesta.</p><!-- /wp:paragraph --></blockquote><!-- /wp:quote -->'),
-        array(1003, '2026-01-14 09:00:00', 'wordpress-da-sqlite', 'Da SQLite alla pagina',
-            '<!-- wp:paragraph --><p>SQLite conserva i tre articoli per la durata della richiesta.</p><!-- /wp:paragraph -->'
-            . '<!-- wp:buttons --><div class="wp-block-buttons"><!-- wp:button --><div class="wp-block-button"><a class="wp-block-button__link wp-element-button" href="/">Prova un altro articolo</a></div><!-- /wp:button --></div><!-- /wp:buttons -->'),
+        array(1001, '2026-01-12 09:00:00', 'first-wordpress-post', 'A first WordPress post',
+            '<!-- wp:paragraph --><p>This post comes from the WordPress posts table.</p><!-- /wp:paragraph -->'),
+        array(1002, '2026-01-13 09:00:00', 'gutenberg-blocks', 'How WordPress renders blocks',
+            '<!-- wp:paragraph --><p>Gutenberg stores the block document in the database.</p><!-- /wp:paragraph -->'
+            . '<!-- wp:quote --><blockquote class="wp-block-quote"><!-- wp:paragraph --><p>WordPress generates this HTML on every request.</p><!-- /wp:paragraph --></blockquote><!-- /wp:quote -->'),
+        array(1003, '2026-01-14 09:00:00', 'from-sqlite-to-the-page', 'From SQLite to the page',
+            '<!-- wp:paragraph --><p>SQLite stores the three posts for the duration of the request.</p><!-- /wp:paragraph -->'
+            . '<!-- wp:buttons --><div class="wp-block-buttons"><!-- wp:button --><div class="wp-block-button"><a class="wp-block-button__link wp-element-button" href="/">Read another post</a></div><!-- /wp:button --></div><!-- /wp:buttons -->'),
     );
     foreach ($articles as $article) {
         $insert = $database->prepare(
@@ -77,7 +77,7 @@ function wordpress_web_show(?string $document, int $post_id): void {
     if ($post_id > 0) {
         $article = get_post($post_id);
         if (!($article instanceof WP_Post) || $article->post_status !== 'publish' || $article->post_type !== 'post') {
-            wordpress_web_response(404, 'text/plain; charset=utf-8', "Articolo non trovato\n");
+            wordpress_web_response(404, 'text/plain; charset=utf-8', "Post not found\n");
             return;
         }
         $title = (string) get_the_title($article);
@@ -87,7 +87,7 @@ function wordpress_web_show(?string $document, int $post_id): void {
     }
 
     $document = $document ?? '<!-- wp:site-title /--><!-- wp:site-tagline /-->'
-        . '<!-- wp:heading --><h2 class="wp-block-heading">Ultimi articoli</h2><!-- /wp:heading -->'
+        . '<!-- wp:heading --><h2 class="wp-block-heading">Latest posts</h2><!-- /wp:heading -->'
         . '<!-- wp:latest-posts {"postsToShow":3} /-->';
     $title = (string) get_bloginfo('name');
     wordpress_web_response(200, 'text/html; charset=utf-8', wordpress_web_page($title, wordpress_web_render($document), false));

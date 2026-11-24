@@ -4597,7 +4597,7 @@ index ab563e7537..4da01f77af 100644
 +#[path = "oop/magic_cached_properties.rs"]
 +mod magic_cached_properties;
 diff --git c/tests/codegen/oop/interfaces.rs w/tests/codegen/oop/interfaces.rs
-index 25b230050f..46209ab0c2 100644
+index 25b230050f..d4fe2c8e99 100644
 --- c/tests/codegen/oop/interfaces.rs
 +++ w/tests/codegen/oop/interfaces.rs
 @@ -908,3 +908,58 @@ echo $tags->dump();
@@ -4637,7 +4637,7 @@ index 25b230050f..46209ab0c2 100644
 +    return $cache->inspect('extra', 2.5, 'tail', array('nested' => 7));
 +}
 +
-+$cache = new GeneratedCollectorCacheValue('memory', 'città', 'spc', 'ctor-tail');
++$cache = new GeneratedCollectorCacheValue('memory', 'cafés', 'spc', 'ctor-tail');
 +$results = array($cache->constructor_args, generated_collector_read($cache, 'plain', 1.5),
 +    generated_collector_extra($cache));
 +$read = $cache->inspect(...);
@@ -4650,7 +4650,7 @@ index 25b230050f..46209ab0c2 100644
 +unset($results);
 +"#);
 +    assert!(out.success, "{}", out.stderr);
-+    assert_eq!(out.stdout, "[[\"memory\",\"citt\\u00e0\",\"spc\",\"ctor-tail\"],[\"plain\",1.5,2,[\"plain\",1.5]],[\"extra\",2.5,4,[\"extra\",2.5,\"tail\",{\"nested\":7}]],[\"captured\",3.5,4,[\"captured\",3.5,null,9]],[null,7,{\"type\":\"spi\"}]]\n");
++    assert_eq!(out.stdout, "[[\"memory\",\"caf\\u00e9s\",\"spc\",\"ctor-tail\"],[\"plain\",1.5,2,[\"plain\",1.5]],[\"extra\",2.5,4,[\"extra\",2.5,\"tail\",{\"nested\":7}]],[\"captured\",3.5,4,[\"captured\",3.5,null,9]],[null,7,{\"type\":\"spi\"}]]\n");
 +    assert!(out.stderr.contains("HEAP DEBUG: leak summary: clean"), "{}", out.stderr);
 +}
 +

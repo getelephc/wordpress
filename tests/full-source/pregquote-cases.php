@@ -1,6 +1,6 @@
 <?php
 
-$inputs = array('', 'plain text', '.\\+*?[^]$(){}=!<>|:-#/', "before\0after", 'caffè/日本語');
+$inputs = array('', 'plain text', '.\\+*?[^]$(){}=!<>|:-#/', "before\0after", 'cafés/日本語');
 $bytes = '';
 for ($byte = 0; $byte < 256; ++$byte) {
     $bytes .= chr($byte);

@@ -33,5 +33,7 @@
   Never report copied source counts as native execution percentages.
 - Keep the README, current porting log, provenance, execution boundaries and Code
   Journal consistent. Do not restore superseded subsystem or hybrid experiments.
+- Write demo copy, repository documentation and maintained examples in English.
+  Preserve Unicode coverage in regression fixtures.
 - Use concise English lowercase Conventional Commits without Co-Authored-By.
   Use gh for supported GitHub operations. Never use em dashes.

@@ -5,7 +5,7 @@ $wrapper_control_inputs=array(
  array(array(),array()),
  array(array(),array('aria-label'=>'Menu')),
  array(array(),array('aria-label'=>'Menu 2')),
- array(array(),array('aria-label'=>'Città & utilità')),
+ array(array(),array('aria-label'=>'Cafés & amenities')),
  array(array(),array('aria-label'=>'0')),
  array(array(),array('aria-label'=>'0 2')),
  array(array('aria-label'=>'Support'),array()),

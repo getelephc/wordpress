@@ -9,8 +9,8 @@ $strings = array('', 'a', 'A', 'a1', 'a01', 'a10', 'a2', '0001', '1', '01', '1 '
 foreach ($strings as $left) {
     foreach ($strings as $right) $rows[] = array(strnatcasecmp($left, $right) <=> 0);
 }
-foreach (array('', 'abc', "a\0b", 'caffè', "\xff\x80x") as $string) {
-    foreach (array('x', 'a', 'bc', "\0", "\x80", "\xa8", 'é', 'abcxyz') as $mask) {
+foreach (array('', 'abc', "a\0b", 'cafés', "\xff\x80x") as $string) {
+    foreach (array('x', 'a', 'bc', "\0", "\x80", "\xa9", 'é', 'abcxyz') as $mask) {
         $found = strpbrk($string, $mask);
         $rows[] = array($found === false ? false : base64_encode((string) $found));
     }

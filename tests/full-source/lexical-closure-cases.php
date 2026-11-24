@@ -18,10 +18,10 @@ class WordPressLexicalBookmarkProbe extends WP_HTML_Processor {
 }
 
 $results = array();
-$contexts = array('home' => '/blog+*/', 'site' => '/', 'custom' => '/città:?#/');
+$contexts = array('home' => '/blog+*/', 'site' => '/', 'custom' => '/cafés:?#/');
 $prefixer = new WP_URL_Pattern_Prefixer($contexts);
 $child_prefixer = new WordPressLexicalPrefixerProbe($contexts);
-foreach (array('', '/', 'post/*', '/post/*', '/blog+*/post', '/città:?#/post', 'literal?x=1') as $path) {
+foreach (array('', '/', 'post/*', '/post/*', '/blog+*/post', '/cafés:?#/post', 'literal?x=1') as $path) {
     foreach (array_keys($contexts) as $context) {
         $value = $prefixer->prefix_path_pattern($path, $context);
         $child_value = $child_prefixer->prefix_path_pattern($path, $context);
@@ -89,7 +89,7 @@ foreach (array(new WP_REST_Font_Faces_Controller('wp_font_face'),
     if ($sanitize !== $cached_path['sanitize_callback']) throw new LogicException('The cached schema must retain its callback.');
     if ($font_controller instanceof WordPressFontSourceCallbackProbe) $font_controller->prefix = 'live';
     // File keys and non-URL strings avoid DNS, HTTP and uploads.
-    foreach (array('', '  file-key', '/fonts/città.woff2', 'javascript:font', array(),
+    foreach (array('', '  file-key', '/fonts/cafés.woff2', 'javascript:font', array(),
                    array('  first', 'second'), array(4 => ' sparse', 'named' => 'é')) as $input) {
         $snapshot = $input;
         $value = $sanitize($input);
@@ -120,7 +120,7 @@ try {
     $dependency_properties['dependencies']->setValue(null, array($plugin_file => array('dep-one', 'dep-two')));
     $dependency_properties['initialized']->setValue(null, true);
     foreach (array(
-        array('dep-one' => array('Name' => 'Plugin Uno'), 'dep-two' => array('Name' => 'Città 🙂')),
+        array('dep-one' => array('Name' => 'Plugin One'), 'dep-two' => array('Name' => 'Cafés 🙂')),
         array('dep-two' => array('Name' => null)),
         array('dep-one' => array('Name' => false), 'dep-two' => array('Name' => '')),
         array('dep-one' => array('Name' => '0'), 'dep-two' => array('Name' => 0)),

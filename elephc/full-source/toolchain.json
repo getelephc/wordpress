@@ -7,7 +7,7 @@
   "archive_sha256": "0af850c14a9422a0e3125e50a5eb0d160ac2d21700a14c9670aede8b7b454b51",
   "sdk_compiler_sha256": "0159b3c7763c9724ad4afd3cb01befc1b8498d7bc528bec8556bb928af938238",
   "compiler_patch": "patches/compiler/wordpress-main.patch",
-  "compiler_patch_sha256": "494a3fdf054c04dbf860de008ee030ec85bb0d0e9a2fbfe1eb75e1ef9d60de1f",
+  "compiler_patch_sha256": "56d32d2e2293e10176da0b8eddd8d207077c4461f3752fcbd4b0d4de5b0844bb",
   "compiler_sha256": "2f75c59ebe654fcf86e481d990ed6428ef462cfdabc005e3060166efb323a9fc",
   "compiler_build": {
     "rustc": "rustc 1.98.1 (48a229cea 2026-09-01)",
@@ -158,7 +158,7 @@
   ],
   "web_compiler": {
     "compiler_patch": "patches/compiler/wordpress-web.patch",
-    "compiler_patch_sha256": "e543c8b3f44333da29b4473651b4f981d9cf1f8f020f435ac7dd7796217e7423",
+    "compiler_patch_sha256": "e4dc993c17fe3e068436cc19c8f159b5ec140fb58f9f58423d4e928b1049e48b",
     "applied_after": "patches/compiler/wordpress-main.patch",
     "compiler_sha256": "5017cabe244cfe49dc7af7620218bc422a2143c115fd398ea5f8f727864a23cc",
     "rustc": "rustc 1.99.1 (58cf8f9c3 2026-10-13)",
@@ -178,7 +178,15 @@
       "profile_environment": {
         "CARGO_PROFILE_RELEASE_OPT_LEVEL": "1",
         "CARGO_PROFILE_RELEASE_DEBUG": "line-tables-only"
-      }
+      },
+      "source_patch_sha256": {
+        "patches/compiler/wordpress-main.patch": "494a3fdf054c04dbf860de008ee030ec85bb0d0e9a2fbfe1eb75e1ef9d60de1f",
+        "patches/compiler/wordpress-web.patch": "e543c8b3f44333da29b4473651b4f981d9cf1f8f020f435ac7dd7796217e7423"
+      },
+      "published_patch_test_changes": [
+        "tests/codegen/oop/interfaces.rs",
+        "tests/web_tests.rs"
+      ]
     },
     "runtime_sdk_archive_sha256": "0af850c14a9422a0e3125e50a5eb0d160ac2d21700a14c9670aede8b7b454b51",
     "runtime_archives_unchanged": true,

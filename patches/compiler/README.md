@@ -4,13 +4,13 @@ The native WordPress result uses the complete patch in
 [`wordpress-main.patch`](wordpress-main.patch), applied to Elephc revision
 `f20729406216d21ce99841cf4636b771db9874dd`.
 Its SHA-256 is
-`494a3fdf054c04dbf860de008ee030ec85bb0d0e9a2fbfe1eb75e1ef9d60de1f`.
+`56d32d2e2293e10176da0b8eddd8d207077c4461f3752fcbd4b0d4de5b0844bb`.
 This repository contains the changes needed by the verified build; an unpatched
 SDK at that base revision is insufficient.
 
 For the native HTTP entrypoint, apply
 [`wordpress-web.patch`](wordpress-web.patch) after that patch. Its SHA-256 is
-`e543c8b3f44333da29b4473651b4f981d9cf1f8f020f435ac7dd7796217e7423`.
+`e4dc993c17fe3e068436cc19c8f159b5ec140fb58f9f58423d4e928b1049e48b`.
 It coerces boxed request-superglobal replacements to native hash storage before
 publication. The conversion inspects whether the boxed PHP array uses indexed
 or hash storage, so an empty request merge is rebuilt safely instead of being
@@ -27,6 +27,9 @@ WordPress source patches in `patches/full-source/`.
 
 The exact compiler, SDK archive and runtime identities used for the recorded
 result are in [`toolchain.json`](../../elephc/full-source/toolchain.json).
+The current patch checksums include English sample strings in two regression
+tests. Applying the previous and current patches to the pinned source produced
+identical compiler and runtime source files.
 The compiler version banner alone does not identify this patched SDK. A different
 local binary must receive its own PHP/native verification.
 

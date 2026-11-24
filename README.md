@@ -46,7 +46,7 @@
   PHP result, including 109 original theme pattern hashes. An independent
   source-only export rebuilt the CLI and repeated the parity checks.
 - The HTTP fixture serves `/` and `/index.php` on port 9000. The homepage uses
-  Gutenberg's Latest Posts block to list three demo articles. WordPress
+  Gutenberg's Latest Posts block to list three English demo posts. WordPress
   generates the links as `/?p=<id>` and loads each article from SQLite. All 20
   native HTTP checks passed, including original-PHP parity for the full pages.
 - All 47 native control groups passed 230,504 comparisons in each IR mode.
@@ -112,7 +112,7 @@ locked native dependencies. It compiles with `--php-version 8.4`, `--web` and
 Generated sources, reports and binaries go under `elephc/build/full-source/`.
 `elephc` on `PATH` also works when it belongs to the complete SDK.
 
-The recorded web build took about 37 minutes and produced a 2.22 GB executable.
+The recorded web build took about 36 minutes and produced a 2.22 GB executable.
 Budget about 35 GiB of compiler memory and enough disk space for 17.7 GB of
 assembly plus linker intermediates. Cold native dependency setup can add several
 minutes.
@@ -125,7 +125,7 @@ script to start an already-built binary.
 Try a different block document without recompiling.
 
 ```bash
-curl --get --data-urlencode 'document=<!-- wp:paragraph --><p>Ciao WordPress</p><!-- /wp:paragraph -->' http://127.0.0.1:9000/
+curl --get --data-urlencode 'document=<!-- wp:paragraph --><p>Hello WordPress</p><!-- /wp:paragraph -->' http://127.0.0.1:9000/
 ```
 
 The optional document is limited to 16,384 UTF-8 bytes without NUL.
@@ -134,7 +134,7 @@ The optional document is limited to 16,384 UTF-8 bytes without NUL.
 
 ```bash
 ./scripts/build-wordpress.sh
-./elephc/build/full-source/bootstrap '<!-- wp:paragraph --><p>Ciao</p><!-- /wp:paragraph -->'
+./elephc/build/full-source/bootstrap '<!-- wp:paragraph --><p>Hello</p><!-- /wp:paragraph -->'
 ```
 
 The CLI prints JSON with the HTML in its `rendered` field. Its executable and

@@ -3,7 +3,7 @@
 $rows = array();
 $cases = array(
     array(),
-    array('space key' => 'a b', 'tilde' => '~', 'unicode' => 'caffè'),
+    array('space key' => 'a b', 'tilde' => '~', 'unicode' => 'cafés'),
     array('ids' => array(2, 3), 'omit' => null, 'empty' => array()),
     array(3 => 'third', -2 => false, '03' => true),
     array(2 => array('x y' => 'nested value', 0 => true), -1 => array('next' => 'ok')),

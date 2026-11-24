@@ -25,9 +25,9 @@ ENTRY = ROOT / "elephc/full-source/web.php"
 FIXTURES = ROOT / "elephc/full-source/fixtures"
 CASES = ROOT / "tests/full-source/bootstrap-render-cases.json"
 POSTS = {
-    1003: ("Da SQLite alla pagina", "SQLite conserva i tre articoli"),
-    1002: ("Come vengono renderizzati i blocchi", "Il core costruisce questo HTML"),
-    1001: ("Un primo articolo su WordPress", "Questo articolo arriva dalla tabella"),
+    1003: ("From SQLite to the page", "SQLite stores the three posts"),
+    1002: ("How WordPress renders blocks", "WordPress generates this HTML"),
+    1001: ("A first WordPress post", "This post comes from the WordPress posts table."),
 }
 
 
@@ -57,10 +57,13 @@ class LatestPostsLinks(HTMLParser):
 
 
 def post_links(body):
-    if "Ultimi articoli" not in body.decode("utf-8"):
+    html = body.decode("utf-8")
+    if '<html lang="en">' not in html or 'Compiled with Elephc' not in html:
+        raise SystemExit("The homepage is missing its English language or masthead")
+    if '<h2 class="wp-block-heading">Latest posts</h2>' not in html:
         raise SystemExit("The homepage is missing its latest-posts heading")
     links = LatestPostsLinks()
-    links.feed(body.decode("utf-8"))
+    links.feed(html)
     expected = [f"http://127.0.0.1:9000/?p={post_id}" for post_id in POSTS]
     if links.hrefs != expected:
         raise SystemExit(f"Expected WordPress to generate three ordered post links, got {links.hrefs}")
@@ -108,7 +111,7 @@ def php_reference_pages(cases):
             body = fetch(path)
             title, excerpt = POSTS[post_id]
             html = body.decode("utf-8")
-            if f"<h1>{title}</h1>" not in html or excerpt not in html or 'href="/">Tutti gli articoli' not in html:
+            if f"<h1>{title}</h1>" not in html or excerpt not in html or 'href="/">All posts</a>' not in html:
                 raise SystemExit(f"Original PHP did not render the title, body and back link of article {post_id}")
             pages[f"post-{post_id}"] = (path, body)
     return pages
@@ -215,6 +218,8 @@ def main():
                     raise SystemExit(f"Unexpected HTTP boundary result: {method} {path}: {status}")
                 if method == "POST" and headers.get("Allow") != "GET, HEAD":
                     raise SystemExit("The method guard lost its Allow header")
+                if path == "/?p=9999" and body != b"Post not found\n":
+                    raise SystemExit("The missing-post response lost its English message")
                 results.append({"path": path, "method": method, "status": status})
             if server.poll() is not None:
                 raise SystemExit("The native master did not survive repeated requests")

@@ -166,7 +166,7 @@ index 0000000..82f27fb
 +    }
 +}
 diff --git c/tests/web_tests.rs w/tests/web_tests.rs
-index 6778b47..0e7cf56 100644
+index 6778b47..ce8b55f 100644
 --- c/tests/web_tests.rs
 +++ w/tests/web_tests.rs
 @@ -1392,6 +1392,74 @@ fn web_superglobal_visible_in_function() {
@@ -207,7 +207,7 @@ index 6778b47..0e7cf56 100644
 +    install_request_values(merge_request_arrays(array($_GET, $_POST)));
 +    $merged_count = count($_REQUEST);
 +    $merged_before = $_REQUEST['before'] ?? 'missing';
-+    $_GET = request_value(json_decode('{"changed":"città","0":"zero","nested":{"ok":true}}', true));
++    $_GET = request_value(json_decode('{"changed":"cafés","0":"zero","nested":{"ok":true}}', true));
 +    $_GET = normalize_request_values($_GET);
 +    $_SERVER = normalize_request_values($_SERVER);
 +    echo $_SERVER['REQUEST_URI'], "\n", $merged_count, "\n", $merged_before, "\n",
@@ -228,7 +228,7 @@ index 6778b47..0e7cf56 100644
 +            ("/probe?before=one", 1, "one", "one"),
 +        ] {
 +            let response = http_get(&addr, path);
-+            let json = r#"{"changed":"città","0":"zero","nested":{"ok":true}}"#;
++            let json = r#"{"changed":"cafés","0":"zero","nested":{"ok":true}}"#;
 +            assert_eq!(
 +                raw_response_body(&response),
 +                format!("{path}\n{count}\n{merged}\n{json}\n{previous}"),

@@ -31,7 +31,7 @@ def require_navigation_names(markup):
     parser = NavigationNames()
     parser.feed(markup)
     expected = [("nav", "Menu"), ("div", "Menu"), ("nav", "Menu 2"),
-                ("nav", "Città & utilità"), ("nav", "Città & utilità 2"),
+                ("nav", "Cafés & amenities"), ("nav", "Cafés & amenities 2"),
                 ("nav", "Menu 3"), ("nav", "0"), ("nav", "0 2")]
     if parser.names != expected:
         raise SystemExit(f"Unexpected navigation names or overlay counter behavior: {parser.names}")
