@@ -7,19 +7,22 @@
 - Preserve the complete original archive inventory and original, patch and
   resulting complete-file checksums. Never edit dependencies under `upstream/`.
 - Keep the required Elephc changes in `patches/compiler/wordpress-main.patch`,
-  with their pinned base revision and complete SDK instructions. Distinguish
+  and the incremental `patches/compiler/wordpress-web.patch`, with their pinned
+  base revision and complete SDK instructions. Distinguish
   compiler adaptations from WordPress patches and runtime fixtures.
 - Run application code, Elephc and PHP checks directly on the host. Do not use
   DDEV or Docker. The fixture uses isolated in-memory SQLite and must never
   connect to a shared database.
-- The current verified target is a native CLI bootstrap and five runtime
-  documents. There is no WordPress HTTP entrypoint yet. Use `127.0.0.1:9000`
-  when adding a local listener.
+- The verified targets are the native CLI bootstrap and bounded HTTP rendering
+  of the default page and five runtime documents. Use `127.0.0.1:9000` for the
+  local listener. Preserve request isolation and distinguish this entry from full
+  theme routing, administration and persistent installations.
 - Repository scripts use tools on PATH or explicit compiler arguments, without
   personal paths, required version managers, agent helpers or automatic workload
   scheduling. Apply machine-wide build scheduling outside repository scripts.
 - Validate against unmodified PHP with `scripts/test-wordpress-bootstrap.py`
-  and `scripts/test-wordpress-controls.py`. Retain all 47 primary control groups.
+  and `scripts/test-wordpress-controls.py`. Verify native HTTP with
+  `scripts/test-wordpress-web.py`. Retain all 47 primary control groups.
   Reproduce from source with `scripts/test-wordpress-clean-room.py`; `--native`
   additionally rebuilds and verifies the complete native bootstrap.
 - Keep generated sources, SDKs, executables and local reports under

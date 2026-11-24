@@ -4,15 +4,17 @@ This repository contains one experiment: compiling the complete original
 WordPress 7.1.4 source distribution with Elephc. Reviewable full-file patches and
 explicit fixtures preserve the original dependency archive and its checksums.
 
-The verified result is an isolated **native CLI bootstrap**. The bootstrap and
-five runtime documents match unmodified WordPress under PHP, including nested
+The verified result includes an isolated **native CLI bootstrap** and a bounded
+native HTTP entrypoint. The bootstrap and five runtime documents match
+unmodified WordPress under PHP, including nested
 Unicode blocks, dynamic titles, navigation names and a video shortcode. The
 state includes 116 registered core blocks and 109 original pattern hashes.
 All 47 native control groups pass 230,504 comparisons in each IR mode.
 A separate source-only export also rebuilt the executable and repeated parity.
 
-There is no WordPress HTTP entrypoint yet. The fixture URL is
-`http://127.0.0.1:9000`; running the executable does not start a web server.
+The native HTTP entrypoint serves live WordPress-rendered HTML at
+`http://127.0.0.1:9000`. Each request executes the same isolated complete-core
+fixture used by the CLI.
 
 ## Requirements
 
@@ -52,7 +54,7 @@ The SDK metadata records the original GitHub Actions artifact and its checksums.
 That run no longer exposes downloadable artifacts, as checked on 2026-11-23.
 Use the [pinned compiler and bridge source-build instructions](patches/compiler/README.md)
 to construct a complete local SDK from the same base revision and maintained
-compiler patch. Keep its compiler and runtime archives together, then set
+compiler patches. Keep its compiler and runtime archives together, then set
 `ELEPHC_BIN` to that compiler.
 
 A source-built SDK has its own binary identities. The hashes in
@@ -65,15 +67,20 @@ with `ELEPHC_BIN` and needs its own verification.
 
 The verified build uses Elephc revision
 `f20729406216d21ce99841cf4636b771db9874dd` plus the versioned
-[`patches/compiler/wordpress-main.patch`](patches/compiler/wordpress-main.patch).
+[`patches/compiler/wordpress-main.patch`](patches/compiler/wordpress-main.patch),
+followed by [`wordpress-web.patch`](patches/compiler/wordpress-web.patch) for HTTP.
+The second patch preserves native request-superglobal storage on reassignment.
 The unpatched base SDK does not reproduce this result.
 
 The [compiler instructions](patches/compiler/README.md) explain how to check out
-that revision, apply the patch and assemble a complete SDK. The patch contains
-the compiler compatibility, ownership and large-program scaling changes.
+that revision, apply both patches and assemble a complete SDK. They cover
+compiler compatibility, ownership and large-program scaling.
 [`toolchain.json`](elephc/full-source/toolchain.json) records the base revision,
 patch checksum, compiler identity, runtime archive provenance and build flags.
 A reconstructed SDK has its own binary hashes and must pass the controls.
+
+Compiler identities are recorded separately for the CLI and HTTP proofs; the
+web SDK retains the same 25 runtime archives.
 
 These compiler changes are separate from the WordPress compatibility patches in
 [`patches/full-source/`](patches/full-source/README.md). No sibling checkout or
@@ -116,6 +123,30 @@ an isolated SQLite database in memory. Nothing connects to a database server.
 The database and application probes are explicit fixtures, not a captured HTML
 response or a persistent WordPress installation.
 
+## Serve a native page
+
+Build and start the native HTTP executable:
+
+```bash
+./scripts/build-wordpress.sh --web
+./scripts/serve-wordpress.sh
+```
+
+Open [http://127.0.0.1:9000](http://127.0.0.1:9000). `/` and `/index.php` accept
+GET and HEAD. The server uses one worker and a fresh handler process per request.
+The CLI executable and its build/link reports remain separate.
+
+Try a different block document without recompiling:
+
+```bash
+curl --get --data-urlencode 'document=<!-- wp:paragraph --><p>Ciao WordPress</p><!-- /wp:paragraph -->' http://127.0.0.1:9000/
+```
+
+The optional document is limited to 16,384 UTF-8 bytes without NUL. Each page
+uses live core rendering and isolated SQLite in memory. The entry wraps that
+rendered content in a small HTML shell; full theme routing, administration and
+persistence remain outside this fixture.
+
 ## Verify
 
 Compare the original PHP distribution, patched PHP and actual native output:
@@ -126,7 +157,12 @@ python3 scripts/test-wordpress-bootstrap.py \
 python3 scripts/test-wordpress-controls.py --compiler "$ELEPHC_BIN"
 ELEPHC_IR_OPT=off python3 scripts/test-wordpress-controls.py --compiler "$ELEPHC_BIN"
 python3 scripts/test-wordpress-linker.py
+python3 scripts/test-wordpress-web.py --port 9001
 ```
+
+The HTTP check starts and stops its own native instance on port 9001, compares
+the default and all five documents against fresh original-PHP rendering, and
+checks repeated requests, HEAD, missing paths, rejected methods and NUL input.
 
 Reconstruct the source tree from maintained files and the verified archive:
 
@@ -152,17 +188,17 @@ The [porting log](docs/elephc/porting-log.md) explains its current adaptations.
 
 ## Scope and repository layout
 
-Full HTTP request handling, administration, authentication, arbitrary plugins,
-network operations and a persistent database remain outside the verified CLI
-fixture. Unsupported native APIs retain explicit failure boundaries documented
-in [native API boundaries](docs/elephc/native-api-boundaries.md). Source file
+Full theme request routing, administration, authentication, arbitrary plugins,
+network operations and a persistent database remain outside the verified
+fixture. The HTTP entry executes the complete bootstrap and its content
+renderer. Unsupported APIs have explicit [native API boundaries](docs/elephc/native-api-boundaries.md). Source file
 counts are provenance, not percentages of executed WordPress code. This profile
 makes no runtime performance claim.
 
 | Path | Purpose |
 | --- | --- |
 | `elephc/upstream.json` | Pinned original WordPress archive and checksums |
-| `elephc/full-source/` | Runtime fixtures, locked native dependencies and provenance |
+| `elephc/full-source/` | Runtime fixtures, HTTP entry, locked native dependencies and provenance |
 | `patches/compiler/` | Required Elephc patch and SDK build instructions |
 | `patches/full-source/` | Complete WordPress file patches and original/patch/result hashes |
 | `scripts/` | Preparation, native build, patch maintenance and verification |

@@ -19550,5 +19550,419 @@
     "removed_legacy_files": 224,
     "source_only_export_verified": true,
     "native_dependency_setup": "Eight locked packages installed before bounded control suites."
+  },
+  "complete_native_web": {
+    "schema": 1,
+    "verified": true,
+    "native_server": true,
+    "php_subprocess_serving": false,
+    "source_manifest_sha256": "c19cbe6d850639389b67fd665a288f491afcf6dfbb929d538db2423bb75d00c5",
+    "compiler_sha256": "5017cabe244cfe49dc7af7620218bc422a2143c115fd398ea5f8f727864a23cc",
+    "native_sha256": "5c3c4bdf2cd9f18a665039a066fd0bf9fe247e2f95c9c77ff35c48ac3d959db9",
+    "entry_sha256": "cd3de0e87b4a15e975f0a14ef28ce0f1d613c9ed9fd42e2aa0e57d9bb8382701",
+    "harness_sha256": "bcad318e943ecc26cdfbda0f2ac74670c7cc024a7585019f51533f4ace6bc1d1",
+    "build_driver_sha256": "9be1c4e7a78c0ca73d992a29ee48eb6a3eb8f3e6c1ff00a92eb148899b082a95",
+    "runtime_diagnostics_clean": true,
+    "cases_sha256": "ba4e876095c09af404e4da39a83f6ed0d9264d432646e67ec70a5418eb6b6ec8",
+    "web_isolation": "request",
+    "workers": 1,
+    "requests": [
+      {
+        "case": "default",
+        "status": 200,
+        "matches_original_php": true,
+        "html_sha256": "6936f081b66a40f8f94e7f418537253ab09eb14107fe86ab926dc61ec8150450"
+      },
+      {
+        "case": "empty",
+        "status": 200,
+        "matches_original_php": true,
+        "html_sha256": "d492d347c5d133a59d1b748d8359a314bbbbead4dc72d39d58311f35c311be1c"
+      },
+      {
+        "case": "nested-unicode",
+        "status": 200,
+        "matches_original_php": true,
+        "html_sha256": "77c4ba839a73cf5a153cd756eb360735f6ed81dc79e473b38c6123ed771dc283"
+      },
+      {
+        "case": "dynamic-title",
+        "status": 200,
+        "matches_original_php": true,
+        "html_sha256": "9890296310464bd75611726fc7d5f04db40679d9d6f9730e2b33310a4c0343e0"
+      },
+      {
+        "case": "video-shortcode",
+        "status": 200,
+        "matches_original_php": true,
+        "html_sha256": "5d5072612b458aa6a9825fdc9fc5012363cd093b20158a3dc18409c5b0823317"
+      },
+      {
+        "case": "navigation-names",
+        "status": 200,
+        "matches_original_php": true,
+        "html_sha256": "23fb40ad5dc8439adc42e0e67252fcf3e20a02f6f68cd546181db5d13163e39a"
+      },
+      {
+        "case": "default",
+        "status": 200,
+        "matches_original_php": true,
+        "html_sha256": "6936f081b66a40f8f94e7f418537253ab09eb14107fe86ab926dc61ec8150450"
+      },
+      {
+        "case": "nested-unicode",
+        "status": 200,
+        "matches_original_php": true,
+        "html_sha256": "77c4ba839a73cf5a153cd756eb360735f6ed81dc79e473b38c6123ed771dc283"
+      },
+      {
+        "case": "navigation-names",
+        "status": 200,
+        "matches_original_php": true,
+        "html_sha256": "23fb40ad5dc8439adc42e0e67252fcf3e20a02f6f68cd546181db5d13163e39a"
+      },
+      {
+        "case": "default",
+        "status": 200,
+        "matches_original_php": true,
+        "html_sha256": "6936f081b66a40f8f94e7f418537253ab09eb14107fe86ab926dc61ec8150450"
+      },
+      {
+        "path": "/",
+        "method": "HEAD",
+        "status": 200
+      },
+      {
+        "path": "/missing",
+        "method": "GET",
+        "status": 404
+      },
+      {
+        "path": "/",
+        "method": "POST",
+        "status": 405
+      },
+      {
+        "path": "/?document=%00",
+        "method": "GET",
+        "status": 400
+      }
+    ],
+    "cli_native_also_verified": true,
+    "note": "Live HTML rendered by the unchanged complete WordPress CLI fixture inside native HTTP requests. Full theme routing and administration are outside this entrypoint.",
+    "verified_at": "2026-11-24T15:19:04.389252+00:00",
+    "compiler": {
+      "compiler_patch": "patches/compiler/wordpress-web.patch",
+      "compiler_patch_sha256": "e543c8b3f44333da29b4473651b4f981d9cf1f8f020f435ac7dd7796217e7423",
+      "applied_after": "patches/compiler/wordpress-main.patch",
+      "compiler_sha256": "5017cabe244cfe49dc7af7620218bc422a2143c115fd398ea5f8f727864a23cc",
+      "rustc": "rustc 1.99.1 (58cf8f9c3 2026-10-13)",
+      "compiler_build": {
+        "command": [
+          "cargo",
+          "build",
+          "-p",
+          "elephc",
+          "--release",
+          "--locked",
+          "-j",
+          "1",
+          "--bin",
+          "elephc"
+        ],
+        "profile_environment": {
+          "CARGO_PROFILE_RELEASE_OPT_LEVEL": "1",
+          "CARGO_PROFILE_RELEASE_DEBUG": "line-tables-only"
+        }
+      },
+      "runtime_sdk_archive_sha256": "0af850c14a9422a0e3125e50a5eb0d160ac2d21700a14c9670aede8b7b454b51",
+      "runtime_archives_unchanged": true,
+      "runtime_archive_count": 25,
+      "regression_verification": {
+        "all_five_target_ir_and_assembly": true,
+        "host_http_ir_on_and_off": true,
+        "packaged_sdk_http_variants": 5,
+        "empty_indexed_request_merge": true
+      },
+      "compile_options": [
+        "--php-version",
+        "8.4",
+        "--with-regex",
+        "--ir-opt=off",
+        "--gc-stats",
+        "--heap-size=536870912",
+        "--link",
+        "sodium",
+        "--web",
+        "--web-isolation",
+        "request"
+      ],
+      "runtime_archives": {
+        "libelephc_bcmath.a": {
+          "sha256": "dfd8997ff46c60886292b6cb1dfdb4a8678e4951e63e33563fc2b677ee9bebf5",
+          "bytes": 23712778
+        },
+        "libelephc_crypto.a": {
+          "sha256": "017b3665793774303dc3bdb5fd32d7b14290f6808241abcdd9f13642c683a6bb",
+          "bytes": 30443978
+        },
+        "libelephc_curl.a": {
+          "sha256": "0496c20f44010c1d14aedfa4661102302b6d1629abef414689ee864ffd1758e7",
+          "bytes": 28472142
+        },
+        "libelephc_fileinfo.a": {
+          "sha256": "3468b6f04f73dc7116928e25587e707fb6dffbf62fb258e648ea1105a3bb041b",
+          "bytes": 23673438
+        },
+        "libelephc_gmp.a": {
+          "sha256": "bc8a2c7b84e13e9ae30dfe4a32909dea0d435733d721be6a84838bb409c158b5",
+          "bytes": 23264230
+        },
+        "libelephc_iconv.a": {
+          "sha256": "64bd774171e7b70fc2dd408f99e3d7a306a3ce25a43aa60d8ea5c83a61e4adc6",
+          "bytes": 23397742
+        },
+        "libelephc_image.a": {
+          "sha256": "b7f86b715bc1d08f3e537c55d14bdd4b0de69282f6c0f7376405e881b8ad9dea",
+          "bytes": 89527466
+        },
+        "libelephc_instr.a": {
+          "sha256": "132ac86c073173efaa09d9367195424c2d687599309fdb7ed69689ee5e63e4a0",
+          "bytes": 24441388
+        },
+        "libelephc_magician.a": {
+          "sha256": "4b4373421e81ebe63c8889ec8e294caa15ceba22f7cbebfc8fda42875b65a482",
+          "bytes": 189084358
+        },
+        "libelephc_magician_curl.a": {
+          "sha256": "c2473d8189834d352b9f511a144090d6021a7aec27418c61e595b5e77c176068",
+          "bytes": 189870120
+        },
+        "libelephc_mbstring.a": {
+          "sha256": "a22d445e9f723cf008dbdd885efb4ff020b6b19aeeb3dbb537b7f7b1d485bea3",
+          "bytes": 52432806
+        },
+        "libelephc_openssl.a": {
+          "sha256": "4d260598d73b0bc02599ab242899836cf899cd36f5bba2d5412d95f016a9e329",
+          "bytes": 23308564
+        },
+        "libelephc_pcntl.a": {
+          "sha256": "6aa2f838b97dee5dd20df2fec303ccd4c51e1d003c9bc316eead6c4ef5eb1ae0",
+          "bytes": 24147574
+        },
+        "libelephc_pdo.a": {
+          "sha256": "a271ac233337016c531fc95218f37bff7ab70b05db008ebbd3b74c1d18e08919",
+          "bytes": 151757720
+        },
+        "libelephc_phar.a": {
+          "sha256": "68c7ccb71be20023f87e36adfc842c6a8ee4ad7c9a34ba904169d1824786a64e",
+          "bytes": 38031046
+        },
+        "libelephc_probe.a": {
+          "sha256": "b7f86a2f704bb9da82b464f9fe568834fe1e9a9aa4e691e8792ea3b5850382e4",
+          "bytes": 26429894
+        },
+        "libelephc_random.a": {
+          "sha256": "20395d257250fbf5f25abf0aa703ffb4f97cc9e4e4dd96e1afdb059ddbc0a6f4",
+          "bytes": 23217560
+        },
+        "libelephc_reference.a": {
+          "sha256": "054df694dddb89cfe3a5eb00c6b04331f246e15aae71465cbd9a7a476bd520b4",
+          "bytes": 24647130
+        },
+        "libelephc_tidy.a": {
+          "sha256": "9d091ada78e5e5a298ec7f12198c24ea42d4e8c6d24b05cc32012af02e2d11aa",
+          "bytes": 24214932
+        },
+        "libelephc_tls.a": {
+          "sha256": "1140a987764cde4673aa38456aee5fc80558bd5e3206e52e068017f2cee921ad",
+          "bytes": 44553264
+        },
+        "libelephc_tokenizer.a": {
+          "sha256": "107e313be8ec04f2beb1bad6763108ede30e6079926ea9235e52289596865250",
+          "bytes": 84619434
+        },
+        "libelephc_tz.a": {
+          "sha256": "619b421350903aee08eb1cf4e6772cc6d2e9a6c3475b0b4dde94254c2734490a",
+          "bytes": 24002680
+        },
+        "libelephc_web.a": {
+          "sha256": "3d1bb928557ce32ba43e0b9ae1954bb5e84940a048d4a6f19a7b83cc940a69ad",
+          "bytes": 51646356
+        },
+        "libelephc_xml.a": {
+          "sha256": "270293190dfcff056df076839cae0fae858ce51942e40879f18eab3af3c645a8",
+          "bytes": 27453324
+        },
+        "libelephc_zend.a": {
+          "sha256": "210af8c3ed7c3b5b6ceafcf7642e2996089004f8f4091e81ccb7304b23cc200b",
+          "bytes": 28774530
+        }
+      }
+    },
+    "build_seconds": 2428.727080993005,
+    "compiler_arguments": [
+      "--php-version",
+      "8.4",
+      "--with-regex",
+      "--ir-opt=off",
+      "--gc-stats",
+      "--heap-size=536870912",
+      "--web",
+      "--web-isolation",
+      "request",
+      "--link",
+      "sodium",
+      "bootstrap-web.php"
+    ],
+    "native_bytes": 2244360392,
+    "linker": {
+      "original_object_bytes": 4206375456,
+      "object_code_bytes": 2100387271,
+      "allocated_contents_sha256": "88781e4abf0c0d28fed772cd9291fb7460511d9d6b2d2ae4a99a1c76924992e7",
+      "placed_allocated_contents_sha256": "88781e4abf0c0d28fed772cd9291fb7460511d9d6b2d2ae4a99a1c76924992e7",
+      "function_folding": false,
+      "attempts": [
+        {
+          "attempt": 1,
+          "exit": 1,
+          "relocation_errors": 5633,
+          "moved_sections": 754
+        },
+        {
+          "attempt": 2,
+          "exit": 1,
+          "relocation_errors": 189,
+          "moved_sections": 96
+        },
+        {
+          "attempt": 3,
+          "exit": 1,
+          "relocation_errors": 1153,
+          "moved_sections": 372
+        },
+        {
+          "attempt": 4,
+          "exit": 1,
+          "relocation_errors": 439,
+          "moved_sections": 343
+        },
+        {
+          "attempt": 5,
+          "exit": 1,
+          "relocation_errors": 64,
+          "moved_sections": 63
+        },
+        {
+          "attempt": 6,
+          "exit": 1,
+          "relocation_errors": 40,
+          "moved_sections": 40
+        },
+        {
+          "attempt": 7,
+          "exit": 1,
+          "relocation_errors": 56,
+          "moved_sections": 47
+        },
+        {
+          "attempt": 8,
+          "exit": 1,
+          "relocation_errors": 41,
+          "moved_sections": 26
+        },
+        {
+          "attempt": 9,
+          "exit": 1,
+          "relocation_errors": 50,
+          "moved_sections": 50
+        },
+        {
+          "attempt": 10,
+          "exit": 1,
+          "relocation_errors": 1,
+          "moved_sections": 1
+        },
+        {
+          "attempt": 11,
+          "exit": 1,
+          "relocation_errors": 2,
+          "moved_sections": 2
+        },
+        {
+          "attempt": 12,
+          "exit": 1,
+          "relocation_errors": 2,
+          "moved_sections": 2
+        },
+        {
+          "attempt": 13,
+          "exit": 1,
+          "relocation_errors": 2,
+          "moved_sections": 2
+        },
+        {
+          "attempt": 14,
+          "exit": 1,
+          "relocation_errors": 1,
+          "moved_sections": 1
+        },
+        {
+          "attempt": 15,
+          "exit": 1,
+          "relocation_errors": 1,
+          "moved_sections": 1
+        },
+        {
+          "attempt": 16,
+          "exit": 1,
+          "relocation_errors": 11,
+          "moved_sections": 11
+        },
+        {
+          "attempt": 17,
+          "exit": 1,
+          "relocation_errors": 105,
+          "moved_sections": 105
+        },
+        {
+          "attempt": 18,
+          "exit": 1,
+          "relocation_errors": 115,
+          "moved_sections": 78
+        },
+        {
+          "attempt": 19,
+          "exit": 1,
+          "relocation_errors": 75,
+          "moved_sections": 53
+        },
+        {
+          "attempt": 20,
+          "exit": 1,
+          "relocation_errors": 49,
+          "moved_sections": 49
+        },
+        {
+          "attempt": 21,
+          "exit": 0
+        }
+      ]
+    },
+    "source_reproduction": {
+      "schema": 1,
+      "verified": true,
+      "source_manifest_sha256": "c19cbe6d850639389b67fd665a288f491afcf6dfbb929d538db2423bb75d00c5",
+      "web_entry_sha256": "cd3de0e87b4a15e975f0a14ef28ce0f1d613c9ed9fd42e2aa0e57d9bb8382701",
+      "compiler_base": "f20729406216d21ce99841cf4636b771db9874dd",
+      "compiler_patches": {
+        "patches/compiler/wordpress-main.patch": "494a3fdf054c04dbf860de008ee030ec85bb0d0e9a2fbfe1eb75e1ef9d60de1f",
+        "patches/compiler/wordpress-web.patch": "e543c8b3f44333da29b4473651b4f981d9cf1f8f020f435ac7dd7796217e7423"
+      },
+      "compiler_patched_files": 69,
+      "compiler_source_files_sha256": "ed029082ee736b5a145446314698f66081f1cf24d40bc806b9b00d142d63df46",
+      "source_export_removed": true,
+      "note": "A fresh maintained-file export reconstructs identical WordPress sources and the HTTP entry. The original compiler revision plus both patches reconstructs every changed SDK source file byte-for-byte. This check does not perform a second native web build."
+    }
   }
 }

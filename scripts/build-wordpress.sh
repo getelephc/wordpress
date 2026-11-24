@@ -6,10 +6,10 @@ cd "$root"
 mode=${1:-build}
 case "$mode" in
     --help|-h)
-        printf 'Usage: ./scripts/build-wordpress.sh [--check|--controls|--php-reference]\nBuild the complete-source WordPress bootstrap or verify its original-PHP controls.\n'
+        printf 'Usage: ./scripts/build-wordpress.sh [--web|--check|--controls|--php-reference]\nBuild the complete-source WordPress bootstrap or HTTP server, or verify its controls.\n'
         exit 0
         ;;
-    build|--check|--controls|--php-reference) ;;
+    build|--web|--check|--controls|--php-reference) ;;
     *) printf 'Unknown mode: %s\n' "$mode" >&2; exit 2 ;;
 esac
 if [[ $# -gt 1 ]]; then
@@ -33,14 +33,22 @@ fi
 out="$root/elephc/build/full-source"
 cp elephc/full-source/elephc.toml "$out/elephc.toml"
 cp elephc/full-source/elephc.lock "$out/elephc.lock"
-printf "<?php\nrequire __DIR__ . '/wordpress/aot-probe.php';\n" > "$out/bootstrap.php"
+entry=bootstrap
+web_flags=()
+if [[ "$mode" == --web ]]; then
+    entry=bootstrap-web
+    cp elephc/full-source/web.php "$out/$entry.php"
+    web_flags=(--web --web-isolation request)
+else
+    printf "<?php\nrequire __DIR__ . '/wordpress/aot-probe.php';\n" > "$out/bootstrap.php"
+fi
 cd "$out"
 "$compiler" native install --locked 2>&1 | tee native.log
 if [[ "$mode" == --check ]]; then
     "$compiler" --php-version 8.4 --with-regex --check bootstrap.php 2>&1 | tee bootstrap-check.log
     exit 0
 fi
-python3 "$root/scripts/wordpress-link.py" --compiler "$compiler" -- \
+python3 "$root/scripts/wordpress-link.py" --compiler "$compiler" --entry "$out/$entry.php" -- \
     --php-version 8.4 --with-regex --ir-opt=off --gc-stats --heap-size=536870912 \
-    --link sodium bootstrap.php 2>&1 | tee bootstrap-build.log
-printf 'Built elephc/build/full-source/bootstrap\n'
+    "${web_flags[@]}" --link sodium "$entry.php" 2>&1 | tee "$entry-build.log"
+printf 'Built elephc/build/full-source/%s\n' "$entry"

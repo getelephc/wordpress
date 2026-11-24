@@ -2,6 +2,7 @@
 """Run Elephc with an ELF section-placement compatibility linker for WordPress."""
 
 import argparse
+import datetime
 import hashlib
 import json
 import os
@@ -11,6 +12,7 @@ import shutil
 import subprocess
 import sys
 import tempfile
+import time
 
 from wordpress_elf import ElfObject
 
@@ -18,6 +20,11 @@ ROOT = Path(__file__).resolve().parent.parent
 OUT = ROOT / "elephc/build/full-source"
 CENTRAL_PREFIXES = (".text._eir", ".text.__elephc", ".text._method_source_abi",
                     ".text._fn_wp_u_aot", ".text._fn__u__u_eir", ".text.main")
+
+
+def file_sha(path):
+    with Path(path).open("rb") as source:
+        return hashlib.file_digest(source, "sha256").hexdigest()
 
 
 def find_lld(value):
@@ -171,12 +178,13 @@ def inspect_link_errors(path, code_symbols, original_sections, central):
 
 def link_wordpress(arguments, driver, tools_directory, *, direct_ld=False, source=None):
     """Link the complete object with distinct addresses and verify unchanged allocated bytes."""
-    source = Path(source) if source is not None else OUT / "bootstrap.o"
+    source = Path(source) if source is not None else Path(
+        os.environ.get("WORDPRESS_LINK_OBJECT", OUT / "bootstrap.o"))
     index = next((i for i, value in enumerate(arguments)
                   if not value.startswith("-") and Path(value).resolve() == source), None)
     if index is None or "-c" in arguments or "-r" in arguments:
         return subprocess.run([driver, *arguments]).returncode
-    report_path = OUT / "bootstrap-link.json"
+    report_path = source.with_name(source.stem + "-link.json")
     report_path.unlink(missing_ok=True)
     with tempfile.TemporaryDirectory(prefix=".wordpress-layout-", dir=OUT) as temporary:
         directory = Path(temporary)
@@ -229,6 +237,7 @@ def link_wordpress(arguments, driver, tools_directory, *, direct_ld=False, sourc
                                   hashlib.sha256((OUT / "source-manifest.json").read_bytes()).hexdigest()),
                               "prepared_source_manifest_sha256": hashlib.sha256((OUT / "source-manifest.json").read_bytes()).hexdigest(),
                               "compiler_sha256": os.environ.get("WORDPRESS_COMPILER_SHA256"),
+                              "entry_sha256": os.environ.get("WORDPRESS_ENTRY_SHA256"),
                               "allocated_contents_sha256": before,
                               "placed_allocated_contents_sha256": after,
                               "original_object_bytes": source.stat().st_size,
@@ -248,8 +257,8 @@ def link_wordpress(arguments, driver, tools_directory, *, direct_ld=False, sourc
                 errors, extra, unresolved = inspect_link_errors(log, code_symbols, sections, central)
                 row.update(relocation_errors=errors, moved_sections=len(extra))
                 if unresolved or not extra:
-                    (OUT / "bootstrap-link-failure.log").write_text(log.read_text())
-                    (OUT / "bootstrap-link-failure.json").write_text(json.dumps(
+                    source.with_name(source.stem + "-link-failure.log").write_text(log.read_text())
+                    source.with_name(source.stem + "-link-failure.json").write_text(json.dumps(
                         {"attempts": attempts, "unresolved": unresolved}, indent=2) + "\n")
                     print("Unresolved placement diagnostics: " + repr(unresolved[:3]), file=sys.stderr)
                     print(log.read_text()[-12000:], file=sys.stderr)
@@ -264,6 +273,7 @@ def main():
                               Path(os.environ["WORDPRESS_LINK_TOOLS"]), direct_ld=True)
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--compiler", required=True)
+    parser.add_argument("--entry", default=str(OUT / "bootstrap.php"))
     parser.add_argument("--lld", default=os.environ.get("WORDPRESS_LLD"))
     parser.add_argument("arguments", nargs=argparse.REMAINDER)
     args = parser.parse_args()
@@ -277,9 +287,18 @@ def main():
         raise SystemExit("GNU ld is required on PATH")
     lld = find_lld(args.lld)
     OUT.mkdir(parents=True, exist_ok=True)
-    if any(not value.startswith("-") and Path(value).resolve() == OUT / "bootstrap.php"
+    entry = Path(args.entry).resolve()
+    source_hash = file_sha(OUT / "source-manifest.json")
+    entry_hash = file_sha(entry)
+    build_path = entry.with_name(entry.stem + "-build.json")
+    build = {"schema": 1, "entry_sha256": entry_hash, "source_manifest_sha256": source_hash,
+             "compiler_sha256": file_sha(compiler), "driver_sha256": file_sha(__file__),
+             "compiler_arguments": arguments, "web": "--web" in arguments,
+             "in_progress": True, "started_at": datetime.datetime.now(datetime.UTC).isoformat()}
+    build_path.write_text(json.dumps(build, indent=2) + "\n")
+    if any(not value.startswith("-") and Path(value).resolve() == entry
            for value in arguments):
-        (OUT / "bootstrap-link.json").unlink(missing_ok=True)
+        entry.with_name(entry.stem + "-link.json").unlink(missing_ok=True)
     with tempfile.TemporaryDirectory(prefix=".wordpress-link-tools-", dir=OUT) as temporary:
         directory = Path(temporary)
         (directory / "ld").symlink_to(Path(__file__).resolve())
@@ -288,9 +307,23 @@ def main():
                        "WORDPRESS_LINK_TOOLS": str(directory),
                        "WORDPRESS_OBJECT_SOURCE_SHA256": hashlib.sha256((OUT / "source-manifest.json").read_bytes()).hexdigest(),
                        "WORDPRESS_COMPILER_SHA256": hashlib.sha256(Path(compiler).read_bytes()).hexdigest(),
+                       "WORDPRESS_LINK_OBJECT": str(entry.with_suffix(".o")),
+                       "WORDPRESS_ENTRY_SHA256": entry_hash,
                        "COMPILER_PATH": str(directory) + (os.pathsep + os.environ["COMPILER_PATH"]
                                                           if os.environ.get("COMPILER_PATH") else "")}
-        return subprocess.run([compiler, *arguments], env=environment).returncode
+        started = time.monotonic()
+        result = subprocess.run([compiler, *arguments], env=environment)
+        unchanged = (file_sha(entry) == entry_hash
+                     and file_sha(OUT / "source-manifest.json") == source_hash
+                     and file_sha(__file__) == build["driver_sha256"])
+        code = result.returncode if unchanged else 1
+        build.update(in_progress=False, exit_code=code, compiler_exit_code=result.returncode,
+                     inputs_unchanged=unchanged, elapsed_seconds=time.monotonic() - started,
+                     finished_at=datetime.datetime.now(datetime.UTC).isoformat())
+        if code == 0:
+            build["native_sha256"] = file_sha(entry.with_suffix(""))
+        build_path.write_text(json.dumps(build, indent=2) + "\n")
+        return code
 
 
 if __name__ == "__main__":

@@ -7,10 +7,12 @@ records API names, call sites and bounded native replacements. The PHP reference
 continues to call real PHP functions. Optional capability guards inspect the
 original API names and do not advertise unavailable features.
 
-The verified target is the isolated native CLI bootstrap and five runtime
-rendering documents. Full HTTP request dispatch, administration, authentication,
+The verified targets are the isolated native CLI bootstrap and bounded native
+HTTP rendering of the default page and five runtime documents. The HTTP entry
+uses the original initialization and content renderer, request isolation and
+basic response headers. Full theme request dispatch, administration, authentication,
 arbitrary plugins, persistent storage and network requests remain outside that
-proof. This includes original paths that need HTTP header/cookie state, password
+proof. This includes original paths that need authentication cookie state, password
 hashing, some file/compression/XML operations or unrestricted introspection.
 Compiler traversal does not count these paths as executed native coverage.
 

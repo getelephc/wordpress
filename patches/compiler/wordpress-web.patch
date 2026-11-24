@@ -1,0 +1,246 @@
+diff --git c/docs/internals/the-codegen.md w/docs/internals/the-codegen.md
+index 973da35..dbee233 100644
+--- c/docs/internals/the-codegen.md
++++ w/docs/internals/the-codegen.md
+@@ -1178,6 +1178,15 @@ defaults, `ReflectionClass::getConstant()` / `getConstants()`,
+ 
+ ## Backend Contract
+ 
++Under `--web`, request superglobals use native string-keyed hashes in every
++scope. Plain assignments from `mixed` values or unrestricted PHP `array`
++returns must coerce their boxed container into that hash layout before
++`StoreGlobal`. Otherwise a later `LoadGlobal` passes the boxed cell to a hash
++reader. Assignment coercion retains the replacement independently of previous
++array aliases. A boxed PHP array is first unboxed through an indexed view, then
++`ArrayToHash` inspects its runtime heap kind and either passes a hash through or
++rebuilds an indexed array. Ordinary CLI global storage remains boxed.
++
+ - PHP-visible behavior belongs in `src/ir_lower/` and `src/codegen/`.
+ - Shared runtime, ABI, platform, and metadata helpers belong in
+   `src/codegen_support/`.
+diff --git c/src/ir_lower/expr/merge_temps.rs w/src/ir_lower/expr/merge_temps.rs
+index 7934ab9..0a03544 100644
+--- c/src/ir_lower/expr/merge_temps.rs
++++ w/src/ir_lower/expr/merge_temps.rs
+@@ -782,6 +782,34 @@ pub(in crate::ir_lower) fn coerce_container_to_mixed_payload(
+         {
+             Op::HashToMixed
+         }
++        (
++            PhpType::Mixed | PhpType::Union(_),
++            PhpType::AssocArray { value: target_value, .. },
++        ) if value.ir_type == IrType::Heap(IrHeapKind::Mixed) => {
++            // A boxed PHP array can contain either indexed-array or hash storage. Request
++            // superglobals have a fixed hash ABI, so unbox through a layout-neutral indexed
++            // view and let ArrayToHash inspect the runtime heap kind before the store. Calling
++            // the hash unbox helper directly would interpret an empty indexed array as a hash.
++            let list_view_ty = PhpType::Array(Box::new(target_value.codegen_repr()));
++            let effects = Op::mixed_unbox_effects(&list_view_ty);
++            let list_view = ctx.emit_owned_value(
++                Op::MixedUnbox,
++                vec![value.value],
++                None,
++                list_view_ty,
++                effects,
++                Some(span),
++            );
++            release_coerced_source_if_owned(ctx, value, Some(span));
++            return ctx.emit_value(
++                Op::ArrayToHash,
++                vec![list_view.value],
++                None,
++                target_ty.clone(),
++                Op::ArrayToHash.default_effects(),
++                Some(span),
++            );
++        }
+         (PhpType::Mixed | PhpType::Union(_), _)
+             if value.ir_type == IrType::Heap(IrHeapKind::Mixed) =>
+         {
+diff --git c/src/ir_lower/stmt/local_assignments.rs w/src/ir_lower/stmt/local_assignments.rs
+index 7829bb0..d4eb6cb 100644
+--- c/src/ir_lower/stmt/local_assignments.rs
++++ w/src/ir_lower/stmt/local_assignments.rs
+@@ -235,7 +235,11 @@ pub(super) fn contextualize_local_assignment(
+     if let Some(storage) = union_local_storage_type(ctx, name, value, &source_ty) {
+         return (lowered, storage);
+     }
+-    if contextual_ty.is_php_array() {
++    // HTTP request globals use raw hash storage, including when a declared array
++    // or mixed return supplies the replacement through a boxed container.
++    if contextual_ty.is_php_array()
++        || (ctx.web && crate::superglobals::is_superglobal(name))
++    {
+         let converted = coerce_typed_assign_value(ctx, lowered, &contextual_ty, span);
+         return (converted, contextual_ty);
+     }
+diff --git c/src/ir_lower/tests/mod.rs w/src/ir_lower/tests/mod.rs
+index 604dfcd..a9e46b3 100644
+--- c/src/ir_lower/tests/mod.rs
++++ w/src/ir_lower/tests/mod.rs
+@@ -62,6 +62,7 @@ mod erased_xml_presence;
+ mod ordinary_prefix_storage;
+ mod scalar_parameter_owners;
+ mod global_return_owners;
++mod web_superglobal_assignments;
+ mod conditional_assignment_owners;
+ mod borrowed_string_reads;
+ mod mbstring_fast_semantics;
+diff --git c/src/ir_lower/tests/web_superglobal_assignments.rs w/src/ir_lower/tests/web_superglobal_assignments.rs
+new file mode 100644
+index 0000000..82f27fb
+--- /dev/null
++++ w/src/ir_lower/tests/web_superglobal_assignments.rs
+@@ -0,0 +1,73 @@
++//! Purpose:
++//! Keeps boxed array replacements compatible with native HTTP global storage.
++//!
++//! Called from:
++//! - The AST-to-EIR unit suite.
++//!
++//! Key details:
++//! - Request-global stores and later hash reads must agree on every target ABI.
++
++use crate::ir::{Immediate, IrHeapKind, IrType, Op};
++
++/// Main and function assignments publish hash payloads instead of boxed array cells.
++#[test]
++fn boxed_web_superglobal_assignments_keep_hash_storage_on_all_targets() {
++    let source = r#"<?php
++function empty_request_array(): array { return array(); }
++function request_array_input(mixed $value): array {
++    if (!is_array($value)) return array();
++    return (array) $value;
++}
++function merge_request_arrays(array $arrays): array {
++    $result = empty_request_array();
++    foreach ($arrays as $value) {
++        $source = request_array_input($value);
++        foreach ($source as $key => $item) {
++            if (is_int($key)) $result[] = $item;
++            else $result[(string) $key] = $item;
++        }
++    }
++    return $result;
++}
++function replace_request(mixed $values): void {
++    $_SERVER = $values;
++    $_REQUEST = $values;
++    echo count($_REQUEST);
++}
++$_GET = json_decode('{"probe":"ok"}', true);
++replace_request(merge_request_arrays(array($_POST)));
++"#;
++    for name in ["macos-aarch64", "ios-arm64", "ios-sim-arm64", "linux-aarch64", "linux-x86_64"] {
++        let target = crate::codegen::platform::Target::parse(name).unwrap();
++        let tokens = crate::lexer::tokenize(source).unwrap();
++        let program = crate::parser::parse(&tokens).unwrap();
++        let program = crate::name_resolver::resolve(program).unwrap();
++        let checked = crate::types::check_with_target(&program, target).unwrap();
++        let module = crate::ir_lower::lower_program(&program, &checked, target, true).unwrap();
++        let mut stores = 0;
++        let mut request_layout_conversions = 0;
++        for function in &module.functions {
++            for inst in function.instructions.iter().filter(|inst| inst.op == Op::StoreGlobal) {
++                let Some(Immediate::GlobalName(global)) = inst.immediate else { continue; };
++                let global_name = &module.data.global_names[global.as_raw() as usize];
++                if !crate::superglobals::is_superglobal(global_name) {
++                    continue;
++                }
++                let value = function.value(inst.operands[0]).unwrap();
++                assert_eq!(value.ir_type, IrType::Heap(IrHeapKind::Hash), "{name}: {}", function.name);
++                assert_eq!(value.php_type, crate::superglobals::superglobal_type(), "{name}");
++                if global_name == "_REQUEST" {
++                    assert!(function.instructions.iter().any(|candidate| candidate.op == Op::MixedUnbox),
++                        "{name}: request assignment unboxes the boxed PHP array");
++                    assert!(function.instructions.iter().any(|candidate| candidate.op == Op::ArrayToHash),
++                        "{name}: request assignment selects the runtime array layout");
++                    request_layout_conversions += 1;
++                }
++                stores += 1;
++            }
++        }
++        assert_eq!(stores, 3, "{name}: cover main and function request-global assignments");
++        assert_eq!(request_layout_conversions, 1, "{name}: cover the request merge assignment");
++        crate::codegen::generate_user_asm_from_ir(&module, false, false).unwrap();
++    }
++}
+diff --git c/tests/web_tests.rs w/tests/web_tests.rs
+index 6778b47..0e7cf56 100644
+--- c/tests/web_tests.rs
++++ w/tests/web_tests.rs
+@@ -1392,6 +1392,74 @@ fn web_superglobal_visible_in_function() {
+     assert!(resp.ends_with("DELETE"), "body: {:?}", resp);
+ }
+ 
++/// Boxed replacements retain native request-global storage and independent previous aliases.
++#[test]
++fn web_boxed_array_reassignment_keeps_request_superglobals_native() {
++    let source = r#"<?php
++function request_value(mixed $value): mixed { return $value; }
++function install_request_values(mixed $value): void { $_REQUEST = $value; }
++function empty_request_array(): array { return array(); }
++function request_array_input(mixed $value): array {
++    if (!is_array($value)) return array();
++    return (array) $value;
++}
++function merge_request_arrays(array $arrays): array {
++    $result = empty_request_array();
++    foreach ($arrays as $value) {
++        $source = request_array_input($value);
++        foreach ($source as $key => $item) {
++            if (is_int($key)) $result[] = $item;
++            else $result[(string) $key] = $item;
++        }
++    }
++    return $result;
++}
++function normalize_request_values(mixed $value): mixed {
++    foreach ((array) $value as $key => $item) {
++        if (is_array($item)) $value[$key] = normalize_request_values($item);
++        elseif (is_string($item)) $value[$key] = addslashes($item);
++    }
++    return $value;
++}
++function replace_request_values(): void {
++    $previous = $_GET;
++    install_request_values(merge_request_arrays(array($_GET, $_POST)));
++    $merged_count = count($_REQUEST);
++    $merged_before = $_REQUEST['before'] ?? 'missing';
++    $_GET = request_value(json_decode('{"changed":"città","0":"zero","nested":{"ok":true}}', true));
++    $_GET = normalize_request_values($_GET);
++    $_SERVER = normalize_request_values($_SERVER);
++    echo $_SERVER['REQUEST_URI'], "\n", $merged_count, "\n", $merged_before, "\n",
++        json_encode($_GET, JSON_UNESCAPED_UNICODE), "\n", ($previous['before'] ?? 'missing');
++}
++replace_request_values();
++"#;
++    for optimization in ["on", "off"] {
++        let dir = make_test_dir("web_boxed_request_globals");
++        let option = format!("--ir-opt={optimization}");
++        let bin = compile_web_with_flags(&dir, source, "app", &[&option, "--web-isolation=request"]);
++        let addr = format!("127.0.0.1:{}", free_port());
++        let mut server = spawn_server(&bin, &addr, "1");
++        for (path, count, merged, previous) in [
++            ("/probe", 0, "missing", "missing"),
++            ("/probe?before=one", 1, "one", "one"),
++            ("/probe?before=two", 1, "two", "two"),
++            ("/probe?before=one", 1, "one", "one"),
++        ] {
++            let response = http_get(&addr, path);
++            let json = r#"{"changed":"città","0":"zero","nested":{"ok":true}}"#;
++            assert_eq!(
++                raw_response_body(&response),
++                format!("{path}\n{count}\n{merged}\n{json}\n{previous}"),
++                "IR {optimization}",
++            );
++        }
++        let _ = server.kill();
++        let _ = server.wait();
++        fs::remove_dir_all(&dir).unwrap();
++    }
++}
++
+ /// Verifies a router storing an interface-typed handler survives repeated web requests.
+ #[test]
+ fn web_router_interface_handler_survives_repeated_requests() {

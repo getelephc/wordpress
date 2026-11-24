@@ -77,6 +77,21 @@ int main(void) {
             raise SystemExit("Section placement lost RELRO or executable-memory protections")
         if list(directory.glob(".wordpress-layout-*")):
             raise SystemExit("Linker temporary files were not removed")
+        # A second entry must have its own object and provenance report.
+        cli_report = (directory / "bootstrap-link.json").read_bytes()
+        web_object = directory / "bootstrap-web.o"
+        web_binary = directory / "control-web"
+        shutil.copyfile(original, web_object)
+        web_arguments = [str(web_object), "-o", str(web_binary), "-Wl,--gc-sections",
+                         "-Wl,-z,relro", "-Wl,-z,now", "-Wl,-z,noexecstack"]
+        if linker.link_wordpress(web_arguments, driver, directory, source=web_object):
+            raise SystemExit("Named web entry did not link")
+        if subprocess.check_output([str(web_binary)], text=True) != expected:
+            raise SystemExit("Named entry changed native behavior")
+        web_report = json.loads((directory / "bootstrap-web-link.json").read_text())
+        if (web_report["allocated_contents_sha256"] != report["allocated_contents_sha256"]
+                or (directory / "bootstrap-link.json").read_bytes() != cli_report):
+            raise SystemExit("Named entry changed contents or overwrote CLI provenance")
     print("PASS: section placement preserves native values, function identity, COMMON alignment, allocated bytes and ELF protections")
 
 
