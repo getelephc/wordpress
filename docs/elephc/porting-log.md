@@ -51,23 +51,29 @@ source, compiler, test-input, harness and linker identities.
 
 The public `scripts/build-wordpress.sh --web` build uses the complete prepared
 core and the separate `elephc/full-source/web.php` entry. It finishes in
-2171.44 seconds with compiler
+2588.13 seconds with compiler
 `5017cabe244cfe49dc7af7620218bc422a2143c115fd398ea5f8f727864a23cc` and executable
-`c0d62eacb94af5756fe99bc7cb365c375d88f9ff114122dd1284771d16493395`.
+`88a2186f9ee4386c853a5a2289c1d6b7640dff83c9b8b0afc0be909e3731509c`.
 The linker preserves allocated bytes and disables function folding.
 
 The entry executes the original `wp-load.php` and `wp-settings.php` for each
-request and seeds three English posts in request-local SQLite. The homepage
+request and seeds four English posts in request-local SQLite. The homepage
 renders the original Latest Posts block, which queries those rows through
 `WP_Query` and generates plain WordPress permalinks. The article route uses
 `get_post()` and the core block and shortcode pipeline. The diagnostic probes
 remain on the separate CLI path. `scripts/serve-wordpress.sh` starts one worker
 on `127.0.0.1:9000` with request isolation.
 
-The HTTP harness compares the homepage, all five documents and the three linked
-posts with original PHP. It also checks repeated requests, HEAD, 404, 405 and
-invalid input. All 20 native HTTP checks and the retained native CLI parity pass.
-PHP executes separately to generate the reference pages.
+The HTTP harness compares the homepage, all five documents and the four linked
+posts with stock PHP. It also checks repeated requests, HEAD, 404, 405, invalid
+input and both local assets used by post 1004. Stock PHP serves the reference
+pages from a temporary copy of the original archive with the same fixtures.
+All 23 HTTP checks and the retained native CLI parity checks passed.
+
+Post 1004 uses the WordPress 7.1.4 Gutenberg serializer. Its 18 rendered blocks,
+including the nested columns and captioned image, have matching SHA-256 hashes.
+The raw HTTP bodies match and the normalized content diff is empty. Headless
+Chromium found zero differing pixels at both 390 and 1280 pixels wide.
 
 Two retained whole-file patches preserve the nonempty WordPress query path.
 `class-wp-query.php` converts result rows through direct `get_post()` calls with
@@ -81,7 +87,7 @@ uses the runtime heap kind to pass through a hash or rebuild an indexed array.
 Its five-target IR/assembly test,
 both-IR native HTTP test and five packaged-SDK reproducers pass. The SDK uses
 Rust 1.99.1 and retains all 25 base runtime archives. An independent maintained-file
-export reconstructs the current core and passes all nine original-PHP web pages.
+export reconstructs the current core and passes all ten original-PHP web pages.
 An independent reconstruction applied both compiler patches to the pinned SDK
 source. English sample strings changed in two of the 69 patched files, both
 regression tests. The SDK's compiler and runtime sources are byte-identical

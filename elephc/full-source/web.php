@@ -7,16 +7,18 @@ function wordpress_web_response(int $status, string $type, string $body): void {
     echo $body;
 }
 
-function wordpress_web_page(string $title, string $content, bool $article): string {
+function wordpress_web_page(string $title, string $content, bool $article, bool $block_styles = false): string {
     $title = esc_html($title);
     $site = esc_html((string) get_bloginfo('name'));
     $version = esc_html((string) get_bloginfo('version'));
     $logo = base64_encode((string) file_get_contents(ABSPATH . 'wp-includes/images/w-logo-gray-white-bg.svg'));
     $heading = $article ? '<h1>' . $title . '</h1>' : '';
     $back = $article ? '<p class="back"><a href="/">All posts</a></p>' : '';
+    $stylesheet = $block_styles ? '<link rel="stylesheet" href="/wp-includes/css/dist/block-library/style.min.css">' : '';
+    $body = $article ? '<div class="post-content">' . $content . '</div>' : $content;
     return '<!doctype html><html lang="en"><head><meta charset="utf-8">'
         . '<meta name="viewport" content="width=device-width, initial-scale=1">'
-        . '<title>' . $title . '</title>'
+        . '<title>' . $title . '</title>' . $stylesheet
         . '<style>*{box-sizing:border-box}body{margin:0;background:#f1f5f8;color:#18262e;font:18px/1.6 system-ui,sans-serif}'
         . '.shell{max-width:820px;margin:clamp(20px,6vw,76px) auto;padding:0 16px}'
         . '.masthead{display:flex;align-items:center;gap:14px;margin-bottom:22px;color:#243640}'
@@ -29,12 +31,70 @@ function wordpress_web_page(string $title, string $content, bool $article): stri
         . '</style></head><body><div class="shell"><header class="masthead">'
         . '<img alt="" src="data:image/svg+xml;base64,' . $logo . '"><div><a href="/">' . $site . '</a>'
         . '<small>WordPress ' . $version . ' · Compiled with Elephc</small></div></header>'
-        . '<main class="wp-site-blocks">' . $heading . $content . $back
+        . '<main class="wp-site-blocks">' . $heading . $body . $back
         . '<footer>Rendered by the compiled WordPress core.</footer></main></div></body></html>';
 }
 
 function wordpress_web_seed_posts(wpdb $database): void {
+    // Generated with WordPress 7.1.4's wp.blockLibrary and wp.blocks.serialize().
+    $complex_post = <<<'GUTENBERG'
+<!-- wp:columns -->
+<div class="wp-block-columns"><!-- wp:column {"width":"24%"} -->
+<div class="wp-block-column" style="flex-basis:24%"><!-- wp:paragraph -->
+<p>Gutenberg keeps the layout in the post content.</p>
+<!-- /wp:paragraph --></div>
+<!-- /wp:column -->
+
+<!-- wp:column {"width":"52%"} -->
+<div class="wp-block-column" style="flex-basis:52%"><!-- wp:columns -->
+<div class="wp-block-columns"><!-- wp:column -->
+<div class="wp-block-column"><!-- wp:paragraph -->
+<p>This paragraph sits inside the nested columns.</p>
+<!-- /wp:paragraph --></div>
+<!-- /wp:column -->
+
+<!-- wp:column -->
+<div class="wp-block-column"><!-- wp:heading -->
+<h2 class="wp-block-heading">Inside the layout</h2>
+<!-- /wp:heading -->
+
+<!-- wp:list -->
+<ul class="wp-block-list"><!-- wp:list-item -->
+<li>Save the block tree.</li>
+<!-- /wp:list-item -->
+
+<!-- wp:list-item -->
+<li>Render the saved document.</li>
+<!-- /wp:list-item --></ul>
+<!-- /wp:list --></div>
+<!-- /wp:column --></div>
+<!-- /wp:columns --></div>
+<!-- /wp:column -->
+
+<!-- wp:column {"width":"24%"} -->
+<div class="wp-block-column" style="flex-basis:24%"><!-- wp:paragraph -->
+<p>Each column is a block with its own children.</p>
+<!-- /wp:paragraph --></div>
+<!-- /wp:column --></div>
+<!-- /wp:columns -->
+
+<!-- wp:image {"sizeSlug":"full","linkDestination":"none"} -->
+<figure class="wp-block-image size-full"><img src="/wp-includes/images/w-logo-blue.png" alt="WordPress logo"/><figcaption class="wp-element-caption">The WordPress logo bundled with the release.</figcaption></figure>
+<!-- /wp:image -->
+
+<!-- wp:quote -->
+<blockquote class="wp-block-quote"><!-- wp:paragraph -->
+<p>A block document can describe both content and structure.</p>
+<!-- /wp:paragraph --><cite>WordPress demo</cite></blockquote>
+<!-- /wp:quote -->
+
+<!-- wp:separator -->
+<hr class="wp-block-separator has-alpha-channel-opacity"/>
+<!-- /wp:separator -->
+GUTENBERG;
+
     $articles = array(
+        array(1004, '2026-01-15 09:00:00', 'gutenberg-blocks-in-depth', 'Gutenberg blocks in depth', $complex_post),
         array(1001, '2026-01-12 09:00:00', 'first-wordpress-post', 'A first WordPress post',
             '<!-- wp:paragraph --><p>This post comes from the WordPress posts table.</p><!-- /wp:paragraph -->'),
         array(1002, '2026-01-13 09:00:00', 'gutenberg-blocks', 'How WordPress renders blocks',
@@ -82,26 +142,35 @@ function wordpress_web_show(?string $document, int $post_id): void {
         }
         $title = (string) get_the_title($article);
         $html = wordpress_web_render((string) $article->post_content);
-        wordpress_web_response(200, 'text/html; charset=utf-8', wordpress_web_page($title, $html, true));
+        wordpress_web_response(200, 'text/html; charset=utf-8', wordpress_web_page($title, $html, true, $post_id === 1004));
         return;
     }
 
     $document = $document ?? '<!-- wp:site-title /--><!-- wp:site-tagline /-->'
         . '<!-- wp:heading --><h2 class="wp-block-heading">Latest posts</h2><!-- /wp:heading -->'
-        . '<!-- wp:latest-posts {"postsToShow":3} /-->';
+        . '<!-- wp:latest-posts {"postsToShow":4} /-->';
     $title = (string) get_bloginfo('name');
     wordpress_web_response(200, 'text/html; charset=utf-8', wordpress_web_page($title, wordpress_web_render($document), false));
 }
 
 $web_path = explode('?', (string) ($_SERVER['REQUEST_URI'] ?? '/'))[0];
 $web_method = (string) ($_SERVER['REQUEST_METHOD'] ?? 'GET');
-if ($web_path !== '/' && $web_path !== '/index.php') {
+$web_asset_type = match ($web_path) {
+    '/wp-includes/css/dist/block-library/style.min.css' => 'text/css; charset=utf-8',
+    '/wp-includes/images/w-logo-blue.png' => 'image/png',
+    default => '',
+};
+if ($web_path !== '/' && $web_path !== '/index.php' && $web_asset_type === '') {
     wordpress_web_response(404, 'text/plain; charset=utf-8', "Not Found\n");
     return;
 }
 if ($web_method !== 'GET' && $web_method !== 'HEAD') {
     header('Allow: GET, HEAD');
     wordpress_web_response(405, 'text/plain; charset=utf-8', "Method Not Allowed\n");
+    return;
+}
+if ($web_asset_type !== '') {
+    wordpress_web_response(200, $web_asset_type, (string) file_get_contents(__DIR__ . '/wordpress' . $web_path));
     return;
 }
 

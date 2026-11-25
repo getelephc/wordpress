@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "verified_at": "2026-11-24T22:38:09.338978+00:00",
+  "verified_at": "2026-11-25T18:25:09.464799+00:00",
   "wordpress_version": "7.1.4",
   "archive_sha256": "881e53a4681ff2cd911651b11cccdede5ae477ddf0765af5d6a1a8b219a1d835",
   "original_files": 3782,
@@ -19564,9 +19564,9 @@
     "php_subprocess_serving": false,
     "source_manifest_sha256": "22837b12a147e6e3ae01a5723370202d02b193e960bf5788651e253a33b8b567",
     "compiler_sha256": "5017cabe244cfe49dc7af7620218bc422a2143c115fd398ea5f8f727864a23cc",
-    "native_sha256": "c0d62eacb94af5756fe99bc7cb365c375d88f9ff114122dd1284771d16493395",
-    "entry_sha256": "84b5fc508b29942e449633b6df01c300e376d9f90f39eaabb975e1202e10351e",
-    "harness_sha256": "75e818fd042e41030c980f3faaf3a23d9da18353677951a3752786a6b3e940a6",
+    "native_sha256": "88a2186f9ee4386c853a5a2289c1d6b7640dff83c9b8b0afc0be909e3731509c",
+    "entry_sha256": "b4e8c8f31fa8d23b572a50989a79fddd3185544dbe822210c97516a30e8e90ff",
+    "harness_sha256": "6dcb408ad607c366f3d859ebb7fcb80490174f634e69181b021feba424c8960e",
     "build_driver_sha256": "9be1c4e7a78c0ca73d992a29ee48eb6a3eb8f3e6c1ff00a92eb148899b082a95",
     "runtime_diagnostics_clean": true,
     "cases_sha256": "f8424678df2b991edaa47fcca327625c394b6c3aaf1b4a99b57bb692ed94fc09",
@@ -19574,10 +19574,16 @@
     "workers": 1,
     "requests": [
       {
+        "case": "post-1004",
+        "status": 200,
+        "matches_original_php": true,
+        "html_sha256": "32e99c5fe97dabb2812b075fc8679db24413a614585332b6b7703fb2afb9c3dd"
+      },
+      {
         "case": "default",
         "status": 200,
         "matches_original_php": true,
-        "html_sha256": "7b5055ae6a0929cef0263534ee873673252a0c53f33672a08d7b999be7c5fbc3"
+        "html_sha256": "c2d1ad1831ba42e3b30d7557b502e2e10c0a4e61be6dd9a55129af1039f20c80"
       },
       {
         "case": "empty",
@@ -19613,25 +19619,25 @@
         "case": "post-1003",
         "status": 200,
         "matches_original_php": true,
-        "html_sha256": "db0dc0b7b655f6cdeda663df52e9cc6325a594ff3dabbdc214e204bb86c04316"
+        "html_sha256": "2507d85775602f8b18a15f323e61c46c96c1fa81360f183956212f69d7696c1e"
       },
       {
         "case": "post-1002",
         "status": 200,
         "matches_original_php": true,
-        "html_sha256": "d549c6b1596656bd5eb89d00e9d82040aa7a9a49faec17736c2fcc9e71a936f2"
+        "html_sha256": "9e0a43c86a47fbcd957ebc3c592996adf98d60650c4e640dfe11412ecf611f5f"
       },
       {
         "case": "post-1001",
         "status": 200,
         "matches_original_php": true,
-        "html_sha256": "34bfc17447f95e3ac9562152e2ea3229d11163b15ce22c4d7fba697e21dc381b"
+        "html_sha256": "6461d9674cc025df69d8359ac05c2370847c040993c60efaa4732b4379d51585"
       },
       {
         "case": "default",
         "status": 200,
         "matches_original_php": true,
-        "html_sha256": "7b5055ae6a0929cef0263534ee873673252a0c53f33672a08d7b999be7c5fbc3"
+        "html_sha256": "c2d1ad1831ba42e3b30d7557b502e2e10c0a4e61be6dd9a55129af1039f20c80"
       },
       {
         "case": "nested-unicode",
@@ -19649,7 +19655,7 @@
         "case": "default",
         "status": 200,
         "matches_original_php": true,
-        "html_sha256": "7b5055ae6a0929cef0263534ee873673252a0c53f33672a08d7b999be7c5fbc3"
+        "html_sha256": "c2d1ad1831ba42e3b30d7557b502e2e10c0a4e61be6dd9a55129af1039f20c80"
       },
       {
         "path": "/",
@@ -19685,9 +19691,293 @@
         "path": "/?p=1001&document=",
         "method": "GET",
         "status": 400
+      },
+      {
+        "path": "/wp-includes/css/dist/block-library/style.min.css",
+        "status": 200,
+        "matches_original_php": true,
+        "asset_sha256": "222ca4216c4f17530a03bf9701410b689d7d9c953c8ddcc9d4e8722d69c348aa"
+      },
+      {
+        "path": "/wp-includes/images/w-logo-blue.png",
+        "status": 200,
+        "matches_original_php": true,
+        "asset_sha256": "a8c9355719e180f67753c823b87c29f40e21df91c20b44eb92d4cb36ef575d09"
       }
     ],
     "cli_native_also_verified": true,
+    "complex_post": {
+      "normalized_html_matches": true,
+      "raw_html_matches": true,
+      "blocks": [
+        {
+          "index": 1,
+          "stock_php": {
+            "name": "core/columns",
+            "depth": 0,
+            "sha256": "cc077b420d12d43a0ebbb230ba5628a051dd3fa7a424d22874a11180d0306f65"
+          },
+          "native": {
+            "name": "core/columns",
+            "depth": 0,
+            "sha256": "cc077b420d12d43a0ebbb230ba5628a051dd3fa7a424d22874a11180d0306f65"
+          },
+          "matches": true
+        },
+        {
+          "index": 2,
+          "stock_php": {
+            "name": "core/column",
+            "depth": 1,
+            "sha256": "133d93d012061e97f5b2fdf492efe59a8af333c93145492a1397b13f9f1cb35d"
+          },
+          "native": {
+            "name": "core/column",
+            "depth": 1,
+            "sha256": "133d93d012061e97f5b2fdf492efe59a8af333c93145492a1397b13f9f1cb35d"
+          },
+          "matches": true
+        },
+        {
+          "index": 3,
+          "stock_php": {
+            "name": "core/paragraph",
+            "depth": 2,
+            "sha256": "4a4ae14ca725bd0780acbb43b37730405386aa0729acf2a96676fef9cae78c45"
+          },
+          "native": {
+            "name": "core/paragraph",
+            "depth": 2,
+            "sha256": "4a4ae14ca725bd0780acbb43b37730405386aa0729acf2a96676fef9cae78c45"
+          },
+          "matches": true
+        },
+        {
+          "index": 4,
+          "stock_php": {
+            "name": "core/column",
+            "depth": 1,
+            "sha256": "fa226011a85c0980003c0e5c74ad960a491e77502355340ef84fa9e64e35eff8"
+          },
+          "native": {
+            "name": "core/column",
+            "depth": 1,
+            "sha256": "fa226011a85c0980003c0e5c74ad960a491e77502355340ef84fa9e64e35eff8"
+          },
+          "matches": true
+        },
+        {
+          "index": 5,
+          "stock_php": {
+            "name": "core/columns",
+            "depth": 2,
+            "sha256": "2e05671dc2c6b572beff8b1123493d2d14d80f0e08b494eea3c66c4c295bd676"
+          },
+          "native": {
+            "name": "core/columns",
+            "depth": 2,
+            "sha256": "2e05671dc2c6b572beff8b1123493d2d14d80f0e08b494eea3c66c4c295bd676"
+          },
+          "matches": true
+        },
+        {
+          "index": 6,
+          "stock_php": {
+            "name": "core/column",
+            "depth": 3,
+            "sha256": "68f6c363cb5211de7420d9a117a7e1f1e4315138503dabe80ad9a9350cc97eef"
+          },
+          "native": {
+            "name": "core/column",
+            "depth": 3,
+            "sha256": "68f6c363cb5211de7420d9a117a7e1f1e4315138503dabe80ad9a9350cc97eef"
+          },
+          "matches": true
+        },
+        {
+          "index": 7,
+          "stock_php": {
+            "name": "core/paragraph",
+            "depth": 4,
+            "sha256": "6afe32da5ccdc95b335683f2d76f5197950e272df001f7e39b72e6219fb534b3"
+          },
+          "native": {
+            "name": "core/paragraph",
+            "depth": 4,
+            "sha256": "6afe32da5ccdc95b335683f2d76f5197950e272df001f7e39b72e6219fb534b3"
+          },
+          "matches": true
+        },
+        {
+          "index": 8,
+          "stock_php": {
+            "name": "core/column",
+            "depth": 3,
+            "sha256": "3eac1d23ba7823986e7390b7265c5eaeb0204e9861312ec663b38339379306ad"
+          },
+          "native": {
+            "name": "core/column",
+            "depth": 3,
+            "sha256": "3eac1d23ba7823986e7390b7265c5eaeb0204e9861312ec663b38339379306ad"
+          },
+          "matches": true
+        },
+        {
+          "index": 9,
+          "stock_php": {
+            "name": "core/heading",
+            "depth": 4,
+            "sha256": "5f29211c4d5b09845a9f88373402fca75c646e6234e03a6230434a7887ffb0db"
+          },
+          "native": {
+            "name": "core/heading",
+            "depth": 4,
+            "sha256": "5f29211c4d5b09845a9f88373402fca75c646e6234e03a6230434a7887ffb0db"
+          },
+          "matches": true
+        },
+        {
+          "index": 10,
+          "stock_php": {
+            "name": "core/list",
+            "depth": 4,
+            "sha256": "dfbe9eca8336e977484a796a2148f56dd0bf445ea549a9a345c74e5578dbab22"
+          },
+          "native": {
+            "name": "core/list",
+            "depth": 4,
+            "sha256": "dfbe9eca8336e977484a796a2148f56dd0bf445ea549a9a345c74e5578dbab22"
+          },
+          "matches": true
+        },
+        {
+          "index": 11,
+          "stock_php": {
+            "name": "core/list-item",
+            "depth": 5,
+            "sha256": "5f61052b16925038fe9523db1dd7067ec4a555fdac514d40af19be172517f8fd"
+          },
+          "native": {
+            "name": "core/list-item",
+            "depth": 5,
+            "sha256": "5f61052b16925038fe9523db1dd7067ec4a555fdac514d40af19be172517f8fd"
+          },
+          "matches": true
+        },
+        {
+          "index": 12,
+          "stock_php": {
+            "name": "core/list-item",
+            "depth": 5,
+            "sha256": "92feebe7f779a95ad581e434d889f60daa3d59f068e5ca924bbd194779b6793c"
+          },
+          "native": {
+            "name": "core/list-item",
+            "depth": 5,
+            "sha256": "92feebe7f779a95ad581e434d889f60daa3d59f068e5ca924bbd194779b6793c"
+          },
+          "matches": true
+        },
+        {
+          "index": 13,
+          "stock_php": {
+            "name": "core/column",
+            "depth": 1,
+            "sha256": "a0e3527690e757e1608abe4a4cd47156c866a9849191540931ecd499fc7b54b8"
+          },
+          "native": {
+            "name": "core/column",
+            "depth": 1,
+            "sha256": "a0e3527690e757e1608abe4a4cd47156c866a9849191540931ecd499fc7b54b8"
+          },
+          "matches": true
+        },
+        {
+          "index": 14,
+          "stock_php": {
+            "name": "core/paragraph",
+            "depth": 2,
+            "sha256": "00bddead4cab3f7e7d184e9ad83747f28957dbe47499bb685c5fda7c8a2128e0"
+          },
+          "native": {
+            "name": "core/paragraph",
+            "depth": 2,
+            "sha256": "00bddead4cab3f7e7d184e9ad83747f28957dbe47499bb685c5fda7c8a2128e0"
+          },
+          "matches": true
+        },
+        {
+          "index": 15,
+          "stock_php": {
+            "name": "core/image",
+            "depth": 0,
+            "sha256": "fd1269b621e562d009863ba88fed5e3208c257d26f30dfcf97fcd4743a22e4b3"
+          },
+          "native": {
+            "name": "core/image",
+            "depth": 0,
+            "sha256": "fd1269b621e562d009863ba88fed5e3208c257d26f30dfcf97fcd4743a22e4b3"
+          },
+          "matches": true
+        },
+        {
+          "index": 16,
+          "stock_php": {
+            "name": "core/quote",
+            "depth": 0,
+            "sha256": "6a11b0e0ea67481002e20d4c8a832866837b0be32a6e9b021e39a2be8d0338ac"
+          },
+          "native": {
+            "name": "core/quote",
+            "depth": 0,
+            "sha256": "6a11b0e0ea67481002e20d4c8a832866837b0be32a6e9b021e39a2be8d0338ac"
+          },
+          "matches": true
+        },
+        {
+          "index": 17,
+          "stock_php": {
+            "name": "core/paragraph",
+            "depth": 1,
+            "sha256": "6c94c40eabc1e0ec9c05e70b7550879766d8072e4c52308d65d6e62e2800ce43"
+          },
+          "native": {
+            "name": "core/paragraph",
+            "depth": 1,
+            "sha256": "6c94c40eabc1e0ec9c05e70b7550879766d8072e4c52308d65d6e62e2800ce43"
+          },
+          "matches": true
+        },
+        {
+          "index": 18,
+          "stock_php": {
+            "name": "core/separator",
+            "depth": 0,
+            "sha256": "02cad2381f5dd4835f038a2d16fe16242bf53bd4407175b75177c2c6dbd4957f"
+          },
+          "native": {
+            "name": "core/separator",
+            "depth": 0,
+            "sha256": "02cad2381f5dd4835f038a2d16fe16242bf53bd4407175b75177c2c6dbd4957f"
+          },
+          "matches": true
+        }
+      ],
+      "screenshots": [
+        {
+          "width": 390,
+          "height": 1320,
+          "different_pixels": 0,
+          "diff": "pixel-diff-390.png"
+        },
+        {
+          "width": 1280,
+          "height": 1200,
+          "different_pixels": 0,
+          "diff": "pixel-diff-1280.png"
+        }
+      ]
+    },
     "note": "Live HTML rendered by the original WordPress bootstrap and SQLite-backed post APIs inside native HTTP requests.",
     "compiler": {
       "compiler_patch": "patches/compiler/wordpress-web.patch",
@@ -19846,8 +20136,8 @@
         }
       }
     },
-    "verified_at": "2026-11-24T22:38:09.338978+00:00",
-    "build_seconds": 2171.4399012179965,
+    "verified_at": "2026-11-25T18:25:09.464799+00:00",
+    "build_seconds": 2588.1330018559966,
     "compiler_arguments": [
       "--php-version",
       "8.4",
@@ -19862,18 +20152,18 @@
       "sodium",
       "bootstrap-web.php"
     ],
-    "native_bytes": 2217940392,
+    "native_bytes": 2218112456,
     "linker": {
-      "original_object_bytes": 4158535696,
-      "object_code_bytes": 2074977357,
-      "allocated_contents_sha256": "19c2e5a5abd014daf71e252196dce8a3a2d65e2bf94fc54cf1a3ee8dcb68c98a",
-      "placed_allocated_contents_sha256": "19c2e5a5abd014daf71e252196dce8a3a2d65e2bf94fc54cf1a3ee8dcb68c98a",
+      "original_object_bytes": 4158858240,
+      "object_code_bytes": 2075148589,
+      "allocated_contents_sha256": "4e1a6387e1d5e620a969e57c368d308b55d4bb7a02df8700be0274ad09b64e14",
+      "placed_allocated_contents_sha256": "4e1a6387e1d5e620a969e57c368d308b55d4bb7a02df8700be0274ad09b64e14",
       "function_folding": false,
       "attempts": [
         {
           "attempt": 1,
           "exit": 1,
-          "relocation_errors": 3303,
+          "relocation_errors": 3304,
           "moved_sections": 291
         },
         {
@@ -19891,8 +20181,8 @@
         {
           "attempt": 4,
           "exit": 1,
-          "relocation_errors": 62,
-          "moved_sections": 31
+          "relocation_errors": 63,
+          "moved_sections": 32
         },
         {
           "attempt": 5,
@@ -19904,7 +20194,7 @@
       "schema": 1,
       "verified": true,
       "source_manifest_sha256": "22837b12a147e6e3ae01a5723370202d02b193e960bf5788651e253a33b8b567",
-      "web_entry_sha256": "84b5fc508b29942e449633b6df01c300e376d9f90f39eaabb975e1202e10351e",
+      "web_entry_sha256": "b4e8c8f31fa8d23b572a50989a79fddd3185544dbe822210c97516a30e8e90ff",
       "compiler_base": "f20729406216d21ce99841cf4636b771db9874dd",
       "compiler_patches": {
         "patches/compiler/wordpress-main.patch": "56d32d2e2293e10176da0b8eddd8d207077c4461f3752fcbd4b0d4de5b0844bb",
@@ -19913,13 +20203,66 @@
       "compiler_patched_files": 69,
       "compiler_source_files_sha256": "014311e11bef76946f49a03ff69c908f406bd8ee325c5080bf36453ed212ffef",
       "source_export_removed": true,
-      "note": "The source export rebuilt the same WordPress inventory and passed all nine English stock-PHP pages. Both compiler patch revisions apply to the pinned source. Only two regression test files differ between the SDK patch revisions.",
+      "note": "A fresh maintained-source export reproduced the prepared WordPress inventory and passed all ten stock-PHP web pages. The compiler patches match the independently reconstructed SDK sources.",
       "original_php_web_reference_verified": true,
       "compiler_test_files_changed": [
         "tests/codegen/oop/interfaces.rs",
         "tests/web_tests.rs"
-      ]
-    }
+      ],
+      "stock_php_pages": 10
+    },
+    "stock_php_source_footprint": {
+      "phpdbg": "phpdbg 8.6.0, PHP 8.6.0 (phpdbg) (built: Nov 25 2026 11:36:48) (NTS)",
+      "original_php_lines": 635648,
+      "original_php_files": 1512,
+      "cases": {
+        "default": {
+          "lines": 12130,
+          "files": 498
+        },
+        "empty": {
+          "lines": 7978,
+          "files": 496
+        },
+        "nested-unicode": {
+          "lines": 11517,
+          "files": 498
+        },
+        "dynamic-title": {
+          "lines": 9540,
+          "files": 498
+        },
+        "video-shortcode": {
+          "lines": 9478,
+          "files": 498
+        },
+        "navigation-names": {
+          "lines": 11983,
+          "files": 498
+        },
+        "post-1004": {
+          "lines": 12055,
+          "files": 498
+        },
+        "post-1003": {
+          "lines": 11692,
+          "files": 498
+        },
+        "post-1002": {
+          "lines": 11627,
+          "files": 498
+        },
+        "post-1001": {
+          "lines": 9624,
+          "files": 498
+        }
+      },
+      "combined_lines": 13264,
+      "combined_files": 498,
+      "trace_body_matches_stock_php_http": true
+    },
+    "stock_php_prepared_tree_matches": true,
+    "complex_post_serialized_sha256": "b5c01993577e3919bc9eff63ce252c8e251b5e4ff27d56adefe0bd4bd3e44ff6"
   },
   "translated_fixture_controls": {
     "schema": 1,

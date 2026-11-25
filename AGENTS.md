@@ -14,7 +14,7 @@
   DDEV or Docker. The fixture uses isolated in-memory SQLite and must never
   connect to a shared database.
 - The verified targets are the native CLI bootstrap and bounded HTTP rendering
-  of the homepage, three seeded posts and five runtime documents. Use
+  of the homepage, four seeded posts and five runtime documents. Use
   `127.0.0.1:9000` for the local listener. Preserve request isolation and
   distinguish this entry from full theme routing, administration and
   persistent installations.

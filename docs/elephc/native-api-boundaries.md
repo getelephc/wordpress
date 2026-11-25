@@ -8,7 +8,7 @@ continues to call real PHP functions. Optional capability guards inspect the
 original API names and do not advertise unavailable features.
 
 The verified targets are the isolated native CLI bootstrap and bounded native
-HTTP rendering of the homepage, three seeded posts and five runtime documents.
+HTTP rendering of the homepage, four seeded posts and five runtime documents.
 The HTTP entry uses the original initialization, Latest Posts block and post and
 content APIs with request isolation. Full theme request dispatch, administration,
 authentication, arbitrary plugins, persistent storage and network requests remain
