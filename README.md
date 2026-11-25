@@ -36,6 +36,8 @@
 > full WordPress site, including theme routing and administration, is outside
 > the current profile.
 
+![The first demo post rendered by WordPress on Elephc](docs/elephc/wordpress-demo.jpg)
+
 ## Current status
 
 - The pinned WordPress 7.1.4 archive contains 3,782 original files, including
